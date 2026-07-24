@@ -1,12 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  LEGACY_PATIENT_TAB_REDIRECTS,
-  PATIENT_DETAIL_TAB_VALUES,
-  PATIENT_RECORDS_SUB_TABS,
-  PatientDetailTabs,
-} from "./PatientDetailTabs";
+import { LEGACY_PATIENT_TAB_REDIRECTS, PATIENT_DETAIL_TAB_VALUES, PATIENT_RECORDS_SUB_TABS, PatientDetailTabs } from "./PatientDetailTabs";
 
 const mocks = vi.hoisted(() => ({
   router: { replace: vi.fn(), push: vi.fn() },
@@ -45,6 +40,31 @@ vi.mock("./patient-clinical-chart-summary", () => ({
 
 vi.mock("@/hooks/use-permissions", () => ({
   usePermissions: () => ({ canViewInvoices: true }),
+}));
+
+// English literal map mirroring the Patients.tabs JSON keys the
+// component uses, so test assertions on hardcoded English still match
+// after the i18n refactor.
+const patientTabsCopy: Record<string, string> = {
+  sections: "Sections",
+  patientDetailAria: "Patient detail",
+  patientSectionsAria: "Patient sections",
+  recordsSubSectionsAria: "Records sub-sections",
+  summary: "Summary",
+  visits: "Visits",
+  records: "Records",
+  billing: "Billing",
+  messages: "Messages",
+  history: "History & allergies",
+  vitals: "Vitals",
+  prescriptions: "Prescriptions",
+  labs: "Labs",
+  documents: "Documents",
+  referrals: "Referrals",
+};
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => patientTabsCopy[key] ?? key,
 }));
 
 const baseProps = {

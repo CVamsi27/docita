@@ -3,7 +3,8 @@ import {
   DOCTOR_PERSISTENCE_PORT,
   type DoctorPersistencePort,
 } from '@/domains/doctors/application/ports/doctor-persistence.port';
-import { Role, Specialization, HospitalRole } from '@workspace/db';
+import { Role, HospitalRole } from '@workspace/db';
+import { ACTIVE_SPECIALIZATIONS } from '@workspace/types';
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
@@ -234,7 +235,11 @@ export class DoctorsQueryService {
   }
 
   getAvailableSpecializations() {
-    return Object.values(Specialization).map((spec: string) => ({
+    // Source the picker from the active set (packages/types), not the full
+    // Prisma enum. The full enum still contains legacy Specialization values
+    // kept for existing records (schema is additive-only); those must not be
+    // offered as new selections. See merry-lobster audit G9.
+    return ACTIVE_SPECIALIZATIONS.map((spec: string) => ({
       value: spec,
       label: this.formatSpecializationLabel(spec),
     }));

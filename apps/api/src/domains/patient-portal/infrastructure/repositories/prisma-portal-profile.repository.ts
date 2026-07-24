@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { phoneMatchCandidates } from '@workspace/utils';
 import type {
   PatientProfile,
   PatientSummary,
@@ -60,7 +61,10 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
   async findPatientByPhone(phone: string) {
     return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
-        where: { phoneNumber: phone, deletedAt: null },
+        where: {
+          phoneNumber: { in: phoneMatchCandidates(phone) },
+          deletedAt: null,
+        },
       }),
     );
   }
@@ -70,7 +74,10 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
   ): Promise<PatientWithUser | null> {
     return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
-        where: { phoneNumber: phone, deletedAt: null },
+        where: {
+          phoneNumber: { in: phoneMatchCandidates(phone) },
+          deletedAt: null,
+        },
         include: { user: true },
       }),
     );

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   HelpCircle,
   Moon,
@@ -29,6 +30,7 @@ import { AskAiButton } from "@/components/ask-ai/ask-ai-button";
 import { HELP_NAV_ITEM } from "@/components/navigation/nav-config";
 import { useAppearanceStore } from "@/lib/stores/appearance-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
+import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 
 function TierDot({ color }: { color?: string }) {
   return (
@@ -66,6 +68,7 @@ function MoreMenuContent({
   onOpenCustomize,
 }: MoreMenuProps) {
   const pathname = usePathname();
+  const t = useTranslations("Nav");
   const { resolvedTheme, setTheme } = useTheme();
   const setAppearanceTheme = useAppearanceStore((s) => s.setTheme);
   const isDark = resolvedTheme === "dark";
@@ -98,7 +101,7 @@ function MoreMenuContent({
         <DropdownMenuItem asChild>
           <Link href="/settings" className="flex items-center">
             <Settings2 className="mr-2 h-4 w-4" />
-            Settings
+            {t("settings")}
             {isAdmin && pendingJoinRequestCount > 0 && (
               <span className="ml-auto h-2 w-2 rounded-full bg-destructive" />
             )}
@@ -116,7 +119,7 @@ function MoreMenuContent({
           )}
         >
           <HelpCircle className="mr-2 h-4 w-4" />
-          Help
+          {t("help")}
         </Link>
       </DropdownMenuItem>
     </>
@@ -343,6 +346,22 @@ export function AskAiSection({ collapsedRail }: { collapsedRail: boolean }) {
       )}
     >
       <AskAiButton collapsed={collapsedRail} />
+    </div>
+  );
+}
+
+/**
+ * Phase 6.4: language toggle in the sidebar footer. Pairs with the
+ * theme toggle (which lives inside the MoreMenu overflow) so users
+ * get both controls in the same scrollable footer.
+ */
+export function LanguageSection() {
+  return (
+    <div className="flex items-center justify-between gap-2 px-3 py-2">
+      <span className="text-sm font-medium text-muted-foreground">
+        Language
+      </span>
+      <LocaleSwitcher />
     </div>
   );
 }

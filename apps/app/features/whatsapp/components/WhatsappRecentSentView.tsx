@@ -5,6 +5,7 @@ import { useClinicRecentSentMessages } from "@workspace/data-access";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 const STATUS_BADGE_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   SENT: "default",
@@ -78,7 +79,7 @@ export function WhatsappRecentSentView() {
                 {msg.message}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {msg.type}
+                {humanizeUiLabel(msg.type)}
               </p>
             </div>
           </CardContent>

@@ -128,7 +128,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // jscpd:ignore-start
   matcher: [
     {
       source:
@@ -140,4 +139,3 @@ export const config = {
     },
   ],
 };
-// jscpd:ignore-end

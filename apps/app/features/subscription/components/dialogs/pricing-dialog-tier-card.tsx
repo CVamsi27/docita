@@ -2,19 +2,9 @@
 
 import { cn } from "@workspace/ui/lib/utils";
 import { type SupportedCurrency, Tier, type TierName } from "@workspace/types";
-import {
-  PRICING_DIALOG_TIER_BORDERS,
-  PRICING_DIALOG_TIER_ICONS,
-} from "@/features/subscription/config/pricing-config";
+import { PRICING_DIALOG_TIER_BORDERS, PRICING_DIALOG_TIER_ICONS } from "@/features/subscription/config/pricing-config";
 import { resolveTierMovement } from "./pricing-dialog-tier-card-helpers";
-import {
-  CurrentTierBadge,
-  TierActionButton,
-  TierCardHeader,
-  TierEstimateBlock,
-  TierFeatureList,
-  TierPriceBlock,
-} from "./pricing-dialog-tier-card-sections";
+import { CurrentTierBadge, TierActionButton, TierCardHeader, TierEstimateBlock, TierFeatureList, TierPriceBlock } from "./pricing-dialog-tier-card-sections";
 
 export function PricingDialogTierCard({
   tierName,

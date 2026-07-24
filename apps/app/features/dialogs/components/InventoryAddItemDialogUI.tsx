@@ -1,21 +1,9 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  inventoryAddItemFormSchema,
-  type InventoryAddItemFormValues,
-} from "@workspace/types";
-import { CRUDDialog, FormFieldGroup } from "@workspace/ui/components";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Input } from "@workspace/ui/components/form/input";
-import { DatePicker } from "@workspace/ui/components/form/date-picker";
-import { Form, FormControl, FormField } from "@workspace/ui/components/form/form";
+import { inventoryAddItemFormSchema, type InventoryAddItemFormValues } from "@workspace/types";
+import { FormControl, FormField, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { CRUDDialog, DatePicker, Form, FormFieldGroup } from "@workspace/ui/components";
 export type InventoryItemFormData = InventoryAddItemFormValues;
 
 export interface CategoryOption {

@@ -2,20 +2,8 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
-import { Switch } from "@workspace/ui/components/form/switch";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@workspace/ui/components/overlay/sheet";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import {
-  FIXED_NAV_HREFS,
-  type NavSection,
-  type NavSectionId,
-} from "@/components/navigation/nav-config";
+import { MicroLabel, Sheet, SheetContent, SheetHeader, SheetTitle, Switch, SymbolTooltip } from "@workspace/ui/components";
+import { FIXED_NAV_HREFS, type NavSection, type NavSectionId } from "@/components/navigation/nav-config";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 
 function getIconClasses(isActive: boolean) {

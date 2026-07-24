@@ -1,17 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardDescription,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
-  CategoryAvatar,
-  type CategoryAvatarTone,
-} from "@workspace/ui/components/indicators/category-avatar";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { Button, Card, CardDescription, CardTitle, MicroLabel } from "@workspace/ui/components";
+import { CategoryAvatar, type CategoryAvatarTone } from "@workspace/ui/components/indicators/category-avatar";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { cn } from "@workspace/ui/lib/utils";
 // Single source of truth for the wizard step count lives with the step list.
@@ -85,7 +76,10 @@ export function OnboardingStepHeader({
       <CategoryAvatar icon={icon} tone={tone} size="lg" className="mt-0.5" />
       <div className="min-w-0 space-y-1.5">
         <MicroLabel as="h2" className="text-primary">
-          {`Step ${stepNumber} of ${totalSteps} · ${eyebrow}`}
+          {/* Step count lives in the progress card above; keep it here only for
+              screen readers so the visible eyebrow isn't redundant. */}
+          <span className="sr-only">{`Step ${stepNumber} of ${totalSteps}: `}</span>
+          {eyebrow}
         </MicroLabel>
         <CardTitle className="text-[length:var(--fs-xl)] font-semibold tracking-tight sm:text-[length:var(--fs-2xl)]">
           {title}

@@ -37,6 +37,7 @@ export class DataRetentionScheduler {
       await this.archivalService.archiveWhatsappLogs(180);
       await this.archivalService.archiveAppointments(2);
       await this.processSoftDeletedRecords();
+      await this.processSoftDeletedUsers();
     } catch (error) {
       this.logger.error(
         `Data retention check failed: ${this.formatError(
@@ -66,26 +67,75 @@ export class DataRetentionScheduler {
       }),
     );
 
-    const results = await Promise.allSettled(
-      recordsToDelete.map((patient) =>
-        this.anonymizePatient(patient.id, patient.clinicId),
+    if (recordsToDelete.length === 0) return;
+
+    // Batch the admin-user lookup once per distinct clinic so we don't
+    // issue one user.findFirst per anonymized patient.
+    const clinicIds = Array.from(
+      new Set(
+        recordsToDelete
+          .map((patient) => patient.clinicId)
+          .filter((id): id is string => Boolean(id)),
       ),
     );
+    const adminByClinic = await this.fetchAdminUsersByClinic(clinicIds);
+
+    const results = await Promise.allSettled(
+      recordsToDelete.map((patient) => {
+        const admin = patient.clinicId
+          ? adminByClinic.get(patient.clinicId)
+          : undefined;
+        return this.anonymizePatient(patient.id, patient.clinicId, admin?.id);
+      }),
+    );
+    this.logSweepOutcome(results, 'patient');
+  }
+
+  /**
+   * Single batched lookup of the earliest-created admin user per clinic.
+   * Replaces what would otherwise be one `user.findFirst` per anonymized
+   * patient in the compliance sweep.
+   */
+  private async fetchAdminUsersByClinic(
+    clinicIds: string[],
+  ): Promise<Map<string, { id: string }>> {
+    if (clinicIds.length === 0) return new Map();
+    // RLS-BYPASS: compliance retention spans tenants; users precede tenant bind.
+    const rows = await this.prisma.runUnrestricted(async () =>
+      this.prisma.user.findMany({
+        where: { clinicId: { in: clinicIds } },
+        select: { id: true, clinicId: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+    );
+    const earliest = new Map<string, { id: string }>();
+    for (const row of rows) {
+      if (!row.clinicId) continue;
+      if (!earliest.has(row.clinicId)) earliest.set(row.clinicId, row);
+    }
+    return earliest;
+  }
+
+  /** Shared success/failure logging for a retention anonymization sweep. */
+  private logSweepOutcome(
+    results: PromiseSettledResult<void>[],
+    label: 'patient' | 'user',
+  ): void {
     const successCount = results.filter((r) => r.status === 'fulfilled').length;
     const failureCount = results.filter((r) => r.status === 'rejected').length;
     if (successCount > 0) {
       this.logger.log(
-        `Permanently anonymized ${successCount} soft-deleted patient(s)`,
+        `Permanently anonymized ${successCount} soft-deleted ${label}(s)`,
       );
     }
     if (failureCount > 0) {
       this.logger.warn(
-        `Failed to anonymize ${failureCount} soft-deleted patient(s)`,
+        `Failed to anonymize ${failureCount} soft-deleted ${label}(s)`,
       );
       for (const result of results) {
         if (result.status === 'rejected') {
           this.logger.error(
-            `Failed to anonymize patient: ${this.formatError(
+            `Failed to anonymize ${label}: ${this.formatError(
               result.reason instanceof Error
                 ? result.reason
                 : String(result.reason),
@@ -96,12 +146,69 @@ export class DataRetentionScheduler {
     }
   }
 
+  private async processSoftDeletedUsers() {
+    const thirtyDaysAgo = this.clock.now();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // RLS-BYPASS: compliance retention spans tenants; users precede tenant bind.
+    const usersToAnonymize = await this.prisma.runUnrestricted(async () =>
+      this.prisma.user.findMany({
+        where: {
+          deletedAt: { lt: thirtyDaysAgo },
+          NOT: { email: { endsWith: '@anonymized.local' } },
+        },
+        select: { id: true, clinicId: true },
+        take: 100,
+      }),
+    );
+
+    const results = await Promise.allSettled(
+      usersToAnonymize.map((user) =>
+        this.anonymizeUser(user.id, user.clinicId),
+      ),
+    );
+    this.logSweepOutcome(results, 'user');
+  }
+
+  private async anonymizeUser(
+    userId: string,
+    clinicId: string | null,
+  ): Promise<void> {
+    // RLS-BYPASS: compliance retention spans tenants; users precede tenant bind.
+    await this.prisma.runUnrestricted(async () => {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          name: 'Deleted User',
+          // cuid userId keeps this deterministic and collision-free (email unique).
+          email: `deleted-${userId}@anonymized.local`,
+          phoneNumber: null,
+          mfaSecret: null,
+          appLoginDisabled: true,
+        },
+      });
+
+      if (clinicId) {
+        await this.auditService.logAction({
+          userId,
+          clinicId,
+          actionType: 'DATA_RETENTION_ANONYMIZATION',
+          resourceType: 'User',
+          resourceId: userId,
+          metadata: {
+            reason:
+              'Retention Policy (Staff Account Deletion / Soft Delete Expiry)',
+          },
+        });
+      }
+    });
+  }
+
   private async anonymizePatient(
     patientId: string,
     clinicId: string,
+    adminUserId?: string,
   ): Promise<void> {
-    const randomId = `ANON-${this.clock.now().getTime()}`;
-
     // RLS-BYPASS: compliance retention and archival jobs span tenants by design
     await this.prisma.runUnrestricted(async () => {
       await this.prisma.patient.update({
@@ -109,7 +216,7 @@ export class DataRetentionScheduler {
         data: {
           firstName: 'Anonymous',
           lastName: 'Patient',
-          email: `${randomId}@anonymized.local`,
+          email: `anon-${patientId}@anonymized.local`,
           phoneNumber: '0000000000',
           address: null,
           dateOfBirth: new Date('1900-01-01'),
@@ -119,15 +226,10 @@ export class DataRetentionScheduler {
         },
       });
 
-      const adminUser = await this.prisma.user.findFirst({
-        where: { clinicId },
-        select: { id: true },
-        orderBy: { createdAt: 'asc' },
-      });
-
-      if (adminUser) {
+      // Admin user id is passed in by the caller (batched lookup).
+      if (adminUserId) {
         await this.auditService.logAction({
-          userId: adminUser.id,
+          userId: adminUserId,
           clinicId,
           actionType: 'DATA_RETENTION_ANONYMIZATION',
           resourceType: 'Patient',

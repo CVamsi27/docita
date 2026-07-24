@@ -23,6 +23,20 @@ export const taxInvoiceTypeSchema = z.enum([
 ]);
 export type TaxInvoiceType = z.infer<typeof taxInvoiceTypeSchema>;
 
+/** Human-readable labels for {@link TaxInvoiceType} — never surface the raw enum in the UI. */
+export const TAX_INVOICE_TYPE_LABELS: Record<TaxInvoiceType, string> = {
+  TAX_INVOICE: "Tax Invoice",
+  BILL_OF_SUPPLY: "Bill of Supply",
+  RECEIPT: "Receipt",
+  LEGACY: "Invoice",
+};
+
+/** Humanize a tax invoice type for display; falls back to "Invoice" for unknown values. */
+export function formatTaxInvoiceType(type?: string | null): string {
+  if (!type) return "Invoice";
+  return TAX_INVOICE_TYPE_LABELS[type as TaxInvoiceType] ?? "Invoice";
+}
+
 export const taxTreatmentSchema = z.enum([
   "TAXABLE",
   "EXEMPT_HEALTHCARE",

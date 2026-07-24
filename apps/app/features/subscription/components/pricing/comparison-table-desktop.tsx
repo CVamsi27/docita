@@ -2,15 +2,8 @@
 
 // jscpd:ignore-start
 import { Info } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Badge } from "@workspace/ui/components";
 import {
   SymbolTooltip,
 // jscpd:ignore-end
@@ -19,19 +12,10 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  getTierInfo,
-  Tier,
-  type FeatureComparisonRow,
-} from "@/lib/subscription/tier-access";
+import { getTierInfo, Tier, type FeatureComparisonRow } from "@/lib/subscription/tier-access";
 import { FEATURE_TIER_MAP } from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
-import {
-  LIMIT_ROW_DESCRIPTIONS,
-  FeatureCategoryRows,
-  isLimitRowBlockedInMode,
-  SectionHeader,
-} from "./comparison-table-helpers";
+import { LIMIT_ROW_DESCRIPTIONS, FeatureCategoryRows, isLimitRowBlockedInMode, SectionHeader } from "./comparison-table-helpers";
 import type { FEATURE_CATEGORIES } from "./comparison-table-helpers";
 import type { PlanMode } from "@workspace/types";
 

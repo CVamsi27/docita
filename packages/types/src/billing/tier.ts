@@ -220,9 +220,12 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.DIGITAL_INTAKE_FORMS]: Tier.ESSENTIAL,
   [Feature.OCR_ADVANCED]: Tier.ESSENTIAL,
   [Feature.ADVANCED_ANALYTICS]: Tier.ESSENTIAL,
-  [Feature.AI_PRESCRIPTION_ASSISTANT]: Tier.ESSENTIAL,
-  [Feature.AI_DIAGNOSIS_HINTS]: Tier.ESSENTIAL,
-  [Feature.SMART_TASK_ENGINE]: Tier.ESSENTIAL,
+  // Sold as paid Intelligence add-ons (see INTELLIGENCE_ADDONS). They MUST map
+  // to Tier.INTELLIGENCE so hasFeatureAccess routes through the `hasIntelligence`
+  // paywall instead of granting them to any ESSENTIAL+ clinic via `tier >= …`.
+  [Feature.AI_PRESCRIPTION_ASSISTANT]: Tier.INTELLIGENCE,
+  [Feature.AI_DIAGNOSIS_HINTS]: Tier.INTELLIGENCE,
+  [Feature.SMART_TASK_ENGINE]: Tier.INTELLIGENCE,
   [Feature.PREDICTIVE_NO_SHOW]: Tier.ESSENTIAL,
   [Feature.ANOMALY_DETECTION]: Tier.ESSENTIAL,
   [Feature.ABDM_INTEGRATION]: Tier.ESSENTIAL,
@@ -562,7 +565,7 @@ export const TIER_LIMITS: Record<TierName, TierLimits> = {
     prescriptions: 999999,
     invoices: 999999,
     ocrPages: 10000,
-    apiCallsPerDay: 10000,
+    apiCallsPerDay: 999999,
   },
   INTELLIGENCE: {
     patients: 999999,

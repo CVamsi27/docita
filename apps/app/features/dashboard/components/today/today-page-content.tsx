@@ -32,9 +32,8 @@ import {
   TodayErrorState,
   TodayLoadingState,
   TodayNewClinicEmptyState,
-  TodayPageHeader,
-  TodayWorkspaceLayout,
-} from "./today-page-content-sections";
+} from "./today-page-state-shells";
+import { TodayPageHeader, TodayWorkspaceLayout } from "./today-page-content-sections";
 
 export function TodayPageContent() {
   const { clinic } = useClinic();
@@ -133,7 +132,7 @@ export function TodayPageContent() {
       />
       <TodayBottomBarSection
         canStartConsultation={canStartConsultation}
-        hasNextPatient={!!nextPatients[0]}
+        nextPatient={nextPatients[0] ?? null}
         hasCurrentPatient={!!currentPatient}
         isStarting={startingNext}
         isMutationPending={isMutationPending}

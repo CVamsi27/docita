@@ -1,22 +1,8 @@
 // jscpd:ignore-start
-import { Button } from "@workspace/ui/components/form/button";
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Label } from "@workspace/ui/components";
 import type { MetricCategoryResponse } from "@workspace/types";
+import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { metricValueTypeSchema, type MetricValueType } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
@@ -46,6 +32,14 @@ interface MetricsConfigurationCardProps {
   onAddDefinition: () => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Patients > Metrics configuration card.
+ * 6 literals converted to useTranslations("Patients.metricsConfiguration").
+ */
+function useMetricsConfigTranslations() {
+  return useTranslations("Patients.metricsConfiguration");
+}
+
 export function MetricsConfigurationCard({
   categories,
   newCategoryKey,
@@ -69,24 +63,25 @@ export function MetricsConfigurationCard({
   onAddCategory,
   onAddDefinition,
 }: MetricsConfigurationCardProps) {
+  const t = useMetricsConfigTranslations();
   return (
     <Card className="mb-6">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Plus className="h-5 w-5 text-primary" />
-          Add Category / Custom Metric Field
+          {t("cardTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-6 md:grid-cols-2">
         <div className="space-y-3">
-          <Label className="text-sm">New Category</Label>
+          <Label className="text-sm">{t("newCategoryLabel")}</Label>
           <Input
-            placeholder="Category key"
+            placeholder={t("categoryKeyPlaceholder")}
             value={newCategoryKey}
             onChange={(event) => onNewCategoryKeyChange(event.target.value)}
           />
           <Input
-            placeholder="Category name"
+            placeholder={t("categoryNamePlaceholder")}
             value={newCategoryName}
             onChange={(event) => onNewCategoryNameChange(event.target.value)}
           />
@@ -95,18 +90,18 @@ export function MetricsConfigurationCard({
             disabled={createCategoryPending}
             type="button"
           >
-            Add Category
+            {t("addCategoryButton")}
           </Button>
         </div>
 
         <div className="space-y-3">
-          <Label className="text-sm">New Custom Metric Field</Label>
+          <Label className="text-sm">{t("newFieldLabel")}</Label>
           <Select
             value={definitionCategoryId}
             onValueChange={onDefinitionCategoryIdChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder={t("categoryPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {categories.map((category) => (
@@ -114,18 +109,18 @@ export function MetricsConfigurationCard({
                   key={category.id}
                   value={category.id}
                 >
-                  {category.name || "Unnamed Category"}
+                  {category.name || t("unnamedCategoryFallback")}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Input
-            placeholder="Field key"
+            placeholder={t("fieldKeyPlaceholder")}
             value={newDefinitionKey}
             onChange={(event) => onNewDefinitionKeyChange(event.target.value)}
           />
           <Input
-            placeholder="Field label"
+            placeholder={t("fieldLabelPlaceholder")}
             value={newDefinitionLabel}
             onChange={(event) => onNewDefinitionLabelChange(event.target.value)}
           />
@@ -140,17 +135,17 @@ export function MetricsConfigurationCard({
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Value type" />
+              <SelectValue placeholder={t("valueTypePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="TEXT">Text</SelectItem>
-              <SelectItem value="NUMBER">Number</SelectItem>
-              <SelectItem value="BOOLEAN">Boolean</SelectItem>
-              <SelectItem value="DATE">Date</SelectItem>
+              <SelectItem value="TEXT">{t("valueTypeText")}</SelectItem>
+              <SelectItem value="NUMBER">{t("valueTypeNumber")}</SelectItem>
+              <SelectItem value="BOOLEAN">{t("valueTypeBoolean")}</SelectItem>
+              <SelectItem value="DATE">{t("valueTypeDate")}</SelectItem>
             </SelectContent>
           </Select>
           <Input
-            placeholder="Unit"
+            placeholder={t("unitPlaceholder")}
             value={newDefinitionUnit}
             onChange={(event) => onNewDefinitionUnitChange(event.target.value)}
           />
@@ -161,14 +156,14 @@ export function MetricsConfigurationCard({
                 onNewDefinitionTrackedChange(Boolean(value))
               }
             />
-            Track by default
+            {t("trackByDefaultLabel")}
           </label>
           <Button
             onClick={onAddDefinition}
             disabled={createDefinitionPending}
             type="button"
           >
-            Add Custom Field
+            {t("addCustomFieldButton")}
           </Button>
         </div>
       </CardContent>

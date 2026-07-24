@@ -19,6 +19,7 @@ import {
   AlertDescription,
 } from "@workspace/ui/components/feedback/alert";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { useTranslations } from "next-intl";
 import type { ClinicWhatsappTemplate, ClinicWhatsappSentMessage } from "@workspace/types";
 
 const FAILED_STATUSES = new Set(["FAILED", "UNDELIVERED", "REJECTED"]);
@@ -31,6 +32,15 @@ function formatSentAt(value: string | Date): string {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+/**
+ * Phase 3 (per-feature): apps/app Patients > WhatsApp composer
+ * (2 sub-components: composer form + sent message history). 7 literals
+ * converted to useTranslations("Patients.whatsappComposer").
+ */
+function useWhatsappComposerTranslations() {
+  return useTranslations("Patients.whatsappComposer");
 }
 
 interface WhatsappComposerFormProps {
@@ -58,15 +68,16 @@ export function WhatsappComposerForm({
   isPending,
   onSend,
 }: WhatsappComposerFormProps) {
+  const t = useWhatsappComposerTranslations();
   return (
     <div className="ui-card-surface space-y-4 p-5">
       <div className="flex items-center gap-2">
         <MessageCircle className="h-4 w-4 text-primary" />
-        <h2 className="text-sm font-semibold">Send a WhatsApp message</h2>
+        <h2 className="text-sm font-semibold">{t("composerTitle")}</h2>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="whatsapp-template">Start from a template</Label>
+        <Label htmlFor="whatsapp-template">{t("templateLabel")}</Label>
         <Select
           value={selectedTemplateId}
           onValueChange={onSelectTemplate}
@@ -76,13 +87,13 @@ export function WhatsappComposerForm({
             <SelectValue
               placeholder={
                 templates.length === 0
-                  ? "No saved templates yet"
-                  : "Choose a template (optional)"
+                  ? t("noTemplatesPlaceholder")
+                  : t("templatePlaceholder")
               }
             />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__none__">No template</SelectItem>
+            <SelectItem value="__none__">{t("noTemplateOption")}</SelectItem>
             {templates.map((template) => (
               <SelectItem key={template.id} value={template.id}>
                 {template.name}
@@ -93,33 +104,31 @@ export function WhatsappComposerForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="whatsapp-message">Message</Label>
+        <Label htmlFor="whatsapp-message">{t("messageLabel")}</Label>
         <Textarea
           id="whatsapp-message"
           value={message}
           onChange={(event) => onMessageChange(event.target.value)}
-          placeholder="Enter message"
+          placeholder={t("messagePlaceholder")}
           rows={6}
           maxLength={MAX_LENGTH}
         />
         <p className="text-right text-xs text-muted-foreground">
-          {message.length}/{MAX_LENGTH}
+          {t("charCount", { count: message.length, max: MAX_LENGTH })}
         </p>
       </div>
 
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Free-text messages only deliver within 24 hours of the
-          patient&apos;s last reply. Outside that window, WhatsApp requires a
-          pre-approved template.
+          {t("freeTextWarning")}
         </AlertDescription>
       </Alert>
 
       <div className="flex justify-end">
         <Button onClick={() => void onSend()} disabled={!canSend}>
           <Send className="mr-2 h-4 w-4" />
-          {isPending ? "Sending…" : "Send message"}
+          {isPending ? t("sendingLabel") : t("sendButton")}
         </Button>
       </div>
     </div>
@@ -139,26 +148,30 @@ export function SentMessageHistory({
   isError,
   onRetry,
 }: SentMessageHistoryProps) {
+  const t = useWhatsappComposerTranslations();
   return (
     <div className="ui-card-surface space-y-3 p-5">
       <div className="flex items-center gap-2">
         <History className="h-4 w-4 text-primary" />
-        <h2 className="text-sm font-semibold">Sent messages</h2>
+        <h2 className="text-sm font-semibold">{t("historyTitle")}</h2>
       </div>
 
-      {isLoading ? (
-        <DataState status="loading" loadingMessage="Loading sent messages…" />
-      ) : isError ? (
-        <DataState
-          status="error"
-          errorMessage="We could not load sent messages."
-          onRetry={onRetry}
-        />
-      ) : messages.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No messages have been sent to this patient yet.
-        </p>
-      ) : (
+      <DataState
+        status={
+          isLoading
+            ? "loading"
+            : isError
+              ? "error"
+              : messages.length === 0
+                ? "empty"
+                : "success"
+        }
+        loadingMessage={t("historyLoadingLabel")}
+        errorMessage={t("historyErrorFallback")}
+        onRetry={onRetry}
+        emptyTitle={t("historyEmptyTitle")}
+        emptyDescription={t("historyEmptyDescription")}
+      >
         <ul className="space-y-2">
           {messages.map((entry) => (
             <li
@@ -186,7 +199,7 @@ export function SentMessageHistory({
             </li>
           ))}
         </ul>
-      )}
+      </DataState>
     </div>
   );
 }

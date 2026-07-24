@@ -3,20 +3,7 @@
 import { type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
-import {
-  AssessmentSection,
-  CardiologyExamSection,
-  DentalSpecialtySection,
-  DermatologyExamSection,
-  GrowthSpecialtySection,
-  GynecologyExamSection,
-  InvestigationsSection,
-  ObjectiveSection,
-  PlanSection,
-  PsychiatryExamSection,
-  SubjectiveSection,
-  VisionSpecialtySection,
-} from "@/features/consultation/workspace/sections";
+import { AssessmentSection, CardiologyExamSection, DentalSpecialtySection, DermatologyExamSection, GrowthSpecialtySection, GynecologyExamSection, InvestigationsSection, ObjectiveSection, PlanSection, PsychiatryExamSection, SubjectiveSection, VisionSpecialtySection } from "@/features/consultation/workspace/sections";
 import type {
   ConsultationSection,
   ConsultationWorkspaceSectionId,

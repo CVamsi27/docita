@@ -2,13 +2,7 @@
 
 // jscpd:ignore-start
 import { FC } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { AlertTriangle, CheckCircle2, FileText } from "lucide-react";
 
 export const LabResultsSummary: FC<{

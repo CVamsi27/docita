@@ -1,18 +1,9 @@
 "use client";
 
 import type { InternalBillingMetrics } from "@workspace/data-access/internal";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { getInternalTierBadgeClass } from "@/lib/tier-display";
-import {
-  formatBillingStatus,
-  getBillingStatusBadgeClass,
-} from "./billing-status";
+import { formatBillingStatus, getBillingStatusBadgeClass } from "./billing-status";
 
 interface BillingDistributionCardsProps {
   metrics: InternalBillingMetrics | null;

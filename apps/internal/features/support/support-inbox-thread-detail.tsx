@@ -4,11 +4,7 @@ import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import type { FormEvent } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { SupportWhatsAppMessage, SupportWhatsAppThreadSummary } from "@workspace/types";
-import {
-  SupportInboxMessagesSection,
-  SupportInboxReplyForm,
-  SupportInboxThreadHeader,
-} from "./support-inbox-thread-sections";
+import { SupportInboxMessagesSection, SupportInboxReplyForm, SupportInboxThreadHeader } from "./support-inbox-thread-sections";
 
 interface SupportInboxThreadDetailProps {
   selectedThread: SupportWhatsAppThreadSummary | null;

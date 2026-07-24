@@ -1,12 +1,6 @@
 "use client";
-// jscpd:ignore-start
 import Link from "next/link";
-import {
-  NotFoundContent,
-  notFoundPrimaryStyle,
-  notFoundSecondaryStyle,
-} from "@workspace/ui/components/feedback/not-found-content";
-// jscpd:ignore-end
+import { NotFoundContent, notFoundPrimaryStyle, notFoundSecondaryStyle } from "@workspace/ui/components/feedback/not-found-content";
 
 export default function NotFound() {
   return (

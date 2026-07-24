@@ -1,9 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import {
-  AskAiProvider,
-  useAskAi,
-} from "@/components/ask-ai/ask-ai-context";
+import { AskAiProvider, useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { SettingsAiChips } from "./settings-ai-chips";
 
 vi.mock("@/hooks/use-feature-flag", () => ({

@@ -2,16 +2,8 @@
 
 // jscpd:ignore-start
 import { Info, Trash2 } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Button, Label } from "@workspace/ui/components";
 import {
   SymbolTooltip,
 // jscpd:ignore-end
@@ -22,11 +14,7 @@ import {
 } from "@workspace/ui/components/overlay/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 import type { TeamMember } from "@/features/onboarding/components/types";
-import {
-  ROLE_OPTIONS,
-  isDoctorRole,
-  parseTeamMemberRole,
-} from "./team-invite-step-constants";
+import { ROLE_OPTIONS, isDoctorRole, parseTeamMemberRole } from "./team-invite-step-constants";
 
 export interface TeamMemberRowHeaderProps {
   member: TeamMember;

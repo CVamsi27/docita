@@ -78,8 +78,14 @@ export class RazorpayPaymentLinkAdapter
         shortUrl: link.short_url,
         status: this.mapStatus(link.status),
       };
-    } catch {
-      this.logger.warn(`Payment link ${linkId} not found`);
+    } catch (error) {
+      // Caller treats null as "not found / not yet available" — that
+      // contract is preserved. Log the real cause so non-404 failures
+      // (Razorpay 5xx, network, circuit-breaker open) are visible
+      // in observability instead of masquerading as a missing record.
+      this.logger.warn(
+        `Payment link ${linkId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }

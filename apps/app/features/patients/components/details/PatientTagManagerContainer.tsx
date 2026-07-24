@@ -3,13 +3,7 @@
 import { useEffect, useState } from "react";
 import { type PatientTag, PatientTagManagerUI } from "./PatientTagManagerUI";
 import { DEFAULT_TAG_COLOR_VAR } from "./tag-colors";
-import {
-  useClinicSettings,
-  useCreatePatientTag,
-  useDeletePatientTag,
-  usePatientTags,
-  useUpdatePatientTag,
-} from "@workspace/data-access";
+import { useClinicSettings, useCreatePatientTag, useDeletePatientTag, usePatientTags, useUpdatePatientTag } from "@workspace/data-access";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
 import { Feature } from "@workspace/types";

@@ -2,28 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import {
-  type WhatsappSenderConfigResponse,
-  whatsappSenderConfigResponseSchema,
-  type WhatsappSenderMode,
-} from "@workspace/types";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/overlay/dialog";
+import { type WhatsappSenderConfigResponse, whatsappSenderConfigResponseSchema, type WhatsappSenderMode } from "@workspace/types";
 import { client } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  WhatsappSenderActions,
-  WhatsappSenderByoFields,
-  WhatsappSenderError,
-  WhatsappSenderModeSelector,
-  WhatsappSenderStatus,
-  WhatsappSenderTrigger,
-} from "./whatsapp-sender-dialog-sections";
+import { WhatsappSenderActions, WhatsappSenderByoFields, WhatsappSenderError, WhatsappSenderModeSelector, WhatsappSenderStatus, WhatsappSenderTrigger } from "./whatsapp-sender-dialog-sections";
 
 type WhatsappSenderDialogProps = {
   clinicId: string;

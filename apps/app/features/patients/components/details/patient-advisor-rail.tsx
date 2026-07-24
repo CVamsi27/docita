@@ -2,11 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  RightRailCard,
-  RightRailCardStack,
-} from "@workspace/ui/components/data-display/right-rail-card";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button, RightRailCard, RightRailCardStack } from "@workspace/ui/components";
 import type { Patient } from "@workspace/types";
 import { useFeatureFlag } from "@/hooks/use-feature-flag";
 

@@ -4,25 +4,10 @@ import { Sparkles } from "lucide-react";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { resolveAskAiScopeFromPathname } from "@/components/ask-ai/resolve-ask-ai-scope-from-pathname";
 import type { AskAiScope } from "@/components/ask-ai/ask-ai-context";
-import {
-  COMMAND_PALETTE_GROUP_ACTIONS,
-  COMMAND_PALETTE_GROUP_AI,
-  COMMAND_PALETTE_GROUP_NAVIGATION,
-  QUICK_ACTIONS,
-  navItemIsAccessible,
-  quickActionRowIcon,
-} from "./command-palette-config";
+import { COMMAND_PALETTE_GROUP_ACTIONS, COMMAND_PALETTE_GROUP_AI, COMMAND_PALETTE_GROUP_NAVIGATION, QUICK_ACTIONS, navItemIsAccessible, quickActionRowIcon } from "./command-palette-config";
 import type { Feature, PlanMode, Tier } from "@workspace/types/billing";
 import type { UserRole } from "@workspace/types/shared";
-import {
-  AI_ASSISTANT_NAV_ITEM,
-  HELP_NAV_ITEM,
-  IPD_NAV_ITEM,
-  SETTINGS_NAV_ITEM,
-  navSections,
-  type NavItem,
-  type NavSection,
-} from "./nav-config";
+import { AI_ASSISTANT_NAV_ITEM, HELP_NAV_ITEM, IPD_NAV_ITEM, SETTINGS_NAV_ITEM, navSections, type NavItem, type NavSection } from "./nav-config";
 
 type Acl = {
   role: UserRole | undefined;

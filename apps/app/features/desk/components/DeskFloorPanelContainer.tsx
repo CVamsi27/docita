@@ -6,11 +6,7 @@ import { FeatureGate, TierGate } from "@/components/auth/feature-gate";
 
 import { useQueue } from "@workspace/data-access";
 import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
-import {
-  isQueueTokenCompleted,
-  isQueueTokenInProgress,
-  isQueueTokenWaiting,
-} from "@/lib/utils/queue-token-status";
+import { isQueueTokenCompleted, isQueueTokenInProgress, isQueueTokenWaiting } from "@/lib/utils/queue-token-status";
 import { DeskFloorPanelUI, type DeskFloorCurrent } from "./DeskFloorPanelUI";
 import { patientNameOf, recentSort, toRow, tokenSort } from "./desk-floor-panel-helpers";
 

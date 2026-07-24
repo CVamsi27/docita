@@ -6,23 +6,10 @@ import { toast } from "sonner";
 import { RefreshCw, RotateCcw } from "lucide-react";
 import { useQueue, useResetQueue } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  isQueueTokenCompleted,
-  isQueueTokenInProgress,
-  isQueueTokenWaiting,
-} from "@/lib/utils/queue-token-status";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { isQueueTokenCompleted, isQueueTokenInProgress, isQueueTokenWaiting } from "@/lib/utils/queue-token-status";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from "@workspace/ui/components";
 // jscpd:ignore-end
 import { ConfirmationDialog } from "@workspace/ui/components/overlay/confirmation-dialog";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 export const QueueLiveStatusPanel = () => {

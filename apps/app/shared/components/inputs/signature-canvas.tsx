@@ -1,13 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Card } from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button, Card } from "@workspace/ui/components";
 import { useSignaturePad } from "./use-signature-pad";
-import {
-  SignaturePadCanvas,
-  SignaturePadToolbar,
-} from "./signature-pad-sections";
+import { SignaturePadCanvas, SignaturePadToolbar } from "./signature-pad-sections";
 
 interface SignatureCanvasProps {
   onSave: (dataUrl: string) => void;

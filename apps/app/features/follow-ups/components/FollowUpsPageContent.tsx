@@ -5,9 +5,7 @@ import { getPatientFullName } from "@workspace/utils";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarCheck, Check, X } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+import { AppPageScaffold, Badge, Button, DataState, PageHeader, SegmentedControl } from "@workspace/ui/components";
 import {
   Card,
   CardContent,
@@ -15,23 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
-import { SegmentedControl } from "@workspace/ui/components/navigation/segmented-control";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import {
-  Feature,
-  type FollowUpResponse,
-} from "@workspace/types";
+import { Feature, type FollowUpResponse } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
-import {
-  type FollowUpListView,
-  getFollowUpListQuery,
-} from "@/features/follow-ups/lib/follow-up-list-query";
-import {
-  useCancelFollowUp,
-  useCompleteFollowUp,
-  useFollowUps,
-} from "@workspace/data-access";
+import { type FollowUpListView, getFollowUpListQuery } from "@/features/follow-ups/lib/follow-up-list-query";
+import { useCancelFollowUp, useCompleteFollowUp, useFollowUps } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { FOLLOW_UP_STATUS_LABELS as STATUS_LABELS } from "@/features/follow-ups/lib/follow-up-constants";

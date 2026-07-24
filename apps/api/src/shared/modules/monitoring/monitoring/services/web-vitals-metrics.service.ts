@@ -4,6 +4,7 @@ import { MetricType, Prisma } from '@workspace/db';
 import { WebVitalDto } from '@/shared/modules/monitoring/monitoring/dto/monitoring.dto';
 import { MetricsPersistenceService } from './metrics-persistence.service';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
 const CORE_WEB_VITAL_NAMES = ['LCP', 'INP', 'CLS', 'FCP', 'TTFB'] as const;
 type CoreWebVitalName = (typeof CORE_WEB_VITAL_NAMES)[number];
@@ -72,7 +73,7 @@ export class WebVitalsMetricsService {
     const vitals = await this.prisma.systemMetric.findMany({
       where,
       orderBy: { recordedAt: 'desc' },
-      take: 1000,
+      take: BULK_READ_LIMIT,
     });
 
     const filtered = vitals.filter(

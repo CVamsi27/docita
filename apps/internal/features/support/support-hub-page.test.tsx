@@ -12,6 +12,21 @@ vi.mock("./support-inquiries-section", () => ({
   SupportInquiriesSection: () => <div>Contact inquiries panel</div>,
 }));
 
+// English literal map mirroring the SupportHub JSON keys the
+// component uses, so test assertions on hardcoded English still match
+// after the i18n refactor.
+const supportHubCopy: Record<string, string> = {
+  pageTitle: "Support",
+  pageDescription: "WhatsApp conversations and contact form inquiries from the public site.",
+  tabWhatsapp: "WhatsApp",
+  tabInquiries: "Contact form",
+  tabAria: "Support channels",
+};
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => supportHubCopy[key] ?? key,
+}));
+
 import { SupportHubPage } from "./support-hub-page";
 
 function renderWithProviders(ui: ReactElement) {

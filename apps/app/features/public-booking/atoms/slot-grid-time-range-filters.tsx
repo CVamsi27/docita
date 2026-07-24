@@ -1,14 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { formatTime } from "@/lib/formatters";
 

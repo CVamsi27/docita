@@ -4,28 +4,11 @@ import { ArrowRight, CalendarCheck } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
 
+import { HOMEPAGE_FAQS } from "@/lib/faqs";
+
 interface FaqCtaSectionProps {
   appUrl: string;
 }
-
-const FAQS: ReadonlyArray<{ q: string; a: string }> = [
-  {
-    q: "How fast can my facility actually go live?",
-    a: "Discovery call on day zero, first workflow live within 48 hours, and full rollout (queue + EMR + prescriptions + billing + WhatsApp) inside two weeks for standard practices. Larger or multi-doctor hospital rollouts plan around your team's calendar, not ours.",
-  },
-  {
-    q: "What about my existing patient list and scans?",
-    a: "Bring Excel, CSV, and uploaded scans on day one. We import the patient list, run OCR on prior prescriptions and case sheets, and review duplicates and extracted fields before anything lands in records. No starting from zero.",
-  },
-  {
-    q: "Is patient data safe and India-compliant?",
-    a: "Backend services and database are co-located in Mumbai (ap-south-1) for India residency. Encrypted in transit and at rest, role-based access for reception/doctor/admin, audit logs on sensitive actions, consent-aware WhatsApp, and one-click data export. We describe what we operate today rather than claim unsupported certifications.",
-  },
-  {
-    q: "How does pricing work, and what does setup include?",
-    a: "Monthly software plans from \u20B9499. Guided setup (patient import, prescription templates, letterhead, signature, WhatsApp templates, billing config, and staff training) is scoped separately and starts from \u20B94,999. Higher tiers add multi-doctor, lab tests, inventory, analytics, and broader rollouts.",
-  },
-];
 
 export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
   return (
@@ -48,7 +31,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
               Quick answers <em>before</em> you book the call.
             </h2>
             <div className="mt-8">
-              {FAQS.map((faq) => (
+              {HOMEPAGE_FAQS.map((faq) => (
                 <details key={faq.q} className="r2-faq-item">
                   <summary className="r2-faq-summary">
                     <span>{faq.q}</span>
@@ -104,7 +87,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                   variant="ghost"
                   className="h-12 rounded-xl px-6 text-base font-semibold text-background hover:bg-background/15 hover:text-background"
                 >
-                  <a href="/contact">
+                  <a href="/contact#book-demo">
                     <CalendarCheck className="h-5 w-5" />
                     Book guided demo
                   </a>
@@ -114,8 +97,8 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
               <dl className="mt-8 grid grid-cols-3 gap-x-3 gap-y-4 border-t border-background/15 pt-6 sm:gap-x-4">
                 {[
                   ["48 h", "First workflow"],
-                  ["₹499", "Software plan"],
-                  ["₹4,999", "Setup from"],
+                  ["\u20B9499", "Software plan"],
+                  ["\u20B94,999", "Setup from"],
                 ].map(([value, label]) => (
                   <div key={label}>
                     <dt className="r2-mono text-sm font-semibold">{value}</dt>

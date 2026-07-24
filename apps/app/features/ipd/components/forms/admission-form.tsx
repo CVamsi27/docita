@@ -4,6 +4,7 @@
 import { FC } from "react";
 import { useForm, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import {
   ipdAdmissionFormSchema,
   type IpdAdmissionFormValues,
@@ -114,11 +115,20 @@ const AdmissionSelectField: FC<AdmissionSelectFieldProps> = ({
   />
 );
 
+/**
+ * Phase 3 (per-feature): apps/app IPD > admission form.
+ * 5 literals converted to useTranslations("Ipd.admissionForm").
+ */
+function useAdmissionFormTranslations() {
+  return useTranslations("Ipd.admissionForm");
+}
+
 export const AdmissionForm: FC<AdmissionFormProps> = ({
   defaultValues,
   onSubmit,
   isSubmitting,
 }) => {
+  const t = useAdmissionFormTranslations();
   const form = useForm<IpdAdmissionFormValues>({
     resolver: zodResolver(ipdAdmissionFormSchema),
     defaultValues: {
@@ -139,8 +149,8 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
   return (
     <Card className="border-none shadow-lg">
       <CardHeader>
-        <CardTitle>New admission</CardTitle>
-        <CardDescription>Admit a patient to the hospital</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -150,10 +160,10 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               name="patientId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Patient</FormLabel>
+                  <FormLabel>{t("patientLabel")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter patient name or phone"
+                      placeholder={t("patientPlaceholder")}
                       {...field}
                     />
                   </FormControl>
@@ -166,18 +176,18 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               <AdmissionSelectField
                 control={form.control}
                 name="wardId"
-                label="Ward"
-                ariaLabel="Select Ward"
-                placeholder="Ward"
+                label={t("wardLabel")}
+                ariaLabel={t("wardAriaLabel")}
+                placeholder={t("wardPlaceholder")}
                 options={WARD_OPTIONS}
               />
 
               <AdmissionSelectField
                 control={form.control}
                 name="bedId"
-                label="Bed"
-                ariaLabel="Select Bed"
-                placeholder="Bed"
+                label={t("bedLabel")}
+                ariaLabel={t("bedAriaLabel")}
+                placeholder={t("bedPlaceholder")}
                 options={BED_OPTIONS}
               />
             </div>
@@ -185,9 +195,9 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
             <AdmissionSelectField
               control={form.control}
               name="attendingDoctorId"
-              label="Attending doctor"
-              ariaLabel="Select Doctor"
-              placeholder="Doctor"
+              label={t("doctorLabel")}
+              ariaLabel={t("doctorAriaLabel")}
+              placeholder={t("doctorPlaceholder")}
               options={DOCTOR_OPTIONS}
             />
 
@@ -196,10 +206,10 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               name="diagnosis"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Admission diagnosis</FormLabel>
+                  <FormLabel>{t("diagnosisLabel")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Admission diagnosis"
+                      placeholder={t("diagnosisPlaceholder")}
                       className="min-h-20"
                       {...field}
                     />
@@ -214,10 +224,10 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>{t("notesLabel")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Admission notes"
+                      placeholder={t("notesPlaceholder")}
                       className="min-h-[60px]"
                       {...field}
                     />
@@ -233,8 +243,8 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               disabled={isSubmitting || form.formState.isSubmitting}
             >
               {isSubmitting || form.formState.isSubmitting
-                ? "Admitting…"
-                : "Admit Patient"}
+                ? t("submittingButton")
+                : t("submitButton")}
             </Button>
           </form>
         </Form>

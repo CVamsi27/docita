@@ -6,15 +6,7 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { useMemo, useState } from "react";
 import { z } from "zod";
 import { AlertCircle } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Textarea } from "@workspace/ui/components";
 import {
   Select,
 // jscpd:ignore-end
@@ -23,8 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
 
 const cancelReasonSchema = z
   .string()

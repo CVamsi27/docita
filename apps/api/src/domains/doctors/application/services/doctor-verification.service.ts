@@ -93,14 +93,26 @@ export class DoctorVerificationService {
     await runWithTenant({ bypassed: true }, async () => {
       const doctors = await this.repository.findDoctorsForReverification();
 
-      for (const doctor of doctors) {
-        try {
-          await this.verifyAndPersistDoctorVerification(doctor.id);
-        } catch (error) {
-          this.logger.warn(
-            `Nightly re-verification failed for doctor ${doctor.id}: ${error instanceof Error ? error.message : 'unknown error'}`,
-          );
+      const results = await Promise.allSettled(
+        doctors.map((doctor) =>
+          this.verifyAndPersistDoctorVerification(doctor.id),
+        ),
+      );
+
+      const failures: PromiseRejectedResult[] = [];
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          failures.push(result);
         }
+      }
+      if (failures.length > 0) {
+        // Surface but don't rethrow — the cron will retry the whole
+        // batch on the next tick. Logging each keeps failures visible
+        // without aborting the run.
+        this.logger.error(
+          `Nightly re-verification: ${failures.length} of ${results.length} doctor(s) failed`,
+          failures.map((f) => f.reason).join('\n'),
+        );
       }
     });
   }
@@ -238,9 +250,9 @@ export class DoctorVerificationService {
     }
   }
 
-  // ABDM Healthcare Professionals Registry integration stub.
-  // Wire up the real call once production HPR credentials are issued; until then
-  // we fall through to the admin review queue.
+  // ABDM Healthcare Professionals Registry: returns null when no credentials
+  // are configured so the call falls through to the configured HTTP provider
+  // or the admin review queue.
   private async tryHprVerification(input: {
     id: string;
     registrationNumber: string;

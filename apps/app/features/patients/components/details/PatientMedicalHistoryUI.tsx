@@ -1,10 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { History } from "lucide-react";
 import type {
   PatientAllergy,
@@ -13,13 +7,7 @@ import type {
 } from "@workspace/types";
 
 import { PatientMedicalHistorySpecialty } from "./patient-medical-history-specialty";
-import {
-  PatientConditionsBlock,
-  PatientAllergiesBlock,
-  PatientSurgeriesBlock,
-  PatientFamilyHistoryBlock,
-  PatientSocialHistoryBlock,
-} from "./PatientMedicalHistoryUISections";
+import { PatientConditionsBlock, PatientAllergiesBlock, PatientSurgeriesBlock, PatientFamilyHistoryBlock, PatientSocialHistoryBlock } from "./PatientMedicalHistoryUISections";
 
 interface PatientMedicalHistoryUIProps {
   patient: PatientWithMedicalHistory;

@@ -8,11 +8,7 @@ import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
 import type { User } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { RegistrationCertificateUpload } from "@/features/settings/components/doctor-profile/RegistrationCertificateUpload";
-import {
-  DigitalSignatureCard,
-  HprIdCard,
-  MedicalRegistrationCard,
-} from "./DoctorProfileSettingsSections";
+import { DigitalSignatureCard, HprIdCard, MedicalRegistrationCard } from "./DoctorProfileSettingsSections";
 
 export function DoctorProfileSettings() {
   const { user } = useAuth();

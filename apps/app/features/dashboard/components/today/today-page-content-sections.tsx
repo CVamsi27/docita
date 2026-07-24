@@ -1,17 +1,13 @@
 "use client";
 
-import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { DashboardSharedWorkspace } from "@/features/dashboard/components/layout/dashboard-shared-workspace";
-import { DashboardSkeletonUI } from "@/features/dashboard/components/layout/dashboard-skeleton-ui";
 import { DashboardRefreshControl } from "@/features/dashboard/components/layout/dashboard-refresh-control";
 import { ClinicReferralShareToolbar } from "@/features/dashboard/components/layout/clinic-referral-share-toolbar";
 import { TodayAdvisorRail } from "@/features/dashboard/components/advisor/today-advisor-rail";
 import type { useClinicReferralShare } from "@/features/dashboard/hooks/use-clinic-referral-share";
 import type { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { PageHeader } from "@workspace/ui/components/layout/page-header";
 import { Button } from "@workspace/ui/components/form/button";
 import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
@@ -19,8 +15,11 @@ import {
   BottomActionBar,
   BottomActionBarSlot,
 } from "@workspace/ui/components/layout/bottom-action-bar";
+import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
 import { cn } from "@workspace/ui/lib/utils";
-import { LayoutDashboard, Play, Sparkles } from "lucide-react";
+import { Play, Sparkles } from "lucide-react";
+import { formatDate, getPatientFullName } from "@workspace/utils";
+import { getInitials } from "@/lib/formatters";
 import type { TodayRailVisibility } from "./today-page-content-helpers";
 
 const TodayMainWidgets = dynamic(
@@ -197,22 +196,51 @@ export function TodayRightRailSection({
 
 interface TodayBottomBarSectionProps {
   canStartConsultation: boolean;
-  hasNextPatient: boolean;
+  nextPatient: TodayDashboardState["nextPatients"][number] | null;
   hasCurrentPatient: boolean;
   isStarting: boolean;
   isMutationPending: boolean;
   onStartNextPatient: () => void;
 }
 
+/**
+ * Persistent docked action bar. The "Next patient" CTA stays visible whether
+ * or not a consultation is currently in progress so the doctor can see who
+ * is up next and start the consult in one click without opening the queue.
+ * When no consult is active we also surface the secondary "View queue" link.
+ */
 export function TodayBottomBarSection({
   canStartConsultation,
-  hasNextPatient,
+  nextPatient,
   hasCurrentPatient,
   isStarting,
   isMutationPending,
   onStartNextPatient,
 }: TodayBottomBarSectionProps) {
-  if (!canStartConsultation || !hasNextPatient || hasCurrentPatient) return null;
+  if (!canStartConsultation || !nextPatient) return null;
+
+  if (hasCurrentPatient) {
+    return (
+      <BottomActionBar aria-label="Next patient in queue">
+        <BottomActionBarSlot variant="secondary">
+          <NextPatientPreview nextPatient={nextPatient} />
+        </BottomActionBarSlot>
+        <BottomActionBarSlot variant="primary">
+          <Button
+            className="w-full touch-manipulation"
+            disabled={isStarting || isMutationPending}
+            onClick={onStartNextPatient}
+            aria-label={`Start next consultation: ${getPatientFullName(
+              nextPatient.patient,
+            )}`}
+          >
+            <Play className="mr-2 size-4" aria-hidden />
+            {isStarting ? "Starting…" : "Start next"}
+          </Button>
+        </BottomActionBarSlot>
+      </BottomActionBar>
+    );
+  }
 
   return (
     <BottomActionBar>
@@ -230,6 +258,9 @@ export function TodayBottomBarSection({
           className="w-full touch-manipulation"
           disabled={isStarting || isMutationPending}
           onClick={onStartNextPatient}
+          aria-label={`Start next consultation: ${getPatientFullName(
+            nextPatient.patient,
+          )}`}
         >
           <Play className="mr-2 size-4" aria-hidden />
           {isStarting ? "Starting…" : "Next patient"}
@@ -239,54 +270,40 @@ export function TodayBottomBarSection({
   );
 }
 
-interface TodayHeaderSlotProps {
-  header: ReactNode;
+interface NextPatientPreviewProps {
+  nextPatient: TodayDashboardState["nextPatients"][number];
 }
 
-/** Loading shell — reuses the page header so the layout doesn't shift once data arrives. */
-export function TodayLoadingState({ header }: TodayHeaderSlotProps) {
+function NextPatientPreview({ nextPatient }: NextPatientPreviewProps) {
+  const fullName = getPatientFullName(nextPatient.patient);
+  const formattedTime = nextPatient.startTime
+    ? formatDate(nextPatient.startTime, "hh:mm a")
+    : null;
+
   return (
-    <AppPageScaffold header={header}>
-      <DashboardSkeletonUI variant="today" />
-    </AppPageScaffold>
-  );
-}
-
-interface TodayErrorStateProps extends TodayHeaderSlotProps {
-  onRetry: () => void;
-}
-
-/** Error shell — split out of `TodayPageContent` so the loaded/error/empty branches are each easy to scan. */
-export function TodayErrorState({ header, onRetry }: TodayErrorStateProps) {
-  return (
-    <AppPageScaffold header={header}>
-      <DataState
-        status="error"
-        className="min-h-[50vh]"
-        errorMessage="We could not load today's workspace. Please try again."
-        onRetry={onRetry}
-      />
-    </AppPageScaffold>
-  );
-}
-
-/** First-patient empty state shown when `isNewClinicDashboard` is true. */
-export function TodayNewClinicEmptyState({
-  header,
-  slot,
-}: TodayHeaderSlotProps & { slot?: ReactNode }) {
-  return (
-    <AppPageScaffold header={header}>
-      {slot}
-      <DataState
-        status="empty"
-        className="min-h-[50vh]"
-        emptyIcon={LayoutDashboard}
-        emptyTitle="Start with your first patient"
-        emptyDescription="Add a patient or schedule a visit to see your queue and today's appointments here."
-        emptyAction={{ label: "Go to patients", href: "/patients" }}
-      />
-    </AppPageScaffold>
+    <div className="flex w-full items-center gap-2.5 rounded-[var(--radius)] border border-border/60 bg-card/80 px-3 py-2 text-left shadow-sm">
+      <Avatar className="h-8 w-8 shrink-0">
+        <AvatarFallback className="border border-border/60 bg-background/70 text-foreground text-[11px] font-semibold">
+          {getInitials(
+            nextPatient.patient?.firstName ?? "",
+            nextPatient.patient?.lastName,
+          )}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          Next up
+        </p>
+        <p className="truncate text-sm font-semibold text-foreground">
+          {fullName}
+          {formattedTime ? (
+            <span className="ml-1.5 font-normal text-muted-foreground">
+              &middot; {formattedTime}
+            </span>
+          ) : null}
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -328,7 +345,7 @@ export function TodayWorkspaceLayout({
   referralShare,
 }: TodayWorkspaceLayoutProps) {
   const showBottomBarPadding =
-    canStartConsultation && nextPatients[0] && !currentPatient;
+    canStartConsultation && nextPatients[0];
   return (
     <div
       className={cn(

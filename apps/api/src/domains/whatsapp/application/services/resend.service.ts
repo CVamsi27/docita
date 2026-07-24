@@ -3,6 +3,8 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
@@ -24,6 +26,25 @@ import {
 import { NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT } from './whatsapp-notification-query.helpers';
 
 // AuditLogged: outbound WhatsApp resend delegates to SendMessageUseCase audit trail
+
+// Debounce window for resends. Prevents a double-click (or a doctor
+// impatiently hitting "Resend" three times) from sending the same
+// prescription/invoice link to the patient multiple times. The send
+// itself is the only side effect we can fully prevent here without
+// changing the public contract; the row update is also conditional
+// on `whatsappSentAt` not having changed since the initial read so
+// two parallel resends can't both record a SENT log.
+const RESEND_DEBOUNCE_MS = 30_000;
+
+function assertWithinResendWindow(lastSentAt: Date | null, now: Date): void {
+  if (!lastSentAt) return;
+  if (now.getTime() - lastSentAt.getTime() < RESEND_DEBOUNCE_MS) {
+    throw new HttpException(
+      'A resend for this record was just sent. Please wait before retrying.',
+      HttpStatus.TOO_MANY_REQUESTS,
+    );
+  }
+}
 
 function toTemplateVariables(
   record: Record<string, string | number | boolean | null | undefined>,
@@ -65,6 +86,7 @@ export class WhatsappResendService {
     if (!prescription) throw new NotFoundException('Prescription not found');
     if (!prescription.patient.phoneNumber)
       throw new BadRequestException('Patient does not have a phone number');
+    assertWithinResendWindow(prescription.whatsappSentAt, this.clock.now());
 
     const isAuthorized = ['DOCTOR', 'ADMIN', 'INTERNAL'].includes(role);
     if (
@@ -155,6 +177,7 @@ export class WhatsappResendService {
     if (!invoice) throw new NotFoundException('Invoice not found');
     if (!invoice.patient.phoneNumber)
       throw new BadRequestException('Patient does not have a phone number');
+    assertWithinResendWindow(invoice.whatsappSentAt, this.clock.now());
 
     const isAuthorized = ['DOCTOR', 'ADMIN', 'INTERNAL'].includes(role);
     if (!isAuthorized && invoice.approvalStatus !== ApprovalStatus.APPROVED)

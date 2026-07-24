@@ -1,20 +1,10 @@
 import { resolveTagColor } from "./tag-colors";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
+import { Badge, Button, Input, Label, ScrollArea } from "@workspace/ui/components";
 import { Check, Palette, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { PresetTag } from "./patient-tag.types";
-import {
-  COLOR_PALETTE,
-  type PresetTagLike,
-  groupPresetTags,
-} from "./patient-tag-manager-logic";
-import {
-  ColorPickerGrid,
-  ColorSwatchButton,
-} from "./patient-tag-color-pickers";
+import { COLOR_PALETTE, type PresetTagLike, groupPresetTags } from "./patient-tag-manager-logic";
+import { ColorPickerGrid, ColorSwatchButton } from "./patient-tag-color-pickers";
 export type { ColorPickerGridProps, ColorSwatchButtonProps } from "./patient-tag-color-pickers";
 
 // Re-export logic helpers so existing callers that import from this file still work
@@ -47,11 +37,12 @@ export function PresetsTab({
   hasTag,
   onAddTag,
 }: PresetsTabProps) {
+  const t = useTranslations("Patients.tagManager");
   return (
     <ScrollArea className="h-[300px] pr-4">
       {searchQuery && filteredPresets.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          No presets match &quot;{searchQuery}&quot;
+          {t("noPresetsMatch", { query: searchQuery })}
         </div>
       ) : (
         <div className="space-y-4">
@@ -129,12 +120,13 @@ export function CustomTagTab({
   hasTag,
   getTagColorName,
 }: CustomTagTabProps) {
+  const t = useTranslations("Patients.tagManager");
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>Tag name</Label>
+        <Label>{t("tagNameLabel")}</Label>
         <Input
-          placeholder="Tag name"
+          placeholder={t("tagNamePlaceholder")}
           value={newTag}
           onChange={(e) => onNewTagChange(e.target.value)}
           onKeyDown={(e) => {
@@ -149,12 +141,12 @@ export function CustomTagTab({
       <div className="space-y-2">
         <Label className="flex items-center gap-2">
           <Palette className="h-4 w-4" />
-          Tag Color
+          {t("tagColorLabel")}
         </Label>
         <div className="flex items-center gap-3">
           <ColorSwatchButton
             color={newColor}
-            label={`Choose color (currently ${getTagColorName(newColor)})`}
+            label={t("chooseColorAria", { name: getTagColorName(newColor) })}
             onClick={onToggleColorPicker}
             className="h-10 w-10 rounded-lg border-2 border-border shadow-sm"
           />
@@ -177,7 +169,7 @@ export function CustomTagTab({
 
       {newTag.trim() && (
         <div className="space-y-2">
-          <Label>Preview</Label>
+          <Label>{t("previewLabel")}</Label>
           <Badge
             style={{
               backgroundColor: resolveTagColor(newColor),
@@ -195,12 +187,12 @@ export function CustomTagTab({
         className="w-full"
       >
         <Plus className="h-4 w-4 mr-2" />
-        Add Tag
+        {t("addTagButton")}
       </Button>
 
       {hasTag(newTag) && newTag.trim() && (
         <p className="text-sm text-destructive text-center">
-          This tag already exists
+          {t("tagAlreadyExists")}
         </p>
       )}
     </div>

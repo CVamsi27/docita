@@ -1,37 +1,9 @@
 "use client";
 
 import { FC } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
-import {
-  AlertTriangle,
-  ChevronDown,
-  Coffee,
-  Heart,
-  Stethoscope,
-  Users,
-} from "lucide-react";
-import {
-  ALCOHOL_USE_STATUS_LABELS,
-  alcoholUseStatusSchema,
-  smokingStatusSchema,
-  PatientAllergy,
-  PatientFamilyHistory,
-  PatientMedicalCondition,
-  PatientSocialHistory,
-  PatientSurgicalHistory,
-  SMOKING_STATUS_LABELS,
-} from "@workspace/types";
+import { Badge, Card, CardContent, CardHeader, CardTitle, Collapsible, CollapsibleContent, CollapsibleTrigger } from "@workspace/ui/components";
+import { AlertTriangle, ChevronDown, Coffee, Heart, Stethoscope, Users } from "lucide-react";
+import { ALCOHOL_USE_STATUS_LABELS, alcoholUseStatusSchema, smokingStatusSchema, PatientAllergy, PatientFamilyHistory, PatientMedicalCondition, PatientSocialHistory, PatientSurgicalHistory, SMOKING_STATUS_LABELS } from "@workspace/types";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 // ── Shared ─────────────────────────────────────────────────────────────────
@@ -92,7 +64,7 @@ export const AllergiesSection: FC<AllergiesSectionProps> = ({ allergies = [] }) 
           </div>
         ) : (
           <div className="flex items-center gap-2 text-sm text-success">
-            <span className="font-medium">No known allergies</span>
+            <span className="font-medium">NKA</span>
           </div>
         )}
       </CardContent>

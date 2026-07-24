@@ -2,27 +2,9 @@
 
 import { Suspense, useEffect, useMemo, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Bell,
-  CalendarClock,
-  Stethoscope,
-  UserPlus,
-  type LucideIcon,
-} from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import {
-  PageTabs,
-  type PageTabItem,
-} from "@workspace/ui/components/navigation/page-tabs";
-import {
-  APP_ACCESS_TARGETS,
-  type AppAccessTarget,
-  type Feature,
-  Tier,
-  type UserRole,
-} from "@workspace/types";
+import { Bell, CalendarClock, Stethoscope, UserPlus, type LucideIcon } from "lucide-react";
+import { AppPageScaffold, DataState, PageHeader, PageTabs, type PageTabItem } from "@workspace/ui/components";
+import { APP_ACCESS_TARGETS, type AppAccessTarget, type Feature, Tier, type UserRole } from "@workspace/types";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { parseUserRole } from "@/lib/access-control/parse-user-role";
 import { useAuth } from "@/lib/auth/auth-context";

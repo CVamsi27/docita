@@ -7,6 +7,7 @@ import {
   RightRailCardStack,
 } from "@workspace/ui/components/data-display/right-rail-card";
 import { Button } from "@workspace/ui/components/form/button";
+import { useTranslations } from "next-intl";
 
 export type TodayAdvisorCounts = {
   pendingJoinRequests: number;
@@ -24,8 +25,16 @@ type CardKey = "join-requests" | "uncoded-visits" | "waiting-queue";
  * Origin-style advisor cards rendered to the right of the today workspace.
  * Cards are dismissible per session (no persistence yet — the dismiss state is
  * only retained while the page is mounted).
+ *
+ * Phase 3 (per-feature): 6 literals converted to
+ * useTranslations("Dashboard.todayAdvisorRail").
  */
+function useTodayAdvisorTranslations() {
+  return useTranslations("Dashboard.todayAdvisorRail");
+}
+
 export function TodayAdvisorRail({ advisorCounts }: TodayAdvisorRailProps) {
+  const t = useTodayAdvisorTranslations();
   const { pendingJoinRequests, uncodedVisits, waitingCount } = advisorCounts;
   const [dismissed, setDismissed] = useState<Set<CardKey>>(new Set());
 
@@ -44,17 +53,17 @@ export function TodayAdvisorRail({ advisorCounts }: TodayAdvisorRailProps) {
       key: "join-requests",
       node: (
         <RightRailCard
-          category="Join requests"
-          headline={`${pendingJoinRequests} pending request${
-            pendingJoinRequests === 1 ? "" : "s"
-          }`}
-          description="Approve or decline staff requesting access to your clinic."
+          category={t("joinRequestsCategory")}
+          headline={t("joinRequestsHeadline", {
+            count: pendingJoinRequests,
+          })}
+          description={t("joinRequestsDescription")}
           tone="warning"
           onDismiss={() => dismiss("join-requests")}
-          dismissLabel="Dismiss join requests recommendation"
+          dismissLabel={t("dismissJoinRequestsLabel")}
           action={
             <Button asChild size="sm">
-              <Link href="/settings/team/join-requests">Review requests</Link>
+              <Link href="/settings/team/join-requests">{t("joinRequestsAction")}</Link>
             </Button>
           }
         />
@@ -67,17 +76,15 @@ export function TodayAdvisorRail({ advisorCounts }: TodayAdvisorRailProps) {
       key: "uncoded-visits",
       node: (
         <RightRailCard
-          category="Coding"
-          headline={`${uncodedVisits} visit${
-            uncodedVisits === 1 ? "" : "s"
-          } pending coding`}
-          description="Review completed visits that need ICD-10 or procedure coding."
+          category={t("codingCategory")}
+          headline={t("codingHeadline", { count: uncodedVisits })}
+          description={t("codingDescription")}
           tone="warning"
           onDismiss={() => dismiss("uncoded-visits")}
-          dismissLabel="Dismiss pending coding recommendation"
+          dismissLabel={t("dismissCodingLabel")}
           action={
             <Button asChild size="sm">
-              <Link href="/coding-queue">Open coding queue</Link>
+              <Link href="/coding-queue">{t("codingAction")}</Link>
             </Button>
           }
         />
@@ -90,16 +97,14 @@ export function TodayAdvisorRail({ advisorCounts }: TodayAdvisorRailProps) {
       key: "waiting-queue",
       node: (
         <RightRailCard
-          category="Queue"
-          headline={`${waitingCount} patient${
-            waitingCount === 1 ? "" : "s"
-          } waiting`}
-          description="Open the consultation queue to start the next patient."
+          category={t("queueCategory")}
+          headline={t("queueHeadline", { count: waitingCount })}
+          description={t("queueDescription")}
           onDismiss={() => dismiss("waiting-queue")}
-          dismissLabel="Dismiss queue recommendation"
+          dismissLabel={t("dismissQueueLabel")}
           action={
             <Button asChild size="sm">
-              <Link href="/consultation">Open queue</Link>
+              <Link href="/consultation">{t("queueAction")}</Link>
             </Button>
           }
         />
@@ -111,7 +116,7 @@ export function TodayAdvisorRail({ advisorCounts }: TodayAdvisorRailProps) {
 
   return (
     <RightRailCardStack
-      ariaLabel="Today recommendations"
+      ariaLabel={t("stackAriaLabel")}
       className="w-full max-w-full shrink-0 max-md:mx-0 max-md:flex-col max-md:overflow-visible max-md:px-0 max-md:pb-0 max-md:[&>*]:min-w-0"
     >
       {cards.map((card) => (

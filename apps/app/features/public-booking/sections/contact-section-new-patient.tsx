@@ -5,10 +5,7 @@ import type { PublicBookingPageController } from "@/features/public-booking/use-
 import { ContactTextField } from "./contact-text-field";
 import { ContactDateOfBirthField } from "./contact-date-of-birth-field";
 import { DpdpConsentNotice } from "./dpdp-consent-notice";
-import {
-  clearContactSubmitFieldError,
-  createContactFieldChangeHandler,
-} from "./contact-section-new-patient-helpers";
+import { clearContactSubmitFieldError, createContactFieldChangeHandler } from "./contact-section-new-patient-helpers";
 
 export function ContactSectionNewPatient({
   c,

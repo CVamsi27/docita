@@ -37,6 +37,8 @@ export class MedicalHistoryConditionsService {
     return this.persistence.patientMedicalCondition.findMany({
       where: { patientId },
       orderBy: { createdAt: 'desc' },
+      // No `take`: bounded by patientId. A patient's medical-condition set is
+      // a small, curated clinical history; the UI surfaces the full list.
     });
   }
 
@@ -118,6 +120,9 @@ export class MedicalHistoryConditionsService {
     return this.persistence.patientAllergy.findMany({
       where: { patientId },
       orderBy: { createdAt: 'desc' },
+      // No `take`: bounded by patientId. Allergies are a small, curated
+      // per-patient list; truncation would silently drop safety-critical
+      // entries from the patient chart.
     });
   }
 
@@ -128,6 +133,8 @@ export class MedicalHistoryConditionsService {
       const existingAllergies = await tx.patientAllergy.findMany({
         where: { patientId },
         select: { id: true, allergen: true },
+        // No `take`: the duplicate-detect rule must see every existing
+        // allergen. A truncated read would let a duplicate slip through.
       });
       if (findDuplicateAllergy(validated.allergen, existingAllergies)) {
         throw new ConflictException(
@@ -164,6 +171,8 @@ export class MedicalHistoryConditionsService {
         const existingAllergies = await tx.patientAllergy.findMany({
           where: { patientId },
           select: { id: true, allergen: true },
+          // No `take`: the rename-collision check must see every existing
+          // allergen; a truncated read could allow a duplicate allergen name.
         });
         if (findDuplicateAllergy(dto.allergen, existingAllergies, id)) {
           throw new ConflictException(

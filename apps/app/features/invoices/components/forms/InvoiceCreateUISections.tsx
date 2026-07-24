@@ -2,17 +2,9 @@
 
 import type { Control } from "react-hook-form";
 import type { CreateInvoiceFormValues, Patient } from "@workspace/types";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
+import { FormField, FormItem, FormLabel, FormMessage } from "@workspace/ui/components/form/form";
 import { PatientSelector } from "@/features/appointments";
-import {
-  InvoiceDetailsCard,
-  InvoiceStatusField,
-} from "./invoice-form-sections-shared";
+import { InvoiceDetailsCard, InvoiceStatusField } from "./invoice-form-sections-shared";
 
 export function InvoiceCreateDetailsSection({
   control,

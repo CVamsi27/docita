@@ -1,11 +1,9 @@
 "use client";
 
 import type { InternalPricingOfferRow } from "@workspace/data-access/internal";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
 import { Sparkles, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   offers: InternalPricingOfferRow[];
@@ -14,21 +12,21 @@ interface Props {
 }
 
 export function PricingOfferList({ offers, savingId, onDelete }: Props) {
+  const t = useTranslations("InternalPricing.offerList");
   if (offers.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Active offers</CardTitle>
+          <CardTitle>{t("activeOffersTitle")}</CardTitle>
           <CardDescription>
-            These offers are automatically applied to the next checkout preview
-            for each clinic.
+            {t("activeOffersDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <EmptyState
             icon={Sparkles}
-            title="No active offers"
-            description="Create a facility-specific offer to apply at checkout preview."
+            title={t("noActiveOffersTitle")}
+            description={t("noActiveOffersDescription")}
           />
         </CardContent>
       </Card>
@@ -38,10 +36,9 @@ export function PricingOfferList({ offers, savingId, onDelete }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Active offers</CardTitle>
+        <CardTitle>{t("activeOffersTitle")}</CardTitle>
         <CardDescription>
-          These offers are automatically applied to the next checkout preview
-          for each clinic.
+          {t("activeOffersDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -56,7 +53,7 @@ export function PricingOfferList({ offers, savingId, onDelete }: Props) {
                   <p className="font-medium">
                     {offer.clinic?.name ?? offer.clinicId}
                   </p>
-                  <Badge variant="outline">{offer.percentOff}% off</Badge>
+                  <Badge variant="outline">{t("percentOffBadge", { percent: offer.percentOff })}</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{offer.title}</p>
                 <p className="text-xs text-muted-foreground">
@@ -64,9 +61,9 @@ export function PricingOfferList({ offers, savingId, onDelete }: Props) {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {offer.durationMonths
-                    ? `${offer.durationMonths} month offer`
-                    : "No fixed duration"}{" "}
-                  {offer.validUntil ? ` • until ${offer.validUntil}` : ""}
+                    ? t("durationMonths", { count: offer.durationMonths })
+                    : t("noFixedDuration")}{" "}
+                  {offer.validUntil ? t("validUntil", { date: offer.validUntil }) : ""}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -77,7 +74,7 @@ export function PricingOfferList({ offers, savingId, onDelete }: Props) {
                   disabled={savingId === offer.clinicId}
                 >
                   <Trash2 className="h-4 w-4" />
-                  Remove
+                  {t("removeButton")}
                 </Button>
               </div>
             </div>

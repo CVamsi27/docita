@@ -1,19 +1,10 @@
 import type { Patient } from "@workspace/types";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Avatar,
-  AvatarFallback,
-} from "@workspace/ui/components/indicators/avatar";
+import { Avatar, AvatarFallback, Button } from "@workspace/ui/components";
 import { formatGenderLabel } from "@/lib/formatters";
 import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  Calendar,
-  Pencil,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Pencil } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { PatientsSortConfig } from "./patients-page-types";
 
 export function getAriaSort(
@@ -73,6 +64,7 @@ export function PatientMobileCard({
   onSchedulePatient: (patientId: string) => void;
   onEditPatient: (patient: Patient) => void;
 }) {
+  const t = useTranslations("Patients.list");
   const patientId = patient.id;
   return (
     <div className="flex flex-col gap-3">
@@ -110,7 +102,7 @@ export function PatientMobileCard({
           disabled={!patientId}
         >
           <Calendar className="mr-1.5 h-4 w-4" />
-          Schedule
+          {t("scheduleLabel")}
         </Button>
         <Button
           variant="ghost"
@@ -119,7 +111,7 @@ export function PatientMobileCard({
           onClick={() => onEditPatient(patient)}
         >
           <Pencil className="mr-1.5 h-4 w-4" />
-          Edit
+          {t("editLabel")}
         </Button>
       </div>
     </div>

@@ -22,6 +22,22 @@ export interface AllergyBannerProps {
   allergies: ReadonlyArray<string | AllergyEntry>;
   patientName?: string;
   className?: string;
+  /**
+   * Optional pre-localized title override. When provided, replaces the
+   * default English banner heading. Consumers in apps/app/apps/internal
+   * pass a string from their `useTranslations` namespace so the banner
+   * stays a presentational primitive without depending on next-intl.
+   */
+  title?: string;
+  /**
+   * Pre-localized label for the "Severe allergies" branch (when no
+   * patient name is supplied and at least one entry is severe).
+   */
+  severeTitle?: string;
+  /**
+   * Pre-localized label for the generic "Allergies" branch.
+   */
+  allergiesTitle?: string;
 }
 
 function normalize(entry: string | AllergyEntry): AllergyEntry {
@@ -32,6 +48,9 @@ export function AllergyBanner({
   allergies,
   patientName,
   className,
+  title,
+  severeTitle = "Severe allergies",
+  allergiesTitle = "Allergies",
 }: AllergyBannerProps) {
   if (!allergies || allergies.length === 0) return null;
 
@@ -39,11 +58,13 @@ export function AllergyBanner({
   if (entries.length === 0) return null;
 
   const hasSevere = entries.some((e) => e.severity === "severe");
-  const title = patientName
-    ? `Allergy alert — ${patientName}`
-    : hasSevere
-      ? "Severe allergies"
-      : "Allergies";
+  const resolvedTitle =
+    title ??
+    (patientName
+      ? `Allergy alert — ${patientName}`
+      : hasSevere
+        ? severeTitle
+        : allergiesTitle);
 
   return (
     <Alert
@@ -51,7 +72,7 @@ export function AllergyBanner({
       className={cn("border-destructive/40 bg-destructive/10", className)}
     >
       <AlertTriangle className="h-4 w-4" aria-hidden />
-      <AlertTitle>{title}</AlertTitle>
+      <AlertTitle>{resolvedTitle}</AlertTitle>
       <AlertDescription>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {entries.map((entry, idx) => (

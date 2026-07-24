@@ -1,26 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { Check, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@workspace/utils";
-import {
-  usePortalDoseHistory,
-  useRecordPortalDose,
-} from "@workspace/data-access";
+import { useTranslations } from "next-intl";
+import { usePortalDoseHistory, useRecordPortalDose } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  mapPortalDoseRow,
-  type PortalDoseStatus,
-} from "@/features/patient-portal/lib/map-portal-records";
+import { mapPortalDoseRow, type PortalDoseStatus } from "@/features/patient-portal/lib/map-portal-records";
 import { isRecord } from "@workspace/utils";
 
 interface DoseTrackerProps {
@@ -34,6 +22,7 @@ export function DoseTracker({
   medicationName,
   prescriptionId,
 }: DoseTrackerProps) {
+  const t = useTranslations("PatientPortal.doseTracker");
   const [notes, setNotes] = useState("");
 
   const { data: history, isLoading } = usePortalDoseHistory({
@@ -51,44 +40,38 @@ export function DoseTracker({
         takenAt: status === "TAKEN" ? new Date().toISOString() : undefined,
         notes: notes || undefined,
       });
-      toast.success(
+      const toastKey =
         status === "TAKEN"
-          ? "Dose recorded: taken"
+          ? "toastRecordedTaken"
           : status === "MISSED"
-            ? "Dose recorded: missed"
-            : "Dose skipped",
-      );
+            ? "toastRecordedMissed"
+            : "toastRecordedSkipped";
+      toast.success(t(toastKey));
       setNotes("");
     } catch {
-      showUserFacingErrorToast(
-        "We could not record this dose. Please try again.",
-      );
+      showUserFacingErrorToast(t("errorRecord"));
     }
   };
 
   const statusConfig: Record<
     PortalDoseStatus,
-    { icon: typeof Check; color: string; bg: string }
+    { icon: typeof Check; color: string; bg: string; text: string }
   > = {
-    TAKEN: { icon: Check, color: "text-success", bg: "bg-success/10" },
-    MISSED: { icon: X, color: "text-destructive", bg: "bg-destructive/10" },
-    SKIPPED: { icon: Clock, color: "text-warning", bg: "bg-warning/10" },
-    PENDING: { icon: Clock, color: "text-muted-foreground", bg: "bg-muted" },
-    ADMINISTERED: {
-      icon: Check,
-      color: "text-success",
-      bg: "bg-success/10",
-    },
+    TAKEN: { icon: Check, color: "text-success", bg: "bg-success/10", text: t("status.TAKEN") },
+    MISSED: { icon: X, color: "text-destructive", bg: "bg-destructive/10", text: t("status.MISSED") },
+    SKIPPED: { icon: Clock, color: "text-warning", bg: "bg-warning/10", text: t("status.SKIPPED") },
+    PENDING: { icon: Clock, color: "text-muted-foreground", bg: "bg-muted", text: t("status.PENDING") },
+    ADMINISTERED: { icon: Check, color: "text-success", bg: "bg-success/10", text: t("status.ADMINISTERED") },
   };
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Track: {medicationName}</CardTitle>
+        <CardTitle className="text-base">{t("trackTitle", { name: medicationName })}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="text-sm font-medium mb-2">Record today&apos;s dose</p>
+          <p className="text-sm font-medium mb-2">{t("recordTodayLabel")}</p>
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -98,7 +81,7 @@ export function DoseTracker({
               disabled={recordDose.isPending}
             >
               <Check className="h-3.5 w-3.5 mr-1.5" />
-              Took it
+              {t("tookItButton")}
             </Button>
             <Button
               size="sm"
@@ -108,7 +91,7 @@ export function DoseTracker({
               disabled={recordDose.isPending}
             >
               <X className="h-3.5 w-3.5 mr-1.5" />
-              Missed
+              {t("missedButton")}
             </Button>
             <Button
               size="sm"
@@ -117,14 +100,14 @@ export function DoseTracker({
               disabled={recordDose.isPending}
             >
               <Clock className="h-3.5 w-3.5 mr-1.5" />
-              Skip
+              {t("skipButton")}
             </Button>
           </div>
         </div>
 
         {!isLoading && history && history.doses.length > 0 && (
           <div>
-            <p className="text-sm font-medium mb-2">Recent doses</p>
+            <p className="text-sm font-medium mb-2">{t("recentDosesLabel")}</p>
             <div className="space-y-1.5">
               {history.doses
                 .slice(0, 5)
@@ -151,9 +134,9 @@ export function DoseTracker({
                       </div>
                       <Badge
                         variant="outline"
-                        className={`text-xs capitalize ${config.color}`}
+                        className={`text-xs ${config.color}`}
                       >
-                        {doseRecord.status.toLowerCase()}
+                        {config.text}
                       </Badge>
                     </div>
                   );

@@ -1,29 +1,11 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@workspace/ui/components/overlay/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Tag } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { getTagColorName } from "./tag-colors";
 import type { PatientTag, PresetTag } from "./patient-tag.types";
-import {
-  CurrentTagsTab,
-  CustomTagTab,
-  PresetsTab,
-} from "./patient-tag-manager-helpers";
+import { CurrentTagsTab, CustomTagTab, PresetsTab } from "./patient-tag-manager-helpers";
 import { TagSearchField } from "./patient-tag-search-field";
 import { useTagInlineEditing } from "./use-tag-inline-editing";
 import { useTagSearchAndCreate } from "./use-tag-search-and-create";
@@ -61,6 +43,7 @@ export function PatientTagManagerUI({
   onEditTag,
   hasTag,
 }: PatientTagManagerUIProps) {
+  const t = useTranslations("Patients.tagManager");
   const editing = useTagInlineEditing(onEditTag);
   const search = useTagSearchAndCreate({
     tags,
@@ -77,17 +60,17 @@ export function PatientTagManagerUI({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Tag className="h-4 w-4" />
-          Manage Tags
+          {t("manageTags")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Tag className="h-5 w-5 text-primary" />
-            Patient Tags
+            {t("title")}
           </DialogTitle>
           <DialogDescription>
-            Add tags to categorize and quickly identify patient conditions
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -95,9 +78,9 @@ export function PatientTagManagerUI({
 
         <Tabs defaultValue="current" className="w-full">
           <TabsList className="flex w-full overflow-x-auto overscroll-x-contain [scrollbar-width:thin] max-md:flex-nowrap md:grid md:grid-cols-3">
-            <TabsTrigger value="current">Current ({tags.length})</TabsTrigger>
-            <TabsTrigger value="presets">Quick add</TabsTrigger>
-            <TabsTrigger value="custom">Custom</TabsTrigger>
+            <TabsTrigger value="current">{t("currentTab", { count: tags.length })}</TabsTrigger>
+            <TabsTrigger value="presets">{t("presetsTab")}</TabsTrigger>
+            <TabsTrigger value="custom">{t("customTab")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="current" className="mt-4">
@@ -148,7 +131,7 @@ export function PatientTagManagerUI({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Done
+            {t("doneButton")}
           </Button>
         </DialogFooter>
       </DialogContent>

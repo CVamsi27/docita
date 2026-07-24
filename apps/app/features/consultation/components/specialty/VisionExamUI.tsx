@@ -1,23 +1,8 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 
 import { OphthalmologyExamData } from "@workspace/types";
-import {
-  updateVisionExamField,
-  type VisionExamFieldKey,
-  type VisionEyeKey,
-} from "./vision-exam-fields";
-import {
-  VisionAcuityMobileCards,
-  VisionAcuityTable,
-  VisionIntraocularPressureFields,
-  VisionPupillaryDistanceFields,
-  type VisionEyeMeta,
-} from "./VisionExamUISections";
+import { updateVisionExamField, type VisionExamFieldKey, type VisionEyeKey } from "./vision-exam-fields";
+import { VisionAcuityMobileCards, VisionAcuityTable, VisionIntraocularPressureFields, VisionPupillaryDistanceFields, type VisionEyeMeta } from "./VisionExamUISections";
 
 interface VisionExamProps {
   value: OphthalmologyExamData;

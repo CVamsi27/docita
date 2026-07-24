@@ -1,33 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@workspace/ui/components/overlay/sheet";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+import { Badge, Button, ScrollArea, Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import Link from "next/link";
 import { BellIcon, ExternalLinkIcon, TrashIcon, XIcon } from "lucide-react";
-import {
-  useMarkNotificationRead,
-  useDeleteNotification,
-  useDeleteAllNotifications,
-} from "@workspace/data-access";
-import {
-  isNotificationCategoryId,
-  type NotificationCategoryId,
-} from "./notification-href";
+import { useMarkNotificationRead, useDeleteNotification, useDeleteAllNotifications } from "@workspace/data-access";
+import { isNotificationCategoryId, type NotificationCategoryId } from "./notification-href";
 import { useNotificationPanel } from "./use-notification-panel";
 import { NotificationPanelEmpty } from "./notification-panel-empty";
 import { NotificationTabContent } from "./notification-panel-tab-content";

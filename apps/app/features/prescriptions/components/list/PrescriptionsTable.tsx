@@ -1,14 +1,5 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { DataTable } from "@workspace/ui/components/data-display/data-table";
-import {
-  getPrescriptionColumns,
-  MobileCard,
-} from "./PrescriptionsTableSections";
+import { Card, CardContent, CardHeader, CardTitle, DataTable } from "@workspace/ui/components";
+import { getPrescriptionColumns, MobileCard } from "./PrescriptionsTableSections";
 import type { Prescription } from "@workspace/types";
 import type { SortConfig, SortKey } from "./PrescriptionsTableSections";
 

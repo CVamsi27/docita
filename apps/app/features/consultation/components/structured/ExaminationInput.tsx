@@ -1,8 +1,5 @@
 // jscpd:ignore-start
-import {
-  GeneralExaminationCard,
-  SystemicExaminationCard,
-} from "./ExaminationInputSections";
+import { GeneralExaminationCard, SystemicExaminationCard } from "./ExaminationInputSections";
 
 export interface ExaminationData {
   general: {

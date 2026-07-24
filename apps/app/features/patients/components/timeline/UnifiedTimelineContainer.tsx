@@ -48,35 +48,37 @@ export function UnifiedTimelineContainer({
     );
   };
 
-  if (isLoading && !data) return <DataState status="loading" loadingMessage="Loading timeline…" />;
-  if (isError) {
-    return (
-      <DataState
-        status="error"
-        errorMessage="We could not load this timeline. Please try again."
-        onRetry={() => refetch()}
-      />
-    );
-  }
-  if (!data) {
-    return (
-      <DataState
-        status="empty"
-        emptyIcon={Clock3}
-        emptyTitle="No timeline records available"
-        emptyDescription="Patient events will appear here when care activities are recorded"
-      />
-    );
-  }
-  const hasMore = offset + limit < data.total;
+  const status: "loading" | "error" | "empty" | "success" =
+    isLoading && !data
+      ? "loading"
+      : isError
+        ? "error"
+        : !data
+          ? "empty"
+          : "success";
+
+  const hasMore = !!data && offset + limit < data.total;
+
   return (
-    <UnifiedTimelineUI
-      data={data}
-      selectedTypes={selectedTypes}
-      onTypeToggle={handleTypeToggle}
-      onLoadMore={() => setOffset((prev) => prev + limit)}
-      hasMore={hasMore}
-      isLoading={isLoading}
-    />
+    <DataState
+      status={status}
+      loadingMessage="Loading timeline…"
+      errorMessage="We could not load this timeline. Please try again."
+      onRetry={() => refetch()}
+      emptyIcon={Clock3}
+      emptyTitle="No timeline records available"
+      emptyDescription="Patient events will appear here when care activities are recorded"
+    >
+      {data ? (
+        <UnifiedTimelineUI
+          data={data}
+          selectedTypes={selectedTypes}
+          onTypeToggle={handleTypeToggle}
+          onLoadMore={() => setOffset((prev) => prev + limit)}
+          hasMore={hasMore}
+          isLoading={isLoading}
+        />
+      ) : null}
+    </DataState>
   );
 }

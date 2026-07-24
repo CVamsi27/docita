@@ -7,10 +7,7 @@ import { useConsultationBillingFlow } from "@/features/consultation/hooks/use-co
 import { usePermissions } from "@/hooks/use-permissions";
 import { buildConsultationHeaderDisplay } from "./consultation-page-header-helpers";
 import { ConsultationPageHeaderToolbar } from "./consultation-page-header-toolbar";
-import {
-  ConsultationHeaderNavControls,
-  ConsultationHeaderPatientSummary,
-} from "./ConsultationPageHeaderUISections";
+import { ConsultationHeaderNavControls, ConsultationHeaderPatientSummary } from "./ConsultationPageHeaderUISections";
 
 export interface ConsultationPageHeaderUIProps {
   patientName: string;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { Label } from "@workspace/ui/components/form/label";
 import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
@@ -14,6 +15,14 @@ import {
   parseStatusFilterValue,
   type StatusFilterValue,
 } from "./billing-history-table-helpers";
+
+/**
+ * Phase 3 (per-feature): apps/app Subscription > billing history table filters.
+ * 5 literals converted to useTranslations("Subscription.billingFilters").
+ */
+function useBillingHistoryFiltersTranslations() {
+  return useTranslations("Subscription.billingFilters");
+}
 
 export function BillingHistoryTableFilters({
   statusFilter,
@@ -32,11 +41,12 @@ export function BillingHistoryTableFilters({
   onDateToChange: (value: string) => void;
   onClear: () => void;
 }) {
+  const t = useBillingHistoryFiltersTranslations();
   return (
     <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-3 sm:flex-row sm:flex-wrap sm:items-end">
       <div className="grid w-full gap-2 sm:w-auto sm:min-w-[140px]">
         <Label htmlFor="billing-filter-status" className="text-xs">
-          Status
+          {t("statusLabel")}
         </Label>
         <Select
           value={statusFilter}
@@ -46,17 +56,17 @@ export function BillingHistoryTableFilters({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="pending">Pending / unpaid</SelectItem>
-            <SelectItem value="failed">Failed / declined</SelectItem>
-            <SelectItem value="refunded_void">Refunded / void</SelectItem>
+            <SelectItem value="all">{t("statusAll")}</SelectItem>
+            <SelectItem value="paid">{t("statusPaid")}</SelectItem>
+            <SelectItem value="pending">{t("statusPending")}</SelectItem>
+            <SelectItem value="failed">{t("statusFailed")}</SelectItem>
+            <SelectItem value="refunded_void">{t("statusRefunded")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="grid w-full gap-2 sm:w-auto sm:min-w-[140px]">
         <Label htmlFor="billing-filter-from" className="text-xs">
-          From
+          {t("fromLabel")}
         </Label>
         <IsoDatePickerField
           id="billing-filter-from"
@@ -64,13 +74,13 @@ export function BillingHistoryTableFilters({
           showLabel={false}
           value={dateFrom}
           onChange={onDateFromChange}
-          placeholder="Any"
+          placeholder={t("anyDatePlaceholder")}
           triggerClassName="h-9 sm:w-auto sm:min-w-[140px]"
         />
       </div>
       <div className="grid w-full gap-2 sm:w-auto sm:min-w-[140px]">
         <Label htmlFor="billing-filter-to" className="text-xs">
-          To
+          {t("toLabel")}
         </Label>
         <IsoDatePickerField
           id="billing-filter-to"
@@ -78,7 +88,7 @@ export function BillingHistoryTableFilters({
           showLabel={false}
           value={dateTo}
           onChange={onDateToChange}
-          placeholder="Any"
+          placeholder={t("anyDatePlaceholder")}
           triggerClassName="h-9 sm:w-auto sm:min-w-[140px]"
         />
       </div>
@@ -89,7 +99,7 @@ export function BillingHistoryTableFilters({
         className="sm:ml-auto"
         onClick={onClear}
       >
-        Clear filters
+        {t("clearFiltersButton")}
       </Button>
     </div>
   );

@@ -2,19 +2,8 @@
 
 import { Clock, Users } from "lucide-react";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
-  Avatar,
-  AvatarFallback,
-} from "@workspace/ui/components/indicators/avatar";
+import { Avatar, AvatarFallback, Card, CardContent, CardHeader, CardTitle, EmptyState, Section } from "@workspace/ui/components";
 import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { Section } from "@workspace/ui/components/layout/section";
 import { cn } from "@workspace/ui/lib/utils";
 
 export interface DeskFloorRow {

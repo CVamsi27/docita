@@ -1,17 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@workspace/ui/components/form/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Label, RadioGroup, RadioGroupItem } from "@workspace/ui/components";
 import { CLINIC_TYPE_OPTIONS } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
@@ -50,8 +39,8 @@ export function ClinicIdentitySection({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 rounded-lg border bg-muted/20 p-4 shadow-sm lg:grid-cols-3">
-      <div className="space-y-2">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="space-y-2 lg:order-1">
         <Label htmlFor="name">
           {facilityLabel} Name<span className="text-destructive ml-0.5">*</span>
         </Label>
@@ -71,11 +60,12 @@ export function ClinicIdentitySection({
         )}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 lg:order-3 lg:col-span-2">
         <Label htmlFor="facilityLabel">
           Display as<span className="text-destructive ml-0.5">*</span>
         </Label>
-        <RadioGroup
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+          <RadioGroup
           id="facilityLabel"
           value={clinicForm.watch("facilityLabel") ?? "CLINIC"}
           onValueChange={(val) => {
@@ -90,7 +80,7 @@ export function ClinicIdentitySection({
               shouldValidate: true,
             });
           }}
-          className="grid grid-cols-2 gap-3"
+          className="grid grid-cols-2 gap-3 sm:min-w-[19rem]"
         >
           {FACILITY_LABEL_OPTIONS.map((option) => (
             <label
@@ -110,14 +100,14 @@ export function ClinicIdentitySection({
             </label>
           ))}
         </RadioGroup>
-        <p className="text-xs text-muted-foreground">
-          This sets your organization label across the product. We use it in
-          page headings, onboarding copy, patient-facing text, and invoice/PDF
-          clinic naming.
-        </p>
+          <p className="text-xs text-muted-foreground sm:flex-1 sm:pt-1.5">
+            Your organization label across the app — headings, patient-facing
+            text, and invoices.
+          </p>
+        </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 lg:order-2">
         <Label htmlFor="type">
           {facilityLabel} Type<span className="text-destructive ml-0.5">*</span>
         </Label>

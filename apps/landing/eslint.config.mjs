@@ -25,7 +25,6 @@ export default [
   {
     files: ["src/**/*.{ts,tsx,astro}"],
     rules: {
-      // jscpd:ignore-start
       "no-restricted-syntax": [
         "warn",
         {
@@ -74,7 +73,6 @@ export default [
             "animate-pulse is banned by docs/ui/UI_UX_STANDARD_2026.md §5. Use static styling for emphasis instead.",
         },
       ],
-      // jscpd:ignore-end
     },
   },
   {

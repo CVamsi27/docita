@@ -1,6 +1,5 @@
 import React from "react";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
+import { Input, Label } from "@workspace/ui/components";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { FormValidationErrors } from "@/lib/types/form";

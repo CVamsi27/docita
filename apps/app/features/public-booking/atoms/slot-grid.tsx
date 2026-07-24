@@ -1,28 +1,8 @@
 "use client";
 
-import {
-  Calendar as CalendarIcon,
-  ChevronDown,
-  Clock,
-  UserCircle,
-} from "lucide-react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/feedback/alert";
-import { Button } from "@workspace/ui/components/form/button";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
-import {
-  publicBookingSlotEmptyMessage,
-  SlotTimesScrollArea,
-  SlotTimesSkeletonGrid,
-} from "@/features/public-booking/public-booking-components";
+import { Calendar as CalendarIcon, ChevronDown, Clock, UserCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle, Button, Collapsible, CollapsibleContent, CollapsibleTrigger, EmptyState } from "@workspace/ui/components";
+import { publicBookingSlotEmptyMessage, SlotTimesScrollArea, SlotTimesSkeletonGrid } from "@/features/public-booking/public-booking-components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { formatTime } from "@/lib/formatters";
 import { SlotGridAvailableSlotList } from "./slot-grid-available-slot-list";

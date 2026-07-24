@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslations } from "next-intl";
 import { SearchInput } from "@workspace/ui/components/form/search-input";
 import { Label } from "@workspace/ui/components/form/label";
 import {
@@ -19,25 +20,34 @@ export interface InvoicesFiltersProps {
   setSearchQuery: (value: string) => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Invoices > list filters.
+ * 5 literals converted to useTranslations("Invoices.filters").
+ */
+function useInvoicesFiltersTranslations() {
+  return useTranslations("Invoices.filters");
+}
+
 export function InvoicesFilters({
   filter,
   setFilter,
   searchQuery,
   setSearchQuery,
 }: InvoicesFiltersProps) {
+  const t = useInvoicesFiltersTranslations();
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
       <SearchInput
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         onClear={() => setSearchQuery("")}
-        placeholder="Enter patient name"
-        ariaLabel="Search invoices"
+        placeholder={t("searchPlaceholder")}
+        ariaLabel={t("searchAriaLabel")}
       />
 
       <div className="grid gap-2">
         <Label htmlFor="invoices-status-filter" className="text-xs text-muted-foreground">
-          Status
+          {t("statusLabel")}
         </Label>
         <Select
           value={filter}
@@ -55,14 +65,14 @@ export function InvoicesFilters({
           }}
         >
           <SelectTrigger id="invoices-status-filter" className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All" />
+            <SelectValue placeholder={t("allStatuses")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="PAID">Paid</SelectItem>
-            <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="OVERDUE">Overdue</SelectItem>
-            <SelectItem value="PARTIALLY_PAID">Partially Paid</SelectItem>
+            <SelectItem value="all">{t("allStatuses")}</SelectItem>
+            <SelectItem value="PAID">{t("statuses.paid")}</SelectItem>
+            <SelectItem value="PENDING">{t("statuses.pending")}</SelectItem>
+            <SelectItem value="OVERDUE">{t("statuses.overdue")}</SelectItem>
+            <SelectItem value="PARTIALLY_PAID">{t("statuses.partiallyPaid")}</SelectItem>
           </SelectContent>
         </Select>
       </div>

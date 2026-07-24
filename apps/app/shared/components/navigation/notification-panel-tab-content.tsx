@@ -2,10 +2,7 @@
 
 import { BellIcon } from "lucide-react";
 import type { StaffNotification } from "@workspace/data-access";
-import {
-  NotificationItem,
-  categorizeNotifications,
-} from "./notification-item";
+import { NotificationItem, categorizeNotifications } from "./notification-item";
 
 interface NotificationTabContentProps {
   notifications: StaffNotification[];

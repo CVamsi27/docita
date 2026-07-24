@@ -1,23 +1,10 @@
 "use client";
 
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Input, Label } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { OphthalmologyExamData } from "@workspace/types";
-import {
-  getVisionExamFieldValue,
-  VISION_EXAM_FIELDS,
-  type VisionExamFieldKey,
-  type VisionEyeKey,
-} from "./vision-exam-fields";
+import { getVisionExamFieldValue, VISION_EXAM_FIELDS, type VisionExamFieldKey, type VisionEyeKey } from "./vision-exam-fields";
 
 export interface VisionEyeMeta {
   key: VisionEyeKey;

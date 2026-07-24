@@ -18,6 +18,9 @@ export function parseFollowUpStatuses(
     .split(',')
     .map((item) => item.trim().toUpperCase())
     .map((item) => parseStringEnumMember(Object.values(FollowUpStatus), item))
-    .filter((item): item is FollowUpStatus => item !== undefined);
+    // parseStringEnumMember returns null (not undefined) for unknown values;
+    // filter both so a bogus status can't leak into the `status: { in: [...] }`
+    // query as null.
+    .filter((item): item is FollowUpStatus => item != null);
   return statuses.length > 0 ? statuses : undefined;
 }

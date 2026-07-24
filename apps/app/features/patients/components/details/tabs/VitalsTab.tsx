@@ -3,17 +3,8 @@
 import { useMemo } from "react";
 import { formatDate } from "@workspace/utils";
 import type { Appointment } from "@workspace/types";
-import {
-  calculateBMI,
-  getBMIStatus,
-  getLatestVitals,
-} from "@/features/patients/rules/vitals-rules";
-import {
-  LatestVitalsCard,
-  VitalsHistoryTable,
-  AdvancedMetricTracking,
-  type VitalsRow,
-} from "./VitalsTabSections";
+import { calculateBMI, getBMIStatus, getLatestVitals } from "@/features/patients/rules/vitals-rules";
+import { LatestVitalsCard, VitalsHistoryTable, AdvancedMetricTracking, type VitalsRow } from "./VitalsTabSections";
 
 interface VitalsTabProps {
   patientId: string;

@@ -1,21 +1,7 @@
 "use client";
 
-import {
-  DataTable,
-  type DataTableColumn,
-} from "@workspace/ui/components/data-display/data-table";
-import { ListRow } from "@workspace/ui/components/data-display/list-row";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataTable, ListRow, SymbolTooltip, type DataTableColumn } from "@workspace/ui/components";
 import { Eye } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
 import type { InventoryItem } from "@workspace/types";
 import type { StockStatus } from "@/features/inventory/hooks/use-inventory-logic";
 import { DATE_FORMAT_OPTIONS_US_SHORT, formatDateSafe } from "@/lib/formatters";

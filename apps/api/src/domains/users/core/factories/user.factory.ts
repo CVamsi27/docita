@@ -12,25 +12,12 @@ export class UserFactory {
       clinicId?: string;
     },
   ): Prisma.UserCreateInput {
-    const baseUser: Prisma.UserCreateInput = {
+    return {
       email: data.email,
       name: data.name,
       password: data.passwordHash,
       role: role,
       clinic: data.clinicId ? { connect: { id: data.clinicId } } : undefined,
     };
-
-    switch (role) {
-      case Role.DOCTOR:
-        break;
-      case Role.RECEPTIONIST:
-        break;
-      case Role.ADMIN:
-        break;
-      default:
-        break;
-    }
-
-    return baseUser;
   }
 }

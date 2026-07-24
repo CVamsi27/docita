@@ -1,7 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Switch } from "@workspace/ui/components/form/switch";
+import { Input, Label, Switch } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
@@ -14,7 +12,7 @@ export function ClinicBusinessSection({
   clinicForm,
 }: ClinicBusinessSectionProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 rounded-lg border bg-muted/20 p-4 shadow-sm md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div className="space-y-2">
         <Label htmlFor="website">Website</Label>
         <Input

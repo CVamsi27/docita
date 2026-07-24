@@ -2,16 +2,7 @@
 
 // jscpd:ignore-start
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import { Separator } from "@workspace/ui/components/layout/separator";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Separator } from "@workspace/ui/components";
 import {
   Shield,
 // jscpd:ignore-end

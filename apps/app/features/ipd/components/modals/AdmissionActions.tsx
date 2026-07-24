@@ -1,7 +1,4 @@
-import {
-  DialogFooter,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button, DialogFooter } from "@workspace/ui/components";
 
 interface AdmissionActionsProps {
   isSubmitting: boolean;

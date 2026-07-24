@@ -1,10 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import {
-  reportClientError,
-  type ClientErrorPayload,
-} from "@/lib/monitoring/client-error-reporting";
+import { reportClientError, type ClientErrorPayload } from "@/lib/monitoring/client-error-reporting";
 
 const DEDUPE_WINDOW_MS = 5000;
 const MAX_DEDUPE_KEYS = 200;

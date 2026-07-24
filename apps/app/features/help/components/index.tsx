@@ -1,13 +1,9 @@
 "use client";
 
 import { FC, useMemo, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { useTranslations } from "next-intl";
+import { Card } from "@/components/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/card";
 import { Button } from "@workspace/ui/components/form/button";
 import { SearchInput } from "@workspace/ui/components/form/search-input";
 import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
@@ -29,48 +25,57 @@ const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Do
 const HELP_CATEGORIES = [
   {
     id: "getting-started",
-    title: "Getting Started",
+    titleKey: "gettingStarted",
     icon: BookOpen,
     articles: 5,
   },
   {
     id: "patients",
-    title: "Patient Management",
+    titleKey: "patientManagement",
     icon: HelpCircle,
     articles: 8,
   },
-  { id: "appointments", title: "Appointments", icon: HelpCircle, articles: 6 },
-  { id: "billing", title: "Billing & Invoices", icon: HelpCircle, articles: 4 },
-  { id: "settings", title: "Settings & Config", icon: HelpCircle, articles: 7 },
+  { id: "appointments", titleKey: "appointments", icon: HelpCircle, articles: 6 },
+  { id: "billing", titleKey: "billingInvoices", icon: HelpCircle, articles: 4 },
+  { id: "settings", titleKey: "settingsConfig", icon: HelpCircle, articles: 7 },
 ];
 
+/**
+ * Phase 3 (per-feature): apps/app Help > main page components.
+ * 5 literals converted to useTranslations("Help").
+ */
+function useHelpTranslations() {
+  return useTranslations("Help");
+}
+
 export const HelpCenter: FC = () => {
+  const t = useHelpTranslations();
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredCategories = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return HELP_CATEGORIES;
-    return HELP_CATEGORIES.filter((cat) => cat.title.toLowerCase().includes(q));
-  }, [searchQuery]);
+    return HELP_CATEGORIES.filter((cat) => t(cat.titleKey).toLowerCase().includes(q));
+  }, [searchQuery, t]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center space-y-4">
         <h1 className="ui-page-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)]">
-          How can we help you?
+          {t("pageTitle")}
         </h1>
         <SearchInput
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onClear={() => setSearchQuery("")}
-          placeholder="Enter topic"
-          ariaLabel="Search help articles"
+          placeholder={t("searchPlaceholder")}
+          ariaLabel={t("searchAriaLabel")}
         />
       </div>
 
       {filteredCategories.length === 0 ? (
         <div className="text-center text-[var(--fs-sm)] text-muted-foreground">
-          No help topics match your search.
+          {t("noTopicsMatch")}
         </div>
       ) : null}
 
@@ -86,9 +91,9 @@ export const HelpCenter: FC = () => {
                   <cat.icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold">{cat.title}</h3>
+                  <h3 className="font-semibold">{t(cat.titleKey)}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {cat.articles} articles
+                    {t("articlesCount", { count: cat.articles })}
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -103,19 +108,19 @@ export const HelpCenter: FC = () => {
           <CardHeader>
             <div className="flex items-center gap-3">
               <MessageCircle className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">WhatsApp</CardTitle>
+              <CardTitle className="text-base">{t("whatsappTitle")}</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Message our support team on WhatsApp
+              {t("whatsappBody")}
             </p>
             <WhatsAppButton
               phoneNumber={getSupportPhoneNumber()}
               message={SUPPORT_WHATSAPP_MESSAGE_DEFAULT}
               variant="outline"
               size="sm"
-              label="Open WhatsApp"
+              label={t("openWhatsAppButton")}
             />
           </CardContent>
         </Card>
@@ -124,17 +129,17 @@ export const HelpCenter: FC = () => {
           <CardHeader>
             <div className="flex items-center gap-3">
               <Mail className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">Email support</CardTitle>
+              <CardTitle className="text-base">{t("emailTitle")}</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Get help via email at {SUPPORT_EMAIL}
+              {t("emailBody", { email: SUPPORT_EMAIL })}
             </p>
             <Button variant="outline" size="sm" className="gap-2" asChild>
               <a href={SUPPORT_MAILTO}>
                 <Mail className="h-4 w-4" aria-hidden />
-                Contact Us
+                {t("contactUsButton")}
               </a>
             </Button>
           </CardContent>
@@ -147,18 +152,19 @@ export const HelpCenter: FC = () => {
 export const FAQSection: FC<{
   faqs?: Array<{ question: string; answer: string }>;
 }> = ({ faqs = [] }) => {
+  const t = useHelpTranslations();
   const defaultFaqs = [
     {
-      question: "How do I add a new patient?",
-      answer: "Navigate to Patients and click 'Add Patient'",
+      question: t("faq1Question"),
+      answer: t("faq1Answer"),
     },
     {
-      question: "How do I schedule an appointment?",
-      answer: "Go to Appointments and click 'Schedule'",
+      question: t("faq2Question"),
+      answer: t("faq2Answer"),
     },
     {
-      question: "How do I generate an invoice?",
-      answer: "After a consultation, click 'Generate Invoice'",
+      question: t("faq3Question"),
+      answer: t("faq3Answer"),
     },
   ];
 
@@ -167,8 +173,8 @@ export const FAQSection: FC<{
   return (
     <Card className="ui-card-surface">
       <CardHeader>
-        <CardTitle>Frequently Asked Questions</CardTitle>
-        <CardDescription>Quick answers to common questions</CardDescription>
+        <CardTitle>{t("faqTitle")}</CardTitle>
+        <CardDescription>{t("faqSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {displayFaqs.map((faq, i) => (

@@ -1,25 +1,12 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import {
-  Appointment,
-  Patient as BasePatient,
-  PatientFamilyHistory,
-  PatientSnapshot,
-  PatientSocialHistory,
-  PatientSurgicalHistory,
-  PatientTimelineResponse,
-} from "@workspace/types";
+import { Appointment, Patient as BasePatient, PatientFamilyHistory, PatientSnapshot, PatientSocialHistory, PatientSurgicalHistory, PatientTimelineResponse } from "@workspace/types";
 import { PatientSnapshotStrip } from "@/components/patient-history/PatientSnapshotStrip";
 import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
 import { FollowUpWidget } from "./FollowUpWidget";
-import {
-  ConsultationSidebarEmptyState,
-  ConsultationSidebarHeader,
-  ConsultationSidebarHistoryTimeline,
-  ConsultationSidebarStructuredHistory,
-} from "./consultation-sidebar-sections";
+import { ConsultationSidebarEmptyState, ConsultationSidebarHeader, ConsultationSidebarHistoryTimeline, ConsultationSidebarStructuredHistory } from "./consultation-sidebar-sections";
 
 interface Patient extends BasePatient {
   age?: string;

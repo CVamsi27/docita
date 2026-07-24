@@ -9,7 +9,6 @@ export enum ApplicationEvents {
   APPOINTMENT_COMPLETED = 'appointment.completed',
   DOCTOR_DELAY_MARKED = 'doctor-delay.marked',
   PRESCRIPTION_CREATED = 'prescription.created',
-  LAB_RESULT_RELEASED = 'lab-result.released',
   INVOICE_GENERATED = 'invoice.generated',
   PAYMENT_CAPTURED = 'payment.captured',
   NOTIFICATION_CREATED = 'notification.created',
@@ -20,4 +19,9 @@ export enum ApplicationEvents {
   OCR_PAGE_PROCESSED = 'ocr.page.processed',
   AI_CREDITS_CONSUMED = 'ai.credits.consumed',
   WHATSAPP_DELIVERY_STALE = 'whatsapp.delivery.stale',
+  // Emitted by clinics.onboarding after the onboarding transaction commits.
+  // Subscriptions subscribes to capture any referrer code from
+  // planSelection.referralCode (cross-domain integration without a direct
+  // clinics.application → subscriptions.core.services import).
+  CLINIC_ONBOARDED = 'clinic.onboarded',
 }

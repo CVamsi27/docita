@@ -1,6 +1,6 @@
-import { Button } from "@workspace/ui/components/form/button";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { Button, PageHeader } from "@workspace/ui/components";
 import { Stethoscope, UserPlus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function PatientsPageHeader({
   onAddPatient,
@@ -9,10 +9,11 @@ export function PatientsPageHeader({
   onAddPatient: () => void;
   onOpenConsultationQueue?: () => void;
 }) {
+  const t = useTranslations("Patients.list");
   return (
     <PageHeader
-      title="Patients"
-      description="Manage your patient records and history."
+      title={t("pageTitle")}
+      description={t("pageDescription")}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           {onOpenConsultationQueue ? (
@@ -23,8 +24,8 @@ export function PatientsPageHeader({
               className="gap-2"
             >
               <Stethoscope className="h-4 w-4" />
-              <span className="hidden sm:inline">Consultation queue</span>
-              <span className="sm:hidden">Queue</span>
+              <span className="hidden sm:inline">{t("consultationQueueFull")}</span>
+              <span className="sm:hidden">{t("consultationQueueShort")}</span>
             </Button>
           ) : null}
           <Button
@@ -33,7 +34,7 @@ export function PatientsPageHeader({
             data-testid="patients-add-trigger"
           >
             <UserPlus className="h-4 w-4" />
-            Add Patient
+            {t("addPatient")}
           </Button>
         </div>
       }

@@ -1,8 +1,6 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Button, Input, SymbolTooltip } from "@workspace/ui/components";
 import { Plus, X } from "lucide-react";
 import type { LineItem } from "./billing-modal-types";
 

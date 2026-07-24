@@ -2,17 +2,9 @@
 
 import { Suspense } from "react";
 import { getUserFacingErrorMessage } from "@workspace/utils";
-import {
-  Card,
-  CardContent,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  SignatureUploadedCard,
-  SignatureLinkLoadingCard,
-  SignatureLinkErrorCard,
-  SignatureUploadFormCard,
-} from "./UploadSignatureOnboardingSections";
+import { SignatureUploadedCard, SignatureLinkLoadingCard, SignatureLinkErrorCard, SignatureUploadFormCard } from "./UploadSignatureOnboardingSections";
 import { useSignatureUpload } from "./use-signature-upload";
 
 function OnboardingSlaUploadInner() {

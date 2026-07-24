@@ -1,17 +1,11 @@
 "use client";
 
 // jscpd:ignore-start
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
+import { useTranslations } from "next-intl";
 import { z } from "zod";
 import type { PsychiatryExamData } from "@workspace/types";
 import {
@@ -20,6 +14,15 @@ import {
   ExamFieldGrid,
   ExamTextareaField,
 } from "./exam-section-fields";
+
+/**
+ * Phase 3 (per-feature): apps/app Consultation > Psychiatry exam
+ * section. 6 literals converted to
+ * useTranslations("Consultation.psychiatryExamSection").
+ */
+function usePsychiatryExamTranslations() {
+  return useTranslations("Consultation.psychiatryExamSection");
+}
 
 const psychiatryRiskLevelSchema = z.enum([
   "low",
@@ -57,6 +60,7 @@ function PsychiatryRiskSelectField({
   value,
   onChange,
 }: PsychiatryRiskSelectFieldProps) {
+  const t = usePsychiatryExamTranslations();
   return (
     <div className="space-y-2">
       <Label className="text-sm font-semibold">{label}</Label>
@@ -71,11 +75,11 @@ function PsychiatryRiskSelectField({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="unset">Not assessed</SelectItem>
-          <SelectItem value="low">Low</SelectItem>
-          <SelectItem value="moderate">Moderate</SelectItem>
-          <SelectItem value="high">High</SelectItem>
-          <SelectItem value="imminent">Imminent</SelectItem>
+          <SelectItem value="unset">{t("riskNotAssessed")}</SelectItem>
+          <SelectItem value="low">{t("riskLow")}</SelectItem>
+          <SelectItem value="moderate">{t("riskModerate")}</SelectItem>
+          <SelectItem value="high">{t("riskHigh")}</SelectItem>
+          <SelectItem value="imminent">{t("riskImminent")}</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -91,6 +95,7 @@ export function PsychiatryExamSection({
   readOnly,
   sectionRef,
 }: PsychiatryExamSectionProps) {
+  const t = usePsychiatryExamTranslations();
   const subtitle = useConsultationSectionSubtitle("specialty-psychiatry");
   const value = useConsultationDraft((s) => s.psychiatryExam);
   const setValue = useConsultationDraft((s) => s.setPsychiatryExam);
@@ -111,17 +116,17 @@ export function PsychiatryExamSection({
       ref={sectionRef}
       id="specialty-psychiatry"
       letter="M"
-      title="Mental Status Examination"
+      title={t("sectionTitle")}
       subtitle={subtitle}
-      description="MSE, risk assessment, and psychiatric plan."
+      description={t("sectionDescription")}
     >
       <div className="space-y-4">
         <ExamTextareaField
           id="psych-mse"
-          label="Mental status examination"
+          label={t("mseLabel")}
           minHeightClassName="min-h-[140px]"
           readOnly={readOnly}
-          placeholder="Mental status examination"
+          placeholder={t("msePlaceholder")}
           value={mseNotes}
           onChange={(notes) =>
             setValue((prev) => ({
@@ -135,8 +140,8 @@ export function PsychiatryExamSection({
         />
         <ExamFieldGrid>
           <PsychiatryRiskSelectField
-            label="Suicide risk"
-            placeholder="Suicide risk"
+            label={t("suicideRiskLabel")}
+            placeholder={t("suicideRiskPlaceholder")}
             readOnly={readOnly}
             value={value.riskAssessment?.suicideRisk}
             onChange={(suicideRisk) =>
@@ -150,8 +155,8 @@ export function PsychiatryExamSection({
             }
           />
           <PsychiatryRiskSelectField
-            label="Homicide risk"
-            placeholder="Homicide risk"
+            label={t("homicideRiskLabel")}
+            placeholder={t("homicideRiskPlaceholder")}
             readOnly={readOnly}
             value={value.riskAssessment?.homicideRisk}
             onChange={(homicideRisk) =>
@@ -167,10 +172,10 @@ export function PsychiatryExamSection({
         </ExamFieldGrid>
         <ExamTextareaField
           id="psych-risk-mgmt"
-          label="Risk management / safety plan"
+          label={t("riskManagementLabel")}
           minHeightClassName="min-h-[88px]"
           readOnly={readOnly}
-          placeholder="Safety plan"
+          placeholder={t("riskManagementPlaceholder")}
           value={value.riskAssessment?.riskManagement ?? ""}
           onChange={(riskManagement) =>
             setValue((prev) => ({

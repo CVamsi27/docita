@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { Clinic, Invoice } from "@workspace/types";
 import Image from "next/image";
 import { useFacilityLabel } from "@/lib/formatters/facility-label";
@@ -72,29 +68,25 @@ export function InvoiceHeader({
           )}
         </CardDescription>
       </div>
-      <div className="text-right">
+      <div className="w-full text-left sm:w-auto sm:text-right">
         <h2 className="ui-section-title mb-1 text-[var(--fs-2xl)] text-primary">
           {documentTitle}
         </h2>
         <p className="text-sm font-medium text-muted-foreground">
           #{invoice.invoiceNumber ?? invoice.id}
         </p>
-        <div className="mt-4 text-sm">
-          <div className="flex justify-end gap-4">
-            <span className="text-muted-foreground">Date:</span>
-            <span className="font-medium">
-              {invoice.issuedAt || invoice.createdAt
-                ? formatDate(invoice.issuedAt ?? invoice.createdAt)
-                : "N/A"}
-            </span>
-          </div>
-          <div className="flex justify-end gap-4 mt-1">
-            <span className="text-muted-foreground">Due Date:</span>
-            <span className="font-medium">
-              {invoice.dueDate ? formatDate(invoice.dueDate) : "N/A"}
-            </span>
-          </div>
-        </div>
+        <dl className="mt-4 inline-grid grid-cols-[auto_auto] gap-x-4 gap-y-1 text-left text-sm">
+          <dt className="text-muted-foreground">Date:</dt>
+          <dd className="font-medium">
+            {invoice.issuedAt || invoice.createdAt
+              ? formatDate(invoice.issuedAt ?? invoice.createdAt)
+              : "N/A"}
+          </dd>
+          <dt className="text-muted-foreground">Due Date:</dt>
+          <dd className="font-medium">
+            {invoice.dueDate ? formatDate(invoice.dueDate) : "N/A"}
+          </dd>
+        </dl>
       </div>
     </CardHeader>
   );

@@ -1,8 +1,7 @@
 "use client";
 
 import { FC } from "react";
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Badge, Card, CardContent } from "@workspace/ui/components";
 import { TestTube } from "lucide-react";
 
 export const LabOrderCard: FC<{

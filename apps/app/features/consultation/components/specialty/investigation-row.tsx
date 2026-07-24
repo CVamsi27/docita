@@ -2,6 +2,7 @@
 
 // jscpd:ignore-start
 import { Loader2, Paperclip, Trash2, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Input } from "@workspace/ui/components/form/input";
@@ -17,31 +18,24 @@ import { Textarea } from "@workspace/ui/components/form/textarea";
 import { type ClinicalInvestigation } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
 import { resolveAttachmentUrl } from "@/features/consultation/hooks/use-investigation-attachment";
-
-const INVESTIGATION_CATEGORIES = [
+import {
+  INVESTIGATION_CATEGORIES,
+  INVESTIGATION_STATUSES,
+  type InvestigationRowProps,
+} from "./investigation-row.helpers";
 // jscpd:ignore-end
-  "LABORATORY",
-  "IMAGING",
-  "SPECIAL",
-  "OTHER",
-] as const;
-const INVESTIGATION_STATUSES = [
-  "ORDERED",
-  "PENDING",
-  "COMPLETED",
-  "CANCELLED",
-] as const;
 
-export interface InvestigationRowProps {
-  row: ClinicalInvestigation;
-  index: number;
-  readOnly?: boolean;
-  canAttach: boolean;
-  hasUploadContext: boolean;
-  uploadingId: string | null;
-  onUpdate: (index: number, patch: Partial<ClinicalInvestigation>) => void;
-  onRemove: (index: number) => void;
-  onAttach: (index: number, row: ClinicalInvestigation, file: File) => Promise<void>;
+export type { InvestigationRowProps };
+
+/**
+ * Phase 3 (per-feature): the investigations list on the
+ * consultation form (LAB / IMAGING / SPECIAL orders plus
+ * their results). The file is split into many small
+ * sub-components, so the useTranslations() helper is shared
+ * to keep the namespace discoverable as a single unit.
+ */
+function useInvestigationTranslations() {
+  return useTranslations("Consultation.investigation");
 }
 
 export function InvestigationList(
@@ -49,9 +43,10 @@ export function InvestigationList(
     investigations: ClinicalInvestigation[];
   } & Omit<InvestigationRowProps, "row" | "index">,
 ) {
+  const t = useInvestigationTranslations();
   if (props.investigations.length === 0) return (
       <p className="text-sm text-muted-foreground">
-        No investigations recorded. Add imaging or labs when needed.
+        {t("emptyState")}
       </p>
     );
 
@@ -137,15 +132,16 @@ function InvestigationNameField({
   readOnly,
   onUpdate,
 }: Pick<InvestigationRowProps, "row" | "index" | "readOnly" | "onUpdate">) {
+  const t = useInvestigationTranslations();
   return (
     <div className="w-full space-y-1.5 sm:min-w-[180px] sm:flex-1">
       <Label htmlFor={`inv-name-${index}`} className="text-xs">
-        Name
+        {t("nameLabel")}
       </Label>
       <Input
         id={`inv-name-${index}`}
         readOnly={readOnly}
-        placeholder="Study or test name"
+        placeholder={t("namePlaceholder")}
         value={row.name}
         onChange={(event) => onUpdate(index, { name: event.target.value })}
       />
@@ -159,9 +155,10 @@ function InvestigationCategoryField({
   readOnly,
   onUpdate,
 }: Pick<InvestigationRowProps, "row" | "index" | "readOnly" | "onUpdate">) {
+  const t = useInvestigationTranslations();
   return (
     <div className="w-full space-y-1.5 sm:w-[140px]">
-      <Label className="text-xs">Category</Label>
+      <Label className="text-xs">{t("categoryLabel")}</Label>
       <Select
         disabled={readOnly}
         value={row.category ?? "OTHER"}
@@ -177,10 +174,10 @@ function InvestigationCategoryField({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="LABORATORY">Laboratory</SelectItem>
-          <SelectItem value="IMAGING">Imaging</SelectItem>
-          <SelectItem value="SPECIAL">Special</SelectItem>
-          <SelectItem value="OTHER">Other</SelectItem>
+          <SelectItem value="LABORATORY">{t("categoryLaboratory")}</SelectItem>
+          <SelectItem value="IMAGING">{t("categoryImaging")}</SelectItem>
+          <SelectItem value="SPECIAL">{t("categorySpecial")}</SelectItem>
+          <SelectItem value="OTHER">{t("categoryOther")}</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -193,9 +190,10 @@ function InvestigationStatusField({
   readOnly,
   onUpdate,
 }: Pick<InvestigationRowProps, "row" | "index" | "readOnly" | "onUpdate">) {
+  const t = useInvestigationTranslations();
   return (
     <div className="w-full space-y-1.5 sm:w-[140px]">
-      <Label className="text-xs">Status</Label>
+      <Label className="text-xs">{t("statusLabel")}</Label>
       <Select
         disabled={readOnly}
         value={row.status ?? "ORDERED"}
@@ -211,10 +209,10 @@ function InvestigationStatusField({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="ORDERED">Ordered</SelectItem>
-          <SelectItem value="PENDING">Pending</SelectItem>
-          <SelectItem value="COMPLETED">Completed</SelectItem>
-          <SelectItem value="CANCELLED">Cancelled</SelectItem>
+          <SelectItem value="ORDERED">{t("statusOrdered")}</SelectItem>
+          <SelectItem value="PENDING">{t("statusPending")}</SelectItem>
+          <SelectItem value="COMPLETED">{t("statusCompleted")}</SelectItem>
+          <SelectItem value="CANCELLED">{t("statusCancelled")}</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -225,14 +223,15 @@ function RemoveInvestigationButton({
   index,
   onRemove,
 }: Pick<InvestigationRowProps, "index" | "onRemove">) {
+  const t = useInvestigationTranslations();
   return (
-    <SymbolTooltip label="Remove investigation">
+    <SymbolTooltip label={t("removeInvestigationTooltip")}>
       <Button
         type="button"
         variant="ghost"
         size="icon"
         className="shrink-0 text-muted-foreground hover:text-destructive"
-        aria-label="Remove investigation"
+        aria-label={t("removeInvestigationTooltip")}
         onClick={() => onRemove(index)}
       >
         <Trash2 className="h-4 w-4" />
@@ -247,16 +246,17 @@ function InvestigationNotesField({
   readOnly,
   onUpdate,
 }: Pick<InvestigationRowProps, "row" | "index" | "readOnly" | "onUpdate">) {
+  const t = useInvestigationTranslations();
   return (
     <div className="space-y-1.5">
       <Label htmlFor={`inv-notes-${index}`} className="text-xs">
-        Notes / results
+        {t("notesLabel")}
       </Label>
       <Textarea
         id={`inv-notes-${index}`}
         readOnly={readOnly}
         className="min-h-[72px]"
-        placeholder="Findings"
+        placeholder={t("notesPlaceholder")}
         value={row.notes ?? ""}
         onChange={(event) => onUpdate(index, { notes: event.target.value })}
       />
@@ -289,6 +289,7 @@ function InvestigationAttachmentLink({
   readOnly,
   onUpdate,
 }: Pick<InvestigationRowProps, "row" | "index" | "readOnly" | "onUpdate">) {
+  const t = useInvestigationTranslations();
   if (!row.attachmentUrl) return null;
 
   return (
@@ -303,7 +304,7 @@ function InvestigationAttachmentLink({
         rel="noopener noreferrer"
         className="min-w-0 flex-1 truncate text-sm text-primary underline-offset-2 hover:underline"
       >
-        {row.attachmentName ?? "View attachment"}
+        {row.attachmentName ?? t("viewAttachment")}
       </a>
       {!readOnly ? (
         <RemoveAttachmentButton index={index} onUpdate={onUpdate} />
@@ -316,14 +317,15 @@ function RemoveAttachmentButton({
   index,
   onUpdate,
 }: Pick<InvestigationRowProps, "index" | "onUpdate">) {
+  const t = useInvestigationTranslations();
   return (
-    <SymbolTooltip label="Remove attachment">
+    <SymbolTooltip label={t("removeAttachmentTooltip")}>
       <Button
         type="button"
         variant="ghost"
         size="icon"
         className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
-        aria-label="Remove attachment"
+        aria-label={t("removeAttachmentTooltip")}
         onClick={() =>
           onUpdate(index, {
             attachmentUrl: undefined,
@@ -347,12 +349,13 @@ function InvestigationAttachUploadLabel({
   InvestigationRowProps,
   "row" | "index" | "uploadingId" | "onAttach"
 >) {
+  const t = useInvestigationTranslations();
   const rowKey = row.id ?? `inv-${index}`;
   const isUploading = uploadingId === rowKey;
   return (
     <label
       className="inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors duration-150 hover:border-primary/50 hover:text-primary has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60"
-      aria-label="Attach a report or scan"
+      aria-label={t("attachReportAriaLabel")}
     >
       <AttachmentUploadLabelContent isUploading={isUploading} />
       <input
@@ -375,16 +378,17 @@ function AttachmentUploadLabelContent({
 }: {
   isUploading: boolean;
 }) {
+  const t = useInvestigationTranslations();
   if (isUploading) return (
       <>
         <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-        Uploading…
+        {t("uploading")}
       </>
     );
   return (
     <>
       <Paperclip className="h-3.5 w-3.5" aria-hidden />
-      Attach report
+      {t("attachReport")}
     </>
   );
 }

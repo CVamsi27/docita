@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useGenerateSlaSignatureToken,
-  useClinicActiveSignatureTokens,
-  useRevokeClinicSignatureToken,
-} from "@workspace/data-access";
+import { useGenerateSlaSignatureToken, useClinicActiveSignatureTokens, useRevokeClinicSignatureToken } from "@workspace/data-access";
 import { QrSignatureUpload } from "@/features/settings/components/shared/qr-signature-upload";
 
 interface ClinicSlaSignatureQRProps {

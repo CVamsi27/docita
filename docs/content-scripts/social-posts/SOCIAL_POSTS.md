@@ -110,7 +110,7 @@ Follow Docita → linkedin.com/company/114464051
 
 ### E1 — Drink Water First
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/card-water-first.svg`
 **Image (Instagram):** `images-png/card-water-first-ig.png`
 **Alt text:** Text card: "Water first. Coffee second."
@@ -166,7 +166,7 @@ Follow Docita → linkedin.com/company/114464051
 
 ### P3 — Everything in One Place
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/card-one-place.svg`
 **Image (Instagram):** `images-png/card-one-place-ig.png`
 **Alt text:** Text card: "One place. Zero tabs."
@@ -214,7 +214,7 @@ Follow Docita → linkedin.com/company/114464051
 
 ### P4 — Auto Follow-Ups
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/card-follow-ups.svg`
 **Image (Instagram):** `images-png/card-follow-ups-ig.png`
 **Alt text:** Text card: "Patients forget. Docita reminds."
@@ -266,7 +266,7 @@ Follow Docita → linkedin.com/company/114464051
 
 ### E2 — Sleep Is Not Laziness
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/card-sleep.svg`
 **Image (Instagram):** `images-png/card-sleep-ig.png`
 **Alt text:** Text card: "Sleep is not laziness."
@@ -324,7 +324,7 @@ Follow Docita → linkedin.com/company/114464051
 
 ### P5 — Online Booking
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/shot-appointments.png`
 **Image (Instagram):** `images-png/shot-appointments-ig.png`
 **Alt text:** Docita appointments screen showing online bookings
@@ -372,7 +372,7 @@ Follow Docita → linkedin.com/company/114464051
 
 ### P6 — Digital Prescriptions
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/shot-prescription.png`
 **Image (Instagram):** `images-png/shot-prescription-ig.png`
 **Alt text:** Docita prescription builder screen

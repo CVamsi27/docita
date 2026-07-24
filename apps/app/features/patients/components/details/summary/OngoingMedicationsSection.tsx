@@ -1,7 +1,10 @@
 "use client";
 
 import { useActiveMedications } from "@workspace/data-access";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  DataState,
+  type DataStateStatus,
+} from "@workspace/ui/components/data-display/data-state";
 import { Progress } from "@workspace/ui/components/feedback/progress";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Section } from "@workspace/ui/components/layout/section";
@@ -25,6 +28,15 @@ export function OngoingMedicationsSection({
     refetch,
   } = useActiveMedications(patientId);
 
+  const status: DataStateStatus =
+    isLoading && !medications
+      ? "loading"
+      : isError
+        ? "error"
+        : !medications || medications.length === 0
+          ? "empty"
+          : "success";
+
   return (
     <Section
       title="Ongoing medicines"
@@ -36,27 +48,17 @@ export function OngoingMedicationsSection({
         />
       }
     >
-      {isLoading && !medications ? (
-        <DataState
-          status="loading"
-          loadingMessage="Loading ongoing medicines…"
-        />
-      ) : isError ? (
-        <DataState
-          status="error"
-          errorMessage="We could not load ongoing medicines. Please try again."
-          onRetry={() => refetch()}
-        />
-      ) : !medications || medications.length === 0 ? (
-        <DataState
-          status="empty"
-          emptyIcon={Pill}
-          emptyTitle="No ongoing medicines"
-          emptyDescription="Active prescriptions will appear here."
-        />
-      ) : (
+      <DataState
+        status={status}
+        loadingMessage="Loading ongoing medicines…"
+        errorMessage="We could not load ongoing medicines. Please try again."
+        onRetry={() => refetch()}
+        emptyIcon={Pill}
+        emptyTitle="No ongoing medicines"
+        emptyDescription="Active prescriptions will appear here."
+      >
         <div className="divide-y divide-border/60">
-          {medications.map((medication) => {
+          {medications?.map((medication) => {
             const adherenceRate = medication.adherence
               ? clampPercentage(medication.adherence.adherenceRate)
               : null;
@@ -117,7 +119,7 @@ export function OngoingMedicationsSection({
             );
           })}
         </div>
-      )}
+      </DataState>
     </Section>
   );
 }

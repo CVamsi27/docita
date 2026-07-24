@@ -9,10 +9,7 @@ import {
   extractPreferredName,
   extractPronouns,
   extractAddress,
-  extractMaritalStatus,
   extractLanguage,
-  extractRace,
-  extractEthnicity,
   extractEmergencyContact,
   extractInvoiceTotal,
   extractInvoiceTax,
@@ -48,9 +45,6 @@ export class TextParserService {
       preferredName: '',
       pronouns: '',
       address: '',
-      race: '',
-      ethnicity: '',
-      maritalStatus: '',
       preferredLanguage: '',
       age: '',
       gender: 'MALE',
@@ -103,10 +97,7 @@ export class TextParserService {
       extractPreferredName(line, fields);
       extractPronouns(line, fields);
       extractAddress(line, fields);
-      extractMaritalStatus(line, fields);
       extractLanguage(line, fields);
-      extractRace(line, fields);
-      extractEthnicity(line, fields);
       extractEmergencyContact(line, fields);
       extractInvoiceTotal(line, fields);
       extractInvoiceTax(line, fields);

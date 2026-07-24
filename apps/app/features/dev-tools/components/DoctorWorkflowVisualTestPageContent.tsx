@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  DoctorDashboardZone,
-  DoctorAppointmentsZone,
-  DoctorConsultationZone,
-  DoctorPatientsZone,
-} from "./DoctorWorkflowVisualTestPageContent.sections";
+import { DoctorDashboardZone, DoctorAppointmentsZone, DoctorConsultationZone, DoctorPatientsZone } from "./DoctorWorkflowVisualTestPageContent.sections";
 
 export default function DoctorWorkflowVisualTestPage() {
   return (

@@ -1,23 +1,7 @@
 "use client";
 
 import { ArrowLeft, Clock, Lock, PanelLeft } from "lucide-react";
-import {
-  Avatar,
-  AvatarFallback,
-} from "@workspace/ui/components/indicators/avatar";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  SymbolTooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@workspace/ui/components/overlay/sheet";
+import { Avatar, AvatarFallback, Badge, Button, Sheet, SheetContent, SheetTrigger, SymbolTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatClockTime, formatDate } from "@/lib/formatters";
 import type { ConsultationHeaderDisplay } from "./consultation-page-header-helpers";
@@ -127,9 +111,9 @@ export function ConsultationHeaderPatientSummary({
             </Badge>
           ) : null}
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 min-w-0">
           <Clock className="h-3 w-3 shrink-0" />
-          <span>
+          <span className="truncate whitespace-nowrap">
             {formatDate(appointmentDate, "EEE, d MMM")} &middot;{" "}
             {formatClockTime(appointmentDate)}
           </span>

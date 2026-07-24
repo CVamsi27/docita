@@ -1,28 +1,7 @@
 "use client";
 
-import {
-  CheckCircle2,
-  Command as CommandIcon,
-  CreditCard,
-  HeartPulse,
-  MoreVertical,
-  PanelLeft,
-  PencilLine,
-  Sparkles,
-} from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  SymbolTooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/overlay/dropdown-menu";
+import { CheckCircle2, Command as CommandIcon, CreditCard, HeartPulse, MoreVertical, PanelLeft, PencilLine, Sparkles } from "lucide-react";
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, SymbolTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
 
 interface ConsultationToolbarPrimaryActionsProps {
@@ -249,9 +228,12 @@ export function ConsultationToolbarMarkDoneAction({
             onClick={onMarkDone}
             disabled={isMarkingDone || !canMarkDone}
             className="gap-1.5 h-8"
+            aria-label={isMarkingDone ? "Marking consultation done" : "Mark consultation done"}
           >
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{isMarkingDone ? "Marking…" : "Mark done"}</span>
+            <span className="hidden sm:inline">
+              {isMarkingDone ? "Marking…" : "Mark done"}
+            </span>
           </Button>
         </span>
       </SymbolTooltip>

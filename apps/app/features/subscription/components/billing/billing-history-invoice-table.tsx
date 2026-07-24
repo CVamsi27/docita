@@ -1,17 +1,7 @@
 "use client";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
-import {
-  ListRowGroup,
-} from "@workspace/ui/components/data-display/list-row";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { ListRowGroup, TableFooter } from "@workspace/ui/components";
 import type { BillingHistoryItem } from "@workspace/data-access";
 import {
   BILLING_HISTORY_TABLE_CAPTION,
@@ -19,10 +9,7 @@ import {
 import {
   formatMoney,
 } from "./billing-history-table-helpers";
-import {
-  BillingInvoiceMobileRow,
-  BillingInvoiceDesktopRow,
-} from "./billing-history-invoice-table-sections";
+import { BillingInvoiceMobileRow, BillingInvoiceDesktopRow } from "./billing-history-invoice-table-sections";
 
 export function BillingHistoryInvoiceTable({
   invoices,

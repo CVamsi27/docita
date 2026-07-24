@@ -1,11 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ClipboardList, Pill, Stethoscope, Target } from "lucide-react";
-import {
-  SectionRail,
-  SectionTabs,
-  type ConsultationSection,
-} from "./SectionRail";
+import { SectionRail, SectionTabs, type ConsultationSection } from "./SectionRail";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 
 const SECTIONS: ConsultationSection[] = [

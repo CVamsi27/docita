@@ -3,18 +3,11 @@
 import { useMemo, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { toast } from "sonner";
-import {
-  useClinicWhatsappTemplates,
-  usePatientWhatsappSentMessages,
-  useSendCustomWhatsAppMessage,
-} from "@workspace/data-access";
+import { useClinicWhatsappTemplates, usePatientWhatsappSentMessages, useSendCustomWhatsAppMessage } from "@workspace/data-access";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  WhatsappComposerForm,
-  SentMessageHistory,
-} from "./PatientWhatsappComposerSections";
+import { WhatsappComposerForm, SentMessageHistory } from "./PatientWhatsappComposerSections";
 
 const NO_TEMPLATE = "__none__";
 

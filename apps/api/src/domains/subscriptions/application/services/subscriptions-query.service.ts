@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, Logger } from '@nestjs/common';
 import {
   normalizePaymentHistory,
   filterPendingPlanCheckoutMismatches,
@@ -54,6 +54,8 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 @Injectable()
 export class SubscriptionsQueryService {
+  private readonly logger = new Logger(SubscriptionsQueryService.name);
+
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
     private readonly subscriptionRepo: ISubscriptionRepository,
@@ -89,9 +91,15 @@ export class SubscriptionsQueryService {
         cycle: scheduled.billingCycle,
         planMode: scheduled.planMode,
       });
-    } catch {
-      // Best-effort. Don't break the read if the scheduled change can't apply
-      // (e.g. tier requires payment); we'll surface the issue via UI next time.
+    } catch (error) {
+      // Best-effort. Don't break the read if the scheduled change
+      // can't apply (e.g. tier requires payment); we'll surface the
+      // issue via UI next time. Log the real cause so a recurring
+      // failure is visible — a stuck scheduled change should be
+      // visible to ops, not invisible.
+      this.logger.warn(
+        `Failed to apply scheduled plan change for clinic ${clinicId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 

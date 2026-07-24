@@ -4,14 +4,7 @@
 import type React from "react";
 import Link from "next/link";
 import { Lock, Sparkles } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { APP_ACCESS_MATRIX, type AppAccessTarget } from "@workspace/types";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { useAuth } from "@/lib/auth/auth-context";

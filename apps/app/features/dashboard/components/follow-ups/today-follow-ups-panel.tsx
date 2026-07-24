@@ -3,21 +3,10 @@
 import { getPatientFullName } from "@workspace/utils";
 import Link from "next/link";
 import { formatDate } from "@/lib/formatters";
-import {
-  FOLLOW_UP_STATUS_LABELS as STATUS_LABELS,
-  getFollowUpListQuery,
-} from "@/features/follow-ups";
+import { FOLLOW_UP_STATUS_LABELS as STATUS_LABELS, getFollowUpListQuery } from "@/features/follow-ups";
 import { useFollowUps } from "@workspace/data-access";
 import type { FollowUpResponse } from "@workspace/types";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
 import { CalendarCheck } from "lucide-react";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 
@@ -79,6 +68,7 @@ export function TodayFollowUpsPanel({ enabled }: TodayFollowUpsPanelProps) {
             icon={CalendarCheck}
             title="No follow-ups due today"
             description="You are caught up for today."
+            className="py-5"
           />
         ) : (
           <ul className="space-y-1">

@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BillingHistoryTable } from "./BillingHistoryTable";
 
@@ -13,6 +14,31 @@ vi.mock("@workspace/data-access", () => ({
   }),
 }));
 
+const messages = {
+  Subscription: {
+    billingFilters: {
+      statusLabel: "Status",
+      statusAll: "All",
+      statusPaid: "Paid",
+      statusPending: "Pending / unpaid",
+      statusFailed: "Failed / declined",
+      statusRefunded: "Refunded / void",
+      fromLabel: "From",
+      toLabel: "To",
+      anyDatePlaceholder: "Any",
+      clearFiltersButton: "Clear filters",
+    },
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
+
 describe("BillingHistoryTable", () => {
   beforeEach(() => {
     resumePaymentMock.mutateAsync.mockReset();
@@ -20,7 +46,7 @@ describe("BillingHistoryTable", () => {
   });
 
   it("treats pending invoiceUrl as a payment link instead of a receipt", () => {
-    render(
+    renderWithIntl(
       <BillingHistoryTable
         invoices={[
           {
@@ -51,7 +77,7 @@ describe("BillingHistoryTable", () => {
   });
 
   it("shows paid rows as receipts", () => {
-    render(
+    renderWithIntl(
       <BillingHistoryTable
         invoices={[
           {
@@ -77,7 +103,7 @@ describe("BillingHistoryTable", () => {
   });
 
   it("counts succeeded payments in paid total and hides Pay now", () => {
-    render(
+    renderWithIntl(
       <BillingHistoryTable
         invoices={[
           {
@@ -106,7 +132,7 @@ describe("BillingHistoryTable", () => {
   });
 
   it("formats each row using the stored billing currency", () => {
-    render(
+    renderWithIntl(
       <BillingHistoryTable
         invoices={[
           {

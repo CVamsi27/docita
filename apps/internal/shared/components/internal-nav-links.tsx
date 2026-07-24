@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@workspace/ui/lib/utils";
 import type { InternalNavItem } from "@/lib/internal-nav";
 
@@ -17,12 +18,16 @@ export function InternalNavLinks({
   className,
 }: InternalNavLinksProps) {
   const pathname = usePathname();
+  const t = useTranslations("InternalNav");
 
   return (
     <nav className={cn("grid gap-1", className)}>
       {items.map((item) => {
         const isActive = pathname === item.href;
         const Icon = item.icon;
+        // Phase 6.6: resolve the human title through t() when labelKey is
+        // present, falling back to the hardcoded English title.
+        const title = item.labelKey ? t(item.labelKey) || item.title : item.title;
         return (
           <Link
             key={item.href}
@@ -36,7 +41,7 @@ export function InternalNavLinks({
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />
-            {item.title}
+            {title}
           </Link>
         );
       })}

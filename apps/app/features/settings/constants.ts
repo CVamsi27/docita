@@ -8,6 +8,7 @@ import {
   FileText,
   FlaskConical,
   HeartPulse,
+  ListChecks,
   Lock,
   Paintbrush,
   Sparkles,
@@ -96,6 +97,13 @@ export const settingsTabs = [
         description: "In-house & external labs",
         roles: ADMIN_ROLES,
         feature: Feature.LAB_TESTS,
+      },
+      {
+        value: "custom-fields",
+        label: "Custom Fields",
+        icon: ListChecks,
+        description: "Extra patient record fields",
+        roles: ADMIN_ROLES,
       },
       {
         value: "abdm",

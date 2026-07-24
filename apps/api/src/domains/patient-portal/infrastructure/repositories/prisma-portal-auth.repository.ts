@@ -47,14 +47,29 @@ export class PrismaPortalAuthRepository implements IPortalAuthRepository {
     );
   }
 
-  async incrementOtpAttempts(id: string): Promise<void> {
+  async tryConsumeOtpAttempt(
+    id: string,
+    maxAttempts: number,
+  ): Promise<boolean> {
+    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS.
+    //
+    // The WHERE clause is part of the security contract: the increment and
+    // the cap-check are a single atomic UPDATE. Doing the check in
+    // application code (read attempts, increment, re-read, check) leaves a
+    // race window where concurrent verifyOtp calls all see attempts < cap
+    // and all proceed to bcrypt.compare — letting an attacker fan out
+    // thousands of parallel requests and bypass the per-OTP attempt limit.
+    // The conditional update here closes that window: if `updateMany` reports
+    // count = 0, either the row no longer exists or the cap was already
+    // reached. Either way the caller must reject the attempt.
     // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    await this.prisma.runUnrestricted(async () =>
-      this.prisma.patientOtp.update({
-        where: { id },
+    const result = await this.prisma.runUnrestricted(async () =>
+      this.prisma.patientOtp.updateMany({
+        where: { id, attempts: { lt: maxAttempts } },
         data: { attempts: { increment: 1 } },
       }),
     );
+    return result.count === 1;
   }
 
   async markOtpUsed(id: string): Promise<void> {

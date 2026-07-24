@@ -3,27 +3,9 @@
 import { Check, Info, Minus } from "lucide-react";
 import { getTierName, hasFeatureAccess } from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
-import {
-  TableCell,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Badge, SymbolTooltip, TableCell, TableRow, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  SymbolTooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
-import {
-  Feature,
-  MODE_BLOCKED_FEATURES,
-  PLAN_MODES,
-  PUBLISHED_PLAN_LADDER,
-  Tier,
-  tierSupportsMode,
-  type PlanMode,
-} from "@workspace/types";
+import { Feature, MODE_BLOCKED_FEATURES, PLAN_MODES, PUBLISHED_PLAN_LADDER, Tier, tierSupportsMode, type PlanMode } from "@workspace/types";
 
 export const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
   {

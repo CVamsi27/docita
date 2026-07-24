@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { MedicationDoseStatus, Prisma } from '@workspace/db';
 import {
   IMedicationDoseRepository,
@@ -18,6 +18,8 @@ interface DoseHistoryQuery {
 
 @Injectable()
 export class MedicationDoseQueryService {
+  private readonly logger = new Logger(MedicationDoseQueryService.name);
+
   constructor(
     @Inject(MEDICATION_DOSE_REPOSITORY_TOKEN)
     private readonly repository: IMedicationDoseRepository,
@@ -77,7 +79,13 @@ export class MedicationDoseQueryService {
 
     if (prescriptionId) where.prescriptionId = prescriptionId;
 
-    const doses = await this.repository.groupDosesByStatus(where);
+    const now = this.clock.now();
+    const dueWhere: Prisma.MedicationDoseWhereInput = {
+      ...where,
+      scheduledAt: { lte: now },
+    };
+
+    const doses = await this.repository.groupDosesByStatus(dueWhere);
 
     const counts: Record<string, number> = {};
     for (const d of doses) {
@@ -89,11 +97,17 @@ export class MedicationDoseQueryService {
     const skipped = counts['SKIPPED'] ?? 0;
     const pending = counts['PENDING'] ?? 0;
     const administered = counts['ADMINISTERED'] ?? 0;
-    const totalDoses = taken + missed + skipped + pending + administered;
+    const dueDoses = taken + missed + skipped + pending + administered;
     const completed = taken + administered;
-    const adherenceRate = totalDoses > 0 ? (completed / totalDoses) * 100 : 0;
+    const adherenceRate = dueDoses > 0 ? (completed / dueDoses) * 100 : 100;
 
-    return { totalDoses, taken: completed, missed, skipped, adherenceRate };
+    return {
+      totalDoses: dueDoses,
+      taken: completed,
+      missed,
+      skipped,
+      adherenceRate,
+    };
   }
 
   async getActiveMedications(clinicId: string, patientId: string) {
@@ -108,6 +122,9 @@ export class MedicationDoseQueryService {
     const prescriptions =
       await this.repository.findPrescriptionsWithMedications(patientId, 10);
 
+    // Batched adherence: one groupBy for every non-PrN medication on
+    // the active-prescription list, not one per medication. Was
+    // ~50 sequential round-trips before.
     const activeMedications: Array<{
       medicationId: string;
       name: string;
@@ -129,6 +146,7 @@ export class MedicationDoseQueryService {
         adherenceRate: number;
       } | null;
     }> = [];
+    const medicationIdsForAdherence: string[] = [];
 
     for (const prescription of prescriptions) {
       for (const med of prescription.medications) {
@@ -136,16 +154,8 @@ export class MedicationDoseQueryService {
 
         if (!isActive) continue;
 
-        let adherence = null;
         if (!med.isPRN) {
-          const summary = await this.getAdherenceSummary(
-            clinicId,
-            patientId,
-            prescription.id,
-          );
-          if (summary.totalDoses > 0) {
-            adherence = summary;
-          }
+          medicationIdsForAdherence.push(med.id);
         }
 
         activeMedications.push({
@@ -161,8 +171,77 @@ export class MedicationDoseQueryService {
           prnInstructions: med.prnInstructions,
           prescriptionId: prescription.id,
           prescriptionDate: prescription.date,
-          adherence,
+          adherence: null,
         });
+      }
+    }
+
+    const adherenceByMedicationId = new Map<
+      string,
+      {
+        totalDoses: number;
+        taken: number;
+        missed: number;
+        skipped: number;
+        adherenceRate: number;
+      }
+    >();
+
+    if (medicationIdsForAdherence.length > 0) {
+      try {
+        const uniqueMedicationIds = [...new Set(medicationIdsForAdherence)];
+        const dueWhere: Prisma.MedicationDoseWhereInput = {
+          clinicId,
+          patientId,
+          medicationId: { in: uniqueMedicationIds },
+          scheduledAt: { lte: now },
+          source: {
+            in: ['SYSTEM_GENERATED', 'PATIENT_REPORTED', 'CLINICIAN_RECORDED'],
+          },
+        };
+        const rows =
+          await this.repository.groupDosesByMedicationAndStatus(dueWhere);
+
+        // Roll the (med, status, count) tuples into the { taken,
+        // missed, skipped, adherenceRate } shape the caller wants.
+        for (const row of rows) {
+          const existing = adherenceByMedicationId.get(row.medicationId) ?? {
+            totalDoses: 0,
+            taken: 0,
+            missed: 0,
+            skipped: 0,
+            adherenceRate: 0,
+          };
+          existing.totalDoses += row.count;
+          if (row.status === 'TAKEN' || row.status === 'ADMINISTERED') {
+            existing.taken += row.count;
+          } else if (row.status === 'MISSED') {
+            existing.missed += row.count;
+          } else if (row.status === 'SKIPPED') {
+            existing.skipped += row.count;
+          }
+          adherenceByMedicationId.set(row.medicationId, existing);
+        }
+        for (const summary of adherenceByMedicationId.values()) {
+          summary.adherenceRate =
+            summary.totalDoses > 0
+              ? (summary.taken / summary.totalDoses) * 100
+              : 100;
+        }
+      } catch (error) {
+        // Adherence is non-critical — if the batched lookup fails we
+        // still return the medication list with `adherence: null`.
+        this.logger.warn(
+          `Batched medication adherence lookup failed for patient ${patientId}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    for (const med of activeMedications) {
+      if (med.isPRN) continue;
+      const summary = adherenceByMedicationId.get(med.medicationId);
+      if (summary && summary.totalDoses > 0) {
+        med.adherence = summary;
       }
     }
 

@@ -113,15 +113,8 @@ export class ClinicalService {
     await this.labTestRepository.deleteTest(id);
   }
 
-  async getAllOrders(
-    clinicId: string,
-    params?: LabOrderQueryParams,
-  ): Promise<LabOrder[]> {
-    const orders = await this.labOrderRepository.findAllOrders(
-      clinicId,
-      params,
-    );
-    return orders;
+  async getAllOrders(clinicId: string, params?: LabOrderQueryParams) {
+    return await this.labOrderRepository.findAllOrders(clinicId, params);
   }
 
   async getOrderById(id: string): Promise<LabOrder> {

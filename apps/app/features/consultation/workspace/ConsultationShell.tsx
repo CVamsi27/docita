@@ -2,10 +2,7 @@
 
 import { useMemo, type RefObject } from "react";
 import { useLocalStorage } from "@workspace/hooks";
-import {
-  type Appointment,
-  type PatientWithMedicalHistory,
-} from "@workspace/types";
+import { type Appointment, type PatientWithMedicalHistory } from "@workspace/types";
 import { resolveClinicTypeFeatures } from "@/features/consultation/lib/resolve-clinic-type-features";
 import { CommandPalette } from "@/features/consultation/workspace/chrome/CommandPalette";
 import { ConsultationWorkspaceProvider } from "@/features/consultation/workspace/consultation-workspace-context";

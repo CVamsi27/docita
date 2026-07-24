@@ -1,8 +1,7 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Button } from "@workspace/ui/components/form/button";
-import { DialogFooter } from "@workspace/ui/components/overlay/dialog";
+import { Button, DialogFooter } from "@workspace/ui/components";
 
 interface MetricModalDialogFooterProps {
   isPending: boolean;

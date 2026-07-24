@@ -1,12 +1,5 @@
 import type { SubscriptionSettingsState } from "./subscription-settings-helpers";
-import {
-  TrialAlert,
-  FreeStarterAlert,
-  GstinReminderAlert,
-  PaymentDueAlert,
-  GracePeriodAlert,
-  ExpiredSubscriptionAlert,
-} from "./SubscriptionSettingsSections";
+import { TrialAlert, FreeStarterAlert, GstinReminderAlert, PaymentDueAlert, GracePeriodAlert, ExpiredSubscriptionAlert } from "./SubscriptionSettingsSections";
 
 interface SubscriptionAlertSectionProps {
   state: SubscriptionSettingsState;

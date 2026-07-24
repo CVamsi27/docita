@@ -2,6 +2,7 @@
 
 // jscpd:ignore-start
 import { ExternalLink } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { FormFieldGroup } from "@workspace/ui/components";
 import { Button } from "@workspace/ui/components/form/button";
 import { FormControl, FormField } from "@workspace/ui/components/form/form";
@@ -23,6 +24,15 @@ import type { UseFormReturn } from "react-hook-form";
 
 const monoInputClass = "font-mono text-[var(--fs-sm)] tracking-tight";
 // jscpd:ignore-end
+
+/**
+ * Phase 3 (per-feature): apps/app Clinic settings > general form sections.
+ * Multiple named exports share a single hook to pull shared chrome strings
+ * from useTranslations("ClinicSettings.general").
+ */
+function useClinicGeneralSettingsTranslations() {
+  return useTranslations("ClinicSettings.general");
+}
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return <div className="ui-eyebrow pb-3 pt-1">{children}</div>;
@@ -79,16 +89,17 @@ export function IdentitySection({
   facilityLabel: string;
   facilityLabelValues: readonly FacilityTypeType[];
 }) {
+  const t = useClinicGeneralSettingsTranslations();
   return (
     <section className="flex flex-col">
-      <SectionEyebrow>Identity</SectionEyebrow>
+      <SectionEyebrow>{t("identityEyebrow")}</SectionEyebrow>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormFieldGroup
-              label={`${facilityLabel} name`}
+              label={t("nameLabel", { facilityLabel })}
               htmlFor="clinic-name"
               required
               error={form.formState.errors.name?.message}
@@ -97,7 +108,7 @@ export function IdentitySection({
                 <Input
                   id="clinic-name"
                   autoComplete="organization"
-                  placeholder={`Enter ${facilityLabel.toLowerCase()} name`}
+                  placeholder={t("namePlaceholder", { facilityLabel: facilityLabel.toLowerCase() })}
                   {...field}
                 />
               </FormControl>
@@ -109,8 +120,8 @@ export function IdentitySection({
           name="facilityLabel"
           render={({ field }) => (
             <FormFieldGroup
-              label="Facility type"
-              hint="Used in navigation, headings, and join flows."
+              label={t("facilityTypeLabel")}
+              hint={t("facilityTypeHint")}
             >
               <FormControl>
                 <Select
@@ -124,11 +135,11 @@ export function IdentitySection({
                   }}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Clinic or Hospital" />
+                    <SelectValue placeholder={t("facilityTypePlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CLINIC">Clinic</SelectItem>
-                    <SelectItem value="HOSPITAL">Hospital</SelectItem>
+                    <SelectItem value="CLINIC">{t("facilityTypeClinic")}</SelectItem>
+                    <SelectItem value="HOSPITAL">{t("facilityTypeHospital")}</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -147,16 +158,17 @@ export function LocationSection({
   form: UseFormReturn<ClinicSettingsFormValues>;
   watchedMapsLink: string;
 }) {
+  const t = useClinicGeneralSettingsTranslations();
   return (
     <section className="flex flex-col">
-      <SectionEyebrow>Location</SectionEyebrow>
+      <SectionEyebrow>{t("locationEyebrow")}</SectionEyebrow>
       <div className="flex flex-col gap-4">
         <FormField
           control={form.control}
           name="address"
           render={({ field }) => (
             <FormFieldGroup
-              label="Address"
+              label={t("addressLabel")}
               htmlFor="clinic-address"
               required
               error={form.formState.errors.address?.message}
@@ -165,7 +177,7 @@ export function LocationSection({
                 <Input
                   id="clinic-address"
                   autoComplete="street-address"
-                  placeholder="Enter address"
+                  placeholder={t("addressPlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -177,11 +189,10 @@ export function LocationSection({
           name="mapsLink"
           render={({ field }) => (
             <FormFieldGroup
-              label="Google Maps link"
+              label={t("mapsLinkLabel")}
               htmlFor="clinic-maps-link"
-              required
               error={form.formState.errors.mapsLink?.message}
-              hint="Patients see this in appointment messages. Paste a Google Maps share URL or Plus code link."
+              hint={t("mapsLinkHint")}
             >
               <FormControl id="clinic-maps-link">
                 <Input
@@ -189,7 +200,7 @@ export function LocationSection({
                   type="url"
                   inputMode="url"
                   autoComplete="url"
-                  placeholder="https://maps.google.com/..."
+                  placeholder={t("mapsLinkPlaceholder")}
                   className={monoInputClass}
                   {...field}
                   value={field.value ?? ""}
@@ -203,7 +214,7 @@ export function LocationSection({
                   className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-primary underline-offset-4 hover:underline"
                 >
                   <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                  Preview link
+                  {t("previewLinkLabel")}
                 </a>
               ) : null}
             </FormFieldGroup>
@@ -219,16 +230,17 @@ export function ContactComplianceSection({
 }: {
   form: UseFormReturn<ClinicSettingsFormValues>;
 }) {
+  const t = useClinicGeneralSettingsTranslations();
   return (
     <section className="flex flex-col">
-      <SectionEyebrow>Contact &amp; compliance</SectionEyebrow>
+      <SectionEyebrow>{t("contactComplianceEyebrow")}</SectionEyebrow>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FormField
           control={form.control}
           name="phone"
           render={({ field }) => (
             <FormFieldGroup
-              label="Phone number"
+              label={t("phoneLabel")}
               htmlFor="clinic-phone"
               required
               error={form.formState.errors.phone?.message}
@@ -237,7 +249,7 @@ export function ContactComplianceSection({
                 <Input
                   id="clinic-phone"
                   autoComplete="tel"
-                  placeholder="Enter phone number"
+                  placeholder={t("phonePlaceholder")}
                   className={monoInputClass}
                   {...field}
                 />
@@ -249,19 +261,19 @@ export function ContactComplianceSection({
         <ComplianceIdentifierField
           form={form}
           name="gstin"
-          label="GSTIN"
+          label={t("gstinLabel")}
           id="clinic-gstin"
-          hint="Needed for GST invoices on paid Indian plans."
-          placeholder="GST number"
+          hint={t("gstinHint")}
+          placeholder={t("gstinPlaceholder")}
         />
 
         <ComplianceIdentifierField
           form={form}
           name="hfrFacilityId"
-          label="HFR Facility ID"
+          label={t("hfrFacilityIdLabel")}
           id="clinic-hfr-facility-id"
-          hint="Required before production ABDM M1/M2 use for this facility."
-          placeholder="Enter HFR Facility ID"
+          hint={t("hfrFacilityIdHint")}
+          placeholder={t("hfrFacilityIdPlaceholder")}
         />
 
         <FormField
@@ -269,16 +281,16 @@ export function ContactComplianceSection({
           name="legalName"
           render={({ field }) => (
             <FormFieldGroup
-              label="Legal name (for tax invoice)"
+              label={t("legalNameLabel")}
               htmlFor="clinic-legal-name"
               error={form.formState.errors.legalName?.message}
-              hint="Registered legal name on your GST certificate. Leave blank to use the facility name."
+              hint={t("legalNameHint")}
             >
               <FormControl id="clinic-legal-name">
                 <Input
                   id="clinic-legal-name"
                   autoComplete="organization"
-                  placeholder="e.g. Apollo Multispecialty Pvt. Ltd."
+                  placeholder={t("legalNamePlaceholder")}
                   {...field}
                   value={field.value || ""}
                 />
@@ -298,6 +310,7 @@ export function FormFooter({
   form: UseFormReturn<ClinicSettingsFormValues>;
   isPending: boolean;
 }) {
+  const t = useClinicGeneralSettingsTranslations();
   return (
     <div className="flex items-center justify-end gap-2 border-t border-border/60 pt-5">
       <Button
@@ -307,10 +320,10 @@ export function FormFooter({
         disabled={isPending || !form.formState.isDirty}
         className={cn("text-muted-foreground")}
       >
-        Cancel
+        {t("cancelButton")}
       </Button>
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Saving\u2026" : "Save changes"}
+        {isPending ? t("savingButton") : t("saveButton")}
       </Button>
     </div>
   );

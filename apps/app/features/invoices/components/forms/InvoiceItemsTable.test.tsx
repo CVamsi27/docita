@@ -1,7 +1,43 @@
 import { fireEvent, screen, within } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { render } from "@/test-utils/render-with-tooltip";
 import { describe, expect, it, vi } from "vitest";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
+
+/**
+ * Local messages mirror for the Invoices.itemsTable namespace —
+ * the test renders InvoiceItemsTable via NextIntlClientProvider
+ * so useTranslations resolves against these English strings.
+ */
+const messages = {
+  Invoices: {
+    itemsTable: {
+      emptyMessage: "No items added yet.",
+      colDescription: "Description",
+      colQty: "Qty",
+      colUnitPrice: "Unit price",
+      colTax: "Tax",
+      colGstPercent: "GST %",
+      colHsnSac: "HSN/SAC",
+      colTotal: "Total",
+      itemDescriptionPlaceholder: "Item description",
+      taxHealthcareExempt: "Healthcare exempt",
+      taxTaxable: "Taxable",
+      taxExempt: "Exempt",
+      taxNonGst: "Non-GST",
+      hsnCodePlaceholder: "HSN code",
+      removeLineItemTooltip: "Remove {name, select, undefined {line item} other {{name}}}",
+    },
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
 
 const baseItem = {
   id: "item-1",
@@ -19,7 +55,7 @@ describe("InvoiceItemsTable", () => {
   const desktopTable = () => screen.getByRole("table");
 
   it("renders tax controls and disables GST rate for exempt healthcare lines", () => {
-    render(
+    renderWithIntl(
       <InvoiceItemsTable
         items={[baseItem]}
         onUpdateItem={vi.fn()}
@@ -39,7 +75,7 @@ describe("InvoiceItemsTable", () => {
     const onUpdateItem = vi.fn();
     const onRemoveItem = vi.fn();
 
-    render(
+    renderWithIntl(
       <InvoiceItemsTable
         items={[{ ...baseItem, taxTreatment: "TAXABLE", taxRate: 18 }]}
         onUpdateItem={onUpdateItem}

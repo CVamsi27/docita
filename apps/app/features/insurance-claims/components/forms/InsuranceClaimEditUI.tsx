@@ -2,24 +2,8 @@
 
 import type { Control, FieldPath } from "react-hook-form";
 import { ArrowLeft } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import {
-  Card,
-  CardContent,
-} from "@workspace/ui/components/indicators/card";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { AppPageScaffold, Button, Card, CardContent, DataState, Form, PageHeader } from "@workspace/ui/components";
 import type { EditInsuranceClaimFormValues } from "@workspace/types";
 import { useInsuranceClaimEditLogic } from "@/features/insurance-claims/hooks/use-insurance-claim-edit-logic";
 

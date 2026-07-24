@@ -13,29 +13,30 @@ export interface LabRecord {
   updatedAt: Date;
 }
 
+export type CreateLabInput = {
+  name: string;
+  type: LabType;
+  phone?: string;
+  email?: string;
+  address?: string;
+};
+
+export type UpdateLabInput = Partial<{
+  name: string;
+  type: LabType;
+  phone: string;
+  email: string;
+  address: string;
+  active: boolean;
+}>;
+
 export interface LabDirectoryRepository {
   findAllLabs(clinicId: string): Promise<LabRecord[]>;
   findLabById(id: string, clinicId: string): Promise<LabRecord | null>;
-  createLab(
-    clinicId: string,
-    data: {
-      name: string;
-      type: LabType;
-      phone?: string;
-      email?: string;
-      address?: string;
-    },
-  ): Promise<LabRecord>;
+  createLab(clinicId: string, data: CreateLabInput): Promise<LabRecord>;
   updateLab(
     id: string,
     clinicId: string,
-    data: Partial<{
-      name: string;
-      type: LabType;
-      phone: string;
-      email: string;
-      address: string;
-      active: boolean;
-    }>,
+    data: UpdateLabInput,
   ): Promise<LabRecord>;
 }

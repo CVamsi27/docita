@@ -1,11 +1,7 @@
 import { getPatientAgeDisplay } from "@/features/patients/rules/patient-rules";
 import { getInitials } from "@/lib/formatters";
 import { PatientFaceSheetHeaderUI } from "./PatientFaceSheetHeaderUI";
-import {
-  CODE_STATUS_LABELS,
-  ISOLATION_STATUS_LABELS,
-  type Patient,
-} from "@workspace/types";
+import { CODE_STATUS_LABELS, ISOLATION_STATUS_LABELS, type Patient } from "@workspace/types";
 
 interface PatientFaceSheetHeaderContainerProps {
   patient: Patient;
@@ -41,6 +37,7 @@ export function PatientFaceSheetHeaderContainer({
       gender={patient.gender || "UNKNOWN"}
       dateOfBirth={patient.dateOfBirth!}
       initials={initials}
+      mrn={patient.mrn ?? undefined}
       codeStatus={patient.codeStatus}
       codeStatusLabel={codeStatusLabel}
       isFullCode={isFullCode}

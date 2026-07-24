@@ -12,7 +12,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/overlay/tooltip";
-import { AlertTriangle, Droplet, User } from "lucide-react";
+import { AlertTriangle, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatDate } from "@workspace/utils";
 import { formatGenderLabel } from "@/lib/formatters";
@@ -22,6 +23,14 @@ import { SummaryVitals } from "./shared/SummaryVitals";
 import { SummaryMedications } from "./shared/SummaryMedications";
 import { SummaryConditions } from "./shared/SummaryConditions";
 import type { Allergy } from "./patient-summary.types";
+
+/**
+ * Phase 3 (per-feature): apps/app Consultation > Patient summary
+ * card. 7 literals converted to useTranslations("Consultation.patientSummaryCard").
+ */
+function usePatientSummaryCardTranslations() {
+  return useTranslations("Consultation.patientSummaryCard");
+}
 
 export type { Allergy };
 
@@ -47,7 +56,6 @@ export interface PatientSummaryData {
   email?: string;
   dateOfBirth?: string | Date;
   gender?: string;
-  bloodGroup?: string;
   emergencyContact?: string;
 }
 
@@ -88,6 +96,7 @@ export function PatientSummaryCardUI({
   className,
   codeStatus,
 }: PatientSummaryCardUIProps) {
+  const t = usePatientSummaryCardTranslations();
   const hasAllergies = allergies.length > 0;
   const hasSevereAllergy = allergies.some((a) => a.severity === "severe");
 
@@ -102,20 +111,11 @@ export function PatientSummaryCardUI({
             <div>
               <CardTitle className="text-base">{patient.name}</CardTitle>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {age && <span>{age}y</span>}
+                {age && <span>{t("ageYears", { age })}</span>}
                 {patient.gender && (
                   <>
                     <span>•</span>
                     <span>{formatGenderLabel(patient.gender)}</span>
-                  </>
-                )}
-                {patient.bloodGroup && (
-                  <>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Droplet className="h-3 w-3" />
-                      {patient.bloodGroup}
-                    </span>
                   </>
                 )}
               </div>
@@ -126,11 +126,11 @@ export function PatientSummaryCardUI({
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1 text-destructive font-semibold">
                   <AlertTriangle className="h-4 w-4" />
-                  <span className="text-xs font-medium">ALERT</span>
+                  <span className="text-xs font-medium">{t("alertLabel")}</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Allergies</p>
+                <p>{t("allergiesTooltip")}</p>
               </TooltipContent>
             </Tooltip>
           )}
@@ -142,7 +142,7 @@ export function PatientSummaryCardUI({
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <AlertTriangle className="h-3 w-3" />
-              Allergies
+              {t("allergiesTitle")}
             </div>
             <div className="flex flex-wrap gap-1.5">
               {allergies.map((allergy) => (
@@ -185,25 +185,25 @@ export function PatientSummaryCardUI({
         {expanded && (
           <div className="mt-6 pt-6 border-t grid gap-4 md:grid-cols-3">
             <div>
-              <h4 className="text-sm font-medium mb-2">Contact information</h4>
+              <h4 className="text-sm font-medium mb-2">{t("contactTitle")}</h4>
               <div className="space-y-1 text-sm text-muted-foreground">
-                {patient.phone && <div>Phone: {patient.phone}</div>}
-                {patient.email && <div>Email: {patient.email}</div>}
+                {patient.phone && <div>{t("phoneLabel", { phone: patient.phone })}</div>}
+                {patient.email && <div>{t("emailLabel", { email: patient.email })}</div>}
                 {patient.emergencyContact && (
-                  <div>Emergency: {patient.emergencyContact}</div>
+                  <div>{t("emergencyLabel", { contact: patient.emergencyContact })}</div>
                 )}
               </div>
             </div>
 
             <div>
-              <h4 className="text-sm font-medium mb-2">Last visit</h4>
+              <h4 className="text-sm font-medium mb-2">{t("lastVisitTitle")}</h4>
               {lastVisit ? (
                 <div className="text-sm text-muted-foreground">
                   {formatDate(lastVisit, "dd MMMM yyyy")}
                 </div>
               ) : (
                 <div className="text-sm text-muted-foreground">
-                  No previous visits
+                  {t("noPreviousVisitsLabel")}
                 </div>
               )}
             </div>

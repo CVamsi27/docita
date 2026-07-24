@@ -38,6 +38,10 @@ export class PrismaMedicalDocumentsRepository implements IMedicalDocumentsReposi
     const rows = await this.getReadClient().medicalDocument.findMany({
       where: { clinicId, patientId },
       orderBy: { createdAt: 'desc' },
+      // Capped: bounded by (clinicId, patientId). A single patient's medical
+      // documents in a clinic are a small clinical-history set; 500 covers
+      // decades of records while keeping the read bounded.
+      take: 500,
     });
     return rows.map((row) => this.mapDocument(row));
   }

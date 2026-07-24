@@ -196,6 +196,9 @@ export const queryKeys = {
     prescriptionDefaults: () => ["clinic", "prescription-defaults"] as const,
     opdSlipSettings: () => ["clinic", "opd-slip-settings"] as const,
   },
+  customFields: {
+    all: () => ["custom-fields"] as const,
+  },
   abdm: {
     all: () => ["abdm"] as const,
     careContexts: (patientId?: string | null) =>

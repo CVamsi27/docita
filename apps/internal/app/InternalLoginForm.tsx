@@ -1,15 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input } from "@workspace/ui/components";
 import { Eye, EyeOff } from "lucide-react";
 
 interface InternalLoginFormProps {

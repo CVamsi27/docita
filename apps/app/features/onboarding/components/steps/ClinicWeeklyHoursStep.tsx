@@ -4,19 +4,9 @@ import { useMemo, useState } from "react";
 import { Calendar } from "lucide-react";
 import { DAY_OF_WEEK_LABELS, type DayOfWeek } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  OnboardingStepBody,
-  OnboardingStepCard,
-  OnboardingStepFooter,
-  OnboardingStepHeader,
-} from "@/features/onboarding/components/shared";
+import { OnboardingStepBody, OnboardingStepCard, OnboardingStepFooter, OnboardingStepHeader } from "@/features/onboarding/components/shared";
 import type { ClinicWeeklyHourRow } from "@/features/onboarding/components/types";
-import {
-  DISPLAY_ORDER,
-  buildWeeklyHourRows,
-  sortRowsForApi,
-  DayRowCard,
-} from "./ClinicWeeklyHoursStepSections";
+import { DISPLAY_ORDER, buildWeeklyHourRows, sortRowsForApi, DayRowCard } from "./ClinicWeeklyHoursStepSections";
 
 export function ClinicWeeklyHoursStep({
   initialRows,

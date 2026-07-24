@@ -1,11 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { PatientSnapshotStrip } from "@/components/patient-history/PatientSnapshotStrip";
 import { usePortalHistoryTimeline } from "@/features/patient-portal/hooks/use-portal-history-timeline";
-import {
-  PortalMedicalHistoryPanel,
-  PortalTimelineSection,
-} from "./portal-history-timeline-ui-sections";
+import { PortalMedicalHistoryPanel, PortalTimelineSection } from "./portal-history-timeline-ui-sections";
 
 interface PortalHistoryTimelineUIProps {
   showHeader?: boolean;
@@ -14,6 +12,7 @@ interface PortalHistoryTimelineUIProps {
 export function PortalHistoryTimelineUI({
   showHeader = true,
 }: PortalHistoryTimelineUIProps) {
+  const t = useTranslations("PatientPortal.historyTimeline");
   const {
     limit,
     offset,
@@ -31,10 +30,8 @@ export function PortalHistoryTimelineUI({
     <div className="space-y-6">
       {showHeader ? (
         <div>
-          <h1 className="ui-page-title">My Health History</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            A complete record of your health journey in one place.
-          </p>
+          <h1 className="ui-page-title">{t("pageTitle")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("pageSubtitle")}</p>
         </div>
       ) : null}
 

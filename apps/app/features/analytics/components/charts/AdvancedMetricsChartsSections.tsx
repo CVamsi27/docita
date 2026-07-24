@@ -1,4 +1,5 @@
 // jscpd:ignore-start
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -14,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
-import { CalendarDays, TrendingUp, Users } from "lucide-react";
+import { CalendarDays, TrendingUp, Users, type LucideIcon } from "lucide-react";
 import type { AppointmentSnapshot } from "@workspace/types";
 import {
   Bar,
@@ -60,6 +61,64 @@ interface DoctorPerformanceEntry {
   avgRevenuePerAppointment: number;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Analytics > Advanced Metrics
+ * charts. 10 literals converted to
+ * useTranslations("Analytics.advancedMetrics").
+ */
+function useAdvancedMetricsTranslations() {
+  return useTranslations("Analytics.advancedMetrics");
+}
+
+interface ChartCardShellProps<TData> {
+  titleKey: string;
+  descriptionKey: string;
+  loading: boolean;
+  data: TData | null | undefined;
+  /** Renders the inner content given the non-null data. */
+  children: (data: TData) => React.ReactNode;
+  /** Empty-state label key, used when loading=false and data is missing. */
+  emptyTitleKey: string;
+  /** Icon for the empty state. */
+  emptyIcon: LucideIcon;
+}
+
+/**
+ * Shared shell for the analytics cards: title, description,
+ * loading spinner, content when data exists, and an empty state
+ * when it doesn't. Removes the 14-line CardContent/EmptyState
+ * block jscpd was flagging between AppointmentPerformance and
+ * PatientDemographics.
+ */
+function ChartCardShell<TData>({
+  titleKey,
+  descriptionKey,
+  loading,
+  data,
+  children,
+  emptyTitleKey,
+  emptyIcon,
+}: ChartCardShellProps<TData>) {
+  const t = useAdvancedMetricsTranslations();
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t(titleKey)}</CardTitle>
+        <CardDescription>{t(descriptionKey)}</CardDescription>
+      </CardHeader>
+      <CardContent className="h-80 space-y-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : data ? (
+          children(data)
+        ) : (
+          <EmptyState icon={emptyIcon} label={t(emptyTitleKey)} />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 interface RevenueTrendsCardProps {
   revenueMetrics: RevenueMetricsPoint[];
   revenueLoading: boolean;
@@ -69,12 +128,13 @@ export function RevenueTrendsCard({
   revenueMetrics,
   revenueLoading,
 }: RevenueTrendsCardProps) {
+  const t = useAdvancedMetricsTranslations();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Revenue trends</CardTitle>
+        <CardTitle>{t("revenueTrendsTitle")}</CardTitle>
         <CardDescription>
-          Daily/weekly trend in billed collections
+          {t("revenueTrendsDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="h-80">
@@ -98,8 +158,8 @@ export function RevenueTrendsCard({
         ) : (
           <EmptyState
             icon={TrendingUp}
-            label="No revenue trend data"
-            sublabel="Revenue trend points will appear once invoices are generated"
+            label={t("revenueEmptyTitle")}
+            sublabel={t("revenueEmptySubtitle")}
           />
         )}
       </CardContent>
@@ -116,60 +176,53 @@ export function AppointmentPerformanceCard({
   appointmentMetrics,
   appointmentLoading,
 }: AppointmentPerformanceCardProps) {
+  const t = useAdvancedMetricsTranslations();
   const appointmentChartData = appointmentMetrics
     ? [
-        { name: "Booked", value: appointmentMetrics.booked },
-        { name: "Completed", value: appointmentMetrics.completed },
-        { name: "Cancelled", value: appointmentMetrics.cancelled },
-        { name: "No Show", value: appointmentMetrics.noShow },
+        { name: t("appointmentBooked"), value: appointmentMetrics.booked },
+        { name: t("appointmentCompleted"), value: appointmentMetrics.completed },
+        { name: t("appointmentCancelled"), value: appointmentMetrics.cancelled },
+        { name: t("appointmentNoShow"), value: appointmentMetrics.noShow },
       ]
     : [];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Appointment performance</CardTitle>
-        <CardDescription>
-          Operational appointment outcomes snapshot
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="h-80 space-y-4">
-        {appointmentLoading ? (
-          <LoadingSpinner />
-        ) : appointmentMetrics ? (
-          <>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="rounded-md border p-2">
-                Fill rate: {appointmentMetrics.fillRate}%
-              </div>
-              <div className="rounded-md border p-2">
-                Completion: {appointmentMetrics.completionRate}%
-              </div>
+    <ChartCardShell
+      titleKey="appointmentPerformanceTitle"
+      descriptionKey="appointmentPerformanceDescription"
+      loading={appointmentLoading}
+      data={appointmentMetrics}
+      emptyTitleKey="appointmentEmptyTitle"
+      emptyIcon={CalendarDays}
+    >
+      {(metrics) => (
+        <>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="rounded-md border p-2">
+              {t("fillRateLabel", { rate: metrics.fillRate })}
             </div>
-            <ResponsiveContainer width="100%" height="75%">
-              <BarChart data={appointmentChartData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value">
-                  {appointmentChartData.map((entry, index) => (
-                    <Cell
-                      key={entry.name}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </>
-        ) : (
-          <EmptyState
-            icon={CalendarDays}
-            label="No appointment metrics available"
-          />
-        )}
-      </CardContent>
-    </Card>
+            <div className="rounded-md border p-2">
+              {t("completionRateLabel", { rate: metrics.completionRate })}
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height="75%">
+            <BarChart data={appointmentChartData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="value">
+                {appointmentChartData.map((entry, index) => (
+                  <Cell
+                    key={entry.name}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </>
+      )}
+    </ChartCardShell>
   );
 }
 
@@ -182,6 +235,7 @@ export function PatientDemographicsCard({
   patientDemographics,
   demographicsLoading,
 }: PatientDemographicsCardProps) {
+  const t = useAdvancedMetricsTranslations();
   const demographicsChartData = patientDemographics
     ? Object.entries(patientDemographics.genderDistribution).map(
         ([name, value]) => ({ name, value }),
@@ -189,51 +243,46 @@ export function PatientDemographicsCard({
     : [];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Patient demographics</CardTitle>
-        <CardDescription>Population mix by gender and growth</CardDescription>
-      </CardHeader>
-      <CardContent className="h-80 space-y-4">
-        {demographicsLoading ? (
-          <LoadingSpinner />
-        ) : patientDemographics && demographicsChartData.length > 0 ? (
-          <>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="rounded-md border p-2">
-                Total: {patientDemographics.totalPatients}
-              </div>
-              <div className="rounded-md border p-2">
-                New: {patientDemographics.newPatients}
-              </div>
+    <ChartCardShell
+      titleKey="demographicsTitle"
+      descriptionKey="demographicsDescription"
+      loading={demographicsLoading}
+      data={demographicsChartData.length > 0 ? patientDemographics : null}
+      emptyTitleKey="demographicsEmptyTitle"
+      emptyIcon={Users}
+    >
+      {(demographics) => (
+        <>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="rounded-md border p-2">
+              {t("demographicsTotalLabel", { count: demographics.totalPatients })}
             </div>
-            <ResponsiveContainer width="100%" height="75%">
-              <PieChart>
-                <Pie
-                  data={demographicsChartData}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={90}
-                >
-                  {demographicsChartData.map((entry, index) => (
-                    <Cell
-                      key={entry.name}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </>
-        ) : (
-          <EmptyState
-            icon={Users}
-            label="No patient demographics available"
-          />
-        )}
-      </CardContent>
-    </Card>
+            <div className="rounded-md border p-2">
+              {t("demographicsNewLabel", { count: demographics.newPatients })}
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height="75%">
+            <PieChart>
+              <Pie
+                data={demographicsChartData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={90}
+                isAnimationActive={false}
+              >
+                {demographicsChartData.map((entry, index) => (
+                  <Cell
+                    key={entry.name}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </>
+      )}
+    </ChartCardShell>
   );
 }
 
@@ -247,12 +296,13 @@ export function DoctorPerformanceCard({
   doctorPerformanceLoading,
   formatCurrency,
 }: DoctorPerformanceCardProps) {
+  const t = useAdvancedMetricsTranslations();
   return (
     <Card className="md:col-span-2 xl:col-span-3">
       <CardHeader>
-        <CardTitle>Doctor performance</CardTitle>
+        <CardTitle>{t("doctorPerformanceTitle")}</CardTitle>
         <CardDescription>
-          Provider-level completion and revenue metrics.
+          {t("doctorPerformanceDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -263,11 +313,11 @@ export function DoctorPerformanceCard({
             <Table className="min-w-[42rem]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Doctor</TableHead>
-                  <TableHead className="text-right">Appointments</TableHead>
-                  <TableHead className="text-right">Completion</TableHead>
-                  <TableHead className="text-right">Revenue</TableHead>
-                  <TableHead className="text-right">Avg / Appt</TableHead>
+                  <TableHead>{t("doctorColName")}</TableHead>
+                  <TableHead className="text-right">{t("doctorColAppointments")}</TableHead>
+                  <TableHead className="text-right">{t("doctorColCompletion")}</TableHead>
+                  <TableHead className="text-right">{t("doctorColRevenue")}</TableHead>
+                  <TableHead className="text-right">{t("doctorColAvgPerAppt")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -298,8 +348,8 @@ export function DoctorPerformanceCard({
         ) : (
           <EmptyState
             icon={Users}
-            label="No doctor performance data"
-            sublabel="Doctor metrics will appear once appointments are recorded and billed"
+            label={t("doctorEmptyTitle")}
+            sublabel={t("doctorEmptySubtitle")}
           />
         )}
       </CardContent>

@@ -4,13 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { useEffect } from "react";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { GoogleMap, Marker } from "@react-google-maps/api";
-import {
-  MapContainer,
-  Marker as LeafletMarker,
-  TileLayer,
-  useMap,
-  useMapEvents,
-} from "react-leaflet";
+import { MapContainer, Marker as LeafletMarker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import type { LatLngExpression, LeafletMouseEvent } from "leaflet";
 import type { Map as LeafletMapInstance } from "leaflet";
 import { type LatLng, LEAFLET_MARKER_ICON } from "./address-utils";

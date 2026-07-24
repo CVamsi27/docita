@@ -94,10 +94,9 @@ export const patientSchema = z.object({
     .transform(stripHtmlTags),
   clinicId: z.string().optional(),
 
-  race: z.string().max(50).optional(),
-  ethnicity: z.string().max(50).optional(),
+  // DPDP data minimization: race/ethnicity/maritalStatus are not required for
+  // clinical care and were never persisted — removed from the collection surface.
   preferredLanguage: z.string().max(50).optional(),
-  maritalStatus: z.string().max(50).optional(),
 
   isolationStatus: isolationStatusSchema.default("NONE"),
   fallRisk: z.boolean().default(false),

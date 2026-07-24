@@ -1,7 +1,7 @@
 "use client";
 
-import { PageTabs } from "@workspace/ui/components/navigation/page-tabs";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { MicroLabel, PageTabs } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
 import { PatientTagManagerContainer as PatientTagManager } from "@/features/patients/components/details/PatientTagManagerContainer";
 import { PatientClinicalChartSummary } from "./patient-clinical-chart-summary";
@@ -31,15 +31,19 @@ export function PatientDetailTabs({
   canEditPatient,
   canRecordPatientVitals,
 }: PatientDetailTabsProps) {
+  const t = useTranslations("Patients.tabs");
   const tabs = usePatientDetailTabs();
   return (
-    <div role="region" aria-label="Patient detail" className="w-full">
+    <div role="region" aria-label={t("patientDetailAria")} className="w-full">
       <PatientClinicalChartSummary patientId={patientId} />
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-2" data-testid="patient-detail-tab-bar">
-          <MicroLabel className="px-1">Sections</MicroLabel>
-          <PageTabs items={tabs.items} activeId={tabs.activeTab}
-            onSelect={tabs.handleSelectTab} ariaLabel="Patient sections"
+          <MicroLabel className="px-1">{t("sections")}</MicroLabel>
+          <PageTabs
+            items={tabs.items}
+            activeId={tabs.activeTab}
+            onSelect={tabs.handleSelectTab}
+            ariaLabel={t("patientSectionsAria")}
           />
         </div>
         <div className="flex items-center gap-2 self-end sm:self-auto">
@@ -48,21 +52,32 @@ export function PatientDetailTabs({
       </div>
       {tabs.activeTab === "records" ? (
         <div className="space-y-4" data-testid="patient-records-subtabs">
-          <PageTabs items={tabs.recordsSubItems} activeId={tabs.activeRecordsSubTab}
-            onSelect={tabs.handleSelectRecordsSubTab} ariaLabel="Records sub-sections"
+          <PageTabs
+            items={tabs.recordsSubItems}
+            activeId={tabs.activeRecordsSubTab}
+            onSelect={tabs.handleSelectRecordsSubTab}
+            ariaLabel={t("recordsSubSectionsAria")}
           />
           <PatientDetailTabContent
-            activeTab={tabs.activeTab} activeRecordsSubTab={tabs.activeRecordsSubTab}
-            patient={patient} patientId={patientId} appointments={appointments}
-            canEditPatient={canEditPatient} canRecordPatientVitals={canRecordPatientVitals}
+            activeTab={tabs.activeTab}
+            activeRecordsSubTab={tabs.activeRecordsSubTab}
+            patient={patient}
+            patientId={patientId}
+            appointments={appointments}
+            canEditPatient={canEditPatient}
+            canRecordPatientVitals={canRecordPatientVitals}
             canViewInvoices={tabs.canViewInvoices}
           />
         </div>
       ) : (
         <PatientDetailTabContent
-          activeTab={tabs.activeTab} activeRecordsSubTab={tabs.activeRecordsSubTab}
-          patient={patient} patientId={patientId} appointments={appointments}
-          canEditPatient={canEditPatient} canRecordPatientVitals={canRecordPatientVitals}
+          activeTab={tabs.activeTab}
+          activeRecordsSubTab={tabs.activeRecordsSubTab}
+          patient={patient}
+          patientId={patientId}
+          appointments={appointments}
+          canEditPatient={canEditPatient}
+          canRecordPatientVitals={canRecordPatientVitals}
           canViewInvoices={tabs.canViewInvoices}
         />
       )}

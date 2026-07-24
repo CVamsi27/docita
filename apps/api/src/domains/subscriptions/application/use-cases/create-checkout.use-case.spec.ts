@@ -102,6 +102,9 @@ describe('CreateCheckoutUseCase', () => {
   const featureFlagService = {
     getClinicPricingOffer: jest.fn(async () => null),
   } as unknown as FeatureFlagService;
+  const referralService = {
+    getRedeemableReferralDiscountCents: jest.fn(async () => 0),
+  } as unknown as import('@/domains/subscriptions/core/services/referral.service').ReferralService;
 
   let useCase: CreateCheckoutUseCase;
 
@@ -121,6 +124,7 @@ describe('CreateCheckoutUseCase', () => {
       applyPlanChangeWithoutPayment,
       configService,
       featureFlagService,
+      referralService,
     );
   });
 
@@ -150,6 +154,26 @@ describe('CreateCheckoutUseCase', () => {
       clinicId: 'clinic-1',
       keepOrderId: 'order_existing',
     });
+  });
+
+  it('applies a redeemable referral discount to the first-checkout amount', async () => {
+    findReusablePendingCheckoutMock.mockResolvedValue(null);
+    (
+      referralService.getRedeemableReferralDiscountCents as unknown as jest.MockedFunction<
+        () => Promise<number>
+      >
+    ).mockResolvedValueOnce(24975); // 25% of 99900
+
+    const result = await useCase.execute({
+      clinicId: 'clinic-1',
+      tier: 'ESSENTIAL',
+      cycle: 'MONTHLY',
+    });
+
+    expect(result.amountCents).toBe(74925);
+    expect(subscriptionRepo.savePayment).toHaveBeenCalledWith(
+      expect.objectContaining({ amountCents: 74925 }),
+    );
   });
 
   it('expires older duplicate pending checkouts after creating a new order', async () => {

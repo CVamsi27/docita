@@ -1,20 +1,10 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Badge, Button } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { Check, type LucideIcon } from "lucide-react";
-import {
-  type SupportedCurrency,
-  type TierName,
-  TIER_INFO,
-  TIER_LIMITS,
-} from "@workspace/types";
-import {
-  formatAmountLocale,
-  formatCountLocale,
-  formatPriceWithCurrency,
-} from "@workspace/utils";
+import { type SupportedCurrency, type TierName, TIER_INFO, TIER_LIMITS } from "@workspace/types";
+import { formatAmountLocale, formatCountLocale, formatPriceWithCurrency } from "@workspace/utils";
 import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 import { TIER_ICON_CLASSES } from "./pricing-dialog-tier-card-helpers";
 

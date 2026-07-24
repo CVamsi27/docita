@@ -4,25 +4,8 @@ import { FC, useRef, useState } from "react";
 import { FlaskConical, Send, Upload, Wallet } from "lucide-react";
 import type { LabQueueItem } from "@workspace/data-access";
 import type { VerifyLabOrderPaymentRequest } from "@workspace/types";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Button, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label } from "@workspace/ui/components";
 
 const PAYMENT_METHODS: {
   value: VerifyLabOrderPaymentRequest["paymentMethod"];

@@ -1,6 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   MAX_REFERRAL_CREDITS_PER_YEAR,
   REFERRAL_DISCOUNT_PERCENT,
@@ -28,6 +30,88 @@ export class ReferralService {
     });
 
     return !!referral && !referral.discountApplied;
+  }
+
+  /**
+   * Listen for the post-onboarding event emitted by clinics.onboarding and
+   * run captureReferralAtSignup. Non-fatal — a referral hiccup must never
+   * bubble back into the onboarding flow that already succeeded. This is the
+   * only correct cross-domain seam: clinics.application cannot import
+   * subscriptions.core.services (the cross-domain-import check forbids it),
+   * so we go through ApplicationEvents.
+   */
+  @OnEvent(ApplicationEvents.CLINIC_ONBOARDED)
+  async handleClinicOnboarded(payload: {
+    clinicId: string;
+    clinicEmail: string | null;
+    referralCode: string;
+  }): Promise<void> {
+    try {
+      await this.captureReferralAtSignup(payload);
+    } catch (error) {
+      this.logger.error(
+        `Referral capture failed for clinic ${payload.clinicId} (onboarding unaffected)`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  /**
+   * Links a signing-up clinic to its referrer from a referral code (the
+   * referrer clinic's unique `referralCode`). Creates a SIGNED_UP referral the
+   * downstream discount/credit/accrual all key off. One reward per referred
+   * clinic, EVER — a clinic already carrying a referral is never re-linked, and
+   * self-referral is rejected. No-op (never throws) so a bad code can't block
+   * onboarding.
+   */
+  async captureReferralAtSignup(input: {
+    clinicId: string;
+    clinicEmail: string | null;
+    referralCode: string;
+  }): Promise<{ linked: boolean }> {
+    const code = input.referralCode.trim();
+    if (!code) return { linked: false };
+
+    const existing = await this.prisma.referral.findFirst({
+      where: { referredClinicId: input.clinicId },
+      select: { id: true },
+    });
+    if (existing) return { linked: false };
+
+    const referrerClinic = await this.prisma.clinic.findUnique({
+      where: { referralCode: code },
+      select: { id: true },
+    });
+    if (!referrerClinic || referrerClinic.id === input.clinicId) {
+      return { linked: false };
+    }
+
+    await this.prisma.referral.create({
+      data: {
+        referrerClinicId: referrerClinic.id,
+        referredClinicId: input.clinicId,
+        referredEmail: input.clinicEmail ?? '',
+        referralCode: code,
+        status: 'SIGNED_UP',
+      },
+    });
+    return { linked: true };
+  }
+
+  /**
+   * Realize a referral on the first successful payment. Non-fatal wrapper: a
+   * referral hiccup must never abort a completed, paid activation. Idempotent and
+   * first-payment-guarded via applyReferralCreditsOnFirstPayment.
+   */
+  async realizeReferralOnFirstPayment(clinicId: string): Promise<void> {
+    try {
+      await this.applyReferralCreditsOnFirstPayment(clinicId);
+    } catch (error) {
+      this.logger.error(
+        `Referral realization failed for clinic ${clinicId} (activation unaffected)`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 
   async applyReferralCreditsOnFirstPayment(clinicId: string): Promise<void> {
@@ -61,7 +145,13 @@ export class ReferralService {
         data: {
           status: 'CONVERTED',
           creditApplied: true,
+          // The referred clinic's first-invoice discount is realized on the same
+          // first successful payment — mark it consumed so it can't be re-claimed.
+          discountApplied: true,
           convertedAt: this.clock.now(),
+          // First paid activation anchors the revenue-share accrual window
+          // ([activation, +12 months]) used by ReferralAccrualService.
+          activationAt: this.clock.now(),
         },
       });
       if (flipped.count === 0) return;
@@ -106,6 +196,10 @@ export class ReferralService {
         },
       },
       orderBy: { createdAt: 'desc' },
+      // Capped: a single clinic's referral history is a small set; 500 is
+      // a guardrail well above realistic scale (a clinic rarely refers
+      // hundreds of other clinics).
+      take: 500,
     });
   }
 
@@ -114,6 +208,35 @@ export class ReferralService {
       where: { id: referralId },
       data: { discountApplied: true },
     });
+  }
+
+  /**
+   * First-invoice referral discount (in paise) for a newly-signing clinic, or 0
+   * when there is no redeemable referral. Redeemable = a SIGNED_UP referral for
+   * this clinic (by id or invited email) whose discount has not been consumed.
+   * One-per-clinic and one-time are enforced by the `discountApplied` flag, which
+   * is flipped on the first successful payment (applyReferralCreditsOnFirstPayment).
+   */
+  async getRedeemableReferralDiscountCents(
+    clinicId: string,
+    clinicEmail: string | null,
+    amountCents: number,
+  ): Promise<number> {
+    if (amountCents <= 0) return 0;
+    const referral = await this.prisma.referral.findFirst({
+      where: {
+        status: 'SIGNED_UP',
+        discountApplied: false,
+        OR: [
+          { referredClinicId: clinicId },
+          ...(clinicEmail ? [{ referredEmail: clinicEmail }] : []),
+        ],
+      },
+      select: { discountPercent: true },
+    });
+    if (!referral) return 0;
+    const pct = Math.min(100, Math.max(0, referral.discountPercent));
+    return Math.min(amountCents, Math.round((amountCents * pct) / 100));
   }
 
   calculateReferralDiscount(amountCents: number): {

@@ -1,6 +1,39 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
 import { FollowUpSchedulerUI } from "./FollowUpSchedulerUI";
+
+const messages = {
+  Appointments: {
+    followUpForm: {
+      title: "Schedule follow-up",
+      typeLabel: "Type",
+      typePlaceholder: "Follow-up type",
+      timeLabel: "Time",
+      timePlaceholder: "Time",
+      sendReminderLabel: "Send reminder",
+      whenLabel: "When",
+      whatsappNotificationLabel: "WhatsApp Notification",
+      notesLabel: "Notes",
+      notesPlaceholder: "Follow-up notes",
+      scheduleButton: "Schedule",
+      cancelButton: "Cancel",
+      sendingButton: "Scheduling…",
+    },
+  },
+  Common: {
+    cancel: "Cancel",
+    save: "Save",
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
 
 vi.mock("@/lib/contexts/clinic-context", () => ({
   useClinic: () => ({
@@ -58,7 +91,7 @@ function renderScheduler(overrides = {}) {
     ...overrides,
   };
 
-  render(<FollowUpSchedulerUI {...props} />);
+  renderWithIntl(<FollowUpSchedulerUI {...props} />);
   return props;
 }
 

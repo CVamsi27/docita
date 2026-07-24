@@ -1,10 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import type { LucideIcon } from "lucide-react";
 import type { RevenueByCPT } from "@/features/analytics/hooks/use-analytics-logic";
 import { EmptyState, LoadingSpinner } from "./chart-helpers";

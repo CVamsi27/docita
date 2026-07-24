@@ -6,6 +6,7 @@ import {
   Feature,
   type LabTest,
   type LabTestOrder,
+  type PaginatedResponse,
   UpdateLabTestOrderRequest,
   UpdateLabTestRequest,
 } from "@workspace/types";
@@ -62,9 +63,11 @@ export const useLabTestOrders = (filters?: {
   status?: string;
   date?: string;
   patientId?: string;
+  cursor?: string;
+  limit?: number;
 }) => {
   const labOk = useDataAccessContext().isTierFeatureEnabled(Feature.LAB_TESTS);
-  return useAPIQuery<LabTestOrder[]>(
+  return useAPIQuery<PaginatedResponse<LabTestOrder>>(
     queryKeys.clinical.labTests.ordersList(filters),
     withQueryString("/clinical/lab-tests/orders", filters),
     { enabled: labOk },

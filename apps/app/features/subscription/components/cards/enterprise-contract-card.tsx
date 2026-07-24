@@ -3,15 +3,7 @@
 // jscpd:ignore-start
 import { useAPIQuery } from "@/lib/api/api-core";
 import { queryKeys } from "@/lib/api/query-keys";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { formatCurrency, formatDate } from "@workspace/utils";
 import {
   enterpriseContractEstimateSchema,

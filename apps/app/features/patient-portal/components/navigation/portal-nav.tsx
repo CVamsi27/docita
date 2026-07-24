@@ -4,26 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Activity,
-  Calendar,
-  FileText,
-  LogOut,
-  MoreHorizontal,
-  Pill,
-  Receipt,
-  Shield,
-  TrendingUp,
-  User,
-} from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@workspace/ui/components/overlay/sheet";
+import { Activity, Calendar, FileText, LogOut, MoreHorizontal, Pill, Receipt, Shield, TrendingUp, User } from "lucide-react";
+import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@workspace/ui/components";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePatientConsentSettings } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";

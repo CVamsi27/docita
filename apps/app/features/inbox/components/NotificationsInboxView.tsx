@@ -4,26 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { BellIcon } from "lucide-react";
-import {
-  queryKeys,
-  useAllNotifications,
-  useMarkNotificationRead,
-  useDeleteNotification,
-  useDeleteAllNotifications,
-  type StaffNotification,
-} from "@workspace/data-access";
+import { queryKeys, useAllNotifications, useMarkNotificationRead, useDeleteNotification, useDeleteAllNotifications, type StaffNotification } from "@workspace/data-access";
 import { useSocket } from "@/lib/contexts/socket-context";
 import { buildNotificationCategoryRecord } from "@/components/navigation/notification-category-record";
-import {
-  isNotificationCategoryId,
-  NOTIFICATION_CATEGORIES,
-  type NotificationCategoryId,
-} from "@/components/navigation/notification-href";
+import { isNotificationCategoryId, NOTIFICATION_CATEGORIES, type NotificationCategoryId } from "@/components/navigation/notification-href";
 import { filterByCategory } from "./notification-inbox-row";
-import {
-  NotificationsInboxHeader,
-  NotificationsInboxTabs,
-} from "./NotificationsInboxViewSections";
+import { NotificationsInboxHeader, NotificationsInboxTabs } from "./NotificationsInboxViewSections";
 
 export function NotificationsInboxView() {
   const {
@@ -138,41 +124,40 @@ export function NotificationsInboxView() {
     if (!visibleCategories.some((c) => c.id === activeTab)) setActiveTab("all");
   }, [visibleCategories, activeTab]);
 
-  if (isLoading && active.length === 0)
-    return (
-      <DataState status="loading" loadingMessage="Loading notifications…" />
-    );
-
-  if (active.length === 0) {
-    return (
-      <DataState
-        status="empty"
-        emptyIcon={BellIcon}
-        emptyTitle="No notifications yet"
-        emptyDescription="Activity from appointments, prescriptions, invoices, payments, consultations, and your team will appear here."
-        className="min-h-[40vh]"
-      />
-    );
-  }
+  const status: "loading" | "empty" | "success" =
+    isLoading && active.length === 0
+      ? "loading"
+      : active.length === 0
+        ? "empty"
+        : "success";
 
   return (
-    <div className="space-y-4">
-      <NotificationsInboxHeader
-        unreadCount={unreadCount}
-        isDeleting={isDeleting}
-        onClearAll={handleClearAll}
-      />
-      <NotificationsInboxTabs
-        activeTab={activeTab}
-        onTabChange={(v) => {
-          if (isNotificationCategoryId(v)) setActiveTab(v);
-        }}
+    <DataState
+      status={status}
+      loadingMessage="Loading notifications…"
+      emptyIcon={BellIcon}
+      emptyTitle="No notifications yet"
+      emptyDescription="Activity from appointments, prescriptions, invoices, payments, consultations, and your team will appear here."
+      className="min-h-[40vh]"
+    >
+      <div className="space-y-4">
+        <NotificationsInboxHeader
+          unreadCount={unreadCount}
+          isDeleting={isDeleting}
+          onClearAll={handleClearAll}
+        />
+        <NotificationsInboxTabs
+          activeTab={activeTab}
+          onTabChange={(v) => {
+            if (isNotificationCategoryId(v)) setActiveTab(v);
+          }}
         visibleCategories={visibleCategories}
         unreadByTab={unreadByTab}
         byTab={byTab}
         onMarkRead={handleMarkRead}
         onDelete={handleDelete}
       />
-    </div>
+      </div>
+    </DataState>
   );
 }

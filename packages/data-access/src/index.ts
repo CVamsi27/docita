@@ -338,6 +338,12 @@ export {
   useUpdateClinicSettings,
 } from "./hooks/use-clinic-settings";
 export type { ClinicAppSettings } from "./hooks/use-clinic-settings";
+export {
+  useCustomFields,
+  useCreateCustomField,
+  useUpdateCustomField,
+  useDeleteCustomField,
+} from "./hooks/use-custom-fields";
 export { usePrescriptionDefaults, useUpdatePrescriptionDefaults } from "./hooks/use-prescription-defaults";
 export type { PrescriptionDefaults } from "./hooks/use-prescription-defaults";
 export { useOpdSlipSettings, useUpdateOpdSlipSettings } from "./hooks/use-opd-slip-settings";

@@ -6,10 +6,7 @@ import { Clock } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { NowServingBoard } from "@workspace/ui/components/data-display/now-serving-board";
 
-import {
-  type DashboardAlertDensity,
-  DashboardAlertsContainer,
-} from "@/features/dashboard/components/alerts/dashboard-alerts-container";
+import { type DashboardAlertDensity, DashboardAlertsContainer } from "@/features/dashboard/components/alerts/dashboard-alerts-container";
 import { DoctorDashboardCards } from "@/features/dashboard/components/stats/doctor-dashboard-cards";
 import type { AppointmentListItem } from "@workspace/data-access";
 

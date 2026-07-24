@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { PageTabItem } from "@workspace/ui/components/navigation/page-tabs";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   LEGACY_PATIENT_TAB_REDIRECTS,
   PATIENT_RECORDS_SUB_TABS,
-  RECORDS_SUB_TAB_LABELS,
+  RECORDS_SUB_TAB_LABEL_KEYS,
   TAB_DEFINITIONS,
   isPatientDetailTabValue,
   isPatientRecordsSubTab,
@@ -16,6 +17,7 @@ import {
 } from "./patient-detail-tabs-config";
 
 export function usePatientDetailTabs() {
+  const t = useTranslations("Patients.tabs");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -103,17 +105,17 @@ export function usePatientDetailTabs() {
     () =>
       TAB_DEFINITIONS.filter(
         ({ value }) => value !== "billing" || canViewInvoices,
-      ).map(({ value, label }) => ({ id: value, label })),
-    [canViewInvoices],
+      ).map(({ value, labelKey }) => ({ id: value, label: t(labelKey) })),
+    [canViewInvoices, t],
   );
 
   const recordsSubItems = useMemo<PageTabItem[]>(
     () =>
       PATIENT_RECORDS_SUB_TABS.map((value) => ({
         id: value,
-        label: RECORDS_SUB_TAB_LABELS[value],
+        label: t(RECORDS_SUB_TAB_LABEL_KEYS[value]),
       })),
-    [],
+    [t],
   );
 
   return {

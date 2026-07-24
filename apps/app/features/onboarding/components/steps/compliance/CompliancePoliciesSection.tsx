@@ -1,14 +1,9 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Progress } from "@workspace/ui/components/feedback/progress";
+import { Badge, Progress } from "@workspace/ui/components";
 import { ShieldCheck } from "lucide-react";
-import {
-  DataProcessingAgreementContent,
-  PrivacyPolicyContent,
-  SLAContent,
-} from "@/features/legal";
+import { DataProcessingAgreementContent, PrivacyPolicyContent, SLAContent } from "@/features/legal";
 import { OnboardingSection } from "@/features/onboarding/components/shared";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 import type { LegalDocumentType } from "./compliance-step-helpers";

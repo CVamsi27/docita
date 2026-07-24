@@ -1,17 +1,9 @@
 "use client";
 
 import { UserPlus } from "lucide-react";
-import {
-  OnboardingStepBody,
-  OnboardingStepCard,
-  OnboardingStepHeader,
-} from "@/features/onboarding/components/shared";
+import { OnboardingStepBody, OnboardingStepCard, OnboardingStepHeader } from "@/features/onboarding/components/shared";
 import { type TeamInviteStepProps } from "./team-invite-step-constants";
-import {
-  TeamGuidanceSection,
-  MemberSummarySection,
-  TeamInviteStepFooterSection,
-} from "./TeamInviteStepSections";
+import { TeamGuidanceSection, MemberSummarySection, TeamInviteStepFooterSection } from "./TeamInviteStepSections";
 import { TeamMembersList } from "./TeamMembersList";
 import { useTeamInviteMembers } from "./use-team-invite-members";
 

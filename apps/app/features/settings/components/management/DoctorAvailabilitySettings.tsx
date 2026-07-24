@@ -2,15 +2,7 @@
 
 // jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Label } from "@workspace/ui/components/form/label";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Label, Skeleton } from "@workspace/ui/components";
 import {
   Select,
 // jscpd:ignore-end
@@ -20,11 +12,12 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Calendar } from "lucide-react";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { useTranslations } from "next-intl";
 import { DoctorAvailabilityDayRow } from "./doctor-availability-day-row";
 import { useDoctorAvailabilitySettings } from "./use-doctor-availability-settings";
 
 export function DoctorAvailabilitySettings() {
+  const t = useTranslations("Settings.doctorAvailability");
   const availability = useDoctorAvailabilitySettings();
 
   if (availability.isLoading) {
@@ -32,7 +25,7 @@ export function DoctorAvailabilitySettings() {
       <Card
         role="status"
         aria-live="polite"
-        aria-label="Loading doctor availability"
+        aria-label={t("loadingAria")}
       >
         <CardHeader>
           <div className="flex items-center gap-3">
@@ -67,9 +60,9 @@ export function DoctorAvailabilitySettings() {
           <div className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-info" />
             <div>
-              <CardTitle>Doctor availability</CardTitle>
+              <CardTitle>{t("title")}</CardTitle>
               <CardDescription>
-                Working hours and slot duration per doctor.
+                {t("description")}
               </CardDescription>
             </div>
           </div>
@@ -77,7 +70,7 @@ export function DoctorAvailabilitySettings() {
         <CardContent className="flex flex-col gap-6 pt-5">
           {availability.isAdmin && availability.doctors.length > 0 ? (
             <div className="space-y-2">
-              <Label htmlFor="availability-doctor">Select Doctor</Label>
+              <Label htmlFor="availability-doctor">{t("selectDoctorLabel")}</Label>
               <Select
                 value={availability.selectedDoctorId}
                 onValueChange={availability.setSelectedDoctorId}
@@ -86,7 +79,7 @@ export function DoctorAvailabilitySettings() {
                   id="availability-doctor"
                   className="w-full sm:w-64"
                 >
-                  <SelectValue placeholder="Doctor" />
+                  <SelectValue placeholder={t("doctorPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {availability.doctors.map((doctor) => (
@@ -106,10 +99,10 @@ export function DoctorAvailabilitySettings() {
 
           <div className="flex flex-col gap-1">
             <span className="ui-eyebrow">
-              {availability.selectedDoctorName}&apos;s weekly schedule
+              {t("scheduleEyebrow", { name: availability.selectedDoctorName })}
             </span>
             <p className="text-xs text-muted-foreground">
-              Toggle days on or off and set hours individually.
+              {t("scheduleHint")}
             </p>
           </div>
 
@@ -137,10 +130,10 @@ export function DoctorAvailabilitySettings() {
                     decorative
                     className="mr-2"
                   />
-                  Saving…
+                  {t("savingButton")}
                 </>
               ) : (
-                "Save availability"
+                t("saveButton")
               )}
             </Button>
           </div>

@@ -1,36 +1,17 @@
 "use client";
 
 import { Stethoscope } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/overlay/dialog";
 import { type Doctor } from "./doctor-helpers";
-// jscpd:ignore-start
-import {
-  DoctorEducationSection,
-  DoctorEvidenceSection,
-  DoctorInfoGrid,
-  DoctorSpecializationsSection,
-  DoctorVerificationSection,
-} from "./DoctorsViewDialogSections";
-// jscpd:ignore-end
+import { DoctorEducationSection, DoctorEvidenceSection, DoctorInfoGrid, DoctorSpecializationsSection, DoctorVerificationActionProps, DoctorVerificationSection } from "./DoctorsViewDialogSections";
 
 interface DoctorsViewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   doctor: Doctor | null;
-  adminActionBusy: "verify" | "reject" | null;
-  rejectionReasonDraft: string;
-  showRejectForm: boolean;
-  onRejectionReasonChange: (value: string) => void;
-  onShowRejectFormChange: (show: boolean) => void;
-  onAdminVerify: () => void;
-  onAdminReject: () => void;
 }
+
+type VerificationActionProps = Omit<DoctorVerificationActionProps, 'doctor'>;
 
 export function DoctorsViewDialog({
   open,
@@ -43,7 +24,7 @@ export function DoctorsViewDialog({
   onShowRejectFormChange,
   onAdminVerify,
   onAdminReject,
-}: DoctorsViewDialogProps) {
+}: DoctorsViewDialogProps & VerificationActionProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">

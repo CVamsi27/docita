@@ -1,22 +1,9 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@workspace/ui/components/indicators/card";
-import {
-  bookingCardClass,
-  bookingSectionHeaderBar,
-  bookingSectionShell,
-} from "./booking-constants";
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
+import { bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  buildRequestSummaryState,
-  DoctorSummaryTile,
-  RequestSummaryHeader,
-  ScheduleSummary,
-} from "./request-summary-card-sections";
+import { buildRequestSummaryState, DoctorSummaryTile, RequestSummaryHeader, ScheduleSummary } from "./request-summary-card-sections";
 export function RequestSummaryCard({
   selectedDoctorName,
   selectedCalendarDay,

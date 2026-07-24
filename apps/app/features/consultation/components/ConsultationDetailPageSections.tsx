@@ -1,7 +1,6 @@
 "use client";
 
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
+import { AppPageScaffold, DataState } from "@workspace/ui/components";
 import { ConsultationShell } from "@/features/consultation/workspace/ConsultationShell";
 import { ConsultationPageHeaderUI } from "@/features/consultation/components/ConsultationPageHeaderUI";
 import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
@@ -9,10 +8,7 @@ import { ConsultationLeaveDialog } from "@/features/consultation/components/Cons
 import { ConsultationVitalsProvider } from "@/features/consultation/workspace/consultation-vitals-context";
 import { ConsultationLeaveNavigationProvider } from "@/features/consultation/workspace/consultation-leave-navigation-context";
 import type { ConsultationSaveHandles } from "@/features/consultation/workspace/use-consultation-leave-navigation";
-import {
-  formatChiefComplaintSummary,
-  getPatientFullName,
-} from "@workspace/utils";
+import { formatChiefComplaintSummary, getPatientFullName } from "@workspace/utils";
 import { Stethoscope } from "lucide-react";
 import type { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
 

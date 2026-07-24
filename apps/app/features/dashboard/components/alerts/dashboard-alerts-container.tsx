@@ -3,10 +3,7 @@
 import { useMemo } from "react";
 import { useLocalStorage } from "@workspace/hooks";
 import { Feature } from "@workspace/types";
-import {
-  clinicWallHourMinuteFromUtcInstant,
-  DEFAULT_TIMEZONE,
-} from "@workspace/utils";
+import { clinicWallHourMinuteFromUtcInstant, DEFAULT_TIMEZONE } from "@workspace/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { DashboardAlertsUI } from "./dashboard-alerts-ui";

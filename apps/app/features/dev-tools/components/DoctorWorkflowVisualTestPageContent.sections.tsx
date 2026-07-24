@@ -1,24 +1,8 @@
 "use client";
 
 // jscpd:ignore-start
-import {
-  CalendarDays,
-  Clock3,
-  FileText,
-  Stethoscope,
-  UserRound,
-} from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Progress } from "@workspace/ui/components/feedback/progress";
+import { CalendarDays, Clock3, FileText, Stethoscope, UserRound } from "lucide-react";
+import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, PageHeader, Progress } from "@workspace/ui/components";
 // jscpd:ignore-end
 
 /** Dashboard zone — current patient context and queue status mock. */

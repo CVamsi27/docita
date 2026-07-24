@@ -1,10 +1,7 @@
 "use client";
 
 import { useMemo, type ReactNode } from "react";
-import {
-  DataAccessProvider,
-  type DataAccessConfig,
-} from "@workspace/data-access";
+import { DataAccessProvider, type DataAccessConfig } from "@workspace/data-access";
 import { parseFeature } from "@/lib/access-control/parse-feature";
 import { fetchAPI } from "@/lib/api/api-core";
 import { useOptionalAuth } from "@/lib/auth/auth-context";

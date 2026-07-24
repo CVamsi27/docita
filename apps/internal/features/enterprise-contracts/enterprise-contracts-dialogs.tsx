@@ -1,6 +1,5 @@
 "use client";
 
-// jscpd:ignore-start
 import { EnterpriseContractsAlertsDialog } from "@/features/enterprise-contracts/enterprise-contracts-alerts-dialog";
 import { EnterpriseContractsCustomBillDialog } from "@/features/enterprise-contracts/enterprise-contracts-custom-bill-dialog";
 import { EnterpriseContractsEditorDialog } from "@/features/enterprise-contracts/enterprise-contracts-editor-dialog";
@@ -8,23 +7,13 @@ import { EnterpriseContractsEstimateDialog } from "@/features/enterprise-contrac
 import { EnterpriseContractsInvoicesDialog } from "@/features/enterprise-contracts/enterprise-contracts-invoices-dialog";
 import { EnterpriseContractsMembersDialog } from "@/features/enterprise-contracts/enterprise-contracts-members-dialog";
 import { EnterpriseContractsRevisionsDialog } from "@/features/enterprise-contracts/enterprise-contracts-revisions-dialog";
+import type { EnterpriseContractsEditorState } from "@/features/enterprise-contracts/enterprise-contracts-shared-types";
 import type { EnterpriseContractsPageState } from "@/features/enterprise-contracts/use-enterprise-contracts-page";
-// jscpd:ignore-end
 
-// jscpd:ignore-start
-export type EnterpriseContractsDialogsProps = Pick<
-  EnterpriseContractsPageState,
-  | "editorOpen"
-  | "setEditorOpen"
-  | "editorMode"
-  | "form"
-  | "setForm"
-  | "editingContractId"
-  | "applyPreset"
-  | "submit"
-  | "busy"
-  | "membersOpen"
-// jscpd:ignore-end
+export type EnterpriseContractsDialogsProps = EnterpriseContractsEditorState &
+  Pick<
+    EnterpriseContractsPageState,
+    | "membersOpen"
   | "setMembersOpen"
   | "activeContract"
   | "newMemberClinicId"

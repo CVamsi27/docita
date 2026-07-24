@@ -6,11 +6,7 @@ import { Tier, getTierInfo } from "@/lib/subscription/tier-access";
 import type { PlanMode, TierName } from "@workspace/types";
 import { PLAN_ORDER } from "./billing-subscription-helpers";
 import type { recommendTier } from "@/features/subscription/lib/recommend-tier";
-import {
-  BillingPlansHeader,
-  BillingRecommendationBanner,
-  BillingPlanCards,
-} from "./billing-plans-section-sections";
+import { BillingPlansHeader, BillingRecommendationBanner, BillingPlanCards } from "./billing-plans-section-sections";
 
 type Recommendation = ReturnType<typeof recommendTier>;
 type PricingConfig =

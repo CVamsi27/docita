@@ -42,10 +42,9 @@ export class EnterpriseContractInvoiceCommandService {
   ) {}
 
   /**
-   * Looks up a contract by id or throws the same `NotFoundException` used by
-   * every invoice-generation entry point — `generateAnnualPrepayInvoice`,
-   * `generateSetupFeeInvoice`, and `generateAdjustmentInvoice` all need this
-   * exact lookup before applying their (different) status/amount validation.
+   * Looks up a contract by id or throws `NotFoundException`. All three
+   * invoice-generation entry points need this exact lookup before applying
+   * their (different) status/amount validation.
    */
   private async getContractOrThrow(
     contractId: string,
@@ -60,10 +59,9 @@ export class EnterpriseContractInvoiceCommandService {
 
   /**
    * Upserts the `subscriptionPayment` row keyed by `clinicId`+`invoiceNumber`
-   * for an enterprise invoice — `generateAnnualPrepayInvoice` and
-   * `generateSetupFeeInvoice` both need an idempotent payment record before
-   * creating/updating their `enterpriseContractInvoice`, differing only in
-   * the amount and description they pass through.
+   * for an enterprise invoice. Both invoice-generation entry points need an
+   * idempotent payment record before creating their invoice; only amount
+   * and description differ.
    */
   // jscpd:ignore-end
   private upsertContractInvoicePayment(
@@ -98,7 +96,6 @@ export class EnterpriseContractInvoiceCommandService {
       },
     });
   }
-
   async generateAnnualPrepayInvoice(contractId: string) {
     // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
@@ -319,6 +316,9 @@ export class EnterpriseContractInvoiceCommandService {
 
       const members = await this.persistence.enterpriseContractMember.findMany({
         where: { contractId, removedAt: null },
+        // No `take`: bounded by (contractId, removedAt: null). The
+        // member set feeds the YTD overage aggregation by clinicId, so
+        // every active member must be present.
       });
       const ytdOverageAgg = await this.persistence.usageRecord.aggregate({
         where: {

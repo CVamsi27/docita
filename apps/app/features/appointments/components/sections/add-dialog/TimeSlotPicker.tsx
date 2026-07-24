@@ -3,16 +3,8 @@ import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { createAppointmentSchema, type AvailableSlot } from "@workspace/types";
 import { formatScheduleTime } from "@workspace/utils";
-import {
-  calendarSlotTimeToLocalIso,
-  slotOccupiedByAppointments,
-  type SlotBlockingAppointment,
-} from "@/features/appointments/lib/calendar-slot-local-iso";
-import {
-  ApiSlotPickerField,
-  ManualTimeRangeFields,
-  type ApiSlotOption,
-} from "./time-slot-picker-sections";
+import { calendarSlotTimeToLocalIso, slotOccupiedByAppointments, type SlotBlockingAppointment } from "@/features/appointments/lib/calendar-slot-local-iso";
+import { ApiSlotPickerField, ManualTimeRangeFields, type ApiSlotOption } from "./time-slot-picker-sections";
 
 type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 

@@ -1,8 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { labTestOrderResultJsonSchema } from '@workspace/types';
-import { parseStringEnumMember } from '@workspace/utils';
+import type { PaginatedResponse } from '@workspace/types';
+import {
+  parseStringEnumMember,
+  toCents,
+  resolveMoneyCents,
+  fromCents,
+} from '@workspace/utils';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 import { PrismaService } from '@/prisma/prisma.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
@@ -22,6 +29,8 @@ import {
 
 @Injectable()
 export class PrismaLabRepository implements ILabRepository {
+  private readonly logger = new Logger(PrismaLabRepository.name);
+
   constructor(private prisma: PrismaService) {}
 
   private getReadClient() {
@@ -31,9 +40,15 @@ export class PrismaLabRepository implements ILabRepository {
   async findAllTests(clinicId: string): Promise<LabTest[]> {
     const tests = await this.getReadClient().labTest.findMany({
       where: { clinicId },
-      take: 1000,
+      orderBy: { name: 'asc' },
+      take: 1001,
     });
-    return tests.map((t) => this.mapToLabTest(t));
+    if (tests.length > 1000) {
+      this.logger.warn(
+        `Lab test catalog for clinic ${clinicId} exceeds 1000 entries; results are truncated`,
+      );
+    }
+    return tests.slice(0, 1000).map((t) => this.mapToLabTest(t));
   }
 
   async findTestById(id: string): Promise<LabTest | null> {
@@ -48,7 +63,9 @@ export class PrismaLabRepository implements ILabRepository {
       clinicId: labTest.clinicId,
       name: labTest.name,
       category: labTest.category,
+      // Write both the legacy Float and the canonical cents column (Phase 4 G3).
       price: labTest.price || null,
+      priceCents: toCents(labTest.price),
       description: labTest.description,
       code: labTest.code,
       active: labTest.active,
@@ -74,8 +91,10 @@ export class PrismaLabRepository implements ILabRepository {
       status?: string;
       date?: string;
       patientId?: string;
+      cursor?: string;
+      limit?: number;
     },
-  ): Promise<LabOrder[]> {
+  ): Promise<PaginatedResponse<LabOrder>> {
     const statusFilter = params?.status
       ? parseStringEnumMember(Object.values(LabTestOrderStatus), params.status)
       : undefined;
@@ -103,21 +122,26 @@ export class PrismaLabRepository implements ILabRepository {
       where.patientId = { in: matchingPatients.map((p) => p.id) };
     }
 
+    const safeLimit = Math.min(params?.limit ?? 100, 500);
     const orders = await readClient.labTestOrder.findMany({
       where,
       include: {
         labTest: true,
         patient: { select: { id: true, firstName: true, lastName: true } },
       },
-      orderBy: { createdAt: 'desc' },
-      take: 1000,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: safeLimit + 1,
+      ...(params?.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
     });
+
+    const hasMore = orders.length > safeLimit;
+    const pageOrders = hasMore ? orders.slice(0, safeLimit) : orders;
 
     // Resolve ordering-doctor names in one batch (orderedBy is a user id, not
     // a Prisma relation on LabTestOrder).
     const orderedByIds = [
       ...new Set(
-        orders
+        pageOrders
           .map((o) => o.orderedBy)
           .filter((id): id is string => typeof id === 'string'),
       ),
@@ -130,7 +154,7 @@ export class PrismaLabRepository implements ILabRepository {
       : [];
     const doctorNameById = new Map(doctors.map((d) => [d.id, d.name]));
 
-    return orders.map((o) =>
+    const items = pageOrders.map((o) =>
       this.mapToLabOrder(o, {
         patient: o.patient ?? undefined,
         labTest: o.labTest
@@ -148,6 +172,13 @@ export class PrismaLabRepository implements ILabRepository {
             : undefined,
       }),
     );
+
+    return {
+      items,
+      nextCursor: hasMore ? items.at(-1)?.id : undefined,
+      hasMore,
+      count: items.length,
+    };
   }
 
   async findOrderById(id: string): Promise<LabOrder | null> {
@@ -235,7 +266,9 @@ export class PrismaLabRepository implements ILabRepository {
       prismaTest.clinicId,
       prismaTest.active,
       prismaTest.code || undefined,
-      prismaTest.price ? Number(prismaTest.price) : undefined,
+      // Read cents-first, falling back to the legacy Float for un-backfilled rows.
+      fromCents(resolveMoneyCents(prismaTest.priceCents, prismaTest.price)) ??
+        undefined,
       prismaTest.description || undefined,
     );
   }
@@ -332,7 +365,7 @@ export class PrismaLabRepository implements ILabRepository {
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: 1000,
+      take: BULK_READ_LIMIT,
     });
 
     return orders.map((o) => ({

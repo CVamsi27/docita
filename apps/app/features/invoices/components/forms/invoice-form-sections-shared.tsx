@@ -14,6 +14,7 @@ import {
   type UseFieldArrayRemove,
   type UseFormSetValue,
 } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import type { InvoiceLineItemFormValues } from "@workspace/types";
 import {
   Card,
@@ -43,12 +44,22 @@ import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { formatCurrency } from "@workspace/utils";
 
+/**
+ * Phase 3 (per-feature): apps/app Invoices > form sections
+ * (details/line items/status/notes shared form sections). 9 literals
+ * converted to useTranslations("Invoices.formSections").
+ */
+function useInvoiceFormSectionsTranslations() {
+  return useTranslations("Invoices.formSections");
+}
+
 export function InvoiceDetailsCard({ children }: { children: ReactNode }) {
 // jscpd:ignore-end
+  const t = useInvoiceFormSectionsTranslations();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Invoice details</CardTitle>
+        <CardTitle>{t("invoiceDetailsTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="grid md:grid-cols-2 gap-6">{children}</CardContent>
     </Card>
@@ -80,10 +91,11 @@ export function InvoiceLineItemsSection({
   totalAmount: number;
   control: unknown;
 }) {
+  const t = useInvoiceFormSectionsTranslations();
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Line items</CardTitle>
+        <CardTitle>{t("lineItemsTitle")}</CardTitle>
       </CardHeader>
       <CardContent>
         <InvoiceItemsTable
@@ -100,7 +112,7 @@ export function InvoiceLineItemsSection({
           className="mt-4"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Add Item
+          {t("addItemButton")}
         </Button>
 
         <InvoiceSubtotal
@@ -153,27 +165,28 @@ export function InvoiceStatusField<TFieldValues extends FieldValues>({
 }: {
   control: Control<TFieldValues>;
 }) {
+  const t = useInvoiceFormSectionsTranslations();
   return (
     <FormField
       control={control}
       name={"status" as Path<TFieldValues>}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Status</FormLabel>
+          <FormLabel>{t("statusLabel")}</FormLabel>
           <Select
             onValueChange={field.onChange}
             value={(field.value as string | undefined) ?? ""}
           >
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t("statusPlaceholder")} />
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="PAID">Paid</SelectItem>
-              <SelectItem value="OVERDUE">Overdue</SelectItem>
-              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              <SelectItem value="PENDING">{t("statusPending")}</SelectItem>
+              <SelectItem value="PAID">{t("statusPaid")}</SelectItem>
+              <SelectItem value="OVERDUE">{t("statusOverdue")}</SelectItem>
+              <SelectItem value="CANCELLED">{t("statusCancelled")}</SelectItem>
             </SelectContent>
           </Select>
           <FormMessage />
@@ -243,12 +256,13 @@ export function InvoiceNotesSection({
 }: {
   control: unknown;
 }) {
+  const t = useInvoiceFormSectionsTranslations();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Notes</CardTitle>
+        <CardTitle>{t("notesTitle")}</CardTitle>
         <CardDescription>
-          Add any additional notes or payment instructions
+          {t("notesDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -259,7 +273,7 @@ export function InvoiceNotesSection({
             <FormItem>
               <FormControl>
                 <Textarea
-                  placeholder="Notes"
+                  placeholder={t("notesPlaceholder")}
                   className="min-h-[100px]"
                   {...field}
                 />

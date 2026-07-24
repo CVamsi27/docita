@@ -2,34 +2,14 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import { Input } from "@workspace/ui/components/form/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { Button } from "@workspace/ui/components/form/button";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Badge, Button } from "@workspace/ui/components";
 // jscpd:ignore-end
-import { Badge } from "@workspace/ui/components/indicators/badge";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { useTranslations } from "next-intl";
 import { User } from "@workspace/types";
-import {
-  type MemberFormValues,
-  type MemberRole,
-} from "@/features/settings/components/management/member-management-schemas";
-import {
-  TeamMemberContactFields,
-  TeamMemberLabField,
-} from "@/features/settings/components/management/team-member-form-fields";
+import { type MemberFormValues, type MemberRole } from "@/features/settings/components/management/member-management-schemas";
+import { TeamMemberContactFields, TeamMemberLabField } from "@/features/settings/components/management/team-member-form-fields";
 
 export function ManageMemberLabField({
   memberForm,
@@ -50,10 +30,11 @@ export function ManageMemberInfoCard({
   selectedMemberRole,
   roleLabels,
 }: ManageMemberInfoCardProps) {
+  const t = useTranslations("Settings.manageMember");
   return (
     <div className="rounded-lg border bg-muted/20 p-3 md:col-span-2">
       <p className="text-base font-semibold text-foreground">
-        {member.name || "Unknown member"}
+        {member.name || t("unknownMember")}
       </p>
       <p className="text-sm text-muted-foreground">
         {roleLabels[selectedMemberRole]}
@@ -75,6 +56,7 @@ export function ManageMemberNameRoleFields({
   selectedMemberRole: _selectedMemberRole,
   roleLabels,
 }: ManageMemberNameRoleFieldsProps) {
+  const t = useTranslations("Settings.manageMember");
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <FormField
@@ -83,9 +65,9 @@ export function ManageMemberNameRoleFields({
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Name</FormLabel>
+            <FormLabel>{t("nameLabel")}</FormLabel>
             <FormControl>
-              <Input placeholder="Full name" {...field} />
+              <Input placeholder={t("namePlaceholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -96,7 +78,7 @@ export function ManageMemberNameRoleFields({
         name="role"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Role</FormLabel>
+            <FormLabel>{t("roleLabel")}</FormLabel>
             {canChangeSelectedMemberRole ? (
               <Select
                 value={field.value}
@@ -109,9 +91,9 @@ export function ManageMemberNameRoleFields({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  <SelectItem value="ADMIN">{t("roleAdmin")}</SelectItem>
                   <SelectItem value="ADMIN_DOCTOR">
-                    Admin Doctor
+                    {t("roleAdminDoctor")}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -149,9 +131,10 @@ export function ManageMemberCreatedDate({
   member,
   formatDate,
 }: ManageMemberCreatedDateProps) {
+  const t = useTranslations("Settings.manageMember");
   return (
     <div>
-      <p className="text-muted-foreground">Created</p>
+      <p className="text-muted-foreground">{t("createdLabel")}</p>
       <p className="font-medium">{formatDate(member.createdAt)}</p>
     </div>
   );
@@ -172,6 +155,7 @@ export function ManageMemberFooter({
   isDeletingMember,
   onRemoveClick,
 }: ManageMemberFooterProps) {
+  const t = useTranslations("Settings.manageMember");
   return (
     <>
       <Button
@@ -181,7 +165,7 @@ export function ManageMemberFooter({
         disabled={isManaging}
         className="w-full sm:w-auto"
       >
-        Close
+        {t("closeButton")}
       </Button>
       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
         <Button
@@ -196,7 +180,7 @@ export function ManageMemberFooter({
               className="mr-2"
             />
           ) : null}
-          Save Changes
+          {t("saveButton")}
         </Button>
         <Button
           type="button"
@@ -212,7 +196,7 @@ export function ManageMemberFooter({
               className="mr-2"
             />
           ) : null}
-          Remove
+          {t("removeButton")}
         </Button>
       </div>
     </>

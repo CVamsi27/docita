@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { AppPageScaffold, PageHeader } from "@workspace/ui/components";
 import { WhatsappSenderSettings } from "@/features/settings/components/whatsapp/WhatsappSenderSettings";
 import { WhatsappTemplatesSettings } from "@/features/settings/components/whatsapp/WhatsappTemplatesSettings";
 

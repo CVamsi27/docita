@@ -1,16 +1,6 @@
-import {
-  Calendar,
-  ClipboardList,
-  Files,
-  ListChecks,
-  Receipt,
-  UserPlus,
-} from "lucide-react";
+import { Calendar, ClipboardList, Files, ListChecks, Receipt, UserPlus } from "lucide-react";
 import { Feature, usePermissionStore } from "@/lib/stores/permission-store";
-import {
-  DashboardQuickActionsUI,
-  QuickAction,
-} from "./dashboard-quick-actions-ui";
+import { DashboardQuickActionsUI, QuickAction } from "./dashboard-quick-actions-ui";
 
 interface DashboardQuickActionsContainerProps {
   uncodedVisits: number;

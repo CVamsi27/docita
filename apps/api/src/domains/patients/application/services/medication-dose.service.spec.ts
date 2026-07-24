@@ -229,14 +229,14 @@ describe('MedicationDoseService', () => {
       expect(result.adherenceRate).toBe(80);
     });
 
-    it('should return 0 adherence rate when no doses', async () => {
+    it('should return 100 adherence rate when no doses are due yet', async () => {
       repository.verifyPatientAccess.mockResolvedValue(true);
       repository.groupDosesByStatus.mockResolvedValue([]);
 
       const result = await service.getAdherenceSummary('clinic-1', 'patient-1');
 
       expect(result.totalDoses).toBe(0);
-      expect(result.adherenceRate).toBe(0);
+      expect(result.adherenceRate).toBe(100);
     });
 
     it('should include ADMINISTERED doses in taken count', async () => {
@@ -324,7 +324,7 @@ describe('MedicationDoseService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should skip if dose count exceeds 500', async () => {
+    it('should batch insert when dose count exceeds 500', async () => {
       const prescription = {
         id: 'rx-3',
         date: new Date('2026-03-01'),
@@ -340,6 +340,7 @@ describe('MedicationDoseService', () => {
         ],
       };
       repository.findPrescriptionById.mockResolvedValue(prescription);
+      repository.createManyDoses.mockResolvedValue({ count: 500 });
 
       const result = await service.generateScheduledDoses(
         'clinic-1',
@@ -347,8 +348,39 @@ describe('MedicationDoseService', () => {
         'rx-3',
       );
 
-      expect(repository.createManyDoses).not.toHaveBeenCalled();
-      expect(result.medicationsProcessed).toBe(0);
+      expect(repository.createManyDoses).toHaveBeenCalled();
+      expect(
+        (repository.createManyDoses as jest.Mock).mock.calls.length,
+      ).toBeGreaterThan(1);
+      expect(result.medicationsProcessed).toBe(1);
+    });
+
+    it('should generate weekly doses for QWK', async () => {
+      const prescription = {
+        id: 'rx-qwk',
+        date: new Date('2026-03-21'),
+        medications: [
+          {
+            id: 'med-qwk',
+            isPRN: false,
+            sigCode: 'QWK',
+            frequency: 'Weekly',
+            duration: '28 days',
+            startDate: new Date('2026-03-21'),
+          },
+        ],
+      };
+      repository.findPrescriptionById.mockResolvedValue(prescription);
+      repository.createManyDoses.mockResolvedValue({ count: 4 });
+
+      await service.generateScheduledDoses('clinic-1', 'patient-1', 'rx-qwk');
+
+      const call = (
+        repository.createManyDoses as jest.Mock<
+          (...args: unknown[]) => Promise<unknown>
+        >
+      ).mock.calls[0]?.[0] as Array<{ scheduledAt: Date }> | undefined;
+      expect(call).toHaveLength(4);
     });
   });
 

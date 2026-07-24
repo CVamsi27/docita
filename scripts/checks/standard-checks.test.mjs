@@ -259,3 +259,72 @@ test("standard gate wiring check requires all mandatory standards checks", () =>
     ),
   );
 });
+
+test("jsx literal density ratchet: baseline write, growth fails --enforce, refresh passes", () => {
+  // Build a tiny fixture repo with two .tsx files containing one literal each.
+  const root = makeGitFixture({
+    "apps/app/features/x/Page.tsx":
+      "export function Page() { return <div>Hello world</div>; }\n",
+    "apps/internal/features/y/Panel.tsx":
+      "export function Panel() { return <p>One literal</p>; }\n",
+  });
+  // Initialise the baseline.
+  expectPass(
+    runCheck(root, "check-jsx-literal-density.mjs", ["--baseline"]),
+  );
+  // Baseline-only run should pass without --enforce.
+  expectPass(runCheck(root, "check-jsx-literal-density.mjs"));
+  // Adding a literal must fail under --enforce.
+  write(
+    root,
+    "apps/app/features/x/Page.tsx",
+    "export function Page() { return <div><span>Hello world</span><span>Extra</span></div>; }\n",
+  );
+  execFileSync("git", ["add", "."], { cwd: root });
+  expectFail(
+    runCheck(root, "check-jsx-literal-density.mjs", ["--enforce"]),
+  );
+  // Refresh baseline, growth becomes the new floor and --enforce passes.
+  expectPass(
+    runCheck(root, "check-jsx-literal-density.mjs", ["--baseline"]),
+  );
+  expectPass(
+    runCheck(root, "check-jsx-literal-density.mjs", ["--enforce"]),
+  );
+});
+
+test("i18n translation-key check fails on missing namespace and passes on present", () => {
+  const files = {
+    "apps/app/messages/en.json": JSON.stringify({ X: { present: "yes" } }),
+    "apps/app/messages/hi.json": JSON.stringify({ X: { present: "yes" } }),
+    "apps/internal/messages/en.json": JSON.stringify({}),
+    "apps/internal/messages/hi.json": JSON.stringify({}),
+    "apps/app/features/x/Comp.tsx":
+      `import { useTranslations } from "next-intl";\nexport function Comp() { return useTranslations("X.missing"); }\n`,
+  };
+
+  // UseTranslations references "X.missing" but the JSON only has "X".
+  expectFail(
+    runCheck(
+      makeGitFixture(files),
+      "check-i18n-translation-keys.mjs",
+      ["--enforce"],
+    ),
+  );
+
+  // UseTranslations references "X.present.leaf" — the namespace resolves
+  // to an object so the check passes (we don't validate leaf keys).
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        ...files,
+        "apps/app/messages/en.json": JSON.stringify({ X: { present: { leaf: "yes" } } }),
+        "apps/app/messages/hi.json": JSON.stringify({ X: { present: { leaf: "yes" } } }),
+        "apps/app/features/x/Comp.tsx":
+          `import { useTranslations } from "next-intl";\nexport function Comp() { const t = useTranslations("X.present"); return t("leaf"); }\n`,
+      }),
+      "check-i18n-translation-keys.mjs",
+      ["--enforce"],
+    ),
+  );
+});

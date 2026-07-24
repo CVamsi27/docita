@@ -1,33 +1,12 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import {
-  Form,
-} from "@workspace/ui/components/form/form";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Form } from "@workspace/ui/components";
 import { User } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  MEMBER_ROLE_LABELS,
-  type MemberFormValues,
-  type MemberRole,
-} from "@/features/settings/components/management/member-management-schemas";
+import { MEMBER_ROLE_LABELS, type MemberFormValues, type MemberRole } from "@/features/settings/components/management/member-management-schemas";
 import { ManageTeamMemberDoctorPanel } from "./manage-team-member-doctor-panel";
-import {
-  ManageMemberInfoCard,
-  ManageMemberNameRoleFields,
-  ManageMemberContactFields,
-  ManageMemberLabField,
-  ManageMemberCreatedDate,
-  ManageMemberFooter,
-} from "./manage-team-member-dialog-sections";
+import { ManageMemberInfoCard, ManageMemberNameRoleFields, ManageMemberContactFields, ManageMemberLabField, ManageMemberCreatedDate, ManageMemberFooter } from "./manage-team-member-dialog-sections";
 
 interface ManageTeamMemberDialogProps {
   member: User | null;

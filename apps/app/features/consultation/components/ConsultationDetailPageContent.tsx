@@ -3,22 +3,13 @@
 import { useParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
-import {
-  useConsultationLeaveNavigation,
-  type ConsultationSaveHandles,
-} from "@/features/consultation/workspace/use-consultation-leave-navigation";
+import { useConsultationLeaveNavigation, type ConsultationSaveHandles } from "@/features/consultation/workspace/use-consultation-leave-navigation";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { useSessionRecoveryRedirect } from "@/hooks/use-session-recovery-redirect";
 import { useConsultationCompletion } from "./use-consultation-completion";
 import { useConsultationMarkDone } from "./use-consultation-mark-done";
-import {
-  ConsultationLoadingPage,
-  ConsultationErrorPage,
-  ConsultationAccessDeniedPage,
-  ConsultationNotFoundPage,
-  ConsultationMainContent,
-} from "./ConsultationDetailPageSections";
+import { ConsultationLoadingPage, ConsultationErrorPage, ConsultationAccessDeniedPage, ConsultationNotFoundPage, ConsultationMainContent } from "./ConsultationDetailPageSections";
 
 export default function ConsultationPage() {
   return (

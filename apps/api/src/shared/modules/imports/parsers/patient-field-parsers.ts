@@ -89,16 +89,6 @@ export function extractAddress(
   }
 }
 
-export function extractMaritalStatus(
-  line: string,
-  fields: ParsedMedicalFields,
-): void {
-  const maritalMatch = line.match(/(?:marital status)[:\s]+([a-z]+)/i);
-  if (maritalMatch) {
-    fields.maritalStatus = maritalMatch[1].trim();
-  }
-}
-
 export function extractLanguage(
   line: string,
   fields: ParsedMedicalFields,
@@ -106,23 +96,6 @@ export function extractLanguage(
   const langMatch = line.match(/(?:language)[:\s]+([a-z]+)/i);
   if (langMatch) {
     fields.preferredLanguage = langMatch[1].trim();
-  }
-}
-
-export function extractRace(line: string, fields: ParsedMedicalFields): void {
-  const raceMatch = line.match(/(?:race)[:\s]+([a-z]+)/i);
-  if (raceMatch) {
-    fields.race = raceMatch[1].trim();
-  }
-}
-
-export function extractEthnicity(
-  line: string,
-  fields: ParsedMedicalFields,
-): void {
-  const ethnicityMatch = line.match(/(?:ethnicity)[:\s]+([a-z\s]+)/i);
-  if (ethnicityMatch) {
-    fields.ethnicity = ethnicityMatch[1].trim();
   }
 }
 

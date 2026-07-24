@@ -2,19 +2,10 @@
 
 import React, { FC } from "react";
 import dynamic from "next/dynamic";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+import { useTranslations } from "next-intl";
+import { AppPageScaffold, DataState, LoadingState, PageHeader, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Calendar, DollarSign, Users } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Feature, FeatureGate } from "@/components/auth/feature-gate";
 import type {
   AnalyticsOverview,
@@ -28,12 +19,13 @@ import { AnalyticsUpgradeState } from "./charts/AnalyticsUpgradeState";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 function AnalyticsChartCellLoading() {
+  const t = useTranslations("Analytics.page");
   return (
     <div
       className="flex min-h-[260px] flex-col items-center justify-center gap-4 rounded-lg border border-border/50 bg-card/30 p-6"
       role="status"
       aria-live="polite"
-      aria-label="Loading chart"
+      aria-label={t("chartLoadingAria")}
     >
       <DocitaLoadingIndicator
         variant="section"
@@ -122,10 +114,11 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
   activeTab,
   onTabChange,
 }) => {
+  const t = useTranslations("Analytics.page");
   const clinicCurrency = useClinicCurrency();
 
   if (isLoading) return (
-      <LoadingState message="Loading analytics…" className="min-h-[60vh]" />
+      <LoadingState message={t("loadingMessage")} className="min-h-[60vh]" />
     );
 
   if (isError) {
@@ -133,7 +126,7 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
       <DataState
         status="error"
         className="min-h-[60vh]"
-        errorMessage="We could not load analytics. Please try again."
+        errorMessage={t("errorMessage")}
         onRetry={onRetry}
       />
     );
@@ -150,32 +143,32 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
       <AppPageScaffold
         header={
           <PageHeader
-            title="Analytics"
-            description="Insights and performance metrics for your facility."
+            title={t("title")}
+            description={t("description")}
           />
         }
       >
         <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <OverviewCard
-            title="Total patients"
+            title={t("totalPatients")}
             value={overview?.totalPatients || 0}
             growth={overview?.patientGrowth || 0}
             icon={Users}
           />
           <OverviewCard
-            title="New patients"
+            title={t("newPatients")}
             value={overview?.newPatientsThisMonth || 0}
             icon={Users}
-            subtitle="This month"
+            subtitle={t("thisMonth")}
           />
           <OverviewCard
-            title="Appointments"
+            title={t("appointments")}
             value={overview?.appointmentsThisMonth || 0}
             icon={Calendar}
-            subtitle="This month"
+            subtitle={t("thisMonth")}
           />
           <OverviewCard
-            title="Revenue"
+            title={t("revenue")}
             value={formatCurrency(overview?.revenueThisMonth || 0)}
             growth={overview?.revenueGrowth || 0}
             icon={DollarSign}
@@ -188,9 +181,9 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
           className="space-y-4"
         >
           <TabsList className="w-full max-md:overflow-x-auto max-md:overscroll-x-contain max-md:flex-nowrap sm:w-auto md:flex-wrap">
-            <TabsTrigger value="disease-trends">Disease trends</TabsTrigger>
-            <TabsTrigger value="cpt-revenue">CPT Revenue</TabsTrigger>
-            <TabsTrigger value="compliance">Compliance</TabsTrigger>
+            <TabsTrigger value="disease-trends">{t("tabDiseaseTrends")}</TabsTrigger>
+            <TabsTrigger value="cpt-revenue">{t("tabCptRevenue")}</TabsTrigger>
+            <TabsTrigger value="compliance">{t("tabCompliance")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="disease-trends" className="space-y-4">

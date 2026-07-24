@@ -8,16 +8,6 @@ export function calculateBMI(weight: number, height: number): number {
   return parseFloat(bmi.toFixed(1));
 }
 
-export function calculateQTc(qt: number, heartRate: number): number {
-  if (qt <= 0 || heartRate <= 0) throw new Error("QT interval and heart rate must be positive numbers");
-
-  const rrInterval = 60 / heartRate;
-
-  const qtc = qt / Math.sqrt(rrInterval);
-
-  return Math.round(qtc);
-}
-
 export function getBMICategory(bmi: number): string {
   if (bmi < 16) return "Severe Thinness";
   if (bmi < 17) return "Moderate Thinness";

@@ -21,7 +21,6 @@ let nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: isCloudflareBuild
       ? DEFAULT_PUBLIC_API_URL
-// jscpd:ignore-start
       : (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_PUBLIC_API_URL),
   },
 
@@ -34,12 +33,10 @@ let nextConfig: NextConfig = {
 
   experimental: {
     optimizePackageImports: ["@workspace/ui", "lucide-react", "recharts"],
-// jscpd:ignore-end
   },
 
   productionBrowserSourceMaps: false,
 
-// jscpd:ignore-start
   turbopack: {},
 
   webpack: (config, { isServer, webpack }) => {
@@ -59,7 +56,6 @@ let nextConfig: NextConfig = {
     ];
 
     if (process.env.ANALYZE === "true" && !isServer) {
-// jscpd:ignore-end
       const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
       config.plugins.push(
         new BundleAnalyzerPlugin({
@@ -70,7 +66,6 @@ let nextConfig: NextConfig = {
       );
     }
 
-// jscpd:ignore-start
     if (isServer && isCloudflareBuild) {
       const STUB = nextCloudflareEmptyStub;
       const otelPatterns = [
@@ -85,7 +80,6 @@ let nextConfig: NextConfig = {
         );
       }
     }
-// jscpd:ignore-end
 
     return config;
   },

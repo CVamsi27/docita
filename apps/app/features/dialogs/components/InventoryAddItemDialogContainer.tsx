@@ -1,10 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import {
-  InventoryAddItemDialogUI,
-  InventoryItemFormData,
-} from "./InventoryAddItemDialogUI";
+import { InventoryAddItemDialogUI, InventoryItemFormData } from "./InventoryAddItemDialogUI";
 import { useCreateInventoryItem } from "@workspace/data-access";
 import { useConstants } from "@/hooks/use-constants";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

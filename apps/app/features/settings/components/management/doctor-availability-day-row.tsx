@@ -1,8 +1,6 @@
 "use client";
 
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Switch } from "@workspace/ui/components/form/switch";
+import { Input, Label, Switch } from "@workspace/ui/components";
 import type { DaySchedule } from "./doctor-availability-config";
 
 function AvailabilityField({

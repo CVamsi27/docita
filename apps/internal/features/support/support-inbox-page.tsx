@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { Card, CardContent, DataState } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 import { Inbox } from "lucide-react";
 import { THREAD_LIMIT } from "./support-helpers";
 import { useSupportInbox } from "./use-support-inbox";
@@ -11,6 +11,7 @@ import { SupportInboxThreadList } from "./support-inbox-thread-list";
 export { THREAD_LIMIT };
 
 export function SupportInboxPage() {
+  const t = useTranslations("SupportInbox");
   const {
     search,
     setSearch,
@@ -45,7 +46,7 @@ export function SupportInboxPage() {
           <Card>
             <CardContent className="pt-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Threads
+                {t("threadsLabel")}
               </p>
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{totalThreads}</p>
             </CardContent>
@@ -53,7 +54,7 @@ export function SupportInboxPage() {
           <Card>
             <CardContent className="pt-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Unread
+                {t("unreadLabel")}
               </p>
               <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{unreadMessages}</p>
             </CardContent>
@@ -63,11 +64,11 @@ export function SupportInboxPage() {
 
       <DataState
         status={threadsStatus}
-        loadingMessage="Loading WhatsApp conversations…"
+        loadingMessage={t("loadingMessage")}
         errorMessage={threadsErrorMessage ?? undefined}
         onRetry={() => void threadsQuery.refetch()}
-        emptyTitle="No conversations yet"
-        emptyDescription="New WhatsApp messages will appear here when customers contact support."
+        emptyTitle={t("emptyTitle")}
+        emptyDescription={t("emptyDescription")}
         emptyIcon={Inbox}
       >
         <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">

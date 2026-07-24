@@ -59,13 +59,19 @@ export class UsersService {
 
     if (!user) throw new BadRequestException('User not found');
 
-    this.logger.log('Staff user requested account deletion');
+    // Enforce the request: soft-delete + disable login now, and record a tracked
+    // DataSubjectRequest so it is auditable and surfaces in the compliance queue.
+    const { requestId, requestedAt } =
+      await this.repository.recordAccountDeletionRequest(userId);
+
+    this.logger.log('Staff account deletion request recorded');
 
     return {
       message:
-        'Your account deletion request has been received. Our team will process it within 30 days per applicable data protection guidelines.',
+        'Your account deletion request has been received. Your login has been disabled and the data will be erased within 30 days per applicable data protection guidelines.',
       userId,
-      requestedAt: this.clock.now().toISOString(),
+      requestId,
+      requestedAt: requestedAt.toISOString(),
     };
   }
 }

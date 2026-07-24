@@ -3,35 +3,8 @@
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import type { Control, FieldPath } from "react-hook-form";
 import type { CreateLabTestRequest, LabTest } from "@workspace/types";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Switch } from "@workspace/ui/components/form/switch";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import { Form } from "@workspace/ui/components/form/form";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { DataTable, type DataTableColumn } from "@workspace/ui/components/data-display/data-table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@workspace/ui/components/form/form-primitives";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, DataTable, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Form, Switch, type DataTableColumn } from "@workspace/ui/components";
 import { ConfirmationDialog } from "@workspace/ui/components/overlay/confirmation-dialog";
 import { useLabTestCatalogSettings } from "@/features/lab-tests/hooks/use-lab-test-catalog-settings";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";

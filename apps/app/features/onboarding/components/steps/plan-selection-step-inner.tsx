@@ -4,42 +4,14 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { recommendTierForTeamSize, getTierName } from "@workspace/utils";
-import {
-  OnboardingStepBody,
-  OnboardingStepCard,
-  OnboardingStepFooter,
-  OnboardingStepHeader,
-} from "@/features/onboarding/components/shared";
+import { OnboardingStepBody, OnboardingStepCard, OnboardingStepFooter, OnboardingStepHeader } from "@/features/onboarding/components/shared";
 import { type TierPricing, usePricingConfig, getFeatureDetails } from "@/features/subscription";
 import { ContactSalesModal } from "@/features/dialogs";
-import {
-  getAllFeaturesUpToTier,
-  getTierInfo,
-  getTierValue,
-} from "@/lib/subscription/tier-access";
-import {
-  Tier,
-  applyModeToPricing,
-  planModeSchema,
-  tierSchema,
-  type PlanMode,
-} from "@workspace/types";
+import { getAllFeaturesUpToTier, getTierInfo, getTierValue } from "@/lib/subscription/tier-access";
+import { Tier, applyModeToPricing, planModeSchema, tierSchema, type PlanMode } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import {
-  DISPLAY_TIERS,
-  PLAN_AUDIENCE,
-  buildTierCardConfig,
-  getEnterpriseContactMessage,
-  getPricingRegionLabel,
-  PlanComparisonCollapsible,
-} from "./plan-selection-step-helpers";
-import {
-  PlanSelectionLoading,
-  PlanSelectionError,
-  TeamRecommendationAlert,
-  PlanModeBar,
-  TierCardGrid,
-} from "./plan-selection-step-sections";
+import { DISPLAY_TIERS, PLAN_AUDIENCE, buildTierCardConfig, getEnterpriseContactMessage, getPricingRegionLabel, PlanComparisonCollapsible } from "./plan-selection-step-helpers";
+import { PlanSelectionLoading, PlanSelectionError, TeamRecommendationAlert, PlanModeBar, TierCardGrid } from "./plan-selection-step-sections";
 import type { PlanSelectionProps } from "./plan-selection-step.types";
 
 export function PlanSelectionStepInner({

@@ -1,20 +1,9 @@
 "use client";
 
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
-  DEFAULT_CURRENCY,
-  formatBillingCycleLabel,
-  formatCurrency,
-  formatInternalTierCardPrice,
-  formatPlanLimitCount,
-} from "@workspace/utils";
+import { Card, CardContent, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
+import { DEFAULT_CURRENCY, formatBillingCycleLabel, formatCurrency, formatInternalTierCardPrice, formatPlanLimitCount } from "@workspace/utils";
 import { TrendingUp } from "lucide-react";
+import { getInternalTierLabel } from "@/lib/tier-display";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
 
 type PaymentProcessingTierPricingSectionProps = Pick<
@@ -32,7 +21,7 @@ export function PaymentProcessingTierPricingSection({
           <Card key={tier.tier}>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold">
-                {tier.displayName ?? tier.tier}
+                {tier.displayName ?? getInternalTierLabel(tier.tier)}
               </CardTitle>
             </CardHeader>
             <CardContent>

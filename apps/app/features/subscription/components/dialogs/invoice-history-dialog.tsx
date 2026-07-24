@@ -1,15 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components";
 import { FileText } from "lucide-react";
 import { useBillingHistory } from "@workspace/data-access";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";

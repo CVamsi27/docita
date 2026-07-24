@@ -3,12 +3,7 @@
 import type { UseFormReturn } from "react-hook-form";
 import { ShieldCheck } from "lucide-react";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
-import {
-  OnboardingStepBody,
-  OnboardingStepCard,
-  OnboardingStepFooter,
-  OnboardingStepHeader,
-} from "@/features/onboarding/components/shared";
+import { OnboardingStepBody, OnboardingStepCard, OnboardingStepFooter, OnboardingStepHeader } from "@/features/onboarding/components/shared";
 import { DPDPSection } from "./compliance/DPDPSection";
 import { SignaturesSection } from "./compliance/SignaturesSection";
 import { CompliancePoliciesSection } from "./compliance/CompliancePoliciesSection";

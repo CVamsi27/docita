@@ -5,6 +5,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/navigation/tabs";
+import { useTranslations } from "next-intl";
 import { ExperienceTab } from "./experience-tab";
 import { HealthTab } from "./health-tab";
 import { OpsTab } from "./ops-tab";
@@ -19,18 +20,28 @@ export type SystemMonitoringTabsProps = {
   vm: SystemMonitoringPageViewModel;
 };
 
+/**
+ * Phase 3 (per-feature): apps/internal System monitoring > Tabs
+ * (8 tab triggers). 8 literals converted to
+ * useTranslations("InternalSystemMonitoring.tabs").
+ */
+function useMonitoringTabsTranslations() {
+  return useTranslations("InternalSystemMonitoring.tabs");
+}
+
 export function SystemMonitoringTabs({ vm }: SystemMonitoringTabsProps) {
+  const t = useMonitoringTabsTranslations();
   return (
     <Tabs defaultValue="overview" className="space-y-4">
       <TabsList>
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="performance">Performance</TabsTrigger>
-        <TabsTrigger value="experience">Experience</TabsTrigger>
-        <TabsTrigger value="security">Security</TabsTrigger>
-        <TabsTrigger value="queues">Queues</TabsTrigger>
-        <TabsTrigger value="ops">Ops</TabsTrigger>
-        <TabsTrigger value="tenant-scope">Tenant Scope</TabsTrigger>
-        <TabsTrigger value="health">Health Checks</TabsTrigger>
+        <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
+        <TabsTrigger value="performance">{t("performance")}</TabsTrigger>
+        <TabsTrigger value="experience">{t("experience")}</TabsTrigger>
+        <TabsTrigger value="security">{t("security")}</TabsTrigger>
+        <TabsTrigger value="queues">{t("queues")}</TabsTrigger>
+        <TabsTrigger value="ops">{t("ops")}</TabsTrigger>
+        <TabsTrigger value="tenant-scope">{t("tenantScope")}</TabsTrigger>
+        <TabsTrigger value="health">{t("healthChecks")}</TabsTrigger>
       </TabsList>
 
       <OverviewTab

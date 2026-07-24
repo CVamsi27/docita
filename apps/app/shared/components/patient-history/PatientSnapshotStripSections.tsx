@@ -1,12 +1,7 @@
 "use client";
 
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  AlertTriangle,
-  Heart,
-  Pill,
-  type LucideIcon,
-} from "lucide-react";
+import { AlertTriangle, Heart, Pill, type LucideIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { PatientSnapshot } from "@workspace/types";
 export const ALLERGY_SEVERITY_COLOR: Record<string, string> = {
@@ -149,7 +144,7 @@ export function HorizontalSnapshotContent({
           label="Allergies"
           value={
             activeAllergies.length === 0
-              ? "No known allergies"
+              ? "NKA"
               : activeAllergies
                   .slice(0, 3)
                   .map((a) => a.allergen)

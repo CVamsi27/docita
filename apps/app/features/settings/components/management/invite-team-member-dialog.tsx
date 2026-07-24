@@ -1,25 +1,11 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Form } from "@workspace/ui/components/form/form";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Form } from "@workspace/ui/components";
 
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { InviteFormValues } from "@/features/settings/components/management/member-management-schemas";
-import {
-  InviteNameRoleFields,
-  InviteContactFields,
-  InvitePasswordField,
-  InviteDoctorFields,
-  InviteLabField,
-  InviteDialogFooter,
-} from "./invite-team-member-dialog-sections";
+import { InviteNameRoleFields, InviteContactFields, InvitePasswordField, InviteDoctorFields, InviteLabField, InviteDialogFooter } from "./invite-team-member-dialog-sections";
 
 interface InviteTeamMemberDialogProps {
   open: boolean;

@@ -6,10 +6,8 @@ import { FeedbackFiltersCard } from "./FeedbackFiltersCard";
 import { FeedbackListSection } from "./FeedbackListSection";
 import { FeedbackViewDialog } from "./FeedbackViewDialog";
 
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button, DataState, PageHeader } from "@workspace/ui/components";
 import { Filter, MessageSquare, RefreshCw } from "lucide-react";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
 
 export default function FeedbackPage() {
   const {

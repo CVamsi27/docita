@@ -2,20 +2,9 @@
 
 import { FC } from "react";
 import { ArrowLeft } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Button } from "@workspace/ui/components/form/button";
-import { Form } from "@workspace/ui/components/form/form";
-import {
-  useInsuranceClaimCreateLogic,
-  type ClaimCreatePresets,
-} from "@/features/insurance-claims/hooks/use-insurance-claim-create-logic";
-import {
-  PresetPatientCard,
-  ClaimReadinessCard,
-  ClaimFormFieldGrid,
-  ClaimFormActions,
-} from "./InsuranceClaimCreateUISections";
+import { AppPageScaffold, Button, Form, PageHeader } from "@workspace/ui/components";
+import { useInsuranceClaimCreateLogic, type ClaimCreatePresets } from "@/features/insurance-claims/hooks/use-insurance-claim-create-logic";
+import { PresetPatientCard, ClaimReadinessCard, ClaimFormFieldGrid, ClaimFormActions } from "./InsuranceClaimCreateUISections";
 export const InsuranceClaimCreateUI: FC<{ presets?: ClaimCreatePresets }> = ({
   presets,
 }) => {

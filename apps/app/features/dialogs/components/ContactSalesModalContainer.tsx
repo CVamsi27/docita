@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  ContactSalesFormData,
-  ContactSalesModalUI,
-} from "./ContactSalesModalUI";
+import { ContactSalesFormData, ContactSalesModalUI } from "./ContactSalesModalUI";
 import { useCreateContactInquiry } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 interface ContactSalesModalContainerProps {

@@ -4,28 +4,9 @@ import { FC } from "react";
 import { RefreshCw } from "lucide-react";
 import { getPatientFullName } from "@workspace/utils";
 import type { LabQueueItem } from "@workspace/data-access";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Button } from "@workspace/ui/components/form/button";
-import { SearchInput } from "@workspace/ui/components/form/search-input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
-  DataTable,
-  type DataTableColumn,
-} from "@workspace/ui/components/data-display/data-table";
+import { AppPageScaffold, Button, DataState, DataTable, PageHeader, SearchInput, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, StatusBadge, type DataTableColumn } from "@workspace/ui/components";
 import { DATE_FORMAT_OPTIONS_US_SHORT, formatDate } from "@/lib/formatters";
-import {
-  useLabWorkspace,
-  type LabQueueStatusFilter,
-} from "@/features/lab-tests/hooks/use-lab-workspace";
+import { useLabWorkspace, type LabQueueStatusFilter } from "@/features/lab-tests/hooks/use-lab-workspace";
 import { LabOrderRowActions } from "@/features/lab-tests/components/workspace/lab-order-row-actions";
 
 const STATUS_OPTIONS: { value: LabQueueStatusFilter; label: string }[] = [

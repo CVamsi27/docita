@@ -87,3 +87,8 @@ export const AbdmSettingsPanelLazy = lazySettingsPanel(
   () => import("./abdm/AbdmSettingsPanel"),
   (mod) => mod.AbdmSettingsPanel,
 );
+
+export const CustomFieldsSettingsLazy = lazySettingsPanel(
+  () => import("./custom-fields/CustomFieldsSettings"),
+  (mod) => mod.CustomFieldsSettings,
+);

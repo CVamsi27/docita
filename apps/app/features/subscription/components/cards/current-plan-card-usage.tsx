@@ -1,19 +1,10 @@
 "use client";
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Progress } from "@workspace/ui/components/feedback/progress";
+import { Badge, Progress } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  formatUsageMeterCaption,
-  usageMeterHasNoIncludedQuota,
-  usageProgressPercentForBar,
-} from "@/features/subscription/lib/usage-meter-display";
-import {
-  USAGE_ITEMS,
-  formatUsageValue,
-  type CurrentPlanCardProps,
-} from "./current-plan-card-types";
+import { formatUsageMeterCaption, usageMeterHasNoIncludedQuota, usageProgressPercentForBar } from "@/features/subscription/lib/usage-meter-display";
+import { USAGE_ITEMS, formatUsageValue, type CurrentPlanCardProps } from "./current-plan-card-types";
 
 export function CurrentPlanCardUsage({
   usage,

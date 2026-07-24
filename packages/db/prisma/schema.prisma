@@ -37,7 +37,10 @@ model User {
   signatureUrl               String?
   signatureUploadedAt        DateTime?                @db.Timestamptz(3)
   bio                        String?
+  // Canonical money column — integer paise/cents. Prefer over the legacy
+  // `consultationFee` Float (kept for backward compatibility, additive-only).
   consultationFee            Float?
+  consultationFeeCents       Int?
   hospitalRole               HospitalRole?
   licenseExpiry              DateTime?                @db.Timestamptz(3)
   licenseNumber              String?
@@ -861,11 +864,19 @@ model Invoice {
   invoiceNumber            String?
   invoiceType              String           @default("BILL_OF_SUPPLY")
   currency                 String           @default("INR")
+  // MONEY REPRESENTATION (schema-locked, additive-only):
+  // The `*Cents` integer columns below are the canonical money representation
+  // and MUST be read by new code. The legacy `Float` columns (total, subtotal,
+  // discountTotal, taxTotal, grandTotal) are retained for backward compatibility
+  // and are written as a derived mirror of the cents values
+  // (see invoice-normalization.ts toInvoiceCentCreateFields). Do not add new
+  // Float money columns; do not treat Float as the source of truth.
   total                    Float
   subtotal                 Float            @default(0)
   discountTotal            Float            @default(0)
   taxTotal                 Float            @default(0)
   grandTotal               Float            @default(0)
+  // Canonical money columns — integer paise/cents. Prefer these everywhere.
   totalCents               Int              @default(0)
   subtotalCents            Int              @default(0)
   discountTotalCents       Int              @default(0)
@@ -2359,8 +2370,12 @@ model InventoryItem {
   quantity      Int                 @default(0)
   minQuantity   Int                 @default(10)
   unit          String              @default("units")
+  // Canonical money columns — integer paise/cents. Prefer over the legacy
+  // purchasePrice / sellingPrice Floats (kept for backward compatibility).
   purchasePrice Float?
   sellingPrice  Float?
+  purchasePriceCents Int?
+  sellingPriceCents  Int?
   expiryDate    DateTime?           @db.Timestamptz(3)
   batchNumber   String?
   supplier      String?
@@ -2467,7 +2482,9 @@ model LabTest {
   code                   String?
   loincCode              String?
   category               String
+  // Canonical money column — integer paise/cents. Prefer over `price` Float.
   price                  Float?
+  priceCents             Int?
   description            String?
   referenceRangeLow      Float?
   referenceRangeHigh     Float?
@@ -2518,6 +2535,7 @@ model LabTestOrder {
   @@index([patientId])
   @@index([status])
   @@index([patientId, clinicId, status])
+  @@index([clinicId, status, createdAt])
   @@index([appointmentId], map: "LabTestOrder_appointmentId_idx")
   @@index([labId])
 }
@@ -2757,6 +2775,8 @@ enum ConsentType {
   BLOOD_TRANSFUSION
   VACCINATION
   DPDP_NOTICE
+  MARKETING
+  ANALYTICS
 }
 
 enum ConsentStatus {
@@ -3704,17 +3724,29 @@ model Referral {
   rejectedAt      DateTime? @db.Timestamptz(3)
   rejectionReason String?
 
+  /// Optional partner referrer (pharmacy / marketing / custom). Null for the
+  /// legacy clinic-to-clinic path, which uses referrerClinicId.
+  referrerId String?
+  /// Referred clinic's paid activation — anchors the first-year accrual window.
+  activationAt DateTime? @db.Timestamptz(3)
+  /// One-time guard: set once the reward lifecycle for this referred clinic is
+  /// closed; it can never be reopened (enforced in referral-reward.rules.ts).
+  rewardClaimedAt DateTime? @db.Timestamptz(3)
+
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  referrerClinic Clinic  @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
-  referredClinic Clinic? @relation("ReferredClinic", fields: [referredClinicId], references: [id])
+  referrerClinic Clinic    @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
+  referredClinic Clinic?   @relation("ReferredClinic", fields: [referredClinicId], references: [id])
+  referrer       Referrer? @relation(fields: [referrerId], references: [id])
+  payouts        ReferralPayout[]
 
   @@index([referrerClinicId])
   @@index([referredClinicId])
   @@index([referredEmail])
   @@index([referralCode])
   @@index([status])
+  @@index([referrerId])
 }
 
 model ReferralCredit {
@@ -3733,6 +3765,68 @@ model ReferralCredit {
 
   @@index([clinicId])
   @@index([referralId])
+}
+
+/// A referral partner. CLINIC referrers earn free-month credits; PHARMACY /
+/// MARKETING_PERSON / CUSTOM earn cash revenue-share of the referred clinic's
+/// first-year billing. Terms are stored as JSON so per-referrer overrides are
+/// possible without a schema change (see referral-reward.rules.ts).
+model Referrer {
+  id         String             @id @default(cuid())
+  type       ReferrerType
+  rewardKind ReferrerRewardKind
+  name       String
+  email      String?
+  phone      String?
+  /// Set when type = CLINIC (the referring clinic).
+  clinicId   String?
+  /// @json:referrerRateBandsJsonSchema
+  rateBands    Json?
+  /// @json:referrerCreditConfigJsonSchema
+  creditConfig Json?
+  /// @json:referrerPayoutDetailsJsonSchema
+  payoutDetails Json?
+  firstYearOnly Boolean @default(true)
+  active        Boolean @default(true)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  referrals Referral[]
+  payouts   ReferralPayout[]
+
+  @@index([type])
+  @@index([clinicId])
+  @@index([active])
+}
+
+/// Idempotent revenue-share accrual ledger for one referred clinic + billing
+/// period. `@@unique([referralId, periodStart])` guarantees a scheduler re-run
+/// never double-pays. Disbursed manually (status -> PAID) from the internal app.
+model ReferralPayout {
+  id         String @id @default(cuid())
+  referralId String
+  referrerId String
+
+  periodStart DateTime @db.Timestamptz(3)
+  periodEnd   DateTime @db.Timestamptz(3)
+
+  baseRevenueCents Int
+  ratePercent      Int
+  amountCents      Int
+
+  status ReferralPayoutStatus @default(PENDING)
+  paidAt DateTime?            @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  referral Referral @relation(fields: [referralId], references: [id])
+  referrer Referrer @relation(fields: [referrerId], references: [id])
+
+  @@unique([referralId, periodStart])
+  @@index([referrerId])
+  @@index([status])
 }
 
 model DeviceToken {
@@ -3964,6 +4058,25 @@ enum ReferralStatus {
   EXPIRED
 }
 
+enum ReferrerType {
+  CLINIC
+  PHARMACY
+  MARKETING_PERSON
+  CUSTOM
+}
+
+enum ReferrerRewardKind {
+  CREDIT_MONTHS
+  REVENUE_SHARE
+}
+
+enum ReferralPayoutStatus {
+  PENDING
+  APPROVED
+  PAID
+  VOID
+}
+
 model Ward {
   id          String   @id @default(cuid())
   name        String
@@ -3985,7 +4098,9 @@ model Room {
   clinicId   String?
   roomNumber String
   type       String?
+  // Canonical money column — integer paise/cents. Prefer over `charges` Float.
   charges    Float    @default(0)
+  chargesCents Int    @default(0)
   createdAt  DateTime @default(now()) @db.Timestamptz(3)
   updatedAt  DateTime @updatedAt @db.Timestamptz(3)
   clinic     Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)

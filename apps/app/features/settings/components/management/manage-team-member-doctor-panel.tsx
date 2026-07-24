@@ -2,21 +2,24 @@
 
 import Link from "next/link";
 import type { UseFormReturn } from "react-hook-form";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form/form";
-import { Input } from "@workspace/ui/components/form/input";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { ShieldCheck, ShieldX } from "lucide-react";
 import { User } from "@workspace/types";
+import { useTranslations } from "next-intl";
 import { getDoctorVerificationPublicNote } from "@/lib/formatters/doctor-verification-display";
+import { DoctorRegistrationFields } from "@/features/settings/components/management/team-member-form-fields";
 import type { MemberFormValues } from "@/features/settings/components/management/member-management-schemas";
+
+/**
+ * Phase 3 (per-feature): apps/app Settings > Manage team member doctor
+ * panel. 7 literals converted to
+ * useTranslations("Settings.manageTeamMemberDoctorPanel").
+ */
+function useDoctorPanelTranslations() {
+  return useTranslations("Settings.manageTeamMemberDoctorPanel");
+}
 
 export function ManageTeamMemberDoctorPanel({
   member,
@@ -39,6 +42,7 @@ export function ManageTeamMemberDoctorPanel({
   getVerificationBadgeLabel: (status?: User["verificationStatus"]) => string;
   formatDate: (value?: string | Date) => string;
 }) {
+  const t = useDoctorPanelTranslations();
   const verificationPublicNote = getDoctorVerificationPublicNote(
     member.verificationStatus,
     member.verificationReason,
@@ -46,47 +50,7 @@ export function ManageTeamMemberDoctorPanel({
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <FormField
-          control={memberForm.control}
-          name="specialization"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Specialization</FormLabel>
-              <FormControl>
-                <Input placeholder="Cardiology" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={memberForm.control}
-          name="qualification"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Qualification</FormLabel>
-              <FormControl>
-                <Input placeholder="Qualification" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={memberForm.control}
-          name="registrationNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Registration #</FormLabel>
-              <FormControl>
-                <Input placeholder="Registration number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
+      <DoctorRegistrationFields form={memberForm} t={t} />
 
       <div className="rounded-lg border bg-surface-2 p-3">
         <div className="flex flex-col gap-3">
@@ -102,20 +66,20 @@ export function ManageTeamMemberDoctorPanel({
               {getVerificationBadgeLabel(member.verificationStatus)}
             </Badge>
             <Badge variant={member.signatureUploadedAt ? "default" : "outline"}>
-              Signature {member.signatureUploadedAt ? "Ready" : "Missing"}
+              {t("signatureLabel")} {member.signatureUploadedAt ? t("signatureReady") : t("signatureMissing")}
             </Badge>
           </div>
           <div className="space-y-1 text-xs text-muted-foreground">
-            <p>Last verification: {formatDate(member.verificationCheckedAt)}</p>
-            <p>Signature uploaded: {formatDate(member.signatureUploadedAt)}</p>
+            <p>{t("lastVerificationLabel", { date: formatDate(member.verificationCheckedAt) })}</p>
+            <p>{t("signatureUploadedLabel", { date: formatDate(member.signatureUploadedAt) })}</p>
             {verificationPublicNote ? (
-              <p>Status details: {verificationPublicNote}</p>
+              <p>{t("statusDetailsLabel", { note: verificationPublicNote })}</p>
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2">
             {!member.signatureUploadedAt ? (
               <Button type="button" variant="outline" size="sm" asChild>
-                <Link href="/verify-doctor">Complete Doctor Verification</Link>
+                <Link href="/verify-doctor">{t("completeVerificationButton")}</Link>
               </Button>
             ) : null}
             <Button
@@ -132,7 +96,7 @@ export function ManageTeamMemberDoctorPanel({
                   className="mr-2"
                 />
               ) : null}
-              Reverify Registration
+              {t("reverifyButton")}
             </Button>
           </div>
         </div>

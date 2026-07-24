@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-} from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { setAuthLogoutCallback } from "../api/api-client";
 import { postInternalAuthLogout } from "@workspace/data-access/internal";

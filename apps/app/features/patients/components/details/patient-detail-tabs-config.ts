@@ -41,23 +41,23 @@ export const LEGACY_PATIENT_TAB_REDIRECTS: Record<
 
 export const TAB_DEFINITIONS: Array<{
   value: PatientDetailTabValue;
-  label: string;
+  labelKey: string;
   icon: ComponentType<{ className?: string }>;
 }> = [
-  { value: "summary", label: "Summary", icon: LayoutDashboard },
-  { value: "visits", label: "Visits", icon: Stethoscope },
-  { value: "records", label: "Records", icon: ClipboardList },
-  { value: "billing", label: "Billing", icon: Receipt },
-  { value: "communication", label: "Messages", icon: MessageCircle },
+  { value: "summary", labelKey: "summary", icon: LayoutDashboard },
+  { value: "visits", labelKey: "visits", icon: Stethoscope },
+  { value: "records", labelKey: "records", icon: ClipboardList },
+  { value: "billing", labelKey: "billing", icon: Receipt },
+  { value: "communication", labelKey: "messages", icon: MessageCircle },
 ];
 
-export const RECORDS_SUB_TAB_LABELS: Record<PatientRecordsSubTab, string> = {
-  history: "History & allergies",
-  vitals: "Vitals",
-  prescriptions: "Prescriptions",
-  labs: "Labs",
-  documents: "Documents",
-  referrals: "Referrals",
+export const RECORDS_SUB_TAB_LABEL_KEYS: Record<PatientRecordsSubTab, string> = {
+  history: "history",
+  vitals: "vitals",
+  prescriptions: "prescriptions",
+  labs: "labs",
+  documents: "documents",
+  referrals: "referrals",
 };
 
 export function isPatientDetailTabValue(

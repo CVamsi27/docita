@@ -29,6 +29,7 @@ import { parseChiefComplaintsFromAppointmentData } from "@workspace/utils";
 import type { ChiefComplaintItem } from "@/features/consultation/components/structured/ChiefComplaintInput";
 import type { DiagnosisItem } from "@/features/consultation/components/structured/DiagnosisInput";
 import type { ExaminationData } from "@/features/consultation/components/structured/ExaminationInput";
+import type { Medication } from "@/features/consultation/components/structured/PrescriptionInput";
 import type { DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
 import { buildExaminationSeed } from "./consultation-hydrate-examination";
 import { parseDiagnosis } from "./consultation-hydrate-diagnosis";
@@ -42,6 +43,19 @@ const DEFAULT_GROWTH_DATA: GrowthChartData = {
   measurements: [],
 };
 
+// Mirrors the client-side Medication shape (structured PrescriptionInput) so
+// unsaved prescriptions survive a reload/crash. These are persisted by
+// serializeDraftForSession; without a matching field here they were silently
+// dropped on restore.
+const sessionMedicationSchema = z.object({
+  name: z.string(),
+  dosage: z.string(),
+  frequency: z.string(),
+  duration: z.string(),
+  route: z.string(),
+  instructions: z.string().optional(),
+});
+
 export const consultationDraftSessionSchema = z.object({
   savedAt: z.number().optional(),
   chiefComplaint: z.array(chiefComplaintDraftItemSchema).optional(),
@@ -50,6 +64,7 @@ export const consultationDraftSessionSchema = z.object({
   diagnosis: z.array(diagnosisDraftItemSchema).optional(),
   treatment: z.string().optional(),
   followUpPlan: z.string().optional(),
+  prescriptions: z.array(sessionMedicationSchema).optional(),
   dentalChart: dentalChartSchema.optional(),
   eyeExam: ophthalmologyExamDataSchema.optional(),
   growthData: growthChartDataSchema.optional(),
@@ -90,6 +105,7 @@ export function applyConsultationSessionDraft<
     diagnosis: DiagnosisItem[];
     treatment: string;
     followUpPlan: string;
+    prescriptions: Medication[];
     dentalChart: DentalChartValue;
     eyeExam: OphthalmologyExamData;
     growthData: GrowthChartData;
@@ -114,6 +130,7 @@ export function applyConsultationSessionDraft<
       : state.diagnosis,
     treatment: session.treatment ?? state.treatment,
     followUpPlan: session.followUpPlan ?? state.followUpPlan,
+    prescriptions: session.prescriptions ?? state.prescriptions,
     dentalChart: session.dentalChart ?? state.dentalChart,
     eyeExam: session.eyeExam ?? state.eyeExam,
     growthData: session.growthData ?? state.growthData,

@@ -1,25 +1,7 @@
 // jscpd:ignore-start
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { Activity } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { DiseaseTrend } from "@/features/analytics/hooks/use-analytics-logic";
 import { COLORS, EmptyState, LoadingSpinner } from "./chart-helpers";
 
@@ -92,6 +74,9 @@ export const TrendsPieChart = ({ data, loading }: TrendsChartProps) => (
               outerRadius={120}
               fill="var(--color-chart-1)"
               dataKey="count"
+              // Disable the entry animation: a re-render with fresh data mid-grow
+              // freezes the sectors at ~0° (the pie renders as a flat sliver).
+              isAnimationActive={false}
             >
               {data.slice(0, 8).map((_entry, index: number) => (
                 <Cell

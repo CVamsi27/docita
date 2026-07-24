@@ -1,11 +1,7 @@
 "use client";
 
 import { type ReactNode, useMemo } from "react";
-import {
-  type DataAccessConfig,
-  DataAccessProvider,
-  type RequestConfig,
-} from "@workspace/data-access";
+import { type DataAccessConfig, DataAccessProvider, type RequestConfig } from "@workspace/data-access";
 import { client } from "@/lib/api/api-client";
 
 export function InternalDataAccessBridge({ children }: { children: ReactNode }) {

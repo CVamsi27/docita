@@ -3,6 +3,7 @@ import {
   scheduledPlanChangeJsonSchema,
   subscriptionDiscountsAppliedJsonSchema,
 } from '@workspace/types';
+import { Logger } from '@nestjs/common';
 import { Prisma, Subscription as PrismaSubscription } from '@workspace/db';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
@@ -38,6 +39,8 @@ function discountTypeFromStored(value: string): DiscountType | null {
 }
 
 export class SubscriptionMapper {
+  private static readonly logger = new Logger(SubscriptionMapper.name);
+
   static toDomain(raw: PrismaSubscription): Subscription {
     const status = SubscriptionStatus.fromString(raw.status);
     const plan = ClinicTier.fromString(raw.plan);
@@ -140,8 +143,14 @@ export class SubscriptionMapper {
           description: item.description || '',
         });
         aggregate.addDiscount(discount, asOf);
-      } catch {
-        // Ignore malformed stored discounts; valid discount rows remain usable.
+      } catch (error) {
+        // Skip malformed stored discounts; surface the original cause
+        // so a recurring corruption pattern is actionable.
+        SubscriptionMapper.logger.warn(
+          `Skipped malformed stored discount (type=${String(
+            (item as { type?: unknown })?.type,
+          )}): ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     });
 

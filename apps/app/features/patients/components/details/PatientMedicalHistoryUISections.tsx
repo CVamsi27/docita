@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  PatientAllergy,
-  PatientSocialHistory,
-  PatientWithMedicalHistory,
-} from "@workspace/types";
+import { PatientAllergy, PatientSocialHistory, PatientWithMedicalHistory } from "@workspace/types";
 import { PatientConditions } from "./history/PatientConditions";
 import { PatientAllergies } from "./history/PatientAllergies";
 import { PatientSurgeries } from "./history/PatientSurgeries";

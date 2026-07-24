@@ -1,9 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  getSupportContactText,
-  SUPPORT_EMAIL,
-} from "@/lib/constants/support-contact";
+import { getSupportContactText, SUPPORT_EMAIL } from "@/lib/constants/support-contact";
 import { SupportContact } from "./support-contact";
 
 describe("SupportContact", () => {

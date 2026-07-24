@@ -7,10 +7,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
-  SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
-} from "@/lib/constants/support-contact";
+import { SUPPORT_WHATSAPP_MESSAGE_DEFAULT, SUPPORT_WHATSAPP_MESSAGE_ONBOARDING } from "@/lib/constants/support-contact";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
 import { AuthPreDashboardFooter } from "./AuthPreDashboardFooter";
 import { useAuth } from "@/lib/auth/auth-context";

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docita — Modern Clinic Management OS</title>
+<style>
+  @page { size: A4; margin: 14mm 16mm 12mm 16mm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 9pt; line-height: 1.35; color: #1f2937; background: #fff;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .page { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 2.5px solid #4b84f2; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo img { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
+  .logo h1 { font-size: 20pt; font-weight: 800; color: #1f2937; line-height: 1; }
+  .tagline { font-size: 8pt; color: #6b7280; margin-top: 1px; }
+  .badge { background: linear-gradient(135deg, #4b84f2, #2b53ad); color: #fff; font-size: 7pt; font-weight: 700; padding: 4px 12px; border-radius: 20px; white-space: nowrap; letter-spacing: 0.3px; }
+
+  /* Section heading */
+  .st { font-size: 8.5pt; font-weight: 700; color: #4b84f2; text-transform: uppercase; letter-spacing: 0.8px; margin: 10px 0 5px 0; padding-bottom: 3px; border-bottom: 1px solid #e5e7eb; }
+
+  /* Problem/Solution */
+  .ps { display: flex; gap: 10px; margin-bottom: 7px; }
+  .psb { flex: 1; padding: 6px 10px; border-radius: 5px; font-size: 8pt; }
+  .psb.p { background: #fef2f2; border-left: 3px solid #ef4444; }
+  .psb.s { background: #f0fdf4; border-left: 3px solid #22c55e; }
+  .psb .pl { font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .psb.p .pl { color: #ef4444; }
+  .psb.s .pl { color: #22c55e; }
+  .psb ul { padding-left: 12px; }
+  .psb li { margin-bottom: 1px; line-height: 1.35; }
+
+  /* Metrics */
+  .met { display: flex; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; margin-bottom: 7px; }
+  .met > div { flex: 1; text-align: center; padding: 6px 2px; border-right: 1px solid #e5e7eb; }
+  .met > div:last-child { border-right: none; }
+  .met .n { font-size: 14pt; font-weight: 800; color: #4b84f2; line-height: 1; }
+  .met .g .n { color: #22c55e; }
+  .met .l { font-size: 6pt; color: #6b7280; text-transform: uppercase; letter-spacing: 0.2px; margin-top: 2px; }
+
+  /* Two columns */
+  .cols { display: flex; gap: 14px; }
+  .col { flex: 1; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 8pt; }
+  th { background: #f0f4ff; font-weight: 700; text-align: left; padding: 3px 6px; font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3px; color: #4b5563; }
+  td { padding: 3px 6px; border-bottom: 1px solid #f3f4f6; }
+
+  /* Tiers */
+  .tiers { display: flex; gap: 4px; margin-top: 4px; }
+  .tier { flex: 1; text-align: center; padding: 4px 2px; border-radius: 5px; font-size: 6.5pt; border: 1px solid #e5e7eb; background: #fafbfc; }
+  .tier b { display: block; font-size: 7.5pt; color: #4b84f2; }
+  .tier span { color: #6b7280; font-size: 6pt; }
+  .tn { font-size: 6.5pt; color: #9ca3af; margin-top: 2px; text-align: center; }
+
+  /* Why */
+  .why { padding-left: 14px; font-size: 8pt; }
+  .why li { margin-bottom: 2px; line-height: 1.35; }
+  .why li b { color: #374151; }
+
+  /* Condensed features */
+  .feat-split { display: flex; gap: 12px; }
+  .feat-split .feat-col { flex: 1; }
+  .feat-split .feat-col h4 { font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 3px; padding-bottom: 2px; border-bottom: 1px solid #e5e7eb; }
+  .feat-split .feat-col.current h4 { color: #22c55e; border-bottom-color: #bbf7d0; }
+  .feat-split .feat-col.upcoming h4 { color: #f59e0b; border-bottom-color: #fde68a; }
+  .feat-list { font-size: 7.5pt; }
+  .feat-list li { margin-bottom: 1.5px; line-height: 1.3; }
+  .feat-list .dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+  .feat-list .dot.green { background: #22c55e; }
+  .feat-list .dot.amber { background: #f59e0b; }
+
+  /* Architecture */
+  .arch { font-family: "SF Mono", "Fira Code", "Consolas", monospace; font-size: 7pt; background: #f8fafc; padding: 5px 8px; border-radius: 4px; line-height: 1.5; border: 1px solid #e5e7eb; white-space: pre; color: #374151; }
+
+  /* CTA */
+  .cta { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #4b84f2, #2b53ad); color: #fff; padding: 7px 14px; border-radius: 6px; margin-top: 10px; font-size: 8pt; }
+  .cta strong { font-size: 10pt; }
+  .cta .lk { text-align: right; line-height: 1.5; }
+  .cta a { color: #fff; text-decoration: none; }
+
+  /* Footer */
+  .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 4px; border-top: 1px solid #e5e7eb; font-size: 7pt; color: #9ca3af; }
+  .footer a { color: #6b7280; text-decoration: none; }
+
+  .spacer { flex: 1; }
+
+  @media print { body { background: #fff; } .page { padding: 0; min-height: auto; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">
+      <img src="data:image/png;base64,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" alt="Docita">
+      <div>
+        <h1>Docita</h1>
+        <div class="tagline">Modern Clinic Management OS &mdash; The Bridge from Paper to Cloud</div>
+      </div>
+    </div>
+    <div class="badge">30-Day Free Trial &bull; No Credit Card</div>
+  </div>
+
+  <!-- PROBLEM / SOLUTION -->
+  <div class="ps">
+    <div class="psb p">
+      <div class="pl">The Problem</div>
+      <ul>
+        <li>Paper registers, Excel, WhatsApp &mdash; nothing connected</li>
+        <li>Doctors waste time on admin instead of patients</li>
+        <li>Front desk juggles multiple tools for every task</li>
+        <li>Owners have zero visibility into daily operations</li>
+      </ul>
+    </div>
+    <div class="psb s">
+      <div class="pl">The Solution</div>
+      <ul>
+        <li>One workspace: appointments, records, consults, billing, follow-ups</li>
+        <li>Every action links to the next &mdash; nothing falls through cracks</li>
+        <li>Start with one doctor, one front desk user. Scale when ready.</li>
+        <li>Built for Indian private clinics &amp; hospitals</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="met">
+    <div><div class="n">47</div><div class="l">Clinician Routes</div></div>
+    <div><div class="n">16</div><div class="l">Admin Routes</div></div>
+    <div><div class="n">3,100+</div><div class="l">Tests Passing</div></div>
+    <div><div class="n">5</div><div class="l">Tiers</div></div>
+    <div class="g"><div class="n">0</div><div class="l">Errors</div></div>
+  </div>
+
+  <!-- TWO COLUMNS: FEATURES + AUDIENCE/TIERS -->
+  <div class="cols">
+    <div class="col">
+      <div class="st">Features</div>
+      <div class="feat-split">
+        <div class="feat-col current">
+          <h4>Live Now</h4>
+          <ul class="feat-list">
+            <li><span class="dot green"></span><b>Scheduling</b> &mdash; Calendar, booking, reminders</li>
+            <li><span class="dot green"></span><b>EMR &amp; Rx</b> &mdash; History, vitals, SOAP, digital Rx</li>
+            <li><span class="dot green"></span><b>Billing</b> &mdash; Invoices, UPI/card, insurance, daybook</li>
+            <li><span class="dot green"></span><b>WhatsApp</b> &mdash; Auto Rx, follow-ups, broadcasts</li>
+            <li><span class="dot green"></span><b>Lab &amp; Pharmacy</b> &mdash; Orders, results, stock</li>
+            <li><span class="dot green"></span><b>Analytics</b> &mdash; Trends, revenue, compliance</li>
+            <li><span class="dot green"></span><b>AI Assistant</b> &mdash; Rx assist, diagnosis, OCR</li>
+            <li><span class="dot green"></span><b>Migration</b> &mdash; Excel import, paper OCR</li>
+            <li><span class="dot green"></span><b>Multi-Clinic</b> &mdash; Multiple facilities, one account</li>
+          </ul>
+        </div>
+        <div class="feat-col upcoming">
+          <h4>Coming Soon</h4>
+          <ul class="feat-list">
+            <li><span class="dot amber"></span><b>ABDM / ABHA</b> &mdash; Health ID, Scan &amp; Share</li>
+            <li><span class="dot amber"></span><b>Telemedicine</b> &mdash; Video consults</li>
+            <li><span class="dot amber"></span><b>Imaging</b> &mdash; DICOM, radiology reports</li>
+            <li><span class="dot amber"></span><b>Patient Portal</b> &mdash; Self-service records</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="st">Who It's For</div>
+      <table>
+        <tr><th>Audience</th><th>What They Get</th></tr>
+        <tr><td><b>Solo Doctor</b></td><td>Patient context instantly, Rx in seconds</td></tr>
+        <tr><td><b>Front Desk</b></td><td>One screen: queue, booking, payment</td></tr>
+        <tr><td><b>Clinic Owner</b></td><td>Daily visibility &mdash; waiting, billed, pending</td></tr>
+        <tr><td><b>Hospital Admin</b></td><td>Dept coordination: desk, doctors, lab, beds</td></tr>
+      </table>
+
+      <div class="st">Pricing Tiers</div>
+      <div class="tiers">
+        <div class="tier"><b>Starter</b><span>Solo</span></div>
+        <div class="tier"><b>Essential</b><span>Multi-doc</span></div>
+        <div class="tier"><b>Professional</b><span>Clinic</span></div>
+        <div class="tier"><b>Hospital</b><span>Multi-dept</span></div>
+        <div class="tier"><b>Enterprise</b><span>Chain</span></div>
+      </div>
+      <div class="tn">Full or Front Desk mode &mdash; 70% pricing for ops-only clinics</div>
+
+      <div class="st">Why Docita</div>
+      <ul class="why">
+        <li><b>Connected, not siloed</b> &mdash; book, consult, prescribe, bill, follow-up all link to one record</li>
+        <li><b>India-first</b> &mdash; UPI, WhatsApp, DPDP built in; ABDM/ABHA on roadmap</li>
+        <li><b>Start small</b> &mdash; one doctor + front desk on day one; scale when ready</li>
+        <li><b>Migration path</b> &mdash; Excel import and OCR from paper, no history lost</li>
+        <li><b>Secure by default</b> &mdash; RBAC, tenant isolation, audit logging, PHI protection</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="st">Architecture</div>
+  <div class="arch">Frontend (Cloudflare Workers)                Backend (Fly.io, Mumbai)
+Clinician App (Next.js)  ──►  API (NestJS)          Database: PostgreSQL (AWS RDS)
+Admin Portal (Next.js)        Worker (jobs/crons)    Storage:  Cloudflare R2
+Marketing   (Astro)           Turborepo + pnpm       Zod-first type system</div>
+
+  <!-- SPACER -->
+  <div class="spacer"></div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <strong>Run your clinic from one place.</strong>
+    <div class="lk">
+      <a href="https://docita.work">docita.work</a> &nbsp;&middot;&nbsp;
+      <a href="https://app.docita.work">app.docita.work</a> &nbsp;&middot;&nbsp;
+      support@docita.work &nbsp;&middot;&nbsp; +91 87903 11010
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

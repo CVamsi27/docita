@@ -2,23 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import {
-  ArrowRight,
-  CalendarCheck,
-  CheckCircle2,
-  ClipboardList,
-  FileText,
-  MessageSquare,
-  Receipt,
-  Stethoscope,
-} from "lucide-react";
+import { ArrowRight, CalendarCheck, CheckCircle2, ClipboardList, FileText, MessageSquare, Receipt, Stethoscope } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
 
-import {
-  landingFadeUpVariants,
-  landingStaggerContainer,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingStaggerContainer } from "@/lib/motion-prefs";
 
 interface HeroSectionProps {
   appUrl: string;
@@ -71,10 +59,10 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
               className="mt-6 r2-display text-foreground"
             >
               <span className="block">
-                One <em>rhythm</em> for your whole practice.
+                One <em>rhythm</em> for your whole OPD floor.
               </span>{" "}
               <span className="mt-2 block r2-display-sm text-muted-foreground">
-                Queue, chart, bill, follow up&mdash;for any practice size.
+                Queue, chart, bill, follow up&mdash;without the shuffle.
               </span>
             </motion.h1>
 
@@ -108,7 +96,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                 variant="ghost"
                 className="h-12 rounded-xl px-6 text-base font-semibold"
               >
-                <a href="/contact">
+                <a href="/contact#book-demo">
                   <CalendarCheck className="h-5 w-5" />
                   Book guided demo
                 </a>

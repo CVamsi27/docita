@@ -1,45 +1,15 @@
 "use client";
 
 import type { FC, ReactNode } from "react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/feedback/alert";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Alert, AlertDescription, AlertTitle, Badge, Button, SymbolTooltip } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import {
-  OnboardingStepBody,
-  OnboardingStepCard,
-} from "@/features/onboarding/components/shared";
-import {
-  getTierInfo,
-  getTierValue,
-  PLAN_LIMITS,
-} from "@/lib/subscription/tier-access";
-import {
-  type TierPricing,
-  TierCard,
-  PLAN_ONBOARDING_KEY_HIGHLIGHTS,
-} from "@/features/subscription";
+import { OnboardingStepBody, OnboardingStepCard } from "@/features/onboarding/components/shared";
+import { getTierInfo, getTierValue, PLAN_LIMITS } from "@/lib/subscription/tier-access";
+import { type TierPricing, TierCard, PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
 import type { PlanFeature } from "@/features/subscription";
-import {
-  applyModeToPricing,
-  getAvailableModesForTier,
-  MODE_TIER_HIGHLIGHTS,
-  PLAN_MODE_INFO,
-  PLAN_MODES,
-  type PlanMode,
-  type TierInfo,
-  type TierName,
-} from "@workspace/types";
-import {
-  buildTierCardConfig,
-  BillingCycleToggle,
-} from "./plan-selection-step-helpers";
+import { applyModeToPricing, getAvailableModesForTier, MODE_TIER_HIGHLIGHTS, PLAN_MODE_INFO, PLAN_MODES, type PlanMode, type TierInfo, type TierName } from "@workspace/types";
+import { buildTierCardConfig, BillingCycleToggle } from "./plan-selection-step-helpers";
 
 // ---------------------------------------------------------------------------
 // Loading state
@@ -122,7 +92,8 @@ export const TeamRecommendationAlert: FC<TeamRecommendationAlertProps> = ({
         <span className="font-medium text-foreground">
           {getTierInfo(getTierValue(teamRecommendation.tier)).name}
         </span>{" "}
-        includes up to {teamRecommendation.includedUsers} users and is the
+        includes up to {teamRecommendation.includedUsers}{" "}
+        {teamRecommendation.includedUsers === 1 ? "user" : "users"} and is the
         smallest plan that covers your team.
       </AlertDescription>
     </Alert>

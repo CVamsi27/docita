@@ -1,11 +1,6 @@
 import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
-import {
-  setupSteps,
-  AuthBrandingHero,
-  AuthBrandingContentCard,
-  AuthBrandingFooter,
-} from "./AuthBrandingPanelSections";
+import { setupSteps, AuthBrandingHero, AuthBrandingContentCard, AuthBrandingFooter } from "./AuthBrandingPanelSections";
 
 export interface AuthBrandingPanelProps {
   currentStep: AuthBrandingStep;

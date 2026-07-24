@@ -4,11 +4,7 @@ import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-l
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
 import { CalendarDays, Check, Stethoscope, Users } from "lucide-react";
-import {
-  LIMIT_ICONS,
-  formatTierPrice,
-  type TierCardProps,
-} from "./tier-card-types";
+import { LIMIT_ICONS, formatTierPrice, type TierCardProps } from "./tier-card-types";
 
 type TierPricing = NonNullable<TierCardProps["pricing"]>;
 
@@ -150,7 +146,7 @@ export function TierCardUsageHints({
           <span>
             {usageHints.whatsappMsgs >= 999999
               ? "Unlimited WA msgs"
-              : `${formatCountLocale(usageHints.whatsappMsgs)} WA msgs/mo`}
+              : `${formatCountLocale(usageHints.whatsappMsgs)} WA msgs / month`}
           </span>
         </li>
       ) : null}

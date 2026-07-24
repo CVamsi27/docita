@@ -1,13 +1,5 @@
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
-import {
-  RevenueMetricsPoint,
-  AppointmentMetricsData,
-  PatientDemographicsData,
-  RevenueTrendsCard,
-  AppointmentPerformanceCard,
-  PatientDemographicsCard,
-  DoctorPerformanceCard,
-} from "./AdvancedMetricsChartsSections";
+import { RevenueMetricsPoint, AppointmentMetricsData, PatientDemographicsData, RevenueTrendsCard, AppointmentPerformanceCard, PatientDemographicsCard, DoctorPerformanceCard } from "./AdvancedMetricsChartsSections";
 
 interface AdvancedMetricsChartsProps {
   revenueMetrics: RevenueMetricsPoint[];

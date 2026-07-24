@@ -1,26 +1,6 @@
 // jscpd:ignore-start
-import { Calendar } from "@workspace/ui/components/form/calendar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import {
-  DEFAULT_TIMEZONE,
-  formatClinicPickerDayIsoFromSelection,
-  formatClinicPickerIsoLabel,
-  formatClinicTodayPickerIso,
-  pickerIsoToLocalDate,
-} from "@workspace/utils";
+import { Button, Calendar, Card, CardContent, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
+import { DEFAULT_TIMEZONE, formatClinicPickerDayIsoFromSelection, formatClinicPickerIsoLabel, formatClinicTodayPickerIso, pickerIsoToLocalDate } from "@workspace/utils";
 import { useClinic } from "@/lib/contexts/clinic-context";
 
 interface Doctor {

@@ -4,18 +4,34 @@ import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Input } from "@workspace/ui/components/form/input";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
 import { Stethoscope, Trash2 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
+import { useTranslations } from "next-intl";
 import { IcdSearchField } from "./icd-search-field";
+import { SelectField } from "./_shared/SelectField";
 import type { DiagnosisItem } from "./diagnosis-input-types";
+
+/**
+ * Phase 3 (per-feature): apps/app Consultation > Diagnosis item row
+ * (a single diagnosis entry in the diagnosis list). 7 literals converted
+ * to useTranslations("Consultation.diagnosisItemRow").
+ */
+function useDiagnosisRowTranslations() {
+  return useTranslations("Consultation.diagnosisItemRow");
+}
+
+const DIAGNOSIS_TYPE_OPTIONS: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: "provisional", labelKey: "typeProvisional" },
+  { value: "differential", labelKey: "typeDifferentialOption" },
+  { value: "final", labelKey: "typeFinalOption" },
+];
+
+const DIAGNOSIS_STATUS_OPTIONS: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: "active", labelKey: "statusActive" },
+  { value: "chronic", labelKey: "statusChronic" },
+  { value: "resolved", labelKey: "statusResolved" },
+];
 
 export function DiagnosisItemRow({
   item,
@@ -34,6 +50,7 @@ export function DiagnosisItemRow({
   onSetIcdCode: (code: DiagnosisItem["icdCode"]) => void;
   onRemove: () => void;
 }) {
+  const t = useDiagnosisRowTranslations();
   return (
     <div className="space-y-2 rounded-[var(--radius-md)] border border-border/70 bg-muted/20 p-3 transition-colors duration-150 hover:bg-muted/30">
       <div className="flex items-center justify-between">
@@ -42,9 +59,9 @@ export function DiagnosisItemRow({
             icon={<Stethoscope />}
             tone="info"
             size="sm"
-            aria-label="Diagnosis"
+            aria-label={t("diagnosisAriaLabel")}
           />
-          <span className="text-sm font-medium">Diagnosis #{index + 1}</span>
+          <span className="text-sm font-medium">{t("rowTitle", { index: index + 1 })}</span>
           {item.icdCode ? (
             <Badge variant="outline" className="font-mono text-xs text-primary">
               {item.icdCode.code}
@@ -52,23 +69,23 @@ export function DiagnosisItemRow({
           ) : null}
           {item.type === "final" ? (
             <Badge variant="default" className="bg-success hover:bg-success">
-              Final
+              {t("typeFinal")}
             </Badge>
           ) : null}
           {item.type === "differential" ? (
             <Badge variant="outline" className="text-muted-foreground">
-              Differential
+              {t("typeDifferential")}
             </Badge>
           ) : null}
         </div>
         {!readOnly ? (
-          <SymbolTooltip label="Remove diagnosis">
+          <SymbolTooltip label={t("removeTooltip")}>
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
               onClick={onRemove}
-              aria-label="Remove diagnosis"
+              aria-label={t("removeTooltip")}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -79,7 +96,7 @@ export function DiagnosisItemRow({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
         <div className="col-span-1 md:col-span-5">
           <Input
-            placeholder="Condition name"
+            placeholder={t("conditionPlaceholder")}
             value={item.condition}
             onChange={(e) => onUpdate("condition", e.target.value)}
             readOnly={readOnly}
@@ -87,42 +104,32 @@ export function DiagnosisItemRow({
           />
         </div>
         <div className="col-span-1 md:col-span-3">
-          <Select
+          <SelectField
             value={item.type}
-            onValueChange={(val) => onUpdate("type", val)}
-            disabled={readOnly}
-          >
-            <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="provisional">Provisional</SelectItem>
-              <SelectItem value="differential">Differential</SelectItem>
-              <SelectItem value="final">Final</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholderKey="typePlaceholder"
+            options={DIAGNOSIS_TYPE_OPTIONS}
+            readOnly={readOnly}
+            onChange={(val) => onUpdate("type", val)}
+            t={t}
+            triggerClassName="bg-background min-h-11 rounded-xl px-4"
+          />
         </div>
         <div className="col-span-1 md:col-span-3">
-          <Select
+          <SelectField
             value={item.status}
-            onValueChange={(val) => onUpdate("status", val)}
-            disabled={readOnly}
-          >
-            <SelectTrigger className="bg-background min-h-11 rounded-xl px-4">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="chronic">Chronic</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholderKey="statusPlaceholder"
+            options={DIAGNOSIS_STATUS_OPTIONS}
+            readOnly={readOnly}
+            onChange={(val) => onUpdate("status", val)}
+            t={t}
+            triggerClassName="bg-background min-h-11 rounded-xl px-4"
+          />
         </div>
 
         {medicalCodingEnabled ? (
           <div className="col-span-1 md:col-span-6">
             <label className="text-xs text-muted-foreground mb-1 block">
-              ICD-10 code
+              {t("icdLabel")}
             </label>
             <IcdSearchField
               value={item.icdCode}
@@ -134,7 +141,7 @@ export function DiagnosisItemRow({
         ) : item.icdCode ? (
           <div className="col-span-1 md:col-span-6">
             <label className="text-xs text-muted-foreground mb-1 block">
-              ICD-10 code
+              {t("icdLabel")}
             </label>
             <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
               <span className="font-mono font-semibold text-primary">
@@ -157,10 +164,10 @@ export function DiagnosisItemRow({
           )}
         >
           <label className="text-xs text-muted-foreground mb-1 block">
-            Notes
+            {t("notesLabel")}
           </label>
           <Input
-            placeholder="Notes"
+            placeholder={t("notesPlaceholder")}
             value={item.notes || ""}
             onChange={(e) => onUpdate("notes", e.target.value)}
             readOnly={readOnly}

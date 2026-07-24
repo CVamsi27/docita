@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getPatientFullName } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
@@ -70,15 +71,17 @@ export function InvoiceNumberCell({ invoice }: { invoice: InvoiceListRow }) {
 }
 
 export function PatientCell({ invoice }: { invoice: InvoiceListRow }) {
+  const t = useTranslations("Invoices.table");
   return (
     <span className="block max-w-[140px] truncate sm:max-w-none">
-      {invoice.patient ? getPatientFullName(invoice.patient) : "N/A"}
+      {invoice.patient ? getPatientFullName(invoice.patient) : t("notAvailable")}
     </span>
   );
 }
 
 export function DateCell({ invoice }: { invoice: InvoiceListRow }) {
-  if (!invoice.createdAt) return <span>N/A</span>;
+  const t = useTranslations("Invoices.table");
+  if (!invoice.createdAt) return <span>{t("notAvailable")}</span>;
   return (
     <span>{formatDate(invoice.createdAt, DATE_FORMAT_OPTIONS_US_LONG)}</span>
   );
@@ -105,27 +108,28 @@ export function ActionsCell({
   invoice: InvoiceListRow;
   onDownloadPdf: (id: string) => void;
 }) {
+  const t = useTranslations("Invoices.table");
   return (
     <div className="flex items-center justify-end gap-1">
-      <SymbolTooltip label="View details">
+      <SymbolTooltip label={t("viewDetailsTooltip")}>
         <Button variant="ghost" size="icon" asChild>
           <Link href={`/invoices/${invoice.id}`}>
             <Eye className="h-4 w-4" />
-            <span className="sr-only">View details</span>
+            <span className="sr-only">{t("viewDetailsTooltip")}</span>
           </Link>
         </Button>
       </SymbolTooltip>
-      <SymbolTooltip label="Download PDF">
+      <SymbolTooltip label={t("downloadPdfTooltip")}>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => invoice.id && onDownloadPdf(invoice.id)}
         >
           <Download className="h-4 w-4" />
-          <span className="sr-only">Download PDF</span>
+          <span className="sr-only">{t("downloadPdfTooltip")}</span>
         </Button>
       </SymbolTooltip>
-      <SymbolTooltip label="Print">
+      <SymbolTooltip label={t("printTooltip")}>
         <Button
           variant="ghost"
           size="icon"
@@ -135,7 +139,7 @@ export function ActionsCell({
           }}
         >
           <Printer className="h-4 w-4" />
-          <span className="sr-only">Print</span>
+          <span className="sr-only">{t("printTooltip")}</span>
         </Button>
       </SymbolTooltip>
     </div>
@@ -154,6 +158,7 @@ export function MobileCard({
   onDownloadPdf: _,
 }: MobileCardProps) {
   const router = useRouter();
+  const t = useTranslations("Invoices.table");
 
   return (
     <ListRow
@@ -162,7 +167,7 @@ export function MobileCard({
           ? `#${formatInvoiceToken(invoice)}`
           : undefined
       }
-      title={invoice.patient ? getPatientFullName(invoice.patient) : "N/A"}
+      title={invoice.patient ? getPatientFullName(invoice.patient) : t("notAvailable")}
       meta={formatCurrency(invoice.totalAmount ?? invoice.total)}
       time={
         invoice.createdAt
@@ -177,21 +182,38 @@ export function MobileCard({
   );
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Invoices > list table sections.
+ * The column factory accepts pre-translated label strings so it can stay a
+ * plain (non-hook) function. The caller is a small component that calls
+ * useTranslations and feeds the labels in.
+ */
+export interface InvoiceColumnLabels {
+  invoiceNumber: string;
+  patient: string;
+  date: string;
+  amount: string;
+  status: string;
+  actions: string;
+}
+
 export function getInvoiceColumns({
   formatCurrency,
   onDownloadPdf,
   sortConfig,
   onSort,
+  labels,
 }: {
   formatCurrency: (amount: number | undefined) => string;
   onDownloadPdf: (id: string) => void;
   sortConfig: SortConfig | null;
   onSort: (key: SortKey) => void;
+  labels: InvoiceColumnLabels;
 }): DataTableColumn<InvoiceListRow>[] {
   return [
     {
       id: "invoiceNumber",
-      header: "Invoice #",
+      header: labels.invoiceNumber,
       hiddenOnMobile: true,
       cell: (invoice) => <InvoiceNumberCell invoice={invoice} />,
     },
@@ -199,7 +221,7 @@ export function getInvoiceColumns({
       id: "patient",
       header: (
         <SortableHeader
-          label="Patient"
+          label={labels.patient}
           column="patient"
           sortConfig={sortConfig}
           onSort={onSort}
@@ -211,7 +233,7 @@ export function getInvoiceColumns({
       id: "date",
       header: (
         <SortableHeader
-          label="Date"
+          label={labels.date}
           column="date"
           sortConfig={sortConfig}
           onSort={onSort}
@@ -224,7 +246,7 @@ export function getInvoiceColumns({
       id: "amount",
       header: (
         <SortableHeader
-          label="Amount"
+          label={labels.amount}
           column="amount"
           sortConfig={sortConfig}
           onSort={onSort}
@@ -238,7 +260,7 @@ export function getInvoiceColumns({
       id: "status",
       header: (
         <SortableHeader
-          label="Payment status"
+          label={labels.status}
           column="status"
           sortConfig={sortConfig}
           onSort={onSort}
@@ -248,11 +270,23 @@ export function getInvoiceColumns({
     },
     {
       id: "actions",
-      header: "Actions",
+      header: labels.actions,
       align: "right",
       cell: (invoice) => (
         <ActionsCell invoice={invoice} onDownloadPdf={onDownloadPdf} />
       ),
     },
   ];
+}
+
+export function useInvoiceColumnLabels() {
+  const t = useTranslations("Invoices.table");
+  return {
+    invoiceNumber: t("invoiceNumberHeader"),
+    patient: t("patientHeader"),
+    date: t("dateHeader"),
+    amount: t("amountHeader"),
+    status: t("statusHeader"),
+    actions: t("actionsHeader"),
+  };
 }

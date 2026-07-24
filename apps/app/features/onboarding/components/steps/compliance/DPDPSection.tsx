@@ -2,8 +2,7 @@
 
 import type { UseFormReturn } from "react-hook-form";
 import { ShieldCheck } from "lucide-react";
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
-import { Label } from "@workspace/ui/components/form/label";
+import { Checkbox, Label } from "@workspace/ui/components";
 import { OnboardingSection } from "@/features/onboarding/components/shared";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 

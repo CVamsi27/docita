@@ -3,16 +3,16 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsAppMessage } from '@/domains/whatsapp/core/entities';
 import type { IWhatsAppMessageRepository } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import type {
-  PrismaWhatsAppDatabase,
-  PrismaWhatsAppReadClient,
+import {
+  MESSAGE_WITH_CONVERSATION_INCLUDE,
+  type PrismaWhatsAppDatabase,
+  type PrismaWhatsAppMessageWithConversation,
+  type PrismaWhatsAppReadClient,
 } from './prisma-whatsapp.types';
 import {
   toDomainMessageStatus,
   toPrismaMessageStatus,
 } from './prisma-whatsapp.mappers';
-
-const MESSAGE_WITH_CONVERSATION_INCLUDE = { conversation: true } as const;
 
 @Injectable()
 export class PrismaWhatsAppMessageRepository implements IWhatsAppMessageRepository {
@@ -73,22 +73,15 @@ export class PrismaWhatsAppMessageRepository implements IWhatsAppMessageReposito
   }
 
   private async toDomainMessage(
-    raw: Awaited<
-      ReturnType<PrismaWhatsAppReadClient['whatsappMessage']['findUnique']>
-    >,
+    raw: PrismaWhatsAppMessageWithConversation | null,
   ): Promise<WhatsAppMessage | null> {
     if (!raw) return null;
-
-    const patient = await this.getReadClient().patient.findUnique({
-      where: { id: raw.conversation.patientId },
-      select: { phoneNumber: true },
-    });
 
     return new WhatsAppMessage({
       id: raw.id,
       clinicId: raw.conversation.clinicId,
       conversationId: raw.conversationId,
-      recipientPhone: patient?.phoneNumber || '',
+      recipientPhone: raw.conversation.patient?.phoneNumber || '',
       content: raw.content,
       status: toDomainMessageStatus(raw.status),
       externalMessageId: raw.providerMsgId || undefined,

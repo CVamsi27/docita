@@ -1,9 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@workspace/ui/components/indicators/card";
-import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+import { Card, CardContent, CardHeader, Skeleton } from "@workspace/ui/components";
 
 export function ReminderSettingsLoadingCard() {
   return (

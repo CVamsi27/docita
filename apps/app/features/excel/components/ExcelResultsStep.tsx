@@ -1,20 +1,8 @@
 // jscpd:ignore-start
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { AlertCircle, Check, CheckCircle2, Users, XCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ImportResult } from "@/features/excel/hooks/use-excel-import";
 import { useRouter } from "next/navigation";
 
@@ -24,11 +12,21 @@ interface ExcelResultsStepProps {
   onReset: () => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Excel > Results step
+ * (4 summary stat cards + import details table + action buttons). 8 literals
+ * converted to useTranslations("Excel.resultsStep").
+ */
+function useExcelResultsTranslations() {
+  return useTranslations("Excel.resultsStep");
+}
+
 export const ExcelResultsStep = ({
   result,
   onReset,
 }: ExcelResultsStepProps) => {
   const router = useRouter();
+  const t = useExcelResultsTranslations();
 
   return (
     <div className="space-y-6">
@@ -43,7 +41,7 @@ export const ExcelResultsStep = ({
                 <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {result.total}
                 </p>
-                <p className="text-sm text-muted-foreground">Total rows</p>
+                <p className="text-sm text-muted-foreground">{t("totalRowsLabel")}</p>
               </div>
             </div>
           </CardContent>
@@ -59,7 +57,7 @@ export const ExcelResultsStep = ({
                 <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
                   {result.success}
                 </p>
-                <p className="text-sm text-muted-foreground">Imported</p>
+                <p className="text-sm text-muted-foreground">{t("importedLabel")}</p>
               </div>
             </div>
           </CardContent>
@@ -75,7 +73,7 @@ export const ExcelResultsStep = ({
                 <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-warning">
                   {result.duplicates}
                 </p>
-                <p className="text-sm text-muted-foreground">Duplicates</p>
+                <p className="text-sm text-muted-foreground">{t("duplicatesLabel")}</p>
               </div>
             </div>
           </CardContent>
@@ -91,7 +89,7 @@ export const ExcelResultsStep = ({
                 <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-destructive">
                   {result.failed}
                 </p>
-                <p className="text-sm text-muted-foreground">Failed</p>
+                <p className="text-sm text-muted-foreground">{t("failedLabel")}</p>
               </div>
             </div>
           </CardContent>
@@ -101,22 +99,22 @@ export const ExcelResultsStep = ({
       {(result.errors.length > 0 || result.duplicateDetails.length > 0) && (
         <Card>
           <CardHeader>
-            <CardTitle>Import details</CardTitle>
+            <CardTitle>{t("importDetailsTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {result.duplicateDetails.length > 0 && (
               <div>
                 <h4 className="font-medium mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-warning" />
-                  Duplicates skipped
+                  {t("duplicatesSkippedTitle")}
                 </h4>
                 <div className="rounded-md border max-h-48 overflow-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Row</TableHead>
-                        <TableHead>Reason</TableHead>
-                        <TableHead>Existing patient</TableHead>
+                        <TableHead>{t("colRow")}</TableHead>
+                        <TableHead>{t("colReason")}</TableHead>
+                        <TableHead>{t("colExistingPatient")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -141,7 +139,7 @@ export const ExcelResultsStep = ({
               <div>
                 <h4 className="font-medium mb-2 flex items-center gap-2">
                   <XCircle className="h-4 w-4 text-destructive" />
-                  Errors
+                  {t("errorsTitle")}
                 </h4>
                 <div className="rounded-md border p-4 max-h-48 overflow-auto bg-muted/50">
                   {result.errors.map((error, i) => (
@@ -159,10 +157,10 @@ export const ExcelResultsStep = ({
       <div className="flex gap-4">
         <Button onClick={() => router.push("/patients")}>
           <Check className="mr-2 h-4 w-4" />
-          View Patients
+          {t("viewPatientsButton")}
         </Button>
         <Button variant="outline" onClick={onReset}>
-          Import More
+          {t("importMoreButton")}
         </Button>
       </div>
     </div>

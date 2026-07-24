@@ -1,14 +1,8 @@
 import { useMemo } from "react";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Label } from "@workspace/ui/components";
 import { useDoctors } from "@workspace/data-access";
+import { useTranslations } from "next-intl";
 import type { WardWithRooms as WardInfo } from "@/features/ipd/hooks/use-ipd-logic";
 
 interface AdmissionFormFieldsProps {
@@ -26,10 +20,19 @@ interface AdmissionFormFieldsProps {
   onNotesChange: (value: string) => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app IPD > Admission form fields.
+ * 6 literals converted to useTranslations("Ipd.admissionFormFields").
+ */
+function useAdmissionFormFieldsTranslations() {
+  return useTranslations("Ipd.admissionFormFields");
+}
+
 export function AdmissionFormFields({
   wardId, bedId, admittingDoctorId, diagnosis, notes, wards, errors,
   onWardChange, onBedChange, onDoctorChange, onDiagnosisChange, onNotesChange,
 }: AdmissionFormFieldsProps) {
+  const t = useAdmissionFormFieldsTranslations();
   const { data: doctors = [] } = useDoctors();
 
   const availableBeds = useMemo(() => {
@@ -40,20 +43,24 @@ export function AdmissionFormFields({
           .filter((bed) => bed.status === "AVAILABLE")
           .map((bed) => ({
             id: bed.id,
-            label: `${ward.name} / Room ${room.roomNumber} / Bed ${bed.bedNumber}`,
+            label: t("bedOptionLabel", {
+              ward: ward.name,
+              room: room.roomNumber,
+              bed: bed.bedNumber,
+            }),
           })),
       ) ?? []
     );
-  }, [wardId, wards]);
+  }, [wardId, wards, t]);
 
   return (
     <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="ipd-ward">Ward</Label>
+          <Label htmlFor="ipd-ward">{t("wardLabel")}</Label>
           <Select value={wardId} onValueChange={onWardChange}>
             <SelectTrigger id="ipd-ward">
-              <SelectValue placeholder="Select ward" />
+              <SelectValue placeholder={t("wardPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {wards.map((ward) => (
@@ -63,10 +70,10 @@ export function AdmissionFormFields({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="ipd-bed">Bed</Label>
+          <Label htmlFor="ipd-bed">{t("bedLabel")}</Label>
           <Select value={bedId} onValueChange={onBedChange} disabled={!wardId}>
             <SelectTrigger id="ipd-bed" aria-invalid={!!errors.bedId}>
-              <SelectValue placeholder="Select bed" />
+              <SelectValue placeholder={t("bedPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {availableBeds.map((bed) => (
@@ -79,10 +86,10 @@ export function AdmissionFormFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="ipd-doctor">Attending doctor</Label>
+        <Label htmlFor="ipd-doctor">{t("doctorLabel")}</Label>
         <Select value={admittingDoctorId} onValueChange={onDoctorChange}>
           <SelectTrigger id="ipd-doctor" aria-invalid={!!errors.admittingDoctorId}>
-            <SelectValue placeholder="Select doctor" />
+            <SelectValue placeholder={t("doctorPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
             {doctors.map((doc) => (
@@ -94,13 +101,13 @@ export function AdmissionFormFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="ipd-diagnosis">Admission diagnosis</Label>
+        <Label htmlFor="ipd-diagnosis">{t("diagnosisLabel")}</Label>
         <Textarea id="ipd-diagnosis" className="min-h-20" value={diagnosis} onChange={(e) => onDiagnosisChange(e.target.value)} aria-invalid={!!errors.diagnosis} />
         {errors.diagnosis && <p className="text-xs text-destructive">{errors.diagnosis}</p>}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="ipd-notes">Notes</Label>
+        <Label htmlFor="ipd-notes">{t("notesLabel")}</Label>
         <Textarea id="ipd-notes" className="min-h-16" value={notes} onChange={(e) => onNotesChange(e.target.value)} />
       </div>
     </>

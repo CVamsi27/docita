@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Button, SymbolTooltip } from "@workspace/ui/components";
 import { CheckCircle2, Copy } from "lucide-react";
 
 interface CopyableLinkFieldProps {

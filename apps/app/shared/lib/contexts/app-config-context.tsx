@@ -4,13 +4,7 @@ import { createContext, ReactNode, useCallback, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 
-import {
-  AppConfig,
-  ClinicSettings,
-  DEFAULT_CONFIG,
-  DefaultValues,
-  FormOptions,
-} from "@/lib/constants/app-config";
+import { AppConfig, ClinicSettings, DEFAULT_CONFIG, DefaultValues, FormOptions } from "@/lib/constants/app-config";
 import { fetchAppConfig } from "@/lib/api/app-config.api";
 import { isNetworkError } from "@/lib/api/network-error";
 import { appQueryKeys } from "@/lib/api/query-keys";

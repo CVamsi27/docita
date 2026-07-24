@@ -2,27 +2,8 @@
 
 import { useState } from "react";
 import { CalendarClock, FlaskConical, Pill, Stethoscope } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { AppPageScaffold, Button, Card, CardContent, CardHeader, CardTitle, MicroLabel, PageHeader, PageTabs, ProgressGauge, PromptInput, RightRailCard, RightRailCardStack, type PageTabItem } from "@workspace/ui/components";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import {
-  PageTabs,
-  type PageTabItem,
-} from "@workspace/ui/components/navigation/page-tabs";
-import { ProgressGauge } from "@workspace/ui/components/feedback/progress-gauge";
-import { PromptInput } from "@workspace/ui/components/form/prompt-input";
-import {
-  RightRailCard,
-  RightRailCardStack,
-} from "@workspace/ui/components/data-display/right-rail-card";
 import { WizardDialog } from "@workspace/ui/components/overlay/wizard-dialog";
 
 const TABS: PageTabItem[] = [

@@ -1,11 +1,7 @@
 import { resolveTagColor } from "./tag-colors";
-import {
-  SymbolTooltip,
-} from "@workspace/ui/components/overlay/tooltip";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { ScrollArea } from "@workspace/ui/components/layout/scroll-area";
+import { Button, Input, ScrollArea, SymbolTooltip } from "@workspace/ui/components";
 import { Check, Pencil, Trash2, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { PatientTag } from "./patient-tag.types";
 import { ColorSwatchButton, ColorPickerGrid } from "./patient-tag-color-pickers";
 
@@ -44,14 +40,15 @@ export function CurrentTagsTab({
   onEditTag,
   getTagColorName,
 }: CurrentTagsTabProps) {
+  const t = useTranslations("Patients.tagManager");
   return (
     <ScrollArea className="h-[300px] pr-4">
       {filteredTags.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           {searchQuery ? (
-            <p>No tags match &quot;{searchQuery}&quot;</p>
+            <p>{t("noPresetsMatch", { query: searchQuery })}</p>
           ) : (
-            <p>No tags added yet, add from presets or create custom</p>
+            <p>{t("noTagsYet")}</p>
           )}
         </div>
       ) : (
@@ -72,7 +69,7 @@ export function CurrentTagsTab({
                   <div className="relative">
                     <ColorSwatchButton
                       color={editTagColor}
-                      label={`Choose color (currently ${getTagColorName(editTagColor)})`}
+                      label={t("chooseColorAria", { name: getTagColorName(editTagColor) })}
                       onClick={onToggleEditColorPicker}
                     />
                     {editShowColorPicker && (
@@ -86,23 +83,23 @@ export function CurrentTagsTab({
                       </div>
                     )}
                   </div>
-                  <SymbolTooltip label="Save tag">
+                  <SymbolTooltip label={t("saveTagAria")}>
                     <Button
                       size="sm"
                       variant="ghost"
                       className="h-8 w-8 p-0"
-                      aria-label="Save tag"
+                      aria-label={t("saveTagAria")}
                       onClick={onSaveEdit}
                     >
                       <Check className="h-4 w-4 text-success" />
                     </Button>
                   </SymbolTooltip>
-                  <SymbolTooltip label="Cancel edit">
+                  <SymbolTooltip label={t("cancelEditAria")}>
                     <Button
                       size="sm"
                       variant="ghost"
                       className="h-8 w-8 p-0"
-                      aria-label="Cancel edit"
+                      aria-label={t("cancelEditAria")}
                       onClick={onCancelEdit}
                     >
                       <X className="h-4 w-4 text-destructive" />
@@ -120,24 +117,24 @@ export function CurrentTagsTab({
                   </div>
                   <div className="flex items-center gap-1">
                     {onEditTag && (
-                      <SymbolTooltip label={`Edit tag ${tag.tag}`}>
+                      <SymbolTooltip label={t("editTagAria", { name: tag.tag })}>
                         <Button
                           size="sm"
                           variant="ghost"
                           className="h-8 w-8 p-0"
-                          aria-label={`Edit tag ${tag.tag}`}
+                          aria-label={t("editTagAria", { name: tag.tag })}
                           onClick={() => onStartEditing(tag)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </SymbolTooltip>
                     )}
-                    <SymbolTooltip label={`Delete tag ${tag.tag}`}>
+                    <SymbolTooltip label={t("deleteTagAria", { name: tag.tag })}>
                       <Button
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        aria-label={`Delete tag ${tag.tag}`}
+                        aria-label={t("deleteTagAria", { name: tag.tag })}
                         onClick={() => onRemoveTag(tag.id)}
                       >
                         <Trash2 className="h-4 w-4" />

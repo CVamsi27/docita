@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Input } from "@workspace/ui/components/form/input";
 import { Label } from "@workspace/ui/components/form/label";
 import { User } from "lucide-react";
@@ -15,6 +16,62 @@ interface OCRPatientInfoProps {
   hasLowConfidence: boolean;
 }
 
+interface OcrCorrectionFieldProps {
+  label: string;
+  fieldKey: string;
+  value: string;
+  suggestionLabel: string;
+  getScore: (key: string) => number | undefined;
+  getCorrection: (key: string) => string | undefined;
+  onChange: (value: string) => void;
+}
+
+/**
+ * One OCR patient-info field: label + confidence indicator, an
+ * optional correction-suggestion block, and a controlled input.
+ * Used for firstName/lastName/age/phoneNumber etc. so the OCR
+ * section can render any number of fields without duplicating
+ * the same JSX shape.
+ */
+function OcrCorrectionField({
+  label,
+  fieldKey,
+  value,
+  suggestionLabel,
+  getScore,
+  getCorrection,
+  onChange,
+}: OcrCorrectionFieldProps) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs">{label}</Label>
+        <ConfidenceIndicator
+          {...((s) => (s != null ? { score: s } : {}))(getScore(fieldKey))}
+        />
+      </div>
+      {getCorrection(fieldKey) && (
+        <div className="text-xs surface-warning p-2 rounded">
+          <p className="font-medium">{suggestionLabel}</p>
+          <p>{getCorrection(fieldKey)}</p>
+        </div>
+      )}
+      <Input value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+/**
+ * Phase 3 (per-feature): apps/app OCR > Patient Info
+ * section — the patient identity fields (name, age, phone,
+ * email, blood type) the user confirms after OCR
+ * recognition. 10 literals converted to
+ * useTranslations("Ocr.patientInfo").
+ */
+function useOcrPatientInfoTranslations() {
+  return useTranslations("Ocr.patientInfo");
+}
+
 export const OCRPatientInfo = ({
   formData,
   setFormData,
@@ -24,82 +81,47 @@ export const OCRPatientInfo = ({
   onToggle,
   hasLowConfidence,
 }: OCRPatientInfoProps) => {
+  const t = useOcrPatientInfoTranslations();
   return (
     <div className="space-y-3">
       <SectionToggle
-        title="Patient information"
+        title={t("sectionTitle")}
         icon={User}
         isOpen={isOpen}
         onToggle={onToggle}
-        {...(hasLowConfidence ? { badge: "Check" } : {})}
+        {...(hasLowConfidence ? { badge: t("lowConfidenceBadge") } : {})}
       />
       {isOpen && (
         <div className="space-y-3 bg-muted/30 rounded-lg p-3">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">First name</Label>
-                <ConfidenceIndicator
-                  {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("firstName"),
-                  )}
-                />
-              </div>
-              {getCorrection("firstName") && (
-                <div className="text-xs surface-warning p-2 rounded">
-                  <p className="font-medium">
-                    Suggestion:
-                  </p>
-                  <p>
-                    {getCorrection("firstName")}
-                  </p>
-                </div>
-              )}
-              <Input
-                value={formData.firstName}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    firstName: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Last name</Label>
-                <ConfidenceIndicator
-                  {...((s) => (s != null ? { score: s } : {}))(
-                    getScore("lastName"),
-                  )}
-                />
-              </div>
-              {getCorrection("lastName") && (
-                <div className="text-xs surface-warning p-2 rounded">
-                  <p className="font-medium">
-                    Suggestion:
-                  </p>
-                  <p>
-                    {getCorrection("lastName")}
-                  </p>
-                </div>
-              )}
-              <Input
-                value={formData.lastName}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    lastName: e.target.value,
-                  })
-                }
-              />
-            </div>
+            <OcrCorrectionField
+              label={t("firstNameLabel")}
+              fieldKey="firstName"
+              value={formData.firstName}
+              suggestionLabel={t("suggestionLabel")}
+              getScore={getScore}
+              getCorrection={getCorrection}
+              onChange={(value) =>
+                setFormData({ ...formData, firstName: value })
+              }
+            />
+            <OcrCorrectionField
+              label={t("lastNameLabel")}
+              fieldKey="lastName"
+              value={formData.lastName}
+              suggestionLabel={t("suggestionLabel")}
+              getScore={getScore}
+              getCorrection={getCorrection}
+              onChange={(value) =>
+                setFormData({ ...formData, lastName: value })
+              }
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Age</Label>
+                <Label className="text-xs">{t("ageLabel")}</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(getScore("age"))}
                 />
@@ -113,7 +135,7 @@ export const OCRPatientInfo = ({
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Phone</Label>
+                <Label className="text-xs">{t("phoneLabel")}</Label>
                 <ConfidenceIndicator
                   {...((s) => (s != null ? { score: s } : {}))(
                     getScore("phoneNumber"),
@@ -134,7 +156,7 @@ export const OCRPatientInfo = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-xs">Email</Label>
+              <Label className="text-xs">{t("emailLabel")}</Label>
               <Input
                 type="email"
                 value={formData.email}
@@ -144,7 +166,7 @@ export const OCRPatientInfo = ({
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs">Blood type</Label>
+              <Label className="text-xs">{t("bloodTypeLabel")}</Label>
               <Input
                 value={formData.bloodType}
                 onChange={(e) =>
@@ -153,7 +175,7 @@ export const OCRPatientInfo = ({
                     bloodType: e.target.value,
                   })
                 }
-                placeholder="Blood type"
+                placeholder={t("bloodTypePlaceholder")}
               />
             </div>
           </div>

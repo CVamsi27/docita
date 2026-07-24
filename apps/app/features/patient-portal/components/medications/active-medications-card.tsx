@@ -1,13 +1,8 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { Pill } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { ActiveMedication } from "@workspace/types";
 import { formatDate } from "@/lib/formatters";
 
@@ -18,18 +13,19 @@ interface ActiveMedicationsCardProps {
 export function ActiveMedicationsCard({
   medications,
 }: ActiveMedicationsCardProps) {
-  if (medications.length === 0) return (
+  const t = useTranslations("PatientPortal.activeMedications");
+
+  if (medications.length === 0)
+    return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Pill className="h-5 w-5" />
-            Current Medications
+            {t("title")}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No active medications found
-          </p>
+          <p className="text-sm text-muted-foreground">{t("empty")}</p>
         </CardContent>
       </Card>
     );
@@ -39,7 +35,7 @@ export function ActiveMedicationsCard({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Pill className="h-5 w-5" />
-          Current Medications
+          {t("title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -57,7 +53,7 @@ export function ActiveMedicationsCard({
                 </p>
               </div>
               {med.isPRN ? (
-                <Badge variant="outline">As needed</Badge>
+                <Badge variant="outline">{t("asNeededBadge")}</Badge>
               ) : (
                 <Badge variant="secondary">{med.duration}</Badge>
               )}
@@ -65,21 +61,21 @@ export function ActiveMedicationsCard({
 
             {med.prnInstructions && (
               <p className="text-xs text-muted-foreground">
-                Take when: {med.prnInstructions}
+                {t("takeWhenLabel", { instructions: med.prnInstructions })}
               </p>
             )}
 
             {med.startDate && (
               <p className="text-xs text-muted-foreground">
-                Started: {formatDate(med.startDate)}
-                {med.endDate && ` &middot; Until: ${formatDate(med.endDate)}`}
+                {t("startedLabel", { date: formatDate(med.startDate) })}
+                {med.endDate && ` &middot; ${t("untilLabel", { date: formatDate(med.endDate) })}`}
               </p>
             )}
 
             {med.adherence && !med.isPRN && (
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Adherence</span>
+                  <span className="text-muted-foreground">{t("adherenceLabel")}</span>
                   <span className="font-medium">
                     {Math.round(med.adherence.adherenceRate)}%
                   </span>
@@ -99,8 +95,10 @@ export function ActiveMedicationsCard({
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {med.adherence.taken} of {med.adherence.totalDoses} doses
-                  taken
+                  {t("adherenceSummary", {
+                    taken: med.adherence.taken,
+                    total: med.adherence.totalDoses,
+                  })}
                 </p>
               </div>
             )}

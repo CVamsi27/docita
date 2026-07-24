@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  Activity,
-  CalendarClock,
-  CreditCard,
-  Layers,
-  LockKeyhole,
-  Sparkles,
-} from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+import { Activity, CalendarClock, CreditCard, Layers, LockKeyhole, Sparkles } from "lucide-react";
+import { Badge, Button } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 import { formatCurrency } from "@workspace/utils";

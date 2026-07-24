@@ -1,15 +1,6 @@
 // jscpd:ignore-start
 import { DollarSign } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { RevenueByCPT } from "@/features/analytics/hooks/use-analytics-logic";
 import { RevenueChartShell } from "./RevenueChartShell";
 

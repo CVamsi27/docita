@@ -4,23 +4,13 @@
 import Link from "next/link";
 import { Calendar, ChevronRight, Clock, Play } from "lucide-react";
 import { formatDate, getPatientFullName } from "@workspace/utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, StatusBadge, SymbolTooltip } from "@workspace/ui/components";
 import {
   Avatar,
 // jscpd:ignore-end
   AvatarFallback,
 } from "@workspace/ui/components/indicators/avatar";
 import { cn } from "@workspace/ui/lib/utils";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 

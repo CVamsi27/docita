@@ -2,11 +2,10 @@
 
 import type { UseFormReturn } from "react-hook-form";
 import { Check, MapPin } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
+import { Button, Input, Label } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
+import { applyMapsLinkLocation } from "./clinic-details-utils";
 
 export interface ClinicAddressHeaderProps {
   isPinned: boolean;
@@ -50,7 +49,7 @@ export function ClinicAddressHeader({
           ) : (
             <>
               <MapPin className="h-4 w-4" aria-hidden />
-              Pin on Google Maps
+              Pin on map
             </>
           )}
         </Button>
@@ -64,7 +63,7 @@ export function ClinicAddressHeader({
           role={mapsLocationError ? "alert" : undefined}
         >
           {mapsLocationError ??
-            "Required — pin the clinic on Google Maps so patients can navigate to you."}
+            "Required — pin the clinic on the map so patients can navigate to you."}
         </p>
       ) : null}
     </>
@@ -266,6 +265,7 @@ export interface GoogleMapsLinkFieldProps {
 }
 
 export function GoogleMapsLinkField({ clinicForm }: GoogleMapsLinkFieldProps) {
+  const registration = clinicForm.register("mapsLink");
   return (
     <div className="space-y-2">
       <Label htmlFor="mapsLink">Google Maps link</Label>
@@ -274,7 +274,16 @@ export function GoogleMapsLinkField({ clinicForm }: GoogleMapsLinkFieldProps) {
         type="url"
         inputMode="url"
         autoComplete="url"
-        {...clinicForm.register("mapsLink")}
+        {...registration}
+        onChange={(event) => {
+          registration.onChange(event);
+          // If the pasted link carries coordinates, use them as the map pin.
+          applyMapsLinkLocation(clinicForm, event.target.value);
+        }}
+        onBlur={(event) => {
+          registration.onBlur(event);
+          applyMapsLinkLocation(clinicForm, event.target.value);
+        }}
         placeholder="https://maps.google.com/..."
         aria-invalid={!!clinicForm.formState.errors.mapsLink}
         aria-describedby={
@@ -295,8 +304,9 @@ export function GoogleMapsLinkField({ clinicForm }: GoogleMapsLinkFieldProps) {
           id="clinic-maps-link-help"
           className="text-xs text-muted-foreground"
         >
-          Paste a Google Maps share link (or Plus code URL). Patients see
-          this in appointment confirmations next to the date and time.
+          Paste a Google Maps link — if it includes a location, we&apos;ll use
+          it to drop your map pin automatically. Patients also see this link in
+          appointment confirmations.
         </p>
       )}
     </div>

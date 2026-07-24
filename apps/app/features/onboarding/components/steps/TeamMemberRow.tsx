@@ -3,14 +3,7 @@ import type { TeamMember } from "@/features/onboarding/components/types";
 import {
   isDoctorRole,
 } from "./team-invite-step-constants";
-import {
-  TeamMemberRowHeader,
-  TeamMemberNameEmailFields,
-  TeamMemberPhonePasswordFields,
-  TeamMemberRoleSection,
-  TeamMemberDoctorFields,
-  TeamMemberIssueMessage,
-} from "./TeamMemberRowSections";
+import { TeamMemberRowHeader, TeamMemberNameEmailFields, TeamMemberPhonePasswordFields, TeamMemberRoleSection, TeamMemberDoctorFields, TeamMemberIssueMessage } from "./TeamMemberRowSections";
 
 interface TeamMemberRowProps {
   member: TeamMember;

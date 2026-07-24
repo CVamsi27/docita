@@ -1,7 +1,58 @@
 import type { ReactElement } from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InvoiceEditUI } from "./InvoiceEditUI";
+
+/**
+ * Local messages mirror covering all namespaces read by
+ * InvoiceEditUI + its child components. The test renders
+ * InvoiceEditUI via NextIntlClientProvider so useTranslations
+ * resolves against these English strings.
+ */
+const messages = {
+  Invoices: {
+    itemsTable: {
+      emptyMessage: "No items added yet.",
+      colDescription: "Description",
+      colQty: "Qty",
+      colUnitPrice: "Unit price",
+      colTax: "Tax",
+      colGstPercent: "GST %",
+      colHsnSac: "HSN/SAC",
+      colTotal: "Total",
+      itemDescriptionPlaceholder: "Item description",
+      taxHealthcareExempt: "Healthcare exempt",
+      taxTaxable: "Taxable",
+      taxExempt: "Exempt",
+      taxNonGst: "Non-GST",
+      hsnCodePlaceholder: "HSN code",
+      removeLineItemTooltip: "Remove {name, select, undefined {line item} other {{name}}}",
+    },
+    formSections: {
+      invoiceDetailsTitle: "Invoice details",
+      lineItemsTitle: "Line items",
+      addItemButton: "Add Item",
+      statusLabel: "Status",
+      statusPlaceholder: "Status",
+      statusPending: "Pending",
+      statusPaid: "Paid",
+      statusOverdue: "Overdue",
+      statusCancelled: "Cancelled",
+      notesTitle: "Notes",
+      notesDescription: "Add any additional notes or payment instructions",
+      notesPlaceholder: "Notes",
+    },
+  },
+};
+
+function renderWithIntl(node: React.ReactNode) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      {node}
+    </NextIntlClientProvider>,
+  );
+}
 
 vi.mock("@workspace/ui/components/overlay/tooltip", () => ({
   SymbolTooltip: ({ children }: { children: ReactElement }) => children,
@@ -91,13 +142,13 @@ describe("InvoiceEditUI", () => {
 
   it("renders loading and not-found states", () => {
     invoiceEditMocks.isLoading = true;
-    const { rerender } = render(<InvoiceEditUI invoiceId="inv_1" />);
+    const { rerender } = renderWithIntl(<InvoiceEditUI invoiceId="inv_1" />);
 
     expect(screen.getByText("Loading invoice…")).toBeInTheDocument();
 
     invoiceEditMocks.isLoading = false;
     invoiceEditMocks.invoice = null;
-    rerender(<InvoiceEditUI invoiceId="inv_1" />);
+    rerender(<InvoiceEditUI invoiceId="inv_1" key="not-found" />);
 
     expect(screen.getByText("Invoice not found")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Back to Invoices" }));
@@ -105,7 +156,7 @@ describe("InvoiceEditUI", () => {
   });
 
   it("edits invoice details, submits, and supports cancel", async () => {
-    render(<InvoiceEditUI invoiceId="inv_1" />);
+    renderWithIntl(<InvoiceEditUI invoiceId="inv_1" />);
 
     expect(screen.getByRole("heading", { name: "Edit invoice" })).toBeInTheDocument();
     fireEvent.change(within(screen.getByRole("table")).getByDisplayValue("Procedure"), {

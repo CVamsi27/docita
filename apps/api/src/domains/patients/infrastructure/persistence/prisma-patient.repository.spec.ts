@@ -46,7 +46,9 @@ describe('PrismaPatientRepository', () => {
         writable: true,
       },
     });
-    repository = new PrismaPatientRepository(prismaService);
+    repository = new PrismaPatientRepository(prismaService, {
+      now: () => new Date('2026-07-02T00:00:00Z'),
+    });
   });
 
   it('returns count and hasMore metadata for paginated results', async () => {
@@ -118,14 +120,23 @@ describe('PrismaPatientRepository', () => {
     );
   });
 
-  it('scopes delete by both id and clinicId via deleteMany', async () => {
-    mockPrismaService.patient.deleteMany.mockResolvedValueOnce({ count: 0 });
+  it('soft-deletes by scoping id + clinicId and setting deletedAt', async () => {
+    mockPrismaService.patient.updateMany.mockResolvedValueOnce({ count: 1 });
 
     await repository.delete('patient-1', 'other-clinic');
 
-    expect(mockPrismaService.patient.deleteMany).toHaveBeenCalledWith({
-      where: { id: 'patient-1', clinicId: 'other-clinic' },
+    expect(mockPrismaService.patient.updateMany).toHaveBeenCalledWith({
+      where: { id: 'patient-1', clinicId: 'other-clinic', deletedAt: null },
+      data: { deletedAt: expect.any(Date) },
     });
+  });
+
+  it('throws NotFound when soft-deleting a missing/already-deleted patient', async () => {
+    mockPrismaService.patient.updateMany.mockResolvedValueOnce({ count: 0 });
+
+    await expect(
+      repository.delete('patient-1', 'other-clinic'),
+    ).rejects.toThrow('Patient patient-1 not found');
   });
 
   it('builds search filters and computes no further pages when on last page', async () => {
@@ -148,6 +159,35 @@ describe('PrismaPatientRepository', () => {
           OR: expect.arrayContaining([
             { firstName: { contains: 'john', mode: 'insensitive' } },
           ]),
+        }),
+      }),
+    );
+  });
+
+  it('looks up a patient by phone across every equivalent E.164 form', async () => {
+    // Returning-patient OTP flows normalize the entered phone to +91… before
+    // the call. The row may be stored as bare-10-digit, 91…, or +91… — the
+    // repository must match whichever form is on disk, otherwise the lookup
+    // silently returns null and the user is locked out.
+    const findFirstSpy = mockReadClient.patient.findFirst as jest.Mock<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+    findFirstSpy.mockResolvedValueOnce(null);
+
+    await repository.findByClinicIdAndPhoneNumber('clinic-1', '+919812345678');
+
+    expect(findFirstSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          clinicId: 'clinic-1',
+          phoneNumber: {
+            in: expect.arrayContaining([
+              '+919812345678',
+              '919812345678',
+              '9812345678',
+            ]),
+          },
+          deletedAt: null,
         }),
       }),
     );

@@ -1,16 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Label } from "@workspace/ui/components/form/label";
 import { Input } from "@workspace/ui/components/form/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
 import { Textarea } from "@workspace/ui/components/form/textarea";
 import { MicButton } from "@workspace/ui/components/form/mic-button";
+import { SelectField } from "./_shared/SelectField";
 import type { ChiefComplaintItem } from "./chief-complaint.types";
 
 interface ComplaintDetailsProps {
@@ -25,6 +20,32 @@ interface ComplaintDetailsProps {
   onUpdate: (field: keyof ChiefComplaintItem, value: string) => void;
 }
 
+/**
+ * Phase 3 (per-feature): the chief complaint editor on the
+ * consultation form. Every label, placeholder, and select
+ * option resolves through useTranslations("Consultation.complaint").
+ * Same pattern as the other 5 per-feature conversions this
+ * session — see commit 279cf9e53 for the first one.
+ */
+function useComplaintTranslations() {
+  return useTranslations("Consultation.complaint");
+}
+
+const COMPLAINT_UNIT_OPTIONS: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: "hours", labelKey: "unitHours" },
+  { value: "days", labelKey: "unitDays" },
+  { value: "weeks", labelKey: "unitWeeks" },
+  { value: "months", labelKey: "unitMonths" },
+  { value: "years", labelKey: "unitYears" },
+];
+
+const COMPLAINT_SEVERITY_OPTIONS: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: "mild", labelKey: "severityMild" },
+  { value: "moderate", labelKey: "severityModerate" },
+  { value: "severe", labelKey: "severitySevere" },
+  { value: "critical", labelKey: "severityCritical" },
+];
+
 export function ComplaintDetails({
   item,
   index,
@@ -36,10 +57,11 @@ export function ComplaintDetails({
   onMicToggle,
   onUpdate,
 }: ComplaintDetailsProps) {
+  const t = useComplaintTranslations();
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <Label htmlFor={`chief-complaint-${index}`}>Symptom or concern</Label>
+        <Label htmlFor={`chief-complaint-${index}`}>{t("symptomLabel")}</Label>
         {!readOnly ? (
           <MicButton
             isListening={isListening}
@@ -51,7 +73,7 @@ export function ComplaintDetails({
       </div>
       <Input
         id={`chief-complaint-${index}`}
-        placeholder="Symptom or concern"
+        placeholder={t("symptomPlaceholder")}
         value={item.complaint}
         onChange={(e) => onUpdate("complaint", e.target.value)}
         readOnly={readOnly}
@@ -59,18 +81,18 @@ export function ComplaintDetails({
       />
       {!readOnly && !hasComplaint ? (
         <p className="text-sm text-warning">
-          Enter the main symptom or reason for visit.
+          {t("symptomRequired")}
         </p>
       ) : null}
 
       <div className="grid gap-3 md:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor={`duration-value-${index}`}>Duration</Label>
+          <Label htmlFor={`duration-value-${index}`}>{t("durationLabel")}</Label>
           <Input
             id={`duration-value-${index}`}
             type="number"
             min="1"
-            placeholder="Duration"
+            placeholder={t("durationPlaceholder")}
             value={item.durationValue}
             onChange={(e) => onUpdate("durationValue", e.target.value)}
             readOnly={readOnly}
@@ -78,56 +100,41 @@ export function ComplaintDetails({
           />
           {!readOnly && hasComplaint && !isDurationValid ? (
             <p className="text-sm text-warning">
-              Duration must be greater than 0.
+              {t("durationInvalid")}
             </p>
           ) : null}
         </div>
 
         <div className="space-y-2">
-          <Label>Unit</Label>
-          <Select
+          <Label>{t("unitLabel")}</Label>
+          <SelectField
             value={item.durationUnit}
-            onValueChange={(val) => onUpdate("durationUnit", val)}
-            disabled={readOnly}
-          >
-            <SelectTrigger className="h-11 bg-background">
-              <SelectValue placeholder="Unit" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="hours">Hours</SelectItem>
-              <SelectItem value="days">Days</SelectItem>
-              <SelectItem value="weeks">Weeks</SelectItem>
-              <SelectItem value="months">Months</SelectItem>
-              <SelectItem value="years">Years</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholderKey="unitPlaceholder"
+            options={COMPLAINT_UNIT_OPTIONS}
+            readOnly={readOnly}
+            onChange={(val) => onUpdate("durationUnit", val)}
+            t={t}
+          />
         </div>
 
         <div className="space-y-2">
-          <Label>Severity</Label>
-          <Select
+          <Label>{t("severityLabel")}</Label>
+          <SelectField
             value={item.severity}
-            onValueChange={(val) => onUpdate("severity", val)}
-            disabled={readOnly}
-          >
-            <SelectTrigger className="h-11 bg-background">
-              <SelectValue placeholder="Severity" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mild">Mild</SelectItem>
-              <SelectItem value="moderate">Moderate</SelectItem>
-              <SelectItem value="severe">Severe</SelectItem>
-              <SelectItem value="critical">Critical</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholderKey="severityPlaceholder"
+            options={COMPLAINT_SEVERITY_OPTIONS}
+            readOnly={readOnly}
+            onChange={(val) => onUpdate("severity", val)}
+            t={t}
+          />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`complaint-notes-${index}`}>Clinical notes</Label>
+        <Label htmlFor={`complaint-notes-${index}`}>{t("notesLabel")}</Label>
         <Textarea
           id={`complaint-notes-${index}`}
-          placeholder="Clinical notes"
+          placeholder={t("notesPlaceholder")}
           value={item.notes || ""}
           onChange={(e) => onUpdate("notes", e.target.value)}
           readOnly={readOnly}

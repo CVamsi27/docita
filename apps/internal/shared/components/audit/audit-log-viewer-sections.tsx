@@ -1,29 +1,10 @@
 "use client";
 
-// jscpd:ignore-start
 import React from "react";
 import { Calendar, ChevronDown, Download, Filter, RefreshCw, User as UserIcon } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
-import { Input } from "@workspace/ui/components/form/input";
-import {
-  Select,
-// jscpd:ignore-end
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import { DatePicker } from "@workspace/ui/components/form/date-picker";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Badge, Button, DatePicker, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SymbolTooltip } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 import type { InternalAuditLog } from "@workspace/data-access/internal";
 import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 
@@ -175,6 +156,7 @@ export function AuditLogTableSection({
   expandedRows,
   onToggleRowExpand,
 }: TableSectionProps) {
+  const t = useTranslations("InternalAudit.logsPage");
   return (
     <div className="border border-border/70 rounded-[var(--radius)] overflow-hidden">
       {errorMessage && (
@@ -243,7 +225,11 @@ export function AuditLogTableSection({
                             : "badge-danger"
                         }`}
                       >
-                        {log.status}
+                        {t(
+                          log.status === "success"
+                            ? "statusSuccess"
+                            : "statusFailed"
+                        )}
                       </Badge>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-muted-foreground font-mono text-xs">

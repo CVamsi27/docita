@@ -1,20 +1,10 @@
 "use client";
 
 import { Download } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import {
-  BillingOverviewCards,
-  MetricCardsGrid,
-} from "@/features/analytics";
+import { Button, DataState } from "@workspace/ui/components";
+import { BillingOverviewCards, MetricCardsGrid } from "@/features/analytics";
 import { useAnalyticsDashboard } from "./use-analytics-dashboard";
-import {
-  AnalyticsDetailedMetricsSection,
-  AnalyticsGrowthMetricSection,
-  AnalyticsMrrTrendSection,
-  AnalyticsReportingWindowSection,
-  AnalyticsSubscriptionBreakdownSection,
-} from "./analytics-dashboard-sections";
+import { AnalyticsDetailedMetricsSection, AnalyticsGrowthMetricSection, AnalyticsMrrTrendSection, AnalyticsReportingWindowSection, AnalyticsSubscriptionBreakdownSection } from "./analytics-dashboard-sections";
 
 export function AnalyticsDashboard() {
   const {

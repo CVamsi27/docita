@@ -1,17 +1,5 @@
 import Link from "next/link";
-import {
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Badge, Button, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import { ClipboardList, Eye, FileText, Pill, Receipt } from "lucide-react";
 import { getPatientFullName } from "@workspace/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";

@@ -1,14 +1,6 @@
 import { FC, useState } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { AppPageScaffold, Button, PageHeader, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Plus, RefreshCw } from "lucide-react";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
 import { useLabTestsLogic } from "@/features/lab-tests/hooks/use-lab-tests-logic";
 import { LabTestsOverview } from "@/features/lab-tests/components/tabs/LabTestsOverview";
 import { LabTestsOrders } from "@/features/lab-tests/components/tabs/LabTestsOrders";

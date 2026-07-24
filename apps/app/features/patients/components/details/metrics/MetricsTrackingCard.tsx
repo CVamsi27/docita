@@ -1,12 +1,7 @@
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardHeader, CardTitle, Checkbox } from "@workspace/ui/components";
 import type { MetricCategoryResponse } from "@workspace/types";
 import { Layers } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface MetricsTrackingCardProps {
   loading: boolean;
@@ -27,22 +22,23 @@ export function MetricsTrackingCard({
   onToggleTracked,
   isPending,
 }: MetricsTrackingCardProps) {
+  const t = useTranslations("Patients.metrics");
   return (
     <Card className="mb-6">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Layers className="h-5 w-5 text-primary" />
-          Categories & Tracked Metrics
+          {t("categoriesTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading metrics</p>
+          <p className="text-sm text-muted-foreground">{t("loadingMetrics")}</p>
         ) : (
           categories.map((category) => (
             <div key={category.id} className="rounded-lg border p-3">
               <div className="font-medium text-sm mb-2">
-                {category.name || "Unnamed Category"}
+                {category.name || t("unnamedCategory")}
               </div>
               <div className="space-y-2">
                 {category.metricDefinitions.length === 0 ? (
@@ -60,11 +56,11 @@ export function MetricsTrackingCard({
                         className="flex items-center justify-between gap-3 rounded border px-3 py-2"
                       >
                         <span className="text-sm">
-                          {definition.label || "Metric"}
+                          {definition.label || t("metricFallback")}
                         </span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">
-                            Track
+                            {t("track")}
                           </span>
                           <Checkbox
                             checked={isTracked}

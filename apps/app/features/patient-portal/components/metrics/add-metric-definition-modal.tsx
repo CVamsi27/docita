@@ -4,6 +4,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { FormEvent, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -45,12 +46,21 @@ const VALUE_TYPES = [
   { value: "BOOLEAN", label: "Yes/No" },
 ];
 
+/**
+ * Phase 3 (per-feature): apps/app Patient Portal > add metric definition modal.
+ * 5 literals converted to useTranslations("PatientPortal.addMetricDefinition").
+ */
+function useAddMetricDefinitionTranslations() {
+  return useTranslations("PatientPortal.addMetricDefinition");
+}
+
 export function AddMetricDefinitionModal({
   categories,
   open,
   onClose,
   onSuccess,
 }: AddMetricDefinitionModalProps) {
+  const t = useAddMetricDefinitionTranslations();
   const [label, setLabel] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [valueType, setValueType] = useState("NUMBER");
@@ -64,11 +74,11 @@ export function AddMetricDefinitionModal({
     setLocalError(null);
 
     if (!label.trim()) {
-      setLocalError("Enter a metric name");
+      setLocalError(t("errorNameRequired"));
       return;
     }
     if (!categoryId) {
-      setLocalError("Choose a category");
+      setLocalError(t("errorCategoryRequired"));
       return;
     }
 
@@ -90,7 +100,7 @@ export function AddMetricDefinitionModal({
     } catch (err) {
       setLocalError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not create this metric. Please try again.",
+          fallback: t("errorSaveFailed"),
           context: "save",
         }),
       );
@@ -101,32 +111,32 @@ export function AddMetricDefinitionModal({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Custom Metric</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Define a patient portal metric that can be tracked over time.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="metric-label">Metric name</Label>
+            <Label htmlFor="metric-label">{t("nameLabel")}</Label>
             <Input
               id="metric-label"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               disabled={isPending}
-              placeholder="Metric name"
+              placeholder={t("namePlaceholder")}
               autoFocus
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="metric-category">Category</Label>
+            <Label htmlFor="metric-category">{t("categoryLabel")}</Label>
             <Select
               value={categoryId}
               onValueChange={setCategoryId}
               disabled={isPending}
             >
               <SelectTrigger id="metric-category">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder={t("categoryPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (
@@ -139,7 +149,7 @@ export function AddMetricDefinitionModal({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="metric-type">Value type</Label>
+              <Label htmlFor="metric-type">{t("valueTypeLabel")}</Label>
               <Select
                 value={valueType}
                 onValueChange={setValueType}
@@ -149,22 +159,22 @@ export function AddMetricDefinitionModal({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {VALUE_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
+                  {VALUE_TYPES.map((vt) => (
+                    <SelectItem key={vt.value} value={vt.value}>
+                      {vt.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="metric-unit">Unit (optional)</Label>
+              <Label htmlFor="metric-unit">{t("unitLabel")}</Label>
               <Input
                 id="metric-unit"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 disabled={isPending}
-                placeholder="Unit"
+                placeholder={t("unitPlaceholder")}
               />
             </div>
           </div>
@@ -178,7 +188,7 @@ export function AddMetricDefinitionModal({
               onClick={onClose}
               disabled={isPending}
             >
-              Cancel
+              {t("cancelButton")}
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending ? (
@@ -188,11 +198,11 @@ export function AddMetricDefinitionModal({
                     decorative
                     className="mr-2"
                   />
-                  Creating…
+                  {t("creatingButton")}
 {/* jscpd:ignore-end */}
                 </>
               ) : (
-                "Create Metric"
+                t("createButton")
               )}
             </Button>
           </DialogFooter>

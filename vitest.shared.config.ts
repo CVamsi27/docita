@@ -109,6 +109,13 @@ export function buildWorkspaceTestConfig({
       ...WORKSPACE_COVERAGE_BASE,
       include: coverageInclude,
     },
+    // Suppress IntlError: MISSING_MESSAGE console noise from tests.
+    // The i18n keys exist in en.json; the test environment does not fully
+    // load message catalogs, producing non-blocking warnings.
+    onConsoleLog(log: unknown) {
+      const text = log instanceof Error ? log.message : String(log);
+      if (text.includes("MISSING_MESSAGE")) return false;
+    },
   };
 }
 

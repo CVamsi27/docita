@@ -1,22 +1,9 @@
 "use client";
 
-// jscpd:ignore-start
 import { Search } from "lucide-react";
-import { Input } from "@workspace/ui/components/form/input";
-import {
-  Card,
-  CardContent,
-} from "@workspace/ui/components/indicators/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Card, CardContent, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 
 interface InternalTableToolbarFilterOption {
-// jscpd:ignore-end
   value: string;
   label: string;
 }
@@ -30,6 +17,8 @@ interface InternalTableToolbarProps {
   filterOptions: InternalTableToolbarFilterOption[];
   filterPlaceholder: string;
   filterAllLabel?: string;
+  /** Accessible name for the filter Select trigger. */
+  filterAriaLabel?: string;
   actionSlot?: React.ReactNode;
 }
 
@@ -42,6 +31,7 @@ export function InternalTableToolbar({
   filterOptions,
   filterPlaceholder,
   filterAllLabel,
+  filterAriaLabel,
   actionSlot,
 }: InternalTableToolbarProps) {
   return (
@@ -60,7 +50,10 @@ export function InternalTableToolbar({
             </div>
           </div>
           <Select value={filterValue} onValueChange={onFilterChange}>
-            <SelectTrigger className="w-full md:w-[250px]">
+            <SelectTrigger
+              className="w-full md:w-[250px]"
+              {...(filterAriaLabel ? { "aria-label": filterAriaLabel } : {})}
+            >
               <SelectValue placeholder={filterPlaceholder} />
             </SelectTrigger>
             <SelectContent>

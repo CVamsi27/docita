@@ -5,8 +5,15 @@ on:
     # IST business hours only (8:30 AM – 8:30 PM IST = 03:00–15:00 UTC), the
     # window scale-api-hours.yml keeps the API machine running. Outside it the
     # API is intentionally scaled to 0, so probing it would just page on
-    # expected "downtime" — runs land at 8:30 AM, 2:30 PM, and 7:30 PM IST.
-    - cron: "0 3,9,14 * * *"
+    # expected "downtime".
+    #
+    # The 8:30 AM run is offset by 15 minutes (3:15 AM UTC) to avoid racing
+    # with scale-api-hours.yml which fires at 3:00 AM UTC and destroys+creates
+    # the API machine. Without the offset the probe often runs before the new
+    # machine is healthy, causing "no machines in process group" in recovery.
+    # Runs land at 8:45 AM, 2:30 PM, and 7:30 PM IST.
+    - cron: "15 3 * * *"
+    - cron: "0 9,14 * * *"
   workflow_dispatch:
 
 concurrency:

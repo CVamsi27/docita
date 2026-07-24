@@ -1,37 +1,43 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/indicators/card";
+} from "@/components/card";
 import { TabsContent } from "@workspace/ui/components/navigation/tabs";
 import { ExternalLink } from "lucide-react";
 import { buildPrometheusMetricsUrl } from "./system-monitoring-helpers";
 
+/**
+ * Phase 3 (per-feature): apps/internal System Monitoring > ops tab.
+ * 5 literals converted to useTranslations("SystemMonitoring.OpsTab").
+ */
+function useOpsTabTranslations() {
+  return useTranslations("SystemMonitoring.OpsTab");
+}
+
 export function OpsTab() {
+  const t = useOpsTabTranslations();
   const prometheusMetricsUrl = buildPrometheusMetricsUrl();
 
   return (
     <TabsContent value="ops" className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Operations links</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <CardDescription>
-            Non-secret URLs only. Configure via{" "}
-            <span className="font-mono text-xs">NEXT_PUBLIC_OPS_*</span>{" "}
-            environment variables.
+            {t("description", { envVar: "NEXT_PUBLIC_OPS_*" })}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-[var(--radius)] border border-border/70 p-4">
-            <p className="text-sm font-medium">API Prometheus scrape</p>
+            <p className="text-sm font-medium">{t("prometheusLabel")}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              The Nest API exposes unversioned metrics at{" "}
-              <span className="font-mono">/metrics</span> on the API origin
-              (protect at the edge in production).
+              {t("prometheusDescription", { path: "/metrics" })}
             </p>
             {prometheusMetricsUrl ? (
               <a
@@ -40,13 +46,12 @@ export function OpsTab() {
                 rel="noopener noreferrer"
                 className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline"
               >
-                Open metrics endpoint
+                {t("openMetricsLink")}
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             ) : (
               <p className="mt-2 text-xs text-muted-foreground">
-                Set <span className="font-mono">NEXT_PUBLIC_API_URL</span> to
-                derive the metrics URL.
+                {t("setApiUrlHint", { envVar: "NEXT_PUBLIC_API_URL" })}
               </p>
             )}
           </div>
@@ -54,27 +59,29 @@ export function OpsTab() {
           <div className="grid gap-3 sm:grid-cols-2">
             {[
               {
-                label: "Prometheus",
+                labelKey: "prometheus",
                 url: process.env.NEXT_PUBLIC_OPS_PROMETHEUS_URL,
               },
               {
-                label: "Grafana",
+                labelKey: "grafana",
                 url: process.env.NEXT_PUBLIC_OPS_GRAFANA_URL,
               },
               {
-                label: "Fly.io dashboard",
+                labelKey: "flyDashboard",
                 url: process.env.NEXT_PUBLIC_OPS_FLY_DASHBOARD_URL,
               },
               {
-                label: "Sentry (org or project)",
+                labelKey: "sentry",
                 url: process.env.NEXT_PUBLIC_OPS_SENTRY_URL,
               },
             ].map((item) => (
               <div
-                key={item.label}
+                key={item.labelKey}
                 className="rounded-[var(--radius)] border border-border/70 p-4"
               >
-                <p className="text-sm font-medium">{item.label}</p>
+                <p className="text-sm font-medium">
+                  {t(`links.${item.labelKey}`)}
+                </p>
                 {item.url ? (
                   <a
                     href={item.url}
@@ -87,7 +94,7 @@ export function OpsTab() {
                   </a>
                 ) : (
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Not configured for this deployment.
+                    {t("notConfiguredHint")}
                   </p>
                 )}
               </div>

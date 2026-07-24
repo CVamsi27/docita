@@ -2,17 +2,7 @@
 
 // jscpd:ignore-start
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Checkbox } from "@workspace/ui/components/form/checkbox";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Checkbox, Label, Textarea } from "@workspace/ui/components";
 import {
   Alert,
 // jscpd:ignore-end
@@ -20,6 +10,7 @@ import {
   AlertTitle,
 } from "@workspace/ui/components/feedback/alert";
 import { AlertCircle, LogOut, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useRequestStaffAccountDeletion } from "@workspace/data-access";
@@ -27,6 +18,7 @@ import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export function DangerZoneSettings() {
+  const t = useTranslations("Patients.dangerZone");
   const { logout } = useAuth();
   const { confirm } = useConfirm();
   const requestDeletion = useRequestStaffAccountDeletion();
@@ -35,10 +27,10 @@ export function DangerZoneSettings() {
 
   const handleLogout = async () => {
     const confirmed = await confirm({
-      title: "Sign out",
-      description: "Are you sure you want to sign out of your account?",
-      confirmText: "Sign out",
-      cancelText: "Cancel",
+      title: t("signOutConfirmTitle"),
+      description: t("signOutConfirmDescription"),
+      confirmText: t("signOutConfirmAction"),
+      cancelText: t("cancelAction"),
     });
     if (confirmed) {
       logout();
@@ -47,16 +39,12 @@ export function DangerZoneSettings() {
 
   const handleDeleteAccount = async () => {
     if (!deletionReason.trim()) {
-      showUserFacingErrorToast(
-        "Tell us why you want to delete your account before continuing",
-      );
+      showUserFacingErrorToast(t("reasonMissing"));
       return;
     }
 
     if (!confirmDeletion) {
-      showUserFacingErrorToast(
-        "Please confirm that you want to delete your account before submitting",
-      );
+      showUserFacingErrorToast(t("confirmMissing"));
       return;
     }
 
@@ -66,15 +54,11 @@ export function DangerZoneSettings() {
         confirmDeletion: true,
       });
 
-      toast.success(
-        "Account deletion requested. Your account will be processed within 30 days.",
-      );
+      toast.success(t("successToast"));
       setDeletionReason("");
       setConfirmDeletion(false);
     } catch (_error) {
-      showUserFacingErrorToast(
-        "We could not submit this deletion request. Please try again.",
-      );
+      showUserFacingErrorToast(t("errorFallback"));
     }
   };
 
@@ -82,9 +66,9 @@ export function DangerZoneSettings() {
     <div className="flex flex-col gap-6">
       <Card className="border-destructive/30">
         <CardHeader className="border-b border-destructive/20 pb-5">
-          <CardTitle className="text-destructive">Sign out</CardTitle>
+          <CardTitle className="text-destructive">{t("signOutTitle")}</CardTitle>
           <CardDescription>
-            Sign out of your Docita account on this device.
+            {t("signOutDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-5">
@@ -94,37 +78,34 @@ export function DangerZoneSettings() {
             onClick={handleLogout}
           >
             <LogOut className="mr-2 h-4 w-4" />
-            Sign out
+            {t("signOutButton")}
           </Button>
         </CardContent>
       </Card>
 
       <Card className="border-destructive/30">
         <CardHeader className="border-b border-destructive/20 pb-5">
-          <CardTitle className="text-destructive">Delete account</CardTitle>
+          <CardTitle className="text-destructive">{t("deleteTitle")}</CardTitle>
           <CardDescription>
-            Request permanent closure of your staff account and removal of
-            personal data associated with it, subject to legal and clinical
-            retention requirements.
+            {t("deleteDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 pt-5">
           <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Warning</AlertTitle>
+            <AlertTitle>{t("warningTitle")}</AlertTitle>
             <AlertDescription>
-              This starts an irreversible process for your login access. Some
-              clinical records may need to be retained where the law requires.
+              {t("warningBody")}
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
             <Label htmlFor="staff-deletion-reason">
-              Reason for deletion (required)
+              {t("reasonLabel")}
             </Label>
             <Textarea
               id="staff-deletion-reason"
-              placeholder="Enter deletion reason"
+              placeholder={t("reasonPlaceholder")}
               value={deletionReason}
               onChange={(e) => setDeletionReason(e.target.value)}
               rows={3}
@@ -142,8 +123,7 @@ export function DangerZoneSettings() {
               htmlFor="staff-confirm-deletion"
               className="text-sm font-normal leading-snug"
             >
-              I understand this will remove my access and request deletion of my
-              personal data where permitted.
+              {t("confirmCheckbox")}
             </Label>
           </div>
 
@@ -157,7 +137,7 @@ export function DangerZoneSettings() {
               }
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              {requestDeletion.isPending ? "Submitting…" : "Delete my account"}
+              {requestDeletion.isPending ? t("deletingButton") : t("deleteButton")}
             </Button>
           </div>
         </CardContent>

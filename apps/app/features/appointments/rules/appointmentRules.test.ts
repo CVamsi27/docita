@@ -3,6 +3,7 @@ import type { Appointment } from "@workspace/types";
 import {
   canCancel,
   canCheckIn,
+  canStartConsultationAtTime,
   getAppointmentStatusDisplay,
   isAppointmentPast,
   isAppointmentToday,
@@ -133,6 +134,75 @@ describe("Appointment Business Rules", () => {
     it("is false for active visits", () => {
       expect(isConsultationReadOnlyStatus("in-progress")).toBe(false);
       expect(isConsultationReadOnlyStatus("scheduled")).toBe(false);
+    });
+  });
+
+  describe("canStartConsultationAtTime", () => {
+    const now = new Date("2026-07-16T10:00:00Z");
+    const past = new Date("2026-07-16T09:00:00Z").toISOString();
+    const future = new Date("2026-07-16T11:00:00Z").toISOString();
+
+    it("always shows for completed and no-show (button reads 'View')", () => {
+      expect(
+        canStartConsultationAtTime(
+          { status: "completed", startTime: past },
+          now,
+        ),
+      ).toBe(true);
+      expect(
+        canStartConsultationAtTime(
+          { status: "no-show", startTime: past },
+          now,
+        ),
+      ).toBe(true);
+    });
+
+    it("always shows for in-progress (button reads 'Resume')", () => {
+      expect(
+        canStartConsultationAtTime(
+          { status: "in-progress", startTime: future },
+          now,
+        ),
+      ).toBe(true);
+    });
+
+    it("never shows for cancelled", () => {
+      expect(
+        canStartConsultationAtTime(
+          { status: "cancelled", startTime: past },
+          now,
+        ),
+      ).toBe(false);
+    });
+
+    it("blocks scheduled/checked-in for future startTime", () => {
+      expect(
+        canStartConsultationAtTime(
+          { status: "scheduled", startTime: future },
+          now,
+        ),
+      ).toBe(false);
+      expect(
+        canStartConsultationAtTime(
+          { status: "checked-in", startTime: future },
+          now,
+        ),
+      ).toBe(false);
+    });
+
+    it("allows scheduled/checked-in for past startTime", () => {
+      expect(
+        canStartConsultationAtTime(
+          { status: "scheduled", startTime: past },
+          now,
+        ),
+      ).toBe(true);
+      expect(
+        canStartConsultationAtTime(
+          { status: "checked-in", startTime: past },
+          now,
+        ),
+      ).toBe(true);
     });
   });
 

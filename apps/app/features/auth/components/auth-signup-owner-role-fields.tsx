@@ -1,23 +1,11 @@
 "use client";
 
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@workspace/ui/components/form/radio-group";
+import { Badge, Label, RadioGroup, RadioGroupItem } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  getFieldError,
-  hasFieldError,
-  InlineFieldError,
-} from "./AuthSharedFields";
+import { getFieldError, hasFieldError, InlineFieldError } from "./AuthSharedFields";
 import type { FieldErrors } from "@/features/auth/types/auth";
 import { parseStringEnumMember } from "@workspace/utils";
-import {
-  OWNER_ROLE_OPTIONS,
-  SIGNUP_OWNER_ROLE_VALUES,
-} from "./auth-signup-step-constants";
+import { OWNER_ROLE_OPTIONS, SIGNUP_OWNER_ROLE_VALUES } from "./auth-signup-step-constants";
 
 export function AuthSignupOwnerRoleFields({
   ownerRole,

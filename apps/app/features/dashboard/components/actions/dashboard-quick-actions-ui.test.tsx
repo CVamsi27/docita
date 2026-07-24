@@ -1,10 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { CalendarPlus, UserPlus } from "lucide-react";
-import {
-  DashboardQuickActionsUI,
-  type QuickAction,
-} from "./dashboard-quick-actions-ui";
+import { DashboardQuickActionsUI, type QuickAction } from "./dashboard-quick-actions-ui";
 
 describe("DashboardQuickActionsUI", () => {
   const actions: QuickAction[] = [

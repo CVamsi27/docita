@@ -12,7 +12,21 @@ export interface IPortalAuthRepository {
 
   findActiveOtp(phone: string, now: Date): Promise<OtpRecord | null>;
 
-  incrementOtpAttempts(id: string): Promise<void>;
+  /**
+   * Atomically increments the OTP attempts counter for the given record
+   * but only if the current `attempts` is below `maxAttempts`. Returns
+   * `true` when the counter was incremented (caller may proceed to
+   * validate the OTP), `false` when the row was already at the cap
+   * (caller MUST treat this as a rate-limit / brute-force signal).
+   *
+   * Implemented as a single conditional UPDATE so concurrent verify
+   * calls cannot race past the cap — without this, the read-then-check
+   * pattern in the service layer would let an attacker fan out
+   * thousands of parallel requests and bypass the 3-attempt limit
+   * (the previous read-then-increment implementation was vulnerable
+   * to exactly this — see the comment on the Prisma implementation).
+   */
+  tryConsumeOtpAttempt(id: string, maxAttempts: number): Promise<boolean>;
 
   markOtpUsed(id: string): Promise<void>;
 

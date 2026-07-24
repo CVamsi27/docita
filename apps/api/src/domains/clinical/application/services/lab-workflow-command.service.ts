@@ -6,11 +6,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DATE_FORMATS, formatDate, getPatientFullName } from '@workspace/utils';
-import { LabType } from '@workspace/db';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   StorageProvider,
   GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
@@ -19,6 +16,8 @@ import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/sen
 import type {
   LabDirectoryRepository,
   LabRecord,
+  CreateLabInput,
+  UpdateLabInput,
 } from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
 import type { LabOrderRepository } from '@/domains/clinical/core/repositories/lab-order.repository.interface';
 import type { LabWorkflowRepository } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
@@ -43,7 +42,6 @@ export class LabWorkflowCommandService {
     private readonly orderRepository: LabOrderRepository,
     private readonly storageProvider: StorageProvider,
     private readonly sendMessage: SendMessageUseCase,
-    private readonly eventEmitter: EventEmitter2,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -93,6 +91,8 @@ export class LabWorkflowCommandService {
       },
       this.clock.now(),
     );
+
+    await this.releaseIfReady(id, clinicId);
   }
 
   async verifyPayment(
@@ -113,7 +113,16 @@ export class LabWorkflowCommandService {
       this.clock.now(),
     );
 
-    if (order.hasResult()) {
+    await this.releaseIfReady(id, clinicId);
+  }
+
+  /**
+   * Auto-release the result once both a result and payment are recorded. Re-loads
+   * the order so the decision reflects the just-committed write, not a stale copy.
+   */
+  private async releaseIfReady(id: string, clinicId: string): Promise<void> {
+    const refreshed = await this.loadOrder(id, clinicId);
+    if (refreshed.canRelease()) {
       await this.releaseResult(id, clinicId);
     }
   }
@@ -174,44 +183,18 @@ export class LabWorkflowCommandService {
     }
 
     await this.workflowRepository.markReleased(id, clinicId, now);
-
-    // allow-direct-emit: fire-and-forget notification after release completes;
-    // the result+payment gates are already checked above.
-    this.eventEmitter.emit(ApplicationEvents.LAB_RESULT_RELEASED, {
-      orderId: id,
-      clinicId,
-      // jscpd:ignore-start
-      patientId: ctx.patient.id,
-    });
   }
 
-  async createLab(
-    clinicId: string,
-    data: {
-      name: string;
-      type: LabType;
-      phone?: string;
-      email?: string;
-      address?: string;
-    },
-  ): Promise<LabRecord> {
+  async createLab(clinicId: string, data: CreateLabInput): Promise<LabRecord> {
     return await this.directoryRepository.createLab(clinicId, data);
   }
 
   async updateLab(
     id: string,
     clinicId: string,
-    data: Partial<{
-      name: string;
-      type: LabType;
-      phone: string;
-      email: string;
-      address: string;
-      active: boolean;
-    }>,
+    data: UpdateLabInput,
   ): Promise<LabRecord> {
     return await this.directoryRepository.updateLab(id, clinicId, data);
-    // jscpd:ignore-end
   }
 
   private async loadOrder(id: string, clinicId: string): Promise<LabOrder> {

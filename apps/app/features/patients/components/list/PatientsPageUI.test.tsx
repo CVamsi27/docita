@@ -6,6 +6,38 @@ import { PatientsPageUI } from "./PatientsPageUI";
 
 const noop = () => {};
 
+const messages = {
+  Patients: {
+    list: {
+      searchPlaceholder: "Enter name or phone",
+      clearSearch: "Clear",
+      emptyTitle: "No patients yet",
+      emptyDescription:
+        "Add your first patient to start tracking their history, appointments, and prescriptions.",
+      emptyAction: "Add patient",
+      pageTitle: "Patients",
+      pageDescription: "Manage your patient records and history.",
+      consultationQueueFull: "Consultation queue",
+      consultationQueueShort: "Queue",
+      addPatient: "Add Patient",
+      tableColumnName: "Name",
+      tableColumnContact: "Contact",
+      tableColumnGender: "Gender",
+      tableColumnActions: "Actions",
+      scheduleAria: "Schedule appointment",
+      scheduleLabel: "Schedule",
+      editAria: "Edit patient",
+      editLabel: "Edit",
+      tableEmptyTitle: "No patients found",
+      tableEmptyDescription: 'No patients found matching "{query}"',
+      tableEmptyDescriptionFallback: "No patients found",
+    },
+  },
+  Common: {
+    retry: "Try again",
+  },
+};
+
 const baseHandlers = {
   onSearchChange: noop,
   onClearSearch: noop,
@@ -46,6 +78,7 @@ describe("PatientsPageUI", () => {
         canGoPrev={false}
         canGoNext={false}
       />,
+      { messages },
     );
 
     expect(screen.getByRole("heading", { name: "Patients" })).toBeVisible();
@@ -69,6 +102,7 @@ describe("PatientsPageUI", () => {
         canGoPrev={false}
         canGoNext={false}
       />,
+      { messages },
     );
 
     expect(
@@ -97,6 +131,7 @@ describe("PatientsPageUI", () => {
         canGoPrev={false}
         canGoNext={false}
       />,
+      { messages },
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Queue/i }));
@@ -121,6 +156,7 @@ describe("PatientsPageUI", () => {
         canGoPrev={false}
         canGoNext={false}
       />,
+      { messages },
     );
 
     fireEvent.click(screen.getAllByText("Ada Lovelace")[0]!);

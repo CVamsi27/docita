@@ -7,6 +7,7 @@ import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import { INTERNAL_SIDEBAR_ITEMS } from "@/lib/internal-nav";
 import { InternalNavLinks } from "@/components/internal-nav-links";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { useAuth } from "@/lib/auth/auth";
 
 export function InternalSidebar() {
@@ -32,6 +33,12 @@ export function InternalSidebar() {
             Theme
           </span>
           <ThemeToggle />
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm font-medium text-muted-foreground">
+            Language
+          </span>
+          <LocaleSwitcher />
         </div>
         <Button
           variant="outline"

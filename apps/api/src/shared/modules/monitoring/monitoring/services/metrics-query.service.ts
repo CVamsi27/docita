@@ -6,6 +6,7 @@ import {
   API_REQUEST_METRICS_REPOSITORY_TOKEN,
   type ApiRequestMetricsRepository,
 } from '@/shared/modules/monitoring/monitoring/ports/api-request-metrics.repository.port';
+import { BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
 @Injectable()
 export class MetricsQueryService {
@@ -35,7 +36,7 @@ export class MetricsQueryService {
       return await this.prisma.systemMetric.findMany({
         where,
         orderBy: { recordedAt: 'asc' },
-        take: 1000,
+        take: BULK_READ_LIMIT,
       });
     } catch (error) {
       this.logger.error(

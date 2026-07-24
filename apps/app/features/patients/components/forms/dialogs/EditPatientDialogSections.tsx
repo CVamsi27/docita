@@ -4,11 +4,7 @@ import type { Control } from "react-hook-form";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/form/button";
 import type { UpdatePatientRequest } from "@workspace/types";
-import {
-  SharedPatientContactFields,
-  SharedPatientIdentityFields,
-  SharedPatientNameFields,
-} from "./shared-patient-info-fields";
+import { SharedPatientContactFields, SharedPatientIdentityFields, SharedPatientNameFields } from "./shared-patient-info-fields";
 
 interface PatientBasicInfoFieldsProps {
   control: Control<UpdatePatientRequest>;

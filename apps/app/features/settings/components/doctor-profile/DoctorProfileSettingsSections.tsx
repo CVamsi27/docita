@@ -10,6 +10,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { FormFieldGroup } from "@workspace/ui/components";
 import { Input } from "@workspace/ui/components/form/input";
 import type { AppAuthUser, User } from "@workspace/types";
+import { useTranslations } from "next-intl";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";
 import Link from "next/link";
 import {
@@ -17,54 +18,66 @@ import {
   CheckCircle2,
   Clock,
   PenLine,
-  type LucideIcon,
 } from "lucide-react";
 import { toAbsoluteApiUrl } from "@/lib/utils/api-url";
 import { getDoctorVerificationPublicNote } from "@/lib/formatters/doctor-verification-display";
 
-type RegistrationStatusBadge = {
-  label: string;
-  variant: "outline" | "secondary" | "destructive";
-  className: string;
-  Icon: LucideIcon;
-};
+/**
+ * Phase 3 (per-feature): apps/app Settings > Doctor profile sections
+ * (digital signature + medical registration + HPR ID). 7 literals
+ * converted to useTranslations("Settings.doctorProfile").
+ */
+function useDoctorProfileTranslations() {
+  return useTranslations("Settings.doctorProfile");
+}
+
 type DoctorProfile = User | AppAuthUser;
 
-export function resolveRegistrationStatusBadge(
-  hasRegistration: boolean,
-  verificationStatus: DoctorProfile["verificationStatus"] | undefined,
-): RegistrationStatusBadge | null {
+// Component (not a helper) because it calls useTranslations — a React
+// hook. Helpers that invoke hooks violate react-hooks/rules-of-hooks and
+// risk the hook state desyncing across calls.
+export function RegistrationStatusBadge({
+  hasRegistration,
+  verificationStatus,
+}: {
+  hasRegistration: boolean;
+  verificationStatus: DoctorProfile["verificationStatus"] | undefined;
+}) {
+  const t = useDoctorProfileTranslations();
   if (!hasRegistration) return null;
   if (verificationStatus === "VERIFIED") {
-    return {
-      label: "Verified",
-      variant: "outline",
-      className: "gap-1.5 border-primary/30 text-primary",
-      Icon: CheckCircle2,
-    };
+    return (
+      <Badge
+        variant="outline"
+        className="gap-1.5 border-primary/30 text-primary"
+      >
+        <CheckCircle2 className="h-3.5 w-3.5" />
+        {t("statusVerified")}
+      </Badge>
+    );
   }
   if (verificationStatus === "PENDING") {
-    return {
-      label: "Verification in progress",
-      variant: "secondary",
-      className: "gap-1.5",
-      Icon: Clock,
-    };
+    return (
+      <Badge variant="secondary" className="gap-1.5">
+        <Clock className="h-3.5 w-3.5" />
+        {t("statusPending")}
+      </Badge>
+    );
   }
   if (verificationStatus === "FAILED" || verificationStatus === "REJECTED") {
-    return {
-      label: "Could not verify",
-      variant: "destructive",
-      className: "gap-1.5",
-      Icon: AlertTriangle,
-    };
+    return (
+      <Badge variant="destructive" className="gap-1.5">
+        <AlertTriangle className="h-3.5 w-3.5" />
+        {t("statusFailed")}
+      </Badge>
+    );
   }
-  return {
-    label: "Not verified yet",
-    variant: "outline",
-    className: "gap-1.5 text-muted-foreground",
-    Icon: PenLine,
-  };
+  return (
+    <Badge variant="outline" className="gap-1.5 text-muted-foreground">
+      <PenLine className="h-3.5 w-3.5" />
+      {t("statusNotVerified")}
+    </Badge>
+  );
 }
 
 export function DigitalSignatureCard({
@@ -72,6 +85,7 @@ export function DigitalSignatureCard({
 }: {
   signatureUrl: string | null | undefined;
 }) {
+  const t = useDoctorProfileTranslations();
   const hasSignature = !!signatureUrl;
   const resolvedSignatureUrl = signatureUrl
     ? toAbsoluteApiUrl(signatureUrl)
@@ -82,9 +96,9 @@ export function DigitalSignatureCard({
       <CardHeader className="border-b border-border/60 pb-5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <CardTitle>Digital signature</CardTitle>
+            <CardTitle>{t("digitalSignatureTitle")}</CardTitle>
             <CardDescription>
-              Appears on prescriptions and medical documents you generate.
+              {t("digitalSignatureDescription")}
             </CardDescription>
           </div>
           {hasSignature && (
@@ -93,7 +107,7 @@ export function DigitalSignatureCard({
               className="gap-1.5 border-primary/30 text-primary"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Uploaded
+              {t("uploadedBadge")}
             </Badge>
           )}
         </div>
@@ -103,7 +117,7 @@ export function DigitalSignatureCard({
           <div className="flex min-h-[100px] items-center justify-center rounded-[calc(var(--radius)-4px)] border border-border/60 bg-card p-4">
             <img
               src={resolvedSignatureUrl}
-              alt="Your current signature"
+              alt={t("signatureAlt")}
               className="max-h-24 max-w-full object-contain"
             />
           </div>
@@ -112,10 +126,10 @@ export function DigitalSignatureCard({
           <div className="rounded-[calc(var(--radius)-4px)] border border-dashed border-border/70 bg-muted/30 p-6 text-center">
             <PenLine className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              No signature uploaded yet.
+              {t("noSignatureTitle")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Add your signature to generate prescriptions.
+              {t("noSignatureHelper")}
             </p>
           </div>
         )}
@@ -129,6 +143,7 @@ export function MedicalRegistrationCard({
 }: {
   profile: DoctorProfile | null | undefined;
 }) {
+  const t = useDoctorProfileTranslations();
   const hasRegistration = !!profile?.registrationNumber;
   const registrationProfile = hasRegistration && profile ? profile : null;
   const verificationStatus = profile?.verificationStatus;
@@ -136,30 +151,23 @@ export function MedicalRegistrationCard({
     verificationStatus,
     profile?.verificationReason,
   );
-  const registrationStatusBadge = resolveRegistrationStatusBadge(
-    hasRegistration,
-    verificationStatus,
+  const registrationStatusBadge = (
+    <RegistrationStatusBadge
+      hasRegistration={hasRegistration}
+      verificationStatus={verificationStatus}
+    />
   );
-  const RegistrationBadgeIcon = registrationStatusBadge?.Icon;
   return (
     <Card>
       <CardHeader className="border-b border-border/60 pb-5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <CardTitle>Medical registration</CardTitle>
+            <CardTitle>{t("medicalRegistrationTitle")}</CardTitle>
             <CardDescription>
-              Council registration number used for regulatory compliance.
+              {t("medicalRegistrationDescription")}
             </CardDescription>
           </div>
-          {registrationStatusBadge && RegistrationBadgeIcon ? (
-            <Badge
-              variant={registrationStatusBadge.variant}
-              className={registrationStatusBadge.className}
-            >
-              <RegistrationBadgeIcon className="h-3.5 w-3.5" />
-              {registrationStatusBadge.label}
-            </Badge>
-          ) : null}
+          {registrationStatusBadge}
         </div>
       </CardHeader>
       <CardContent className="pt-5">
@@ -176,7 +184,7 @@ export function MedicalRegistrationCard({
             verificationStatus === "FAILED") && (
             <div className="mt-3 flex items-center justify-end">
               <Button variant="outline" size="sm" asChild>
-                <Link href="/verify-doctor">Update Registration Details</Link>
+                <Link href="/verify-doctor">{t("updateRegistrationButton")}</Link>
               </Button>
             </div>
           )}
@@ -198,6 +206,7 @@ export function HprIdCard({
   onChange: (value: string) => void;
   onSave: () => void;
 }) {
+  const t = useDoctorProfileTranslations();
   const hasSavedValue = savedValue.trim().length > 0;
   const isDirty = value.trim() !== savedValue.trim();
 
@@ -206,9 +215,9 @@ export function HprIdCard({
       <CardHeader className="border-b border-border/60 pb-5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <CardTitle>HPR ID</CardTitle>
+            <CardTitle>{t("hprIdTitle")}</CardTitle>
             <CardDescription>
-              Health Professional Registry ID used for ABDM-linked records.
+              {t("hprIdDescription")}
             </CardDescription>
           </div>
           {hasSavedValue ? (
@@ -217,26 +226,26 @@ export function HprIdCard({
               className="gap-1.5 border-primary/30 text-primary"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Saved
+              {t("hprIdSaved")}
             </Badge>
           ) : (
             <Badge variant="outline" className="gap-1.5 text-muted-foreground">
               <Clock className="h-3.5 w-3.5" />
-              Pending
+              {t("hprIdPending")}
             </Badge>
           )}
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 pt-5">
         <FormFieldGroup
-          label="HPR ID"
+          label={t("hprIdLabel")}
           htmlFor="doctor-hpr-id"
-          hint="Add this before generating ABDM M2 records for this doctor."
+          hint={t("hprIdHint")}
         >
           <Input
             id="doctor-hpr-id"
             autoComplete="off"
-            placeholder="Enter HPR ID"
+            placeholder={t("hprIdPlaceholder")}
             className="font-mono text-[var(--fs-sm)] tracking-tight"
             value={value}
             onChange={(event) => onChange(event.target.value)}
@@ -248,7 +257,7 @@ export function HprIdCard({
             onClick={onSave}
             disabled={isPending || !isDirty}
           >
-            {isPending ? "Saving..." : "Save HPR ID"}
+            {isPending ? t("savingLabel") : t("saveHprIdButton")}
           </Button>
         </div>
       </CardContent>
@@ -263,10 +272,11 @@ function RegistrationDetails({
   profile: DoctorProfile;
   registrationVerificationNote: string | null;
 }) {
+  const t = useDoctorProfileTranslations();
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3 rounded-[calc(var(--radius)-4px)] border border-border/60 bg-muted/30 px-4 py-3">
-        <span className="ui-eyebrow">Reg #</span>
+        <span className="ui-eyebrow">{t("regNumberLabel")}</span>
         <span className="ui-mono text-sm font-medium text-foreground">
           {profile.registrationNumber}
         </span>
@@ -280,7 +290,7 @@ function RegistrationDetails({
         <p className="text-xs text-muted-foreground">
           {profile.registrationCouncil ? (
             <>
-              Issuing council:{" "}
+              {t("issuingCouncilLabel")}{" "}
               <span className="text-foreground">
                 {profile.registrationCouncil}
               </span>
@@ -289,7 +299,7 @@ function RegistrationDetails({
           {profile.registrationStateCode ? (
             <>
               {profile.registrationCouncil ? " · " : null}
-              Region:{" "}
+              {t("regionLabel")}{" "}
               <span className="text-foreground">
                 {profile.registrationStateCode}
               </span>
@@ -302,11 +312,12 @@ function RegistrationDetails({
 }
 
 function MissingRegistrationNotice() {
+  const t = useDoctorProfileTranslations();
   return (
     <div className="flex items-center justify-between rounded-[calc(var(--radius)-4px)] border border-dashed border-border/70 bg-muted/30 px-4 py-3">
-      <p className="text-sm text-muted-foreground">Not provided</p>
+      <p className="text-sm text-muted-foreground">{t("notProvidedLabel")}</p>
       <Button variant="outline" size="sm" asChild>
-        <Link href="/verify-doctor">Add registration number</Link>
+        <Link href="/verify-doctor">{t("addRegistrationButton")}</Link>
       </Button>
     </div>
   );

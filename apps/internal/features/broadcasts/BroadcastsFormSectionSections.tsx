@@ -1,34 +1,26 @@
 // check-as-cast-density: allow-file — narrowing casts required by generic signatures or external types
 "use client";
 
-// jscpd:ignore-start
 import type { ChangeEvent } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
-import {
-  Collapsible,
-// jscpd:ignore-end
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
+import { Badge, Button, Collapsible, CollapsibleContent, CollapsibleTrigger, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { AlertCircle, FileText, Send, Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { BROADCAST_PRESETS, type BroadcastPresetId } from "./broadcast-presets";
 
 interface ParseCsvResult {
   recipients: { phoneNumber: string; name?: string }[];
   skipped: { row: number; reason: string }[];
   totalRows: number;
+}
+
+/**
+ * Phase 3 (per-feature): apps/internal Broadcasts > Form section
+ * (6 form sub-components). 8 literals converted to
+ * useTranslations("InternalBroadcasts.form").
+ */
+function useBroadcastsFormTranslations() {
+  return useTranslations("InternalBroadcasts.form");
 }
 
 interface AudiencePresetSectionProps {
@@ -42,9 +34,10 @@ export function AudiencePresetSection({
   onPresetIdChange,
   selectedPresetDescription,
 }: AudiencePresetSectionProps) {
+  const t = useBroadcastsFormTranslations();
   return (
     <div className="space-y-2">
-      <Label htmlFor="broadcast-audience">Audience preset</Label>
+      <Label htmlFor="broadcast-audience">{t("audiencePresetLabel")}</Label>
       <Select
         value={presetId}
         onValueChange={(value) =>
@@ -52,7 +45,7 @@ export function AudiencePresetSection({
         }
       >
         <SelectTrigger id="broadcast-audience">
-          <SelectValue placeholder="Select audience" />
+          <SelectValue placeholder={t("audiencePlaceholder")} />
         </SelectTrigger>
         <SelectContent>
           {BROADCAST_PRESETS.map((preset) => (
@@ -80,16 +73,17 @@ export function BroadcastNameSection({
   title,
   onTitleChange,
 }: BroadcastNameSectionProps) {
+  const t = useBroadcastsFormTranslations();
   return (
     <div className="space-y-2">
       <Label htmlFor="broadcast-title">
-        Broadcast name (optional)
+        {t("broadcastNameLabel")}
       </Label>
       <Input
         id="broadcast-title"
         value={title}
         onChange={(event) => onTitleChange(event.target.value)}
-        placeholder="Auto-generated from audience + timestamp"
+        placeholder={t("broadcastNamePlaceholder")}
       />
     </div>
   );
@@ -112,15 +106,14 @@ export function SendModeSection({
   selectedPresetMetaTemplateName,
   selectedPresetBody,
 }: SendModeSectionProps) {
+  const t = useBroadcastsFormTranslations();
   return (
     <div className="space-y-2 rounded-[var(--radius)] border p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-0.5">
-          <p className="text-sm font-medium">Send mode</p>
+          <p className="text-sm font-medium">{t("sendModeTitle")}</p>
           <p className="text-xs text-muted-foreground">
-            Templates are required when the recipient has never
-            messaged us. Free text works only inside the 24-hour
-            session window.
+            {t("sendModeDescription")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -130,7 +123,7 @@ export function SendModeSection({
             size="sm"
             onClick={() => onUseTemplateChange(true)}
           >
-            Meta template
+            {t("metaTemplateButton")}
           </Button>
           <Button
             type="button"
@@ -138,17 +131,13 @@ export function SendModeSection({
             size="sm"
             onClick={() => onUseTemplateChange(false)}
           >
-            Free text
+            {t("freeTextButton")}
           </Button>
         </div>
       </div>
       {useTemplate ? (
         <p className="text-xs text-muted-foreground">
-          Will send the approved Meta template{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5">
-            {selectedPresetMetaTemplateName}
-          </code>{" "}
-          using the recipient name template variable.
+          {t("templateHelper", { name: selectedPresetMetaTemplateName ?? "" })}
         </p>
       ) : (
         <Textarea
@@ -174,10 +163,11 @@ export function RecipientsCsvSection({
   csvFileName,
   onCsvUpload,
 }: RecipientsCsvSectionProps) {
+  const t = useBroadcastsFormTranslations();
   return (
     <div className="space-y-2">
       <Label htmlFor="broadcast-csv">
-        Recipients CSV (phone column required)
+        {t("csvLabel")}
       </Label>
       <div className="flex items-center gap-3">
         <Button asChild type="button" variant="outline">
@@ -186,7 +176,7 @@ export function RecipientsCsvSection({
             className="flex cursor-pointer items-center gap-2"
           >
             <Upload className="h-4 w-4" />
-            Upload CSV
+            {t("uploadCsvButton")}
           </label>
         </Button>
         <input
@@ -204,12 +194,7 @@ export function RecipientsCsvSection({
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        CSV must include a header row with a column named{" "}
-        <code className="rounded bg-muted px-1 py-0.5">phone</code>{" "}
-        (also accepts <code>mobile</code> / <code>number</code>).
-        Optional <code>name</code> column is interpolated into{" "}
-        <code>{`{{name}}`}</code>. 10-digit numbers are auto-prefixed
-        with country code 91.
+        {t("csvHelper")}
       </p>
     </div>
   );
@@ -226,17 +211,18 @@ export function ParseResultSection({
   recipientCount,
   skippedRows,
 }: ParseResultSectionProps) {
+  const t = useBroadcastsFormTranslations();
   if (!parseResult) return null;
 
   return (
     <div className="rounded-[var(--radius)] border bg-muted/20 p-4 text-sm">
       <div className="flex flex-wrap items-center gap-3">
         <Badge variant="default">
-          {recipientCount} valid recipients
+          {t("validRecipientsBadge", { count: recipientCount })}
         </Badge>
         {skippedRows.length > 0 && (
           <Badge variant="destructive">
-            {skippedRows.length} skipped
+            {t("skippedBadge", { count: skippedRows.length })}
           </Badge>
         )}
       </div>
@@ -249,19 +235,19 @@ export function ParseResultSection({
               size="sm"
               className="h-auto px-0 text-xs text-muted-foreground"
             >
-              Show skipped rows
+              {t("showSkippedButton")}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <ul className="mt-2 max-h-40 list-disc space-y-1 overflow-y-auto pl-5 text-muted-foreground">
               {skippedRows.slice(0, 50).map((skip, idx) => (
                 <li key={idx}>
-                  Row {skip.row}: {skip.reason}
+                  {t("skippedRowEntry", { row: skip.row, reason: skip.reason })}
                 </li>
               ))}
               {skippedRows.length > 50 && (
                 <li>
-                  … and {skippedRows.length - 50} more skipped rows
+                  {t("moreSkippedHint", { count: skippedRows.length - 50 })}
                 </li>
               )}
             </ul>
@@ -296,11 +282,11 @@ export function SubmitSection({
   parseResult,
   isPending,
 }: SubmitSectionProps) {
+  const t = useBroadcastsFormTranslations();
   return (
     <div className="flex items-center justify-between gap-3 border-t pt-4">
       <p className="text-xs text-muted-foreground">
-        Sending is throttled (~4 messages/sec) and runs in the
-        background. You can close this page.
+        {t("throttleNote")}
       </p>
       <Button
         type="submit"
@@ -316,7 +302,7 @@ export function SubmitSection({
         ) : (
           <Send className="h-4 w-4" />
         )}
-        Start broadcast
+        {t("startBroadcastButton")}
       </Button>
     </div>
   );

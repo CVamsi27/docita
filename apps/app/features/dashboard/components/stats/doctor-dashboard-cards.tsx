@@ -3,22 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatTime } from "@/lib/formatters";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Avatar,
-  AvatarFallback,
-} from "@workspace/ui/components/indicators/avatar";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  ListRow,
-  ListRowGroup,
-} from "@workspace/ui/components/data-display/list-row";
+import { Avatar, AvatarFallback, Badge, Button, Card, CardContent, CardHeader, CardTitle, ListRow, ListRowGroup } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Play, Stethoscope } from "lucide-react";
 
@@ -88,7 +73,7 @@ export function DoctorDashboardCardsUI({
         </CardHeader>
         <CardContent>
           {currentPatient ? (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <div className="flex flex-col gap-3 rounded-lg bg-muted/30 p-3 sm:flex-row sm:items-center sm:gap-4">
               <Avatar className="h-10 w-10 sm:h-14 sm:w-14 shrink-0">
                 <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-base sm:text-lg font-medium">
                   {getInitials(
@@ -143,7 +128,7 @@ export function DoctorDashboardCardsUI({
           )}
 
           {nextPatients.length > 0 ? (
-            <ListRowGroup className="mt-4 md:hidden">
+            <ListRowGroup className="mt-4">
               {nextPatients.slice(0, 5).map((appt, index) => {
                 const name = appt.patient
                   ? getPatientFullName(appt.patient).trim()

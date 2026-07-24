@@ -3,14 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/form/button";
-import {
-  CalendarPlus,
-  Pencil,
-  Play,
-  Sparkles,
-  Stethoscope,
-  UserPlus,
-} from "lucide-react";
+import { CalendarPlus, Pencil, Play, Sparkles, Stethoscope, UserPlus } from "lucide-react";
 import type { Appointment } from "@workspace/types";
 import { AI_FEATURES_ENABLED } from "@/lib/config/ai-features";
 import { Feature, usePermissionStore } from "@/lib/stores/permission-store";

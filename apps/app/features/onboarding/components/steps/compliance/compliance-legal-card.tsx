@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Badge, Button } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { CheckCircle2, Circle } from "lucide-react";
 

@@ -1,30 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { useDebounce } from "@workspace/hooks";
-import {
-  PRICING_CURRENCY_CONFIG,
-  type SupportedCurrency,
-  type TierName,
-} from "@workspace/types";
+import { PRICING_CURRENCY_CONFIG, type SupportedCurrency, type TierName } from "@workspace/types";
 import { formatAmountLocale } from "@workspace/utils";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import {
-  DEFAULT_PRICING_USAGE_INPUTS,
-  PRICING_ESTIMATE_DEBOUNCE_MS,
-  PRICING_ESTIMATOR_TIERS,
-} from "@/features/subscription/config/pricing-config";
-import {
-  useEstimate,
-  usePricingConfig,
-} from "@/features/subscription/hooks/use-pricing";
+import { DEFAULT_PRICING_USAGE_INPUTS, PRICING_ESTIMATE_DEBOUNCE_MS, PRICING_ESTIMATOR_TIERS } from "@/features/subscription/config/pricing-config";
+import { useEstimate, usePricingConfig } from "@/features/subscription/hooks/use-pricing";
 import { DynamicPricingEstimatorInputs } from "./dynamic-pricing-estimator-inputs";
 import { DynamicPricingEstimatorBreakdown } from "./dynamic-pricing-estimator-breakdown";
 import type { EstimateUsageInputs } from "@/features/subscription/hooks/use-pricing";
@@ -115,10 +98,10 @@ export function DynamicPricingEstimator({
       maximumFractionDigits: amtFmt.decimalPlaces,
     });
 
-  const estimatorTierIds = new Set<string>(PRICING_ESTIMATOR_TIERS);
-  const tiers = (pricingConfig?.tiers || [])
+  const estimatorTierIds = new Set<TierName>(PRICING_ESTIMATOR_TIERS);
+  const tiers: TierName[] = (pricingConfig?.tiers || [])
     .map((tierInfo) => tierInfo.id)
-    .filter((tierId) => estimatorTierIds.has(tierId));
+    .filter((tierId): tierId is TierName => estimatorTierIds.has(tierId as TierName));
 
   return (
     <Card>

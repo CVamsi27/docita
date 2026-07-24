@@ -4,25 +4,13 @@ import { FC, useCallback, useState } from "react";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
 import { useCheckInAppointment } from "@workspace/data-access";
-import {
-  AppointmentRowActionDialogs,
-  useAppointmentRowActions,
-} from "@/features/appointments";
+import { AppointmentRowActionDialogs, useAppointmentRowActions } from "@/features/appointments";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ConsultationDashboardSkeleton } from "./ConsultationDashboardSkeleton";
-import {
-  ConsultationDashboardErrorState,
-  ConsultationDashboardHeader,
-  ConsultationDashboardStats,
-  DoctorNextSection,
-  NursePrepSection,
-} from "./ConsultationDashboardSections";
+import { ConsultationDashboardErrorState, ConsultationDashboardHeader, ConsultationDashboardStats, DoctorNextSection, NursePrepSection } from "./ConsultationDashboardSections";
 import { ConsultationHistoryList } from "./ConsultationHistoryList";
 import { ConsultationWalkInDialog } from "./ConsultationWalkInDialog";
-import {
-  buildFollowUpAppointmentHref,
-  deriveConsultationDashboardRoles,
-} from "./consultation-dashboard-ui-helpers";
+import { buildFollowUpAppointmentHref, deriveConsultationDashboardRoles } from "./consultation-dashboard-ui-helpers";
 import { VitalsModal } from "./modals/VitalsModal";
 import { BillingModal } from "./modals/BillingModal";
 import { useAppointmentOpenInvoice } from "@/features/consultation/hooks/use-appointment-open-invoice";

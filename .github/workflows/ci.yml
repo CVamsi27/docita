@@ -167,6 +167,14 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: pnpm --filter @docita/app run build:cloudflare
 
+      - name: Enforce apps/app worker bundle cap
+        if: github.event_name == 'workflow_dispatch'
+        # The build:cloudflare:base script already runs the check
+        # internally and fails the build on overage. This step is
+        # an explicit re-run so the gate is visible in the CI
+        # workflow summary.
+        run: pnpm check:worker-size:app
+
   internal-quality:
     name: Internal Unit Checks
     needs: changes
@@ -212,6 +220,11 @@ jobs:
       - name: Build internal for Cloudflare
         if: github.event_name == 'workflow_dispatch'
         run: pnpm --filter @docita/internal run build:cloudflare
+
+      - name: Enforce apps/internal worker bundle cap
+        if: github.event_name == 'workflow_dispatch'
+        # Mirrors the apps/app gate above.
+        run: pnpm check:worker-size:internal
 
   landing-quality:
     name: Landing Checks
@@ -297,32 +310,24 @@ jobs:
     name: Security Audit
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.dependencies == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Prepare pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@10.30.3 --activate
-
-      - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22.12.0
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Audit dependencies
-        run: pnpm audit --audit-level=high
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    # The previous `pnpm audit --audit-level=high` step relied on the
+    # registry.npmjs.org audit endpoint, which npm retired in 2025 — that
+    # endpoint now returns 410. Switched to OSV-Scanner via the
+    # google/osv-scanner-action reusable workflow (the non-PR variant), which
+    # queries OSV.dev directly. Covers both PRs and pushes; PRs additionally
+    # get the diff-aware `osv-scan` job below. No `runs-on:` — the reusable
+    # workflow supplies its own runner.
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.8
 
   osv-scan:
     name: OSV Vulnerability Scan
     needs: changes
     # PR-only: flags new vulnerabilities introduced by the PR against base.
-    # Pushes to main are covered by the scheduled `pnpm audit` step above plus
+    # Pushes to main are covered by the `Security Audit` job above (OSV) plus
     # OSV upstream advisories surfacing in dependabot. Keeping this PR-gated
     # avoids failing main on transient upstream advisories.
     if: github.event_name == 'pull_request' && needs.changes.outputs.dependencies == 'true'

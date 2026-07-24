@@ -55,6 +55,9 @@ export class SyncAppointmentDiagnosesUseCase {
     const existing = await this.persistence.diagnosis.findMany({
       where: { appointmentId, appointment: { clinicId } },
       select: { icdCodeId: true, notes: true, isPrimary: true },
+      // No `take`: bounded by (appointmentId, clinicId). An appointment owns
+      // a small set of coded diagnoses by construction; the result feeds a
+      // content-hash check, so truncation would silently change the hash.
     });
     const existingHash = hashDiagnosesContent(
       existing.map((d) => ({

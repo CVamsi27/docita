@@ -2,12 +2,7 @@
 
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 
 export interface MetricStatCardProps {
   /** Card title shown next to the icon. */

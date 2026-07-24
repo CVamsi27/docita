@@ -1,26 +1,12 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { Baby, Eye, Smile } from "lucide-react";
-import {
-  GrowthChartData,
-  OphthalmologyExamData,
-  PatientWithMedicalHistory,
-} from "@workspace/types";
+import { GrowthChartData, OphthalmologyExamData, PatientWithMedicalHistory } from "@workspace/types";
 import { DentalChartUI, type DentalChartValue } from "@/features/consultation";
 import { GrowthChartUI } from "@/features/consultation";
 import { VisionExamUI } from "@/features/consultation";
-import {
-  parseDentalChartValue,
-  parseGrowthChartValue,
-  parseOphthalmologyExamValue,
-} from "@/features/patients/components/details/patient-medical-history-helpers";
+import { parseDentalChartValue, parseGrowthChartValue, parseOphthalmologyExamValue } from "@/features/patients/components/details/patient-medical-history-helpers";
 
 function readCustomData(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)

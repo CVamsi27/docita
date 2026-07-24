@@ -1,14 +1,6 @@
 import type { UseFormReturn } from "react-hook-form";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
-import {
-  ClinicAddressHeader,
-  AddressLine1Field,
-  AddressLine2Field,
-  CityStateFields,
-  CountryPostalFields,
-  AddressPreview,
-  GoogleMapsLinkField,
-} from "./ClinicAddressSectionSections";
+import { ClinicAddressHeader, AddressLine1Field, AddressLine2Field, CityStateFields, CountryPostalFields, AddressPreview, GoogleMapsLinkField } from "./ClinicAddressSectionSections";
 
 interface ClinicAddressSectionProps {
   clinicForm: UseFormReturn<ClinicDetails>;
@@ -30,7 +22,7 @@ export function ClinicAddressSection({
   const mapsLocationError = clinicForm.formState.errors.mapsLocation?.message;
 
   return (
-    <div className="rounded-lg border bg-muted/20 p-4 shadow-sm">
+    <div>
       <ClinicAddressHeader
         isPinned={isPinned}
         onOpenMapPicker={onOpenMapPicker}

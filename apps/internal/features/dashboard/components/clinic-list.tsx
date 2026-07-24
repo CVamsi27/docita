@@ -1,6 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -15,6 +16,15 @@ import { Building2 } from "lucide-react";
 import { mapDbClinicTierStringToTierName, TIER_INFO } from "@workspace/types";
 import { getInternalClinicTypeDisplay } from "@/lib/clinic-display";
 import { getInternalTierBadgeClass } from "@/lib/tier-display";
+
+/**
+ * Phase 3 (per-feature): apps/internal Dashboard > Clinic list
+ * (admin facility table). 9 literals converted to
+ * useTranslations("InternalDashboard.clinicList").
+ */
+function useClinicListTranslations() {
+  return useTranslations("InternalDashboard.clinicList");
+}
 
 function getTierDisplay(tier: string): { name: string; className: string } {
 // jscpd:ignore-end
@@ -58,18 +68,19 @@ export function ClinicList({
   loading: boolean;
   onUpdate: () => void;
 }) {
+  const t = useClinicListTranslations();
   if (loading) return (
       <div className="flex h-24 items-center justify-center text-muted-foreground">
-        Loading facilities…
+        {t("loadingLabel")}
       </div>
     );
 
   if (clinics.length === 0) return (
       <div className="ui-panel-muted flex flex-col items-center justify-center h-64 text-center">
         <Building2 className="h-10 w-10 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium">No clinics found</h3>
+        <h3 className="text-lg font-medium">{t("emptyTitle")}</h3>
         <p className="text-sm text-muted-foreground mt-1">
-          Get started by creating a new clinic.
+          {t("emptyHint")}
         </p>
       </div>
     );
@@ -79,14 +90,14 @@ export function ClinicList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Contact</TableHead>
-            <TableHead>Tier</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Users</TableHead>
-            <TableHead>Patients</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t("colName")}</TableHead>
+            <TableHead>{t("colContact")}</TableHead>
+            <TableHead>{t("colTier")}</TableHead>
+            <TableHead>{t("colType")}</TableHead>
+            <TableHead>{t("colUsers")}</TableHead>
+            <TableHead>{t("colPatients")}</TableHead>
+            <TableHead>{t("colStatus")}</TableHead>
+            <TableHead className="text-right">{t("colActions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -129,7 +140,7 @@ export function ClinicList({
                 <TableCell>{clinic._count?.patients || 0}</TableCell>
                 <TableCell>
                   <Badge variant={clinic.active ? "default" : "secondary"}>
-                    {clinic.active ? "Active" : "Inactive"}
+                    {clinic.active ? t("statusActive") : t("statusInactive")}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">

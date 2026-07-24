@@ -1,17 +1,11 @@
 "use client";
 
 import { BackButton } from "@/components/navigation/back-button";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Tabs } from "@workspace/ui/components/navigation/tabs";
-import {
-  SettingsPageHeaderUserMeta,
-  SettingsProfileHeader,
-} from "./profile/SettingsProfileHeader";
+import { AppPageScaffold, Tabs } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
+import { SettingsPageHeaderUserMeta, SettingsProfileHeader } from "./profile/SettingsProfileHeader";
 import { SettingsExpandedSearch } from "./settings-expanded-search";
-import {
-  SettingsPageTabNav,
-  type SettingsCategory,
-} from "./settings-page-tab-nav";
+import { SettingsPageTabNav, type SettingsCategory } from "./settings-page-tab-nav";
 import { SettingsPageTabPanels } from "./settings-page-tab-panels";
 
 export type {
@@ -34,6 +28,7 @@ export function SettingsPageUI({
   tabValue,
   onTabChange,
 }: SettingsPageUIProps) {
+  const t = useTranslations("Settings.page");
   const visibleTabValues = new Set(
     filteredTabs.flatMap((category) =>
       category.items.map((item) => item.value),
@@ -46,15 +41,14 @@ export function SettingsPageUI({
       header={
         <div className="flex min-w-0 flex-col gap-4">
           <div className="hidden md:block">
-            <BackButton fallback="/today" label="Back to Today" />
+            <BackButton fallback="/today" label={t("backToToday")} />
           </div>
           <div className="grid min-w-0 grid-cols-1 items-end gap-x-6 gap-y-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
             <div className="flex min-w-0 flex-col gap-1.5">
-              <span className="ui-eyebrow">Workspace</span>
-              <h1 className="ui-page-title">Settings</h1>
+              <span className="ui-eyebrow">{t("workspaceEyebrow")}</span>
+              <h1 className="ui-page-title">{t("pageTitle")}</h1>
               <p className="ui-page-subtitle max-w-xl">
-                Tune your clinic, team, and patient touchpoints — one calm,
-                consistent control room.
+                {t("pageSubtitle")}
               </p>
             </div>
             <SettingsPageHeaderUserMeta />

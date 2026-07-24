@@ -1,33 +1,10 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-// jscpd:ignore-start
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-// jscpd:ignore-end
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components";
 import { EnterpriseContractsEditorForm } from "./enterprise-contracts-editor-form";
-import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
+import type { EnterpriseContractsEditorState } from "./enterprise-contracts-shared-types";
 
-// jscpd:ignore-start
-type EnterpriseContractsEditorDialogProps = Pick<
-  EnterpriseContractsPageState,
-  | "editorOpen"
-  | "setEditorOpen"
-  | "editorMode"
-  | "form"
-  | "setForm"
-  | "editingContractId"
-  | "applyPreset"
-  | "submit"
-  | "busy"
->;
-// jscpd:ignore-end
+type EnterpriseContractsEditorDialogProps = EnterpriseContractsEditorState;
 
 export function EnterpriseContractsEditorDialog({
   editorOpen,

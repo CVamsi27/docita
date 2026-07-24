@@ -9,9 +9,7 @@ import { ExcelUploadStep } from "@/features/excel/components/ExcelUploadStep";
 import { ExcelMappingStep } from "@/features/excel/components/ExcelMappingStep";
 import { ExcelImportingStep } from "@/features/excel/components/ExcelImportingStep";
 import { ExcelResultsStep } from "@/features/excel/components/ExcelResultsStep";
-import { Button } from "@workspace/ui/components/form/button";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { AppPageScaffold, Button, PageHeader } from "@workspace/ui/components";
 
 export function ExcelImportPageContent() {
   const {

@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { formatDate, getPatientFullName } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import {
   Download,
   Eye,
@@ -14,6 +15,15 @@ import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import type { Prescription } from "@workspace/types";
+
+/**
+ * Phase 3 (per-feature): apps/app Prescriptions > Table sections
+ * (list cells + actions cell + column factory). 8 literals converted to
+ * useTranslations("Prescriptions.table").
+ */
+function usePrescriptionsTableTranslations() {
+  return useTranslations("Prescriptions.table");
+}
 
 export type SortKey = "date" | "patient" | "diagnosis" | "medications";
 export type SortDirection = "asc" | "desc";
@@ -82,10 +92,11 @@ function DiagnosisCell({ prescription }: { prescription: Prescription }) {
 }
 
 function MedicationsCell({ prescription }: { prescription: Prescription }) {
+  const t = usePrescriptionsTableTranslations();
   return (
     <Badge variant="secondary">
       <Pill className="mr-1 h-3 w-3" />
-      {prescription.medications?.length || 0} meds
+      {t("medsCount", { count: prescription.medications?.length || 0 })}
     </Badge>
   );
 }
@@ -105,6 +116,7 @@ function ActionsCell({
   prescription: Prescription;
   onDownloadPDF: (id: string) => void;
 }) {
+  const t = usePrescriptionsTableTranslations();
   const handlePrint = () => {
     if (!prescription.id) return;
     window.open(
@@ -115,18 +127,18 @@ function ActionsCell({
 
   return (
     <div className="flex items-center justify-end gap-1 whitespace-nowrap">
-      <SymbolTooltip label="View prescription">
+      <SymbolTooltip label={t("viewAriaLabel")}>
         <Button variant="ghost" size="sm" asChild className="gap-1.5">
           <Link
             href={`/prescriptions/${prescription.id}`}
-            aria-label="View prescription"
+            aria-label={t("viewAriaLabel")}
           >
             <Eye className="h-4 w-4" aria-hidden />
-            <span className="hidden lg:inline">View</span>
+            <span className="hidden lg:inline">{t("viewButton")}</span>
           </Link>
         </Button>
       </SymbolTooltip>
-      <SymbolTooltip label="Download PDF">
+      <SymbolTooltip label={t("downloadPdfTooltip")}>
         <Button
           variant="ghost"
           size="sm"
@@ -134,10 +146,10 @@ function ActionsCell({
           className="gap-1.5"
         >
           <Download className="h-4 w-4" />
-          <span className="hidden lg:inline">PDF</span>
+          <span className="hidden lg:inline">{t("pdfButton")}</span>
         </Button>
       </SymbolTooltip>
-      <SymbolTooltip label="Print prescription">
+      <SymbolTooltip label={t("printTooltip")}>
         <Button
           variant="ghost"
           size="sm"
@@ -145,7 +157,7 @@ function ActionsCell({
           className="gap-1.5"
         >
           <Printer className="h-4 w-4" />
-          <span className="hidden lg:inline">Print</span>
+          <span className="hidden lg:inline">{t("printButton")}</span>
         </Button>
       </SymbolTooltip>
     </div>
@@ -156,6 +168,7 @@ export function MobileCard({ prescription, onDownloadPDF }: {
   prescription: Prescription;
   onDownloadPDF: (id: string) => void;
 }) {
+  const t = usePrescriptionsTableTranslations();
   const fullName = getPatientName(prescription) || "—";
   const handlePrint = () => {
     if (!prescription.id) return;
@@ -168,13 +181,13 @@ export function MobileCard({ prescription, onDownloadPDF }: {
       } />
       <div className="flex flex-wrap gap-2 border-t border-border/60 pt-3">
         <Button variant="outline" size="sm" asChild className="flex-1 touch-manipulation">
-          <Link href={`/prescriptions/${prescription.id}`}><Eye className="mr-1.5 h-4 w-4" />View</Link>
+          <Link href={`/prescriptions/${prescription.id}`}><Eye className="mr-1.5 h-4 w-4" />{t("viewButton")}</Link>
         </Button>
         <Button variant="outline" size="sm" className="flex-1 touch-manipulation" onClick={() => onDownloadPDF(prescription.id || "")}>
-          <Download className="mr-1.5 h-4 w-4" />PDF
+          <Download className="mr-1.5 h-4 w-4" />{t("pdfButton")}
         </Button>
         <Button variant="outline" size="sm" className="flex-1 touch-manipulation" onClick={handlePrint}>
-          <Printer className="mr-1.5 h-4 w-4" />Print
+          <Printer className="mr-1.5 h-4 w-4" />{t("printButton")}
         </Button>
       </div>
     </div>

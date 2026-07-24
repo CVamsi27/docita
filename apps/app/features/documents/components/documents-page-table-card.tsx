@@ -3,10 +3,7 @@ import {
 } from "@workspace/ui/components/data-display/data-table";
 import type { Document } from "@workspace/types";
 import type { SortConfig, SortKey } from "@/features/documents/hooks/document-sort-types";
-import {
-  buildDocumentsTableColumns,
-  DocumentMobileRow,
-} from "./documents-page-table-card-sections";
+import { buildDocumentsTableColumns, DocumentMobileRow } from "./documents-page-table-card-sections";
 
 export function DocumentsPageTableCard({
   documents,

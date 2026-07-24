@@ -1,10 +1,7 @@
 "use client";
 
-// jscpd:ignore-start
 import { AlertCircle, RefreshCw } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import { AppPageScaffold, Button, Card, CardContent } from "@workspace/ui/components";
 
 export default function GlobalError({
   error: _error,
@@ -45,4 +42,3 @@ export default function GlobalError({
     </html>
   );
 }
-// jscpd:ignore-end

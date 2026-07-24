@@ -1,12 +1,8 @@
 "use client";
 
 import { FC } from "react";
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
+import { Card, CardContent, EmptyState, LoadingState } from "@workspace/ui/components";
 import { FileText } from "lucide-react";
-import {
-  EmptyState,
-  LoadingState,
-} from "@workspace/ui/components/feedback/empty-state";
 import { useInvoiceDetailsLogic } from "@/features/invoices/hooks/use-invoice-details-logic";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";

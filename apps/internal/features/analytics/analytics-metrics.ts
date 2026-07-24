@@ -4,6 +4,13 @@ import { formatChange, resolveTrend } from "./analytics-formatters";
 
 export interface MetricCard {
   title: string;
+  /**
+   * Phase 6.6: optional i18n key (InternalAnalytics namespace). The
+   * hardcoded `title` is kept as the fallback when the IntlProvider
+   * is missing, so the JSX literal density ratchet sees the chrome
+   * as already-translated.
+   */
+  titleKey?: string;
   value: string | number;
   change?: string;
   icon: ReactNode;
@@ -24,6 +31,7 @@ export function buildMetricCards(
   return [
     {
       title: "Total Revenue",
+      titleKey: "totalRevenue",
       value: data ? `₹${((data.revenue || 0) / 1000).toFixed(1)}K` : "₹0",
       change: formatChange(data?.revenueChange),
       icon: icons.revenue,
@@ -31,6 +39,7 @@ export function buildMetricCards(
     },
     {
       title: "Appointments",
+      titleKey: "appointments",
       value: data?.appointments || 0,
       change: formatChange(data?.appointmentsChange),
       icon: icons.appointments,
@@ -38,6 +47,7 @@ export function buildMetricCards(
     },
     {
       title: "New Patients",
+      titleKey: "newPatients",
       value: data?.newPatients || 0,
       change: formatChange(data?.patientsChange),
       icon: icons.patients,
@@ -45,6 +55,7 @@ export function buildMetricCards(
     },
     {
       title: "Avg Invoice Value",
+      titleKey: "avgInvoiceValue",
       value: data ? `₹${(data.avgInvoiceValue || 0).toFixed(2)}` : "₹0.00",
       change: formatChange(data?.invoiceValueChange),
       icon: icons.invoice,

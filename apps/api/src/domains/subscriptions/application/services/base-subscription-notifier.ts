@@ -82,91 +82,51 @@ export abstract class BaseSubscriptionNotifier {
 
     const processedClinicIds = new Set(existingReminderClinicIds);
     const sentAt = this.clock.now();
-    const remindersToCreate: ReminderCreateRecord[] = [];
 
-    let attemptedClinics = 0;
-    let sent = 0;
-    let failed = 0;
-
+    // Dedupe by clinicId (a single clinic can have multiple subscriptions)
+    // and filter out already-processed + skipped ones up front so the
+    // parallel send below is a one-record-per-clinic array.
+    const toProcess: typeof subscriptions = [];
     for (const sub of subscriptions) {
-      if (processedClinicIds.has(sub.clinicId)) {
-        continue;
-      }
-
-      if (shouldSkip?.(sub)) {
-        continue;
-      }
-
+      if (processedClinicIds.has(sub.clinicId)) continue;
+      if (shouldSkip?.(sub)) continue;
       processedClinicIds.add(sub.clinicId);
+      toProcess.push(sub);
+    }
+    for (const sub of toProcess) {
       this.logger.log(
         `Sending reminder ${reminderType} to clinic ${sub.clinicId}`,
       );
-
-      attemptedClinics += 1;
-
-      const to = (sub.clinic?.users ?? [])
-        .map((u) => u.email)
-        .filter((email): email is string => Boolean(email));
-
-      if (to.length === 0) {
-        failed += 1;
-        remindersToCreate.push({
-          clinicId: sub.clinicId,
-          subscriptionId: sub.id,
-          type: reminderType,
-          channel: 'EMAIL',
-          status: 'failed',
-          sentAt: null,
-          errorMessage: noRecipientErrorMessage,
-        });
-        continue;
-      }
-
-      const email = buildEmail(sub, reminderType);
-
-      try {
-        const result = await this.emailService.send({
-          to,
-          subject: email.subject,
-          text: email.text,
-        });
-
-        if (result.success) {
-          sent += 1;
-          remindersToCreate.push({
-            clinicId: sub.clinicId,
-            subscriptionId: sub.id,
-            type: reminderType,
-            channel: 'EMAIL',
-            status: 'sent',
-            sentAt,
-            errorMessage: null,
-          });
-        } else {
-          failed += 1;
-          remindersToCreate.push({
-            clinicId: sub.clinicId,
-            subscriptionId: sub.id,
-            type: reminderType,
-            channel: 'EMAIL',
-            status: 'failed',
-            sentAt: null,
-            errorMessage: result.error ?? 'Email send failed',
-          });
-        }
-      } catch (error) {
-        failed += 1;
-        remindersToCreate.push({
-          clinicId: sub.clinicId,
-          subscriptionId: sub.id,
-          type: reminderType,
-          channel: 'EMAIL',
-          status: 'failed',
-          sentAt: null,
-          errorMessage: error instanceof Error ? error.message : String(error),
-        });
-      }
     }
+
+    const remindersToCreate = (
+      await Promise.allSettled(
+        toProcess.map((sub) =>
+          this.sendReminderEmail(
+            sub,
+            reminderType,
+            buildEmail,
+            noRecipientErrorMessage,
+            sentAt,
+          ),
+        ),
+      )
+    ).flatMap((result, index) => {
+      if (result.status === 'rejected') {
+        this.logger.error(
+          `Reminder ${reminderType} crashed for clinic ${toProcess[index]?.clinicId ?? 'unknown'}`,
+          result.reason,
+        );
+        return [];
+      }
+      return result.value;
+    });
+
+    const attemptedClinics = toProcess.length;
+    const sent = remindersToCreate.filter((r) => r.status === 'sent').length;
+    const failed = remindersToCreate.filter(
+      (r) => r.status === 'failed',
+    ).length;
 
     if (remindersToCreate.length > 0) {
       await this.subscriptionRepo.createSubscriptionReminders(
@@ -181,5 +141,81 @@ export abstract class BaseSubscriptionNotifier {
       sent,
       failed,
     };
+  }
+
+  private async sendReminderEmail<T extends SubscriptionWithClinic>(
+    sub: T,
+    reminderType: string,
+    buildEmail: (
+      sub: T,
+      reminderType: string,
+    ) => { subject: string; text: string },
+    noRecipientErrorMessage: string,
+    sentAt: Date,
+  ): Promise<ReminderCreateRecord[]> {
+    const to = (sub.clinic?.users ?? [])
+      .map((u) => u.email)
+      .filter((email): email is string => Boolean(email));
+
+    if (to.length === 0) {
+      return [
+        {
+          clinicId: sub.clinicId,
+          subscriptionId: sub.id,
+          type: reminderType,
+          channel: 'EMAIL',
+          status: 'failed',
+          sentAt: null,
+          errorMessage: noRecipientErrorMessage,
+        },
+      ];
+    }
+
+    const email = buildEmail(sub, reminderType);
+
+    try {
+      const result = await this.emailService.send({
+        to,
+        subject: email.subject,
+        text: email.text,
+      });
+
+      if (result.success) {
+        return [
+          {
+            clinicId: sub.clinicId,
+            subscriptionId: sub.id,
+            type: reminderType,
+            channel: 'EMAIL',
+            status: 'sent',
+            sentAt,
+            errorMessage: null,
+          },
+        ];
+      }
+      return [
+        {
+          clinicId: sub.clinicId,
+          subscriptionId: sub.id,
+          type: reminderType,
+          channel: 'EMAIL',
+          status: 'failed',
+          sentAt: null,
+          errorMessage: result.error ?? 'Email send failed',
+        },
+      ];
+    } catch (error) {
+      return [
+        {
+          clinicId: sub.clinicId,
+          subscriptionId: sub.id,
+          type: reminderType,
+          channel: 'EMAIL',
+          status: 'failed',
+          sentAt: null,
+          errorMessage: error instanceof Error ? error.message : String(error),
+        },
+      ];
+    }
   }
 }

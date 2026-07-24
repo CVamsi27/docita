@@ -1,9 +1,11 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   IPatientRepository,
   PatientSearchParams,
@@ -11,7 +13,7 @@ import {
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { PatientMapper } from '@/domains/patients/infrastructure/mappers/patient.mapper';
 import { Prisma, Gender } from '@workspace/db';
-import { parseStringEnumMember } from '@workspace/utils';
+import { parseStringEnumMember, phoneMatchCandidates } from '@workspace/utils';
 
 const GENDER_VALUES = Object.values(Gender);
 
@@ -41,11 +43,16 @@ const PATIENT_PERSISTENCE_SELECT = {
 
 @Injectable()
 export class PrismaPatientRepository implements IPatientRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  // jscpd:ignore-start -- standard repository DI + read-client boilerplate
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
   }
+  // jscpd:ignore-end
 
   async findById(id: string, clinicId: string): Promise<Patient | null> {
     const readClient = this.getReadClient();
@@ -74,8 +81,17 @@ export class PrismaPatientRepository implements IPatientRepository {
     phoneNumber: string,
   ): Promise<Patient | null> {
     const readClient = this.getReadClient();
+    // Lookup is tolerant: a row stored as `9812345678`, `91…`, or `+91…` all
+    // match an incoming `+91…` lookup. Without this, returning-patient OTP
+    // flows (public-booking, patient portal) silently find nothing and the
+    // user is locked out. Companion fix: write-side normalization in the
+    // mapper so new rows are stored in E.164 going forward.
     const item = await readClient.patient.findFirst({
-      where: { clinicId, phoneNumber, deletedAt: null },
+      where: {
+        clinicId,
+        phoneNumber: { in: phoneMatchCandidates(phoneNumber) },
+        deletedAt: null,
+      },
       select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;
@@ -156,6 +172,17 @@ export class PrismaPatientRepository implements IPatientRepository {
   }
 
   async delete(id: string, clinicId: string): Promise<void> {
-    await this.prisma.patient.deleteMany({ where: { id, clinicId } });
+    // Soft delete: set deletedAt so the record leaves normal reads (all finders
+    // filter `deletedAt: null`) while the compliance retention scheduler
+    // anonymizes it after the obligation window. A hard purge only happens
+    // inside the DPDP erasure/obligation path, never on a routine staff delete —
+    // this preserves the medical record for statutory retention (NMC >=3yr).
+    const result = await this.prisma.patient.updateMany({
+      where: { id, clinicId, deletedAt: null },
+      data: { deletedAt: this.clock.now() },
+    });
+    if (result.count === 0) {
+      throw new NotFoundException(`Patient ${id} not found`);
+    }
   }
 }

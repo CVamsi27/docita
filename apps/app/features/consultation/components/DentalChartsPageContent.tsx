@@ -2,27 +2,25 @@
 
 import { useState } from "react";
 import { Smile, Save } from "lucide-react";
-import { Feature } from "@workspace/types";
+import { CLINIC_TYPE_LABELS, Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Card } from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
+import { AppPageScaffold, Button, Card, PageHeader } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { toast } from "sonner";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { getPatientFullName } from "@workspace/utils";
 import { usePatients } from "@workspace/data-access";
-import {
-  usePatientAppointments,
-  useUpdateAppointment,
-} from "@workspace/data-access";
+import { usePatientAppointments, useUpdateAppointment } from "@workspace/data-access";
 import type { DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
 import type { Patient, UpdateAppointmentRequest } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { PatientSearchSection } from "./PatientSearchSection";
 import { AppointmentListSection } from "./AppointmentListSection";
 import { DentalChartPanel } from "./DentalChartPanel";
+
+// Widen to a string-keyed lookup so an arbitrary clinic.type string can index
+// the labels without a cast (falls back to the raw type below).
+const clinicTypeLabels: Record<string, string> = CLINIC_TYPE_LABELS;
 
 export default function DentalChartsPage() {
   const { clinic } = useClinic();
@@ -108,7 +106,11 @@ export default function DentalChartsPage() {
             description={
               <>
                 Dental charting is only available for dental facilities. Your
-                facility type is <strong>{clinic.type}</strong>.
+                facility type is{" "}
+                <strong>
+                  {clinicTypeLabels[clinic.type] ?? clinic.type}
+                </strong>
+                .
               </>
             }
           />

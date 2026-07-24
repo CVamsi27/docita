@@ -1,6 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
+import { useTranslations } from "next-intl";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   Select,
@@ -20,6 +21,15 @@ import {
   DialogFooter,
 } from "@workspace/ui/components/overlay/dialog";
 import type { JoinRequest } from "@/features/settings/components/management/join-requests-list.boundary";
+
+/**
+ * Phase 3 (per-feature): apps/app Settings > Join request review dialogs
+ * (Approve + Reject dialogs for incoming join requests). 9 literals
+ * converted to useTranslations("Settings.joinRequestReview").
+ */
+function useJoinRequestReviewTranslations() {
+  return useTranslations("Settings.joinRequestReview");
+}
 
 export function JoinRequestReviewDialogs({
   selectedRequest,
@@ -50,6 +60,7 @@ export function JoinRequestReviewDialogs({
   onApprove: () => void;
   onReject: () => void;
 }) {
+  const t = useJoinRequestReviewTranslations();
   return (
     <>
       <Dialog
@@ -60,56 +71,56 @@ export function JoinRequestReviewDialogs({
       >
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Approve Join Request</DialogTitle>
+            <DialogTitle>{t("approveTitle")}</DialogTitle>
             <DialogDescription>
-              Approve {selectedRequest?.user.name} to join your facility
+              {t("approveDescription", { name: selectedRequest?.user.name ?? "" })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Assigned Role</label>
+              <label className="text-sm font-medium">{t("assignedRoleLabel")}</label>
               <Select value={assignedRole} onValueChange={setAssignedRole}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DOCTOR">Doctor</SelectItem>
-                  <SelectItem value="NURSE">Nurse</SelectItem>
-                  <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
-                  <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
+                  <SelectItem value="DOCTOR">{t("roleDoctor")}</SelectItem>
+                  <SelectItem value="NURSE">{t("roleNurse")}</SelectItem>
+                  <SelectItem value="RECEPTIONIST">{t("roleReceptionist")}</SelectItem>
+                  <SelectItem value="ADMIN_DOCTOR">{t("roleAdminDoctor")}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="ui-helper-text">
                 {assignedRole !== selectedRequest?.requestedRole &&
-                  `This differs from the requested role (${selectedRequest?.requestedRole})`}
+                  t("roleDiffersHelper", { requested: selectedRequest?.requestedRole ?? "" })}
               </p>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Welcome Message{" "}
-                <span className="text-muted-foreground">(optional)</span>
+                {t("welcomeMessageLabel")}{" "}
+                <span className="text-muted-foreground">{t("optionalSuffix")}</span>
               </label>
               <Textarea
-                placeholder="Enter welcome message"
+                placeholder={t("welcomeMessagePlaceholder")}
                 value={welcomeMessage}
                 onChange={(e) => setWelcomeMessage(e.target.value)}
                 maxLength={500}
                 rows={4}
               />
               <p className="ui-helper-text text-right">
-                {welcomeMessage.length}/500
+                {t("charCount", { count: welcomeMessage.length })}
               </p>
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={onClose} disabled={isApproving}>
-              Cancel
+              {t("cancelButton")}
             </Button>
             <Button onClick={onApprove} disabled={isApproving}>
-              {isApproving ? "Approving…" : "Approve Request"}
+              {isApproving ? t("approvingLabel") : t("approveRequestButton")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -123,17 +134,16 @@ export function JoinRequestReviewDialogs({
       >
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Reject Join Request</DialogTitle>
+            <DialogTitle>{t("rejectTitle")}</DialogTitle>
             <DialogDescription>
-              Provide a reason for rejecting {selectedRequest?.user.name}&apos;s
-              request
+              {t("rejectDescription", { name: selectedRequest?.user.name ?? "" })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2 py-4">
-            <label className="text-sm font-medium">Reason for Rejection</label>
+            <label className="text-sm font-medium">{t("rejectionReasonLabel")}</label>
             <Textarea
-              placeholder="Enter rejection reason"
+              placeholder={t("rejectionReasonPlaceholder")}
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               maxLength={500}
@@ -141,23 +151,23 @@ export function JoinRequestReviewDialogs({
               className="resize-none"
             />
             <p className="ui-helper-text text-right">
-              {rejectionReason.length}/500
+              {t("charCount", { count: rejectionReason.length })}
             </p>
             <p className="ui-helper-text">
-              This reason will be sent to the applicant
+              {t("rejectionReasonHelper")}
             </p>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={onClose} disabled={isRejecting}>
-              Cancel
+              {t("cancelButton")}
             </Button>
             <Button
               variant="destructive"
               onClick={onReject}
               disabled={isRejecting || !rejectionReason.trim()}
             >
-              {isRejecting ? "Rejecting…" : "Reject Request"}
+              {isRejecting ? t("rejectingLabel") : t("rejectRequestButton")}
             </Button>
           </DialogFooter>
         </DialogContent>

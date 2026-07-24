@@ -3,17 +3,8 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { ErrorBanner } from "@/components/errors/error-banner";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
-import {
-  BackEmailField,
-  fieldClass,
-  getFieldError,
-  hasFieldError,
-  InlineFieldError,
-} from "./AuthSharedFields";
+import { Button, Input, Label, SymbolTooltip } from "@workspace/ui/components";
+import { BackEmailField, fieldClass, getFieldError, hasFieldError, InlineFieldError } from "./AuthSharedFields";
 import type { FieldErrors } from "@/features/auth/types/auth";
 
 interface LoginStepProps {

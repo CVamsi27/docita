@@ -10,7 +10,11 @@ import {
 } from "@workspace/ui/components/indicators/card";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import {
+  DataState,
+  type DataStateStatus,
+} from "@workspace/ui/components/data-display/data-state";
+import { useTranslations } from "next-intl";
 import { ExternalLink, Receipt } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatCurrency, formatDate } from "@workspace/utils";
@@ -34,6 +38,7 @@ const STATUS_VARIANT: Record<
 };
 
 export function BillingTab({ patientId }: BillingTabProps) {
+  const t = useTranslations("Patients.billingTab");
   const {
     data: invoices,
     isLoading,
@@ -50,24 +55,28 @@ export function BillingTab({ patientId }: BillingTabProps) {
     return bDate - aDate;
   });
 
-  const invoicesSection = isLoading ? (
-    <DataState status="loading" loadingMessage="Loading invoices…" />
-  ) : isError ? (
-    <DataState
-      status="error"
-      errorMessage="We could not load these invoices. Please try again."
-      onRetry={() => refetch()}
-    />
-  ) : list.length === 0 ? (
-    <DataState
-      status="empty"
-      emptyIcon={Receipt}
-      emptyTitle="No invoices"
-      emptyDescription="Invoices billed to this patient will appear here."
-    />
-  ) : (
-    <div className="space-y-3">
-      {sorted.map((invoice) => {
+  const status: DataStateStatus = isLoading
+    ? "loading"
+    : isError
+      ? "error"
+      : list.length === 0
+        ? "empty"
+        : "success";
+
+  return (
+    <div className="space-y-6">
+      <PatientClaimsPanel patientId={patientId} />
+      <DataState
+        status={status}
+        loadingMessage={t("loadingMessage")}
+        errorMessage={t("errorMessage")}
+        onRetry={() => refetch()}
+        emptyIcon={Receipt}
+        emptyTitle={t("emptyTitle")}
+        emptyDescription={t("emptyDescription")}
+      >
+        <div className="space-y-3">
+          {sorted.map((invoice) => {
         const issuedDate = invoice.issuedAt ?? invoice.createdAt;
         const dateLabel = issuedDate
           ? formatDate(issuedDate, "EEE, d MMM yyyy")
@@ -84,12 +93,12 @@ export function BillingTab({ patientId }: BillingTabProps) {
                     <Receipt className="h-4 w-4 text-primary" />
                     {invoice.invoiceNumber
                       ? `#${invoice.invoiceNumber}`
-                      : "Invoice"}
+                      : t("invoiceFallback")}
                   </CardTitle>
                   <p className="text-xs text-muted-foreground mt-1">
                     {dateLabel}
                     {invoice.appointment?.doctor?.name
-                      ? ` \u00b7 Dr. ${invoice.appointment.doctor.name}`
+                      ? ` \u00b7 ${t("doctorPrefix", { name: invoice.appointment.doctor.name })}`
                       : ""}
                   </p>
                 </div>
@@ -116,7 +125,7 @@ export function BillingTab({ patientId }: BillingTabProps) {
                 >
                   <Link href={`/invoices/${invoice.id}`}>
                     <ExternalLink className="h-3 w-3 mr-1.5" />
-                    View invoice
+                    {t("viewInvoiceButton")}
                   </Link>
                 </Button>
               </CardContent>
@@ -124,13 +133,8 @@ export function BillingTab({ patientId }: BillingTabProps) {
           </Card>
         );
       })}
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
-      <PatientClaimsPanel patientId={patientId} />
-      {invoicesSection}
+        </div>
+      </DataState>
     </div>
   );
 }

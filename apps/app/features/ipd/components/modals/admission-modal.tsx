@@ -1,6 +1,7 @@
 "use client";
 
 import React, { FC, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,16 @@ interface AdmissionFormErrors {
   diagnosis?: string;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app IPD > Admission modal
+ * (admit patient dialog chrome). The 4 validate() error strings are
+ * also lifted to the same namespace so the error messages can be
+ * translated when surfaced via FormMessage components.
+ */
+function useAdmissionModalTranslations() {
+  return useTranslations("Ipd.admission");
+}
+
 export const AdmissionModal: FC<ModalProps> = ({
   open,
   onOpenChange,
@@ -36,6 +47,7 @@ export const AdmissionModal: FC<ModalProps> = ({
   isSubmitting = false,
   onSubmit,
 }) => {
+  const t = useAdmissionModalTranslations();
   const [data, setData] = useState({
     patientId: "",
     wardId: "",
@@ -48,10 +60,10 @@ export const AdmissionModal: FC<ModalProps> = ({
 
   const validate = () => {
     const nextErrors: AdmissionFormErrors = {};
-    if (!data.patientId.trim()) nextErrors.patientId = "Enter the patient ID or MRN";
-    if (!data.bedId) nextErrors.bedId = "Select an available bed";
-    if (!data.admittingDoctorId) nextErrors.admittingDoctorId = "Select the attending doctor";
-    if (!data.diagnosis.trim()) nextErrors.diagnosis = "Enter the admission diagnosis";
+    if (!data.patientId.trim()) nextErrors.patientId = t("errorPatientId");
+    if (!data.bedId) nextErrors.bedId = t("errorBed");
+    if (!data.admittingDoctorId) nextErrors.admittingDoctorId = t("errorDoctor");
+    if (!data.diagnosis.trim()) nextErrors.diagnosis = t("errorDiagnosis");
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -72,9 +84,9 @@ export const AdmissionModal: FC<ModalProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="md:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Admit patient</DialogTitle>
+          <DialogTitle>{t("modalTitle")}</DialogTitle>
           <DialogDescription>
-            Assign a bed and attending doctor to start an inpatient admission.
+            {t("modalDescription")}
           </DialogDescription>
         </DialogHeader>
 

@@ -2,16 +2,8 @@
 
 // jscpd:ignore-start
 import type { InvoiceListRow } from "@workspace/types";
-import { Button } from "@workspace/ui/components/form/button";
-import { Label } from "@workspace/ui/components/form/label";
-import { Textarea } from "@workspace/ui/components/form/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { Button, Label, MicroLabel } from "@workspace/ui/components";
 import {
   Dialog,
   // jscpd:ignore-end
@@ -22,12 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { Input } from "@workspace/ui/components/form/input";
-import {
-  type DeskPaymentMethod,
-  PAYMENT_CHANNEL_OPTIONS,
-} from "./desk-collect-payment-helpers";
+import { type DeskPaymentMethod, PAYMENT_CHANNEL_OPTIONS } from "./desk-collect-payment-helpers";
 
 export interface RecordPaymentDialogProps {
   dialogInvoice: InvoiceListRow | null;

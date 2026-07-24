@@ -1,11 +1,6 @@
 import { z } from "zod";
 import type { UseFormReturn } from "react-hook-form";
-import {
-  createAppointmentSchema,
-  Doctor,
-  Patient,
-  type AvailableSlot,
-} from "@workspace/types";
+import { createAppointmentSchema, Doctor, Patient, type AvailableSlot } from "@workspace/types";
 
 type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 import type { SelectOption } from "@/lib/contexts/app-config-context";
@@ -20,12 +15,7 @@ import {
 import type { SlotBlockingAppointment } from "@/features/appointments/lib/calendar-slot-local-iso";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { formatClockTime, formatLocaleDateShortMonth } from "@/lib/formatters";
-import {
-  PatientDoctorSection,
-  WalkInSlotSection,
-  ScheduleSection,
-  FormActionsSection,
-} from "./AddAppointmentDialogUISections";
+import { PatientDoctorSection, WalkInSlotSection, ScheduleSection, FormActionsSection } from "./AddAppointmentDialogUISections";
 
 interface AddAppointmentDialogUIProps {
   open: boolean;

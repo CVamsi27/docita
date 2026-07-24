@@ -1,26 +1,9 @@
 "use client";
 
 import { Building2, Calendar as CalendarIcon, Sparkles } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@workspace/ui/components/indicators/card";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { DescriptionList } from "@workspace/ui/components/data-display/description-list";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
-import { Timeline } from "@workspace/ui/components/data-display/timeline";
+import { Badge, Card, CardContent, CardHeader, DataState, DescriptionList, EmptyState, MicroLabel, Timeline } from "@workspace/ui/components";
 import { formatDate } from "@workspace/utils";
-import {
-  appointmentTimelineAccent,
-  BookingSectionHeader,
-  bookingCardClass,
-  bookingSectionHeaderBar,
-  bookingSectionShell,
-  formatAppointmentStatus,
-} from "@/features/public-booking/public-booking-components";
+import { appointmentTimelineAccent, BookingSectionHeader, bookingCardClass, bookingSectionHeaderBar, bookingSectionShell, formatAppointmentStatus } from "@/features/public-booking/public-booking-components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { formatDateTime } from "@/lib/formatters";
 import { cn } from "@workspace/ui/lib/utils";

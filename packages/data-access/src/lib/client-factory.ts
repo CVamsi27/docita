@@ -364,7 +364,6 @@ async function buildUploadRequestError(response: Response): Promise<APIRequestEr
       ? problem.raw["code"]
       : undefined;
   return new APIRequestError(
-// jscpd:ignore-start
     problem.detail || problem.message || response.statusText || "Request failed",
     {
       status: response.status,

@@ -82,6 +82,7 @@ describe('OverageCalculationService', () => {
       expect(result.breakdown.consultations.quantity).toBe(50);
       expect(result.breakdown.consultations.rate).toBe(2);
       expect(result.breakdown.consultations.charge).toBe(100);
+      expect(result.breakdown.consultations.chargeCents).toBe(10000);
       expect(result.totalOverageCharges).toBe(100);
     });
 

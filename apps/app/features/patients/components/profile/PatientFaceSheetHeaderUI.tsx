@@ -1,18 +1,5 @@
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  SymbolTooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
-import {
-  AlertTriangle,
-  Building2,
-  ChevronLeft,
-  Phone,
-  ShieldAlert,
-} from "lucide-react";
+import { Badge, Button, SymbolTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
+import { AlertTriangle, Building2, ChevronLeft, Phone, ShieldAlert } from "lucide-react";
 import { formatDate, formatGenderLabel } from "@/lib/formatters";
 
 interface PatientFaceSheetHeaderUIProps {
@@ -22,6 +9,7 @@ interface PatientFaceSheetHeaderUIProps {
   gender: string;
   dateOfBirth: Date | string;
   initials: string;
+  mrn?: string;
 
   codeStatus?: string;
   codeStatusLabel?: string;
@@ -51,6 +39,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
     gender,
     dateOfBirth,
     initials,
+    mrn,
     codeStatusLabel,
     isFullCode,
     isolationStatusLabel,
@@ -69,7 +58,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
 
   const allergiesLabel = hasAllergies
     ? `Allergies: ${allergies ?? ""}`.trim()
-    : "No known allergies";
+    : "NKA";
 
   return (
     <div className="sticky top-0 z-20 border-b bg-background/95 px-4 py-4 shadow-sm md:-mx-6 md:px-6">
@@ -103,12 +92,23 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               <span>{formatGenderLabel(gender)}</span>
               <span className="text-muted-foreground/40">•</span>
               <span>DOB: {formatDate(dateOfBirth)}</span>
+              {mrn ? (
+                <>
+                  <span className="text-muted-foreground/40">•</span>
+                  <span
+                    className="font-mono"
+                    data-testid="patient-facesheet-mrn"
+                  >
+                    MRN: {mrn}
+                  </span>
+                </>
+              ) : null}
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex flex-wrap gap-2 items-center justify-end">
+        <div className="flex w-full flex-col items-start gap-2 md:w-auto md:items-end">
+          <div className="flex flex-wrap gap-2 items-center justify-start md:justify-end">
             {codeStatusLabel && (
               <Badge
                 className={`px-2.5 py-0.5 font-medium border ${
@@ -186,7 +186,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               )}
             </div>
           )}
-          {actions && <div className="flex items-center gap-2 mt-2 sm:mt-0">{actions}</div>}
+          {actions && <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">{actions}</div>}
         </div>
       </div>
 

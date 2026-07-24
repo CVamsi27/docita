@@ -33,6 +33,12 @@ export function getInternalTierBadgeClass(tier: string): string {
   return (color && TIER_COLOR_TO_BADGE_CLASS[color]) ?? "tier-capture";
 }
 
+/** Resolve a raw tier string (e.g. from the DB) to a human label. */
+export function getInternalTierLabel(tier: string): string {
+  const normalized = mapDbClinicTierStringToTierName(tier);
+  return TIER_INFO[normalized]?.name ?? tier;
+}
+
 export function getInternalTierChartColorClass(tier: string): string {
   const normalized = mapDbClinicTierStringToTierName(tier);
   return TIER_CHART_COLOR_BY_NAME[normalized] ?? "bg-primary";

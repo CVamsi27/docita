@@ -2,15 +2,7 @@
 
 // jscpd:ignore-start
 import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components";
 import { toast } from "sonner";
 import {
   useCreatePrescription,
@@ -20,10 +12,7 @@ import {
 import { Pill } from "lucide-react";
 import { ApiError } from "@/lib/errors";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  MedicationsSection,
-  type Medication,
-} from "./PrescriptionModalSections";
+import { MedicationsSection, type Medication } from "./PrescriptionModalSections";
 
 export type { Medication } from "./PrescriptionModalSections";
 

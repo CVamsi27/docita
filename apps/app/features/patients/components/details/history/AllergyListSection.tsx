@@ -2,7 +2,6 @@ import { AlertTriangle, Plus } from "lucide-react";
 import { Input } from "@workspace/ui/components/form/input";
 import type { PatientAllergy, PatientWithMedicalHistory } from "@workspace/types";
 import { AllergyBadge } from "./AllergyBadge";
-// jscpd:ignore-start
 import { AllergyEditDialog } from "./AllergyEditDialog";
 import { HistoryAddRow, HistoryBlock, HistoryEmptyState } from "./HistoryBlock";
 
@@ -62,10 +61,7 @@ export function AllergyListSection(props: AllergyListSectionProps) {
             ))}
           </div>
         ) : (
-          <HistoryEmptyState
-            message="No known allergies"
-            tone="success"
-          />
+          <HistoryEmptyState message="NKA" tone="success" />
         )}
       </HistoryBlock>
 

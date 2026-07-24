@@ -1,19 +1,11 @@
 "use client";
 
-import { Button } from "@workspace/ui/components/form/button";
-import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
+import { Button, MicroLabel } from "@workspace/ui/components";
 import { formatDate, getPatientFullName } from "@workspace/utils";
 import { formatTime } from "@/lib/formatters";
-import {
-  PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS,
-  type PublicBookingMobileStep,
-} from "@/features/public-booking/public-booking-constants";
+import { PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS, type PublicBookingMobileStep } from "@/features/public-booking/public-booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
-import {
-  bookingCardClass,
-  bookingSectionHeaderBar,
-  bookingSectionShell,
-} from "./booking-constants";
+import { bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
 
 function ReviewRow({

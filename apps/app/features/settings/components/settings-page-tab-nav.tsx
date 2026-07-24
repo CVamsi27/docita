@@ -2,10 +2,7 @@
 
 import type { ElementType } from "react";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/navigation/tabs";
+import { TabsList, TabsTrigger } from "@workspace/ui/components/navigation/tabs";
 import { ComingSoonBadge } from "@/components/feedback/coming-soon-badge";
 
 export interface SettingsTabItem {

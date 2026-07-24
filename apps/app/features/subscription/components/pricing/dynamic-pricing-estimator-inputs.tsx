@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
+import { useTranslations } from "next-intl";
 import {
   CURRENCY_OPTIONS,
   DEFAULT_CURRENCY,
@@ -44,6 +45,15 @@ interface DynamicPricingEstimatorInputsProps {
   onUsageChange: (usage: PricingEstimatorUsage) => void;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Subscription > Dynamic pricing
+ * estimator inputs (tier / cycle / currency / usage meters). 8 literals
+ * converted to useTranslations("Subscription.estimatorInputs").
+ */
+function useEstimatorInputsTranslations() {
+  return useTranslations("Subscription.estimatorInputs");
+}
+
 export function DynamicPricingEstimatorInputs({
   tier,
   tiers,
@@ -58,11 +68,12 @@ export function DynamicPricingEstimatorInputs({
   usage,
   onUsageChange,
 }: DynamicPricingEstimatorInputsProps) {
+  const t = useEstimatorInputsTranslations();
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label>Plan</Label>
+          <Label>{t("planLabel")}</Label>
           <Select
             value={tier}
             onValueChange={(value) => {
@@ -86,7 +97,7 @@ export function DynamicPricingEstimatorInputs({
         </div>
         {showBillingSelector ? (
           <div className="space-y-2">
-            <Label>Billing cycle</Label>
+            <Label>{t("billingCycleLabel")}</Label>
             <Select
               value={effectiveBillingCycle}
               onValueChange={(value) => {
@@ -99,15 +110,15 @@ export function DynamicPricingEstimatorInputs({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="yearly">Yearly (2 months free)</SelectItem>
+                <SelectItem value="monthly">{t("cycleMonthly")}</SelectItem>
+                <SelectItem value="yearly">{t("cycleYearly")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
         ) : null}
         {showCurrencySelector ? (
           <div className="space-y-2">
-            <Label>Currency</Label>
+            <Label>{t("currencyLabel")}</Label>
             <Select
               value={selectedCurrency}
               onValueChange={(value) => {
@@ -145,7 +156,7 @@ export function DynamicPricingEstimatorInputs({
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="space-y-2">
-          <Label>Consultations / Month</Label>
+          <Label>{t("consultationsLabel")}</Label>
           <Input
             type="number"
             min={0}
@@ -159,7 +170,7 @@ export function DynamicPricingEstimatorInputs({
           />
         </div>
         <div className="space-y-2">
-          <Label>Team Members</Label>
+          <Label>{t("teamMembersLabel")}</Label>
           <Input
             type="number"
             min={1}
@@ -173,7 +184,7 @@ export function DynamicPricingEstimatorInputs({
           />
         </div>
         <div className="space-y-2">
-          <Label>WhatsApp Messages / Month</Label>
+          <Label>{t("whatsAppLabel")}</Label>
           <Input
             type="number"
             min={0}
@@ -189,8 +200,7 @@ export function DynamicPricingEstimatorInputs({
       </div>
 
       <div className="rounded-lg border bg-muted/20 p-4 text-sm text-muted-foreground">
-        This estimator uses only billable meters from the live contract:
-        consultations, team users, and WhatsApp messages.
+        {t("billableMetersNote")}
       </div>
     </>
   );

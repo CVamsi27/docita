@@ -144,7 +144,6 @@ export function addMinutesToClinicWallDatetimeLocal(
 }
 
 /** Calendar arithmetic on yyyy-MM-dd (UTC date components, midnight-aligned days). */
-// jscpd:ignore-start
 export function addDaysToPickerIsoDate(dateStr: string, days: number): string {
   const parts = dateStr.split("-").map((x) => parseInt(x, 10));
   const y = parts[0] ?? 1970;

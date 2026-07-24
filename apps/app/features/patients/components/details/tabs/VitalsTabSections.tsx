@@ -2,16 +2,9 @@
 
 // jscpd:ignore-start
 import { useState, type ComponentType } from "react";
+import { useTranslations } from "next-intl";
 import { formatDate } from "@workspace/utils";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import {
   Activity,
 // jscpd:ignore-end
@@ -104,23 +97,34 @@ interface LatestVitalsCardProps {
   bmiStatus: { label: string; color: string } | null;
 }
 
+/**
+ * Phase 3 (per-feature): apps/app Patient detail > Vitals tab
+ * — the latest vitals card + the history table + the advanced
+ * metric tracking section. 9 literals converted to
+ * useTranslations("Patients.vitalsTab").
+ */
+function useVitalsTabTranslations() {
+  return useTranslations("Patients.vitalsTab");
+}
+
 export function LatestVitalsCard({
   latest,
   latestDateLabel,
   latestBmi,
   bmiStatus,
 }: LatestVitalsCardProps) {
+  const t = useVitalsTabTranslations();
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-base flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
-            Latest vitals
+            {t("latestVitalsTitle")}
           </CardTitle>
           {latestDateLabel && (
             <span className="text-xs text-muted-foreground">
-              Recorded {latestDateLabel}
+              {t("recordedLabel", { date: latestDateLabel })}
             </span>
           )}
         </div>
@@ -128,15 +132,15 @@ export function LatestVitalsCard({
       <CardContent>
         {latest ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <VitalCell icon={Activity} label="BP" value={latest.vitals.bloodPressure ?? "--/--"} unit="mmHg" />
-            <VitalCell icon={Heart} label="Pulse" value={formatVitalNumber(latest.vitals.pulse)} unit="bpm" />
-            <VitalCell icon={Activity} label="SpO2" value={formatVitalNumber(latest.vitals.spo2)} unit="%" />
-            <VitalCell icon={Thermometer} label="Temp" value={formatVitalNumber(latest.vitals.temperature)} unit={"\u00b0C"} />
-            <VitalCell icon={Weight} label="Weight" value={formatVitalNumber(latest.vitals.weight)} unit="kg" />
-            <VitalCell icon={Activity} label="BMI" value={latestBmi !== null ? String(latestBmi) : "--"} secondary={bmiStatus?.label ?? undefined} />
+            <VitalCell icon={Activity} label={t("bpLabel")} value={latest.vitals.bloodPressure ?? "--/--"} unit={t("unitMmHg")} />
+            <VitalCell icon={Heart} label={t("pulseLabel")} value={formatVitalNumber(latest.vitals.pulse)} unit={t("unitBpm")} />
+            <VitalCell icon={Activity} label={t("spo2Label")} value={formatVitalNumber(latest.vitals.spo2)} unit={t("unitPercent")} />
+            <VitalCell icon={Thermometer} label={t("tempLabel")} value={formatVitalNumber(latest.vitals.temperature)} unit={t("unitCelsius")} />
+            <VitalCell icon={Weight} label={t("weightLabel")} value={formatVitalNumber(latest.vitals.weight)} unit={t("unitKg")} />
+            <VitalCell icon={Activity} label={t("bmiLabel")} value={latestBmi !== null ? String(latestBmi) : "--"} secondary={bmiStatus?.label ?? undefined} />
           </div>
         ) : (
-          <DataState status="empty" emptyIcon={Heart} emptyTitle="No vitals recorded" emptyDescription="Vitals captured during a visit will appear here." />
+          <DataState status="empty" emptyIcon={Heart} emptyTitle={t("emptyVitalsTitle")} emptyDescription={t("emptyVitalsDescription")} />
         )}
       </CardContent>
     </Card>
@@ -148,14 +152,15 @@ interface VitalsHistoryTableProps {
 }
 
 export function VitalsHistoryTable({ rows }: VitalsHistoryTableProps) {
+  const t = useVitalsTabTranslations();
   if (rows.length === 0) {
     return (
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Vitals history</CardTitle>
+          <CardTitle className="text-base">{t("historyTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataState status="empty" emptyIcon={Activity} emptyTitle="No vitals history" emptyDescription="Vitals captured during a visit will be listed here." />
+          <DataState status="empty" emptyIcon={Activity} emptyTitle={t("emptyHistoryTitle")} emptyDescription={t("emptyHistoryDescription")} />
         </CardContent>
       </Card>
     );
@@ -163,20 +168,20 @@ export function VitalsHistoryTable({ rows }: VitalsHistoryTableProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Vitals history</CardTitle>
+        <CardTitle className="text-base">{t("historyTitle")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead className="text-muted-foreground border-b">
               <tr className="text-left">
-                <th className="py-2 pr-3 font-medium">Date</th>
-                <th className="py-2 pr-3 font-medium">BP</th>
-                <th className="py-2 pr-3 font-medium">Pulse</th>
-                <th className="py-2 pr-3 font-medium">Temp</th>
-                <th className="py-2 pr-3 font-medium">SpO2</th>
-                <th className="py-2 pr-3 font-medium">Weight</th>
-                <th className="py-2 pr-3 font-medium">BMI</th>
+                <th className="py-2 pr-3 font-medium">{t("colDate")}</th>
+                <th className="py-2 pr-3 font-medium">{t("bpLabel")}</th>
+                <th className="py-2 pr-3 font-medium">{t("pulseLabel")}</th>
+                <th className="py-2 pr-3 font-medium">{t("tempLabel")}</th>
+                <th className="py-2 pr-3 font-medium">{t("spo2Label")}</th>
+                <th className="py-2 pr-3 font-medium">{t("weightLabel")}</th>
+                <th className="py-2 pr-3 font-medium">{t("bmiLabel")}</th>
               </tr>
             </thead>
             <tbody>
@@ -195,7 +200,7 @@ export function VitalsHistoryTable({ rows }: VitalsHistoryTableProps) {
           </table>
           {rows.length > 12 && (
             <p className="mt-2 text-xs text-muted-foreground">
-              Showing latest 12 of {rows.length} entries.
+              {t("historyFooter", { shown: 12, total: rows.length })}
             </p>
           )}
         </div>
@@ -213,6 +218,7 @@ export function AdvancedMetricTracking({
   patientId,
   canRecordPatientVitals,
 }: AdvancedMetricTrackingProps) {
+  const t = useVitalsTabTranslations();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
@@ -225,7 +231,7 @@ export function AdvancedMetricTracking({
       >
         <span className="flex items-center gap-2">
           <Settings2 className="h-4 w-4 text-muted-foreground" />
-          Advanced metric tracking
+          {t("advancedMetricTrackingLabel")}
         </span>
         {showAdvanced ? (
           <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -239,9 +245,9 @@ export function AdvancedMetricTracking({
             patientId={patientId}
             readOnly={!canRecordPatientVitals}
             categoryKey="vitals"
-            title="Custom vitals tracking"
-            emptyHistoryMessage="No custom vitals records yet."
-            emptyDefinitionsMessage="Custom vitals fields will appear here once configured."
+            title={t("customVitalsTitle")}
+            emptyHistoryMessage={t("emptyCustomVitalsHistory")}
+            emptyDefinitionsMessage={t("emptyCustomVitalsDefinitions")}
             showTracking={canRecordPatientVitals}
             showConfiguration={canRecordPatientVitals}
             showRecording={canRecordPatientVitals}

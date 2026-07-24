@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Role, Specialization } from '@workspace/db';
-import { parseStringEnumMember } from '@workspace/utils';
+import { parseStringEnumMember, toCents } from '@workspace/utils';
 
 const ROLE_VALUES = Object.values(Role);
 import {
@@ -36,7 +36,9 @@ export class PrismaDoctorRepository implements IDoctorRepository {
         phoneNumber: user.phoneNumber,
         bio: user.bio,
         yearsOfExperience: user.yearsOfExperience,
+        // Write both the legacy Float and the canonical cents column (G3).
         consultationFee: user.consultationFee,
+        consultationFeeCents: toCents(user.consultationFee),
       },
     });
 
@@ -78,9 +80,18 @@ export class PrismaDoctorRepository implements IDoctorRepository {
     id: string,
     patch: Record<string, unknown>,
   ): Promise<number> {
+    // Keep the canonical cents column in sync when the Float fee is updated (G3).
+    const fee = patch.consultationFee;
+    const data =
+      fee !== undefined
+        ? {
+            ...patch,
+            consultationFeeCents: typeof fee === 'number' ? toCents(fee) : null,
+          }
+        : patch;
     const result = await this.prisma.user.updateMany({
       where: { id },
-      data: patch,
+      data,
     });
     return result.count;
   }

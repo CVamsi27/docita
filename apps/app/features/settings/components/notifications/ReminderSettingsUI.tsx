@@ -4,20 +4,8 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { FC, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  reminderSettingsFormSchema,
-  reminderFormValuesFromClinicSettings,
-  PAYMENT_REMINDER_DAY_PRESETS,
-  type ReminderSettingsFormValues,
-} from "@workspace/types";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
+import { reminderSettingsFormSchema, reminderFormValuesFromClinicSettings, PAYMENT_REMINDER_DAY_PRESETS, type ReminderSettingsFormValues } from "@workspace/types";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form } from "@workspace/ui/components";
 import { Bell } from "lucide-react";
 import {
   useClinicSettings,
@@ -26,12 +14,8 @@ import {
 } from "@workspace/data-access";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { Form } from "@workspace/ui/components/form/form";
 import { ReminderSettingsLoadingCard } from "./reminder-settings-loading-card";
-import {
-  ReminderRow,
-  OverduePaymentReminderSection,
-} from "./ReminderSettingsUI.sections";
+import { ReminderRow, OverduePaymentReminderSection } from "./ReminderSettingsUI.sections";
 import { buildReminderSettingsPayload } from "./ReminderSettingsUI.helpers";
 
 export const ReminderSettingsUI: FC = () => {

@@ -1,12 +1,13 @@
 "use client";
 
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import { AppPageScaffold, PageHeader } from "@workspace/ui/components";
+import { useTranslations } from "next-intl";
 import { useBroadcastsPage } from "./use-broadcasts-page";
 import { BroadcastsFormSection } from "./BroadcastsFormSection";
 import { BroadcastsListSection } from "./BroadcastsListSection";
 
 export function BroadcastsPage() {
+  const t = useTranslations("Broadcasts");
   const {
     presetId,
     setPresetId,
@@ -35,8 +36,8 @@ export function BroadcastsPage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Broadcast Messages"
-          description="Upload a CSV of phone numbers and send a WhatsApp campaign through the Docita support number. Replies land in the Support WhatsApp inbox."
+          title={t("pageTitle")}
+          description={t("pageDescription")}
           size="compact"
         />
       }

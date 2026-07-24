@@ -1,16 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Input } from "@workspace/ui/components/form/input";
-import { Label } from "@workspace/ui/components/form/label";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useUpdateProfile } from "@workspace/data-access";
 import { toast } from "sonner";

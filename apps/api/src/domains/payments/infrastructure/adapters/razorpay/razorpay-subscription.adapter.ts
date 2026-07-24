@@ -120,8 +120,12 @@ export class RazorpaySubscriptionAdapter
       );
 
       return this.mapRazorpayCustomer(customer);
-    } catch {
-      this.logger.warn(`Customer ${customerId} not found`);
+    } catch (error) {
+      // Lookup contract: null means "not found"; log the real cause so
+      // non-404 failures (5xx, network, breaker open) stay visible.
+      this.logger.warn(
+        `Customer ${customerId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }
@@ -176,8 +180,11 @@ export class RazorpaySubscriptionAdapter
     try {
       const razorpay = this.getClient();
       return await this.withRazorpayTimeout(() => razorpay.plans.fetch(planId));
-    } catch {
-      this.logger.warn(`Plan ${planId} not found`);
+    } catch (error) {
+      // See getCustomer: null = not found; log real cause.
+      this.logger.warn(
+        `Plan ${planId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }
@@ -223,8 +230,11 @@ export class RazorpaySubscriptionAdapter
       );
 
       return this.mapRazorpaySubscription(subscription);
-    } catch {
-      this.logger.warn(`Subscription ${subscriptionId} not found`);
+    } catch (error) {
+      // See getCustomer: null = not found; log real cause.
+      this.logger.warn(
+        `Subscription ${subscriptionId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }

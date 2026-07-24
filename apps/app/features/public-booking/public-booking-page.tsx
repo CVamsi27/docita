@@ -1,21 +1,10 @@
 "use client";
 
 import { Calendar as CalendarIcon } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import {
-  PUBLIC_BOOKING_MAIN_CONTENT_ID,
-  PUBLIC_BOOKING_MOBILE_DOCK_FOOTER_PAD_REVIEW_CLASS,
-  PUBLIC_BOOKING_MOBILE_DOCK_FOOTER_PAD_VISIT_CONTACT_CLASS,
-} from "@/features/public-booking/public-booking-constants";
+import { AppPageScaffold, DataState, PageHeader } from "@workspace/ui/components";
+import { PUBLIC_BOOKING_MAIN_CONTENT_ID, PUBLIC_BOOKING_MOBILE_DOCK_FOOTER_PAD_REVIEW_CLASS, PUBLIC_BOOKING_MOBILE_DOCK_FOOTER_PAD_VISIT_CONTACT_CLASS } from "@/features/public-booking/public-booking-constants";
 import { PublicBookingDesktopLayout } from "@/features/public-booking/public-booking-desktop-layout";
-import {
-  PublicBookingDoneCard,
-  PublicBookingPageFooter,
-  PublicBookingSkipLink,
-  PublicBookingTopChrome,
-} from "@/features/public-booking/public-booking-components";
+import { PublicBookingDoneCard, PublicBookingPageFooter, PublicBookingSkipLink, PublicBookingTopChrome } from "@/features/public-booking/public-booking-components";
 import { PublicBookingMobileLayout } from "@/features/public-booking/public-booking-mobile-layout";
 import { usePublicBookingIsDesktopLayout } from "@/features/public-booking/use-public-booking-desktop-layout";
 import { usePublicBookingPageState } from "@/features/public-booking/use-public-booking-page-state";

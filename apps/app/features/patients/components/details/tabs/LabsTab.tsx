@@ -2,15 +2,8 @@
 
 // jscpd:ignore-start
 import { formatDate } from "@workspace/utils";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { useTranslations } from "next-intl";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import { ExternalLink, FlaskConical } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Feature } from "@workspace/types";
@@ -42,20 +35,23 @@ const STATUS_VARIANT: Record<
 };
 
 function LabsTabContent({ patientId }: LabsTabProps) {
+  const t = useTranslations("Patients.labsTab");
   const {
-    data: orders,
+    data: ordersResponse,
     isLoading,
     isError,
     refetch,
-  } = useLabTestOrders({ patientId });
+  } = useLabTestOrders({ patientId, limit: 100 });
 
-  if (isLoading) return <DataState status="loading" loadingMessage="Loading lab tests…" />;
+  const orders = ordersResponse?.items ?? [];
+
+  if (isLoading) return <DataState status="loading" loadingMessage={t("loadingMessage")} />;
 
   if (isError) {
     return (
       <DataState
         status="error"
-        errorMessage="We could not load these lab tests. Please try again."
+        errorMessage={t("errorMessage")}
         onRetry={() => refetch()}
       />
     );
@@ -66,8 +62,8 @@ function LabsTabContent({ patientId }: LabsTabProps) {
       <DataState
         status="empty"
         emptyIcon={FlaskConical}
-        emptyTitle="No lab tests ordered"
-        emptyDescription="Lab orders for this patient will appear here once created."
+        emptyTitle={t("emptyTitle")}
+        emptyDescription={t("emptyDescription")}
       />
     );
   }
@@ -89,12 +85,12 @@ function LabsTabContent({ patientId }: LabsTabProps) {
                 <div className="min-w-0">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
                     <FlaskConical className="h-4 w-4 text-warning" />
-                    {order.labTest?.name ?? "Lab test"}
+                    {order.labTest?.name ?? t("labTestFallback")}
                   </CardTitle>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Ordered {orderedAt}
+                    {t("orderedLabel", { date: orderedAt })}
                     {order.doctor?.name
-                      ? ` \u00b7 Dr. ${order.doctor.name}`
+                      ? ` \u00b7 ${t("doctorPrefix", { name: order.doctor.name })}`
                       : ""}
                   </p>
                 </div>
@@ -106,12 +102,12 @@ function LabsTabContent({ patientId }: LabsTabProps) {
             <CardContent className="space-y-2">
               {order.labTest?.category && (
                 <p className="text-xs text-muted-foreground">
-                  Category: {order.labTest.category}
+                  {t("categoryLabel", { value: order.labTest.category })}
                 </p>
               )}
               {completedAt && (
                 <p className="text-xs text-muted-foreground">
-                  Completed {completedAt}
+                  {t("completedLabel", { date: completedAt })}
                 </p>
               )}
               {order.notes && (
@@ -130,7 +126,7 @@ function LabsTabContent({ patientId }: LabsTabProps) {
                     rel="noopener noreferrer"
                   >
                     <ExternalLink className="h-3 w-3 mr-1.5" />
-                    View result
+                    {t("viewResultButton")}
                   </a>
                 </Button>
               )}

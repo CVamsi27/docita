@@ -1,21 +1,21 @@
 "use client";
 
-// jscpd:ignore-start
 import { memo } from "react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { Badge } from "@workspace/ui/components";
 import { formatAmountLocale } from "@workspace/utils";
+import { useTranslations } from "next-intl";
 import type { InternalDetailedMetricsRow } from "@workspace/data-access/internal";
 
 export type DetailedMetricsRow = InternalDetailedMetricsRow;
-// jscpd:ignore-end
+
+/**
+ * Phase 3 (per-feature): apps/internal Analytics > Detailed metrics
+ * table. 6 literals converted to useTranslations("InternalAnalytics.detailedMetricsTable").
+ */
+function useDetailedMetricsTableTranslations() {
+  return useTranslations("InternalAnalytics.detailedMetricsTable");
+}
 
 interface AnalyticsDetailedMetricsTableProps {
   rows: DetailedMetricsRow[];
@@ -23,17 +23,18 @@ interface AnalyticsDetailedMetricsTableProps {
 function AnalyticsDetailedMetricsTableComponent({
   rows,
 }: AnalyticsDetailedMetricsTableProps) {
+  const t = useDetailedMetricsTableTranslations();
   return (
     <div className="overflow-x-hidden">
       <Table>
         <TableHeader className="border-b border-border">
           <TableRow>
-            <TableHead>Period</TableHead>
-            <TableHead className="text-right">Revenue</TableHead>
-            <TableHead className="text-right">Invoices</TableHead>
-            <TableHead className="text-right">Avg amount</TableHead>
-            <TableHead className="text-right">Appointments</TableHead>
-            <TableHead className="text-right">Fill rate</TableHead>
+            <TableHead>{t("colPeriod")}</TableHead>
+            <TableHead className="text-right">{t("colRevenue")}</TableHead>
+            <TableHead className="text-right">{t("colInvoices")}</TableHead>
+            <TableHead className="text-right">{t("colAvgAmount")}</TableHead>
+            <TableHead className="text-right">{t("colAppointments")}</TableHead>
+            <TableHead className="text-right">{t("colFillRate")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="divide-y divide-border">
@@ -75,7 +76,7 @@ function AnalyticsDetailedMetricsTableComponent({
                         : "badge-danger"
                   }
                 >
-                  {row.fillRate}%
+                  {t("fillRateValue", { rate: row.fillRate })}
                 </Badge>
               </TableCell>
             </TableRow>

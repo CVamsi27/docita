@@ -4,6 +4,7 @@ import { ActivateSubscriptionUseCase } from './activate-subscription.use-case';
 import type { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
 import { ActivateSubscriptionPaymentService } from '@/domains/subscriptions/application/services/activate-subscription-payment.service';
 import { ActivateSubscriptionClinicSyncService } from '@/domains/subscriptions/application/services/activate-subscription-clinic-sync.service';
+import { ActivateSubscriptionPricingResolver } from '@/domains/subscriptions/application/services/activate-subscription-pricing.resolver';
 import type { IClinicOperations } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import { ProratingService } from '@/domains/subscriptions/core/services/proration.service';
@@ -124,6 +125,21 @@ describe('ActivateSubscriptionUseCase', () => {
     clinicOps,
     activationPolicy,
   );
+  // Real resolver so tests that exercise the activation flow (lapsed
+  // renewal, offer handling, …) see the real pricing math. The few
+  // tests that want a no-op pricing path can mock `pricingResolver.resolve`
+  // after the module under test is constructed.
+  const pricingResolver = new ActivateSubscriptionPricingResolver(
+    subscriptionRepo,
+    new SubscriptionPricingService(),
+    featureFlagService,
+    checkoutPricing,
+    configService,
+    activationPolicy,
+  );
+  const referralService = {
+    realizeReferralOnFirstPayment: jest.fn(async () => undefined),
+  } as unknown as import('@/domains/subscriptions/core/services/referral.service').ReferralService;
 
   let useCase: ActivateSubscriptionUseCase;
 
@@ -131,14 +147,11 @@ describe('ActivateSubscriptionUseCase', () => {
     jest.clearAllMocks();
     useCase = new ActivateSubscriptionUseCase(
       subscriptionRepo,
-      new SubscriptionPricingService(),
-      featureFlagService,
-      checkoutPricing,
-      configService,
-      activationPolicy,
+      pricingResolver,
       billingSnapshot,
       activationPayment,
       clinicSync,
+      referralService,
     );
   });
 
@@ -221,14 +234,11 @@ describe('ActivateSubscriptionUseCase', () => {
 
     const lapsedUseCase = new ActivateSubscriptionUseCase(
       subscriptionRepo,
-      new SubscriptionPricingService(),
-      featureFlagService,
-      checkoutPricing,
-      configService,
-      activationPolicy,
+      pricingResolver,
       lapsedBillingSnapshot,
       activationPayment,
       clinicSync,
+      referralService,
     );
 
     await lapsedUseCase.execute(request);

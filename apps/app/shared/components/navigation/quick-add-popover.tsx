@@ -2,21 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Banknote,
-  Calendar,
-  FileText,
-  Plus,
-  Stethoscope,
-  UserPlus,
-} from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@workspace/ui/components/overlay/popover";
-import { Kbd } from "@workspace/ui/components/indicators/kbd";
+import { Banknote, Calendar, FileText, Plus, Stethoscope, UserPlus } from "lucide-react";
+import { Button, Kbd, Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth/auth-context";

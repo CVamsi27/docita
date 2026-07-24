@@ -6,21 +6,8 @@
 // simple regex that flags the English word "as" in JSX text as a type cast.
 // There are no TypeScript type assertions in this file.
 
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
-import { Separator } from "@workspace/ui/components/layout/separator";
-import {
-  DocumentHeader,
-  PatientInfoSection,
-  DataCategoriesSection,
-  DataUsageSection,
-  ThirdPartySharingSection,
-  DataRetentionSection,
-  YourRightsSection,
-  ConsentSection,
-  SignatureSection,
-  DocumentFooter,
-  type ConsentDocumentClinicInfo,
-} from "./consent-template-document-sections";
+import { Card, CardContent, CardHeader, Separator } from "@workspace/ui/components";
+import { DocumentHeader, PatientInfoSection, DataCategoriesSection, DataUsageSection, ThirdPartySharingSection, DataRetentionSection, YourRightsSection, ConsentSection, SignatureSection, DocumentFooter, type ConsentDocumentClinicInfo } from "./consent-template-document-sections";
 
 interface ConsentTemplateDocumentProps {
   clinic: ConsentDocumentClinicInfo | null | undefined;

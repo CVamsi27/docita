@@ -11,19 +11,6 @@ import {
   WhatsAppMessage,
   WhatsAppTemplate,
 } from '@/domains/whatsapp/core/entities';
-import type {
-  PrismaWhatsAppDatabase,
-  PrismaWhatsAppMessageRecord,
-  PrismaWhatsAppReadClient,
-  PrismaWhatsAppTemplateRecord,
-} from './prisma-whatsapp.types';
-
-export type {
-  PrismaWhatsAppDatabase,
-  PrismaWhatsAppMessageRecord,
-  PrismaWhatsAppReadClient,
-  PrismaWhatsAppTemplateRecord,
-};
 
 @Injectable()
 export class PrismaWhatsAppRepository implements IWhatsAppRepository {

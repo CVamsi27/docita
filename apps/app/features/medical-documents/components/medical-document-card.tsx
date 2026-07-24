@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { FileText, Check, X } from "lucide-react";
-import {
-  MEDICAL_DOCUMENT_STATUS_COLORS,
-  medicalDocumentTypeLabel,
-} from "./medical-document-list-config";
+import { MEDICAL_DOCUMENT_STATUS_COLORS, medicalDocumentTypeLabel } from "./medical-document-list-config";
 
 export function MedicalDocumentCard({
   doc,

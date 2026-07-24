@@ -152,6 +152,34 @@ describe('InventoryService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
+    describe('deleteItem (soft delete)', () => {
+      it('flips the item to active: false rather than removing the row', async () => {
+        repo.findItemByClinic.mockResolvedValue({ id: 'item-1' });
+        repo.updateItem.mockResolvedValue({ id: 'item-1', active: false });
+
+        const result = await service.deleteItem('clinic-1', 'item-1');
+
+        // Soft-delete: updateItem is called with { active: false }, not a
+        // repository delete. The row stays for stock-movement history and
+        // audit; the listing query filters active items only.
+        expect(repo.updateItem).toHaveBeenCalledWith(
+          'item-1',
+          { active: false },
+          'clinic-1',
+        );
+        expect(result).toEqual({ success: true });
+      });
+
+      it('throws NotFoundException when the item is not in the clinic', async () => {
+        repo.findItemByClinic.mockResolvedValue(null);
+
+        await expect(
+          service.deleteItem('clinic-1', 'nonexistent'),
+        ).rejects.toThrow(NotFoundException);
+        expect(repo.updateItem).not.toHaveBeenCalled();
+      });
+    });
+
     it('updates an item', async () => {
       repo.findItemByClinic.mockResolvedValue(mockItem);
       repo.updateItem.mockResolvedValue({ ...mockItem, name: 'Updated' });

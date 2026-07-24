@@ -2,27 +2,11 @@
 
 import type { FC } from "react";
 import { ChevronDown } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { Badge, Button, Collapsible, CollapsibleContent, CollapsibleTrigger } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/overlay/collapsible";
 import { ComparisonTable } from "@/features/subscription";
-import {
-  PRICING_CURRENCY_SYMBOLS,
-  PUBLISHED_PLAN_LADDER,
-  SUBSCRIPTION_TRIAL_DAYS,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-  type TierName,
-} from "@workspace/types";
-import {
-  formatPriceWithCurrency,
-  formatRateWithCurrency,
-  parseSupportedCurrency,
-} from "@workspace/utils";
+import { PRICING_CURRENCY_SYMBOLS, PUBLISHED_PLAN_LADDER, SUBSCRIPTION_TRIAL_DAYS, TIER_OVERAGE_RATES_BY_CURRENCY, type TierName } from "@workspace/types";
+import { formatPriceWithCurrency, formatRateWithCurrency, parseSupportedCurrency } from "@workspace/utils";
 import { getTierPricing } from "@/lib/subscription/tier-access";
 import { type TierPricing } from "@/features/subscription";
 

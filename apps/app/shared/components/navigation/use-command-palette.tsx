@@ -12,11 +12,7 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { useSidebarNavOrder } from "@/hooks/use-sidebar-nav-order";
 import { useClinic } from "@/lib/contexts/clinic-context";
-import {
-  COMMAND_PALETTE_GROUP_ACTIONS,
-  COMMAND_PALETTE_GROUP_AI,
-  COMMAND_PALETTE_GROUP_NAVIGATION,
-} from "./command-palette-config";
+import { COMMAND_PALETTE_GROUP_ACTIONS, COMMAND_PALETTE_GROUP_AI, COMMAND_PALETTE_GROUP_NAVIGATION } from "./command-palette-config";
 import { usePaletteKeyboard } from "./use-palette-keyboard";
 import { usePaletteSearch } from "./use-palette-search";
 import { buildPaletteActions } from "./build-palette-actions";

@@ -2,17 +2,8 @@
 
 // jscpd:ignore-start
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
-  useActivateSubscription,
-  useCreateCheckout,
-} from "@workspace/data-access";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
+import { useActivateSubscription, useCreateCheckout } from "@workspace/data-access";
 import { getSupportContactText } from "@/lib/constants/support-contact";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
@@ -24,13 +15,7 @@ import {
 import { BRAND_PRIMARY_HEX } from "@/lib/constants/branding";
 import { tierSchema, type PlanMode } from "@workspace/types";
 import { parseStringEnumMember } from "@workspace/utils";
-import {
-  PaymentSecurityAlerts,
-  PaymentAutoPayField,
-  PaymentTotalSummary,
-  PaymentActionGroup,
-  PaymentSecurityFooter,
-} from "./PaymentStepSections";
+import { PaymentSecurityAlerts, PaymentAutoPayField, PaymentTotalSummary, PaymentActionGroup, PaymentSecurityFooter } from "./PaymentStepSections";
 
 interface PaymentDetails {
   autoPay: boolean;

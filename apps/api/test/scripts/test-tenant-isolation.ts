@@ -43,9 +43,14 @@ async function main() {
           });
 
           if (result) {
-          } else {
+            console.error(
+              'TENANT ISOLATION BREACH: findUnique returned patient from Clinic A under Clinic B context',
+            );
+            process.exitCode = 1;
           }
-        } catch (_err) {}
+        } catch (_err) {
+          // Expected: tenant extension should deny cross-clinic access
+        }
       },
     );
 
@@ -58,9 +63,14 @@ async function main() {
           });
 
           if (result) {
-          } else {
+            console.error(
+              'TENANT ISOLATION BREACH: findFirst returned patient from Clinic A under Clinic B context',
+            );
+            process.exitCode = 1;
           }
-        } catch (_err) {}
+        } catch (_err) {
+          // Expected: tenant extension should deny cross-clinic access
+        }
       },
     );
 
@@ -68,6 +78,8 @@ async function main() {
     await prismaRaw.clinic.delete({ where: { id: clinicA.id } });
     await prismaRaw.clinic.delete({ where: { id: clinicB.id } });
   } catch (_e) {
+    console.error('Tenant isolation test failed:', _e);
+    process.exitCode = 1;
   } finally {
     await prismaRaw.$disconnect();
   }

@@ -1,37 +1,9 @@
 "use client";
 
-import {
-  Activity,
-  BedDouble,
-  BookOpen,
-  Boxes,
-  CalendarClock,
-  CalendarDays,
-  ClipboardList,
-  FileInput,
-  Files,
-  FlaskConical,
-  HeartPulse,
-  type LucideIcon,
-  MessageCircle,
-  Pill,
-  Receipt,
-  ScanText,
-  ShieldCheck,
-  ShieldPlus,
-  SmilePlus,
-  Sparkles,
-  Stethoscope,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { Activity, BedDouble, BookOpen, Boxes, CalendarClock, CalendarDays, ClipboardList, FileInput, Files, FlaskConical, HeartPulse, type LucideIcon, MessageCircle, Pill, Receipt, ScanText, ShieldCheck, ShieldPlus, SmilePlus, Sparkles, Stethoscope, TrendingUp, Users } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
-import {
-  landingFadeUpVariants,
-  landingInViewViewport,
-  landingStaggerContainer,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
 
 interface SurfaceItem {
   label: string;
@@ -85,7 +57,7 @@ const COLUMNS: SurfaceColumn[] = [
       { label: "Daybook & day-close", icon: BookOpen },
       { label: "Inventory", icon: Boxes },
       { label: "Reports & analytics", icon: TrendingUp },
-      { label: "ABDM / ABHA ready", icon: HeartPulse },
+      { label: "ABDM / ABHA (coming soon)", icon: HeartPulse },
       { label: "IPD bed management", icon: BedDouble },
       { label: "Audit & roles", icon: ShieldCheck },
       { label: "Imports (Excel · OCR)", icon: FileInput },

@@ -6,6 +6,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DataAccessProvider, type RequestConfig } from "@workspace/data-access";
@@ -111,11 +112,108 @@ function renderWithQueryClient(ui: ReactElement) {
           isTierFeatureEnabled: () => true,
         }}
       >
-        {ui}
+        <NextIntlClientProvider locale="en" messages={messages}>
+          {ui}
+        </NextIntlClientProvider>
       </DataAccessProvider>
     </QueryClientProvider>,
   );
 }
+
+/**
+ * Local messages mirror covering all namespaces read by
+ * PaymentProcessingPage + PaymentFormFields + the payment
+ * dialog. The test renders via NextIntlClientProvider so
+ * useTranslations resolves against these English strings.
+ */
+const messages = {
+  InternalPaymentProcessing: {
+    formFields: {
+      tierLabel: "Upgrade to Tier",
+      tierDescription: "Select the new tier for this facility",
+      amountLabel: "Amount ({currency})",
+      amountPlaceholder: "Amount",
+      amountDescription:
+        "Amount will be auto-calculated based on selected tier",
+      paymentMethodLabel: "Payment Method",
+      paymentMethodRazorpay: "Razorpay",
+      paymentMethodStripe: "Stripe",
+      paymentMethodBankTransfer: "Bank Transfer",
+      paymentMethodManual: "Manual",
+      paymentNotesLabel: "Payment Notes (Optional)",
+      paymentNotesPlaceholder: "Payment notes",
+    },
+    additionalCharge: {
+      categoryLabel: "Charge category",
+      categoryGuidedSetup: "Guided setup",
+      categoryDataMigration: "Data migration",
+      categoryCustomTraining: "Custom training",
+      categoryIntegration: "Integration",
+      categoryCommercialDiscount: "Commercial discount / adjustment",
+      categoryOther: "Other service",
+      categoryDescription:
+        "Guided setup is separate from the software subscription. Default amount follows the list price for the clinic's currency; adjust to match your invoice.",
+      amountLabel: "Amount ({currency})",
+      amountPlaceholder: "Enter amount",
+    },
+    chargeSummary: {
+      paymentMethodLabel: "Payment method",
+      paymentMethodRazorpay: "Razorpay",
+      paymentMethodStripe: "Stripe",
+      paymentMethodBank: "Bank transfer",
+      paymentMethodManual: "Manual",
+      razorpayIdLabel: "Razorpay payment ID (optional)",
+      razorpayIdPlaceholder: "Enter Razorpay payment id",
+      notesLabel: "Notes (optional)",
+      notesPlaceholder: "Scope, invoice reference, or internal note",
+    },
+    pricingOffers: {
+      noActiveDiscounts: "No active discounts",
+      colFacility: "Facility",
+      colTitle: "Title",
+      colPercentOff: "% off",
+      colValidUntil: "Valid until",
+      colActions: "Actions",
+      removeButton: "Remove",
+      facilityLabel: "Facility",
+      facilityPlaceholder: "Select facility",
+      percentOffLabel: "Percent off",
+      percentOffPlaceholder: "e.g. 15",
+      percentOffDescription:
+        "Whole-number percent (0-95). Applied to the facility's tier price.",
+      titleLabel: "Offer title",
+      titlePlaceholder: "Spring onboarding discount",
+      validUntilLabel: "Valid until",
+      validUntilPlaceholder: "Pick a date",
+      notesLabel: "Notes (optional)",
+      notesPlaceholder: "Internal note for the sales / support team",
+      saveButton: "Save offer",
+      savingLabel: "Saving...",
+    },
+    clinicsSection: {
+      title: "Facilities Payment Management",
+      description:
+        "Select a facility to change plan and record subscription payment, or record an add-on charge (for example guided setup)",
+      emptyTitle: "No facilities found",
+      emptyDescription:
+        "Facilities will appear here once they are provisioned for billing.",
+      colFacilityName: "Facility Name",
+      colCurrentTier: "Current Tier",
+      colMaxDoctors: "Max Doctors",
+      colMaxPatients: "Max Patients",
+      colEmail: "Email",
+      colCurrency: "Currency",
+      colActions: "Actions",
+      managePlanButton: "Manage plan payment",
+      addOnChargeButton: "Add-on charge",
+    },
+    // Stub the dialog namespace so the test renders the existing
+    // human strings (e.g. "Payment Processing - {clinic}").
+    dialog: {
+      title: "Payment Processing - {clinic}",
+    },
+  },
+};
 
 describe("PaymentProcessingPage", () => {
   beforeEach(() => {
@@ -131,7 +229,8 @@ describe("PaymentProcessingPage", () => {
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
       }
-      if (url === "/internal/billing/pricing/offers") return Promise.resolve([]);
+      if (url === "/internal/billing/pricing/offers")
+        return Promise.resolve([]);
       if (url === "/internal/clinics/clinic_1/tier-info") {
         return Promise.resolve({
           currentTier: "ESSENTIAL",
@@ -141,7 +240,8 @@ describe("PaymentProcessingPage", () => {
           pricing: 999,
         });
       }
-      if (url === "/pricing/config?currency=INR") return Promise.resolve(pricingConfig);
+      if (url === "/pricing/config?currency=INR")
+        return Promise.resolve(pricingConfig);
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
     clientMocks.post.mockResolvedValue({});
@@ -229,7 +329,8 @@ describe("PaymentProcessingPage", () => {
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
       }
-      if (url === "/internal/billing/pricing/offers") return Promise.resolve([]);
+      if (url === "/internal/billing/pricing/offers")
+        return Promise.resolve([]);
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
 
@@ -244,8 +345,10 @@ describe("PaymentProcessingPage", () => {
       if (url === "/internal/tier-pricing") {
         return Promise.resolve({ tiers: tierPricing });
       }
-      if (url === "/internal/billing/pricing/offers") return Promise.resolve([]);
-      if (url === "/internal/clinics/clinic_1/tier-info") return Promise.reject(new Error("Tier info unavailable"));
+      if (url === "/internal/billing/pricing/offers")
+        return Promise.resolve([]);
+      if (url === "/internal/clinics/clinic_1/tier-info")
+        return Promise.reject(new Error("Tier info unavailable"));
       return Promise.reject(new Error(`Unexpected GET ${url}`));
     });
 

@@ -1,11 +1,12 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import {
-  PrismaWhatsAppRepository,
-  type PrismaWhatsAppMessageRecord,
+  MESSAGE_WITH_CONVERSATION_INCLUDE,
+  type PrismaWhatsAppMessageWithConversation,
   type PrismaWhatsAppReadClient,
   type PrismaWhatsAppTemplateRecord,
   type PrismaWhatsAppDatabase,
-} from './prisma-whatsapp.repository';
+} from './prisma-whatsapp.types';
+import { PrismaWhatsAppRepository } from './prisma-whatsapp.repository';
 import { PrismaWhatsAppMessageRepository } from './prisma-whatsapp-message.repository';
 import { PrismaWhatsAppTemplateRepository } from './prisma-whatsapp-template.repository';
 import {
@@ -28,6 +29,7 @@ import type { SupportWhatsAppMessage } from '@workspace/types';
 import { createFixedClockMock } from '@/test-utils';
 
 const NOW = new Date('2026-01-01T00:00:00.000Z');
+type MessageQueryInclude = typeof MESSAGE_WITH_CONVERSATION_INCLUDE;
 
 type SupportWhatsAppMessageLookup = Pick<
   SupportWhatsAppMessage,
@@ -35,8 +37,8 @@ type SupportWhatsAppMessageLookup = Pick<
 >;
 
 function makePrismaMessage(
-  overrides: Partial<PrismaWhatsAppMessageRecord> = {},
-): PrismaWhatsAppMessageRecord {
+  overrides: Partial<PrismaWhatsAppMessageWithConversation> = {},
+): PrismaWhatsAppMessageWithConversation {
   return {
     id: 'msg-db-001',
     conversationId: 'conv-001',
@@ -49,6 +51,7 @@ function makePrismaMessage(
     conversation: {
       clinicId: 'clinic-123',
       patientId: 'patient-001',
+      patient: { phoneNumber: '919876543210' },
     },
     ...overrides,
   };
@@ -86,16 +89,16 @@ describe('PrismaWhatsAppRepository', () => {
           .fn<
             (args: {
               where: { id: string };
-              include: { conversation: true };
-            }) => Promise<PrismaWhatsAppMessageRecord | null>
+              include: MessageQueryInclude;
+            }) => Promise<PrismaWhatsAppMessageWithConversation | null>
           >()
           .mockResolvedValue(makePrismaMessage()),
         findFirst: jest
           .fn<
             (args: {
               where: { providerMsgId: string };
-              include: { conversation: true };
-            }) => Promise<PrismaWhatsAppMessageRecord | null>
+              include: MessageQueryInclude;
+            }) => Promise<PrismaWhatsAppMessageWithConversation | null>
           >()
           .mockResolvedValue(makePrismaMessage()),
       },
@@ -204,7 +207,7 @@ describe('PrismaWhatsAppRepository', () => {
                 direction: 'OUTBOUND';
                 messageType: 'TEXT' | 'TEMPLATE';
               };
-            }) => Promise<PrismaWhatsAppMessageRecord>
+            }) => Promise<PrismaWhatsAppMessageWithConversation>
           >()
           .mockResolvedValue(makePrismaMessage()),
       },
@@ -349,10 +352,19 @@ describe('PrismaWhatsAppRepository', () => {
     });
 
     it('should handle missing patient phone gracefully', async () => {
-      mockReadClient.patient.findUnique.mockResolvedValue(null);
+      mockReadClient.whatsappMessage.findFirst.mockResolvedValue(
+        makePrismaMessage({
+          conversation: {
+            clinicId: 'clinic-123',
+            patientId: 'patient-001',
+            patient: null,
+          },
+        }),
+      );
 
       const message = await repository.findMessageByExternalId('wamid.ext001');
       expect(message).not.toBeNull();
+      expect(message?.toSnapshot().recipientPhone).toBe('');
     });
   });
 

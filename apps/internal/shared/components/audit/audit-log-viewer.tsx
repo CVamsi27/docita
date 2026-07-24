@@ -5,12 +5,7 @@ import { useInternalAuditLogs } from "@workspace/data-access/internal";
 import { toast } from "sonner";
 import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  AuditLogFiltersSection,
-  AuditLogFooterSection,
-  AuditLogTableSection,
-  AuditLogToolbarSection,
-} from "./audit-log-viewer-sections";
+import { AuditLogFiltersSection, AuditLogFooterSection, AuditLogTableSection, AuditLogToolbarSection } from "./audit-log-viewer-sections";
 
 export function AuditLogViewer() {
   const [showFilters, setShowFilters] = useState(false);

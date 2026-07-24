@@ -18,6 +18,7 @@ import {
   coerceAppointmentDate,
   toPrismaAppointmentUpdate,
 } from '@/domains/appointments/core/domain-services/appointment-update-patch.rules';
+import { buildAppointmentObservationMetrics } from '@/domains/appointments/core/domain-services/appointment-observation-metrics.rules';
 
 // AuditLogged: appointment detail updates (AppointmentCommandService)
 
@@ -52,30 +53,21 @@ export class UpdateAppointmentDetailsUseCase {
   async execute(command: UpdateAppointmentDetailsCommand): Promise<void> {
     const { appointmentId, clinicId, data, appointment } = command;
 
-    const touchesSchedule =
-      data.startTime !== undefined || data.endTime !== undefined;
-    if (touchesSchedule) {
-      const nextStart = coerceAppointmentDate(
-        data.startTime,
-        appointment.startTime,
-      );
-      const nextEnd = coerceAppointmentDate(data.endTime, appointment.endTime);
-      const nextDoctorId =
-        typeof data.doctorId === 'string' && data.doctorId.trim() !== ''
-          ? data.doctorId
-          : appointment.doctorId;
-      const overlap = await this.schedulingRules.validateAppointmentOverlap(
-        nextDoctorId,
-        clinicId,
-        nextStart,
-        nextEnd,
-        appointmentId,
-      );
-      if (overlap.hasConflict)
-        throw new BadRequestException('Doctor has conflicting appointment');
+    const prismaPatch = toPrismaAppointmentUpdate(data);
+
+    // Nothing to write (autosave from an empty draft, or a no-op PATCH).
+    // Bailing here avoids the "0 rows updated" → 404 noise that otherwise
+    // surfaces when a consultation opens without any draft content yet.
+    if (Object.keys(prismaPatch).length === 0) {
+      return;
     }
 
-    const prismaPatch = toPrismaAppointmentUpdate(data);
+    await this.assertNoScheduleConflict(
+      command,
+      appointment,
+      appointmentId,
+      clinicId,
+    );
 
     const count = await this.writeRepository.applyPatch(
       appointmentId,
@@ -96,49 +88,66 @@ export class UpdateAppointmentDetailsUseCase {
       });
     }
 
-    const observations =
-      typeof data.observations === 'string' ? data.observations.trim() : '';
-    const consultationNotes =
-      typeof data.consultationNotes === 'string'
-        ? data.consultationNotes.trim()
-        : '';
+    await this.recordObservationMetrics(data, command, appointmentId, clinicId);
+  }
 
-    const observationMetrics: Array<{
-      definitionKey: string;
-      definitionLabel: string;
-      value: string;
-    }> = [];
+  private async assertNoScheduleConflict(
+    command: UpdateAppointmentDetailsCommand,
+    appointment: AppointmentForUpdate,
+    appointmentId: string,
+    clinicId: string,
+  ): Promise<void> {
+    const { data } = command;
+    const nextDoctorId =
+      typeof data.doctorId === 'string' && data.doctorId.trim() !== ''
+        ? data.doctorId
+        : appointment.doctorId;
+    // A doctor reassignment must be conflict-checked too: moving an appointment
+    // onto a doctor already booked for that slot is a double-booking even when
+    // the times are untouched.
+    const touchesSchedule =
+      data.startTime !== undefined ||
+      data.endTime !== undefined ||
+      nextDoctorId !== appointment.doctorId;
+    if (!touchesSchedule) return;
 
-    if (observations) {
-      observationMetrics.push({
-        definitionKey: 'observations',
-        definitionLabel: 'Observations',
-        value: observations,
-      });
-    }
+    const nextStart = coerceAppointmentDate(
+      data.startTime,
+      appointment.startTime,
+    );
+    const nextEnd = coerceAppointmentDate(data.endTime, appointment.endTime);
+    const overlap = await this.schedulingRules.validateAppointmentOverlap(
+      nextDoctorId,
+      clinicId,
+      nextStart,
+      nextEnd,
+      appointmentId,
+    );
+    if (overlap.hasConflict)
+      throw new BadRequestException('Doctor has conflicting appointment');
+  }
 
-    if (consultationNotes) {
-      observationMetrics.push({
-        definitionKey: 'consultation_notes',
-        definitionLabel: 'Consultation Notes',
-        value: consultationNotes,
-      });
-    }
+  private async recordObservationMetrics(
+    data: Partial<UpdateAppointmentRequest>,
+    command: UpdateAppointmentDetailsCommand,
+    appointmentId: string,
+    clinicId: string,
+  ): Promise<void> {
+    const metrics = buildAppointmentObservationMetrics(data);
+    if (metrics.length === 0) return;
 
-    if (observationMetrics.length > 0) {
-      this.logger.log({
-        action: 'appointment.details.update',
-        appointmentId,
-        clinicId,
-        metricCount: observationMetrics.length,
-      });
+    this.logger.log({
+      action: 'appointment.details.update',
+      appointmentId,
+      clinicId,
+      metricCount: metrics.length,
+    });
 
-      await this.metricsService.recordObservationMetrics({
-        clinicId,
-        patientId: appointment.patientId,
-        appointmentId,
-        metrics: observationMetrics,
-      });
-    }
+    await this.metricsService.recordObservationMetrics({
+      clinicId,
+      patientId: command.appointment.patientId,
+      appointmentId,
+      metrics,
+    });
   }
 }

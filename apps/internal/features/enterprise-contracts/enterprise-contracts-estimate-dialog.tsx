@@ -1,52 +1,62 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { BaseContractDialogShell } from "./base-dialog-shell";
+import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
 import { formatCurrency, formatDate } from "@workspace/utils";
-// jscpd:ignore-start
 import {
-  BaseContractDialogShell,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "./base-dialog-shell";
-// jscpd:ignore-end
-import type { EnterpriseContractsPageState } from "./use-enterprise-contracts-page";
+} from "@workspace/ui/components/data-display/table";
 
 type EnterpriseContractsEstimateDialogProps = Pick<EnterpriseContractsPageState, 'estimateOpen' | 'setEstimateOpen' | 'estimate' | 'estimateLoading'>;
 
+/**
+ * Phase 3 (per-feature): apps/internal Enterprise contracts > Estimate
+ * dialog. 9 literals converted to
+ * useTranslations("InternalEnterpriseContracts.estimate").
+ */
+function useEstimateTranslations() {
+  return useTranslations("InternalEnterpriseContracts.estimate");
+}
+
 export function EnterpriseContractsEstimateDialog(props: EnterpriseContractsEstimateDialogProps) {
   const { estimateOpen, setEstimateOpen, estimate, estimateLoading } = props;
+  const t = useEstimateTranslations();
   return (
     <BaseContractDialogShell
       open={estimateOpen}
       onOpenChange={setEstimateOpen}
-      title="Current period estimate"
-      description="Live meter readings + projected month-end invoice (aggregated across all member clinics)."
+      title={t("title")}
+      description={t("description")}
     >
       {estimateLoading || !estimate ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">{t("loadingLabel")}</p>
       ) : (
         <div className="space-y-3 text-sm">
           <p>
-            Period:{" "}
-            <strong>
-              {formatDate(estimate.period.start)} →{" "}
-              {formatDate(estimate.period.end)}
-            </strong>
+            {t("periodLabel", {
+              start: formatDate(estimate.period.start),
+              end: formatDate(estimate.period.end),
+            })}
           </p>
           <p className="text-xs text-muted-foreground">
-            {estimate.contract.memberClinicIds.length} member clinic(s)
+            {t("memberClinicCount", {
+              count: estimate.contract.memberClinicIds.length,
+            })}
           </p>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Meter</TableHead>
-                <TableHead className="text-right">Used</TableHead>
-                <TableHead className="text-right">Included</TableHead>
-                <TableHead className="text-right">Overage</TableHead>
-                <TableHead className="text-right">Charge</TableHead>
+                <TableHead>{t("colMeter")}</TableHead>
+                <TableHead className="text-right">{t("colUsed")}</TableHead>
+                <TableHead className="text-right">{t("colIncluded")}</TableHead>
+                <TableHead className="text-right">{t("colOverage")}</TableHead>
+                <TableHead className="text-right">{t("colCharge")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -66,7 +76,7 @@ export function EnterpriseContractsEstimateDialog(props: EnterpriseContractsEsti
             </TableBody>
           </Table>
           <div className="flex justify-between border-t pt-2">
-            <span>Platform fee</span>
+            <span>{t("platformFeeLabel")}</span>
             <strong>
               {formatCurrency(estimate.platformFeeCents / 100, {
                 currency: estimate.currency,
@@ -74,7 +84,7 @@ export function EnterpriseContractsEstimateDialog(props: EnterpriseContractsEsti
             </strong>
           </div>
           <div className="flex justify-between">
-            <span>Overage total</span>
+            <span>{t("overageTotalLabel")}</span>
             <strong>
               {formatCurrency(estimate.overageTotalCents / 100, {
                 currency: estimate.currency,
@@ -82,7 +92,7 @@ export function EnterpriseContractsEstimateDialog(props: EnterpriseContractsEsti
             </strong>
           </div>
           <div className="flex justify-between text-base">
-            <span>Projected month total</span>
+            <span>{t("projectedTotalLabel")}</span>
             <strong>
               {formatCurrency(estimate.projectedMonthTotalCents / 100, {
                 currency: estimate.currency,

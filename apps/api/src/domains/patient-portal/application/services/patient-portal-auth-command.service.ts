@@ -1,4 +1,3 @@
-import { getPatientFullName } from '@workspace/utils';
 import {
   Injectable,
   UnauthorizedException,
@@ -18,6 +17,7 @@ import {
 } from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
 import * as crypto from 'crypto';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { getPatientFullName, normalizePhoneE164 } from '@workspace/utils';
 
 @Injectable()
 export class PatientPortalAuthCommandService {
@@ -38,7 +38,12 @@ export class PatientPortalAuthCommandService {
     const patient = await this.repository.findPatientByPhone(normalizedPhone);
 
     if (patient) {
-      const otp = crypto.randomInt(100000, 999999).toString();
+      // randomInt's max is exclusive, so the upper bound is 1_000_000
+      // to actually include 999_999 in the sample space. (Earlier
+      // versions used 999_999 which silently biased the OTP away from
+      // 999_999 — negligible cryptographically, but a flat 1/900_000
+      // bias for no reason.)
+      const otp = crypto.randomInt(100000, 1_000_000).toString();
       const otpHash = await bcrypt.hash(otp, 10);
       const expiresAt = new Date(this.clock.now().getTime() + 10 * 60 * 1000);
 
@@ -76,6 +81,12 @@ export class PatientPortalAuthCommandService {
     };
   }
 
+  // Max attempts per OTP. Bound chosen so a real user mistyping twice has
+  // room to recover, but brute-force against a 6-digit OTP cannot succeed
+  // (10^6 / 3 ≈ 333k OTPs needed, each costing an SMS). Attempts are
+  // consumed atomically — see IPortalAuthRepository.tryConsumeOtpAttempt.
+  private static readonly MAX_OTP_ATTEMPTS = 3;
+
   async verifyOtp(phoneNumber: string, otp: string) {
     const normalizedPhone = this.normalizePhone(phoneNumber);
     const now = this.clock.now();
@@ -84,9 +95,14 @@ export class PatientPortalAuthCommandService {
 
     if (!otpRecord) throw new UnauthorizedException('Invalid or expired OTP');
 
-    await this.repository.incrementOtpAttempts(otpRecord.id);
-
-    if (otpRecord.attempts >= 3)
+    // Atomic attempt consumption: the cap-check and the increment happen
+    // in a single SQL UPDATE so concurrent requests cannot all observe
+    // attempts < MAX and all run bcrypt.compare.
+    const consumed = await this.repository.tryConsumeOtpAttempt(
+      otpRecord.id,
+      PatientPortalAuthCommandService.MAX_OTP_ATTEMPTS,
+    );
+    if (!consumed)
       throw new UnauthorizedException(
         'Too many attempts. Please request a new OTP.',
       );
@@ -124,14 +140,9 @@ export class PatientPortalAuthCommandService {
     return this.authService.login(userWithoutPassword);
   }
 
+  // Delegated to the shared @workspace/utils helper so this command service
+  // and public-booking stay byte-identical on what "normalized" means.
   private normalizePhone(phone: string): string {
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length === 10) {
-      return `+91${digits}`;
-    }
-    if (digits.length === 12 && digits.startsWith('91')) {
-      return `+${digits}`;
-    }
-    return phone.startsWith('+') ? phone : `+${digits}`;
+    return normalizePhoneE164(phone);
   }
 }

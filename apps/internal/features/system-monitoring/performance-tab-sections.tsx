@@ -1,24 +1,19 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { DATE_FORMATS, formatDate } from "@workspace/utils";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-// jscpd:ignore-start
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-// jscpd:ignore-end
-import { Progress } from "@workspace/ui/components/feedback/progress";
-import {
-  Activity,
-  Database,
-  Server,
-  Wifi,
-} from "lucide-react";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Progress } from "@workspace/ui/components";
+import { Activity, Database, Server, Wifi } from "lucide-react";
 import { formatBytesToMb } from "./system-monitoring-helpers";
+
+/**
+ * Phase 3 (per-feature): apps/internal System Monitoring >
+ * Performance tab. 12 literals converted to useTranslations
+ * (\"InternalSystemMonitoring.performance\").
+ */
+function usePerformanceTranslations() {
+  return useTranslations("InternalSystemMonitoring.performance");
+}
 
 export interface StatCardGridProps {
   performance?: {
@@ -33,28 +28,27 @@ export function StatCardGrid({
   performance,
   monitoringHealth,
   database,
-// jscpd:ignore-start
 }: StatCardGridProps) {
+  const t = usePerformanceTranslations();
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Uptime</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("uptimeTitle")}</CardTitle>
           <Activity className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
             {performance?.uptime.formatted ?? "N/A"}
-{/* jscpd:ignore-end */}
           </div>
           <p className="text-xs text-muted-foreground">
-            Process uptime from the runtime API
+            {t("uptimeDescription")}
           </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Node Runtime</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("nodeRuntimeTitle")}</CardTitle>
           <Server className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -63,15 +57,15 @@ export function StatCardGrid({
           </div>
           <p className="text-xs text-muted-foreground">
             {performance
-              ? `${performance.node.platform} / ${performance.node.arch}`
-              : "Waiting for runtime metrics"}
+              ? t("nodeRuntimeDetail", { platform: performance.node.platform, arch: performance.node.arch })
+              : t("waitingForRuntime")}
           </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Requests per minute
+            {t("requestsPerMinuteTitle")}
           </CardTitle>
           <Wifi className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
@@ -82,14 +76,14 @@ export function StatCardGrid({
               : "0.00"}
           </div>
           <p className="text-xs text-muted-foreground">
-            Derived from live request volume
+            {t("requestsPerMinuteDescription")}
           </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Database Status
+            {t("databaseStatusTitle")}
           </CardTitle>
           <Database className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
@@ -99,8 +93,8 @@ export function StatCardGrid({
           </div>
           <p className="text-xs text-muted-foreground">
             {database
-              ? `${database.queryResponseTimeMs}ms query time`
-              : "Waiting for database stats"}
+              ? t("databaseStatusQueryTime", { ms: database.queryResponseTimeMs })
+              : t("waitingForDatabase")}
           </p>
         </CardContent>
       </Card>
@@ -119,16 +113,17 @@ export function MemoryBreakdownCard({
   performance,
   heapUsagePercent,
 }: MemoryBreakdownCardProps) {
+  const t = usePerformanceTranslations();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Memory Breakdown</CardTitle>
-        <CardDescription>Live Node process memory</CardDescription>
+        <CardTitle>{t("memoryTitle")}</CardTitle>
+        <CardDescription>{t("memoryDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span>RSS</span>
+            <span>{t("memoryRss")}</span>
             <span>
               {performance
                 ? formatBytesToMb(performance.memory.rss)
@@ -136,7 +131,7 @@ export function MemoryBreakdownCard({
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span>Heap used</span>
+            <span>{t("memoryHeapUsed")}</span>
             <span>
               {performance
                 ? formatBytesToMb(performance.memory.heapUsed)
@@ -144,7 +139,7 @@ export function MemoryBreakdownCard({
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span>Heap total</span>
+            <span>{t("memoryHeapTotal")}</span>
             <span>
               {performance
                 ? formatBytesToMb(performance.memory.heapTotal)
@@ -152,7 +147,7 @@ export function MemoryBreakdownCard({
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span>External</span>
+            <span>{t("memoryExternal")}</span>
             <span>
               {performance
                 ? formatBytesToMb(performance.memory.external)
@@ -179,12 +174,13 @@ export interface SlowestEndpointsCardProps {
 export function SlowestEndpointsCard({
   slowestEndpoints,
 }: SlowestEndpointsCardProps) {
+  const t = usePerformanceTranslations();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Slowest Endpoints</CardTitle>
+        <CardTitle>{t("slowestEndpointsTitle")}</CardTitle>
         <CardDescription>
-          Highest average duration over the last 7 days
+          {t("slowestEndpointsDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -199,12 +195,11 @@ export function SlowestEndpointsCard({
                   {endpoint.method} {endpoint.path}
                 </p>
                 <Badge variant="outline">
-                  {endpoint.avgDuration.toFixed(2)}ms
+                  {t("endpointAvgMs", { ms: endpoint.avgDuration.toFixed(2) })}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {endpoint.count} requests, max{" "}
-                {endpoint.maxDuration.toFixed(2)}ms
+                {t("endpointRequestStats", { count: endpoint.count, maxMs: endpoint.maxDuration.toFixed(2) })}
               </p>
             </div>
           ))}
@@ -223,11 +218,12 @@ export function ThroughputCard({
   throughputByMinute,
   maxThroughputCount,
 }: ThroughputCardProps) {
+  const t = usePerformanceTranslations();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Throughput</CardTitle>
-        <CardDescription>Requests observed per minute</CardDescription>
+        <CardTitle>{t("throughputTitle")}</CardTitle>
+        <CardDescription>{t("throughputDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
@@ -268,12 +264,13 @@ export interface ResponseTimeDistributionCardProps {
 export function ResponseTimeDistributionCard({
   responseBuckets,
 }: ResponseTimeDistributionCardProps) {
+  const t = usePerformanceTranslations();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Response Time Distribution</CardTitle>
+        <CardTitle>{t("responseDistributionTitle")}</CardTitle>
         <CardDescription>
-          Request latency buckets from live API request logs
+          {t("responseDistributionDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>

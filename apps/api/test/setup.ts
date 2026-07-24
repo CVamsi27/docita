@@ -132,7 +132,9 @@ export async function resetDatabase() {
       await prisma.$executeRaw(
         Prisma.sql`TRUNCATE TABLE ${Prisma.raw(`"${table}"`)} CASCADE`,
       );
-    } catch (_e) {}
+    } catch (_e) {
+      // Table may not exist yet; skip silently
+    }
   }
 }
 

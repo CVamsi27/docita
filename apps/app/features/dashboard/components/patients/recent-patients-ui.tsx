@@ -1,18 +1,7 @@
 import Link from "next/link";
 import { ChevronRight, Users } from "lucide-react";
 import { formatDistanceToNow, getPatientFullName } from "@workspace/utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import {
-  Avatar,
-  AvatarFallback,
-} from "@workspace/ui/components/indicators/avatar";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import { Avatar, AvatarFallback, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 import { getInitials } from "@/lib/formatters";
 

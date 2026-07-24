@@ -133,6 +133,10 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
     endTime: Date,
     excludeAppointmentId?: string,
   ): Promise<{ hasConflict: boolean; conflict?: AppointmentConflict }> {
+    // `take: 1` — the result is consumed by `findFirstSchedulingConflict`,
+    // which only needs the first overlap. The where-clause is already
+    // (doctorId, clinicId, time window, active status), so a single row is
+    // both correct and the smallest possible read.
     const conflictingAppointments = await this.prisma.appointment.findMany({
       where: {
         doctorId,
@@ -154,6 +158,7 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
         startTime: true,
         endTime: true,
       },
+      take: 1,
     });
 
     const conflict = findFirstSchedulingConflict(
@@ -251,8 +256,8 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
         status: {
           in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
         },
-        startTime: { gte: slotStartTime },
-        endTime: { lte: slotEndTime },
+        startTime: { lt: slotEndTime },
+        endTime: { gt: slotStartTime },
       },
     });
 

@@ -5,6 +5,7 @@ import {
   type PatientPersistenceRecord,
   type PatientPersistenceWrite,
 } from '@workspace/types';
+import { normalizePhoneE164 } from '@workspace/utils';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
@@ -98,7 +99,9 @@ export class PatientMapper {
   static toPrismaUncheckedCreateInput(
     domain: Patient,
   ): Prisma.PatientUncheckedCreateInput {
-    const write = PatientMapper.toPersistence(domain);
+    const write = PatientMapper.normalizePhoneForWrite(
+      PatientMapper.toPersistence(domain),
+    );
     if (!write.dateOfBirth)
       throw new Error('Patient dateOfBirth is required for persistence');
     if (!write.phoneNumber)
@@ -120,7 +123,9 @@ export class PatientMapper {
   static toPrismaUncheckedUpdateInput(
     domain: Patient,
   ): Prisma.PatientUncheckedUpdateInput {
-    const write = PatientMapper.toPersistence(domain);
+    const write = PatientMapper.normalizePhoneForWrite(
+      PatientMapper.toPersistence(domain),
+    );
     return {
       mrn: write.mrn ?? undefined,
       firstName: write.firstName,
@@ -131,5 +136,22 @@ export class PatientMapper {
       ...(write.dateOfBirth ? { dateOfBirth: write.dateOfBirth } : {}),
       ...PatientMapper.toPrismaWritableOptionalFields(write),
     };
+  }
+
+  /**
+   * Normalize the patient phone to E.164 at the persistence boundary so the
+   * DB only ever stores one canonical form. Callers are free to pass bare
+   * 10-digit, `91…`, or `+91…` (or anything with punctuation) — the mapper
+   * produces the same stored value either way. Pairs with the read-side
+   * tolerant lookup in the patient repository so OTP flows and patient
+   * search keep working while the data still has legacy formats.
+   */
+  private static normalizePhoneForWrite(
+    write: PatientPersistenceWrite,
+  ): PatientPersistenceWrite {
+    if (write.phoneNumber == null || write.phoneNumber === '') return write;
+    const normalized = normalizePhoneE164(write.phoneNumber);
+    if (normalized === write.phoneNumber) return write;
+    return { ...write, phoneNumber: normalized };
   }
 }

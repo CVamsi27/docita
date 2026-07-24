@@ -9,7 +9,6 @@ import {
   type LatLng,
   type PlaceSuggestion,
   GOOGLE_LIBRARIES,
-  isValidGoogleMapsApiKey,
 } from "./address-utils";
 
 export interface AddressPickerState {
@@ -132,12 +131,17 @@ export function useMapPickerState(): MapPickerState {
 }
 
 export function useGoogleMapsAvailability() {
-  const rawGoogleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  const hasGoogleKey = isValidGoogleMapsApiKey(rawGoogleKey);
+  // Google Maps is intentionally disabled: the address picker runs entirely on
+  // the open-source Leaflet + OpenStreetMap (tiles) + Nominatim (geocoding)
+  // stack, so no Google Maps API key is required. `hasGoogleKey` is hard-false
+  // so every consumer (shouldUseGoogle, AddressMapPreview, AddressSearchInput)
+  // takes the OSS path. The loader is still invoked with an empty key — a no-op
+  // that never fetches Google — only to keep this hook's return shape stable.
+  const hasGoogleKey = false;
   const { isLoaded: isGoogleLoaded, loadError: googleLoadError } =
     useJsApiLoader({
       id: "google-maps-script",
-      googleMapsApiKey: hasGoogleKey ? rawGoogleKey.trim() : "",
+      googleMapsApiKey: "",
       libraries: GOOGLE_LIBRARIES,
     });
   return { hasGoogleKey, isGoogleLoaded, googleLoadError };

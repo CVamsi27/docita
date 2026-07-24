@@ -3,23 +3,13 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Form } from "@workspace/ui/components/form/form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, Form } from "@workspace/ui/components";
 import { useApplyLeave } from "@workspace/data-access";
 import { createLeaveRequestSchema } from "@workspace/types";
 import type { User } from "@workspace/types";
 import type { z } from "zod";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import {
-  ApplyLeaveStaffField,
-  ApplyLeaveFormFields,
-  ApplyLeaveDialogFooter,
-} from "./ApplyLeaveDialogSections";
+import { ApplyLeaveStaffField, ApplyLeaveFormFields, ApplyLeaveDialogFooter } from "./ApplyLeaveDialogSections";
 
 type ApplyLeaveFormValues = z.infer<typeof createLeaveRequestSchema>;
 

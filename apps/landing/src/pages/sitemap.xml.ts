@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { textResponse } from "@/lib/text-response";
 import { seoLandingPages } from "@/lib/seo-pages";
 
 const BASE_URL = "https://docita.work";
@@ -21,8 +22,9 @@ const routes = [
   { path: "/cookies", lastmod: "2026-03-15", priority: "0.4", changefreq: "yearly" },
 ];
 
-export const GET: APIRoute = () => {
-  const body = `<?xml version="1.0" encoding="UTF-8"?>
+export const GET: APIRoute = () =>
+  textResponse(
+    `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${routes
   .map(
@@ -35,14 +37,6 @@ ${routes
   )
   .join("\n")}
 </urlset>
-`;
-
-  const maxAge = 60 * 60;
-  return new Response(body, {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": `public, max-age=${maxAge}`,
-      Expires: new Date(Date.now() + maxAge * 1000).toUTCString(),
-    },
-  });
-};
+`,
+    "application/xml; charset=utf-8",
+  );

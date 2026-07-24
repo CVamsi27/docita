@@ -162,9 +162,12 @@ export class PatientTimelineQueryService {
         for (const [medicationId, rate] of adherenceMap.entries()) {
           adherenceByMedicationId.set(medicationId, rate);
         }
-      } catch {
+      } catch (error) {
+        // Non-critical enrichment: snapshot still returns without
+        // adherence. Log so a recurring failure is visible.
         this.logger.warn(
           'Could not fetch medication adherence in batch for patient snapshot',
+          error instanceof Error ? error.stack : String(error),
         );
       }
     }

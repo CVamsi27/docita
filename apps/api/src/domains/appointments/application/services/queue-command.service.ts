@@ -4,6 +4,7 @@ import {
   IQueueRepository,
   QUEUE_REPOSITORY_TOKEN,
 } from '@/domains/appointments/core/repositories/queue.repository.interface';
+import { AppointmentQueryService } from './appointment-query.service';
 import { getTodayRange } from './queue-token.helpers';
 
 @Injectable()
@@ -12,7 +13,14 @@ export class QueueCommandService {
     @Inject(QUEUE_REPOSITORY_TOKEN)
     private readonly queueRepository: IQueueRepository,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly appointmentQueryService: AppointmentQueryService,
   ) {}
+
+  private async resolveTodayRange(clinicId: string) {
+    const timezone =
+      await this.appointmentQueryService.getClinicTimezone(clinicId);
+    return getTodayRange(this.clock, timezone);
+  }
 
   async checkIn(clinicId: string, appointmentId: string) {
     const appointment = await this.queueRepository.findAppointmentForCheckIn(
@@ -30,7 +38,7 @@ export class QueueCommandService {
       return { success: true, token: existing };
     }
 
-    const { today } = getTodayRange(this.clock);
+    const { today } = await this.resolveTodayRange(clinicId);
     const lastNumber = await this.queueRepository.findLastTodayTokenNumber(
       clinicId,
       today,
@@ -71,7 +79,7 @@ export class QueueCommandService {
   }
 
   async resetQueue(clinicId: string) {
-    const { today } = getTodayRange(this.clock);
+    const { today } = await this.resolveTodayRange(clinicId);
     await this.queueRepository.cancelTodayActiveTokens(clinicId, today);
     return { success: true };
   }

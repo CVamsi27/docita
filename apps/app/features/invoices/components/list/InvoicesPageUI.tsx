@@ -2,11 +2,7 @@
 
 import Link from "next/link";
 import { Receipt } from "lucide-react";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import { Button } from "@workspace/ui/components/form/button";
+import { AppPageScaffold, Button, DataState, EmptyState, PageHeader } from "@workspace/ui/components";
 import { Plus, RefreshCw } from "lucide-react";
 import { FeatureGate } from "@/components/auth/feature-gate";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";

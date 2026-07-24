@@ -4,10 +4,7 @@ import { useConsultationDraft } from "@/features/consultation/state/useConsultat
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
 import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
 import type { DermatologyExamData } from "@workspace/types";
-import {
-  ExamAssessmentPlanFields,
-  ExamTextareaField,
-} from "./exam-section-fields";
+import { ExamAssessmentPlanFields, ExamTextareaField } from "./exam-section-fields";
 
 interface DermatologyExamSectionProps {
   readOnly?: boolean;

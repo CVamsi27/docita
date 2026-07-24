@@ -3,15 +3,8 @@
 import React, { FC, useState } from "react";
 import type { AbhaVerificationResult } from "@workspace/types";
 import { useRequestAbhaOtp, useVerifyAbhaOtp } from "@workspace/data-access";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
-import { Input } from "@workspace/ui/components/form/input";
+import { useTranslations } from "next-intl";
+import { Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { getAbhaVerificationErrorState } from "./abha-verification-errors";
 
@@ -30,6 +23,7 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
   patientId,
   onVerified,
 }) => {
+  const t = useTranslations("Patients.abhaOtpDialog");
   const [step, setStep] = useState<Step>("mobile");
   const [mobile, setMobile] = useState("");
   const [txnId, setTxnId] = useState("");
@@ -92,11 +86,10 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent density="compact">
         <DialogHeader>
-          <DialogTitle>Verify ABHA via OTP</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            {step === "mobile" &&
-              "Enter the patient's mobile number to receive an OTP for ABHA verification."}
-            {step === "otp" && "Enter the OTP sent to the registered mobile."}
+            {step === "mobile" && t("mobileDescription")}
+            {step === "otp" && t("otpDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -113,13 +106,13 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
                 htmlFor="abha-mobile"
                 className="text-sm font-medium leading-none"
               >
-                Mobile number
+                {t("mobileLabel")}
               </label>
               <Input
                 id="abha-mobile"
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
-                placeholder="Enter 10-digit mobile number"
+                placeholder={t("mobilePlaceholder")}
                 maxLength={10}
                 className="mt-1.5"
               />
@@ -130,7 +123,7 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
                 variant="outline"
                 onClick={() => handleClose(false)}
               >
-                Cancel
+                {t("cancelButton")}
               </Button>
               <Button
                 type="button"
@@ -140,7 +133,7 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
                 {isRequestingOtp ? (
                   <DocitaLoadingIndicator variant="inline" decorative />
                 ) : (
-                  "Send OTP"
+                  t("sendOtpButton")
                 )}
               </Button>
             </div>
@@ -154,13 +147,13 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
                 htmlFor="abha-otp"
                 className="text-sm font-medium leading-none"
               >
-                OTP
+                {t("otpLabel")}
               </label>
               <Input
                 id="abha-otp"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                placeholder="Enter the OTP"
+                placeholder={t("otpPlaceholder")}
                 className="mt-1.5"
               />
             </div>
@@ -173,7 +166,7 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
                   setOtp("");
                 }}
               >
-                Back
+                {t("backButton")}
               </Button>
               <Button
                 type="button"
@@ -183,7 +176,7 @@ export const AbhaOtpVerificationDialog: FC<AbhaOtpVerificationDialogProps> = ({
                 {isVerifying ? (
                   <DocitaLoadingIndicator variant="inline" decorative />
                 ) : (
-                  "Verify"
+                  t("verifyButton")
                 )}
               </Button>
             </div>

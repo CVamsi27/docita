@@ -1,14 +1,6 @@
 "use client";
 
-// jscpd:ignore-start
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Form } from "@workspace/ui/components/form/form";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Form } from "@workspace/ui/components";
 import type { PaymentProcessingPageViewModel } from "@/features/payment-processing/use-payment-processing-page";
 import { PaymentSummarySection } from "./payment-payment-summary-section";
 import { PaymentFormFields } from "./payment-payment-form-fields";
@@ -59,4 +51,3 @@ export function PaymentProcessingPaymentDialog(props: PaymentProcessingPaymentDi
       </Dialog>
   );
 }
-// jscpd:ignore-end

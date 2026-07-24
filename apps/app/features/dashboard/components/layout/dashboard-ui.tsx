@@ -11,10 +11,8 @@ import { DashboardActivityFeed } from "@/features/dashboard/components/overview/
 import { DashboardUpcomingCard } from "@/features/dashboard/components/overview/dashboard-upcoming-card";
 import type { AppointmentListItem } from "@workspace/data-access";
 import type { DashboardPatient, DashboardStats } from "@workspace/types";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { AppPageScaffold, DataState, Section } from "@workspace/ui/components";
 import { LayoutDashboard } from "lucide-react";
-import { Section } from "@workspace/ui/components/layout/section";
 import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
 import { isNewClinicDashboard } from "@/features/dashboard/lib/is-new-clinic-dashboard";

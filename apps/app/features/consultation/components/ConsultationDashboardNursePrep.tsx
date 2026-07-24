@@ -2,19 +2,8 @@
 
 import { HeartPulse, Users, CreditCard } from "lucide-react";
 import { getPatientFullName } from "@workspace/utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/indicators/card";
-import { Button } from "@workspace/ui/components/form/button";
-import { Section } from "@workspace/ui/components/layout/section";
-import {
-  AppointmentRowActionsMenu,
-  useAppointmentRowActions,
-} from "@/features/appointments";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Section } from "@workspace/ui/components";
+import { AppointmentRowActionsMenu, useAppointmentRowActions } from "@/features/appointments";
 import type { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 

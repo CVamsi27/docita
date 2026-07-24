@@ -71,6 +71,53 @@ vi.mock("@workspace/ui/components/form/select", () => ({
   ),
 }));
 
+const messages = {
+  ClinicSettings: {
+    general: {
+      identityEyebrow: "Identity",
+      nameLabel: "{facilityLabel} name",
+      namePlaceholder: "Enter {facilityLabel} name",
+      facilityTypeLabel: "Facility type",
+      facilityTypeHint: "Used in navigation, headings, and join flows.",
+      facilityTypePlaceholder: "Clinic or Hospital",
+      facilityTypeClinic: "Clinic",
+      facilityTypeHospital: "Hospital",
+      locationEyebrow: "Location",
+      addressLabel: "Address",
+      addressPlaceholder: "Enter address",
+      mapsLinkLabel: "Google Maps link",
+      mapsLinkHint: "Paste a Google Maps URL or Plus code.",
+      mapsLinkPlaceholder: "https://maps.google.com/...",
+      previewLinkLabel: "Preview link",
+      contactComplianceEyebrow: "Contact & compliance",
+      phoneLabel: "Phone number",
+      phonePlaceholder: "Enter phone number",
+      gstinLabel: "GSTIN",
+      gstinHint: "Needed for GST invoices.",
+      gstinPlaceholder: "GST number",
+      hfrFacilityIdLabel: "HFR Facility ID",
+      hfrFacilityIdHint: "Required before ABDM production use.",
+      hfrFacilityIdPlaceholder: "Enter HFR Facility ID",
+      legalNameLabel: "Legal name",
+      legalNameHint: "Registered legal name.",
+      legalNamePlaceholder: "Legal name",
+      cancelButton: "Cancel",
+      savingButton: "Saving…",
+      saveButton: "Save changes",
+      abdmSectionEyebrow: "ABDM",
+      abdmEnabledLabel: "Enable ABDM",
+      abdmEnabledHint: "Allow ABHA linkage.",
+      referralCodeLabel: "Staff join code",
+      copyJoinCodeLabel: "Copy staff join code",
+      copiedJoinCodeLabel: "Copied!",
+    },
+  },
+  Common: {
+    cancel: "Cancel",
+    save: "Save",
+  },
+};
+
 describe("ClinicGeneralSettings", () => {
   beforeEach(() => {
     settingsMocks.updateClinic.mockReset();
@@ -82,7 +129,7 @@ describe("ClinicGeneralSettings", () => {
   });
 
   it("renders saved clinic values and copies the join code", async () => {
-    render(<ClinicGeneralSettings />);
+    render(<ClinicGeneralSettings />, { messages });
 
     expect(screen.getByDisplayValue("Care Clinic")).toBeInTheDocument();
     expect(screen.getByDisplayValue("HFR-123")).toBeInTheDocument();
@@ -98,7 +145,7 @@ describe("ClinicGeneralSettings", () => {
   });
 
   it("validates required fields and submits changed clinic settings", async () => {
-    render(<ClinicGeneralSettings />);
+    render(<ClinicGeneralSettings />, { messages });
 
     const nameInput = screen.getByDisplayValue("Care Clinic");
     fireEvent.change(nameInput, { target: { value: "" } });

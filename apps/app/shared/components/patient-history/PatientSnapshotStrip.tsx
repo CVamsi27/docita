@@ -1,18 +1,10 @@
 "use client";
 
-import { Card, CardContent } from "@workspace/ui/components/indicators/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/overlay/tooltip";
+import { Card, CardContent, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { AlertCircle } from "lucide-react";
 import type { PatientSnapshot } from "@workspace/types";
 import { formatDate } from "@/lib/formatters";
-import {
-  VerticalSnapshotContent,
-  HorizontalSnapshotContent,
-} from "./PatientSnapshotStripSections";
+import { VerticalSnapshotContent, HorizontalSnapshotContent } from "./PatientSnapshotStripSections";
 
 export { ALLERGY_SEVERITY_COLOR } from "./PatientSnapshotStripSections";
 

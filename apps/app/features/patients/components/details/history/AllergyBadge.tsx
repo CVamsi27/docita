@@ -1,5 +1,6 @@
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Pencil, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { PatientAllergy } from "@workspace/types";
 
 interface AllergyBadgeProps {
@@ -10,6 +11,7 @@ interface AllergyBadgeProps {
 }
 
 export function AllergyBadge({ allergy, readOnly, onEdit, onRemove }: AllergyBadgeProps) {
+  const t = useTranslations("Patients.allergyBadge");
   return (
     <Badge
       key={allergy.id}
@@ -22,6 +24,7 @@ export function AllergyBadge({ allergy, readOnly, onEdit, onRemove }: AllergyBad
           <button
             type="button"
             onClick={() => onEdit(allergy)}
+            aria-label={t("editAria", { name: allergy.allergen ?? "" })}
             className="p-0.5 rounded-full hover:bg-destructive/20 transition-colors focus:outline-none"
           >
             <Pencil className="h-3 w-3" />
@@ -29,6 +32,7 @@ export function AllergyBadge({ allergy, readOnly, onEdit, onRemove }: AllergyBad
           <button
             type="button"
             onClick={() => { if (allergy.id) onRemove(allergy.id); }}
+            aria-label={t("removeAria", { name: allergy.allergen ?? "" })}
             className="p-0.5 rounded-full hover:bg-destructive/20 transition-colors focus:outline-none"
           >
             <X className="h-3 w-3" />

@@ -3,23 +3,22 @@
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { useMemo } from "react";
 import { RefreshCw } from "lucide-react";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { Button } from "@workspace/ui/components/form/button";
-import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
-import { PageHeader } from "@workspace/ui/components/layout/page-header";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/data-display/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
+import { AppPageScaffold, Badge, Button, DataState, PageHeader } from "@workspace/ui/components";
 import { useInternalAuditLogs } from "@workspace/data-access/internal";
+import { useTranslations } from "next-intl";
 import { formatInternalTimestamp } from "@/lib/formatters/format-internal-timestamp";
 
+/**
+ * Phase 3 (per-feature): apps/internal Audit > Logs page. 6 literals
+ * converted to useTranslations("InternalAudit.logsPage").
+ */
+function useAuditLogsTranslations() {
+  return useTranslations("InternalAudit.logsPage");
+}
+
 export function AuditLogsPage() {
+  const t = useAuditLogsTranslations();
   const params = useMemo(() => "limit=100", []);
   const logsQuery = useInternalAuditLogs(params);
   const logs = logsQuery.data ?? [];
@@ -27,7 +26,7 @@ export function AuditLogsPage() {
   const errorMessage = logsQuery.isError
     ? getUserFacingErrorMessage(logsQuery.error, {
         context: "load",
-        fallback: "We could not load audit logs. Please try again.",
+        fallback: t("loadErrorFallback"),
       })
     : null;
 
@@ -43,8 +42,8 @@ export function AuditLogsPage() {
     <AppPageScaffold
       header={
         <PageHeader
-          title="Audit Logs"
-          description="Tenant-scoped activity records from the platform audit trail."
+          title={t("title")}
+          description={t("description")}
           actions={
             <Button
               variant="outline"
@@ -55,7 +54,7 @@ export function AuditLogsPage() {
               <RefreshCw
                 className={`mr-2 h-4 w-4 ${logsQuery.isFetching ? "animate-spin" : ""}`}
               />
-              Refresh
+              {t("refreshButton")}
             </Button>
           }
         />
@@ -63,22 +62,22 @@ export function AuditLogsPage() {
     >
       <DataState
         status={status}
-        loadingMessage="Loading audit logs…"
+        loadingMessage={t("loadingLabel")}
         errorMessage={errorMessage ?? undefined}
         onRetry={() => void logsQuery.refetch()}
-        emptyTitle="No audit entries"
-        emptyDescription="Activity will appear here when users perform audited actions."
+        emptyTitle={t("emptyTitle")}
+        emptyDescription={t("emptyDescription")}
       >
         <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Resource</TableHead>
-                <TableHead>Clinic</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("colTime")}</TableHead>
+                <TableHead>{t("colAction")}</TableHead>
+                <TableHead>{t("colResource")}</TableHead>
+                <TableHead>{t("colClinic")}</TableHead>
+                <TableHead>{t("colUser")}</TableHead>
+                <TableHead>{t("colStatus")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -107,7 +106,11 @@ export function AuditLogsPage() {
                         log.status === "success" ? "secondary" : "destructive"
                       }
                     >
-                      {log.status}
+                      {t(
+                        log.status === "success"
+                          ? "statusSuccess"
+                          : "statusFailed"
+                      )}
                     </Badge>
                   </TableCell>
                 </TableRow>
@@ -116,7 +119,7 @@ export function AuditLogsPage() {
           </Table>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Showing {logs.length} recent entries. Refreshes every 30 seconds.
+          {t("recentEntriesFooter", { count: logs.length })}
         </p>
       </DataState>
     </AppPageScaffold>

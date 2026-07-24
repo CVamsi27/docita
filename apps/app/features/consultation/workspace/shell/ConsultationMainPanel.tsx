@@ -5,15 +5,8 @@ import { ChevronDown, History } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { SectionTabs } from "@/features/consultation/workspace/chrome/SectionRail";
 import { ConsultationAfterVisitStrip } from "@/features/consultation/components/ConsultationWorkspaceExtras";
-import {
-  ConsultationPastHistoryCard,
-  summariseHistory,
-  type HistorySummary,
-} from "@/features/consultation/components/ConsultationPastHistoryCard";
-import {
-  buildConsultationSectionComponents,
-  StepNavigation,
-} from "./ConsultationMainPanelSections";
+import { ConsultationPastHistoryCard, summariseHistory, type HistorySummary } from "@/features/consultation/components/ConsultationPastHistoryCard";
+import { buildConsultationSectionComponents, StepNavigation } from "./ConsultationMainPanelSections";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
 

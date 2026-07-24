@@ -2,25 +2,14 @@
 
 // jscpd:ignore-start
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
-import { Button } from "@workspace/ui/components/form/button";
-import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
+import { Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, SymbolTooltip } from "@workspace/ui/components";
 import {
   Alert,
 // jscpd:ignore-end
   AlertDescription,
 } from "@workspace/ui/components/feedback/alert";
 import { Clock, QrCode, Smartphone, X } from "lucide-react";
-import {
-  type SignatureUploadToken,
-  type ActiveToken,
-} from "@workspace/data-access";
+import { type SignatureUploadToken, type ActiveToken } from "@workspace/data-access";
 import { DATE_FORMATS, formatDate } from "@workspace/utils";
 import { QrCodeCard } from "@/components/signature/qr-code-card";
 import { CopyableLinkField } from "@/components/signature/copyable-link-field";
