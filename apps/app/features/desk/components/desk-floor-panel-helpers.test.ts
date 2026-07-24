@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { QueueItem } from "@workspace/data-access";
+import type { DeskFloorRow } from "./DeskFloorPanelUISections";
 import { patientNameOf, toRow, tokenSort, recentSort } from "./desk-floor-panel-helpers";
 
 vi.mock("@/features/consultation", () => ({
@@ -8,89 +10,149 @@ vi.mock("@/features/consultation", () => ({
 import { getOpdQueueSummaryLine } from "@/features/consultation";
 const mockGetOpdQueueSummaryLine = vi.mocked(getOpdQueueSummaryLine);
 
+// ---------------------------------------------------------------------------
+// Typed fixture factories — replace `as any` casts with proper defaults
+// ---------------------------------------------------------------------------
+
+const QUEUE_ITEM_DEFAULTS: QueueItem = {
+  id: "tok_default",
+  clinicId: "clinic_1",
+  patientId: "pat_1",
+  tokenNumber: 1,
+  status: "waiting",
+  priority: 1,
+  createdAt: "2026-07-25T08:00:00Z",
+  tokenType: "scheduled",
+  estimatedDuration: 15,
+};
+
+function buildQueueItem(overrides: Partial<QueueItem> = {}): QueueItem {
+  return { ...QUEUE_ITEM_DEFAULTS, ...overrides };
+}
+
+function buildPatient(
+  overrides: Partial<NonNullable<QueueItem["patient"]>> = {},
+): NonNullable<QueueItem["patient"]> {
+  return {
+    id: "pat_1",
+    firstName: "John",
+    lastName: "Doe",
+    phoneNumber: "+919876543210",
+    ...overrides,
+  };
+}
+
+function buildDoctor(
+  overrides: Partial<NonNullable<QueueItem["doctor"]>> = {},
+): NonNullable<QueueItem["doctor"]> {
+  return { id: "doc_1", name: "Dr. Rao", ...overrides };
+}
+
+function buildAppointmentDoctor(
+  overrides: Partial<{ id: string; name: string }> = {},
+) {
+  return { id: "doc_2", name: "Dr. Patel", ...overrides };
+}
+
+// ---------------------------------------------------------------------------
+// patientNameOf
+// ---------------------------------------------------------------------------
+
 describe("patientNameOf", () => {
   it("returns first and last name combined", () => {
-    const item = {
-      patient: { firstName: "John", lastName: "Doe" },
-    } as any;
+    const item = buildQueueItem({
+      patient: buildPatient({ firstName: "John", lastName: "Doe" }),
+    });
     expect(patientNameOf(item)).toBe("John Doe");
   });
 
   it("returns only first name when last name is empty", () => {
-    const item = {
-      patient: { firstName: "John", lastName: "" },
-    } as any;
+    const item = buildQueueItem({
+      patient: buildPatient({ firstName: "John", lastName: "" }),
+    });
     expect(patientNameOf(item)).toBe("John");
   });
 
   it("returns only last name when first name is empty", () => {
-    const item = {
-      patient: { firstName: "", lastName: "Doe" },
-    } as any;
+    const item = buildQueueItem({
+      patient: buildPatient({ firstName: "", lastName: "Doe" }),
+    });
     expect(patientNameOf(item)).toBe("Doe");
   });
 
   it("returns Unknown patient when both names are missing", () => {
-    const item = {
-      patient: { firstName: "", lastName: "" },
-    } as any;
+    const item = buildQueueItem({
+      patient: buildPatient({ firstName: "", lastName: "" }),
+    });
     expect(patientNameOf(item)).toBe("Unknown patient");
   });
 
   it("returns Unknown patient when patient is undefined", () => {
-    const item = { patient: undefined } as any;
+    const item = buildQueueItem({ patient: undefined });
     expect(patientNameOf(item)).toBe("Unknown patient");
   });
 
   it("returns Unknown patient when patient is null", () => {
-    const item = { patient: null } as any;
+    const item = buildQueueItem({ patient: null });
     expect(patientNameOf(item)).toBe("Unknown patient");
   });
 
   it("trims whitespace from names", () => {
-    const item = {
-      patient: { firstName: "  John  ", lastName: "  Doe  " },
-    } as any;
+    const item = buildQueueItem({
+      patient: buildPatient({ firstName: "  John  ", lastName: "  Doe  " }),
+    });
     expect(patientNameOf(item)).toBe("John Doe");
   });
 });
 
+// ---------------------------------------------------------------------------
+// tokenSort
+// ---------------------------------------------------------------------------
+
 describe("tokenSort", () => {
   it("sorts by token number ascending", () => {
-    const a = { tokenNumber: 1 } as any;
-    const b = { tokenNumber: 2 } as any;
+    const a: DeskFloorRow = { id: "1", tokenNumber: 1, patientName: "A", isWalkIn: false };
+    const b: DeskFloorRow = { id: "2", tokenNumber: 2, patientName: "B", isWalkIn: false };
     expect(tokenSort(a, b)).toBe(-1);
     expect(tokenSort(b, a)).toBe(1);
   });
 
   it("returns 0 for equal token numbers", () => {
-    const a = { tokenNumber: 5 } as any;
-    const b = { tokenNumber: 5 } as any;
+    const a: DeskFloorRow = { id: "1", tokenNumber: 5, patientName: "A", isWalkIn: false };
+    const b: DeskFloorRow = { id: "2", tokenNumber: 5, patientName: "B", isWalkIn: false };
     expect(tokenSort(a, b)).toBe(0);
   });
 });
 
+// ---------------------------------------------------------------------------
+// recentSort
+// ---------------------------------------------------------------------------
+
 describe("recentSort", () => {
   it("sorts by completedAt descending (most recent first)", () => {
-    const a = { completedAt: "2026-07-25T10:00:00Z" } as any;
-    const b = { completedAt: "2026-07-25T11:00:00Z" } as any;
+    const a = buildQueueItem({ completedAt: "2026-07-25T10:00:00Z" });
+    const b = buildQueueItem({ completedAt: "2026-07-25T11:00:00Z" });
     expect(recentSort(a, b)).toBeGreaterThan(0);
     expect(recentSort(b, a)).toBeLessThan(0);
   });
 
   it("treats missing completedAt as 0", () => {
-    const a = { completedAt: null } as any;
-    const b = { completedAt: "2026-07-25T10:00:00Z" } as any;
+    const a = buildQueueItem({ completedAt: null });
+    const b = buildQueueItem({ completedAt: "2026-07-25T10:00:00Z" });
     expect(recentSort(a, b)).toBeGreaterThan(0);
   });
 
   it("returns 0 for equal completedAt", () => {
     const ts = "2026-07-25T10:00:00Z";
-    const a = { completedAt: ts } as any;
-    const b = { completedAt: ts } as any;
+    const a = buildQueueItem({ completedAt: ts });
+    const b = buildQueueItem({ completedAt: ts });
     expect(recentSort(a, b)).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// toRow
+// ---------------------------------------------------------------------------
 
 describe("toRow", () => {
   beforeEach(() => {
@@ -99,14 +161,13 @@ describe("toRow", () => {
 
   it("maps a QueueItem to a DeskFloorRow", () => {
     mockGetOpdQueueSummaryLine.mockReturnValue("Fever, cough");
-    const item = {
+    const item = buildQueueItem({
       id: "tok_1",
       tokenNumber: 3,
-      patient: { firstName: "Jane", lastName: "Smith" },
-      doctor: { name: "Dr. Rao" },
+      patient: buildPatient({ firstName: "Jane", lastName: "Smith" }),
+      doctor: buildDoctor({ name: "Dr. Rao" }),
       scheduledTime: "2026-07-25T09:30:00Z",
-      tokenType: "scheduled",
-    } as any;
+    });
 
     const row = toRow(item);
 
@@ -124,14 +185,15 @@ describe("toRow", () => {
 
   it("falls back to appointment doctor name when doctor is absent", () => {
     mockGetOpdQueueSummaryLine.mockReturnValue("");
-    const item = {
+    const item = buildQueueItem({
       id: "tok_2",
-      tokenNumber: 1,
-      patient: { firstName: "A", lastName: "B" },
+      patient: buildPatient({ firstName: "A", lastName: "B" }),
       doctor: null,
-      appointment: { doctor: { name: "Dr. Patel" } },
-      tokenType: "scheduled",
-    } as any;
+      appointment: {
+        id: "apt_1",
+        doctor: buildAppointmentDoctor({ name: "Dr. Patel" }),
+      },
+    });
 
     const row = toRow(item);
     expect(row.doctorName).toBe("Dr. Patel");
@@ -139,12 +201,10 @@ describe("toRow", () => {
 
   it("returns null doctorName when both doctor and appointment doctor are absent", () => {
     mockGetOpdQueueSummaryLine.mockReturnValue("");
-    const item = {
+    const item = buildQueueItem({
       id: "tok_3",
-      tokenNumber: 1,
-      patient: { firstName: "A", lastName: "B" },
-      tokenType: "scheduled",
-    } as any;
+      patient: buildPatient({ firstName: "A", lastName: "B" }),
+    });
 
     const row = toRow(item);
     expect(row.doctorName).toBeNull();
@@ -152,48 +212,42 @@ describe("toRow", () => {
 
   it("marks walk-in tokens as isWalkIn", () => {
     mockGetOpdQueueSummaryLine.mockReturnValue("");
-    const item = {
+    const item = buildQueueItem({
       id: "tok_4",
-      tokenNumber: 1,
-      patient: { firstName: "X", lastName: "Y" },
+      patient: buildPatient({ firstName: "X", lastName: "Y" }),
       tokenType: "walk-in",
-    } as any;
+    });
 
     expect(toRow(item).isWalkIn).toBe(true);
   });
 
   it("marks late-arrival tokens as isWalkIn", () => {
     mockGetOpdQueueSummaryLine.mockReturnValue("");
-    const item = {
+    const item = buildQueueItem({
       id: "tok_5",
-      tokenNumber: 1,
-      patient: { firstName: "X", lastName: "Y" },
+      patient: buildPatient({ firstName: "X", lastName: "Y" }),
       tokenType: "late-arrival",
-    } as any;
+    });
 
     expect(toRow(item).isWalkIn).toBe(true);
   });
 
   it("returns null scheduledTime when absent", () => {
     mockGetOpdQueueSummaryLine.mockReturnValue("");
-    const item = {
+    const item = buildQueueItem({
       id: "tok_6",
-      tokenNumber: 1,
-      patient: { firstName: "X", lastName: "Y" },
-      tokenType: "scheduled",
-    } as any;
+      patient: buildPatient({ firstName: "X", lastName: "Y" }),
+    });
 
     expect(toRow(item).scheduledTime).toBeNull();
   });
 
   it("uses Unknown patient fallback when patient names are empty", () => {
     mockGetOpdQueueSummaryLine.mockReturnValue("");
-    const item = {
+    const item = buildQueueItem({
       id: "tok_7",
-      tokenNumber: 1,
-      patient: { firstName: "", lastName: "" },
-      tokenType: "scheduled",
-    } as any;
+      patient: buildPatient({ firstName: "", lastName: "" }),
+    });
 
     expect(toRow(item).patientName).toBe("Unknown patient");
   });
