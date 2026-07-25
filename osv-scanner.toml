@@ -13,3 +13,7 @@ reason = "Astro 6.4.8 XSS via unescaped transition:* directive values on hydrate
 [[IgnoredVulns]]
 id = "GHSA-f48w-9m4c-m7f5"
 reason = "Astro 6.4.8 XSS via unescaped spread attribute names in renderHTMLElement (CVSS 5.1, incomplete fix for CVE-2026-54298) — fix is in astro 7.0.6+. Same astro 7 migration blocker (Vite 6 SSR entry regression) as GHSA-4g3v-8h47-v7g6. apps/landing does not use spread attributes on dynamic elements. Re-evaluate when the astro 7 migration lands."
+
+[[IgnoredVulns]]
+id = "GHSA-mh99-v99m-4gvg"
+reason = "brace-expansion DoS via unbounded expansion (CVSS 7.5) — affects brace-expansion <=5.0.7 across v1, v2, and v5 lines. Only reachable through dev-only transitive deps (madge>dependency-tree, jest>babel-plugin-istanbul>test-exclude, exceljs>archiver>readdir-glob) which pin minimatch@3/5/8 and cannot upgrade to brace-expansion 5.0.8 without breaking API compatibility. Not applicable to production. Re-evaluate when upstream deps (madge, jest, exceljs) ship minimatch@9+ or their own fix."
