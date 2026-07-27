@@ -24,4 +24,8 @@ export enum ApplicationEvents {
   // planSelection.referralCode (cross-domain integration without a direct
   // clinics.application → subscriptions.core.services import).
   CLINIC_ONBOARDED = 'clinic.onboarded',
+  // Emitted by internal-referral.service after a Referrer is created. The
+  // welcome pipeline (ReferrerWelcomeService) subscribes to this to render
+  // the showcase PDF, upload it, and send the WABA welcome template.
+  REFERRER_CREATED = 'referrer.created',
 }
