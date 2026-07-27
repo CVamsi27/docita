@@ -1,3 +1,4 @@
+import { JwtModule } from '@nestjs/jwt';
 import { Module } from '@nestjs/common';
 import {
   ResumeSubscriptionPaymentUseCase,
@@ -21,8 +22,9 @@ import { BillingModule } from '@/domains/billing/billing.module';
 import { PaymentsModule } from '@/domains/payments/payments.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.module';
-import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 import { CommonModule } from '@/shared/common/common.module';
+import { AppConfigModule } from '@/shared/modules/config/config.module';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Module({
   imports: [
@@ -31,8 +33,30 @@ import { CommonModule } from '@/shared/common/common.module';
     PaymentsModule,
     EmailModule,
     AdminAlertsModule,
-    AuthModule,
     CommonModule,
+    AppConfigModule,
+    // Local JwtModule — same signing config as the auth module, but
+    // importing AuthModule here would close a new circular
+    // (subscriptions -> auth -> clinics -> subscriptions). The
+    // forwardRef dance in auth.module.ts only resolves the existing
+    // auth <-> clinics cycle; the third leg (subscriptions) would
+    // be a fresh entry that the project baseline explicitly
+    // disallows. Registering the JWT locally is the smaller
+    // solution.
+    JwtModule.registerAsync({
+      imports: [AppConfigModule],
+      inject: [AppConfigService],
+      useFactory: (configService: AppConfigService) => ({
+        secret: configService.getJwtSecret(),
+        signOptions: {
+          // getJwtExpiration returns a string like '15m'; nestjs-jwt
+          // accepts StringValue, which is a string literal type
+          // cast at runtime. The cast is safe because the value is
+          // never user-controlled.
+          expiresIn: configService.getJwtExpiration() as unknown as number,
+        },
+      }),
+    }),
   ],
   controllers: [
     SubscriptionsController,
