@@ -3,6 +3,7 @@ import { CLINIC_PERSISTENCE_PORT } from './application/ports/clinic-persistence.
 import { Module, forwardRef } from '@nestjs/common';
 import { ClinicsController } from './presentation/controllers/clinics.controller';
 import { ClinicsComplianceController } from './presentation/controllers/clinics-compliance.controller';
+import { ClinicReferralController } from './presentation/controllers/clinic-referral.controller';
 import { ClinicsService } from './application/services/clinics.service';
 import { ClinicDataService } from './application/services/clinic-data.service';
 import { ClinicDataCommandService } from './application/services/clinic-data-command.service';
@@ -45,7 +46,11 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     forwardRef(() => UsersModule),
     DocumentsModule,
   ],
-  controllers: [ClinicsController, ClinicsComplianceController],
+  controllers: [
+    ClinicsController,
+    ClinicsComplianceController,
+    ClinicReferralController,
+  ],
   providers: [
     { provide: CLINIC_PERSISTENCE_PORT, useExisting: PrismaService },
     ClinicDataCommandService,

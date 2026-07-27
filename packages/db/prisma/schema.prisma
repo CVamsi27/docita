@@ -3705,7 +3705,9 @@ model SubscriptionReminder {
 
 model Referral {
   id               String  @id @default(cuid())
-  referrerClinicId String
+  /// Legacy clinic-to-clinic path. Nullable so the new partner path
+  /// (Referrer.code) can store a Referral with only `referrerId` set.
+  referrerClinicId String?
   referredClinicId String?
 
   referredEmail  String
@@ -3736,7 +3738,7 @@ model Referral {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  referrerClinic Clinic           @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
+  referrerClinic Clinic?          @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
   referredClinic Clinic?          @relation("ReferredClinic", fields: [referredClinicId], references: [id])
   referrer       Referrer?        @relation(fields: [referrerId], references: [id])
   payouts        ReferralPayout[]
