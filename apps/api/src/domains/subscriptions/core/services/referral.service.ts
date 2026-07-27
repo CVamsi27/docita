@@ -170,6 +170,7 @@ export class ReferralService {
           discountPercent,
         },
       });
+      // prettier-ignore
       return { applied: true, source: 'PARTNER', referrerId: partner.id, clinicId };
     }
 
@@ -191,6 +192,7 @@ export class ReferralService {
         discountPercent: REFERRAL_DISCOUNT_PERCENT,
       },
     });
+    // prettier-ignore
     return { applied: true, source: 'CLINIC', referrerId: referrerClinic.id, clinicId: referrerClinic.id };
   }
 
@@ -385,8 +387,13 @@ export class ReferralService {
     return Math.min(amountCents, Math.round((amountCents * pct) / 100));
   }
 
-  calculateReferralDiscount(amountCents: number): { discountCents: number; finalAmountCents: number } {
-    const discountCents = Math.round(amountCents * (REFERRAL_DISCOUNT_PERCENT / 100));
+  calculateReferralDiscount(amountCents: number): {
+    discountCents: number;
+    finalAmountCents: number;
+  } {
+    const discountCents = Math.round(
+      amountCents * (REFERRAL_DISCOUNT_PERCENT / 100),
+    );
     return { discountCents, finalAmountCents: amountCents - discountCents };
   }
 }
