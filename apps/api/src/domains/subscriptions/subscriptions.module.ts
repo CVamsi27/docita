@@ -20,6 +20,7 @@ import { PartnerPortalController } from './presentation/controllers/partner-port
 import { PartnerAuthGuard } from './presentation/guards/partner-auth.guard';
 import { PartnerAuthService } from './core/services/partner-auth.service';
 import { PartnerPortalService } from './core/services/partner-portal.service';
+import { ClinicReferralAdapter } from './infrastructure/adapters/clinic-referral.adapter';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { BillingModule } from '@/domains/billing/billing.module';
 import { PaymentsModule } from '@/domains/payments/payments.module';
@@ -76,7 +77,12 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
     PartnerAuthService,
     PartnerPortalService,
     PartnerAuthGuard,
+    ClinicReferralAdapter,
   ],
-  exports: [...SUBSCRIPTIONS_COMMON_EXPORTS, SchedulePlanChangeUseCase],
+  exports: [
+    ...SUBSCRIPTIONS_COMMON_EXPORTS,
+    SchedulePlanChangeUseCase,
+    ClinicReferralAdapter,
+  ],
 })
 export class SubscriptionsModule {}
