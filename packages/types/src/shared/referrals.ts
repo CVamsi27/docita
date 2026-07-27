@@ -161,7 +161,11 @@ export type PartnerPayoutRow = z.infer<typeof partnerPayoutRowSchema>;
 
 export const partnerReferralRowSchema = z.object({
   id: z.string(),
-  referredClinicId: z.string(),
+  /// Nullable in the schema for the legacy clinic-to-clinic path; the
+  /// partner path always sets it on the referred clinic, but the
+  /// partner portal still surfaces a placeholder when the link is
+  /// missing (e.g. an invited-but-not-onboarded referral).
+  referredClinicId: z.string().nullable(),
   referredClinicName: z.string().optional(),
   status: z.enum(["PENDING", "SIGNED_UP", "CONVERTED", "REJECTED", "EXPIRED"]),
   createdAt: z.string(),

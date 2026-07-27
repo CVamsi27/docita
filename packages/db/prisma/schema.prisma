@@ -3814,22 +3814,32 @@ model Referrer {
 /// IFSC + account number (and optional PAN) keyed off `ENCRYPTION_KEY`.
 /// Plaintext last-4 + IFSC are stored for operator-visible audit and display
 /// without round-tripping decryption on every read.
+/// Banking / payout details for a referral partner. Holds AES-GCM encrypted
+/// IFSC + account number (and optional PAN) keyed off `ENCRYPTION_KEY`.
+/// Plaintext last-4 + IFSC are stored for operator-visible audit and display
+/// without round-tripping decryption on every read.
+///
+/// Encrypted fields are stored as text in the `version:iv:authTag:ciphertext`
+/// format produced by `EncryptionService.encrypt` (so the existing service
+/// works without a second encryption path) — `version` lets us rotate
+/// keys without losing the ability to decrypt old rows.
 model ReferrerPayoutDetails {
   id                 String    @id @default(cuid())
   referrerId         String    @unique
   accountHolder      String
-  /// AES-GCM ciphertext of the account number. Decrypt with ENCRYPTION_KEY.
-  accountNumberEnc   Bytes
+  /// AES-GCM ciphertext of the account number, in
+  /// `version:iv:authTag:ciphertext` form (see EncryptionService.encrypt).
+  accountNumberEnc   String
   /// Last 4 digits of the account number (plaintext, for display + audit).
   accountNumberLast4 String
   /// AES-GCM ciphertext of the IFSC code. IFSC is 11 chars and needed
   /// plaintext for payouts, so the plaintext IFSC is also stored below.
-  ifscEnc            Bytes
+  ifscEnc            String
   ifscPlain          String
   bankName           String
   upiId              String?
   /// AES-GCM ciphertext of PAN (optional).
-  panEnc             Bytes?
+  panEnc             String?
   panLast4           String?
   /// Operator toggles this after manually verifying the bank details.
   verified           Boolean   @default(false)

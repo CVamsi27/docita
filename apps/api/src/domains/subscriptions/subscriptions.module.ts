@@ -12,14 +12,17 @@ import { SubscriptionsBillingMutationController } from './presentation/controlle
 import { SubscriptionsController } from './presentation/controllers/subscriptions.controller';
 import { SubscriptionsWebhookController } from './presentation/controllers/subscriptions-webhook.controller';
 import { PartnerAuthController } from './presentation/controllers/partner-auth.controller';
+import { PartnerPortalController } from './presentation/controllers/partner-portal.controller';
 import { PartnerAuthGuard } from './presentation/guards/partner-auth.guard';
 import { PartnerAuthService } from './application/services/partner-auth.service';
+import { PartnerPortalService } from './application/services/partner-portal.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { BillingModule } from '@/domains/billing/billing.module';
 import { PaymentsModule } from '@/domains/payments/payments.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.module';
 import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
+import { CommonModule } from '@/shared/common/common.module';
 
 @Module({
   imports: [
@@ -29,6 +32,7 @@ import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
     EmailModule,
     AdminAlertsModule,
     AuthModule,
+    CommonModule,
   ],
   controllers: [
     SubscriptionsController,
@@ -36,12 +40,14 @@ import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
     SubscriptionsBillingMutationController,
     SubscriptionsWebhookController,
     PartnerAuthController,
+    PartnerPortalController,
   ],
   providers: [
     ...SUBSCRIPTIONS_COMMON_PROVIDERS,
     ResumeSubscriptionPaymentUseCase,
     SchedulePlanChangeUseCase,
     PartnerAuthService,
+    PartnerPortalService,
     PartnerAuthGuard,
   ],
   exports: [...SUBSCRIPTIONS_COMMON_EXPORTS, SchedulePlanChangeUseCase],
