@@ -3,13 +3,12 @@
 import { useState } from "react";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import {
-  partnerApi,
   type PartnerApiContext,
   usePartnerRefresh,
   usePartnerRequestOtp,
   usePartnerVerifyOtp,
 } from "@workspace/data-access";
-import { partnerSession } from "../lib/partner-session";
+import { partnerSession } from "@/features/referral-partner/lib/partner-session";
 
 const EXPIRY_BUFFER_MS = 30 * 1000;
 
@@ -75,7 +74,7 @@ export function usePartnerAuth() {
         otp: otp.trim(),
       });
       if (!result?.accessToken) {
-        throw new Error("Server did not return an access token");
+        throw new Error("Sign-in could not be completed. Please try again.");
       }
       const expiresAt = Date.now() + result.expiresIn * 1000 - EXPIRY_BUFFER_MS;
       partnerSession.set(

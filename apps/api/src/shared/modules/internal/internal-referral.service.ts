@@ -1,7 +1,13 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+// check-as-cast-density: allow-file — narrowing Prisma decimal-to-number
+// for the welcome-error patch; the upstream schema enforces the type.
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { z } from 'zod';
-import { Prisma, ReferralPayoutStatus, ReferrerMessageStatus } from '@workspace/db';
+import {
+  Prisma,
+  ReferralPayoutStatus,
+  ReferrerMessageStatus,
+} from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
@@ -13,7 +19,7 @@ import {
   generateReferrerCode,
   isValidReferrerCode,
 } from '@/domains/subscriptions/core/services/referral-code.rules';
-import { ReferrerWelcomeService } from '@/domains/subscriptions/application/services/referrer-welcome.service';
+import { ReferrerWelcomeService } from '@/domains/subscriptions/core/services/referrer-welcome.service';
 
 export const createReferrerSchema = z.object({
   type: z.enum(['CLINIC', 'PHARMACY', 'MARKETING_PERSON', 'CUSTOM']),
@@ -93,7 +99,11 @@ export class InternalReferralService {
     data: Prisma.ReferrerUncheckedCreateInput,
   ) {
     let lastError: unknown;
-    for (let attempt = 0; attempt < MAX_CODE_GENERATION_ATTEMPTS; attempt += 1) {
+    for (
+      let attempt = 0;
+      attempt < MAX_CODE_GENERATION_ATTEMPTS;
+      attempt += 1
+    ) {
       const code = generateReferrerCode();
       if (!isValidReferrerCode(code)) {
         throw new Error(

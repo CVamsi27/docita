@@ -3875,6 +3875,7 @@ model ReferrerMessage {
   /// Rendered body (placeholders resolved). Stored for audit and for the
   /// operator UI to show what was actually sent. PII redacted in this row —
   /// we keep the partner name, code, and URLs only.
+  /// @json:referrerMessagePayloadSchema
   payload      Json
 
   createdAt DateTime  @default(now()) @db.Timestamptz(3)

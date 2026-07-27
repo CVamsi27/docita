@@ -1,3 +1,6 @@
+// check-as-cast-density: allow-file — `as Prisma.InputJsonValue` narrows
+// the redacted welcome payload; inlining the predicate would just be
+// the same JSON-shaped runtime check with no extra safety.
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Prisma } from '@workspace/db';
@@ -10,8 +13,8 @@ import {
   type IWhatsAppClient,
 } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { PartnerShowcasePdfService } from './partner-showcase-pdf.service';
-import { PartnerTemplateService } from './partner-template.service';
+import { PartnerShowcasePdfService } from '../../application/services/partner-showcase-pdf.service';
+import { PartnerTemplateService } from '../../application/services/partner-template.service';
 
 /**
  * Listens for the `REFERRER_CREATED` event and sends the partner welcome
@@ -59,7 +62,9 @@ export class ReferrerWelcomeService {
       } catch (nestedError) {
         this.logger.error(
           `Could not record welcomeError for referrer ${payload.referrerId}`,
-          nestedError instanceof Error ? nestedError.stack : String(nestedError),
+          nestedError instanceof Error
+            ? nestedError.stack
+            : String(nestedError),
         );
       }
     }
@@ -106,9 +111,7 @@ export class ReferrerWelcomeService {
       return;
     }
     if (!referrer.active) {
-      this.logger.log(
-        `Skipping welcome for inactive referrer ${referrerId}`,
-      );
+      this.logger.log(`Skipping welcome for inactive referrer ${referrerId}`);
       return;
     }
 
@@ -133,12 +136,9 @@ export class ReferrerWelcomeService {
     });
 
     const objectKey = `partners/${referrer.id}/showcase-${Date.now()}.pdf`;
-    await this.storage.uploadBuffer(
-      pdfBuffer,
-      objectKey,
-      'application/pdf',
-      { metadata: { referrerId: referrer.id, kind: 'partner-showcase' } },
-    );
+    await this.storage.uploadBuffer(pdfBuffer, objectKey, 'application/pdf', {
+      metadata: { referrerId: referrer.id, kind: 'partner-showcase' },
+    });
     const pdfUrl = await this.storage.generateSignedUrl(
       objectKey,
       ReferrerWelcomeService.PDF_SIGNED_URL_TTL_SECONDS,
@@ -208,7 +208,10 @@ export class ReferrerWelcomeService {
     }
   }
 
-  private async recordFailure(referrerId: string, message: string): Promise<void> {
+  private async recordFailure(
+    referrerId: string,
+    message: string,
+  ): Promise<void> {
     await this.prisma.referrer.update({
       where: { id: referrerId },
       data: { welcomeError: message },
@@ -225,6 +228,8 @@ function truncate(value: string, max: number): string {
   return value.length <= max ? value : `${value.slice(0, max - 3)}...`;
 }
 
-function toPrismaInputJsonValue(value: Record<string, unknown>): Prisma.InputJsonValue {
+function toPrismaInputJsonValue(
+  value: Record<string, unknown>,
+): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
 }

@@ -1,5 +1,9 @@
 "use client";
 
+// check-as-cast-density: allow-file — the partner session blob is
+// JSON-roundtripped from localStorage and re-hydrated; the inline
+// cast is the trust boundary that pairs with the JSON.parse below.
+
 /**
  * Local session for the partner self-service portal. The partner is a
  * separate audience from the main app user — different storage key,

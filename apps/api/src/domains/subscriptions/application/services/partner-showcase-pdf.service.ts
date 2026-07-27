@@ -71,19 +71,28 @@ export class PartnerShowcasePdfService {
     });
   }
 
-  private renderCover(doc: PDFKit.PDFDocument, input: PartnerShowcasePdfInput): void {
+  private renderSectionHeader(doc: PDFKit.PDFDocument, title: string): void {
+    const { width } = doc.page;
+    doc.fontSize(22).font('Helvetica-Bold').fillColor(INK).text(title, 50, 60);
+    doc
+      .moveDown(0.5)
+      .strokeColor(SOFT)
+      .lineWidth(1)
+      .moveTo(50, doc.y)
+      .lineTo(width - 50, doc.y)
+      .stroke();
+  }
+
+  private renderCover(
+    doc: PDFKit.PDFDocument,
+    input: PartnerShowcasePdfInput,
+  ): void {
     const { width, height } = doc.page;
     doc.rect(0, 0, width, height).fill(TEAL);
     doc.fillColor('#ffffff');
 
-    doc
-      .fontSize(14)
-      .font('Helvetica-Bold')
-      .text('DOCITA', 50, 60);
-    doc
-      .fontSize(10)
-      .font('Helvetica')
-      .text('Clinic OS, on WhatsApp', 50, 80);
+    doc.fontSize(14).font('Helvetica-Bold').text('DOCITA', 50, 60);
+    doc.fontSize(10).font('Helvetica').text('Clinic OS, on WhatsApp', 50, 80);
 
     doc
       .fontSize(36)
@@ -97,12 +106,9 @@ export class PartnerShowcasePdfService {
       .moveDown(2)
       .fontSize(14)
       .font('Helvetica')
-      .text(
-        `Shared with you by ${input.partnerName}`,
-        50,
-        height - 180,
-        { width: width - 100 },
-      )
+      .text(`Shared with you by ${input.partnerName}`, 50, height - 180, {
+        width: width - 100,
+      })
       .moveDown(0.3)
       .fontSize(12)
       .text(`${TYPE_LABEL[input.partnerType]} referral code: ${input.code}`, {
@@ -114,14 +120,7 @@ export class PartnerShowcasePdfService {
 
   private renderWhatIsDocita(doc: PDFKit.PDFDocument): void {
     const { width } = doc.page;
-    doc.fontSize(22).font('Helvetica-Bold').fillColor(INK).text('What is Docita?', 50, 60);
-    doc
-      .moveDown(0.5)
-      .strokeColor(SOFT)
-      .lineWidth(1)
-      .moveTo(50, doc.y)
-      .lineTo(width - 50, doc.y)
-      .stroke();
+    this.renderSectionHeader(doc, 'What is Docita?');
 
     doc
       .moveDown(1)
@@ -144,7 +143,10 @@ export class PartnerShowcasePdfService {
         title: 'Prescriptions on WhatsApp',
         body: 'Doctor sends Rx to the patient as a WhatsApp message.',
       },
-      { title: 'Appointments & queue', body: 'Bookings, reminders, today list.' },
+      {
+        title: 'Appointments & queue',
+        body: 'Bookings, reminders, today list.',
+      },
       { title: 'Billing & GST', body: 'Invoices, payments, GST reports.' },
       { title: 'Inventory', body: 'Pharmacy and consumables tracking.' },
     ];
@@ -165,25 +167,31 @@ export class PartnerShowcasePdfService {
 
   private renderHowToOnboard(doc: PDFKit.PDFDocument): void {
     const { width } = doc.page;
-    doc.fontSize(22).font('Helvetica-Bold').fillColor(INK).text('Onboard in 2 minutes', 50, 60);
-    doc
-      .moveDown(0.5)
-      .strokeColor(SOFT)
-      .lineWidth(1)
-      .moveTo(50, doc.y)
-      .lineTo(width - 50, doc.y)
-      .stroke();
+    this.renderSectionHeader(doc, 'Onboard in 2 minutes');
 
     const steps: Array<{ title: string; body: string }> = [
-      { title: '1. Text START', body: 'Doctor sends START to the Docita WhatsApp number.' },
-      { title: '2. Verify phone', body: 'One-time OTP on the doctor\'s phone.' },
-      { title: '3. Add clinic details', body: 'Clinic name, address, GSTIN (optional).' },
-      { title: '4. Start using', body: 'Add first patient, send first prescription.' },
+      {
+        title: '1. Text START',
+        body: 'Doctor sends START to the Docita WhatsApp number.',
+      },
+      { title: '2. Verify phone', body: "One-time OTP on the doctor's phone." },
+      {
+        title: '3. Add clinic details',
+        body: 'Clinic name, address, GSTIN (optional).',
+      },
+      {
+        title: '4. Start using',
+        body: 'Add first patient, send first prescription.',
+      },
     ];
 
     doc.moveDown(1);
     for (const step of steps) {
-      doc.font('Helvetica-Bold').fontSize(13).fillColor(TEAL).text(step.title, 50, doc.y);
+      doc
+        .font('Helvetica-Bold')
+        .fontSize(13)
+        .fillColor(TEAL)
+        .text(step.title, 50, doc.y);
       doc
         .moveDown(0.2)
         .font('Helvetica')
@@ -199,14 +207,7 @@ export class PartnerShowcasePdfService {
     input: PartnerShowcasePdfInput,
   ): Promise<void> {
     const { width } = doc.page;
-    doc.fontSize(22).font('Helvetica-Bold').fillColor(INK).text('Your partnership kit', 50, 60);
-    doc
-      .moveDown(0.5)
-      .strokeColor(SOFT)
-      .lineWidth(1)
-      .moveTo(50, doc.y)
-      .lineTo(width - 50, doc.y)
-      .stroke();
+    this.renderSectionHeader(doc, 'Your partnership kit');
 
     doc
       .moveDown(1)

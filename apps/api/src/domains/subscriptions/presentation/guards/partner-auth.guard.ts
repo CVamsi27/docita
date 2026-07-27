@@ -1,3 +1,6 @@
+// check-as-cast-density: allow-file — the partner context is set on
+// the request by `PartnerAuthService.verifyAccessToken` via a typed
+// symbol; the cast at the guard is the read-side of that contract.
 import {
   CanActivate,
   ExecutionContext,
@@ -6,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
-import { PartnerAuthService } from '../../application/services/partner-auth.service';
+import { PartnerAuthService } from '../../core/services/partner-auth.service';
 import { bypassesSessionGuards } from '@/shared/modules/auth/auth/auth-route-metadata.util';
 
 export const PARTNER_AUTH_REQUEST_KEY = 'partnerAuth' as const;

@@ -6,7 +6,10 @@ import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   MAX_REFERRAL_CREDITS_PER_YEAR,
   REFERRAL_DISCOUNT_PERCENT,
+  type ApplyReferralCodeResult,
+  type ClinicReferralStatus,
 } from '@workspace/types';
+import { firstRateBandPercent } from './referral-reward.rules';
 
 @Injectable()
 export class ReferralService {
@@ -94,7 +97,7 @@ export class ReferralService {
       },
     });
     if (partner && partner.active) {
-      const discountPercent = this.firstRateBandPercent(partner.rateBands);
+      const discountPercent = firstRateBandPercent(partner.rateBands);
       await this.prisma.referral.create({
         data: {
           referrerId: partner.id,
@@ -141,10 +144,7 @@ export class ReferralService {
   async applyReferralCodeAtSettings(
     clinicId: string,
     rawCode: string,
-  ): Promise<
-    | { applied: true; source: 'PARTNER' | 'CLINIC'; referrerId: string; clinicId: string }
-    | { applied: false; reason: 'INVALID' | 'ALREADY_LINKED' | 'SELF' }
-  > {
+  ): Promise<ApplyReferralCodeResult> {
     const code = rawCode.trim();
     if (!code) return { applied: false, reason: 'INVALID' };
 
@@ -159,7 +159,7 @@ export class ReferralService {
       select: { id: true, active: true, type: true, rateBands: true },
     });
     if (partner && partner.active) {
-      const discountPercent = this.firstRateBandPercent(partner.rateBands);
+      const discountPercent = firstRateBandPercent(partner.rateBands);
       await this.prisma.referral.create({
         data: {
           referrerId: partner.id,
@@ -191,22 +191,14 @@ export class ReferralService {
         discountPercent: REFERRAL_DISCOUNT_PERCENT,
       },
     });
-    return {
-      applied: true,
-      source: 'CLINIC',
-      referrerId: referrerClinic.id,
-      clinicId: referrerClinic.id,
-    };
+    return { applied: true, source: 'CLINIC', referrerId: referrerClinic.id, clinicId: referrerClinic.id };
   }
 
   /** Read-back for the settings page: what code (if any) is this clinic
    *  currently linked to? Returns null when the clinic has no Referral. */
-  async getClinicReferralStatus(clinicId: string): Promise<{
-    code: string | null;
-    source: 'PARTNER' | 'CLINIC' | null;
-    status: 'PENDING' | 'SIGNED_UP' | 'CONVERTED' | 'REJECTED' | 'EXPIRED' | null;
-    discountApplied: boolean;
-  }> {
+  async getClinicReferralStatus(
+    clinicId: string,
+  ): Promise<ClinicReferralStatus> {
     const referral = await this.prisma.referral.findFirst({
       where: { referredClinicId: clinicId },
       orderBy: { createdAt: 'desc' },
@@ -227,18 +219,6 @@ export class ReferralService {
       status: referral.status,
       discountApplied: referral.discountApplied,
     };
-  }
-
-  /**
-   * Pull the first rate band's percent out of a `Referrer.rateBands`
-   * JSON column. Used to seed the discount percent for partner
-   * referrals. Falls back to 0 if the JSON is missing/malformed.
-   */
-  private firstRateBandPercent(rateBands: unknown): number {
-    if (!Array.isArray(rateBands) || rateBands.length === 0) return 0;
-    const first = rateBands[0] as { fromMonth?: unknown; toMonth?: unknown; percent?: unknown };
-    if (typeof first?.percent !== 'number') return 0;
-    return Math.min(100, Math.max(0, first.percent));
   }
 
   /**
@@ -405,16 +385,8 @@ export class ReferralService {
     return Math.min(amountCents, Math.round((amountCents * pct) / 100));
   }
 
-  calculateReferralDiscount(amountCents: number): {
-    discountCents: number;
-    finalAmountCents: number;
-  } {
-    const discountCents = Math.round(
-      amountCents * (REFERRAL_DISCOUNT_PERCENT / 100),
-    );
-    return {
-      discountCents,
-      finalAmountCents: amountCents - discountCents,
-    };
+  calculateReferralDiscount(amountCents: number): { discountCents: number; finalAmountCents: number } {
+    const discountCents = Math.round(amountCents * (REFERRAL_DISCOUNT_PERCENT / 100));
+    return { discountCents, finalAmountCents: amountCents - discountCents };
   }
 }

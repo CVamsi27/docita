@@ -14,7 +14,12 @@ function makeCtx() {
   };
   const prisma = { referral, clinic, referrer } as never;
   const clock = { now: () => new Date('2026-07-02T00:00:00Z') } as never;
-  return { service: new ReferralService(prisma, clock), referral, clinic, referrer };
+  return {
+    service: new ReferralService(prisma, clock),
+    referral,
+    clinic,
+    referrer,
+  };
 }
 
 describe('ReferralService.captureReferralAtSignup', () => {

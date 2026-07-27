@@ -1,3 +1,6 @@
+// check-as-cast-density: allow-file — `configService.getJwtExpiration()`
+// returns `string | number`; we feed it into `expiresIn` which wants
+// `number`. The double-cast is the documented bridge.
 import { JwtModule } from '@nestjs/jwt';
 import { Module } from '@nestjs/common';
 import {
@@ -15,8 +18,8 @@ import { SubscriptionsWebhookController } from './presentation/controllers/subsc
 import { PartnerAuthController } from './presentation/controllers/partner-auth.controller';
 import { PartnerPortalController } from './presentation/controllers/partner-portal.controller';
 import { PartnerAuthGuard } from './presentation/guards/partner-auth.guard';
-import { PartnerAuthService } from './application/services/partner-auth.service';
-import { PartnerPortalService } from './application/services/partner-portal.service';
+import { PartnerAuthService } from './core/services/partner-auth.service';
+import { PartnerPortalService } from './core/services/partner-portal.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { BillingModule } from '@/domains/billing/billing.module';
 import { PaymentsModule } from '@/domains/payments/payments.module';

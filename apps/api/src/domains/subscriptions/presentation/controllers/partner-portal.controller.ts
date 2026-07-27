@@ -1,3 +1,7 @@
+// check-as-cast-density: allow-file — narrowing Zod-parsed query/status
+// enums to the Prisma enum and pulling the partner context off the
+// request via the guard-set symbol; replacing either with a predicate
+// would duplicate the guard or the schema.
 import {
   Body,
   Controller,
@@ -20,7 +24,7 @@ import {
   type PartnerPayoutRow,
   type PartnerReferralRow,
 } from '@workspace/types';
-import { PartnerPortalService } from '../../application/services/partner-portal.service';
+import { PartnerPortalService } from '../../core/services/partner-portal.service';
 import {
   PARTNER_AUTH_REQUEST_KEY,
   PartnerAuthGuard,
@@ -43,7 +47,9 @@ export class PartnerPortalController {
 
   @Get('me')
   @Throttle(READ_RATE_LIMIT)
-  @ApiOperation({ summary: 'Resolve the partner profile + counts + share URLs' })
+  @ApiOperation({
+    summary: 'Resolve the partner profile + counts + share URLs',
+  })
   async getMe(@Req() req: Request): Promise<PartnerMe> {
     const { referrerId } = this.context(req);
     return this.portal.getMe(referrerId);
@@ -118,10 +124,10 @@ export class PartnerPortalController {
 
   @Get('me/share-message')
   @Throttle(READ_RATE_LIMIT)
-  @ApiOperation({ summary: 'Render the copy-paste share message with the partner code' })
-  async getShareMessage(
-    @Req() req: Request,
-  ): Promise<{ message: string }> {
+  @ApiOperation({
+    summary: 'Render the copy-paste share message with the partner code',
+  })
+  async getShareMessage(@Req() req: Request): Promise<{ message: string }> {
     const { referrerId } = this.context(req);
     return this.portal.getShareMessage(referrerId);
   }

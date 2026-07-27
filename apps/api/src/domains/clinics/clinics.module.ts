@@ -33,6 +33,8 @@ import { UsersModule } from '@/domains/users/users.module';
 import { ClinicFactory } from './core/factories/clinic.factory';
 import { SettingsFactory } from './core/factories/settings.factory';
 import { DocumentsModule } from '@/domains/documents/documents.module';
+import { ReferralServiceClinicAdapter } from './infrastructure/adapters/referral-service-clinic.adapter';
+import { CLINIC_REFERRAL_APP_SERVICE } from './application/ports/clinic-referral-app.port';
 
 @Module({
   imports: [
@@ -79,6 +81,11 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     {
       provide: CLINIC_MEMBERSHIP_REPOSITORY_TOKEN,
       useExisting: PrismaClinicMembershipRepository,
+    },
+    ReferralServiceClinicAdapter,
+    {
+      provide: CLINIC_REFERRAL_APP_SERVICE,
+      useExisting: ReferralServiceClinicAdapter,
     },
   ],
   exports: [

@@ -17,6 +17,7 @@ import {
   JWT_AUDIENCE_PARTNER,
   isPartnerJwtAudience,
 } from '@/shared/modules/auth/auth/jwt-audience';
+import { sendLoginOtp } from '@/shared/whatsapp/whatsapp-login-otp.helper';
 import {
   type PartnerOtpRequest,
   type PartnerOtpVerify,
@@ -60,7 +61,9 @@ export class PartnerAuthService {
     if (referrer) {
       const otp = this.generateOtp();
       const otpHash = await bcrypt.hash(otp, 10);
-      const expiresAt = new Date(this.clock.now().getTime() + PARTNER_OTP_TTL_MS);
+      const expiresAt = new Date(
+        this.clock.now().getTime() + PARTNER_OTP_TTL_MS,
+      );
 
       // Invalidate any prior outstanding challenges for this phone.
       await this.prisma.partnerOtpChallenge.updateMany({
@@ -71,28 +74,11 @@ export class PartnerAuthService {
         data: { phone, otpHash, expiresAt },
       });
 
-      try {
-        await this.whatsapp.sendMessage({
-          to: phone,
-          templateName: 'partner_login_otp',
-          languageCode: 'en',
-          components: [
-            {
-              type: 'body',
-              parameters: [{ type: 'text', text: otp }],
-            },
-          ],
-        });
-      } catch (error) {
-        // Same posture as the patient portal: never block login on a
-        // WhatsApp hiccup; the operator can investigate via the audit
-        // log. The caller still receives success.
-        this.logger.warn(
-          `Failed to send partner OTP to ${phone}: ${
-            error instanceof Error ? error.message : 'unknown error'
-          }`,
-        );
-      }
+      await sendLoginOtp(this.whatsapp, this.logger, 'partner', {
+        to: phone,
+        templateName: 'partner_login_otp',
+        otp,
+      });
     }
 
     return {
@@ -182,7 +168,9 @@ export class PartnerAuthService {
    * for v1 (no revocation; if that's ever needed we can add a
    * PartnerRefreshToken table later).
    */
-  async refresh(refreshToken: string): Promise<{ accessToken: string; expiresIn: number }> {
+  async refresh(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; expiresIn: number }> {
     let claims: PartnerJwtClaims;
     try {
       claims = await this.jwt.verifyAsync<PartnerJwtClaims>(refreshToken, {
@@ -191,7 +179,10 @@ export class PartnerAuthService {
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
-    if (claims.type !== 'refresh' || !isPartnerJwtAudience(JWT_AUDIENCE_PARTNER)) {
+    if (
+      claims.type !== 'refresh' ||
+      !isPartnerJwtAudience(JWT_AUDIENCE_PARTNER)
+    ) {
       throw new UnauthorizedException('Invalid refresh token');
     }
     const accessToken = this.signPartnerToken(

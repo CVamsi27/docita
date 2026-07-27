@@ -223,6 +223,34 @@ export type ApplyReferralCodeResponse = z.infer<
   typeof applyReferralCodeResponseSchema
 >;
 
+/** Read-back for the clinic settings/onboarding referral page. */
+export const clinicReferralStatusSchema = z.object({
+  code: z.string().nullable(),
+  source: z.enum(["PARTNER", "CLINIC"]).nullable(),
+  status: z
+    .enum(["PENDING", "SIGNED_UP", "CONVERTED", "REJECTED", "EXPIRED"])
+    .nullable(),
+  discountApplied: z.boolean(),
+});
+export type ClinicReferralStatus = z.infer<typeof clinicReferralStatusSchema>;
+
+/** Discriminated result returned by `applyReferralCodeAtSettings`. */
+export const applyReferralCodeResultSchema = z.union([
+  z.object({
+    applied: z.literal(true),
+    source: z.enum(["PARTNER", "CLINIC"]),
+    referrerId: z.string(),
+    clinicId: z.string(),
+  }),
+  z.object({
+    applied: z.literal(false),
+    reason: z.enum(["INVALID", "ALREADY_LINKED", "SELF"]),
+  }),
+]);
+export type ApplyReferralCodeResult = z.infer<
+  typeof applyReferralCodeResultSchema
+>;
+
 /** Operator-facing message log entry on the internal referrals page. */
 export const referrerMessageLogEntrySchema = z.object({
   id: z.string(),
@@ -235,6 +263,22 @@ export const referrerMessageLogEntrySchema = z.object({
   createdAt: z.string(),
   sentAt: z.string().nullable(),
 });
+
+/**
+ * PII-redacted payload for a `ReferrerMessage` row — what was actually
+ * rendered into the WhatsApp components, minus the partner's phone
+ * number and the signed PDF URL (ephemeral). Stored for audit and for
+ * the operator UI to show the last sent body.
+ */
+export const referrerMessagePayloadSchema = z.object({
+  partnerName: z.string(),
+  code: z.string(),
+  partnerPortalUrl: z.string(),
+  signupUrl: z.string(),
+  type: z.enum(["CLINIC", "PHARMACY", "MARKETING_PERSON", "CUSTOM"]),
+  shareMessagePreview: z.string(),
+});
+export type ReferrerMessagePayload = z.infer<typeof referrerMessagePayloadSchema>;
 export type ReferrerMessageLogEntry = z.infer<
   typeof referrerMessageLogEntrySchema
 >;

@@ -25,11 +25,11 @@ import { SubscriptionBillingSnapshotService } from './application/services/subsc
 import { ActivateSubscriptionPaymentService } from './application/services/activate-subscription-payment.service';
 import { ReferralPayoutService } from './application/services/referral-payout.service';
 import { ReferralAccrualService } from './application/services/referral-accrual.service';
-import { ReferralCodeResolverService } from './application/services/referral-code-resolver.service';
+import { ReferralCodeResolverService } from './core/services/referral-code-resolver.service';
 import { PartnerShowcasePdfService } from './application/services/partner-showcase-pdf.service';
 import { PartnerTemplateService } from './application/services/partner-template.service';
-import { ReferrerWelcomeService } from './application/services/referrer-welcome.service';
-import { PartnerAuthService } from './application/services/partner-auth.service';
+import { ReferrerWelcomeService } from './core/services/referrer-welcome.service';
+import { PartnerAuthService } from './core/services/partner-auth.service';
 import { REFERRAL_PAYOUT_REPOSITORY_TOKEN } from './application/ports/referral-payout.repository.port';
 import { PrismaReferralPayoutRepository } from './infrastructure/repositories/prisma-referral-payout.repository';
 import { ActivateSubscriptionClinicSyncService } from './application/services/activate-subscription-clinic-sync.service';

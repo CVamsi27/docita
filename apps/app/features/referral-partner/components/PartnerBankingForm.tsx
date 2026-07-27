@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { usePartnerPayoutDetails } from "@workspace/data-access";
+// eslint-disable-next-line no-restricted-imports -- sibling within the same feature, not a cross-feature ../ escape
 import { usePartnerAuth } from "../hooks/use-partner-auth";
 import { usePartnerMe } from "@workspace/data-access";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";

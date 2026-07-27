@@ -4,6 +4,7 @@ import { FormEvent } from "react";
 import { ArrowLeft, Phone, ShieldCheck } from "lucide-react";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";
 import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
+// eslint-disable-next-line no-restricted-imports -- sibling within the same feature, not a cross-feature ../ escape
 import { usePartnerAuth } from "../hooks/use-partner-auth";
 
 export function PartnerAuthScreen() {

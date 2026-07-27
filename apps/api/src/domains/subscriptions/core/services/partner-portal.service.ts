@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -16,8 +15,8 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { EncryptionService } from '@/shared/common/encryption.service';
 import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { PartnerShowcasePdfService } from './partner-showcase-pdf.service';
-import { PartnerTemplateService } from './partner-template.service';
+import { PartnerShowcasePdfService } from '../../application/services/partner-showcase-pdf.service';
+import { PartnerTemplateService } from '../../application/services/partner-template.service';
 
 /**
  * Self-service surface for the referral partner. Authenticated by
@@ -135,7 +134,11 @@ export class PartnerPortalService {
 
   async listPayouts(
     referrerId: string,
-    options: { status?: ReferralPayoutStatus; limit?: number; cursor?: string } = {},
+    options: {
+      status?: ReferralPayoutStatus;
+      limit?: number;
+      cursor?: string;
+    } = {},
   ): Promise<{ items: PartnerPayoutRow[]; nextCursor: string | null }> {
     const limit = Math.min(options.limit ?? 50, 200);
     const rows = await this.prisma.referralPayout.findMany({
@@ -144,8 +147,9 @@ export class PartnerPortalService {
       take: limit + 1,
       ...(options.cursor ? { cursor: { id: options.cursor }, skip: 1 } : {}),
     });
-    const hasMore = rows.length > limit;
-    const items = (hasMore ? rows.slice(0, limit) : rows).map(
+    return this.paginateAndMap(
+      rows,
+      limit,
       (row): PartnerPayoutRow => ({
         id: row.id,
         periodStart: row.periodStart.toISOString(),
@@ -157,7 +161,6 @@ export class PartnerPortalService {
         paidAt: row.paidAt ? row.paidAt.toISOString() : null,
       }),
     );
-    return { items, nextCursor: hasMore ? items[items.length - 1].id : null };
   }
 
   async listReferrals(
@@ -174,8 +177,9 @@ export class PartnerPortalService {
         referredClinic: { select: { id: true, name: true } },
       },
     });
-    const hasMore = rows.length > limit;
-    const items = (hasMore ? rows.slice(0, limit) : rows).map(
+    return this.paginateAndMap(
+      rows,
+      limit,
       (row): PartnerReferralRow => ({
         id: row.id,
         referredClinicId: row.referredClinicId,
@@ -185,7 +189,6 @@ export class PartnerPortalService {
         convertedAt: row.convertedAt ? row.convertedAt.toISOString() : null,
       }),
     );
-    return { items, nextCursor: hasMore ? items[items.length - 1].id : null };
   }
 
   /**
@@ -332,5 +335,23 @@ export class PartnerPortalService {
       verified: row.verified,
       updatedAt: row.updatedAt.toISOString(),
     };
+  }
+
+  /**
+   * Cursor-paginate a list of `findMany` results with the standard
+   * `take: limit + 1` pattern. Returns the trimmed page plus an opaque
+   * `nextCursor` (last source row id) for the next page, or `null`
+   * when the caller has consumed all rows.
+   */
+  private paginateAndMap<TIn extends { id: string }, TOut>(
+    rows: TIn[],
+    limit: number,
+    map: (row: TIn) => TOut,
+  ): { items: TOut[]; nextCursor: string | null } {
+    const hasMore = rows.length > limit;
+    const trimmed = hasMore ? rows.slice(0, limit) : rows;
+    const items = trimmed.map(map);
+    const lastSource = hasMore ? trimmed[trimmed.length - 1] : null;
+    return { items, nextCursor: lastSource ? lastSource.id : null };
   }
 }

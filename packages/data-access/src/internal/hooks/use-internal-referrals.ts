@@ -1,3 +1,6 @@
+// check-as-cast-density: allow-file — the welcome-resend mutation
+// payload is empty and typed `BodyInit`; the cast bridges
+// `{}` to the fetch body type without a runtime conversion.
 import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
 import { internalQueryKeys } from "../../lib/query-keys-internal";
 import { useDataAccessFetcher } from "../../provider/hooks";

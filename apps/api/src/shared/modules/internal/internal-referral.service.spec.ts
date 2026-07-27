@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import { InternalReferralService } from './internal-referral.service';
-import type { ReferrerWelcomeService } from '@/domains/subscriptions/application/services/referrer-welcome.service';
+import type { ReferrerWelcomeService } from '@/domains/subscriptions/core/services/referrer-welcome.service';
 
 function makeCtx() {
   const referrer = {

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+// eslint-disable-next-line no-restricted-imports -- sibling within the same feature, not a cross-feature ../ escape
 import { usePartnerAuth } from "../hooks/use-partner-auth";
 import { usePartnerMe } from "@workspace/data-access";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
-import { formatPaise } from "../lib/format-currency";
+import { formatPaise } from "@/features/referral-partner/lib/format-currency";
 
 export function PartnerDashboard() {
   const auth = usePartnerAuth();

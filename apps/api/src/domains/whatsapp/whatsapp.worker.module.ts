@@ -8,8 +8,7 @@ import { WhatsAppAutomationService } from './application/services/whatsapp-autom
 import { WhatsappMessageDeliveryService } from './application/services/whatsapp-message-delivery.service';
 import { WHATSAPP_REPOSITORY_TOKEN } from './application/ports/whatsapp.repository.port';
 import { WHATSAPP_REPOSITORY_PROVIDERS } from './infrastructure/repositories/whatsapp-repository.providers';
-import { WHATSAPP_CLIENT_TOKEN } from './application/ports/whatsapp-client.port';
-import { WhatsappClientAdapter } from './infrastructure/clients/whatsapp-client.adapter';
+import { WHATSAPP_CLIENT_PROVIDERS } from './infrastructure/clients/whatsapp-client.providers';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { TemplateResolverService } from './core/services/template-resolver.service';
 import { WhatsappTemplatesModule } from '@/shared/whatsapp/whatsapp-templates.module';
@@ -25,11 +24,7 @@ import { WhatsappTemplatesModule } from '@/shared/whatsapp/whatsapp-templates.mo
     WhatsappMessageDeliveryService,
     TemplateResolverService,
     ...WHATSAPP_REPOSITORY_PROVIDERS,
-    WhatsappClientAdapter,
-    {
-      provide: WHATSAPP_CLIENT_TOKEN,
-      useExisting: WhatsappClientAdapter,
-    },
+    ...WHATSAPP_CLIENT_PROVIDERS,
   ],
   exports: [
     SendMessageUseCase,

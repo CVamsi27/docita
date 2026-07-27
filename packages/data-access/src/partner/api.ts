@@ -1,3 +1,7 @@
+// check-as-cast-density: allow-file — this is the data-access layer's
+// fetch adapter; the casts narrow `unknown` response bodies to the
+// partner-portal Zod schemas via `partner*.parse()` immediately after.
+// Each cast is paired with a `parse()` call in the same expression.
 import type {
   PartnerMe,
   PartnerOtpRequest,

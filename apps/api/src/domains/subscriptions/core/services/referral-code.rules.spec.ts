@@ -94,7 +94,9 @@ describe('referral-code.rules', () => {
 
     it('returns null on non-strings', () => {
       expect(normalizeReferrerCodeInput(null as unknown as string)).toBeNull();
-      expect(normalizeReferrerCodeInput(undefined as unknown as string)).toBeNull();
+      expect(
+        normalizeReferrerCodeInput(undefined as unknown as string),
+      ).toBeNull();
     });
   });
 });

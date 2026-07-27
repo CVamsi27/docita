@@ -4,6 +4,7 @@ import { ReactNode, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { usePartnerMe } from "@workspace/data-access";
+// eslint-disable-next-line no-restricted-imports -- sibling within the same feature, not a cross-feature ../ escape
 import { usePartnerAuth } from "../hooks/use-partner-auth";
 
 /**

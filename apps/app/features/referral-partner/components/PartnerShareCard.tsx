@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+// eslint-disable-next-line no-restricted-imports -- sibling within the same feature, not a cross-feature ../ escape
 import { usePartnerAuth } from "../hooks/use-partner-auth";
 import { usePartnerMe, usePartnerShareMessage } from "@workspace/data-access";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
@@ -28,6 +29,10 @@ export function PartnerShareCard() {
   if (!me.data || !share.data) {
     return <div className="text-sm text-muted-foreground">Share kit not available yet.</div>;
   }
+  // Destructure so the closures below can read narrowed values without
+  // re-checking or non-null asserting.
+  const meData = me.data;
+  const shareData = share.data;
 
   return (
     <div className="space-y-6">
@@ -47,11 +52,11 @@ export function PartnerShareCard() {
         </CardHeader>
         <CardContent className="space-y-3">
           <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">
-            {me.data.signupUrl}
+            {meData.signupUrl}
           </pre>
           <Button
             type="button"
-            onClick={() => void copy(me.data!.signupUrl, "signup")}
+            onClick={() => void copy(meData.signupUrl, "signup")}
             variant="outline"
           >
             {copied === "signup" ? "Copied" : "Copy link"}
@@ -68,11 +73,11 @@ export function PartnerShareCard() {
         </CardHeader>
         <CardContent className="space-y-3">
           <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm">
-            {share.data.message}
+            {shareData.message}
           </pre>
           <Button
             type="button"
-            onClick={() => void copy(share.data!.message, "message")}
+            onClick={() => void copy(shareData.message, "message")}
             variant="outline"
           >
             {copied === "message" ? "Copied" : "Copy message"}
@@ -89,7 +94,7 @@ export function PartnerShareCard() {
         </CardHeader>
         <CardContent>
           <Button asChild>
-            <a href={me.data.showcasePdfUrl} target="_blank" rel="noreferrer">
+            <a href={meData.showcasePdfUrl} target="_blank" rel="noreferrer">
               Download showcase PDF
             </a>
           </Button>

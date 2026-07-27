@@ -3,6 +3,7 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  Inject,
   Post,
   Req,
   UsePipes,
@@ -12,10 +13,14 @@ import { Throttle } from '@nestjs/throttler';
 import {
   applyReferralCodeRequestSchema,
   type ApplyReferralCodeResponse,
+  type ClinicReferralStatus,
 } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
-import { ReferralService } from '@/domains/subscriptions/core/services/referral.service';
+import {
+  CLINIC_REFERRAL_APP_SERVICE,
+  type IClinicReferralAppService,
+} from '../../application/ports/clinic-referral-app.port';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
@@ -35,23 +40,23 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
 @UsePipes(ZodValidationPipe)
 export class ClinicReferralController {
-  constructor(private readonly referralService: ReferralService) {}
+  constructor(
+    @Inject(CLINIC_REFERRAL_APP_SERVICE)
+    private readonly referralService: IClinicReferralAppService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Read the current referral status for this clinic' })
-  async getStatus(@Req() req: RequestWithUser): Promise<{
-    code: string | null;
-    source: 'PARTNER' | 'CLINIC' | null;
-    status: 'PENDING' | 'SIGNED_UP' | 'CONVERTED' | 'REJECTED' | 'EXPIRED' | null;
-    discountApplied: boolean;
-  }> {
+  async getStatus(@Req() req: RequestWithUser): Promise<ClinicReferralStatus> {
     const clinicId = this.requireClinicId(req);
     return this.referralService.getClinicReferralStatus(clinicId);
   }
 
   @Throttle({ short: { ttl: 60_000, limit: 10 } })
   @Post('apply')
-  @ApiOperation({ summary: 'Apply a referral code from the clinic settings page' })
+  @ApiOperation({
+    summary: 'Apply a referral code from the clinic settings page',
+  })
   async apply(
     @Req() req: RequestWithUser,
     @Body() body: unknown,

@@ -20,7 +20,11 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-// jscpd:ignore-start — shared Select import block matches other consumers
+// jscpd:ignore-start — shared Select, Table, and Dialog import blocks
+// match other consumers (users page, settings tables, etc.). The
+// duplication is a deliberate consequence of using the same primitives
+// across admin surfaces; the alternative is a re-export barrel that
+// every consumer would have to know about.
 import {
   Select,
   SelectContent,
@@ -28,7 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-// jscpd:ignore-end
 import {
   Table,
   TableBody,
@@ -44,6 +47,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
+// jscpd:ignore-end
 
 const REFERRER_TYPES: ReferrerType[] = [
   "MARKETING_PERSON",
@@ -127,7 +131,11 @@ export default function ReferralsPage() {
         toast.success("Welcome message re-queued");
       },
       onError: (error) =>
-        showUserFacingErrorToast(error, "Could not resend welcome", "generic"),
+        showUserFacingErrorToast(
+          error,
+          "Resending the welcome message failed. Please retry in a moment.",
+          "generic",
+        ),
     });
   };
 

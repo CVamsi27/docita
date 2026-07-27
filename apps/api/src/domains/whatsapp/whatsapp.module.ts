@@ -26,7 +26,7 @@ import { MetaGraphPhoneProfileClient } from './infrastructure/clients/meta-graph
 import { PrismaWhatsappOperationsRepository } from './infrastructure/repositories/prisma-whatsapp-operations.repository';
 import { WhatsappOperationsService } from './application/services/whatsapp-operations.service';
 import { WhatsappOperationsController } from './presentation/controllers/whatsapp-operations.controller';
-import { WhatsappClientAdapter } from './infrastructure/clients/whatsapp-client.adapter';
+import { WHATSAPP_CLIENT_PROVIDERS } from './infrastructure/clients/whatsapp-client.providers';
 import { WHATSAPP_CLIENT_TOKEN } from './application/ports/whatsapp-client.port';
 
 @Global()
@@ -62,11 +62,7 @@ import { WHATSAPP_CLIENT_TOKEN } from './application/ports/whatsapp-client.port'
       useExisting: PrismaWhatsappOperationsRepository,
     },
     WhatsappOperationsService,
-    WhatsappClientAdapter,
-    {
-      provide: WHATSAPP_CLIENT_TOKEN,
-      useExisting: WhatsappClientAdapter,
-    },
+    ...WHATSAPP_CLIENT_PROVIDERS,
   ],
   exports: [
     SendMessageUseCase,
