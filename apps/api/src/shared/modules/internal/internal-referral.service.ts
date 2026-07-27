@@ -1,12 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { z } from 'zod';
-import { Prisma, ReferralPayoutStatus } from '@workspace/db';
+import { Prisma, ReferralPayoutStatus, ReferrerMessageStatus } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import {
   defaultRateBandsForType,
   rateBandsSchema,
 } from '@/domains/subscriptions/core/services/referral-reward.rules';
+import {
+  generateReferrerCode,
+  isValidReferrerCode,
+} from '@/domains/subscriptions/core/services/referral-code.rules';
+import { ReferrerWelcomeService } from '@/domains/subscriptions/application/services/referrer-welcome.service';
 
 export const createReferrerSchema = z.object({
   type: z.enum(['CLINIC', 'PHARMACY', 'MARKETING_PERSON', 'CUSTOM']),
@@ -21,6 +28,10 @@ export const createReferrerSchema = z.object({
 });
 type CreateReferrerInput = z.infer<typeof createReferrerSchema>;
 
+/** Maximum attempts to claim a fresh referrer code. The alphabet is
+ *  32^6 ≈ 1.07B; collisions at realistic scale are vanishingly rare. */
+const MAX_CODE_GENERATION_ATTEMPTS = 8;
+
 /**
  * Internal (Docita operator) administration of referral partners and the
  * revenue-share payout ledger. All routes are INTERNAL-guarded at the
@@ -29,8 +40,21 @@ type CreateReferrerInput = z.infer<typeof createReferrerSchema>;
  */
 @Injectable()
 export class InternalReferralService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+    private readonly welcomeService: ReferrerWelcomeService,
+  ) {}
 
+  /**
+   * Create a referral partner. A short, human-shareable code
+   * (`RFR-XXXXXX`) is generated on create (retry-on-collision) and the
+   * `REFERRER_CREATED` event is fired after commit so the welcome
+   * pipeline can render the showcase PDF and send the WABA template.
+   *
+   * The event fires AFTER the row is in the DB; the welcome service
+   * handles its own failure path (sets `welcomeError` on the row).
+   */
   async createReferrer(input: CreateReferrerInput) {
     const { type } = input;
     const rewardKind =
@@ -43,27 +67,95 @@ export class InternalReferralService {
         ? [...defaultRateBandsForType(type)]
         : undefined);
 
-    return this.prisma.referrer.create({
-      data: {
-        type: input.type,
-        rewardKind,
-        name: input.name,
-        email: input.email ?? null,
-        phone: input.phone ?? null,
-        clinicId: input.clinicId ?? null,
-        rateBands: bands ? toPrismaInputJsonValue(bands) : Prisma.JsonNull,
-        payoutDetails: input.payoutDetails
-          ? toPrismaInputJsonValue(input.payoutDetails)
-          : Prisma.JsonNull,
-        firstYearOnly: input.firstYearOnly ?? true,
-      },
+    const referrer = await this.createWithUniqueCode({
+      type: input.type,
+      rewardKind,
+      name: input.name,
+      email: input.email ?? null,
+      phone: input.phone ?? null,
+      clinicId: input.clinicId ?? null,
+      rateBands: bands ? toPrismaInputJsonValue(bands) : Prisma.JsonNull,
+      payoutDetails: input.payoutDetails
+        ? toPrismaInputJsonValue(input.payoutDetails)
+        : Prisma.JsonNull,
+      firstYearOnly: input.firstYearOnly ?? true,
     });
+
+    // Fire after commit so the welcome service always sees a persisted row.
+    this.eventEmitter.emit(ApplicationEvents.REFERRER_CREATED, {
+      referrerId: referrer.id,
+    });
+
+    return referrer;
   }
 
+  private async createWithUniqueCode(
+    data: Prisma.ReferrerUncheckedCreateInput,
+  ) {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < MAX_CODE_GENERATION_ATTEMPTS; attempt += 1) {
+      const code = generateReferrerCode();
+      if (!isValidReferrerCode(code)) {
+        throw new Error(
+          `Generated referrer code is invalid: ${code} (attempt ${attempt + 1})`,
+        );
+      }
+      try {
+        return await this.prisma.referrer.create({
+          data: { ...data, code },
+        });
+      } catch (error) {
+        if (isUniqueConstraintOnCode(error)) {
+          lastError = error;
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw new Error(
+      `Unable to generate a unique referrer code after ${MAX_CODE_GENERATION_ATTEMPTS} attempts (last error: ${
+        lastError instanceof Error ? lastError.message : String(lastError)
+      })`,
+    );
+  }
+
+  /** Operator-triggered resend of the partner welcome message. */
+  async resendWelcome(referrerId: string) {
+    const referrer = await this.prisma.referrer.findUnique({
+      where: { id: referrerId },
+      select: { id: true },
+    });
+    if (!referrer) {
+      throw new NotFoundException('Referrer not found');
+    }
+    await this.welcomeService.resendWelcome(referrerId);
+    return { ok: true };
+  }
+
+  /**
+   * Operator-facing list view. Includes the new self-service fields
+   * (code, welcome status, payout-details completeness) so the
+   * internal page can render the "Resend welcome" / "Payout details
+   * not set" actions without an extra round-trip per row.
+   */
   async listReferrers() {
     return this.prisma.referrer.findMany({
       orderBy: { createdAt: 'desc' },
       take: 200,
+      include: {
+        payoutDetail: {
+          select: { verified: true, updatedAt: true },
+        },
+      },
+    });
+  }
+
+  /** Per-referrer message audit log for the operator drawer. */
+  async listMessages(referrerId: string) {
+    return this.prisma.referrerMessage.findMany({
+      where: { referrerId },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
     });
   }
 
@@ -112,3 +204,16 @@ export class InternalReferralService {
     }));
   }
 }
+
+function isUniqueConstraintOnCode(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2002' &&
+    Array.isArray(error.meta?.target) &&
+    (error.meta.target as string[]).includes('code')
+  );
+}
+
+// Re-export for use in controller tests that look up the `ReferrerMessageStatus`
+// enum value list without importing from the generated Prisma client directly.
+export { ReferrerMessageStatus };
