@@ -25,6 +25,8 @@ export const internalQueryKeys = {
       ["internal", "billing", "pricing", "tiers"] as const,
     enterpriseContracts: () => ["internal", "enterprise-contracts"] as const,
     referrers: () => ["internal", "referrers"] as const,
+    referrerMessages: (referrerId: string) =>
+      ["internal", "referrers", referrerId, "messages"] as const,
     referralPayoutsRoot: () => ["internal", "referral-payouts"] as const,
     referralPayouts: (status: string) =>
       ["internal", "referral-payouts", status] as const,
