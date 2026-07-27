@@ -3874,6 +3874,22 @@ model ReferrerMessage {
   @@index([status])
 }
 
+/// OTP challenges for the partner self-service portal. One row per active
+/// OTP; older rows for the same phone are invalidated on a new request.
+/// `attempts` is incremented atomically by the repository on each verify
+/// so a concurrent brute-force cannot bypass the cap.
+model PartnerOtpChallenge {
+  id        String    @id @default(cuid())
+  phone     String
+  otpHash   String
+  expiresAt DateTime  @db.Timestamptz(3)
+  usedAt    DateTime? @db.Timestamptz(3)
+  attempts  Int       @default(0)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([phone, expiresAt])
+}
+
 /// Idempotent revenue-share accrual ledger for one referred clinic + billing
 /// period. `@@unique([referralId, periodStart])` guarantees a scheduler re-run
 /// never double-pays. Disbursed manually (status -> PAID) from the internal app.

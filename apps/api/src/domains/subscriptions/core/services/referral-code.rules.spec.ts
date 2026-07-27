@@ -49,11 +49,14 @@ describe('referral-code.rules', () => {
     });
 
     it('accepts the canonical example', () => {
-      expect(isValidReferrerCode('RFR-AB12CD')).toBe(true);
+      // RFR-AB23CD uses only glyphs in the unambiguous alphabet (no
+      // I / O / 0 / 1). Avoid the digits 0/1 and letters I/O which are
+      // excluded by REFERRER_CODE_REGEX.
+      expect(isValidReferrerCode('RFR-AB23CD')).toBe(true);
     });
 
     it('rejects lowercase input', () => {
-      expect(isValidReferrerCode('rfr-ab12cd')).toBe(false);
+      expect(isValidReferrerCode('rfr-ab23cd')).toBe(false);
     });
 
     it('rejects ambiguous glyphs (I, O, 0, 1)', () => {
@@ -62,13 +65,13 @@ describe('referral-code.rules', () => {
     });
 
     it('rejects wrong prefix', () => {
-      expect(isValidReferrerCode('DOC-AB12CD')).toBe(false);
-      expect(isValidReferrerCode('AB12CD')).toBe(false);
+      expect(isValidReferrerCode('DOC-AB23CD')).toBe(false);
+      expect(isValidReferrerCode('AB23CD')).toBe(false);
     });
 
     it('rejects too-short / too-long input', () => {
-      expect(isValidReferrerCode('RFR-AB12C')).toBe(false);
-      expect(isValidReferrerCode('RFR-AB12CDE')).toBe(false);
+      expect(isValidReferrerCode('RFR-AB23C')).toBe(false);
+      expect(isValidReferrerCode('RFR-AB23CDE')).toBe(false);
     });
 
     it('rejects non-strings and empty strings', () => {
@@ -81,7 +84,7 @@ describe('referral-code.rules', () => {
 
   describe('normalizeReferrerCodeInput', () => {
     it('uppercases and trims before validating', () => {
-      expect(normalizeReferrerCodeInput('  rfr-ab12cd  ')).toBe('RFR-AB12CD');
+      expect(normalizeReferrerCodeInput('  rfr-ab23cd  ')).toBe('RFR-AB23CD');
     });
 
     it('returns null on invalid input', () => {
