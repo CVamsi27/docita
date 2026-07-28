@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — narrowing user (Express req.user) and role (string from dict) to known types; no runtime behavior change.
 import {
   Body,
   Controller,
