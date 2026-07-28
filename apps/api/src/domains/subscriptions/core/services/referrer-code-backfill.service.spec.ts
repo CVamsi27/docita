@@ -14,23 +14,25 @@ class FakePrismaService {
   reservedCodes = new Set<string>();
 
   buildClient(): PrismaService {
-    const self = this;
     return {
       referrer: {
-        count: jest.fn(
-          async (args: { where: { code: null } }) => {
-            let n = 0;
-            for (const r of self.referrers.values()) {
-              if (r.code === null) n += 1;
-            }
-            void args;
-            return n;
-          },
-        ),
+        count: jest.fn(async (args: { where: { code: null } }) => {
+          let n = 0;
+          for (const r of this.referrers.values()) {
+            if (r.code === null) n += 1;
+          }
+          void args;
+          return n;
+        }),
         findMany: jest.fn(
-          async (args: { where: { code: null }; take: number; select: { id: boolean }; orderBy: unknown }) => {
+          async (args: {
+            where: { code: null };
+            take: number;
+            select: { id: boolean };
+            orderBy: unknown;
+          }) => {
             const out: Array<{ id: string }> = [];
-            for (const r of self.referrers.values()) {
+            for (const r of this.referrers.values()) {
               if (r.code === null) {
                 out.push({ id: r.id });
                 if (out.length >= args.take) break;
@@ -41,25 +43,26 @@ class FakePrismaService {
             return out;
           },
         ),
-        findUnique: jest.fn(
-          async (args: { where: { code: string } }) => {
-            for (const r of self.referrers.values()) {
-              if (r.code === args.where.code) return { id: r.id };
-            }
-            return null;
-          },
-        ),
+        findUnique: jest.fn(async (args: { where: { code: string } }) => {
+          for (const r of this.referrers.values()) {
+            if (r.code === args.where.code) return { id: r.id };
+          }
+          return null;
+        }),
         updateMany: jest.fn(
-          async (args: { where: { id: string; code: null }; data: { code: string } }) => {
-            const r = self.referrers.get(args.where.id);
+          async (args: {
+            where: { id: string; code: null };
+            data: { code: string };
+          }) => {
+            const r = this.referrers.get(args.where.id);
             if (!r || r.code !== null) return { count: 0 };
             // Simulate the unique-constraint check: don't accept codes
             // already used by another row.
-            if (self.reservedCodes.has(args.data.code)) {
+            if (this.reservedCodes.has(args.data.code)) {
               throw new Error('Unique constraint violation');
             }
             r.code = args.data.code;
-            self.reservedCodes.add(args.data.code);
+            this.reservedCodes.add(args.data.code);
             return { count: 1 };
           },
         ),
@@ -108,8 +111,12 @@ describe('ReferrerCodeBackfillService', () => {
       prisma.referrers.set('rfr_3', { id: 'rfr_3', code: 'RFR-EXISTING' });
       const result = await service.runBackfill();
       expect(result.written).toBe(2);
-      expect(prisma.referrers.get('rfr_1')?.code).toMatch(/^RFR-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/);
-      expect(prisma.referrers.get('rfr_2')?.code).toMatch(/^RFR-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/);
+      expect(prisma.referrers.get('rfr_1')?.code).toMatch(
+        /^RFR-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/,
+      );
+      expect(prisma.referrers.get('rfr_2')?.code).toMatch(
+        /^RFR-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/,
+      );
       expect(prisma.referrers.get('rfr_3')?.code).toBe('RFR-EXISTING');
     });
 

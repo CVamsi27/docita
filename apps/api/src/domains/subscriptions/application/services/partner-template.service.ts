@@ -27,7 +27,7 @@ const TYPE_LABEL: Record<string, string> = {
   CLINIC: 'Clinic',
 };
 
-export interface PartnerTemplateInput {
+interface PartnerTemplateInput {
   partnerName: string;
   partnerType: 'PHARMACY' | 'MARKETING_PERSON' | 'CUSTOM' | 'CLINIC';
   code: string;
@@ -39,7 +39,7 @@ export interface PartnerTemplateInput {
   pdfFilename?: string;
 }
 
-export interface PartnerTemplate {
+interface PartnerTemplate {
   templateName: string;
   languageCode: string;
   components: Array<Record<string, unknown>>;

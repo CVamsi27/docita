@@ -92,12 +92,11 @@ class FakePrismaService {
   messages: FakeMessage[] = [];
 
   buildClient(): PrismaService {
-    const self = this;
     return {
       referrer: {
         findUnique: jest.fn(
           async (args: { where: { id: string }; select?: unknown }) => {
-            const r = self.referrers.get(args.where.id);
+            const r = this.referrers.get(args.where.id);
             return (r ?? null) as unknown;
           },
         ),
@@ -106,7 +105,7 @@ class FakePrismaService {
             where: { id: string };
             data: Partial<FakeReferrer>;
           }) => {
-            const r = self.referrers.get(args.where.id);
+            const r = this.referrers.get(args.where.id);
             if (!r) throw new Error('not found');
             Object.assign(r, args.data);
             return r as unknown;
@@ -122,7 +121,7 @@ class FakePrismaService {
             >;
           }) => {
             const row: FakeMessage = {
-              id: `msg_${self.messages.length + 1}`,
+              id: `msg_${this.messages.length + 1}`,
               referrerId: args.data.referrerId,
               kind: args.data.kind,
               channel: args.data.channel,
@@ -133,7 +132,7 @@ class FakePrismaService {
               createdAt: args.data.createdAt,
               sentAt: null,
             };
-            self.messages.push(row);
+            this.messages.push(row);
             return { id: row.id };
           },
         ),
@@ -142,7 +141,7 @@ class FakePrismaService {
             where: { id: string };
             data: Partial<FakeMessage>;
           }) => {
-            const m = self.messages.find((x) => x.id === args.where.id);
+            const m = this.messages.find((x) => x.id === args.where.id);
             if (!m) throw new Error('not found');
             Object.assign(m, args.data);
             return m as unknown;

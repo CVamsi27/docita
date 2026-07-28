@@ -20,7 +20,7 @@ const INK = '#0f172a';
 const MUTED = '#475569';
 const SOFT = '#e2e8f0';
 
-export interface PartnerShowcasePdfInput {
+interface PartnerShowcasePdfInput {
   partnerName: string;
   partnerType: 'PHARMACY' | 'MARKETING_PERSON' | 'CUSTOM' | 'CLINIC';
   code: string;

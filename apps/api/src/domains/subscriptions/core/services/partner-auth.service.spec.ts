@@ -35,13 +35,12 @@ class FakePrismaService {
   otps: FakeOtpChallenge[] = [];
 
   buildClient(): PrismaService {
-    const self = this;
     return {
       referrer: {
         findFirst: jest.fn(
           async (args: { where: { phone: string; active?: boolean } }) => {
             return (
-              self.referrers.find(
+              this.referrers.find(
                 (r) =>
                   r.phone === args.where.phone &&
                   (args.where.active === undefined ||
@@ -63,7 +62,7 @@ class FakePrismaService {
             data: { usedAt?: Date; attempts?: { increment?: number } };
           }) => {
             let count = 0;
-            for (const o of self.otps) {
+            for (const o of this.otps) {
               if (args.where.id !== undefined && o.id !== args.where.id) {
                 continue;
               }
@@ -95,7 +94,7 @@ class FakePrismaService {
           async (args: {
             data: { phone: string; otpHash: string; expiresAt: Date };
           }) => {
-            const id = `otp_${self.otps.length + 1}`;
+            const id = `otp_${this.otps.length + 1}`;
             const row: FakeOtpChallenge = {
               id,
               phone: args.data.phone,
@@ -105,7 +104,7 @@ class FakePrismaService {
               attempts: 0,
               createdAt: new Date(),
             };
-            self.otps.push(row);
+            this.otps.push(row);
             return row;
           },
         ),
@@ -114,7 +113,7 @@ class FakePrismaService {
             where: { phone: string; usedAt: null; expiresAt: { gt: Date } };
           }) => {
             return (
-              [...self.otps]
+              [...this.otps]
                 .reverse()
                 .find(
                   (o) =>
@@ -127,7 +126,7 @@ class FakePrismaService {
         ),
         update: jest.fn(
           async (args: { where: { id: string }; data: { usedAt: Date } }) => {
-            const o = self.otps.find((x) => x.id === args.where.id);
+            const o = this.otps.find((x) => x.id === args.where.id);
             if (!o) throw new Error('not found');
             o.usedAt = args.data.usedAt;
             return o;

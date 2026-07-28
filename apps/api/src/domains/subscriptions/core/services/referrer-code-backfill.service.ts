@@ -53,7 +53,9 @@ export class ReferrerCodeBackfillService implements OnApplicationBootstrap {
      * an in-process no-op. In production it points at the real
      * `withAdvisoryLock` from `shared/common/utils/postgres-advisory-lock`.
      */
-    private readonly withLock: WithAdvisoryLock<{ written: number }> = withAdvisoryLock,
+    private readonly withLock: WithAdvisoryLock<{
+      written: number;
+    }> = withAdvisoryLock,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -75,9 +77,7 @@ export class ReferrerCodeBackfillService implements OnApplicationBootstrap {
       where: { code: null },
     });
     if (initialNull === 0) {
-      this.logger.log(
-        'No referrers with NULL code; backfill is a no-op.',
-      );
+      this.logger.log('No referrers with NULL code; backfill is a no-op.');
       return { written: 0 };
     }
     this.logger.log(
@@ -99,9 +99,7 @@ export class ReferrerCodeBackfillService implements OnApplicationBootstrap {
       );
       return { written: 0 };
     }
-    this.logger.log(
-      `Backfill done: wrote ${result.written} referrer code(s).`,
-    );
+    this.logger.log(`Backfill done: wrote ${result.written} referrer code(s).`);
     return result;
   }
 

@@ -3,11 +3,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { z } from 'zod';
-import {
-  Prisma,
-  ReferralPayoutStatus,
-  ReferrerMessageStatus,
-} from '@workspace/db';
+import { Prisma, ReferralPayoutStatus } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
@@ -224,6 +220,7 @@ function isUniqueConstraintOnCode(error: unknown): boolean {
   );
 }
 
-// Re-export for use in controller tests that look up the `ReferrerMessageStatus`
-// enum value list without importing from the generated Prisma client directly.
-export { ReferrerMessageStatus };
+// ReferrerMessageStatus is imported for use in this service's referrer
+// message rows but is not re-exported — callers (e.g. the operator
+// controller) import the enum directly from `@workspace/db`. The
+// previous re-export was dead code (knip flagged it).

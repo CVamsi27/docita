@@ -106,7 +106,6 @@ class FakePrismaService {
   payoutDetails = new Map<string, FakePayoutDetail>();
 
   buildClient(): PrismaService {
-    const self = this;
     return {
       referrer: {
         findUnique: jest.fn(
@@ -115,14 +114,14 @@ class FakePrismaService {
             include?: unknown;
             select?: unknown;
           }) => {
-            const r = self.referrers.get(args.where.id);
+            const r = this.referrers.get(args.where.id);
             if (!r) return null;
             // Derive `_count.referrals` from the fake's `referrals` table
             // so getMe's counts line up with listReferrals results.
             return {
               ...r,
               _count: {
-                referrals: self.referrals.filter((x) => x.referrerId === r.id)
+                referrals: this.referrals.filter((x) => x.referrerId === r.id)
                   .length,
               },
             } as unknown;
@@ -136,7 +135,7 @@ class FakePrismaService {
             take: number;
             orderBy: unknown;
           }) => {
-            const rows = self.payouts
+            const rows = this.payouts
               .filter(
                 (p) =>
                   p.referrerId === args.where.referrerId &&
@@ -156,7 +155,7 @@ class FakePrismaService {
             where: { referrerId: string; status: ReferralPayoutStatus };
             _sum: { amountCents: boolean };
           }) => {
-            const rows = self.payouts.filter(
+            const rows = this.payouts.filter(
               (p) =>
                 p.referrerId === args.where.referrerId &&
                 p.status === args.where.status,
@@ -173,7 +172,7 @@ class FakePrismaService {
             take: number;
             include?: unknown;
           }) => {
-            const rows = self.referrals
+            const rows = this.referrals
               .filter(
                 (r) =>
                   r.referrerId === args.where.referrerId &&
@@ -192,7 +191,7 @@ class FakePrismaService {
           async (args: {
             where: { referrerId: string; status: ReferralStatus };
           }) => {
-            return self.referrals.filter(
+            return this.referrals.filter(
               (r) =>
                 r.referrerId === args.where.referrerId &&
                 r.status === args.where.status,
@@ -207,7 +206,7 @@ class FakePrismaService {
             create: FakePayoutDetail & { referrerId: string };
             update: Partial<FakePayoutDetail>;
           }) => {
-            const existing = self.payoutDetails.get(args.where.referrerId);
+            const existing = this.payoutDetails.get(args.where.referrerId);
             const next: FakePayoutDetail = existing
               ? { ...existing, ...args.update }
               : {
@@ -220,7 +219,7 @@ class FakePrismaService {
                   verified: args.update.verified ?? false,
                   updatedAt: new Date(),
                 };
-            self.payoutDetails.set(args.where.referrerId, next);
+            this.payoutDetails.set(args.where.referrerId, next);
             return next;
           },
         ),

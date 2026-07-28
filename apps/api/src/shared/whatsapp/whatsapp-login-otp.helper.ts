@@ -1,7 +1,7 @@
 import type { Logger } from '@nestjs/common';
 import type { IWhatsAppClient } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 
-export interface SendLoginOtpParams {
+interface SendLoginOtpParams {
   to: string;
   templateName: string;
   otp: string;

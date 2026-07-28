@@ -69,9 +69,7 @@ export class TemplatesFacadeService {
       Object.entries(this.defaultTemplates.templates).filter(
         ([, t]) => t.category !== 'PARTNER',
       ),
-    ) as Parameters<
-      typeof this.templateData.seedDefaultTemplates
-    >[1];
+    ) as Parameters<typeof this.templateData.seedDefaultTemplates>[1];
     return this.templateData.seedDefaultTemplates(clinicId, seedable);
   }
 
