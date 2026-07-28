@@ -11,15 +11,15 @@ import {
   resetDatabase,
   closeDatabase,
   getPrismaInstance,
-} from './setup';
-import { factories, setPrismaInstance } from './factories';
+} from '../../setup';
+import { factories, setPrismaInstance } from '../../factories';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
-import { mockWhatsappService } from './whatsapp.provider';
+import { mockWhatsappService } from '../../whatsapp.provider';
 import { CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN } from '@/domains/payments/core/ports/payment-link-provider.port';
 import {
   clearMockPaymentLinkProvider,
   createMockPaymentLinkProvider,
-} from './payment-link-provider.mock';
+} from '../../payment-link-provider.mock';
 
 const mockPaymentLinkProvider = createMockPaymentLinkProvider();
 

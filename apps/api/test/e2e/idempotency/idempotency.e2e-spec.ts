@@ -9,8 +9,8 @@ import {
   resetDatabase,
   closeDatabase,
   getPrismaInstance,
-} from './setup';
-import { factories, setPrismaInstance } from './factories';
+} from '../../setup';
+import { factories, setPrismaInstance } from '../../factories';
 import { Role } from '@workspace/db';
 import cookieParser from 'cookie-parser';
 import {
@@ -20,7 +20,7 @@ import {
 import {
   clearMockPaymentLinkProvider,
   createMockPaymentLinkProvider,
-} from './payment-link-provider.mock';
+} from '../../payment-link-provider.mock';
 
 const mockPaymentProvider = createMockPaymentLinkProvider({
   idFactory: () => 'plink_test123',

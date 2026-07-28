@@ -10,8 +10,8 @@ import {
   resetDatabase,
   getPrismaInstance,
   closeDatabase,
-} from './setup';
-import { factories, setPrismaInstance } from './factories';
+} from '../../setup';
+import { factories, setPrismaInstance } from '../../factories';
 
 describe('AppointmentsController (e2e)', () => {
   let app: INestApplication;

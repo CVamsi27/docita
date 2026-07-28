@@ -8,8 +8,8 @@ import {
   resetDatabase,
   closeDatabase,
   getPrismaInstance,
-} from './setup';
-import { setPrismaInstance } from './factories';
+} from '../../setup';
+import { setPrismaInstance } from '../../factories';
 import cookieParser from 'cookie-parser';
 import { randomUUID } from 'crypto';
 

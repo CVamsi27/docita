@@ -9,10 +9,10 @@ import {
   resetDatabase,
   closeDatabase,
   getPrismaInstance,
-} from './setup';
-import { factories, setPrismaInstance } from './factories';
+} from '../../setup';
+import { factories, setPrismaInstance } from '../../factories';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
-import { mockWhatsappService } from './whatsapp.provider';
+import { mockWhatsappService } from '../../whatsapp.provider';
 import { ConsentType, ConsentStatus } from '@workspace/db';
 
 describe('Compliance (e2e)', () => {

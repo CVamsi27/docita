@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '@/app.module';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
-import { mockWhatsappService } from './whatsapp.provider';
+import { mockWhatsappService } from '../../whatsapp.provider';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
