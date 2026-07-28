@@ -30,6 +30,7 @@ import { PartnerShowcasePdfService } from './application/services/partner-showca
 import { PartnerTemplateService } from './application/services/partner-template.service';
 import { ReferrerWelcomeService } from './core/services/referrer-welcome.service';
 import { PartnerAuthService } from './core/services/partner-auth.service';
+import { ReferrerCodeBackfillService } from './core/services/referrer-code-backfill.service';
 import { REFERRAL_PAYOUT_REPOSITORY_TOKEN } from './application/ports/referral-payout.repository.port';
 import { PrismaReferralPayoutRepository } from './infrastructure/repositories/prisma-referral-payout.repository';
 import { ActivateSubscriptionClinicSyncService } from './application/services/activate-subscription-clinic-sync.service';
@@ -68,6 +69,7 @@ export const SUBSCRIPTIONS_COMMON_PROVIDERS = [
   PartnerTemplateService,
   ReferrerWelcomeService,
   PartnerAuthService,
+  ReferrerCodeBackfillService,
   {
     provide: REFERRAL_PAYOUT_REPOSITORY_TOKEN,
     useClass: PrismaReferralPayoutRepository,
