@@ -4873,6 +4873,7 @@ model DatabaseControlAction {
   snapshotId   String?
   awsRequestId String?
   errorMessage String?
+  /// @json:jsonObjectSchema
   metadata     Json?
   startedAt    DateTime  @default(now()) @db.Timestamptz(3)
   completedAt  DateTime? @db.Timestamptz(3)
