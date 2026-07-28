@@ -31,7 +31,7 @@ export interface AuthenticatedUser {
   role: Role;
 }
 
-export interface DatabaseControlState {
+interface DatabaseControlState {
   enabled: boolean;
   environment: string;
   environmentAllowed: boolean;
@@ -53,7 +53,7 @@ export interface DatabaseControlState {
   } | null;
 }
 
-export interface ExecuteCommandInput {
+interface ExecuteCommandInput {
   action: DatabaseControlActionType;
   reason: string;
   /** Required for RESTORE; must reference an existing snapshot id. */

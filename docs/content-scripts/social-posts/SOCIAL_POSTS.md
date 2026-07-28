@@ -424,7 +424,7 @@ Follow Docita → linkedin.com/company/114464051
 
 ### E3 — The Indian Thali
 
-**Status:** [ ] done
+**Status:** [V] done
 **Image:** `images/card-thali.svg`
 **Image (Instagram):** `images-png/card-thali-ig.png`
 **Alt text:** Text card: "The Indian thali is nearly perfect."
