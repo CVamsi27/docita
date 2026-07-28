@@ -1,3 +1,8 @@
+// check-as-cast-density: allow-file — the single `as Parameters<...>[1]`
+// cast narrows the filtered partner-out subset of Docita defaults to
+// the Prisma-bound `WhatsappTemplateCategory` subset that
+// `templateData.seedDefaultTemplates` accepts. Both halves of the
+// cast are static; inlining the predicate would just duplicate it.
 import { Injectable, Logger } from '@nestjs/common';
 import type {
   WhatsappButtonType,
@@ -52,10 +57,20 @@ export class TemplatesFacadeService {
   }
 
   async seedDefaultTemplates(clinicId: string): Promise<void> {
-    return this.templateData.seedDefaultTemplates(
-      clinicId,
-      this.defaultTemplates.templates,
-    );
+    // Partner templates (Docita-internal) must NOT be cloned into the
+    // clinic's per-clinic `WhatsappTemplate` table — they're built into
+    // the partner surface and have no clinic-side editor. The
+    // `defaultTemplates.templates` map is the full Docita catalogue
+    // (including the partner set), so we filter down to the
+    // clinic-seedable subset here. The cast is safe: every remaining
+    // entry's `category` is one of the `WhatsappTemplateCategory` enum
+    // values accepted by the Prisma layer.
+    const seedable = Object.fromEntries(
+      Object.entries(this.defaultTemplates.templates).filter(
+        ([, t]) => t.category !== 'PARTNER',
+      ),
+    ) as Parameters<typeof this.templateData.seedDefaultTemplates>[1];
+    return this.templateData.seedDefaultTemplates(clinicId, seedable);
   }
 
   async listTemplates(clinicId: string) {

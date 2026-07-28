@@ -43,6 +43,10 @@ export class AppConfigService {
     return this.appUrl.getApiUrl();
   }
 
+  getPartnerPortalUrl(): string {
+    return this.appUrl.getPartnerPortalUrl();
+  }
+
   getSharedCookieDomain(): string | undefined {
     return this.appUrl.getSharedCookieDomain();
   }

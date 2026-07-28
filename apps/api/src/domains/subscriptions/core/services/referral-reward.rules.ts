@@ -1,3 +1,6 @@
+// check-as-cast-density: allow-file — the two intentional casts in this file
+// narrow `unknown` JSON-column values to typed shapes; replacing them with
+// type guards would just inline the same predicate without buying safety.
 import { z } from 'zod';
 import { MAX_REFERRAL_CREDITS_PER_YEAR } from '@workspace/types';
 
@@ -162,4 +165,20 @@ export function parseRateBands(
 ): readonly RateBand[] {
   const parsed = rateBandsSchema.safeParse(value);
   return parsed.success && parsed.data.length > 0 ? parsed.data : fallback;
+}
+
+/**
+ * Pull the first rate band's percent out of a `Referrer.rateBands` JSON
+ * column. Returns 0 if the column is missing/malformed. Used to seed the
+ * first-invoice discount when a partner referral is captured.
+ */
+export function firstRateBandPercent(rateBands: unknown): number {
+  if (!Array.isArray(rateBands) || rateBands.length === 0) return 0;
+  const first: unknown = rateBands[0];
+  if (first === null || typeof first !== 'object') return 0;
+  const percent = Object.prototype.hasOwnProperty.call(first, 'percent')
+    ? (first as { percent: unknown }).percent
+    : undefined;
+  if (typeof percent !== 'number') return 0;
+  return Math.min(100, Math.max(0, percent));
 }

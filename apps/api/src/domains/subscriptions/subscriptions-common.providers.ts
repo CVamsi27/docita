@@ -25,6 +25,12 @@ import { SubscriptionBillingSnapshotService } from './application/services/subsc
 import { ActivateSubscriptionPaymentService } from './application/services/activate-subscription-payment.service';
 import { ReferralPayoutService } from './application/services/referral-payout.service';
 import { ReferralAccrualService } from './application/services/referral-accrual.service';
+import { ReferralCodeResolverService } from './core/services/referral-code-resolver.service';
+import { PartnerShowcasePdfService } from './application/services/partner-showcase-pdf.service';
+import { PartnerTemplateService } from './application/services/partner-template.service';
+import { ReferrerWelcomeService } from './core/services/referrer-welcome.service';
+import { PartnerAuthService } from './core/services/partner-auth.service';
+import { ReferrerCodeBackfillService } from './core/services/referrer-code-backfill.service';
 import { REFERRAL_PAYOUT_REPOSITORY_TOKEN } from './application/ports/referral-payout.repository.port';
 import { PrismaReferralPayoutRepository } from './infrastructure/repositories/prisma-referral-payout.repository';
 import { ActivateSubscriptionClinicSyncService } from './application/services/activate-subscription-clinic-sync.service';
@@ -58,6 +64,12 @@ export const SUBSCRIPTIONS_COMMON_PROVIDERS = [
   ReferralService,
   ReferralPayoutService,
   ReferralAccrualService,
+  ReferralCodeResolverService,
+  PartnerShowcasePdfService,
+  PartnerTemplateService,
+  ReferrerWelcomeService,
+  PartnerAuthService,
+  ReferrerCodeBackfillService,
   {
     provide: REFERRAL_PAYOUT_REPOSITORY_TOKEN,
     useClass: PrismaReferralPayoutRepository,
@@ -97,6 +109,9 @@ export const SUBSCRIPTIONS_COMMON_EXPORTS = [
   SubscriptionPricingService,
   SubscriptionValidationService,
   ReferralService,
+  ReferralCodeResolverService,
+  ReferrerWelcomeService,
+  PartnerAuthService,
   CreateSubscriptionUseCase,
   UpgradeSubscriptionUseCase,
   CancelSubscriptionUseCase,

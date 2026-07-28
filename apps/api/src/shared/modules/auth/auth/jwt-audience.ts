@@ -12,11 +12,15 @@ export const JWT_AUDIENCE_LAB_PORTAL = 'lab-portal' as const;
 /** Short-lived public booking verification tokens. */
 export const JWT_AUDIENCE_PUBLIC_BOOKING = 'public-booking' as const;
 
+/** Referral partner self-service portal login (WhatsApp OTP). */
+export const JWT_AUDIENCE_PARTNER = 'partner' as const;
+
 export const JWT_AUDIENCES = [
   JWT_AUDIENCE_STAFF,
   JWT_AUDIENCE_PATIENT_PORTAL,
   JWT_AUDIENCE_LAB_PORTAL,
   JWT_AUDIENCE_PUBLIC_BOOKING,
+  JWT_AUDIENCE_PARTNER,
 ] as const;
 
 export type JwtAudience = (typeof JWT_AUDIENCES)[number];
@@ -37,4 +41,10 @@ export function isLabPortalJwtAudience(
   audience: string | undefined | null,
 ): boolean {
   return audience === JWT_AUDIENCE_LAB_PORTAL;
+}
+
+export function isPartnerJwtAudience(
+  audience: string | undefined | null,
+): boolean {
+  return audience === JWT_AUDIENCE_PARTNER;
 }

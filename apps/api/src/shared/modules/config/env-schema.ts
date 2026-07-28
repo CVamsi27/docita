@@ -41,6 +41,10 @@ export const EnvSchema = z.object({
   APP_URL: z.string().min(1),
   NEXT_PUBLIC_APP_URL: z.string().min(1),
   NEXT_PUBLIC_API_URL: z.string().min(1),
+  /** Override for the partner self-service portal URL. Defaults to
+   *  `${NEXT_PUBLIC_APP_URL}/partner`. Set when the portal is hosted
+   *  on a different subdomain. */
+  PARTNER_PORTAL_URL: z.string().optional(),
   CORS_ORIGINS: z.string().min(1),
   STORAGE_PROVIDER: z.enum(['local', 'r2']).default('local'),
   R2_ACCOUNT_ID: z.string().optional(),
@@ -175,6 +179,35 @@ export const EnvSchema = z.object({
   CPT_LICENSED_API_KEY: z.string().optional(),
   CPT_LICENSED_SEARCH_PATH: z.string().optional(),
   CPT_LICENSED_SYNC_PATH: z.string().optional(),
+  // ─── Database Control (internal portal) ────────────────────────────────────
+  // Master switch. Defaults to false; must be explicitly enabled per env so a
+  // misconfigured deploy cannot expose the Stop/Start/Delete buttons.
+  DATABASE_CONTROL_ENABLED: z.coerce.boolean().default(false),
+  // Comma-separated list of NODE_ENV values the control is allowed to run in.
+  // Refuses to act on any env outside this list.
+  DATABASE_CONTROL_ALLOWED_ENV: z.string().default('production,staging'),
+  // AWS region of the target RDS instance.
+  DATABASE_CONTROL_AWS_REGION: z.string().default('ap-south-1'),
+  // RDS DB instance identifier (NOT the endpoint hostname).
+  DATABASE_CONTROL_RDS_INSTANCE_ID: z.string().optional(),
+  // Destination address for action notifications. Required when
+  // DATABASE_CONTROL_ENABLED=true. Routed through the existing EmailService
+  // (ZeptoMail transport), not SMTP.
+  DATABASE_CONTROL_ALERT_EMAIL: z.string().email().optional(),
+  // Block Stop/Delete/Restore while a `Deploy Production` GitHub Actions run
+  // is in flight. Cheap protection against racing a deploy.
+  DATABASE_CONTROL_DEPLOY_GUARD: z.coerce.boolean().default(true),
+  // Cooldown (seconds) after a Stop/Delete/Snapshot/Restore to block the same
+  // action from firing twice in a row. START is never cooled down.
+  DATABASE_CONTROL_COOLDOWN_SECONDS: z.coerce.number().int().min(0).default(60),
+  // AWS credentials (long-lived access keys for now; migrate to IAM role on
+  // Fly later). The IAM user must be scoped to the docita-db ARN with the
+  // rds:Describe*/StopDBInstance/StartDBInstance/CreateDBSnapshot/
+  // DeleteDBInstance/RestoreDBInstanceFromDBSnapshot actions — see
+  // docs/architecture/DATABASE_CONTROL_PLAN.md §1.
+  AWS_REGION: z.string().default('ap-south-1'),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

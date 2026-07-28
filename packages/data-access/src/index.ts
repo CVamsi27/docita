@@ -24,6 +24,8 @@ export type {
   QueryValue,
   QueryParams,
 } from "./lib/query-string";
+
+export * from "./partner";
 export {
   IDEMPOTENCY_HEADER,
   generateIdempotencyKey,

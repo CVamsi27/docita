@@ -18,6 +18,7 @@ import {
 import * as crypto from 'crypto';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { getPatientFullName, normalizePhoneE164 } from '@workspace/utils';
+import { sendLoginOtp } from '@/shared/whatsapp/whatsapp-login-otp.helper';
 
 @Injectable()
 export class PatientPortalAuthCommandService {
@@ -54,24 +55,11 @@ export class PatientPortalAuthCommandService {
         expiresAt,
       });
 
-      try {
-        await this.whatsappClient.sendMessage({
-          to: normalizedPhone,
-          templateName: 'patient_login_otp',
-          languageCode: 'en',
-          components: [
-            {
-              type: 'body',
-              parameters: [{ type: 'text', text: otp }],
-            },
-          ],
-        });
-      } catch (error) {
-        this.logger.warn(
-          `Failed to send OTP WhatsApp message to ${normalizedPhone}`,
-          error instanceof Error ? error.message : 'Unknown error',
-        );
-      }
+      await sendLoginOtp(this.whatsappClient, this.logger, 'patient', {
+        to: normalizedPhone,
+        templateName: 'patient_login_otp',
+        otp,
+      });
     }
 
     return {

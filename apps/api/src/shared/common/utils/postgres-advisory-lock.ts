@@ -26,3 +26,16 @@ export async function withAdvisoryLock<T>(
     return fn();
   });
 }
+
+/**
+ * Function shape exported for test-time injection. The service that
+ * uses this lock takes a `WithAdvisoryLock<T>` parameter so it can
+ * be swapped for an in-process stub under jest without spinning up
+ * a real Prisma client + Postgres session.
+ */
+export type WithAdvisoryLock<T> = (
+  prisma: PrismaService,
+  lockName: string,
+  fn: () => Promise<T>,
+  timeoutMs?: number,
+) => Promise<T | null>;

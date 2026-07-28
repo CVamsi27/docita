@@ -77,7 +77,18 @@ import { getClientIp } from '@/shared/common/http/client-ip';
     SentryModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['../../.env', '.env'],
+      // Order matters: NestJS uses the first file that exists. `.env.production`
+      // is the canonical prod env (gitignored, lives in apps/api/.env.production);
+      // falling back to NODE_ENV-specific files lets devs override per-mode;
+      // finally the repo-root and api-local `.env` are kept for legacy /
+      // frontend-app compatibility.
+      envFilePath: [
+        '.env.production',
+        '.env.development',
+        '.env.test',
+        '../../.env',
+        '.env',
+      ],
     }),
     AppConfigModule,
     // jscpd:ignore-start

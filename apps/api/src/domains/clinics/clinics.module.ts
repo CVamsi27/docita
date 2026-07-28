@@ -3,6 +3,7 @@ import { CLINIC_PERSISTENCE_PORT } from './application/ports/clinic-persistence.
 import { Module, forwardRef } from '@nestjs/common';
 import { ClinicsController } from './presentation/controllers/clinics.controller';
 import { ClinicsComplianceController } from './presentation/controllers/clinics-compliance.controller';
+import { ClinicReferralController } from './presentation/controllers/clinic-referral.controller';
 import { ClinicsService } from './application/services/clinics.service';
 import { ClinicDataService } from './application/services/clinic-data.service';
 import { ClinicDataCommandService } from './application/services/clinic-data-command.service';
@@ -32,6 +33,8 @@ import { UsersModule } from '@/domains/users/users.module';
 import { ClinicFactory } from './core/factories/clinic.factory';
 import { SettingsFactory } from './core/factories/settings.factory';
 import { DocumentsModule } from '@/domains/documents/documents.module';
+import { CLINIC_REFERRAL_APP_SERVICE } from './application/ports/clinic-referral-app.port';
+import { ClinicReferralAdapter } from '@/domains/subscriptions/infrastructure/adapters/clinic-referral.adapter';
 
 @Module({
   imports: [
@@ -45,7 +48,11 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     forwardRef(() => UsersModule),
     DocumentsModule,
   ],
-  controllers: [ClinicsController, ClinicsComplianceController],
+  controllers: [
+    ClinicsController,
+    ClinicsComplianceController,
+    ClinicReferralController,
+  ],
   providers: [
     { provide: CLINIC_PERSISTENCE_PORT, useExisting: PrismaService },
     ClinicDataCommandService,
@@ -74,6 +81,10 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     {
       provide: CLINIC_MEMBERSHIP_REPOSITORY_TOKEN,
       useExisting: PrismaClinicMembershipRepository,
+    },
+    {
+      provide: CLINIC_REFERRAL_APP_SERVICE,
+      useExisting: ClinicReferralAdapter,
     },
   ],
   exports: [

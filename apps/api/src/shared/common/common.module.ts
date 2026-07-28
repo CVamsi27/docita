@@ -11,6 +11,8 @@ import { DatabaseBackupService } from '@/shared/modules/database/database-backup
 import { SlowQueryLoggingService } from '@/shared/modules/database/slow-query-logging.service';
 import { DatabaseIndexOptimizationService } from '@/shared/modules/database/database-index-optimization.service';
 import { DatabasePoolingService } from '@/shared/modules/database/database-pooling.service';
+import { DatabaseRdsService } from '@/shared/modules/database/database-rds.service';
+import { DatabaseControlStateRepository } from '@/shared/modules/database/database-control-state.repository';
 import { DatabaseOperationsController } from './controllers/database-operations.controller';
 import { TaggedCacheService } from '@/shared/modules/services/tagged-cache.service';
 
@@ -25,6 +27,8 @@ const COMMON_PROVIDERS = [
   SlowQueryLoggingService,
   DatabaseIndexOptimizationService,
   DatabasePoolingService,
+  DatabaseRdsService,
+  DatabaseControlStateRepository,
   TaggedCacheService,
 ] as const;
 
