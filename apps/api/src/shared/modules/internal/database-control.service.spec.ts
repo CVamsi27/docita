@@ -18,6 +18,25 @@ import { Role } from "@workspace/db";
 
 const FIXED_NOW = new Date("2026-07-27T12:00:00Z");
 
+function makeRdsSummary(
+  status: "available" | "stopped" | "starting" | "stopping" = "available",
+): RdsInstanceSummary {
+  return {
+    identifier: "docita-db",
+    status,
+    engine: "postgres",
+    engineVersion: "15.4",
+    allocatedStorageGb: 20,
+    instanceClass: "db.t4g.micro",
+    endpoint: "docita-db.x.rds.amazonaws.com",
+    port: 5432,
+    availabilityZone: "ap-south-1a",
+    multiAz: false,
+    publiclyAccessible: false,
+    lastStatusChangeAt: new Date("2026-07-27T00:00:00Z"),
+  };
+}
+
 function makeCtx() {
   const config = {
     isEnabled: jest.fn<() => boolean>().mockReturnValue(true),
@@ -51,25 +70,16 @@ function makeCtx() {
     requestRestoreFromSnapshot: jest
       .fn<() => Promise<{ requestId: string | undefined }>>()
       .mockResolvedValue({ requestId: "aws-req-5" }),
-    waitForStopped: jest.fn<() => Promise<RdsInstanceSummary>>().mockResolvedValue({
-      identifier: "docita-db",
-      status: "stopped",
-      multiAz: false,
-      publiclyAccessible: false,
-    }),
-    waitForAvailable: jest.fn<() => Promise<RdsInstanceSummary>>().mockResolvedValue({
-      identifier: "docita-db",
-      status: "available",
-      multiAz: false,
-      publiclyAccessible: false,
-    }),
+    waitForStopped: jest
+      .fn<() => Promise<RdsInstanceSummary>>()
+      .mockResolvedValue(makeRdsSummary("stopped")),
+    waitForAvailable: jest
+      .fn<() => Promise<RdsInstanceSummary>>()
+      .mockResolvedValue(makeRdsSummary("available")),
     waitForInstanceDeleted: jest.fn<() => Promise<void>>().mockResolvedValue(),
-    describeInstance: jest.fn<() => Promise<RdsInstanceSummary>>().mockResolvedValue({
-      identifier: "docita-db",
-      status: "available",
-      multiAz: false,
-      publiclyAccessible: false,
-    }),
+    describeInstance: jest
+      .fn<() => Promise<RdsInstanceSummary>>()
+      .mockResolvedValue(makeRdsSummary("available")),
     listRecentSnapshots: jest
       .fn<() => Promise<unknown[]>>()
       .mockResolvedValue([]),
@@ -252,8 +262,8 @@ describe("DatabaseControlService.execute", () => {
   });
 
   it("records FAILED and rethrows when the AWS call throws", async () => {
-    (ctx.rds.requestStop as jest.Mock).mockRejectedValue(
-      new Error("RDS throttle"),
+    (ctx.rds.requestStop as jest.Mock).mockImplementationOnce(() =>
+      Promise.reject(new Error("RDS throttle")),
     );
     await expect(
       ctx.service.execute(
@@ -283,7 +293,9 @@ describe("DatabaseControlService cooldown", () => {
 
   it("blocks a STOP that is within the cooldown window", async () => {
     const recent = new Date(FIXED_NOW.getTime() - 30_000); // 30s ago
-    (ctx.state.findLastActionTimestamp as jest.Mock).mockResolvedValue(recent);
+    (ctx.state.findLastActionTimestamp as jest.Mock).mockImplementation(
+      () => Promise.resolve(recent),
+    );
     await expect(
       ctx.service.execute(
         { action: "STOP", reason: "trying again too soon" },
@@ -295,7 +307,9 @@ describe("DatabaseControlService cooldown", () => {
 
   it("allows START regardless of cooldown", async () => {
     const recent = new Date(FIXED_NOW.getTime() - 1000); // 1s ago
-    (ctx.state.findLastActionTimestamp as jest.Mock).mockResolvedValue(recent);
+    (ctx.state.findLastActionTimestamp as jest.Mock).mockImplementation(
+      () => Promise.resolve(recent),
+    );
     await ctx.service.execute(
       { action: "START", reason: "bringing it back online" },
       ADMIN_USER,
