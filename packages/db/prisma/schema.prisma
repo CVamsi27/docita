@@ -4858,4 +4858,30 @@ enum EmailSuppressionReason {
   UNSUBSCRIBE
 }
 
+/// Append-only ledger of every action issued through the internal portal's
+/// "Database Control" page (Stop/Start/Snapshot/Delete/Restore). The table
+/// lives in the same DB it controls — after a Delete+Restore, the table is
+/// empty until the next migration, which is accepted: the AWS event log +
+/// CloudTrail remain the source of truth across DB lifecycle events.
+model DatabaseControlAction {
+  id           String    @id @default(cuid())
+  action       String // STOP | START | CREATE_SNAPSHOT | DELETE | RESTORE
+  status       String // SUCCESS | FAILED | IN_PROGRESS
+  reason       String
+  actorUserId  String
+  actorEmail   String
+  snapshotId   String?
+  awsRequestId String?
+  errorMessage String?
+  /// @json:jsonObjectSchema
+  metadata     Json?
+  startedAt    DateTime  @default(now()) @db.Timestamptz(3)
+  completedAt  DateTime? @db.Timestamptz(3)
+
+  @@index([startedAt])
+  @@index([action, startedAt])
+  @@index([status, startedAt])
+  @@map("database_control_actions")
+}
+
 /// Addresses we must not email again (hard bounces, spam complaints,
