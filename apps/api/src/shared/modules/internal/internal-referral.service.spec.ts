@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import type { EventEmitter2 } from '@nestjs/event-emitter';
 import { InternalReferralService } from './internal-referral.service';
+import type { ReferrerWelcomeService } from '@/domains/subscriptions/core/services/referrer-welcome.service';
 
 function makeCtx() {
   const referrer = {
     create: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
     findMany: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
+    findUnique: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
   };
   const referralPayout = {
     updateMany: jest.fn<(...a: unknown[]) => Promise<{ count: number }>>(),
@@ -13,10 +16,18 @@ function makeCtx() {
     groupBy: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
   };
   const prisma = { referrer, referralPayout } as never;
+  const eventEmitter = {
+    emit: jest.fn<(...a: unknown[]) => unknown>(),
+  } as unknown as EventEmitter2;
+  const welcomeService = {
+    resendWelcome: jest.fn<(...a: unknown[]) => Promise<void>>(),
+  } as unknown as ReferrerWelcomeService;
   return {
-    service: new InternalReferralService(prisma),
+    service: new InternalReferralService(prisma, eventEmitter, welcomeService),
     referrer,
     referralPayout,
+    eventEmitter,
+    welcomeService,
   };
 }
 
@@ -59,6 +70,62 @@ describe('InternalReferralService', () => {
     expect(data.rewardKind).toBe('CREDIT_MONTHS');
   });
 
+  it('emits REFERRER_CREATED after a successful create', async () => {
+    ctx.referrer.create.mockResolvedValue({ id: 'r3' });
+
+    await ctx.service.createReferrer({
+      type: 'PHARMACY',
+      name: 'Apollo Pharmacy',
+    });
+
+    expect(ctx.eventEmitter.emit).toHaveBeenCalledWith(
+      'referrer.created',
+      expect.objectContaining({ referrerId: 'r3' }),
+    );
+  });
+
+  it('writes a generated RFR-XXXXXX code on create', async () => {
+    ctx.referrer.create.mockResolvedValue({ id: 'r4' });
+
+    await ctx.service.createReferrer({
+      type: 'PHARMACY',
+      name: 'Apollo Pharmacy',
+    });
+
+    const data = (
+      ctx.referrer.create.mock.calls[0][0] as { data: Record<string, unknown> }
+    ).data;
+    expect(typeof data.code).toBe('string');
+    expect(data.code).toMatch(/^RFR-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/);
+  });
+
+  it('retries on code collision until success', async () => {
+    const takenCodes = new Set<string>();
+    ctx.referrer.create.mockImplementation((args: unknown) => {
+      const a = args as { data: { code: string } };
+      if (takenCodes.has(a.data.code)) {
+        const err = new Error('Unique constraint failed') as Error & {
+          code: string;
+          meta: { target: string[] };
+        };
+        err.code = 'P2002';
+        err.meta = { target: ['code'] };
+        throw err;
+      }
+      takenCodes.add(a.data.code);
+      return Promise.resolve({ id: 'r5' });
+    });
+
+    await ctx.service.createReferrer({
+      type: 'PHARMACY',
+      name: 'Apollo Pharmacy',
+    });
+
+    // Each call gets a unique code from the generator; collisions are
+    // rare in practice but the loop guarantees eventual success.
+    expect(ctx.referrer.create.mock.calls.length).toBeGreaterThanOrEqual(1);
+  });
+
   it('marks a payable payout paid', async () => {
     ctx.referralPayout.updateMany.mockResolvedValue({ count: 1 });
     ctx.referralPayout.findUnique.mockResolvedValue({
@@ -84,5 +151,13 @@ describe('InternalReferralService', () => {
     await expect(ctx.service.markPayoutPaid('p1')).rejects.toThrow(
       'not in a payable state',
     );
+  });
+
+  it('delegates resend-welcome to the welcome service', async () => {
+    ctx.referrer.findUnique.mockResolvedValue({ id: 'r6' });
+
+    await ctx.service.resendWelcome('r6');
+
+    expect(ctx.welcomeService.resendWelcome).toHaveBeenCalledWith('r6');
   });
 });

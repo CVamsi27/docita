@@ -2362,27 +2362,27 @@ model QueueToken {
 }
 
 model InventoryItem {
-  id            String              @id @default(cuid())
-  clinicId      String
-  name          String
-  category      String
-  sku           String?
-  quantity      Int                 @default(0)
-  minQuantity   Int                 @default(10)
-  unit          String              @default("units")
+  id                 String              @id @default(cuid())
+  clinicId           String
+  name               String
+  category           String
+  sku                String?
+  quantity           Int                 @default(0)
+  minQuantity        Int                 @default(10)
+  unit               String              @default("units")
   // Canonical money columns — integer paise/cents. Prefer over the legacy
   // purchasePrice / sellingPrice Floats (kept for backward compatibility).
-  purchasePrice Float?
-  sellingPrice  Float?
+  purchasePrice      Float?
+  sellingPrice       Float?
   purchasePriceCents Int?
   sellingPriceCents  Int?
-  expiryDate    DateTime?           @db.Timestamptz(3)
-  batchNumber   String?
-  supplier      String?
-  active        Boolean             @default(true)
-  createdAt     DateTime            @default(now()) @db.Timestamptz(3)
-  updatedAt     DateTime            @updatedAt @db.Timestamptz(3)
-  movements     InventoryMovement[]
+  expiryDate         DateTime?           @db.Timestamptz(3)
+  batchNumber        String?
+  supplier           String?
+  active             Boolean             @default(true)
+  createdAt          DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime            @updatedAt @db.Timestamptz(3)
+  movements          InventoryMovement[]
 
   @@index([clinicId])
   @@index([clinicId, active])
@@ -3705,7 +3705,9 @@ model SubscriptionReminder {
 
 model Referral {
   id               String  @id @default(cuid())
-  referrerClinicId String
+  /// Legacy clinic-to-clinic path. Nullable so the new partner path
+  /// (Referrer.code) can store a Referral with only `referrerId` set.
+  referrerClinicId String?
   referredClinicId String?
 
   referredEmail  String
@@ -3726,9 +3728,9 @@ model Referral {
 
   /// Optional partner referrer (pharmacy / marketing / custom). Null for the
   /// legacy clinic-to-clinic path, which uses referrerClinicId.
-  referrerId String?
+  referrerId      String?
   /// Referred clinic's paid activation — anchors the first-year accrual window.
-  activationAt DateTime? @db.Timestamptz(3)
+  activationAt    DateTime? @db.Timestamptz(3)
   /// One-time guard: set once the reward lifecycle for this referred clinic is
   /// closed; it can never be reopened (enforced in referral-reward.rules.ts).
   rewardClaimedAt DateTime? @db.Timestamptz(3)
@@ -3736,9 +3738,9 @@ model Referral {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  referrerClinic Clinic    @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
-  referredClinic Clinic?   @relation("ReferredClinic", fields: [referredClinicId], references: [id])
-  referrer       Referrer? @relation(fields: [referrerId], references: [id])
+  referrerClinic Clinic?          @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
+  referredClinic Clinic?          @relation("ReferredClinic", fields: [referredClinicId], references: [id])
+  referrer       Referrer?        @relation(fields: [referrerId], references: [id])
   payouts        ReferralPayout[]
 
   @@index([referrerClinicId])
@@ -3772,32 +3774,133 @@ model ReferralCredit {
 /// first-year billing. Terms are stored as JSON so per-referrer overrides are
 /// possible without a schema change (see referral-reward.rules.ts).
 model Referrer {
-  id         String             @id @default(cuid())
-  type       ReferrerType
-  rewardKind ReferrerRewardKind
-  name       String
-  email      String?
-  phone      String?
+  id            String             @id @default(cuid())
+  type          ReferrerType
+  rewardKind    ReferrerRewardKind
+  name          String
+  email         String?
+  phone         String?
   /// Set when type = CLINIC (the referring clinic).
-  clinicId   String?
+  clinicId      String?
   /// @json:referrerRateBandsJsonSchema
-  rateBands    Json?
+  rateBands     Json?
   /// @json:referrerCreditConfigJsonSchema
-  creditConfig Json?
+  creditConfig  Json?
   /// @json:referrerPayoutDetailsJsonSchema
   payoutDetails Json?
-  firstYearOnly Boolean @default(true)
-  active        Boolean @default(true)
+  firstYearOnly Boolean            @default(true)
+  active        Boolean            @default(true)
+  /// Human-shareable code (`RFR-XXXXXX`). Nullable for legacy rows that
+  /// pre-date the self-service portal; backfilled by
+  /// `scripts/db/backfill-referrer-codes.ts` after migration.
+  code          String?            @unique
+  /// Last successful welcome send (welcome message + showcase PDF + login).
+  welcomeSentAt DateTime?          @db.Timestamptz(3)
+  /// Last welcome-send error message (operator-visible on the internal page).
+  welcomeError  String?
 
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  referrals Referral[]
-  payouts   ReferralPayout[]
+  referrals    Referral[]
+  payouts      ReferralPayout[]
+  payoutDetail ReferrerPayoutDetails?
+  messages     ReferrerMessage[]
 
   @@index([type])
   @@index([clinicId])
   @@index([active])
+}
+
+/// Banking / payout details for a referral partner. Holds AES-GCM encrypted
+/// IFSC + account number (and optional PAN) keyed off `ENCRYPTION_KEY`.
+/// Plaintext last-4 + IFSC are stored for operator-visible audit and display
+/// without round-tripping decryption on every read.
+/// Banking / payout details for a referral partner. Holds AES-GCM encrypted
+/// IFSC + account number (and optional PAN) keyed off `ENCRYPTION_KEY`.
+/// Plaintext last-4 + IFSC are stored for operator-visible audit and display
+/// without round-tripping decryption on every read.
+///
+/// Encrypted fields are stored as text in the `version:iv:authTag:ciphertext`
+/// format produced by `EncryptionService.encrypt` (so the existing service
+/// works without a second encryption path) — `version` lets us rotate
+/// keys without losing the ability to decrypt old rows.
+model ReferrerPayoutDetails {
+  id                 String    @id @default(cuid())
+  referrerId         String    @unique
+  accountHolder      String
+  /// AES-GCM ciphertext of the account number, in
+  /// `version:iv:authTag:ciphertext` form (see EncryptionService.encrypt).
+  accountNumberEnc   String
+  /// Last 4 digits of the account number (plaintext, for display + audit).
+  accountNumberLast4 String
+  /// AES-GCM ciphertext of the IFSC code. IFSC is 11 chars and needed
+  /// plaintext for payouts, so the plaintext IFSC is also stored below.
+  ifscEnc            String
+  ifscPlain          String
+  bankName           String
+  upiId              String?
+  /// AES-GCM ciphertext of PAN (optional).
+  panEnc             String?
+  panLast4           String?
+  /// Operator toggles this after manually verifying the bank details.
+  verified           Boolean   @default(false)
+  verifiedByAdminId  String?
+  verifiedAt         DateTime? @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  referrer Referrer @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+
+  @@index([verified])
+}
+
+/// Audit log of every WhatsApp message rendered and sent to a referral
+/// partner. Operator resends (and the original welcome send) are all logged
+/// here. Idempotent: the welcome pipeline can re-run without creating
+/// duplicate `WELCOME` rows because the trigger source is part of the kind.
+model ReferrerMessage {
+  id           String                @id @default(cuid())
+  referrerId   String
+  kind         ReferrerMessageKind
+  channel      String                @default("whatsapp")
+  /// WhatsApp template name (e.g. `partner_welcome_v1`).
+  template     String
+  status       ReferrerMessageStatus @default(QUEUED)
+  /// External id from the WhatsApp Business API (e.g. `wamid.*`).
+  externalId   String?
+  /// Last error message (set when status = FAILED).
+  errorMessage String?
+  /// Rendered body (placeholders resolved). Stored for audit and for the
+  /// operator UI to show what was actually sent. PII redacted in this row —
+  /// we keep the partner name, code, and URLs only.
+  /// @json:referrerMessagePayloadSchema
+  payload      Json
+
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  sentAt    DateTime? @db.Timestamptz(3)
+
+  referrer Referrer @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId, createdAt])
+  @@index([status])
+}
+
+/// OTP challenges for the partner self-service portal. One row per active
+/// OTP; older rows for the same phone are invalidated on a new request.
+/// `attempts` is incremented atomically by the repository on each verify
+/// so a concurrent brute-force cannot bypass the cap.
+model PartnerOtpChallenge {
+  id        String    @id @default(cuid())
+  phone     String
+  otpHash   String
+  expiresAt DateTime  @db.Timestamptz(3)
+  usedAt    DateTime? @db.Timestamptz(3)
+  attempts  Int       @default(0)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([phone, expiresAt])
 }
 
 /// Idempotent revenue-share accrual ledger for one referred clinic + billing
@@ -4077,6 +4180,18 @@ enum ReferralPayoutStatus {
   VOID
 }
 
+enum ReferrerMessageKind {
+  WELCOME
+  RESEND_WELCOME
+  PAYOUT_NOTICE
+}
+
+enum ReferrerMessageStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
 model Ward {
   id          String   @id @default(cuid())
   name        String
@@ -4093,19 +4208,19 @@ model Ward {
 }
 
 model Room {
-  id         String   @id @default(cuid())
-  wardId     String
-  clinicId   String?
-  roomNumber String
-  type       String?
+  id           String   @id @default(cuid())
+  wardId       String
+  clinicId     String?
+  roomNumber   String
+  type         String?
   // Canonical money column — integer paise/cents. Prefer over `charges` Float.
-  charges    Float    @default(0)
-  chargesCents Int    @default(0)
-  createdAt  DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
-  clinic     Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)
-  ward       Ward     @relation(fields: [wardId], references: [id], onDelete: Cascade)
-  beds       Bed[]
+  charges      Float    @default(0)
+  chargesCents Int      @default(0)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+  clinic       Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)
+  ward         Ward     @relation(fields: [wardId], references: [id], onDelete: Cascade)
+  beds         Bed[]
 
   @@index([wardId])
   @@index([clinicId])

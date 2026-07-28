@@ -38,6 +38,14 @@ const ALLOWLIST = new Set([
   "apps/app/features/patient-portal/hooks/use-portal-otp-auth.ts",
   "apps/app/features/auth/lib/auth-landing-path.ts",
 
+  // Partner self-service session (JWT audience = "partner", no PHI; refresh
+  // token is stored here for offline refresh. The portal lives at
+  // app.docita.work/partner and runs on a separate audience; cookies would
+  // collide with the main app's session cookie. Migration to an HttpOnly
+  // partner-domain cookie is tracked for the post-v1 hardening pass.)
+  "apps/app/features/referral-partner/lib/partner-session.ts",
+  "apps/app/features/referral-partner/hooks/use-partner-auth.ts",
+
   // Consultation timer state (per-doctor session, no PHI fields)
   "apps/app/features/consultation/components/ConsultationTimerContainer.tsx",
   "apps/app/features/consultation/state/useConsultationHydrate.ts",

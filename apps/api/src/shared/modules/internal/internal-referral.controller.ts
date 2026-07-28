@@ -23,6 +23,16 @@ export class InternalReferralController {
     return this.referralService.listReferrers();
   }
 
+  @Post('referrers/:id/resend-welcome')
+  async resendWelcome(@Param('id') id: string) {
+    return this.referralService.resendWelcome(id);
+  }
+
+  @Get('referrers/:id/messages')
+  async listMessages(@Param('id') id: string) {
+    return this.referralService.listMessages(id);
+  }
+
   @Get('referral-payouts')
   async listPayouts(
     @Query('status') status?: string,

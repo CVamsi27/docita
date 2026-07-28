@@ -13,6 +13,7 @@ type ClinicPersistenceKey =
   | 'onboardingSession'
   | 'patient'
   | 'prescription'
+  | 'referral'
   | 'runUnrestricted'
   | 'subscription'
   | 'subscriptionPayment'

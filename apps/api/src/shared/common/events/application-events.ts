@@ -24,4 +24,13 @@ export enum ApplicationEvents {
   // planSelection.referralCode (cross-domain integration without a direct
   // clinics.application → subscriptions.core.services import).
   CLINIC_ONBOARDED = 'clinic.onboarded',
+  // Emitted by internal-referral.service after a Referrer is created. The
+  // welcome pipeline (ReferrerWelcomeService) subscribes to this to render
+  // the showcase PDF, upload it, and send the WABA welcome template.
+  REFERRER_CREATED = 'referrer.created',
+  // Emitted by the operator console (or any internal trigger) to request
+  // an on-demand run of the referrer-code backfill. Listened to by
+  // ReferrerCodeBackfillService, which is the same service that fires
+  // automatically on app/worker boot.
+  REFERRER_BACKFILL_REQUESTED = 'referrer.backfill.requested',
 }

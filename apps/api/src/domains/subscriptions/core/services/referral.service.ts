@@ -6,7 +6,10 @@ import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   MAX_REFERRAL_CREDITS_PER_YEAR,
   REFERRAL_DISCOUNT_PERCENT,
+  type ApplyReferralCodeResult,
+  type ClinicReferralStatus,
 } from '@workspace/types';
+import { firstRateBandPercent } from './referral-reward.rules';
 
 @Injectable()
 export class ReferralService {
@@ -57,12 +60,16 @@ export class ReferralService {
   }
 
   /**
-   * Links a signing-up clinic to its referrer from a referral code (the
-   * referrer clinic's unique `referralCode`). Creates a SIGNED_UP referral the
-   * downstream discount/credit/accrual all key off. One reward per referred
-   * clinic, EVER — a clinic already carrying a referral is never re-linked, and
-   * self-referral is rejected. No-op (never throws) so a bad code can't block
-   * onboarding.
+   * Links a signing-up clinic to its referrer from a referral code. Two
+   * shapes share the same row layout:
+   *   - `Referrer.code` (new `RFR-XXXXXX` partner path) → sets
+   *     `referrerId` (no `referrerClinicId`); discount is the first rate band.
+   *   - `Clinic.referralCode` (legacy clinic-to-clinic path) → sets
+   *     `referrerClinicId`; discount is the global clinic default.
+   *
+   * One reward per referred clinic, EVER — a clinic already carrying a
+   * referral is never re-linked. Self-referral is rejected. No-op
+   * (never throws) so a bad code can't block onboarding.
    */
   async captureReferralAtSignup(input: {
     clinicId: string;
@@ -77,6 +84,32 @@ export class ReferralService {
       select: { id: true },
     });
     if (existing) return { linked: false };
+
+    // Resolve against the new partner path first (Referrer.code), then
+    // the legacy clinic path. Same code table; different rows.
+    const partner = await this.prisma.referrer.findUnique({
+      where: { code },
+      select: {
+        id: true,
+        active: true,
+        type: true,
+        rateBands: true,
+      },
+    });
+    if (partner && partner.active) {
+      const discountPercent = firstRateBandPercent(partner.rateBands);
+      await this.prisma.referral.create({
+        data: {
+          referrerId: partner.id,
+          referredClinicId: input.clinicId,
+          referredEmail: input.clinicEmail ?? '',
+          referralCode: code,
+          status: 'SIGNED_UP',
+          discountPercent,
+        },
+      });
+      return { linked: true };
+    }
 
     const referrerClinic = await this.prisma.clinic.findUnique({
       where: { referralCode: code },
@@ -93,9 +126,101 @@ export class ReferralService {
         referredEmail: input.clinicEmail ?? '',
         referralCode: code,
         status: 'SIGNED_UP',
+        discountPercent: REFERRAL_DISCOUNT_PERCENT,
       },
     });
     return { linked: true };
+  }
+
+  /**
+   * Settings-page entry point for an existing clinic. Same semantics as
+   * `captureReferralAtSignup` but throws on bad input (this is a user-
+   * initiated action, not a post-onboarding side effect, so the
+   * caller wants to surface the error to the user).
+   *
+   * Returns the resolved source so the UI can show "applied by <name>"
+   * on success.
+   */
+  async applyReferralCodeAtSettings(
+    clinicId: string,
+    rawCode: string,
+  ): Promise<ApplyReferralCodeResult> {
+    const code = rawCode.trim();
+    if (!code) return { applied: false, reason: 'INVALID' };
+
+    const existing = await this.prisma.referral.findFirst({
+      where: { referredClinicId: clinicId },
+      select: { id: true },
+    });
+    if (existing) return { applied: false, reason: 'ALREADY_LINKED' };
+
+    const partner = await this.prisma.referrer.findUnique({
+      where: { code },
+      select: { id: true, active: true, type: true, rateBands: true },
+    });
+    if (partner && partner.active) {
+      const discountPercent = firstRateBandPercent(partner.rateBands);
+      await this.prisma.referral.create({
+        data: {
+          referrerId: partner.id,
+          referredClinicId: clinicId,
+          referredEmail: '',
+          referralCode: code,
+          status: 'SIGNED_UP',
+          discountPercent,
+        },
+      });
+      // prettier-ignore
+      return { applied: true, source: 'PARTNER', referrerId: partner.id, clinicId };
+    }
+
+    const referrerClinic = await this.prisma.clinic.findUnique({
+      where: { referralCode: code },
+      select: { id: true },
+    });
+    if (!referrerClinic) return { applied: false, reason: 'INVALID' };
+    if (referrerClinic.id === clinicId) {
+      return { applied: false, reason: 'SELF' };
+    }
+    await this.prisma.referral.create({
+      data: {
+        referrerClinicId: referrerClinic.id,
+        referredClinicId: clinicId,
+        referredEmail: '',
+        referralCode: code,
+        status: 'SIGNED_UP',
+        discountPercent: REFERRAL_DISCOUNT_PERCENT,
+      },
+    });
+    // prettier-ignore
+    return { applied: true, source: 'CLINIC', referrerId: referrerClinic.id, clinicId: referrerClinic.id };
+  }
+
+  /** Read-back for the settings page: what code (if any) is this clinic
+   *  currently linked to? Returns null when the clinic has no Referral. */
+  async getClinicReferralStatus(
+    clinicId: string,
+  ): Promise<ClinicReferralStatus> {
+    const referral = await this.prisma.referral.findFirst({
+      where: { referredClinicId: clinicId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        referralCode: true,
+        status: true,
+        discountApplied: true,
+        referrerId: true,
+        referrerClinicId: true,
+      },
+    });
+    if (!referral) {
+      return { code: null, source: null, status: null, discountApplied: false };
+    }
+    return {
+      code: referral.referralCode,
+      source: referral.referrerId ? 'PARTNER' : 'CLINIC',
+      status: referral.status,
+      discountApplied: referral.discountApplied,
+    };
   }
 
   /**
@@ -130,6 +255,29 @@ export class ReferralService {
         include: { referrerClinic: true },
       });
       if (!referral) return;
+
+      // Partner path: the referral carries a Referrer (not a Clinic),
+      // so there are no free-month credits to grant here. We still
+      // flip the row to CONVERTED and anchor activationAt so the
+      // existing ReferralAccrualService can pick it up for the
+      // revenue-share ledger. Discount (if any) was set on capture
+      // from the first rate band; consumed here.
+      if (!referral.referrerClinicId) {
+        await tx.referral.updateMany({
+          where: { id: referral.id, status: 'SIGNED_UP', creditApplied: false },
+          data: {
+            status: 'CONVERTED',
+            creditApplied: true,
+            discountApplied: true,
+            convertedAt: this.clock.now(),
+            activationAt: this.clock.now(),
+          },
+        });
+        this.logger.log(
+          `Anchored partner referral ${referral.id} for clinic ${clinicId} (revenue-share accrual will pick up)`,
+        );
+        return;
+      }
 
       const referrerCredits =
         referral.referrerClinic?.referralCreditsMonths || 0;
@@ -246,9 +394,6 @@ export class ReferralService {
     const discountCents = Math.round(
       amountCents * (REFERRAL_DISCOUNT_PERCENT / 100),
     );
-    return {
-      discountCents,
-      finalAmountCents: amountCents - discountCents,
-    };
+    return { discountCents, finalAmountCents: amountCents - discountCents };
   }
 }

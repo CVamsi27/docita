@@ -9,7 +9,9 @@ import {
   type ReferrerType,
   useInternalReferralPayouts,
   useInternalReferralPayoutSummary,
+  useInternalReferrerMessages,
   useInternalReferrers,
+  useInternalResendWelcome,
 } from "@workspace/data-access/internal";
 import { internalQueryKeys } from "@workspace/data-access";
 import { useAuth } from "@/lib/auth/auth";
@@ -18,7 +20,11 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Button } from "@workspace/ui/components/form/button";
 import { Input } from "@workspace/ui/components/form/input";
 import { Badge } from "@workspace/ui/components/indicators/badge";
-// jscpd:ignore-start — shared Select import block matches other consumers
+// jscpd:ignore-start — shared Select, Table, and Dialog import blocks
+// match other consumers (users page, settings tables, etc.). The
+// duplication is a deliberate consequence of using the same primitives
+// across admin surfaces; the alternative is a re-export barrel that
+// every consumer would have to know about.
 import {
   Select,
   SelectContent,
@@ -26,7 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-// jscpd:ignore-end
 import {
   Table,
   TableBody,
@@ -35,6 +40,14 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/data-display/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/overlay/dialog";
+// jscpd:ignore-end
 
 const REFERRER_TYPES: ReferrerType[] = [
   "MARKETING_PERSON",
@@ -50,13 +63,6 @@ function rupees(cents: number): string {
   })}`;
 }
 
-/**
- * Phase 3 (per-feature): referrals page is the apps/internal admin
- * view of referral partners and their payout ledger. 20 literals
- * converted to useTranslations("InternalReferrals"). Dynamic data
- * (referrer.name, payout.status, currency formatting) stays
- * unchanged.
- */
 function useReferralsTranslations() {
   return useTranslations("InternalReferrals");
 }
@@ -70,12 +76,18 @@ export default function ReferralsPage() {
   const referrers = useInternalReferrers(token, { enabled });
   const payouts = useInternalReferralPayouts(token, "", { enabled });
   const summary = useInternalReferralPayoutSummary(token, { enabled });
+  const resend = useInternalResendWelcome(token);
 
   const [form, setForm] = useState<CreateInternalReferrerInput>({
     type: "MARKETING_PERSON",
     name: "",
     email: "",
     phone: "",
+  });
+
+  const [messagesReferrerId, setMessagesReferrerId] = useState<string | null>(null);
+  const messages = useInternalReferrerMessages(token, messagesReferrerId, {
+    enabled: enabled && Boolean(messagesReferrerId),
   });
 
   const createReferrer = useMutation({
@@ -112,6 +124,20 @@ export default function ReferralsPage() {
         "generic",
       ),
   });
+
+  const onResend = (referrerId: string) => {
+    resend.mutate(referrerId, {
+      onSuccess: () => {
+        toast.success("Welcome message re-queued");
+      },
+      onError: (error) =>
+        showUserFacingErrorToast(
+          error,
+          "Resending the welcome message failed. Please retry in a moment.",
+          "generic",
+        ),
+    });
+  };
 
   return (
     <div className="space-y-8 p-6">
@@ -221,25 +247,67 @@ export default function ReferralsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>{t("colName")}</TableHead>
+              <TableHead>Code</TableHead>
               <TableHead>{t("colType")}</TableHead>
               <TableHead>{t("colReward")}</TableHead>
-              <TableHead>{t("colContact")}</TableHead>
+              <TableHead>Welcome</TableHead>
+              <TableHead>Payout details</TableHead>
               <TableHead>{t("colActive")}</TableHead>
+              <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
             {(referrers.data ?? []).map((referrer) => (
               <TableRow key={referrer.id}>
                 <TableCell>{referrer.name}</TableCell>
+                <TableCell className="font-mono text-xs">
+                  {referrer.code ?? "—"}
+                </TableCell>
                 <TableCell>{referrer.type}</TableCell>
                 <TableCell>{referrer.rewardKind}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">
-                  {referrer.email ?? referrer.phone ?? "—"}
+                <TableCell>
+                  {referrer.welcomeError ? (
+                    <Badge variant="destructive">Failed</Badge>
+                  ) : referrer.welcomeSentAt ? (
+                    <Badge variant="default">Sent</Badge>
+                  ) : (
+                    <Badge variant="outline">Pending</Badge>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {referrer.hasPayoutDetails ? (
+                    referrer.payoutDetailsVerified ? (
+                      <Badge variant="default">Verified</Badge>
+                    ) : (
+                      <Badge variant="secondary">Submitted</Badge>
+                    )
+                  ) : (
+                    <Badge variant="outline">Not set</Badge>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Badge variant={referrer.active ? "default" : "secondary"}>
                     {referrer.active ? t("active") : t("inactive")}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={resend.isPending}
+                      onClick={() => onResend(referrer.id)}
+                    >
+                      Resend welcome
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setMessagesReferrerId(referrer.id)}
+                    >
+                      View messages
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -296,6 +364,72 @@ export default function ReferralsPage() {
           </TableBody>
         </Table>
       </section>
+
+      <Dialog
+        open={messagesReferrerId !== null}
+        onOpenChange={(open) => {
+          if (!open) setMessagesReferrerId(null);
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Welcome message log</DialogTitle>
+            <DialogDescription>
+              Every WhatsApp send (welcome, resend, payout) is recorded here.
+            </DialogDescription>
+          </DialogHeader>
+          {messages.isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading messages...</p>
+          ) : messages.isError ? (
+            <p className="text-sm text-destructive">
+              Could not load messages.
+            </p>
+          ) : !messages.data || messages.data.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No messages yet.</p>
+          ) : (
+            <ul className="space-y-3 text-sm">
+              {messages.data.map((row) => (
+                <li
+                  key={row.id}
+                  className="rounded-md border p-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{row.kind}</span>
+                    <Badge
+                      variant={
+                        row.status === "SENT"
+                          ? "default"
+                          : row.status === "FAILED"
+                            ? "destructive"
+                            : "outline"
+                      }
+                    >
+                      {row.status}
+                    </Badge>
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {row.template} · {row.channel} · created{" "}
+                    {row.createdAt.slice(0, 16).replace("T", " ")}
+                    {row.sentAt
+                      ? ` · sent ${row.sentAt.slice(0, 16).replace("T", " ")}`
+                      : ""}
+                  </div>
+                  {row.errorMessage ? (
+                    <div className="mt-1 text-xs text-destructive">
+                      {row.errorMessage}
+                    </div>
+                  ) : null}
+                  {row.externalId ? (
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {row.externalId}
+                    </div>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

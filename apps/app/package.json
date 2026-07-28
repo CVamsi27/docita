@@ -87,7 +87,7 @@
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@types/react-signature-canvas": "^1.0.7",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^6.0.4",
     "@workspace/eslint-config": "workspace:^",
     "@workspace/typescript-config": "workspace:*",
     "eslint": "^9.32.0",
@@ -95,7 +95,7 @@
     "jsdom": "^27.4.0",
     "typescript": "5.7.3",
     "vite": "^6.4.2",
-    "vitest": "^4.1.8",
+    "vitest": "^4.1.10",
     "wrangler": "^4.90.0"
   }
 }

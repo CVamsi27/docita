@@ -41,6 +41,10 @@ export const EnvSchema = z.object({
   APP_URL: z.string().min(1),
   NEXT_PUBLIC_APP_URL: z.string().min(1),
   NEXT_PUBLIC_API_URL: z.string().min(1),
+  /** Override for the partner self-service portal URL. Defaults to
+   *  `${NEXT_PUBLIC_APP_URL}/partner`. Set when the portal is hosted
+   *  on a different subdomain. */
+  PARTNER_PORTAL_URL: z.string().optional(),
   CORS_ORIGINS: z.string().min(1),
   STORAGE_PROVIDER: z.enum(['local', 'r2']).default('local'),
   R2_ACCOUNT_ID: z.string().optional(),

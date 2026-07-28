@@ -15,9 +15,14 @@ export interface InternalReferrer {
   name: string;
   email: string | null;
   phone: string | null;
+  code: string | null;
   clinicId: string | null;
   firstYearOnly: boolean;
   active: boolean;
+  welcomeSentAt: string | null;
+  welcomeError: string | null;
+  hasPayoutDetails: boolean;
+  payoutDetailsVerified: boolean;
   createdAt: string;
 }
 
@@ -39,6 +44,21 @@ export interface InternalReferralPayoutSummaryRow {
   status: ReferralPayoutStatus;
   count: number;
   totalCents: number;
+}
+
+export type ReferrerMessageKind = "WELCOME" | "RESEND_WELCOME" | "PAYOUT_NOTICE";
+export type ReferrerMessageStatus = "QUEUED" | "SENT" | "FAILED";
+
+export interface ReferrerMessageLogEntry {
+  id: string;
+  kind: ReferrerMessageKind;
+  channel: string;
+  template: string;
+  status: ReferrerMessageStatus;
+  externalId: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+  sentAt: string | null;
 }
 
 export interface CreateInternalReferrerInput {

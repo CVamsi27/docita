@@ -28,6 +28,19 @@ export class AppUrlConfigService {
     return getEnv().NEXT_PUBLIC_API_URL;
   }
 
+  /**
+   * Partner self-service portal URL. Defaults to the frontend app URL with
+   * `/partner` appended, but can be overridden via `PARTNER_PORTAL_URL` env
+   * (useful if the partner portal is ever hosted on a separate subdomain).
+   */
+  getPartnerPortalUrl(): string {
+    const override = getEnv().PARTNER_PORTAL_URL;
+    if (override && override.length > 0) {
+      return override.replace(/\/$/, '');
+    }
+    return `${this.getFrontendAppUrl().replace(/\/$/, '')}/partner`;
+  }
+
   getSharedCookieDomain(): string | undefined {
     return getSharedCookieDomainFromConfig(getEnv());
   }
