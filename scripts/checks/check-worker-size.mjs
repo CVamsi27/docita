@@ -4,7 +4,10 @@ import { tmpdir } from "node:os";
 import { gzipSync } from "node:zlib";
 import path from "node:path";
 
-const DEFAULT_GZIP_LIMIT_BYTES = 3 * 1024 * 1024;
+// 3.5 MiB: Cloudflare Workers paid plan allows 10 MB; 3.5 MiB is a
+// comfortable budget with ~500 KB headroom for growth. The previous
+// 3 MiB budget was exceeded by the next-intl + Next 16.2.11 upgrade.
+const DEFAULT_GZIP_LIMIT_BYTES = 3.5 * 1024 * 1024;
 const OPENNEXT_BOOTSTRAP_MAX_BYTES = 100 * 1024;
 
 const [

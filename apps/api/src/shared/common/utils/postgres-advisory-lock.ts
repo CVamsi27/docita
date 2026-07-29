@@ -39,3 +39,10 @@ export type WithAdvisoryLock<T> = (
   fn: () => Promise<T>,
   timeoutMs?: number,
 ) => Promise<T | null>;
+
+/**
+ * DI token for the advisory-lock helper. Services that need a
+ * Postgres-level cross-process lock inject `WITH_ADVISORY_LOCK_TOKEN`
+ * so they can be stubbed under jest without module-level mocking.
+ */
+export const WITH_ADVISORY_LOCK_TOKEN = 'WithAdvisoryLock';

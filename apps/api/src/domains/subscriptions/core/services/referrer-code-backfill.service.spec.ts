@@ -67,6 +67,7 @@ class FakePrismaService {
           },
         ),
       },
+      runUnrestricted: <T>(fn: () => Promise<T>): Promise<T> => fn(),
     } as unknown as PrismaService;
   }
 }

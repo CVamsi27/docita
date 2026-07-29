@@ -81,19 +81,30 @@ export interface RdsSnapshotSummary {
 export class DatabaseRdsService implements OnModuleDestroy {
   private readonly logger = new Logger(DatabaseRdsService.name);
   private client: RDSClient | undefined;
-  private readonly region: string;
-  private readonly instanceId: string;
-  private readonly credentials:
-    | { accessKeyId: string; secretAccessKey: string }
-    | undefined;
 
   constructor(
     private readonly config: DatabaseControlConfigService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
-  ) {
-    this.region = this.config.getAwsRegion();
-    this.instanceId = this.config.getRdsInstanceId();
-    this.credentials = this.config.getAwsCredentials();
+  ) {}
+
+  /**
+   * Lazily resolved so the service can be instantiated in environments
+   * where DATABASE_CONTROL is disabled (the RDS instance id is not set
+   * and `getRdsInstanceId()` throws). The first call hits the config;
+   * subsequent calls reuse the cached value.
+   */
+  private get region(): string {
+    return this.config.getAwsRegion();
+  }
+
+  private get instanceId(): string {
+    return this.config.getRdsInstanceId();
+  }
+
+  private get credentials():
+    | { accessKeyId: string; secretAccessKey: string }
+    | undefined {
+    return this.config.getAwsCredentials();
   }
 
   /** Test-only hook to inject a mock client. Production never calls this. */

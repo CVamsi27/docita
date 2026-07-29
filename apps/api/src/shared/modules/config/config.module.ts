@@ -13,6 +13,7 @@ import { RazorpayConfigService } from './razorpay-config.service';
 import { OpsConfigService } from './ops-config.service';
 import { PlatformInfrastructureConfigService } from './platform-infrastructure-config.service';
 import { ExternalIntegrationsConfigService } from './external-integrations-config.service';
+import { DatabaseControlConfigService } from './database-control-config.service';
 import { validateEnv } from './app-config';
 
 @Global()
@@ -79,6 +80,16 @@ import { validateEnv } from './app-config';
     OpsConfigService,
     PlatformInfrastructureConfigService,
     ExternalIntegrationsConfigService,
+    {
+      // `DatabaseControlConfigService` has a default-valued constructor
+      // param (`getEnvFn: () => EnvConfig = getEnv`). NestJS tries to
+      // resolve every constructor arg as a provider, so the default
+      // never kicks in and DI fails. A factory that constructs it
+      // without args preserves the test-seam default while keeping
+      // the provider registered.
+      provide: DatabaseControlConfigService,
+      useFactory: () => new DatabaseControlConfigService(),
+    },
   ],
   exports: [
     AppConfigService,
@@ -95,6 +106,7 @@ import { validateEnv } from './app-config';
     OpsConfigService,
     PlatformInfrastructureConfigService,
     ExternalIntegrationsConfigService,
+    DatabaseControlConfigService,
   ],
 })
 export class AppConfigModule {}

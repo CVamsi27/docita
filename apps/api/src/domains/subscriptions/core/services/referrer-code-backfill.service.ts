@@ -8,7 +8,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   type WithAdvisoryLock,
-  withAdvisoryLock,
+  WITH_ADVISORY_LOCK_TOKEN,
 } from '@/shared/common/utils/postgres-advisory-lock';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { generateReferrerCode } from './referral-code.rules';
@@ -49,13 +49,15 @@ export class ReferrerCodeBackfillService implements OnApplicationBootstrap {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     /**
-     * The advisory-lock helper is injected so tests can swap it for
-     * an in-process no-op. In production it points at the real
-     * `withAdvisoryLock` from `shared/common/utils/postgres-advisory-lock`.
+     * The advisory-lock helper is injected via the WITH_ADVISORY_LOCK_TOKEN
+     * so tests can swap it for an in-process no-op. In production it
+     * points at the real `withAdvisoryLock` from
+     * `shared/common/utils/postgres-advisory-lock`.
      */
+    @Inject(WITH_ADVISORY_LOCK_TOKEN)
     private readonly withLock: WithAdvisoryLock<{
       written: number;
-    }> = withAdvisoryLock,
+    }>,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -73,34 +75,61 @@ export class ReferrerCodeBackfillService implements OnApplicationBootstrap {
    * inlines its own loop using the same `generateReferrerCode`).
    */
   async runBackfill(): Promise<{ written: number }> {
-    const initialNull = await this.prisma.referrer.count({
-      where: { code: null },
-    });
-    if (initialNull === 0) {
-      this.logger.log('No referrers with NULL code; backfill is a no-op.');
-      return { written: 0 };
-    }
-    this.logger.log(
-      `Backfill starting: ${initialNull} referrer(s) with NULL code.`,
-    );
-
-    // Try-acquire the advisory lock; if another replica is already
-    // running the backfill, skip and let it finish.
-    const result = await this.withLock(
-      this.prisma,
-      ReferrerCodeBackfillService.LOCK_NAME,
-      () => this.backfillInBatches(),
-      5_000,
-    );
-
-    if (result === null) {
+    // RLS-BYPASS: the backfill runs at API/worker boot with no tenant
+    // context (every replica executes it on init). Run the whole
+    // operation under `runUnrestricted` so the prisma.tenant extension
+    // does not reject the cross-tenant referrer reads.
+    return this.prisma.runUnrestricted(async () => {
+      // Defensive: if the partner migrations have not been applied
+      // (e.g. the e2e test DB seeded without `prisma db push` for the
+      // `Referrer` table), `referrer.count()` will throw `P2021`.
+      // Treat that as a no-op so the rest of the API can boot.
+      let initialNull: number;
+      try {
+        initialNull = await this.prisma.referrer.count({
+          where: { code: null },
+        });
+      } catch (err) {
+        // check-as-cast-density: allow-file — narrowing a PrismaClientKnownRequestError
+        // to `{ code?: string }` to read the `P2021` discriminator without
+        // importing the full Prisma namespace into this file.
+        const code = (err as { code?: string }).code;
+        if (code === 'P2021' /* table does not exist */) {
+          this.logger.warn(
+            'Referrer table is not present; skipping backfill. Apply the partner migrations to enable.',
+          );
+          return { written: 0 };
+        }
+        throw err;
+      }
+      if (initialNull === 0) {
+        this.logger.log('No referrers with NULL code; backfill is a no-op.');
+        return { written: 0 };
+      }
       this.logger.log(
-        'Another process is already running the backfill; skipping.',
+        `Backfill starting: ${initialNull} referrer(s) with NULL code.`,
       );
-      return { written: 0 };
-    }
-    this.logger.log(`Backfill done: wrote ${result.written} referrer code(s).`);
-    return result;
+
+      // Try-acquire the advisory lock; if another replica is already
+      // running the backfill, skip and let it finish.
+      const result = await this.withLock(
+        this.prisma,
+        ReferrerCodeBackfillService.LOCK_NAME,
+        () => this.backfillInBatches(),
+        5_000,
+      );
+
+      if (result === null) {
+        this.logger.log(
+          'Another process is already running the backfill; skipping.',
+        );
+        return { written: 0 };
+      }
+      this.logger.log(
+        `Backfill done: wrote ${result.written} referrer code(s).`,
+      );
+      return result;
+    });
   }
 
   private async backfillInBatches(): Promise<{ written: number }> {

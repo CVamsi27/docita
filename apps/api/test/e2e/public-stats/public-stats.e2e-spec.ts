@@ -1,10 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '@/app.module';
 import { PublicStatsService } from '@/shared/modules/public/public-stats.service';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
-import { mockWhatsappService } from './whatsapp.provider';
+import { mockWhatsappService } from '../../whatsapp.provider';
 
 describe('PublicStatsController (e2e)', () => {
   let app: INestApplication;

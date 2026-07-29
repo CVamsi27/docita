@@ -2,17 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
   resetDatabase,
   closeDatabase,
   getPrismaInstance,
-} from './setup';
-import { setPrismaInstance } from './factories';
+} from '../../setup';
+import { setPrismaInstance } from '../../factories';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
-import { mockWhatsappService } from './whatsapp.provider';
+import { mockWhatsappService } from '../../whatsapp.provider';
 
 describe('Clinic Members Lifecycle (e2e)', () => {
   let app: INestApplication;

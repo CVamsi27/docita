@@ -128,12 +128,35 @@ const nextConfig: NextConfig = {
           /^@sentry\/node(\/|$)/,
           /^@sentry\/profiling-node(\/|$)/,
           /^@sentry-internal\//,
+          /^react-signature-canvas$/,
+          /^qrcode\.react$/,
+          /^sonner$/,
+          /^web-vitals$/,
         ];
         for (const pattern of clientOnlyPatterns) {
           config.plugins.push(
             new webpack.NormalModuleReplacementPlugin(pattern, STUB),
           );
         }
+
+        // Swap the i18n request config for a Cloudflare-optimized version
+        // that only loads English messages (saves ~150 KB Hindi messages bundle).
+        const i18nRequestPath = require.resolve("./i18n/request.ts");
+        const i18nRequestCloudflare = require.resolve(
+          "./i18n/request.cloudflare.ts",
+        );
+        config.plugins.push(
+          new webpack.NormalModuleReplacementPlugin(
+            (resource: { request?: string; resource?: string }) => {
+              const resolved = resource.request || resource.resource;
+              return (
+                resolved === i18nRequestPath ||
+                resolved?.endsWith("/i18n/request.ts")
+              );
+            },
+            i18nRequestCloudflare,
+          ),
+        );
       }
     }
 

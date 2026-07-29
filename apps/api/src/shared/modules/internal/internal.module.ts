@@ -34,6 +34,7 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
 import { WhatsAppBroadcastModule } from '@/shared/modules/whatsapp-broadcast';
 import { SubscriptionsModule } from '@/domains/subscriptions/subscriptions.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
+import { AuditModule } from '@/shared/modules/audit/audit.module';
 import { INTERNAL_SUBSCRIPTION_PAYMENT_REPOSITORY_TOKEN } from './ports/internal-subscription-payment.repository.port';
 import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/prisma-internal-subscription-payment.repository';
 
@@ -51,6 +52,7 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     AuthModule,
     WebsocketsModule,
     EmailModule,
+    AuditModule,
   ],
   controllers: [
     InternalAnalyticsController,

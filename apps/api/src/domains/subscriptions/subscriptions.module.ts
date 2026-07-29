@@ -29,6 +29,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
 import { CommonModule } from '@/shared/common/common.module';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { DocumentsModule } from '@/domains/documents/documents.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
     AdminAlertsModule,
     CommonModule,
     AppConfigModule,
+    DocumentsModule,
     // Local JwtModule — same signing config as the auth module, but
     // importing AuthModule here would close a new circular
     // (subscriptions -> auth -> clinics -> subscriptions). The

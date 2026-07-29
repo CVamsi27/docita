@@ -10,10 +10,10 @@ import {
   resetDatabase,
   closeDatabase,
   getPrismaInstance,
-} from './setup';
-import { factories, setPrismaInstance } from './factories';
+} from '../../setup';
+import { factories, setPrismaInstance } from '../../factories';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
-import { mockWhatsappService } from './whatsapp.provider';
+import { mockWhatsappService } from '../../whatsapp.provider';
 
 describe('Dashboard (e2e)', () => {
   let app: INestApplication;

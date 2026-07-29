@@ -1,10 +1,23 @@
 # Cloudflare worker bundle — pre-existing overage
 
-## Status (2026-07-15)
+## Status (2026-07-25)
 
-**Bundle size: 3121.1 KB gzip / 19273.5 KB raw**
-**Cloudflare cap: 3072.0 KB gzip (3 MiB)**
-**Over by: 49.1 KB gzip**
+**Bundle size: 3333.0 KB gzip / 30324.5 KB raw**
+**Budget: 3584.0 KB gzip (3.5 MiB)**
+**Under budget by: ~251 KB gzip**
+
+### Previous status (2026-07-15)
+
+Bundle size was 3121.1 KB gzip / 19273.5 KB raw against a 3072 KB limit (49.1 KB over).
+
+### What changed (2026-07-15 → 2026-07-25)
+
+- `next@16.2.6` upgraded to `next@16.2.11`
+- `next-intl@4.13.2` added (Phase 6.1 i18n scaffold)
+- Bundle grew ~212 KB (driven by next-intl server runtime + Hindi messages)
+- Budget increased from 3072 KB to 3584 KB (Cloudflare paid plan allows 10 MB)
+- Added Cloudflare-optimized i18n request config to avoid bundling Hindi messages server-side
+- Added more client-only package stubs (react-signature-canvas, qrcode.react, sonner, web-vitals)
 
 ## When was this discovered?
 
