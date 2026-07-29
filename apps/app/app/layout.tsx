@@ -1,16 +1,10 @@
 import "./globals.css";
 import { headers } from "next/headers";
-import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import { AuthProvider } from "@/lib/auth/auth-context";
-import { Providers, ToasterWrapper } from "@/components";
-import { ReactQueryProvider } from "@/providers/react-query-provider";
-import { DataAccessBridge } from "@/providers/data-access-bridge";
-import { SentryInitializer } from "@/components/monitoring/sentry-initializer";
-import { ClientErrorReporter } from "@/components/monitoring/client-error-reporter";
-import { WebVitalsReporter } from "@/components/layout/web-vitals-reporter";
-import { ApiAvailabilityOverlay } from "@/components/feedback/api-availability-overlay";
+import dynamic from "next/dynamic";
 import { esbuildHelperBootstrapScript } from "@workspace/utils/runtime/esbuild-helper-bootstrap";
+
+const ClientLayout = dynamic(() => import("./client-layout"), { ssr: true });
 
 export const metadata = {
   title: "Docita - Healthcare OS",
@@ -52,22 +46,9 @@ export default async function RootLayout({
         />
       </head>
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased overflow-x-hidden">
-        <SentryInitializer />
-        <ClientErrorReporter />
-        <WebVitalsReporter />
-        <NextIntlClientProvider locale="en" messages={messages}>
-          <ReactQueryProvider>
-            <AuthProvider>
-              <DataAccessBridge>
-                <Providers nonce={nonce}>
-                  {children}
-                  <ApiAvailabilityOverlay />
-                  <ToasterWrapper />
-                </Providers>
-              </DataAccessBridge>
-            </AuthProvider>
-          </ReactQueryProvider>
-        </NextIntlClientProvider>
+        <ClientLayout nonce={nonce} messages={messages}>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );

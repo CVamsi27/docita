@@ -8,7 +8,6 @@ import path from "node:path";
 // comfortable budget with ~500 KB headroom for growth. The previous
 // 3 MiB budget was exceeded by the next-intl + Next 16.2.11 upgrade.
 const DEFAULT_GZIP_LIMIT_BYTES = 3.5 * 1024 * 1024;
-const OPENNEXT_BOOTSTRAP_MAX_BYTES = 100 * 1024;
 
 const [
   workerPathArg = ".open-next/worker.js",
@@ -52,7 +51,7 @@ function resolveWranglerBundlePath(cwd, wranglerEnv) {
   const outdir = mkdtempSync(path.join(tmpdir(), "docita-worker-size-"));
   try {
     execSync(
-      `npx wrangler deploy --dry-run --outdir "${outdir}" --env ${wranglerEnv}`,
+      `npx wrangler deploy --dry-run --minify --outdir "${outdir}" --env ${wranglerEnv}`,
       {
         cwd,
         stdio: ["ignore", "pipe", "pipe"],
@@ -73,11 +72,22 @@ const cwd = process.cwd();
 let absoluteWorkerPath = path.resolve(cwd, workerPathArg);
 let cleanup = () => {};
 
-const bootstrap = measureBundle(absoluteWorkerPath);
-if (bootstrap.rawBytes <= OPENNEXT_BOOTSTRAP_MAX_BYTES) {
+// Always measure through wrangler dry-run (with --minify) for accurate
+// bundle size that matches what would actually be deployed.
+try {
   const resolved = resolveWranglerBundlePath(cwd, wranglerEnvArg);
   absoluteWorkerPath = resolved.bundlePath;
   cleanup = resolved.cleanup;
+} catch (error) {
+  // Fall back to raw file measurement if wrangler dry-run fails.
+  console.warn(
+    `${labelArg} wrangler dry-run failed: ${error.message}; measuring raw worker.`,
+  );
+  const rawBytes = readFileSync(absoluteWorkerPath).length;
+  const rawKb = (rawBytes / 1024).toFixed(1);
+  console.log(
+    `${labelArg} raw worker (${rawKb} KB raw).`,
+  );
 }
 
 try {
