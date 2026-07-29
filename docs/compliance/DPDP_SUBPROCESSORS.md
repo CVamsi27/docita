@@ -13,7 +13,7 @@
 
 | Sub-processor | Purpose | Data it receives | Location | Cross-border? | DPA |
 |---|---|---|---|---|---|
-| **Fly.io** | API/worker compute | Everything (in transit/memory) | Mumbai (`bom`) | Compute in India; US vendor | Fly DPA |
+| **Fly.io** | API/worker compute | Everything (in transit/memory) | Singapore (`sin`) since 2026-07-29 (was `bom` Mumbai) | Compute no longer in India; US vendor; **DB/PHI stays in AWS RDS `ap-south-1`** | Fly DPA |
 | **AWS RDS** | Primary database | All PHI (encrypted at rest) | `ap-south-1` (Mumbai) | No (India region) | AWS DPA (auto via Service Terms) |
 | **Cloudflare R2** | Object storage | Patient **documents/PDFs** (PHI) | Bucket-region dependent | Set bucket to India/EU | Cloudflare DPA (self-serve) |
 | **Razorpay** | Payments | Patient name, contact, amount | India | No | Razorpay DPA / merchant terms |

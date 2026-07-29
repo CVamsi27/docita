@@ -7,8 +7,8 @@
   - `apps/internal`: Cloudflare Workers (OpenNext)
   - `apps/landing`: Cloudflare Workers (Astro)
 - Backend
-  - `apps/api`: Fly.io (Mumbai — `bom` region), 2 GB RAM, shared CPU
-  - `docita-worker` (Fly app): `apps/worker` Nest entry (imports `apps/api` worker modules), background jobs and crons
+  - `apps/api`: Fly.io (Singapore — `sin` region since 2026-07-29; was `bom` Mumbai), 2 GB RAM, shared CPU
+  - `docita-worker` (Fly app): `apps/worker` Nest entry (imports `apps/api` worker modules), background jobs and crons (same `sin` region)
 - Database
   - AWS RDS PostgreSQL — `ap-south-1` (Mumbai), `db.t4g.micro`
 - Cache / Background Work
