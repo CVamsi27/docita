@@ -141,19 +141,16 @@ const nextConfig: NextConfig = {
 
         // Swap the i18n request config for a Cloudflare-optimized version
         // that only loads English messages (saves ~150 KB Hindi messages bundle).
-        const i18nRequestPath = require.resolve("./i18n/request.ts");
+        // The previous version passed a function as the resourceRegExp, which
+        // webpack treats as the *replacer* and calls .test() on the return value,
+        // breaking the resolve chain with "I.test is not a function". Use a RegExp
+        // matcher and pass the replacement path as the second arg (the correct API).
         const i18nRequestCloudflare = require.resolve(
           "./i18n/request.cloudflare.ts",
         );
         config.plugins.push(
           new webpack.NormalModuleReplacementPlugin(
-            (resource: { request?: string; resource?: string }) => {
-              const resolved = resource.request || resource.resource;
-              return (
-                resolved === i18nRequestPath ||
-                resolved?.endsWith("/i18n/request.ts")
-              );
-            },
+            /\/i18n\/request\.ts$/,
             i18nRequestCloudflare,
           ),
         );
