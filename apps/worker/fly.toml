@@ -1,5 +1,8 @@
 app = 'docita-worker'
-primary_region = 'bom'
+# Production worker primary region. Was 'bom' (Mumbai) until 2026-07-29 when
+# Fly shelved bom capacity; shifted to 'sin' (Singapore) in lockstep with the
+# API. Keep this in sync with /fly.toml.
+primary_region = 'sin'
 
 [build]
   dockerfile = 'Dockerfile'

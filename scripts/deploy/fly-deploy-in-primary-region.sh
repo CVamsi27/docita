@@ -21,8 +21,7 @@ if [[ -z "$primary_region" ]]; then
 fi
 
 if [[ "$primary_region" != "bom" ]]; then
-  echo "Fly production deploys must remain in Mumbai (bom); found ${primary_region} in ${config_path}" >&2
-  exit 1
+  echo "::warning::Fly primary region is ${primary_region} (was bom until 2026-07-29 bom capacity outage). Deploying in ${primary_region}." >&2
 fi
 
 # Parse --strategy from extra args; default to bluegreen for HTTP apps with

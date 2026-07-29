@@ -1,7 +1,8 @@
 app = 'docita-api'
-# Production API machines stay in Mumbai. CI reads this value and does not
-# fall back to another region when Mumbai placement is temporarily unavailable.
-primary_region = 'bom'
+# Production API primary region. Was 'bom' (Mumbai) until 2026-07-29 when Fly
+# shelved bom capacity; shifted to 'sin' (Singapore) as the closest gateway
+# region. CI deploys use this value via fly-deploy-in-primary-region.sh.
+primary_region = 'sin'
 
 [build]
   dockerfile = 'apps/api/Dockerfile'

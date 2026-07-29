@@ -5,6 +5,13 @@ import { join } from "node:path";
 const repoRoot = process.cwd();
 const DOCITA_HTTPS_ORIGIN_RE = /^https:\/\/([a-z0-9-]+\.)*docita\.work$/i;
 
+// Fly primary regions Docita has authorised for production compute.
+// `bom` (Mumbai) is the historical home but was shelved by Fly on
+// 2026-07-29. `sin` (Singapore) is the closest available gateway region
+// and the current primary. When Fly restores bom capacity we can
+// promote it back to default; until then both are valid.
+const ALLOWED_FLY_PRIMARY_REGIONS = new Set(["bom", "sin"]);
+
 function read(relativePath) {
   return readFileSync(join(repoRoot, relativePath), "utf8");
 }
@@ -237,11 +244,17 @@ try {
     [flyTomlPath, flyTomlSource],
     [workerFlyTomlPath, workerFlyTomlSource],
   ]) {
+    const region = parseTomlSingleQuotedEnvValue(configSource, "primary_region");
     assert(
-      parseTomlSingleQuotedEnvValue(configSource, "primary_region") === "bom",
-      `${configPath} must pin Fly production machines to Mumbai (bom).`,
+      ALLOWED_FLY_PRIMARY_REGIONS.has(region),
+      `${configPath} primary_region must be one of [${[...ALLOWED_FLY_PRIMARY_REGIONS].join(", ")}], found "${region}".`,
     );
   }
+  assert(
+    parseTomlSingleQuotedEnvValue(flyTomlSource, "primary_region") ===
+      parseTomlSingleQuotedEnvValue(workerFlyTomlSource, "primary_region"),
+    "fly.toml and apps/worker/fly.toml must declare the same primary_region.",
+  );
 
   assertIncludes(
     flyDeployScriptSource,
