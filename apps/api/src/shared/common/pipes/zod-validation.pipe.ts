@@ -1,13 +1,12 @@
-import {
-  PipeTransform,
-  Injectable,
-  ArgumentMetadata,
-  Logger,
-} from '@nestjs/common';
+import { PipeTransform, ArgumentMetadata, Logger } from '@nestjs/common';
 import { ZodSchema, ZodError } from 'zod';
 import { createZodValidationException } from '@/shared/common/utils/zod-exception.util';
 
-@Injectable()
+// No `@Injectable()`: the pipe takes a ZodSchema in its constructor and
+// is always instantiated directly with `new ZodValidationPipe(schema)`.
+// Marking it @Injectable() makes NestJS try to resolve it as a
+// parameterless provider, which fails because the schema arg is
+// required and not a registered provider.
 export class ZodValidationPipe implements PipeTransform {
   private readonly logger = new Logger(ZodValidationPipe.name);
 

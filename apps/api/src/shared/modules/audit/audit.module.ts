@@ -8,8 +8,11 @@ import { AuditLoggerService } from './audit-logger.service';
       provide: 'auditLogger',
       useClass: AuditLoggerService,
     },
+    // Also expose the class directly so consumers can inject
+    // `AuditLoggerService` without using the legacy string token.
+    AuditLoggerService,
     PrismaService,
   ],
-  exports: ['auditLogger'],
+  exports: ['auditLogger', AuditLoggerService],
 })
 export class AuditModule {}

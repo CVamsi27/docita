@@ -42,6 +42,10 @@ import {
   CLINIC_OPERATIONS_TOKEN,
 } from './application/ports';
 import {
+  withAdvisoryLock,
+  WITH_ADVISORY_LOCK_TOKEN,
+} from '@/shared/common/utils/postgres-advisory-lock';
+import {
   PrismaSubscriptionRepository,
   PrismaSubscriptionCoreRepository,
   PrismaSubscriptionPaymentRepository,
@@ -102,6 +106,10 @@ export const SUBSCRIPTIONS_COMMON_PROVIDERS = [
   {
     provide: CLINIC_OPERATIONS_TOKEN,
     useClass: ClinicOperationsAdapter,
+  },
+  {
+    provide: WITH_ADVISORY_LOCK_TOKEN,
+    useValue: withAdvisoryLock,
   },
 ] as const;
 
