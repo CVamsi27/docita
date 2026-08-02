@@ -1,6 +1,6 @@
 # UI/UX Contract (Doctor App + Portal)
 
-This contract defines how UI should be built across `apps/app` and `apps/app/app/portal` to keep workflows fast, readable, and consistent for clinical usage.
+This contract defines how UI should be built across `apps/app-vite` and `apps/app-vite/src/features/patient-portal/` to keep workflows fast, readable, and consistent for clinical usage.
 
 > [`docs/ui/UI_UX_STANDARD_2026.md`](UI_UX_STANDARD_2026.md) is the authoritative UI/UX source going forward and **supersedes any conflicting guidance below**. This contract remains for the foundational page-structure, typography, motion, state, and component-ownership rules that the standard builds on. Where the two disagree, follow the standard. Engineering conventions (SOLID, KISS, DRY, comments, logging) live in [`AGENTS.md`](../AGENTS.md) §7 and §12.
 

@@ -43,13 +43,13 @@ These match the default `DATABASE_URL` in `apps/api/.env.example`.
 
 ## 4. Environment Setup
 
-Copy each `.env.example` to `.env.local` (Next.js apps) or `.env` (API):
+Copy each `.env.example` to `.env.local` (Vite apps) or `.env` (API):
 
 ```bash
-cp apps/api/.env.example      apps/api/.env
-cp apps/app/.env.example      apps/app/.env.local
-cp apps/internal/.env.example apps/internal/.env.local
-cp apps/landing/.env.example  apps/landing/.env
+cp apps/api/.env.example        apps/api/.env
+cp apps/app-vite/.env.example   apps/app-vite/.env.local
+cp apps/internal-vite/.env.example apps/internal-vite/.env.local
+cp apps/landing/.env.example    apps/landing/.env
 # worker shares the API's compiled source — no separate .env needed locally
 ```
 
@@ -68,8 +68,8 @@ cp apps/landing/.env.example  apps/landing/.env
 Everything else has safe defaults for local dev. Payments, WhatsApp, R2,
 Sentry, AI, and SMS keys can be left blank — features degrade gracefully.
 
-**`apps/app/.env.local` and `apps/internal/.env.local`** — all values are
-pre-filled with localhost URLs; no changes needed for local dev.
+**`apps/app-vite/.env.local` and `apps/internal-vite/.env.local`** — all values are
+pre-filled with localhost URLs; no changes needed for local dev. Legacy `NEXT_PUBLIC_*` names are accepted as aliases for the `VITE_*` vars.
 
 ---
 
@@ -97,9 +97,9 @@ before starting.
 
 | App | URL |
 |-----|-----|
-| Clinic app (Next.js) | http://localhost:3000 |
+| Clinic app (Vite SPA) | http://localhost:5173 |
 | NestJS API | http://localhost:3001 |
-| Internal admin (Next.js) | http://localhost:3002 |
+| Internal admin (Vite SPA) | http://localhost:5174 |
 | Landing (Astro) | http://localhost:3003 |
 
 ---

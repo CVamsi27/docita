@@ -53,8 +53,8 @@ a SHA-256 hash instead of a valid credential.
    publicKey, signCount, lastUsedAt, transports).
 2. Endpoint pair: `/auth/webauthn/register/{begin,finish}` and
    `/auth/webauthn/login/{begin,finish}`.
-3. UI: enrollment in `apps/app/features/settings/security/` and
-   `apps/internal/features/staff/security/`.
+3. UI: enrollment in `apps/app-vite/src/features/settings/security/` and
+   `apps/internal-vite/src/features/staff/security/`.
 4. Recovery codes (one-time) for users who lose all keys.
 
 ## Item 8 — Automated KEK rotation
@@ -73,7 +73,7 @@ secret. Rotation requires brief downtime or a manual cutover.
 1. Per-provider env `*_WEBHOOK_SECRET_VERSIONS` (JSON list of versions).
 2. Verifier accepts a signature from any active version for a
    configurable overlap window.
-3. Operator UI (`apps/internal/features/integrations/webhooks/`) to
+3. Operator UI (`apps/internal-vite/src/features/integrations/webhooks/`) to
    add/remove a version.
 
 ## Acceptance

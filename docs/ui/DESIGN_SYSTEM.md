@@ -23,7 +23,7 @@ All colors are authored in `oklch` so light and dark ramps stay perceptually ali
 
 ### Typography
 
-- Families: `--font-sans` (Inter + system fallback), `--font-mono` (JetBrains Mono + system fallback). Wired with `next/font` in each app root layout.
+- Families: `--font-sans` (Inter + system fallback), `--font-mono` (JetBrains Mono + system fallback). Wired via `@font-face` in `packages/ui/src/styles/globals.css`.
 - Sizes: `--fs-2xs` (0.6875rem) through `--fs-4xl` (1.875rem). Use these via `text-[var(--fs-xs)]` in arbitrary values, or the Tailwind `text-xs/text-sm/text-base/...` scale mapped under `@theme inline`.
 - Line-heights: `--lh-tight`, `--lh-snug`, `--lh-normal`, `--lh-relaxed`.
 - Tracking: `--tracking-tight`, `--tracking-normal`, `--tracking-wide`.
@@ -57,7 +57,7 @@ Exports from `@workspace/ui/components`:
 
 ## Keyboard map
 
-Scoped to authenticated `apps/app` shell.
+Scoped to authenticated `apps/app-vite` shell.
 
 | Shortcut     | Action               |
 | ------------ | -------------------- |
@@ -75,14 +75,14 @@ Scoped to authenticated `apps/app` shell.
 | `n a`        | New appointment      |
 | `n i`        | New invoice          |
 
-Consultation route adds its own scoped shortcuts (documented in [apps/app/features/consultation/workspace/ConsultationShell.tsx](../apps/app/features/consultation/workspace/ConsultationShell.tsx)).
+Consultation route adds its own scoped shortcuts (documented in [apps/app-vite/src/features/consultation/workspace/ConsultationShell.tsx](../apps/app-vite/src/features/consultation/workspace/ConsultationShell.tsx)).
 
 ## Accessibility baseline
 
 - Every icon-only control ships with `aria-label`.
 - Forms use `<Form>` + `FormField` + `FieldRow`, never bare inputs without `<Label htmlFor>`.
 - Loading/empty/error states use the shared primitives so screen readers see consistent text.
-- Color contrast is verified by `apps/app/e2e/accessibility.spec.ts` (axe).
+- Color contrast is verified by `apps/app-vite/e2e/accessibility.spec.ts` (axe).
 
 ## Responsiveness
 

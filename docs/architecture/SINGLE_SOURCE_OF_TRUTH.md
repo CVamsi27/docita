@@ -25,7 +25,7 @@ Compute in ONE helper; never inline.
 | Patient full name                             | `getPatientFullName()` (`packages/utils`)                                                      | production display composition routes through the helper; do not add inline name composition     |
 | Patient age                                   | `calculateAge` / `calculateMedicalAge` (`packages/utils/.../date-calculations`)                | no inline year-diff; pick one display format                                                     |
 | BMI value + category                          | `calculateBMI` / `getBMICategory` / `getBMIStatus` (`packages/utils/.../medical-calculations`) | feature adapters may preserve their display shape, but threshold logic stays in `packages/utils` |
-| Initials / avatar text                        | `getInitials` (`apps/app/shared/lib/formatters/text-helpers`)                                  | no inline initials logic                                                                         |
+| Initials / avatar text                        | `getInitials` (`apps/app-vite/src/lib/formatters/index.ts`)                                  | no inline initials logic                                                                         |
 | Gender / isolation / smoking / alcohol labels | label maps in `packages/types`                                                                 | add missing smoking/alcohol maps next to their schemas                                           |
 
 ## B. Billing / plan / trial

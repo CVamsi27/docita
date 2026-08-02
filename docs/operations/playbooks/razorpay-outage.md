@@ -28,7 +28,7 @@
   (`check-external-http-timeouts.mjs` enforces this). Verify retries
   use exponential backoff and stop at the documented attempt cap.
 - **Customer messaging**: enable the "Payments degraded" banner via
-  `apps/internal` (feature flag `paymentsDegraded`). Patients see a
+  `apps/internal-vite` (feature flag `paymentsDegraded`). Patients see a
   retry message instead of a confusing failure.
 - **Queue back-pressure**: pause the
   `razorpay-webhook-replay.scheduler.ts` cron so we don't replay

@@ -22,7 +22,7 @@
 - **Server-side**: ensure the OpenAI adapter has exponential backoff +
   jitter. If queuing was disabled, re-enable it.
 - **User-facing**: enable the "AI assistant degraded" banner via
-  `apps/internal` feature flag `aiAssistantDegraded`.
+  `apps/internal-vite` feature flag `aiAssistantDegraded`.
 - **Fallback path**: critical workflows (prescriptions, billing) must
   not block on AI calls; verify the synchronous-AI usages have a
   graceful fallback (e.g., return the doctor's last manual note).

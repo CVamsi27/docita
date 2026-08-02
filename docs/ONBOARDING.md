@@ -27,8 +27,8 @@ pnpm dev
 Start with root `.env.example`, then app-specific examples:
 
 - `apps/api/.env.example`
-- `apps/app/.env.example`
-- `apps/internal/.env.example`
+- `apps/app-vite/.env.example`
+- `apps/internal-vite/.env.example`
 - `apps/landing/.env.example`
 
 Critical variables:
@@ -36,7 +36,7 @@ Critical variables:
 - `DATABASE_URL`
 - `JWT_SECRET`
 - `ENCRYPTION_KEY`
-- `NEXT_PUBLIC_API_URL`
+- `VITE_API_URL` (frontend apps; legacy `NEXT_PUBLIC_API_URL` alias still accepted during migration)
 
 ## Verification
 

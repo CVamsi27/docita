@@ -3,8 +3,8 @@
 ## Current Production Stack
 
 - Frontend
-  - `apps/app`: Cloudflare Workers (OpenNext)
-  - `apps/internal`: Cloudflare Workers (OpenNext)
+  - `apps/app-vite`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
+  - `apps/internal-vite`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
   - `apps/landing`: Cloudflare Workers (Astro)
 - Backend
   - `apps/api`: Fly.io (Singapore — `sin` region since 2026-07-29; was `bom` Mumbai), 2 GB RAM, shared CPU
@@ -16,7 +16,7 @@
 - Object Storage
   - Cloudflare R2 (`STORAGE_PROVIDER=r2`)
 
-All backend infrastructure is co-located in Mumbai for Indian data residency (DPDP compliance).
+Backend infrastructure is co-located in Singapore (`sin` region) for low-latency API responses; the database remains in Mumbai (`ap-south-1`) for DPDP compliance.
 
 ## Operational Rules
 
@@ -25,11 +25,11 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 - Use `DATABASE_URL` from AWS RDS for API runtime (set via `fly secrets set DATABASE_URL=...`).
 - Runtime baseline is Node `22.12.x` for local, CI, and Docker builds.
 - Keep API health checks on `GET /api/health/live`.
-- Keep frontend `NEXT_PUBLIC_API_URL` pointed to the Fly.io app URL.
+- Keep frontend `VITE_API_URL` (or the `NEXT_PUBLIC_API_URL` legacy alias in `wrangler.toml` env vars) pointed to the Fly.io app URL. In production the proxy Worker uses `API_PROXY_TARGET` to forward `/api/*` and `/socket.io/*` to the backend.
 - Keep `ENABLE_SCHEDULERS=false` on the API and `ENABLE_SCHEDULERS=true` on the worker once the split is live.
-- Keep each Worker entry bundle within the deployed Cloudflare plan limit: 3 MB gzip on Workers Free and 10 MB gzip on Workers Paid. `apps/app` production and staging builds keep the default 3 MB gzip guard so they remain deployable without relying on the paid-size allowance. Use `node scripts/checks/check-worker-size.mjs` after OpenNext builds.
+- Keep each Worker entry bundle within the deployed Cloudflare plan limit: 3 MB gzip on Workers Free and 10 MB gzip on Workers Paid. The Vite SPA apps serve static assets from Cloudflare edge and only ship the tiny Hono proxy Worker (`apps/app-vite/api/index.ts`, `apps/internal-vite/api/index.ts`) — no OpenNext runtime. Use `node scripts/checks/check-worker-size.mjs` after builds.
 - Deploy order: run DB migrations first, then deploy API and worker, then deploy frontends.
-- Keep `open-next.config.ts` and `wrangler.toml` in sync for Next.js frontend apps.
+- Keep `wrangler.toml` (static assets dir, `main = "api/index.ts"`) and `vite.config.ts` in sync for the Vite frontend apps.
 - Keep `astro.config.mjs` and `wrangler.toml` in sync for `apps/landing`.
 - Keep API autostop enabled for the initial low-traffic phase so Fly can scale request-serving machines to zero when idle.
 - Keep the API at 2 GB until the worker has been healthy in parallel and we have live RSS measurements that support a safe reduction to 1.5 GB.
@@ -74,7 +74,7 @@ Fly-specific notes:
 - GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
 - For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret.
 - The worker app uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml), builds from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
-- Keep `auto_stop_machines = "suspend"` and `min_machines_running = 1` for the production API. The always-available floor avoids clinician-facing wake timeouts while additional capacity can still suspend when idle.
+- Keep `auto_stop_machines = "suspend"` and `min_machines_running = 0` for the production API. Scale-to-zero saves cost during off-hours; cold starts are bounded by synthetic probes which wake the app.
 - Do not scale the no-service worker to zero unless scheduler and queue wake-up behavior has a separate trigger; it does not receive HTTP traffic that Fly can use for autostart.
 - Verify the API image locally before infra changes with:
 
@@ -156,12 +156,13 @@ SELECT "clinicId", "phoneNumber"
 
 ## Frontend Quick Guide
 
-- Build `apps/app` with `pnpm build:app:cloudflare`.
-- Build `apps/internal` with `pnpm build:internal:cloudflare`.
+- Build `apps/app-vite` with `pnpm build:app-vite:cloudflare`.
+- Build `apps/internal-vite` with `pnpm build:internal-vite:cloudflare`.
 - Build `apps/landing` with `pnpm build:landing:cloudflare`.
 - Preview each Worker locally with the matching `preview:*:cloudflare` script.
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.
 - Frontend production deploys run through the path-scoped Cloudflare jobs in [`deploy.yml`](../../.github/workflows/deploy.yml) when repository credentials verify. Cloudflare Git integration or dashboard deploys remain the fallback.
+- The Vite SPA build outputs static assets to `dist/` plus `_headers`/`_redirects`; `wrangler deploy` ships both the assets and the proxy Worker (`main = "api/index.ts"`) in one command.
 
 ## Release Gates
 

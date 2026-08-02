@@ -18,7 +18,7 @@ This document is descriptive — it explains what the codebase actually does tod
 | 21–27 | Deploy, internal, landing, testing, DX, a11y, compliance |
 | 28–29 | Improvement backlog, DPDP |
 | 30–41 | Prisma extensions, persistence helpers, machine auth, FHIR, imports, RUM, cache, errors, transactions, `shared/lib`, ALS |
-| 42–56 | Corrections, reading list, App Router, proxy, packages, CI, local dev, k6, scripts, Sentry, schema, root files, interaction map, glossary, final opportunities |
+| 42–56 | Corrections, reading list, Vite route tree, proxy, packages, CI, local dev, k6, scripts, Sentry, schema, root files, interaction map, glossary, final opportunities |
 | 57 | Audit method and evidence levels |
 | **58–65** | **Client state & sockets, policy engine, outbox depth, shared modules catalog, utils/hooks, SSOT, enterprise posture, pending register** |
 | **66–72** | **Pattern maturity, datetime, compatibility migrations, edge BFF boundaries, reliability selection, recommended additions, adoption sequence** |
@@ -34,8 +34,8 @@ This document is descriptive — it explains what the codebase actually does tod
 | --- | --- | --- | --- |
 | `apps/api` | NestJS (Node ≥22) | Public HTTP API, controllers, business logic, Prisma writes | Fly.io (`fly.toml`) |
 | `apps/worker` | NestJS | Background jobs: PDF generation, scheduled reminders, exports | Fly.io (`apps/worker/fly.toml`) |
-| `apps/app` | Next.js (App Router) | Clinician web app | Cloudflare via OpenNext |
-| `apps/internal` | Next.js (App Router) | Internal admin/dashboard | Cloudflare via OpenNext |
+| `apps/app-vite` | Vite + React Router (SPA) | Clinician web app | Cloudflare (static assets + Hono proxy Worker) |
+| `apps/internal-vite` | Vite + React Router (SPA) | Internal admin/dashboard | Cloudflare (static assets + Hono proxy Worker) |
 | `apps/landing` | Astro | Marketing site | Cloudflare Workers |
 
 The two NestJS apps share most of `apps/api/src/shared/*` and the same Prisma client from `@workspace/db`. The frontend apps share `@workspace/ui` primitives, `@workspace/types` Zod schemas, and `@workspace/data-access` React Query hooks.
@@ -43,11 +43,11 @@ The two NestJS apps share most of `apps/api/src/shared/*` and the same Prisma cl
 ### 1.2 Request topology
 
 ```
-Browser (apps/app or apps/internal)
+Browser (apps/app-vite or apps/internal-vite)
    │
-   │ same-origin fetch to /api/v1/* (Cloudflare middleware proxy)
+   │ same-origin fetch to /api/v1/* (Hono proxy Worker)
    ▼
-Cloudflare edge (OpenNext) → middleware
+Cloudflare edge (static assets) → Hono proxy Worker (apps/<app>/api/index.ts)
    │
    │ cross-region fetch to api.docita.work
    ▼
@@ -59,7 +59,7 @@ NestJS API (apps/api) on Fly.io
    └─► Postgres-backed job queue ──► apps/worker
 ```
 
-The clinician and internal browsers do not talk to `api.docita.work` directly (see AGENTS.md §4): `/api/v1/*` traffic goes same-origin through each Next app's `middleware.ts`, backed by [`packages/utils/src/http/upstream-api-proxy.ts`](../../packages/utils/src/http/upstream-api-proxy.ts). This keeps cookies, CORS, and CSRF stable. The public landing site has a separate Astro BFF (§23.2).
+The clinician and internal browsers do not talk to `api.docita.work` directly (see AGENTS.md §4): `/api/v1/*` traffic goes same-origin through each Vite app's Hono proxy Worker ([`apps/app-vite/api/index.ts`](../../apps/app-vite/api/index.ts) and [`apps/internal-vite/api/index.ts`](../../apps/internal-vite/api/index.ts)), backed by [`packages/utils/src/http/upstream-api-proxy.ts`](../../packages/utils/src/http/upstream-api-proxy.ts). This keeps cookies, CORS, and CSRF stable. The public landing site has a separate Astro BFF (§23.2).
 
 ### 1.3 Stack constraints
 
@@ -483,7 +483,7 @@ Pipeline (typical):
 2. DTO class in `apps/api/src/domains/<domain>/application/dto/*.dto.ts` — `export class ListPatientsQuery extends createZodDto(listPatientsQuerySchema) {}`.
 3. Controller signature: `@Query() query: ListPatientsQuery`.
 4. Frontend usage:
-   ```54:65:apps/app/shared/lib/api/api-client.ts
+   ```54:65:apps/app-vite/src/lib/api/api-client.ts
    export const typedApi = {
      patients: {
        list: (params?: { limit?: number; page?: number; search?: string }) =>
@@ -545,7 +545,7 @@ Backend authorization for fine-grained resources (patient record, invoice, appoi
 - [`authorization.service.ts`](../../apps/api/src/shared/modules/auth/authorization/authorization.service.ts) is the policy decision point. It composes subscription, role, feature, and resource-policy checks, then throws `ForbiddenException` on denial.
 - Controllers call `policyEngine.assertCan(...)` or use guards that delegate to the engine.
 
-The **frontend mirror** is [`apps/app/shared/lib/access-control/access-policy.ts`](../../apps/app/shared/lib/access-control/access-policy.ts) plus route tables in [`access-routes.ts`](../../apps/app/shared/lib/access-control/access-routes.ts). UI hides nav entries and blocks routes; the API is still authoritative. Never gate sensitive writes on the client alone.
+The **frontend mirror** is [`apps/app-vite/src/lib/access-control/access-policy.ts`](../../apps/app-vite/src/lib/access-control/access-policy.ts). UI hides nav entries and blocks routes; the API is still authoritative. Never gate sensitive writes on the client alone.
 
 `@RequireFeature` (tier/feature matrix) and policy engine (role + resource + action) are **orthogonal**: a user may have `Feature.PATIENTS` but still be denied `DELETE` on a specific patient by policy.
 
@@ -780,7 +780,7 @@ Long-retention but cold data (audit logs, old appointments, WhatsApp logs) move 
 
 ### 5.1 Routing and base URL
 
-All routes are mounted under `/api/v1/*`. In Cloudflare builds, [`apps/app/middleware.ts`](../../apps/app/middleware.ts) and [`apps/internal/middleware.ts`](../../apps/internal/middleware.ts) proxy same-origin `/api/v1/*` requests with [`packages/utils/src/http/upstream-api-proxy.ts`](../../packages/utils/src/http/upstream-api-proxy.ts). In local non-Cloudflare runs, `next.config.ts` rewrites preserve the same browser contract. Browser telemetry uses API routes under the same `/api/v1/*` proxy path.
+All routes are mounted under `/api/v1/*`. In Cloudflare builds, [`apps/app-vite/api/index.ts`](../../apps/app-vite/api/index.ts) and [`apps/internal-vite/api/index.ts`](../../apps/internal-vite/api/index.ts) proxy same-origin `/api/v1/*` requests with [`packages/utils/src/http/upstream-api-proxy.ts`](../../packages/utils/src/http/upstream-api-proxy.ts). In local Vite development, the dev-server proxy (`vite.config.ts`) preserves the same browser contract. Browser telemetry uses API routes under the same `/api/v1/*` proxy path.
 
 ### 5.2 Validation
 
@@ -827,7 +827,7 @@ Errors flow through the bootstrap-registered [`AllExceptionsFilter`](../../apps/
 
 ### 6.1 Feature architecture
 
-Each feature owns its surface inside `apps/app/features/<feature>/`:
+Each feature owns its surface inside `apps/app-vite/src/features/<feature>/`:
 
 ```
 features/appointments/
@@ -839,37 +839,37 @@ features/appointments/
 └── index.ts             # public surface; barrel export
 ```
 
-Cross-feature imports are blocked by [`check-feature-boundaries.mjs`](../../scripts/checks/check-feature-boundaries.mjs). Shared code lives in `apps/app/shared/{components,hooks,lib}` (reached via `@/components`, `@/hooks`, `@/lib`) until ≥2 apps need it, at which point it promotes to `packages/*`.
+Cross-feature imports are blocked by [`check-feature-boundaries.mjs`](../../scripts/checks/check-feature-boundaries.mjs). Shared code lives in `apps/app-vite/src/{components,hooks,lib}` (reached via `@/components`, `@/hooks`, `@/lib`) until ≥2 apps need it, at which point it promotes to `packages/*`.
 
 ### 6.2 Providers
 
-[`apps/app/providers/`](../../apps/app/providers/) wires the React Query client, navigation, theme, and the data-access bridge:
+[`apps/app-vite/src/providers/`](../../apps/app-vite/src/providers/) wires the React Query client, navigation, theme, and the data-access bridge:
 
-- The data-access bridge ([`data-access-bridge.tsx`](../../apps/app/providers/data-access-bridge.tsx)) injects the session-aware fetcher, `clinicId`, and tier guard into `@workspace/data-access` via `DataAccessProvider`.
-- [`apps/app/middleware.ts`](../../apps/app/middleware.ts) — CSP nonce generation, auth redirects for protected routes, and `/api/v1/*` proxy to the API (see §45).
+- The data-access bridge ([`data-access-bridge.tsx`](../../apps/app-vite/src/providers/react-query-provider.tsx)) injects the session-aware fetcher, `clinicId`, and tier guard into `@workspace/data-access` via `DataAccessProvider`.
+- [`apps/app-vite/api/index.ts`](../../apps/app-vite/api/index.ts) — CSP nonce generation, auth redirects for protected routes, and `/api/v1/*` proxy to the API (see §45).
 
 Provider order in the root layout matters: QueryClient → Auth → Clinic → DataAccess → Socket (when enabled) → theme/appearance.
 
 ### 6.2.1 Client state (Zustand)
 
-Server state lives in **React Query** (§6.3). Cross-cutting **client** state uses Zustand stores under [`apps/app/shared/lib/stores/`](../../apps/app/shared/lib/stores/):
+Server state lives in **React Query** (§6.3). Cross-cutting **client** state uses Zustand stores under [`apps/app-vite/src/lib/stores/`](../../apps/app-vite/src/lib/stores/):
 
 | Store | Purpose | Persistence |
 | --- | --- | --- |
-| [`permission-store.ts`](../../apps/app/shared/lib/stores/permission-store.ts) | Cached `currentTier`, `currentMode`, feature overrides from `syncFromClinic` | Session memory; **not** billing truth — see [`SINGLE_SOURCE_OF_TRUTH.md`](SINGLE_SOURCE_OF_TRUTH.md) |
-| [`appearance-store.ts`](../../apps/app/shared/lib/stores/appearance-store.ts) | Theme / density preferences | `localStorage` (allowlisted by `check-client-storage-usage.mjs`) |
+| [`permission-store.ts`](../../apps/app-vite/src/lib/stores/permission-store.ts) | Cached `currentTier`, `currentMode`, feature overrides from `syncFromClinic` | Session memory; **not** billing truth — see [`SINGLE_SOURCE_OF_TRUTH.md`](SINGLE_SOURCE_OF_TRUTH.md) |
+| [`appearance-store.ts`](../../apps/app-vite/src/lib/stores/appearance-store.ts) | Theme / density preferences | `localStorage` (allowlisted by `check-client-storage-usage.mjs`) |
 
 Feature-local UI state stays in feature hooks (`useState` / `useReducer`). Do not add a global store for data that already has an API source of truth.
 
 ### 6.2.2 Real-time (Socket.io)
 
-[`socket-context.tsx`](../../apps/app/shared/lib/contexts/socket-context.tsx) connects to Nest gateways ([`payment.websocket.gateway.ts`](../../apps/api/src/websockets/payment.websocket.gateway.ts), [`notifications.gateway.ts`](../../apps/api/src/websockets/notifications.gateway.ts)) using the **in-memory access token** (§7.4) because WebSocket handshakes do not send httpOnly cookies the same way as `fetch`.
+[`socket-context.tsx`](../../apps/app-vite/src/lib/socket/socket-context.tsx) connects to Nest gateways ([`payment.websocket.gateway.ts`](../../apps/api/src/websockets/payment.websocket.gateway.ts), [`notifications.gateway.ts`](../../apps/api/src/websockets/notifications.gateway.ts)) using the **in-memory access token** (§7.4) because WebSocket handshakes do not send httpOnly cookies the same way as `fetch`.
 
 **Invalidation contract (§16.3):** socket events trigger React Query `invalidateQueries` — they do not push partial entity state into Zustand. This keeps one cache owner and avoids dual sources of truth for appointments, payments, and notifications.
 
 ### 6.3 Data fetching: `@workspace/data-access` + React Query
 
-The pattern is: domain hooks live in `packages/data-access/src/hooks/` (e.g. `useAppointments`, `usePatients`, `useBillingHistory`) and consume `useDataAccessContext()` for the fetcher, clinic id, and tier guard. App-level composition (auth, locale, toasts) lives in `apps/app/features/<feature>/hooks/`. The legacy `apps/app/shared/hooks/api/` directory is forbidden ([`check-legacy-app-api-hooks.mjs`](../../scripts/checks/check-legacy-app-api-hooks.mjs)).
+The pattern is: domain hooks live in `packages/data-access/src/hooks/` (e.g. `useAppointments`, `usePatients`, `useBillingHistory`) and consume `useDataAccessContext()` for the fetcher, clinic id, and tier guard. App-level composition (auth, locale, toasts) lives in `apps/app-vite/src/features/<feature>/hooks/`. The legacy `apps/app-vite/src/hooks/api/` directory is forbidden ([`check-legacy-app-api-hooks.mjs`](../../scripts/checks/check-legacy-app-api-hooks.mjs)).
 
 Inline `fetch()` in features is blocked by [`check-frontend-fetch.mjs`](../../scripts/checks/check-frontend-fetch.mjs).
 
@@ -893,7 +893,7 @@ Stale time is intentionally **short** for queue/live-state data and **longer** f
 The single source of truth is `FEATURE_TIER_MAP` in `packages/types`. Same map drives:
 
 - Backend: `@RequireFeature(Feature.X)` and `assertClinicHasFeatureOrThrow(clinic, Feature.X)`.
-- Frontend: `<FeatureGate feature={Feature.X}>...</FeatureGate>` ([`apps/app/shared/components/auth/feature-gate.tsx`](../../apps/app/shared/components/auth/feature-gate.tsx)) and `hasFeatureAccess(clinic, Feature.X)` ([`apps/app/shared/hooks/use-tier-access.ts`](../../apps/app/shared/hooks/use-tier-access.ts)).
+- Frontend: `<FeatureGate feature={Feature.X}>...</FeatureGate>` ([`apps/app-vite/src/components/auth/feature-gate.tsx`](../../apps/app-vite/src/components/auth/feature-gate.tsx)) and `hasFeatureAccess(clinic, Feature.X)` ([`apps/app-vite/src/lib/subscription/tier-access.ts`](../../apps/app-vite/src/lib/subscription/tier-access.ts)).
 
 Numeric tier comparisons (`tier >= Tier.INTELLIGENCE`) are banned ([`check-tier-comparisons.mjs`](../../scripts/checks/check-tier-comparisons.mjs)). Front Desk gating is tier-only (`isFrontDeskTier(tier)`) — workspace-profile concepts were removed and are blocked by [`check-workspace-profile-gating.mjs`](../../scripts/checks/check-workspace-profile-gating.mjs).
 
@@ -911,13 +911,13 @@ Anti-pattern (avoid): wrapping everything in `useMemo` without measuring. Profil
 ### 6.6 Render strategies and code splitting
 
 - All clinician routes default to client components (`'use client'`) because they need session, React Query, and interactivity.
-- Server components are used in `apps/app/app/layout.tsx` and the root-level shells.
+- Server components are used in `apps/app-vite/src/layout.tsx` and the root-level shells.
 - Lazy-loading via `next/dynamic` for heavy panels (PDF viewer, charts, settings sub-pages). Dynamic-import budgets are checked by [`check-dynamic-import-budget.mjs`](../../scripts/checks/check-dynamic-import-budget.mjs).
 - Suspense + error boundary pairs are enforced by [`check-suspense-error-boundary-pair.mjs`](../../scripts/checks/check-suspense-error-boundary-pair.mjs) — any Suspense boundary must have a sibling error boundary so the page never gets stuck.
 
 ### 6.7 Forms
 
-React Hook Form + Zod resolver. Example patterns are repeated across `apps/app/features/onboarding/`, `apps/app/features/patients/`, `apps/app/features/appointments/`, and settings forms. Reuse a shared request schema when the form is the HTTP shape; otherwise compose a UI-only form schema and map deliberately at submit time. [`check-form-schema-extends.mjs`](../../scripts/checks/check-form-schema-extends.mjs) reports form schemas that appear to fork a base schema.
+React Hook Form + Zod resolver. Example patterns are repeated across `apps/app-vite/src/features/onboarding/`, `apps/app-vite/src/features/patients/`, `apps/app-vite/src/features/appointments/`, and settings forms. Reuse a shared request schema when the form is the HTTP shape; otherwise compose a UI-only form schema and map deliberately at submit time. [`check-form-schema-extends.mjs`](../../scripts/checks/check-form-schema-extends.mjs) reports form schemas that appear to fork a base schema.
 
 ### 6.8 UI primitives
 
@@ -1080,9 +1080,9 @@ If a refresh token that has already been rotated (`replacedByToken` set) is pres
 
 ### 7.4 Frontend storage and use
 
-[`apps/app/shared/lib/auth/session.ts`](../../apps/app/shared/lib/auth/session.ts) creates a session manager keyed `docita_token` over the data-access factory:
+[`apps/app-vite/src/lib/auth/session.ts`](../../apps/app-vite/src/lib/auth/session.ts) creates a session manager keyed `docita_token` over the data-access factory:
 
-```9:23:apps/app/shared/lib/auth/session.ts
+```9:23:apps/app-vite/src/lib/auth/session.ts
 export const appSession = createBrowserSessionManager({
   apiUrl: API_URL,
   tokenStorageKey: "docita_token",
@@ -1123,9 +1123,9 @@ export const appSession = createBrowserSessionManager({
   ```
 - The **refresh token is never read by JS** — it lives in the `HttpOnly` cookie scoped to `/api/v1/auth`. Refresh is performed by POSTing to `/auth/refresh` with `credentials: include`; the cookie is sent automatically.
 
-Request attach pattern ([`fetch-with-session.ts`](../../apps/app/shared/lib/auth/fetch-with-session.ts)):
+Request attach pattern ([`apps/app-vite/src/lib/api/api-client.ts`](../../apps/app-vite/src/lib/api/api-client.ts)):
 
-```27:55:apps/app/shared/lib/auth/fetch-with-session.ts
+```27:55:apps/app-vite/src/lib/api/api-client.ts
 export async function fetchWithSession(
   endpoint: string,
   init?: RequestInit,
@@ -1196,7 +1196,7 @@ The trade-off: anything that strips or transforms the `X-CSRF-Token` response he
 The previous version of this doc tracked "access token in `localStorage`" as known debt. As of the cookie-only migration:
 
 - `createBrowserSessionManager` no longer writes the access token to `localStorage` and removes any legacy stored value on construction.
-- Same-origin clients (`fetch-with-session`, the shared `client-factory`, the monitoring beacon) ride the httpOnly `access_token` cookie via `credentials: "include"` and no longer attach `Authorization: Bearer`.
+- Same-origin clients (`apps/app-vite/src/lib/api/api-client.ts`, the shared `client-factory`, the monitoring beacon) ride the httpOnly `access_token` cookie via `credentials: "include"` and no longer attach `Authorization: Bearer`.
 - The in-memory token is retained only for non-cookie channels (wss:// socket auth).
 - The JWT guard continues to accept either source, so any future cross-origin SDK consumer can still use Bearer auth without a server change.
 
@@ -1211,14 +1211,14 @@ Net effect: an XSS that achieves script execution can no longer read the access 
 - **No plaintext PHI in app logs.** Operational logs may carry reviewed identifiers and counts needed for triage, but not plaintext names, emails, phone numbers, DOBs, addresses, clinical narrative, or token material. The serializer/redactor and [`check-sensitive-logging.mjs`](../../scripts/checks/check-sensitive-logging.mjs) enforce part of this boundary; keep log-site review in the loop.
 - **Audit trail** for sensitive writes via `PatientDataAuditInterceptor` (§2.2). Coverage enforced by [`check-audit-logging.mjs`](../../scripts/checks/check-audit-logging.mjs), [`check-audit-coverage.mjs`](../../scripts/checks/check-audit-coverage.mjs), [`check-phi-read-audit.mjs`](../../scripts/checks/check-phi-read-audit.mjs).
 - **Emergency access** is recorded via [`apps/api/src/shared/common/interceptors/emergency-access.interceptor.ts`](../../apps/api/src/shared/common/interceptors/emergency-access.interceptor.ts) with break-glass justification.
-- **Sentry PHI scrubbing** in the frontend ([`apps/app/shared/lib/monitoring/sentry-phi-redactor.ts`](../../apps/app/shared/lib/monitoring/sentry-phi-redactor.ts)) and equivalent on the backend ([`check-sentry-scrubbing.mjs`](../../scripts/checks/check-sentry-scrubbing.mjs)).
+- **Sentry PHI scrubbing** in the frontend (canonical scrubber [`packages/utils/src/monitoring/phi-scrubber.ts`](../../packages/utils/src/monitoring/phi-scrubber.ts), wired in `apps/app-vite/src/lib/monitoring/`) and equivalent on the backend ([`check-sentry-scrubbing.mjs`](../../scripts/checks/check-sentry-scrubbing.mjs)).
 
 ### 8.2 Encryption
 
 - **Refresh tokens at rest**: SHA-256 hashed (§7.1).
 - **Field-level encryption** for sensitive columns via `EncryptionService` ([`apps/api/src/shared/common/encryption.service.ts`](../../apps/api/src/shared/common/encryption.service.ts)) using `ENCRYPTION_KEY`. Coverage tracked by [`check-phi-encryption-coverage.mjs`](../../scripts/checks/check-phi-encryption-coverage.mjs).
 - **Secrets rotation** procedure: [`docs/operations/SECRET_ROTATION_CHECKLIST.md`](../operations/SECRET_ROTATION_CHECKLIST.md).
-- **Critical env vars** (per AGENTS.md §6): `DATABASE_URL`, `JWT_SECRET` (≥32 chars), `ENCRYPTION_KEY` (64-char hex), `NEXT_PUBLIC_API_URL`. Process-env access patterns checked by [`check-process-env.mjs`](../../scripts/checks/check-process-env.mjs).
+- **Critical env vars** (per AGENTS.md §6): `DATABASE_URL`, `JWT_SECRET` (≥32 chars), `ENCRYPTION_KEY` (64-char hex), `VITE_API_URL`. Process-env access patterns checked by [`check-process-env.mjs`](../../scripts/checks/check-process-env.mjs).
 
 ### 8.3 Webhook security
 
@@ -1396,7 +1396,7 @@ Pattern checklist for any future "check, then insert" race:
 
 | Script | What it measures |
 | --- | --- |
-| [`scripts/perf/perf-baseline.mjs`](../../scripts/perf/perf-baseline.mjs) | Captures baseline bundle sizes, route weights, and time-to-interactive for `apps/app` and `apps/internal`. Output is checked into baselines for regression comparison. |
+| [`scripts/perf/perf-baseline.mjs`](../../scripts/perf/perf-baseline.mjs) | Captures baseline bundle sizes, route weights, and time-to-interactive for `apps/app-vite` and `apps/internal-vite`. Output is checked into baselines for regression comparison. |
 | [`scripts/perf/check-perf-budget.mjs`](../../scripts/perf/check-perf-budget.mjs) | Compares current build against baseline; fails if any route or chunk exceeds the budget. Run via `pnpm perf:budget:warn` (advisory) and `pnpm perf:budget:enforce` (fails CI). |
 | [`scripts/perf/check-a11y-budget.mjs`](../../scripts/perf/check-a11y-budget.mjs) | Accessibility violation budget. |
 | [`scripts/perf/accessibility-audit.ts`](../../scripts/perf/accessibility-audit.ts) + [`run-app-accessibility-audit.mjs`](../../scripts/perf/run-app-accessibility-audit.mjs) | Playwright-driven axe-core runs against critical pages. |
@@ -1404,7 +1404,7 @@ Pattern checklist for any future "check, then insert" race:
 
 ### 10.2 Web vitals
 
-The clinician frontend collects web vitals in [`web-vitals-reporter.tsx`](../../apps/app/shared/components/layout/web-vitals-reporter.tsx) and posts to `/api/v1/monitoring/web-vitals` with `keepalive: true`. That request follows the same-origin middleware proxy (§45). This satisfies the AGENTS.md §4 rule that browser telemetry must not POST directly to `api.docita.work`.
+The clinician frontend collects web vitals in [`web-vitals-reporter.tsx`](../../apps/app-vite/src/lib/monitoring/web-vitals.ts) and posts to `/api/v1/monitoring/web-vitals` with `keepalive: true`. That request follows the same-origin middleware proxy (§45). This satisfies the AGENTS.md §4 rule that browser telemetry must not POST directly to `api.docita.work`.
 
 Failure mode: vitals telemetry must be non-blocking and must not produce console noise. The proxy swallows errors silently and uses `keepalive: true` so it survives page unload.
 
@@ -1520,7 +1520,7 @@ These are not bugs — they're tracked technical debt items worth knowing about 
 
 ## 13. Pointers for new contributors
 
-- New feature: start with the Zod schema in `packages/types`, then API DTO + domain, then `packages/data-access` hook, then `apps/app/features/<feature>/`. See AGENTS.md §9.1.
+- New feature: start with the Zod schema in `packages/types`, then API DTO + domain, then `packages/data-access` hook, then `apps/app-vite/src/features/<feature>/`. See AGENTS.md §9.1.
 - New DB column: schema first, migration, then update mappers and Zod schemas. Run `pnpm db:generate`. See AGENTS.md §9.2.
 - New write race? Use the pattern in §9.
 - New external provider? Strategy/adapter pattern (§3.5). Don't import the SDK outside `infrastructure/adapters/<provider>/`.
@@ -1742,13 +1742,13 @@ Bulk document OCR in imports uses [`text-extractor.service.ts`](../../apps/api/s
 | --- | --- | --- |
 | `apps/api` | NestJS bundle | Fly.io (`fly.toml`, primary region + replicas) |
 | `apps/worker` | NestJS bundle | Fly.io (`apps/worker/fly.toml`) |
-| `apps/app` | OpenNext (Cloudflare adapter) | Cloudflare Workers (`wrangler.toml`) |
-| `apps/internal` | OpenNext | Cloudflare Workers (`wrangler.toml` / `wrangler.staging.toml`) |
+| `apps/app-vite` | Vite SPA (static build) | Cloudflare (static assets + Hono proxy Worker; `wrangler.toml`) |
+| `apps/internal-vite` | Vite SPA (static build) | Cloudflare (static assets + Hono proxy Worker; `wrangler.toml` / `wrangler.staging.toml`) |
 | `apps/landing` | Astro | Cloudflare Workers |
 
-### 21.2 OpenNext quirks
+### 21.2 Cloudflare build quirks
 
-[`scripts/deploy/`](../../scripts/deploy/) contains OpenNext/Astro patch guards, Cloudflare credential checks, application security-header verifiers, DB schema-sync verification, and the API startup smoke. Edge changes that stream or set unusual headers should extend these verifiers.
+[`scripts/deploy/`](../../scripts/deploy/) contains Cloudflare/Astro patch guards, Cloudflare credential checks, application security-header verifiers, DB schema-sync verification, and the API startup smoke. Edge changes that stream or set unusual headers should extend these verifiers.
 
 ### 21.3 CI scope detection
 
@@ -1766,28 +1766,28 @@ Bulk document OCR in imports uses [`text-extractor.service.ts`](../../apps/api/s
 
 ## 22. Internal admin app
 
-[`apps/internal/`](../../apps/internal/) mirrors the structure of `apps/app/` but with a thinner `shared/lib` (no subscription/access-control trees) and a narrower feature set: tenant CRUD, support tools, audit log search, queue/DLQ inspection, feature-flag toggles.
+[`apps/internal-vite/`](../../apps/internal-vite/) mirrors the structure of `apps/app-vite/` but with a thinner `shared/lib` (no subscription/access-control trees) and a narrower feature set: tenant CRUD, support tools, audit log search, queue/DLQ inspection, feature-flag toggles.
 
-### 22.1 Layout parity with `apps/app`
+### 22.1 Layout parity with `apps/app-vite`
 
-| Area | `apps/app` | `apps/internal` |
+| Area | `apps/app-vite` | `apps/internal-vite` |
 | --- | --- | --- |
-| Routes | `app/(protected)/…` | Same App Router conventions |
+| Routes | `src/App.tsx` route tree (`ProtectedLayout`) | Same React Router conventions |
 | Features | `features/<feature>/` | Smaller feature set (ops/support) |
-| Data access | `packages/data-access` + bridge | `packages/data-access/internal` hooks |
-| Proxy | `middleware.ts` `/api/v1/*` branch | Same-origin proxy pattern |
+| Data access | `packages/data-access` + `DataAccessProvider` | `packages/data-access/internal` hooks |
+| Proxy | Hono proxy Worker (`api/index.ts`) `/api/v1/*` branch | Same-origin proxy pattern |
 | Sentry | Runtime-specific configs | PHI scrubber parity enforced (§56 item 45) |
 
 ### 22.2 Auth and network
 
-Authentication uses a separate JWT audience (`StaffJwtAudienceGuard` in the guard chain, §2.2). Internal staff cannot authenticate to `apps/app`, and clinic users cannot authenticate to `apps/internal`. The split is enforced both at token issuance and at every request.
+Authentication uses a separate JWT audience (`StaffJwtAudienceGuard` in the guard chain, §2.2). Internal staff cannot authenticate to `apps/app-vite`, and clinic users cannot authenticate to `apps/internal-vite`. The split is enforced both at token issuance and at every request.
 
 Network exposure is restricted via Cloudflare Access policy (IP allowlist + SSO) — independent from the JWT layer (defense in depth).
 
 ### 22.3 When to put code in internal vs app
 
-- **Operator-only** surfaces (DLQ replay UI, global feature flags, cross-tenant search) → `apps/internal/features/`.
-- **Clinic-scoped** product UX → `apps/app/features/`.
+- **Operator-only** surfaces (DLQ replay UI, global feature flags, cross-tenant search) → `apps/internal-vite/src/features/`.
+- **Clinic-scoped** product UX → `apps/app-vite/src/features/`.
 - Shared DTOs/types → `packages/types/src/admin/` and `packages/data-access/src/internal/hooks/`.
 
 ---
@@ -1799,11 +1799,11 @@ Network exposure is restricted via Cloudflare Access policy (IP allowlist + SSO)
 ### 23.1 Static pages and islands
 
 - Marketing routes are Astro components with minimal React islands only where interactivity is required (booking widgets, payment token pages).
-- No shared JS bundle with `apps/app` — deploy and cache policies stay independent (§21.1).
+- No shared JS bundle with `apps/app-vite` — deploy and cache policies stay independent (§21.1).
 
 ### 23.2 Edge API proxy (BFF)
 
-[`apps/landing/src/pages/api/[...path].ts`](../../apps/landing/src/pages/api/%5B...path%5D.ts) forwards `/api/*` to the upstream API through an Astro `APIRoute`. It currently carries a small local implementation rather than importing the Next/OpenNext helper:
+[`apps/landing/src/pages/api/[...path].ts`](../../apps/landing/src/pages/api/%5B...path%5D.ts) forwards `/api/*` to the upstream API through an Astro `APIRoute`. It currently carries a small local implementation rather than importing the shared `upstream-api-proxy.ts` helper:
 
 - Strips **hop-by-hop** headers (`connection`, `transfer-encoding`, …) before forwarding.
 - Appends `/api/<path>` to `API_PROXY_TARGET`.
@@ -1838,7 +1838,7 @@ This is conceptually the same edge-BFF pattern as §45, but the public landing s
 | Integration | Vitest + ephemeral Postgres | Repository + use case against a real schema |
 | Domain rules | `check-domain-rules-tests.mjs` | Mandatory tests for every rule in `core/domain-services/` |
 | Feature density | `check-feature-test-density.mjs` | Floor on tests-per-feature |
-| E2E (web) | Playwright | `apps/app/e2e/`, `apps/internal/e2e/` |
+| E2E (web) | Playwright | `apps/app-vite/e2e/`, `apps/internal-vite/e2e/` |
 | E2E nav | `check-e2e-nav-routes.mjs` | Every route in the nav is exercised |
 | Visual / a11y | `pnpm audit:app` | Playwright-driven axe accessibility audit |
 
@@ -1868,7 +1868,7 @@ Prefer `make<Entity>` factories for repeated aggregate fixtures: valid defaults 
 | `scripts/perf/` | Performance budgets and baselines |
 | `scripts/ui/` | Color contrast, UI copy, design-token verification |
 | `scripts/db/` | DB seed, snapshot, sanity-checks |
-| `scripts/deploy/` | OpenNext patches, smoke tests, header verifiers |
+| `scripts/deploy/` | Cloudflare/Astro patch guards, smoke tests, header verifiers |
 | `scripts/lib/` | Shared helpers for other scripts |
 
 ### 25.3 Verify bundles
@@ -1961,7 +1961,7 @@ This section is the long-form companion to §12. It splits into "posture" (secur
 25. ~~**Web Vitals are measured but not budgeted per route**~~ — **resolved**. See `scripts/perf/route-budgets.config.mjs` (`ROUTE_WEB_VITALS`).
 26. **React Query cache invalidation** — **convention adopted**. Per-domain invalidation maps land in `packages/data-access` hooks; tracked in [`packages/data-access/CHANGELOG.md`](../../packages/data-access/CHANGELOG.md).
 27. **Skeleton coverage uneven** — **convention adopted**. New surfaces use `DataState` (UI standard §3); pre-existing inline skeletons are migrated when their pages are touched.
-28. ~~**No visual-regression coverage**~~ — **resolved**. See [`apps/app/e2e/visual-regression.spec.ts`](../../apps/app/e2e/visual-regression.spec.ts) (gated by `NEXT_PUBLIC_ENABLE_VISUAL_TESTS`).
+28. ~~**No visual-regression coverage**~~ — **resolved**. See [`apps/app-vite/e2e/accessibility.spec.ts`](../../apps/app-vite/e2e/accessibility.spec.ts).
 
 ### 28.4 Backend specifically
 
@@ -1976,7 +1976,7 @@ This section is the long-form companion to §12. It splits into "posture" (secur
 34. ~~**No structured incident playbooks**~~ — **resolved**. Five playbooks in [`docs/operations/playbooks/`](../operations/playbooks/).
 35. ~~**DLQ has no auto-replay tooling**~~ — **scaffolded**. [`dlq-replay.scheduler.ts`](../../apps/api/src/shared/modules/queue/dlq-replay.scheduler.ts) (inert; wire after classification rules ratified).
 36. ~~**Cron-failure alerts are best-effort**~~ — **resolved** (decorator + check + persistence). Every `@Cron` handler in `apps/api/src/` carries a unique `@TrackHeartbeat('<name>')`; `pnpm check:cron-heartbeat-coverage` is in `verify:standard` and fails on coverage gaps **or** duplicate names. The worker-scoped [`PrismaCronHeartbeatService`](../../apps/api/src/shared/modules/schedule/cron-heartbeat.ts) registers the active recorder and upserts success/failure state into the `CronHeartbeat` model.
-37. ~~**Frontend error boundaries** are present per page but the catch + telemetry behavior varies~~ — **resolved**. Single `ErrorBoundary` in `@workspace/ui/components/feedback/`; app wrapper at [`apps/app/shared/components/errors/error-boundary.tsx`](../../apps/app/shared/components/errors/error-boundary.tsx) wires Sentry.
+37. ~~**Frontend error boundaries** are present per page but the catch + telemetry behavior varies~~ — **resolved**. Single `ErrorBoundary` in `@workspace/ui/components/feedback/`; app wrapper at [`apps/app-vite/src/components/errors/error-boundary.tsx`](../../apps/app-vite/src/components/errors/error-boundary.tsx) wires Sentry.
 38. ~~**No synthetic uptime monitoring** documented~~ — **resolved**. See [`docs/operations/SYNTHETIC_MONITORING.md`](../operations/SYNTHETIC_MONITORING.md).
 38a. ~~**Fly cold start returns 502**~~ — **mitigated**. `apps/api` uses
     `auto_stop_machines = 'suspend'` with `grace_period = '240s'` so an
@@ -2201,7 +2201,7 @@ upload → classify → extract → normalize → score → preview → commit
 
 ## 35. Internal admin services
 
-`apps/api/src/shared/modules/internal/` is the backend half of `apps/internal/`. It is a separate module — not just a separate controller — so its dependencies (which include cross-tenant queries) can be wired without polluting the per-tenant modules.
+`apps/api/src/shared/modules/internal/` is the backend half of `apps/internal-vite/`. It is a separate module — not just a separate controller — so its dependencies (which include cross-tenant queries) can be wired without polluting the per-tenant modules.
 
 Capabilities:
 
@@ -2294,11 +2294,11 @@ When RLS is enabled for a clinic-scoped HTTP request, [`TenantContextInterceptor
 
 ## 40. Frontend `shared/lib` taxonomy
 
-`apps/app/shared/lib/` is the largest "everything-else" tree in the frontend. It is **not** a junk drawer — it is organized by concern:
+`apps/app-vite/src/lib/` is the largest "everything-else" tree in the frontend. It is **not** a junk drawer — it is organized by concern:
 
 | Subtree | Owns |
 | --- | --- |
-| `auth/` | Browser session, CSRF, login lockout, return-path safety, idle logout, fetch-with-session |
+| `auth/` | Browser session, CSRF, login lockout, return-path safety, idle logout, browser request/fetch helpers |
 | `access-control/` | Client-side mirror of API permissions (the matrix + parsers + rules) |
 | `subscription/` | Tier and feature-gate hooks/components |
 | `contexts/` | `AppConfig`, `Clinic`, `Socket`, `TierConfig` providers |
@@ -2361,42 +2361,42 @@ Updated 2026-05 after the §28/§56 sweep. A few items deserve nuance:
 
 ---
 
-## 44. Next.js App Router structure (`apps/app/`)
+## 44. Vite SPA route tree (`apps/app-vite/`)
 
-The clinician app uses Next 16 App Router with **route groups** to keep auth states cleanly separated. The top-level structure under `apps/app/app/`:
+The clinician app is a Vite + React Router SPA. Auth states are separated by **layouts** in the route tree (`apps/app-vite/src/App.tsx`), which compose guards and chrome per surface:
 
-| Route group | Purpose | Layout owns |
+| Layout | Purpose | Chrome |
 | --- | --- | --- |
-| `(auth)/` | Login, register, password reset, MFA challenge | Public chrome, no nav |
-| `(setup)/` | Post-signup onboarding (clinic profile, team invites, payment) | Onboarding-only chrome |
-| `(protected)/` | Authenticated clinician surface — the bulk of the app | Full app shell with nav, sidebar, command palette |
-| `(tools)/` | Internal dev/QA tooling (gated by feature flag) | Minimal chrome |
-| `portal/` | Patient-portal subtree (different auth audience) | Portal-specific shell |
-| `book/` | Public booking flow (no auth required) | Marketing-style chrome |
-| `middleware.ts` | Cloudflare same-origin `/api/v1/*` proxy + CSP headers | N/A |
+| `AuthLayout` | Login, register, password reset, MFA challenge | Public chrome, no nav |
+| `SetupLayout` | Post-signup onboarding (clinic profile, team invites, payment) | Onboarding-only chrome |
+| `ProtectedLayout` | Authenticated clinician surface — the bulk of the app | Full app shell with nav, sidebar, command palette |
+| `ToolsLayout` | Internal dev/QA tooling (gated by `check-tools-route-gate`) | Minimal chrome |
+| `PortalLayout` | Patient-portal subtree (different auth audience) | Portal-specific shell |
+| `PublicLayout` | Public booking flow (no auth required) | Marketing-style chrome |
+| `apps/<app>/api/index.ts` | Hono proxy Worker: same-origin `/api/v1/*` + `/socket.io/*` | N/A |
 
-### 44.1 Route-group layout cascade
+### 44.1 Layout cascade
 
-Each group has its own `layout.tsx` so the chrome (sidebar, header, command palette) is mounted *once per session*, not re-mounted on route change. The shared providers (`react-query-provider`, `data-access-bridge`, `navigation-history-provider`, `app-config-context`) live in `app/layout.tsx` so they survive across groups — which means a user clicking from `(protected)` to `(auth)` (logout) does not lose React Query cache or socket subscriptions until the auth state actually changes.
+Each layout mounts its chrome (sidebar, header, command palette) *once per session*, not re-mounted on route change. The shared providers (`react-query-provider`, `navigation-history-provider`, `app-config-context`, theme) are mounted once in `main.tsx` so they survive across layout changes — a user moving from the protected app to auth (logout) does not lose React Query cache or socket subscriptions until the auth state actually changes. Guards live in the route tree (`src/App.tsx`), not in per-page hooks; `/api/*` and `/socket.io/*` traffic is proxied by the Hono Worker.
 
 ### 44.2 Top-level error and not-found handling
 
-- `app/error.tsx` — the global error boundary (last-resort).
-- `app/global-error.tsx` — the root-of-root fallback when even the layout failed.
-- `app/not-found.tsx` — 404 surface.
-- Each route group additionally has its own `error.tsx` so an error in `(protected)/patients/...` doesn't unmount the app shell.
+- Root `errorElement` — the global error boundary (last-resort).
+- Root `errorElement` on `*` — the root-of-root fallback when even the layout failed.
+- `*` catch-all route — 404 surface.
+- Nested route `errorElement` boundaries keep an error in `patients/:id/...` from unmounting the app shell.
 
-`check-error-tsx-coverage.mjs` enforces that every meaningful route segment has an `error.tsx`.
+`check-error-tsx-coverage.mjs` enforces that every meaningful route segment has an error boundary.
 
 ### 44.3 Feature surfaces and `route-meta.ts`
 
-[`apps/app/app/(protected)/route-meta.ts`](../../apps/app/app/%28protected%29/route-meta.ts) holds a path → `{ label, parentPath? }` map covering every protected route (including dynamic segments like `/patients/[id]`). It is consumed for breadcrumbs and page-title resolution — a lightweight registry, not a full nav/permission spec. Sidebar entries, permission gates, and tier gates live elsewhere (`shared/components/navigation/*`, `shared/lib/access-control/`). `check-e2e-nav-routes.mjs` cross-references nav routes against Playwright e2e specs to ensure every nav-visible route has at least one nav test.
+[`apps/app-vite/src/lib/routing/route-meta.ts`](../../apps/app-vite/src/lib/routing/route-meta.ts) holds a path → `{ label, parentPath? }` map covering every protected route (including dynamic segments like `/patients/:id`). It is consumed for breadcrumbs and page-title resolution — a lightweight registry, not a full nav/permission spec. Sidebar entries, permission gates, and tier gates live elsewhere (`components/navigation/*`, `lib/access-control/`). `check-e2e-nav-routes.mjs` cross-references nav routes against Playwright e2e specs to ensure every nav-visible route has at least one nav test.
 
 ---
 
-## 45. Same-origin API proxy (Cloudflare middleware)
+## 45. Same-origin API proxy (Hono proxy Worker)
 
-[`apps/app/middleware.ts`](../../apps/app/middleware.ts) and [`apps/internal/middleware.ts`](../../apps/internal/middleware.ts) proxy `/api/v1/*` in Cloudflare builds. Both delegate to [`packages/utils/src/http/upstream-api-proxy.ts`](../../packages/utils/src/http/upstream-api-proxy.ts). Local Next development uses `next.config.ts` rewrites so callers keep the same same-origin URL contract.
+[`apps/app-vite/api/index.ts`](../../apps/app-vite/api/index.ts) and [`apps/internal-vite/api/index.ts`](../../apps/internal-vite/api/index.ts) proxy `/api/v1/*` (and `/socket.io/*` upgrades) in Cloudflare builds. Both delegate to [`packages/utils/src/http/upstream-api-proxy.ts`](../../packages/utils/src/http/upstream-api-proxy.ts). Local Vite development uses the dev-server proxy (`vite.config.ts`) so callers keep the same same-origin URL contract.
 
 ### 45.1 Responsibilities
 
@@ -2472,11 +2472,11 @@ Generated client lives in `dist/`; consumers import from `@workspace/db`, never 
 The React Query hook layer. Internal layout:
 
 - `core/` — `useApiQuery`, `useApiQueryValidated`, `useApiMutation`, `stale-time.ts`. The validated variant pipes responses through Zod before handing them to React Query, catching API/contract drift at the client edge.
-- `provider/` — `DataAccessProvider`, `context.ts`, `useDataAccessContext()`. The app wires the actual fetcher + clinicId + tier guard at the provider boundary (`apps/app/providers/data-access-bridge.tsx`); the package itself is environment-agnostic.
+- `provider/` — `DataAccessProvider`, `context.ts`, `useDataAccessContext()`. The app wires the actual fetcher + clinicId + tier guard at the provider boundary (`apps/app-vite/src/providers/react-query-provider.tsx`); the package itself is environment-agnostic.
 - `hooks/` — one file per domain (~35 files: appointments, patients, billing, prescriptions, …). Each file exports both queries and mutations and owns its query-key prefix.
 - `types/` — shared response shapes.
 - `lib/` — small utilities (URL builders, error mappers).
-- `internal/` — exports for `apps/internal/` that should not be consumed by `apps/app/`.
+- `internal/` — exports for `apps/internal-vite/` that should not be consumed by `apps/app-vite/`.
 
 ### 46.4 `packages/ui`
 
@@ -2498,7 +2498,7 @@ The presentational primitive layer. Internal grouping under `components/`:
 
 ### 46.5 `packages/auth`
 
-Tiny — just shared session semantics (`session-semantics.ts`) used by both `apps/api` (token issuance/refresh logic) and `apps/app` (browser-side session validation). Keeping it in its own package prevents a circular import between api and app shared libs.
+Tiny — just shared session semantics (`session-semantics.ts`) used by both `apps/api` (token issuance/refresh logic) and `apps/app-vite` (browser-side session validation). Keeping it in its own package prevents a circular import between api and app shared libs.
 
 ### 46.6 `packages/hooks` and `packages/utils`
 
@@ -2515,7 +2515,7 @@ Framework-agnostic primitives — **no imports from other workspace packages** (
 | `use-medical-calculations` | BMI and related UI calculators |
 | `use-clipboard`, `use-toggle`, `use-previous` | Small UX helpers |
 
-Do not add Next.js or `react-query` imports here — those belong in `apps/app` or `packages/data-access`.
+Do not add Next.js or `react-query` imports here — those belong in `apps/app-vite` or `packages/data-access`.
 
 #### `packages/utils` (domain-heavy)
 
@@ -2525,7 +2525,7 @@ Do not add Next.js or `react-query` imports here — those belong in `apps/app` 
 | `medical/` | `medical-calculations.ts`, date-of-birth age | Vitals, consultation forms |
 | `date-formatting/`, `date-config/` | Clinic timezone, wall↔UTC | Scheduling, PDFs |
 | `monitoring/phi-scrubber.ts` | Canonical Sentry scrubber | All apps (parity check §56 item 45) |
-| `http/upstream-api-proxy.ts` | OpenNext BFF header/cookie rewrite | `apps/app`, `apps/internal` |
+| `http/upstream-api-proxy.ts` | Hono proxy-Worker header/cookie rewrite | `apps/app-vite`, `apps/internal-vite` |
 | `async/map-with-concurrency.ts` | Bounded parallelism | Imports, OCR batches |
 
 **Rule:** If a helper encodes a **canonical data point** (patient full name, currency format, plan tier label), it must align with [`SINGLE_SOURCE_OF_TRUTH.md`](SINGLE_SOURCE_OF_TRUTH.md) — do not fork a second formatter in app `shared/lib`.
@@ -2596,9 +2596,9 @@ The local stack is **dev-only**: Postgres, Redis (optional), and the apps. Produ
 
 | Port | Service |
 | --- | --- |
-| 3000 | `apps/app` (Next dev) |
+| 3000 | `apps/app-vite` (Vite dev) |
 | 3001 | `apps/api` (Nest dev) |
-| 3002 | `apps/internal` |
+| 3002 | `apps/internal-vite` |
 | 3003 | `apps/landing` (Astro) |
 | 5432 | Postgres (compose) |
 | 6379 | Redis (compose, optional) |
@@ -2644,28 +2644,28 @@ The OCR pipeline (§20, §34) uses `tesseract.js` via [`apps/api/src/shared/modu
 | `scripts/db/` | `db-check.mjs`, timestamptz annotation/migration helpers, appointment-instant repair, ICD import. |
 | `scripts/perf/` | Performance and accessibility baselines, route budgets, responsive/mobile smokes. |
 | `scripts/ui/` | `check-contrast.mjs` and `detect-hardcoded-colors.js`. |
-| `scripts/deploy/` | API startup smoke, security-header verifiers, DB schema-sync verification, Cloudflare credential verification, and OpenNext/Astro patch guards. |
+| `scripts/deploy/` | API startup smoke, security-header verifiers, DB schema-sync verification, Cloudflare credential verification, and Cloudflare/Astro patch guards. |
 | `scripts/workflow/` | `detect-workflow-scope.mjs`, `check-repo-hygiene.mjs`, `verify-package-contracts.mjs`, `verify-turborepo-structure.mjs`. |
 
 ---
 
-## 51. Sentry, monitoring, and Next instrumentation
+## 51. Sentry and monitoring
 
 ### 51.1 Runtime-specific Sentry configs
 
-- `apps/app/instrumentation.ts` initializes the clinician app's server runtime conditionally.
-- App and internal shared monitoring folders carry server/client configuration appropriate to their boot paths.
+- `apps/app-vite/src/lib/monitoring/` initializes the clinician app's browser Sentry runtime.
+- App and internal shared monitoring folders carry client configuration appropriate to their boot paths.
 - `packages/utils/src/monitoring/phi-scrubber.ts` is the canonical shared scrubber; parity checks protect early-boot variants.
 
-The split exists because server and browser environments initialize differently. PHI redaction must remain semantically aligned even where boot files differ.
+The split exists because browser environments initialize differently. PHI redaction must remain semantically aligned even where boot files differ.
 
-### 51.2 `instrumentation.ts`
+### 51.2 Browser-only Sentry bootstrap
 
-[`apps/app/instrumentation.ts`](../../apps/app/instrumentation.ts) is Next's official hook for runtime initialization. It guards on `DOCITA_CLOUDFLARE=1` and `NEXT_RUNTIME !== 'nodejs'` so the Cloudflare Worker build doesn't try to load Node-only Sentry packages. This guard is load-bearing — without it, OpenNext builds fail.
+Both Vite apps initialize Sentry in the browser entry (`src/main.tsx` via `@sentry/react`); there is no server runtime to initialize. The scrubber ships from `packages/utils`, and parity checks (`check-sentry-scrubber-parity`) keep the app and internal configurations aligned.
 
 ### 51.3 Frontend ingestion boundary
 
-The checked-in repository does not define a Next `/api/monitoring/sentry` tunnel route. Treat Sentry SDK transport and `/api/v1/monitoring/web-vitals` as separate paths: both require non-blocking behavior and PHI scrubbing, but only the API telemetry route uses the application middleware proxy.
+The checked-in repository does not define a Next `/api/monitoring/sentry` tunnel route. Treat Sentry SDK transport and `/api/v1/monitoring/web-vitals` as separate paths: both require non-blocking behavior and PHI scrubbing, but only the API telemetry route uses the application proxy Worker.
 
 ---
 
@@ -2775,7 +2775,7 @@ The further "in" a concern lives, the more universally it applies. The Prisma ex
 - **Versioned field encryption** — selected patient PII values encrypted with authenticated AES-GCM and a key-version prefix (§27.2, §30.2).
 - **Facade service** — composes command + query services, exposed to controllers (§3.3).
 - **Idempotency key** — natural or supplied key paired with a unique ledger row to make retries safe (§14.3, §5.4).
-- **OpenNext** — Cloudflare-Workers adapter for Next.js. Powers `apps/app` and `apps/internal` (§21.2).
+- **Hono proxy Worker** — `apps/<app>/api/index.ts`. Routes same-origin `/api/v1/*` (and `/socket.io/*` upgrades) to the upstream API in Cloudflare builds (§21.2, §45).
 - **Outbox** — transactional event table + cron relay to EventEmitter2 (§60); full multi-region/queue retry still pending (§28.2 items 11–12).
 - **PHI** — Protected Health Information. Centralized definition (§27.1).
 - **Port / Adapter** — DIP pair. Ports in `core/repositories/` or `application/ports/`; adapters in `infrastructure/`.
@@ -2791,7 +2791,7 @@ The further "in" a concern lives, the more universally it applies. The Prisma ex
 
 Not in §28 but worth flagging after the deeper walkthrough:
 
-42. ~~**Dual deploy targets (Vercel + Cloudflare/OpenNext)**~~ — **resolved**. Vercel is retired; both `vercel.json` files have been deleted. §21.1 (Cloudflare/OpenNext only) is now accurate.
+42. ~~**Dual deploy targets (Vercel + Cloudflare/OpenNext)**~~ — **resolved**. Vercel is retired; both `vercel.json` files have been deleted. §21.1 (Cloudflare static assets + Hono proxy Worker only) is now accurate.
 43. ~~**Canonical `schema.prisma` plus documentation decomposition**~~ — **resolved**. The hand-maintained secondary snapshots were retired; [`packages/db/prisma/schema/README.md`](../../packages/db/prisma/schema/README.md) points to the only consumed schema (§52.3).
 44. ~~**`route-meta.ts` hand-maintained**~~ — **resolved (advisory)**. `scripts/checks/check-route-meta-coverage.mjs` flags routes missing from the map.
 45. ~~**Two Sentry configs (server + client) per app × 2 apps = 4 places**~~ — **resolved**. Canonical scrubber lives in [`packages/utils/src/monitoring/phi-scrubber.ts`](../../packages/utils/src/monitoring/phi-scrubber.ts); `scripts/checks/check-sentry-scrubber-parity.mjs` enforces parity with the per-app early-boot scrubbers.
@@ -2803,7 +2803,7 @@ Not in §28 but worth flagging after the deeper walkthrough:
 51. ~~**Turbo's `globalEnv` and `.env.example` can drift**~~ — **resolved**. `scripts/checks/check-env-vs-globalenv.mjs`.
 52. ~~**Per-package CHANGELOG.md is absent**~~ — **mostly resolved**. Runtime/shared-code packages carry changelogs; config-only packages (`eslint-config`, `typescript-config`) do not.
 53. ~~**No checked-in public OpenAPI snapshot**~~ — **resolved by policy**. [`apps/api/scripts/generate-openapi.ts`](../../apps/api/scripts/generate-openapi.ts) writes `docs/api/openapi.json` as a release artifact; [`docs/api/README.md`](../api/README.md) records that the generated snapshot is intentionally ignored rather than committed.
-54. ~~**The `(tools)/` route group is feature-flag gated, not build-time**~~ — **resolved**. [`apps/app/app/(tools)/layout.tsx`](../../apps/app/app/%28tools%29/layout.tsx) calls `notFound()` in production unless `NEXT_PUBLIC_ENABLE_TOOLS` is true. `scripts/checks/check-tools-route-gate.mjs` enforces.
+54. ~~**The `(tools)/` route group is feature-flag gated, not build-time**~~ — **resolved**. The Vite `ToolsLayout` (in the `src/App.tsx` route tree) is gated by the tools-route gate; `scripts/checks/check-tools-route-gate.mjs` enforces.
 55. ~~**`apps/landing` E2E is uncovered**~~ — **resolved**. See [`apps/landing/e2e/booking-redirect.spec.ts`](../../apps/landing/e2e/booking-redirect.spec.ts).
 56. ~~**Daily-thought ownership was unclear**~~ — **resolved**. It is API-owned public data under `/api/v1/public/*`, reached through the same-origin proxy.
 
@@ -2842,10 +2842,10 @@ See §6.2.1–6.2.2 for implementation detail. Design rules:
 
 1. Declare controller posture (`@Roles`, `@RequireFeature`, or `@Public`) — [`check-controller-rbac.mjs`](../../scripts/checks/check-controller-rbac.mjs).
 2. Add `policyEngine.assertCan` (or equivalent guard) for resource-level actions.
-3. Mirror route visibility in [`access-routes.ts`](../../apps/app/shared/lib/access-control/access-routes.ts) and command palette / sidebar config (`nav-config.ts`).
+3. Mirror route visibility in [`access-policy.ts`](../../apps/app-vite/src/lib/access-control/access-policy.ts) and command palette / sidebar config (`nav-config.ts`).
 4. Front Desk: use `shouldDenyAccessForFrontDeskTier` / `FRONT_DESK_BLOCKED_ACCESS_TARGETS` from `@workspace/types` — not legacy workspace-profile symbols.
 
-Internal app (`apps/internal`) uses a reduced policy surface; staff JWT audience is separate (§22).
+Internal app (`apps/internal-vite`) uses a reduced policy surface; staff JWT audience is separate (§22).
 
 ---
 
@@ -3139,7 +3139,7 @@ The contract is enforced across the shared contract, API, and UI boundaries:
 1. [`packages/types/src/contracts/onboarding.ts`](../../packages/types/src/contracts/onboarding.ts) defines `onboardingTrialEligibilityResponseSchema`.
 2. [`onboarding.controller.ts`](../../apps/api/src/domains/clinics/presentation/controllers/onboarding.controller.ts) exposes `POST /api/v1/onboarding/:onboardingId/trial-eligibility` for the authenticated pre-clinic owner.
 3. [`onboarding.service.ts`](../../apps/api/src/domains/clinics/application/services/onboarding/onboarding.service.ts) validates the onboarding session and evaluates prior subscriptions through `hasPriorSubscriptionForEmail`.
-4. [`use-clinic-registration-flow.ts`](../../apps/app/features/onboarding/hooks/use-clinic-registration-flow.ts) skips checkout only when the response is eligible. Repeat customers continue into the same-tier Razorpay flow with explicit user-facing copy.
+4. [`use-clinic-registration-flow.ts`](../../apps/app-vite/src/features/setup/hooks/use-clinic-registration-flow.ts) skips checkout only when the response is eligible. Repeat customers continue into the same-tier Razorpay flow with explicit user-facing copy.
 5. Final onboarding submission repeats the server-side prior-subscription check, so the early UI check is a usability improvement rather than the only enforcement point.
 
 ### 68.3 Standard rollout template
@@ -3166,15 +3166,15 @@ There are three browser-facing runtimes with two related BFF implementations.
 
 | Surface | Runtime | Same-origin API boundary | Additional responsibility |
 | --- | --- | --- | --- |
-| `apps/app` | Next/OpenNext | `middleware.ts` → shared proxy helper | CSP nonce + security headers |
-| `apps/internal` | Next/OpenNext | `middleware.ts` → shared proxy helper | CSP nonce, headers, portal-route redirect handling |
+| `apps/app-vite` | Vite SPA | Hono proxy Worker (`api/index.ts`) → shared proxy helper | Security headers via `public/_headers` |
+| `apps/internal-vite` | Vite SPA | Hono proxy Worker (`api/index.ts`) → shared proxy helper | Headers, portal-route redirect handling |
 | `apps/landing` | Astro | `pages/api/[...path].ts` local BFF | Public-flow proxy with separate cookie assumptions |
 
-### 69.1 Why middleware matters
+### 69.1 Why the proxy Worker matters
 
-The Next apps intentionally keep `middleware.ts`. In Cloudflare builds it detects `/api/v1/*` and calls `proxyUpstreamApiRequest`; in normal local development, Next rewrites provide equivalent routing. The same file also owns CSP behavior, so replacing it with a Next convention change requires a Cloudflare artifact build and route smoke.
+The Vite apps intentionally ship a Hono proxy Worker (`apps/<app>/api/index.ts`). In Cloudflare builds it detects `/api/v1/*` (and `/socket.io/*` upgrades) and calls `proxyUpstreamApiRequest`; in local development, the dev-server proxy provides equivalent routing. Security headers live in static `public/_headers`, so changing them requires a Cloudflare artifact build and route smoke.
 
-### 69.2 What the shared OpenNext helper guarantees
+### 69.2 What the shared proxy helper guarantees
 
 [`upstream-api-proxy.ts`](../../packages/utils/src/http/upstream-api-proxy.ts) normalizes the target URL, strips hop-by-hop and upstream CORS response headers, rewrites cookie domains, and streams responses. Tests for this utility are the contract for clinician/internal proxy behavior.
 
@@ -3244,7 +3244,7 @@ If you're new to the repo and reading this document end to end is intimidating, 
 5. **§4 (Database), §52 (Schema in depth)** — the data the app is about.
 6. **§7 (Auth), §30 (Prisma extensions), §41 (ALS context)** — the implicit machinery.
 7. **§11 (Automation map), §11.1 (full check list)** — which scripts catch which mistakes.
-8. **§44 (App Router), §45 (Proxy), §46 (Packages)** — where new code goes.
+8. **§44 (Vite route tree), §45 (Proxy), §46 (Packages)** — where new code goes.
 9. **§58–§60** — client state, policies, outbox (common foot-guns).
 10. **§13 (Pointers)** — the cheat-sheet to start writing.
 11. **§28, §56, §65–§72 (Improvements / pending / adoption)** — context for why some things look the way they do.

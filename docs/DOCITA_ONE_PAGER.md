@@ -64,10 +64,10 @@ Nothing falls through the cracks because nothing is disconnected.
 ## Architecture at a Glance
 
 ```
-Frontend (Cloudflare)          Backend (Fly.io, Mumbai)
+Frontend (Cloudflare)          Backend (Fly.io, Singapore)
 --------------------          -------------------------
-Clinician App (Next.js)  -->   API (NestJS)
-Admin Portal (Next.js)        Background Worker
+Clinician App (Vite SPA)  -->   API (NestJS)
+Admin Portal (Vite SPA)        Background Worker
 Marketing Site (Astro)
                                Database: PostgreSQL (AWS RDS)
                                Storage: Cloudflare R2

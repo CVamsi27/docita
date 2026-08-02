@@ -60,9 +60,9 @@ The set of features blocked by each mode lives in `MODE_BLOCKED_FEATURES`
 | Legacy auto-map                 | `mapDbClinicTierToTierAndMode` in `packages/types/src/access/clinic-tier-map.ts`                 |
 | Backend gating                  | `hasFeatureAccess(tier, feature, hasIntelligence, overrides, mode)` + `assertClinicHasFeatureOrThrow` |
 | Frontend gating                 | `usePermissionStore().canAccess(...)` reads `currentMode`                                        |
-| Frontend pricing UI             | `apps/app/features/subscription/components/billing-plans-section.tsx` (Mode toggle + tier grid) |
+| Frontend pricing UI             | `apps/app-vite/src/features/subscription/components/billing-plans-section.tsx` (Mode toggle + tier grid) |
 | Landing pricing                 | `apps/landing/src/components/pricing-section.tsx` (Mode toggle)                                 |
-| Onboarding plan picker          | `apps/app/features/onboarding/components/steps/plan-selection-step-*`                            |
+| Onboarding plan picker          | `apps/app-vite/src/features/onboarding/components/steps/plan-selection-step-*`                            |
 
 ## How `hasFeatureAccess` decides
 

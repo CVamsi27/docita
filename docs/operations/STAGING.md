@@ -11,7 +11,8 @@ This repo supports a separate `staging` branch for pre-production validation.
 ## Recommended Staging Topology
 
 - API: Render web service deployed from the `staging` branch
-- App: Cloudflare staging environment via [`apps/app/wrangler.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/app/wrangler.toml) using `--env staging`
+- App: Cloudflare staging environment via [`apps/app-vite/wrangler.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/app-vite/wrangler.toml) using `--env staging`
+- Internal: Cloudflare staging environment via [`apps/internal-vite/wrangler.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/internal-vite/wrangler.toml) using `--env staging`
 - Database: Neon PostgreSQL
 
 ## API Environment
@@ -45,22 +46,24 @@ and provide:
 
 ## Cloudflare App Environment
 
-Use these values for the staging Next.js app:
+Use these values for the staging Vite app (`wrangler.toml` `[env.staging]` — values mirror the legacy `NEXT_PUBLIC_*` names):
 
 ```env
-APP_URL=https://staging-app.docita.work
-API_URL=https://staging-api.docita.work/api/v1
-API_PROXY_TARGET=https://staging-api.docita.work
-NEXT_PUBLIC_API_URL=https://staging-api.docita.work/api/v1
 NEXT_PUBLIC_APP_URL=https://staging-app.docita.work
+NEXT_PUBLIC_API_URL=/api/v1
 NEXT_PUBLIC_SOCKET_URL=https://staging-api.docita.work
+API_PROXY_TARGET=https://staging-api.docita.work
+NEXT_PUBLIC_RAZORPAY_KEY_ID=
+NEXT_PUBLIC_AI_ENABLED=false
 ```
+
+Local dev uses the `VITE_*` variants from `apps/app-vite/.env.example` (build-time inlined); the `NEXT_PUBLIC_*` names remain in `wrangler.toml` for the proxy Worker and legacy compatibility.
 
 ## Deploy Flow
 
 1. Push changes to `staging`.
 2. Render automatically redeploys the staging API from the connected `staging` branch.
-3. Cloudflare staging deployments use `apps/app/wrangler.toml` with `--env staging` for the app.
+3. Cloudflare staging deployments use `apps/app-vite/wrangler.toml` / `apps/internal-vite/wrangler.toml` with `--env staging` for the app(s).
 4. Run the staging database migration workflow before validating data-dependent flows.
 
 If you need migrations to land before a staging API deploy becomes visible, configure the Render staging service to deploy after the relevant CI checks pass. GitHub Actions does not need a separate deploy hook for the staging API.

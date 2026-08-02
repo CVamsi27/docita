@@ -108,7 +108,7 @@
 | Repository | `apps/api/src/domains/abdm/infrastructure/repositories/prisma-abdm.repository.ts` |
 | FHIR service | `apps/api/src/shared/modules/fhir/fhir.service.ts` |
 | Dashboard | `apps/api/src/domains/clinics/presentation/controllers/clinic-abdm.controller.ts` |
-| Frontend dialog | `apps/app/features/patients/components/forms/dialogs/abha-otp-verification-dialog.tsx` |
+| Frontend dialog | `apps/app-vite/src/features/patients/components/forms/dialogs/abha-otp-verification-dialog.tsx` |
 | Data-access hooks | `packages/data-access/src/hooks/use-patients.ts`, `packages/data-access/src/hooks/use-abdm.ts` |
 
 ---
