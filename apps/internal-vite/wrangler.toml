@@ -1,0 +1,37 @@
+name = "docita-internal-vite"
+compatibility_date = "2026-07-29"
+main = "api/index.ts"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[env.production]
+name = "docita-internal"
+
+[[env.production.routes]]
+pattern = "internal.docita.work"
+custom_domain = true
+
+[env.production.vars]
+NODE_ENV = "production"
+VITE_API_URL = "/api/v1"
+VITE_APP_URL = "https://internal.docita.work"
+API_PROXY_TARGET = "https://api.docita.work"
+VITE_SENTRY_DSN = "https://f22671b3cd9222c1c1f8d7ad3b508ea9@o4511121149198336.ingest.de.sentry.io/4511121158242384"
+
+[env.staging]
+name = "docita-internal-vite-staging"
+
+[[env.staging.routes]]
+pattern = "staging-internal.docita.work"
+custom_domain = true
+
+[env.staging.vars]
+NODE_ENV = "production"
+VITE_API_URL = "/api/v1"
+VITE_APP_URL = "https://staging-internal.docita.work"
+API_PROXY_TARGET = "https://staging-api.docita.work"
+VITE_SENTRY_DSN = "https://f22671b3cd9222c1c1f8d7ad3b508ea9@o4511121149198336.ingest.de.sentry.io/4511121158242384"

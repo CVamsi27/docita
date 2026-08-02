@@ -111,48 +111,6 @@
     "packages/data-access": {
       "ignore": ["src/lib/retry.ts"]
     },
-    "apps/app": {
-      "playwright": false,
-      "entry": [
-        "app/**/*.{ts,tsx}",
-        "features/**/*.{ts,tsx}",
-        "shared/**/*.{ts,tsx}",
-        "e2e/**/*.ts"
-      ],
-      "paths": {
-        "@/*": ["./*"],
-        "@/lib/*": ["./shared/lib/*"],
-        "@/hooks/*": ["./shared/hooks/*"],
-        "@/components/*": ["./shared/components/*"]
-      },
-      "ignore": [
-        "open-next.config.ts"
-      ],
-      "ignoreDependencies": [
-        "@tailwindcss/postcss",
-        "@types/react-signature-canvas",
-        "globals"
-      ]
-    },
-    "apps/internal": {
-      "entry": [
-        "app/**/*.{ts,tsx}",
-        "features/**/*.{ts,tsx}",
-        "shared/**/*.{ts,tsx}",
-        "e2e/**/*.ts"
-      ],
-      "paths": {
-        "@/*": ["./*"],
-        "@/components/*": ["./shared/components/*"],
-        "@/hooks/*": ["./shared/hooks/*"],
-        "@/lib/*": ["./shared/lib/*"]
-      },
-      "ignoreDependencies": ["@fontsource/fraunces", "@fontsource/inter", "@fontsource/jetbrains-mono"],
-      "ignore": [
-        "open-next.config.ts",
-        "lib/query-keys.ts"
-      ]
-    },
     "apps/landing": {
       "playwright": false,
       "entry": [
@@ -166,8 +124,7 @@
         "vitest.shared.config.ts"
       ],
       "ignore": [
-        "packages/db/prisma/schema.prisma",
-        "scripts/deploy/cloudflare-stubs/sentry-nextjs-cloudflare.ts"
+        "packages/db/prisma/schema.prisma"
       ],
       "ignoreDependencies": [
         "fallow",

@@ -70,9 +70,9 @@ for (const file of files) {
     if (!allowed) {
       if (file.startsWith('packages/types/')) {
         violations.push({file, reason: "@workspace/db imported inside packages/types (types must be DB-agnostic)"});
-      } else if (
-        file.startsWith('apps/app/') ||
-        file.startsWith('apps/internal/') ||
+      } else      if (
+        file.startsWith('apps/app-vite/') ||
+        file.startsWith('apps/internal-vite/') ||
         file.startsWith('apps/landing/')
       ) {
         violations.push({file, reason: "@workspace/db imported in frontend code (frontend must remain DB-agnostic)"});
@@ -95,10 +95,10 @@ for (const file of files) {
   }
 
   const isFrontendConfigFile =
-    (file === 'apps/app/package.json' ||
-      file === 'apps/app/tsconfig.json' ||
-      file === 'apps/internal/package.json' ||
-      file === 'apps/internal/tsconfig.json' ||
+    (file === 'apps/app-vite/package.json' ||
+      file === 'apps/app-vite/tsconfig.json' ||
+      file === 'apps/internal-vite/package.json' ||
+      file === 'apps/internal-vite/tsconfig.json' ||
       file === 'apps/landing/package.json' ||
       file === 'apps/landing/tsconfig.json');
 

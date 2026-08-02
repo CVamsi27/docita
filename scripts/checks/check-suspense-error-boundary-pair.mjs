@@ -13,13 +13,11 @@ const SUSPENSE_RE = /<Suspense\b/g;
 
 /** App routes and feature shells render under app/error.tsx or (protected) ErrorBoundaryWrapper. */
 const COVERED_PREFIXES = [
-  "apps/app/app/(protected)/",
-  "apps/app/app/(auth)/",
-  "apps/app/app/(setup)/",
-  "apps/app/features/",
+  "apps/app-vite/src/features/",
+  "apps/internal-vite/src/features/",
 ];
 
-const files = listSourceFiles(["apps/app", "apps/internal"]);
+const files = listSourceFiles(["apps/app-vite/src", "apps/internal-vite/src"]);
 
 const findings = [];
 

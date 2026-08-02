@@ -1,0 +1,6 @@
+[
+  {
+    "id": "legal",
+    "reason": "Legal documents (SLA, DPA, privacy policy) are English-only legal text with a built-in en/hi selector in ConsentNoticeModal; deliberately not routed through react-i18next."
+  }
+]

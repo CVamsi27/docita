@@ -1,4 +1,4 @@
-name: End-to-End Tests - Critical Flows
+name: End-to-End Tests - Critical Flows (Vite)
 
 on:
   schedule:
@@ -22,12 +22,10 @@ jobs:
       JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
       ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
       NODE_ENV: test
-      APP_URL: http://127.0.0.1:3000
+      APP_URL: http://127.0.0.1:5173
       API_URL: http://127.0.0.1:3001/api/v1
-      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
-      NEXT_PUBLIC_API_URL: http://127.0.0.1:3001/api/v1
       API_PROXY_TARGET: http://127.0.0.1:3001
-      CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
+      CORS_ORIGINS: http://127.0.0.1:5173,http://localhost:5173
       WHATSAPP_PRODUCTION_MODE: "false"
       # Razorpay TEST credentials (rzp_test_…) so onboarding payment
       # verification runs against the sandbox. The API verifies the HMAC
@@ -79,30 +77,25 @@ jobs:
         run: pnpm db:deploy
 
       - name: Install Playwright browsers
-        run: pnpm --filter @docita/app exec playwright install --with-deps
+        run: pnpm --filter @docita/app-vite exec playwright install --with-deps
 
       - name: Prepare API workspace packages
         run: pnpm --filter @docita/api run predev
 
-      - name: Prepare App workspace packages
-        run: pnpm --filter @docita/app run prestart
+      - name: Build app-vite workspace deps
+        run: pnpm run build:web-workspace-deps
 
-      - name: Build App (production)
-        run: pnpm --filter @docita/app run build
+      - name: Build app-vite
+        run: pnpm --filter @docita/app-vite run build
 
       - name: Start API server
         run: |
           pnpm --filter @docita/api run dev > /tmp/docita-api.log 2>&1 &
           echo $! > /tmp/docita-api.pid
 
-      - name: Start App server (production)
-        # Serve a production build instead of `next dev`. Dev mode compiles
-        # routes on-demand, so the first hit to a protected route (e.g.
-        # /consultation/:id) under CI load could exceed the 90s workspace-load
-        # timeout and reset connections. `next start` serves precompiled routes
-        # in milliseconds, removing both flake sources.
+      - name: Start app-vite server (preview)
         run: |
-          pnpm --filter @docita/app exec next start -p 3000 > /tmp/docita-app.log 2>&1 &
+          pnpm --filter @docita/app-vite exec vite preview --port 5173 > /tmp/docita-app.log 2>&1 &
           echo $! > /tmp/docita-app.pid
 
       - name: Wait for API and App
@@ -120,7 +113,7 @@ jobs:
           done
 
           for i in {1..120}; do
-            if curl -fsS http://127.0.0.1:3000/login >/dev/null 2>&1; then
+            if curl -fsS http://127.0.0.1:5173/login >/dev/null 2>&1; then
               break
             fi
             if [ "$i" -eq 120 ]; then
@@ -134,22 +127,7 @@ jobs:
       - name: Run critical E2E suites
         run: |
           unset NO_COLOR
-          pnpm --filter @docita/app exec playwright test \
-            e2e/clinic-registration.spec.ts \
-            e2e/verify-doctor.spec.ts \
-            e2e/auth.spec.ts \
-            e2e/critical-flows.spec.ts \
-            e2e/front-desk-sidebar.spec.ts
-
-      - name: Run mobile E2E suites
-        run: |
-          unset NO_COLOR
-          pnpm --filter @docita/app exec playwright test \
-            e2e/mobile-forms.spec.ts \
-            e2e/mobile-protected-routes.spec.ts \
-            e2e/mobile-portal-routes.spec.ts \
-            e2e/mobile-auth-setup.spec.ts \
-            --project=mobile-chrome
+          pnpm --filter @docita/app-vite exec playwright test --config=playwright.config.ts
 
       - name: Dump server logs on failure
         if: failure()
@@ -164,7 +142,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report-critical-flows
-          path: apps/app/playwright-report/
+          path: apps/app-vite/playwright-report/
           if-no-files-found: ignore
           retention-days: 30
 
@@ -173,6 +151,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-test-results-critical-flows
-          path: apps/app/test-results/
+          path: apps/app-vite/test-results/
           if-no-files-found: ignore
           retention-days: 30

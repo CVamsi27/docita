@@ -5,7 +5,7 @@ import { relative } from "node:path";
 import ts from "typescript";
 import { gitLsSourceFiles } from "../lib/check-runner.mjs";
 
-const files = gitLsSourceFiles(["apps/app", "apps/internal"], {
+const files = gitLsSourceFiles(["apps/app-vite", "apps/internal-vite"], {
   extensions: [".tsx", ".jsx"],
   exclude: [/\.(spec|test)\.[tj]sx?$/, /\/e2e\//],
 });

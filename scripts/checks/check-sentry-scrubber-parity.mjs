@@ -17,7 +17,9 @@ const REPO_ROOT = join(__dirname, "..", "..");
 
 const FILES = [
   "packages/utils/src/monitoring/phi-scrubber.ts",
-  "apps/app/shared/lib/monitoring/sentry-phi-redactor.ts",
+  // apps/app has been replaced by apps/app-vite; the sentry-phi-redactor.ts
+  // file was a transitional barrel that was already confirmed dead code in
+  // the ponytail audit. The canonical scrubber remains @workspace/utils.
 ];
 
 function extractSet(label, source) {

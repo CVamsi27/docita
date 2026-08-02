@@ -51,8 +51,8 @@ const outputs =
     ? {
         dependencies: changedFiles.some(isDependenciesChange),
         api: changedFiles.some(isApiChange),
-        app: changedFiles.some(isAppChange),
-        internal: changedFiles.some(isInternalChange),
+        "app-vite": changedFiles.some(isAppViteChange),
+        "internal-vite": changedFiles.some(isInternalViteChange),
         landing: changedFiles.some(isLandingChange),
         worker: changedFiles.some(isWorkerChange),
         db: changedFiles.some(isDbChange),
@@ -62,6 +62,9 @@ const outputs =
         api: changedFiles.some(isDeployApiChange),
         worker: changedFiles.some(isDeployWorkerChange),
         db: changedFiles.some(isDbMigrationChange),
+        "app-vite": changedFiles.some(isAppViteChange),
+        "internal-vite": changedFiles.some(isInternalViteChange),
+        landing: changedFiles.some(isLandingChange),
       };
 
 appendFileSync(
@@ -71,34 +74,33 @@ appendFileSync(
     .join("\n")}\n`,
 );
 
-function isAppChange(file) {
+function isAppViteChange(file) {
   return (
     file === "package.json" ||
     file === "pnpm-lock.yaml" ||
     file === "pnpm-workspace.yaml" ||
     file === "turbo.json" ||
-    file.startsWith("apps/app/") ||
+    file.startsWith("apps/app-vite/") ||
     file.startsWith("packages/data-access/") ||
     file.startsWith("packages/hooks/") ||
     file.startsWith("packages/types/") ||
     file.startsWith("packages/ui/") ||
     file.startsWith("packages/utils/") ||
-    file === "scripts/deploy/ensure-opennext-prefetch-manifest-patch.mjs"
+    file === "scripts/checks/check-worker-size.mjs"
   );
 }
 
-function isInternalChange(file) {
+function isInternalViteChange(file) {
   return (
     file === "package.json" ||
     file === "pnpm-lock.yaml" ||
     file === "pnpm-workspace.yaml" ||
     file === "turbo.json" ||
-    file.startsWith("apps/internal/") ||
+    file.startsWith("apps/internal-vite/") ||
     file.startsWith("packages/data-access/") ||
     file.startsWith("packages/types/") ||
     file.startsWith("packages/ui/") ||
     file.startsWith("packages/utils/") ||
-    file === "scripts/deploy/ensure-opennext-prefetch-manifest-patch.mjs" ||
     file === "scripts/checks/check-worker-size.mjs"
   );
 }

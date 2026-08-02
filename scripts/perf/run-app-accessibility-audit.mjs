@@ -87,7 +87,7 @@ if (publicOnly) {
 
 const result = spawnSync(
   "pnpm",
-  ["--filter", "@docita/app", "run", "audit:accessibility"],
+  ["--filter", "@docita/app-vite", "run", "audit:accessibility"],
   {
     cwd: repoRoot,
     stdio: "inherit",

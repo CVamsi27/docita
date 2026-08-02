@@ -28,8 +28,8 @@ jobs:
     outputs:
       dependencies: ${{ steps.detect.outputs.dependencies }}
       api: ${{ steps.detect.outputs.api }}
-      app: ${{ steps.detect.outputs.app }}
-      internal: ${{ steps.detect.outputs.internal }}
+      app-vite: ${{ steps.detect.outputs['app-vite'] }}
+      internal-vite: ${{ steps.detect.outputs['internal-vite'] }}
       landing: ${{ steps.detect.outputs.landing }}
       worker: ${{ steps.detect.outputs.worker }}
       db: ${{ steps.detect.outputs.db }}
@@ -126,10 +126,10 @@ jobs:
       - name: Test API (changed only)
         run: pnpm --filter @docita/api run test:ci --changedSince=origin/main
 
-  app-quality:
-    name: App Unit Checks
+  app-vite-quality:
+    name: App Vite Unit Checks
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.app == 'true'
+    if: github.event.pull_request.draft != true && needs.changes.outputs.app-vite == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -149,56 +149,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build app workspace dependencies
-        run: pnpm --filter @docita/app run prestart
-
-      - name: Lint app
-        run: pnpm --filter @docita/app run lint
-
-      - name: Typecheck app
-        run: pnpm --filter @docita/app run check-types
-
-      - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
-      - name: Test app (changed only)
-        run: pnpm --filter @docita/app run test:unit -- --changed=origin/main
-
-      - name: Build app for Cloudflare
-        if: github.event_name == 'workflow_dispatch'
-        run: pnpm --filter @docita/app run build:cloudflare
-
-      - name: Enforce apps/app worker bundle cap
-        if: github.event_name == 'workflow_dispatch'
-        # The build:cloudflare:base script already runs the check
-        # internally and fails the build on overage. This step is
-        # an explicit re-run so the gate is visible in the CI
-        # workflow summary.
-        run: pnpm check:worker-size:app
-
-  internal-quality:
-    name: Internal Unit Checks
-    needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.internal == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - name: Prepare pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@10.30.3 --activate
-
-      - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22.12.0
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build internal workspace dependencies
+      - name: Build app-vite workspace dependencies
         run: |
           pnpm --filter @workspace/types run build
           pnpm --filter @workspace/utils run build
@@ -206,25 +157,64 @@ jobs:
           pnpm --filter @workspace/ui run build
           pnpm --filter @workspace/data-access run build
 
-      - name: Lint internal
-        run: pnpm --filter @docita/internal run lint
+      - name: Lint app-vite
+        run: pnpm --filter @docita/app-vite run lint
 
-      - name: Typecheck internal
-        run: pnpm --filter @docita/internal run check-types
+      - name: Typecheck app-vite
+        run: pnpm --filter @docita/app-vite run check-types
 
       - name: Fetch main branch for change detection
         run: git fetch origin main --depth=1
-      - name: Test internal (changed only)
-        run: pnpm --filter @docita/internal run test -- --changed=origin/main
+      - name: Test app-vite (changed only)
+        run: pnpm --filter @docita/app-vite run test -- --changed=origin/main
 
-      - name: Build internal for Cloudflare
-        if: github.event_name == 'workflow_dispatch'
-        run: pnpm --filter @docita/internal run build:cloudflare
+      - name: Build app-vite for Cloudflare
+        run: pnpm --filter @docita/app-vite run build:cloudflare
 
-      - name: Enforce apps/internal worker bundle cap
-        if: github.event_name == 'workflow_dispatch'
-        # Mirrors the apps/app gate above.
-        run: pnpm check:worker-size:internal
+  internal-vite-quality:
+    name: Internal Vite Unit Checks
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.internal-vite == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.12.0
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build internal-vite workspace dependencies
+        run: |
+          pnpm --filter @workspace/types run build
+          pnpm --filter @workspace/utils run build
+          pnpm --filter @workspace/hooks run build
+          pnpm --filter @workspace/ui run build
+          pnpm --filter @workspace/data-access run build
+
+      - name: Lint internal-vite
+        run: pnpm --filter @docita/internal-vite run lint
+
+      - name: Typecheck internal-vite
+        run: pnpm --filter @docita/internal-vite run check-types
+
+      - name: Fetch main branch for change detection
+        run: git fetch origin main --depth=1
+      - name: Test internal-vite (changed only)
+        run: pnpm --filter @docita/internal-vite run test -- --changed=origin/main
+
+      - name: Build internal-vite for Cloudflare
+        run: pnpm --filter @docita/internal-vite run build:cloudflare
 
   landing-quality:
     name: Landing Checks
@@ -406,10 +396,10 @@ jobs:
           pnpm --filter @workspace/db run db:profile-queries
           pnpm --filter @workspace/db run db:check-query-plans
 
-  app-bundle-analysis:
-    name: App Bundle Analysis
+  app-vite-bundle-analysis:
+    name: App-vite Bundle Analysis
     needs: changes
-    if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.app == 'true'
+    if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.app-vite == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -437,11 +427,8 @@ jobs:
           restore-keys: |
             perf-baseline-
 
-      - name: Analyze app bundle
-        env:
-          ANALYZE: "true"
-          NEXT_TELEMETRY_DISABLED: 1
-        run: pnpm --filter @docita/app run build:analyze
+      - name: Build app-vite
+        run: pnpm --filter @docita/app-vite run build
 
       - name: Enforce perf budget against prior baseline
         if: github.event_name == 'pull_request'

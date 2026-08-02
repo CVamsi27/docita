@@ -8,17 +8,15 @@ import {
 import { hasImportFrom } from "./structure-audit-imports.mjs";
 
 const frontendTargets = [
-  ["apps/app/app/", "apps/app/app route layer"],
-  ["apps/app/features/", "apps/app/features/<feature>"],
-  ["apps/app/providers/", "apps/app/providers"],
-  ["apps/app/shared/lib/", "apps/app/shared/lib"],
-  ["apps/app/shared/hooks/", "apps/app/shared/hooks or packages/hooks"],
-  ["apps/app/shared/components/", "apps/app/features/_shared or packages/ui"],
-  ["apps/internal/app/", "apps/internal/app route layer"],
-  ["apps/internal/features/", "apps/internal/features/<feature>"],
-  ["apps/internal/shared/components/", "apps/internal/features or packages/ui"],
-  ["apps/internal/shared/lib/", "apps/internal/shared/lib"],
-  ["apps/internal/shared/hooks/", "apps/internal/shared/hooks or packages/hooks"],
+  ["apps/app-vite/src/features/", "apps/app-vite/features/<feature>"],
+  ["apps/app-vite/src/components/", "apps/app-vite components"],
+  ["apps/app-vite/src/hooks/", "apps/app-vite hooks"],
+  ["apps/app-vite/src/lib/", "apps/app-vite lib"],
+  ["apps/app-vite/src/providers/", "apps/app-vite providers"],
+  ["apps/internal-vite/src/features/", "apps/internal-vite/features/<feature>"],
+  ["apps/internal-vite/src/components/", "apps/internal-vite components"],
+  ["apps/internal-vite/src/lib/", "apps/internal-vite lib"],
+  ["apps/internal-vite/src/hooks/", "apps/internal-vite hooks"],
   ["apps/landing/src/pages/", "apps/landing/src/pages"],
   ["apps/landing/src/components/", "apps/landing/src/components"],
   ["apps/landing/src/layouts/", "apps/landing/src/layouts"],
@@ -33,25 +31,25 @@ function frontendTarget(file, type) {
 }
 
 function routeThinnessIssue(file, record) {
-  if (!/^apps\/app\/app\/.*page\.tsx$/.test(file) || record.lines <= 180) return [];
+  if (!/^apps\/app-vite\/src\/Routes\.tsx$/.test(file) || record.lines <= 180) return [];
   return [{
     file,
     severity: "split",
-    message: `route page is ${record.lines} lines; route files should compose feature components`,
+    message: `route file is ${record.lines} lines; route files should compose feature components`,
   }];
 }
 
 function appLevelComponentIssue(file) {
-  if (!/^apps\/(app|internal)\/components\//.test(file)) return [];
+  if (!/^apps\/(app-vite|internal-vite)\/src\/components\//.test(file)) return [];
   return [{
     file,
     severity: "move",
-    message: "app-level components are transitional; move to a feature, _shared, or packages/ui",
+    message: "app-level components are transitional; move to a feature or packages/ui",
   }];
 }
 
 function featureFetchIssue(file, record) {
-  if (!/^apps\/app\/features\/[^/]+\/.*\.(ts|tsx)$/.test(file) || !/\bfetch\s*\(/.test(record.content)) return [];
+  if (!/^apps\/app-vite\/src\/features\/[^/]+\/.*\.(ts|tsx)$/.test(file) || !/\bfetch\s*\(/.test(record.content)) return [];
   return [{
     file,
     severity: "review",
@@ -60,7 +58,7 @@ function featureFetchIssue(file, record) {
 }
 
 function largeFeatureComponentIssue(file, record) {
-  if (record.type !== "component" || !/^apps\/app\/features\//.test(file) || record.lines <= 400) return [];
+  if (record.type !== "component" || !/^apps\/app-vite\/src\/features\//.test(file) || record.lines <= 400) return [];
   return [{
     file,
     severity: "split",
@@ -87,7 +85,7 @@ const frontendRules = [
 
 export function collectFrontendAudit() {
   const files = listTrackedFiles().filter((file) =>
-    /^(apps\/app|apps\/internal|apps\/landing)\//.test(file),
+    /^(apps\/app-vite|apps\/internal-vite|apps\/landing)\//.test(file),
   );
   const records = [];
   const issues = [];

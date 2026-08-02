@@ -22,14 +22,16 @@
     "PUBLIC_ENABLE_LIVE_LANDING_DATA",
     "NEXT_PUBLIC_API_URL",
     "NEXT_PUBLIC_APP_URL",
-    "NEXT_PUBLIC_AI_ENABLED",
-    "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
-    "NEXT_PUBLIC_SOCKET_URL",
-    "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
     "ENABLE_SCHEDULERS",
     "TURNSTILE_SECRET_KEY",
     "VITE_API_URL",
     "VITE_APP_URL",
+    "VITE_MAIN_APP_URL",
+    "VITE_SOCKET_URL",
+    "VITE_AI_ENABLED",
+    "VITE_GOOGLE_MAPS_API_KEY",
+    "VITE_TURNSTILE_SITE_KEY",
+    "VITE_RAZORPAY_KEY_ID",
     "VITE_SENTRY_DSN",
     "ZEPTOMAIL_WEBHOOK_SECRET",
     "GRIEVANCE_CONTACT_EMAIL",
@@ -81,8 +83,43 @@
         "SKIP_SERVER"
       ]
     },
-    "db:generate": {
-      "cache": false
+    "@docita/app-vite#build": {
+      "dependsOn": ["^build", "^check-types"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"],
+      "env": [
+        "NODE_ENV",
+        "VITE_API_URL",
+        "VITE_APP_URL",
+        "VITE_SOCKET_URL",
+        "VITE_SENTRY_DSN",
+        "VITE_AI_ENABLED",
+        "VITE_API_TARGET",
+        "CI"
+      ]
+    },
+    "@docita/app-vite#dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "@docita/internal-vite#build": {
+      "dependsOn": ["^build", "^check-types"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"],
+      "env": [
+        "NODE_ENV",
+        "VITE_API_URL",
+        "VITE_APP_URL",
+        "VITE_MAIN_APP_URL",
+        "VITE_SENTRY_DSN",
+        "CI"
+      ]
+    },
+    "@docita/internal-vite#dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
     },
     "lint": {
       "dependsOn": ["^lint"],

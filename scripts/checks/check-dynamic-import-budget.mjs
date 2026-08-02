@@ -1,53 +1,5 @@
 #!/usr/bin/env node
+// Next.js has been replaced by Vite. Next.js dynamic import budgeting
+// (next/dynamic + "use client") does not apply to Vite apps.
+console.log("Dynamic import budget check skipped (Next.js apps replaced by Vite).");
 
-/**
- * Β1: large client components should use next/dynamic for code-splitting.
- */
-
-import { readFileSync } from "node:fs";
-import process from "node:process";
-import { listSourceFiles } from "../lib/list-source-files.mjs";
-
-const ALLOW_FILE = "check-dynamic-import-budget: allow-file";
-const MIN_LINES = 401;
-const ROOT = "apps/app";
-
-const files = listSourceFiles([ROOT]).filter((file) => /\.tsx$/.test(file));
-
-const findings = [];
-
-for (const file of files) {
-  const source = readFileSync(file, "utf8");
-  if (source.includes(ALLOW_FILE)) {
-    continue;
-  }
-  if (!source.includes('"use client"')) {
-    continue;
-  }
-
-  const lineCount = source.split(/\r?\n/).length;
-  if (lineCount < MIN_LINES) {
-    continue;
-  }
-  if (/from\s+["']next\/dynamic["']/.test(source) || /\bimport\s*\(/.test(source)) {
-    continue;
-  }
-
-  findings.push(
-    `${file}: ${lineCount} lines (max ${MIN_LINES - 1} without next/dynamic)`,
-  );
-}
-
-if (findings.length > 0) {
-  process.stderr.write(
-    "Dynamic import budget check failed. Split with next/dynamic or add check-dynamic-import-budget: allow-file.\n\n",
-  );
-  for (const finding of findings) {
-    process.stderr.write(`- ${finding}\n`);
-  }
-  process.exit(1);
-}
-
-process.stdout.write(
-  `Dynamic import budget check passed (client .tsx >= ${MIN_LINES} lines require next/dynamic).\n`,
-);

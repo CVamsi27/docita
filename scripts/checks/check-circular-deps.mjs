@@ -6,7 +6,7 @@
  * Rationale: §15 of AGENTS.md codifies layering invariants but does not directly
  * catch import cycles (a -> b -> a) that can sneak in via barrel files or DI
  * tokens. Cycles cause NestJS providers to resolve as `undefined`, force
- * `forwardRef()` workarounds, and break tree-shaking on the Next.js apps.
+ * `forwardRef()` workarounds, and break tree-shaking in the Vite apps.
  *
  * Implementation: shells out to `madge --circular --json` for each project root
  * with its own tsconfig so path aliases (`@/...`, `@workspace/...`) resolve
@@ -48,17 +48,16 @@ const projects = [
     tsconfig: "apps/worker/tsconfig.json",
   },
   {
-    label: "apps/app",
-    entry: "apps/app",
-    tsconfig: "apps/app/tsconfig.json",
-    // Skip Next.js build output and Cloudflare worker shims.
-    exclude: "^(\\.next|\\.open-next|public)/",
+    label: "apps/app-vite",
+    entry: "apps/app-vite",
+    tsconfig: "apps/app-vite/tsconfig.json",
+    exclude: "^(build|dist|public)/",
   },
   {
-    label: "apps/internal",
-    entry: "apps/internal",
-    tsconfig: "apps/internal/tsconfig.json",
-    exclude: "^(\\.next|\\.open-next|public)/",
+    label: "apps/internal-vite",
+    entry: "apps/internal-vite",
+    tsconfig: "apps/internal-vite/tsconfig.json",
+    exclude: "^(build|dist|public)/",
   },
   {
     label: "packages/data-access",
@@ -118,7 +117,7 @@ const KNOWN_CYCLES = new Set([
   // the types into a third file would add noise without changing the
   // runtime shape, so we accept this cycle.
   "features/consultation/hooks/consultation-dashboard-helpers.ts -> features/consultation/hooks/consultation-doctor-now-next.ts",
-  // today-page-content-sections lazy-loads today-right-rail (Next.js dynamic
+  // today-page-content-sections lazy-loads today-right-rail (React.lazy
   // import) and today-right-rail imports the TodayRightRailSection type
   // from today-page-content-sections. Type-only cycle; React.lazy
   // resolution is independent. Splitting types would fragment the section

@@ -26,9 +26,9 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 **Production deployment** (see [Deployment Strategy](docs/operations/DEPLOYMENT.md)):
 
 ```
-Frontend (Cloudflare Workers)          Backend (Fly.io, Mumbai)
------------------------------        ---------------------------
-apps/app, apps/internal, apps/landing  -->  apps/api (HTTP API)
+Frontend (Cloudflare)                     Backend (Fly.io, Mumbai)
+---------------------------------        ---------------------------
+app-vite, internal-vite, landing  -->  apps/api (HTTP API)
                                          -->  apps/worker (jobs, crons)
 Database: AWS RDS PostgreSQL (ap-south-1)
 Object storage: Cloudflare R2
@@ -36,8 +36,8 @@ Object storage: Cloudflare R2
 
 | Layer | Apps / services | Hosting |
 | --- | --- | --- |
-| Clinician app | `apps/app` | Cloudflare Workers (OpenNext) |
-| Admin portal | `apps/internal` | Cloudflare Workers (OpenNext) |
+| Clinician app | `apps/app-vite` | Cloudflare (Vite SPA + Static Assets) |
+| Admin portal | `apps/internal-vite` | Cloudflare (Vite SPA + Static Assets) |
 | Marketing | `apps/landing` | Cloudflare Workers (Astro) |
 | API | `apps/api` | Fly.io |
 | Background worker | `apps/worker` | Fly.io |
@@ -49,11 +49,11 @@ Shared logic lives in workspace packages (`packages/types`, `packages/data-acces
 
 ### Frontend
 
-- **Frameworks**: Next.js 16 (App Router) for `apps/app` and `apps/internal`, Astro 5 for `apps/landing`
+- **Frameworks**: Vite 6 + React 19 + React Router v7 (SPA) for `apps/app-vite` and `apps/internal-vite`, Astro 5 for `apps/landing`
 - **UI**: React 19, Tailwind CSS 4, shared primitives in `packages/ui`
 - **Icons**: Lucide Icons
 - **Data fetching**: TanStack React Query via `packages/data-access`
-- **Hosting**: Cloudflare Workers
+- **Hosting**: Cloudflare Workers with Static Assets (tiny Hono proxy Worker for `/api/*`)
 
 ### Backend
 
@@ -73,11 +73,11 @@ Shared logic lives in workspace packages (`packages/types`, `packages/data-acces
 ```
 docita/
 ├── apps/
-│   ├── api/          NestJS API (domain-driven layout)
-│   ├── worker/       NestJS background jobs and schedulers
-│   ├── app/          Next.js clinician app
-│   ├── internal/     Next.js admin portal
-│   └── landing/      Astro marketing site
+│   ├── api/              NestJS API (domain-driven layout)
+│   ├── worker/           NestJS background jobs and schedulers
+│   ├── app-vite/         Vite + React Router clinician app
+│   ├── internal-vite/    Vite + React Router admin portal
+│   └── landing/          Astro marketing site
 ├── packages/         Shared types, data-access, ui, db, auth, hooks, utils
 ├── scripts/          CI checks, deploy helpers, perf and UI tooling
 └── docs/             Architecture, operations, UI standards, testing

@@ -1,0 +1,164 @@
+import { getPatientFullName } from "@workspace/utils";
+import { Suspense } from "react";
+import { EditPatientDialog } from "@/features/patients/components/forms/dialogs/EditPatientDialog";
+import { PatientFaceSheetHeaderContainer as PatientFaceSheetHeader } from "@/features/patients/components/profile/PatientFaceSheetHeaderContainer";
+import { PatientDetailTabs } from "@/features/patients/components/details/PatientDetailTabs";
+import { PatientHeaderActions } from "@/features/patients/components/details/PatientHeaderActions";
+import { PatientAdvisorRail } from "@/features/patients/components/details/patient-advisor-rail";
+import { AppPageScaffold, DataState } from "@workspace/ui/components";
+import { User } from "lucide-react";
+import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
+import { AddAppointmentDialogContainer } from "@/features/appointments/components";
+import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/components/auth/feature-gate";
+
+type PatientDetailPageContentProps = {
+  patientId: string;
+};
+
+export function PatientDetailPageRoute({
+  patientId,
+}: PatientDetailPageContentProps) {
+  return (
+    <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
+      <PatientDetailPageContent patientId={patientId} />
+    </FeatureGate>
+  );
+}
+
+export function PatientDetailPageContent({
+  patientId,
+}: PatientDetailPageContentProps) {
+  const { state, handlers } = usePatientDetailLogic(patientId);
+
+  const {
+    loading,
+    error,
+    canAccessPatient,
+    canEditPatient,
+    canCreateAppointment,
+    canRecordPatientVitals,
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    isScheduleDialogOpen,
+    appointments,
+  } = state;
+
+  const patient = state.patient;
+
+  const {
+    handleBackToPatients,
+    handleScheduleVisit,
+    handleScheduleDialogChange,
+    handleRefetch,
+  } = handlers;
+
+  if (loading) return (
+      <AppPageScaffold>
+        <DataState
+          status="loading"
+          className="min-h-[50vh]"
+          loadingMessage="Loading patient details…"
+        />
+      </AppPageScaffold>
+    );
+
+  if (error) {
+    return (
+      <AppPageScaffold>
+        <DataState
+          status="error"
+          className="min-h-[50vh]"
+          errorMessage="We could not open this patient record. Please try again."
+          onRetry={handleRefetch}
+        />
+      </AppPageScaffold>
+    );
+  }
+
+  if (!patient || !patient.id) {
+    return (
+      <AppPageScaffold>
+        <DataState
+          status="empty"
+          className="min-h-[50vh]"
+          emptyIcon={User}
+          emptyTitle="Patient not found"
+          emptyDescription="This patient record is unavailable"
+          emptyAction={{
+            label: "Back to Patients",
+            onClick: handleBackToPatients,
+          }}
+        />
+      </AppPageScaffold>
+    );
+  }
+
+  if (!canAccessPatient) {
+    return (
+      <AppPageScaffold>
+        <DataState
+          status="error"
+          className="min-h-[50vh]"
+          errorMessage="You do not have access to this patient"
+          onRetry={handleBackToPatients}
+        />
+      </AppPageScaffold>
+    );
+  }
+
+  return (
+    <AppPageScaffold contentClassName="space-y-0">
+      <PatientFaceSheetHeader
+        patient={patient}
+        onBack={handleBackToPatients}
+        actions={
+          <PatientHeaderActions
+            patientId={patient.id}
+            patientName={getPatientFullName(patient, "this patient")}
+            appointments={appointments}
+            canEditPatient={canEditPatient}
+            canCreateAppointment={canCreateAppointment}
+            onScheduleVisit={handleScheduleVisit}
+            onEdit={() => setIsEditDialogOpen(true)}
+          />
+        }
+      />
+
+      <div className="flex flex-col gap-6 py-6 lg:flex-row lg:items-start">
+        <div className="min-w-0 flex-1 space-y-6">
+          <EditPatientDialog
+            patient={patient}
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            onPatientUpdated={() => handleRefetch()}
+          />
+
+          <Suspense fallback={<PatientDetailTabLoadingShell />}>
+            <PatientDetailTabs
+              patient={patient}
+              patientId={patient.id}
+              appointments={appointments}
+              canEditPatient={canEditPatient}
+              canRecordPatientVitals={canRecordPatientVitals}
+            />
+          </Suspense>
+        </div>
+        <PatientAdvisorRail patient={patient} />
+      </div>
+
+      <FeatureGate feature={Feature.CALENDAR_SLOTS} fallback={null}>
+        <AddAppointmentDialogContainer
+          open={isScheduleDialogOpen}
+          onOpenChange={handleScheduleDialogChange}
+          preselectedPatientId={patient.id}
+          selectedDate={new Date()}
+          onAppointmentAdded={async () => {
+            await handleRefetch();
+          }}
+        />
+      </FeatureGate>
+    </AppPageScaffold>
+  );
+}

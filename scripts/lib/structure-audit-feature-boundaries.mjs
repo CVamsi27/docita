@@ -5,14 +5,18 @@ import {
 
 export function collectFeatureBoundaryFindings() {
   const files = listTrackedFiles().filter((file) =>
-    /^apps\/(app|internal)\/features\/[^/]+\/.*\.(ts|tsx)$/.test(file),
+    /^apps\/(app-vite|internal-vite)\/src\/features\/[^/]+\/.*\.(ts|tsx)$/.test(
+      file,
+    ),
   );
   const issues = [];
   const importPattern = /from\s+["']([^"']+)["']/g;
 
   for (const file of files) {
     const content = readText(file);
-    const match = file.match(/^apps\/(app|internal)\/features\/([^/]+)\//);
+    const match = file.match(
+      /^apps\/(app-vite|internal-vite)\/src\/features\/([^/]+)\//,
+    );
     const currentFeature = match?.[2];
     if (!currentFeature) continue;
 

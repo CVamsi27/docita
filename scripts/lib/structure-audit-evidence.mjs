@@ -8,8 +8,8 @@ import { collectFrontendAudit } from "./structure-audit-frontend.mjs";
 function testsForRecord(record) {
   if (record.file.startsWith("apps/api/")) return "api lint; api tests; controller contract if route-facing";
   if (record.file.startsWith("apps/worker/")) return "worker lint; worker tests";
-  if (record.file.startsWith("apps/app/")) return "app lint; app typecheck; app tests/audit where UI-facing";
-  if (record.file.startsWith("apps/internal/")) return "internal lint; internal typecheck; internal audit where UI-facing";
+  if (record.file.startsWith("apps/app-vite/")) return "app-vite lint; app-vite typecheck; app-vite tests/audit where UI-facing";
+  if (record.file.startsWith("apps/internal-vite/")) return "internal-vite lint; internal-vite typecheck; internal-vite audit where UI-facing";
   if (record.file.startsWith("apps/landing/")) return "landing lint; landing accessibility/critical-flow tests";
   return "relevant workspace checks";
 }
@@ -17,8 +17,8 @@ function testsForRecord(record) {
 function ownerForRecord(record) {
   if (record.file.startsWith("apps/api/")) return "WS-backend-structure";
   if (record.file.startsWith("apps/worker/")) return "WS-worker-structure";
-  if (record.file.startsWith("apps/app/")) return "WS-frontend-app-structure";
-  if (record.file.startsWith("apps/internal/")) return "WS-internal-structure";
+  if (record.file.startsWith("apps/app-vite/")) return "WS-frontend-app-structure";
+  if (record.file.startsWith("apps/internal-vite/")) return "WS-internal-structure";
   if (record.file.startsWith("apps/landing/")) return "WS-landing-structure";
   return "WS-package-boundaries";
 }

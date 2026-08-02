@@ -19,9 +19,15 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 - Apps:
   - `apps/api` (NestJS)
   - `apps/worker` (NestJS background worker)
-  - `apps/app` (Next.js main app)
-  - `apps/internal` (Next.js internal)
+  - `apps/app-vite` (Vite + React Router SPA — main clinician app)
+  - `apps/internal-vite` (Vite + React Router SPA — internal admin portal)
   - `apps/landing` (Astro marketing)
+
+> **Frontend migration note (2026-07-31):** the Next.js predecessors
+> `apps/app` / `apps/internal` are staged for deletion and no longer exist in
+> the working tree; `git show HEAD:apps/app/...` remains the porting source
+> until cutover. All new frontend work lands in `apps/app-vite` /
+> `apps/internal-vite` per [`docs/PORTING_PLAN_APP_VITE.md`](docs/PORTING_PLAN_APP_VITE.md).
 - Shared packages:
   - `packages/types` (Zod schemas, source of truth)
   - `packages/data-access` (API clients + React Query)
@@ -44,31 +50,21 @@ docita/
 │   │           ├── common/   legacy generic utilities migrated from src/common/ (interceptors, pipes, builders, ...)
 │   │           ├── schedule/, services/
 │   ├── worker/               NestJS background worker (shares infra with api)
-│   ├── app/                  Next.js - main clinician app
-│   │   ├── app/              App Router routes
-│   │   ├── features/<feature>/{components,hooks,rules,lib,api,index.ts}
-│   │   ├── providers/        app-level React providers (query, navigation)
-│   │   ├── types/            ambient declarations + barrel re-export of @workspace/types
-│   │   ├── test/             test-helper render() wrapper
-│   │   └── shared/           non-feature code reused across features
-│   │       ├── components/   common/{auth,buttons,dialogs,inputs,i18n,loaders,monitoring,navigation,pwa}/ + a few loose primitives
-│   │       ├── hooks/        generic hooks + api/ subfolder of data-access hook aggregators
-│   │       └── lib/          grouped by concern (see below)
-│   │           ├── auth/            auth-context, session, fetch-with-session, browser-session/request, csrf, safe-return-path, permissions
-│   │           ├── contexts/        app-config, clinic, socket, tier-config providers
-│   │           ├── api/             api-client + error handler + config + core + query-keys/hooks + react-query-config + optimistic-updates + network-error
-│   │           ├── monitoring/      logger, client-error-reporting, sentry.client.config, sentry-phi-redactor
-│   │           ├── security/        security-headers
-│   │           ├── access-control/  policy engine + routes (extends existing decorators/rules)
-│   │           ├── subscription/    lockout + settings-path
-│   │           ├── errors/          error-parser + user-facing-errors
-│   │           ├── formatters/, validation/, rules/, services/, stores/, types/, i18n/, http/, constants/, utils/
-│   │           └── (root)           branding, config, tier-config, support-contact, url, utils, plus a few feature-helper files
-│   ├── internal/             Next.js - admin/internal dashboard (same shape as app)
-│   │   ├── app/
-│   │   ├── features/
-│   │   ├── providers/
-│   │   └── shared/{components,hooks,lib{auth,api,monitoring,errors,formatters,stores}}
+│   ├── app-vite/             Vite + React Router SPA - main clinician app
+│   │   ├── src/
+│   │   │   ├── App.tsx       React Router route tree (layouts + guards)
+│   │   │   ├── main.tsx      browser entry (providers + router)
+│   │   │   ├── features/<feature>/{components,hooks,lib,types.ts,index.ts}
+│   │   │   ├── components/   shared app-only presentational components
+│   │   │   ├── hooks/        cross-feature app hooks
+│   │   │   ├── lib/          app runtime setup (api, auth, config, ...)
+│   │   │   ├── providers/    app-level React providers (query, navigation)
+│   │   │   ├── i18n/ + messages/   i18next init + en/hi message JSON
+│   │   │   └── test-utils/   test-helper render() wrapper
+│   │   ├── api/index.ts      Hono API proxy Worker (/api/* + /socket.io/*)
+│   │   ├── public/           _headers, _redirects, branding, PWA assets
+│   │   └── wrangler.toml     Cloudflare Worker + static assets config
+│   ├── internal-vite/        Vite + React Router SPA - admin/internal dashboard (same shape as app-vite)
 │   └── landing/              Astro marketing site
 ├── packages/
 │   ├── auth/                 access + token semantics (tests in __tests__/)
@@ -104,18 +100,17 @@ docita/
 └── (root configs: turbo.json, pnpm-workspace.yaml, knip.json, ...)
 ```
 
-Import-path conventions for `apps/app` and `apps/internal`:
+Import-path conventions for `apps/app-vite` and `apps/internal-vite`:
 
 | Alias | Resolves to |
 |---|---|
-| `@/components/...` | `apps/<app>/shared/components/...` |
-| `@/hooks/...`      | `apps/<app>/shared/hooks/...` |
-| `@/lib/...`        | `apps/<app>/shared/lib/...` |
-| `@/features/...`   | `apps/<app>/features/...` |
-| `@/app/...`        | `apps/<app>/app/...` |
+| `@/components/...` | `apps/<app>/src/components/...` |
+| `@/hooks/...`      | `apps/<app>/src/hooks/...` |
+| `@/lib/...`        | `apps/<app>/src/lib/...` |
+| `@/features/...`   | `apps/<app>/src/features/...` |
 | `@workspace/...`   | shared workspace packages |
 
-The `shared/` folder is the home for **non-feature** code reused across features (theme toggles, generic dialogs, app-wide logger, etc.). New work belongs in a feature; only put code in `shared/` when at least two features need it.
+The `components/` folder is the home for **non-feature** code reused across features (theme toggles, generic dialogs, app-wide logger, etc.). New work belongs in a feature; only put code in `components/` when at least two features need it.
 
 ## 3) Non-Negotiable Architecture Rules
 
@@ -166,14 +161,14 @@ The `shared/` folder is the home for **non-feature** code reused across features
 - Prefer `@workspace/ui` components over ad-hoc duplicates.
 - Use React Query for server state.
 - Use React Hook Form + Zod for forms.
-- In Next.js apps, use Next.js navigation APIs (`Link`, `router.push`) for internal routing.
+- In Vite SPA apps, use React Router navigation APIs (`Link`, `useNavigate`) for internal routing.
 - In Astro pages, prefer native anchors for static routes and hydrate React islands only when interactivity is required.
 - Always handle loading, error, and empty states.
 - Keep components accessible and keyboard-friendly.
 - Never import `@prisma/client` or `@workspace/db` in frontend code.
-- For `apps/app` Cloudflare builds, keep the route guard file as `middleware.ts`; Next 16 may warn about the newer `proxy` convention, but this deployment path does not use it.
-- For browser-side web-vitals or client-error telemetry in `apps/app` and `apps/internal`, do not post directly from the browser to `https://api.docita.work` or any other cross-origin API URL. Use a same-origin app/internal route proxy, or first update and verify the API CORS allowlist for the exact production origin. Telemetry failures must be non-blocking and must not create console noise for clinicians.
-- Do not remove Cloudflare/OpenNext runtime shims such as the `globalThis.__name` bootstrap in `apps/app/app/layout.tsx` unless the matching production Cloudflare artifact and local preview prove the helper is no longer needed. The check must include `build:cloudflare:production`, an artifact search for `__name`/telemetry URLs, and a browser or Playwright smoke of the affected production route.
+- Route guards live in React Router layouts/guards (`src/App.tsx` tree); `/api/*` and `/socket.io/*` traffic is proxied by the Hono Worker (`apps/<app>/api/index.ts`). Do not reintroduce Next.js `middleware.ts` or `proxy.ts` files.
+- For browser-side web-vitals or client-error telemetry in `apps/app-vite` and `apps/internal-vite`, do not post directly from the browser to `https://api.docita.work` or any other cross-origin API URL. Use a same-origin app/internal route proxy, or first update and verify the API CORS allowlist for the exact production origin. Telemetry failures must be non-blocking and must not create console noise for clinicians.
+- Verify Cloudflare proxy Worker changes with `build:cloudflare:production`, an artifact search for telemetry URLs, and a browser or Playwright smoke of the affected production route.
 
 ### 4.1 Import path standards
 
@@ -188,7 +183,7 @@ The `shared/` folder is the home for **non-feature** code reused across features
 
 ### 4.3 UI design consistency (mandatory)
 
-- [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX_STANDARD_2026.md) is the authoritative UI/UX source for `apps/app`, `apps/internal`, and `apps/landing`. It supersedes any conflicting older guidance in `docs/ui/DESIGN_SYSTEM.md` or `docs/ui/UI_UX_CONTRACT.md`; those files remain for history and detail.
+- [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX_STANDARD_2026.md) is the authoritative UI/UX source for `apps/app-vite`, `apps/internal-vite`, and `apps/landing`. It supersedes any conflicting older guidance in `docs/ui/DESIGN_SYSTEM.md` or `docs/ui/UI_UX_CONTRACT.md`; those files remain for history and detail.
 - Every new page, modal, or feature surface MUST be assembled from `@workspace/ui` primitives. Do not reinvent a primitive that already exists.
   - Layout/chrome: `AppPageScaffold`, `PageHeader`, `PageContainer`, `Section`, `AppShell`, `TopBar`, `Breadcrumbs`, `PageTabs`.
   - State: `DataState`, `LoadingState`, `EmptyState`, `ErrorState`, `Skeleton`.
@@ -361,7 +356,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
   - `pnpm check:prisma-boundary` when API repositories or Prisma usage changed
 - Minimum pre-merge checks for touched areas:
   - `pnpm lint`
-  - relevant typecheck (`pnpm --filter @docita/app run check-types` / API equivalents)
+  - relevant typecheck (`pnpm --filter @docita/app-vite run check-types` / API equivalents)
   - relevant tests
   - build checks where change impact is broad
 - For worker changes, run `pnpm --filter @docita/worker run lint`, `pnpm --filter @docita/worker run check-types`, and the relevant build check before pushing.
@@ -496,7 +491,7 @@ These principles are mandatory for every change. Apply them pragmatically; do no
 - Zod schemas live once in `packages/types` and are reused via `z.infer` everywhere. Never hand-redefine the same shape in API DTOs and frontend forms.
 - API clients and React Query hooks live once in `packages/data-access`. Apps must consume them, not re-roll `fetch` calls.
 - UI primitives live once in `@workspace/ui`. Do not introduce app-local duplicates of `EmptyState`, `BackButton`, navigation chrome, etc.; remove duplicates when you find them (see `docs/ui/UI_UX_STANDARD_2026.md` §8).
-- Tokens live once in `packages/ui/src/styles/globals.css` and are mirrored by `packages/ui/src/design-tokens.ts`. Do not redefine spacing, radius, or color in app code.
+- Tokens live once in `packages/ui/src/styles/globals.css`. Do not redefine spacing, radius, or color in app code.
 - Repository mappers live once per aggregate inside `packages/db` / API repositories; do not duplicate Prisma-to-domain mapping in services.
 
 ### 12.4 Patterns
@@ -537,7 +532,9 @@ pnpm dev
 pnpm build
 pnpm lint
 pnpm test
+pnpm test:app-vite          # app-vite unit tests (root; the API E2E suite is below)
 pnpm audit:app
+pnpm audit:app:public       # public routes only (no authenticated session needed)
 pnpm audit:internal
 pnpm audit:landing
 pnpm check:hygiene
@@ -547,8 +544,17 @@ pnpm check:circular           # reports import cycles per app/package (warn mode
 pnpm check:circular:enforce   # fails on any cycle; baseline is 0 (2026-05)
 pnpm check:prisma-boundary
 pnpm check:colors
+pnpm check:i18next-parity
+pnpm check:query-key-factory
+pnpm check:tools-route-gate
+pnpm check:standard-gate-wiring
+pnpm check:button-primitive        # raw <button> in features/components of Vite apps (Phase 15)
+pnpm check:i18n-coverage           # every Vite feature uses useTranslation (Phase 11/15)
+pnpm check:error-boundary-coverage # functional layouts wrap content in ErrorBoundary (Phase 13/15)
+pnpm check:zod-interface-parity    # no feature interfaces duplicating packages/types Zod schemas (Phase 9/15)
 pnpm db:generate
 pnpm db:migrate
+pnpm db:guardrail
 pnpm --filter @workspace/db run db:migrate:dry-run
 pnpm --filter @workspace/db run db:migrate:safe
 pnpm --filter @docita/api run test:e2e
@@ -556,6 +562,8 @@ pnpm --filter @docita/worker run check-types
 pnpm perf:baseline
 pnpm perf:budget:warn
 pnpm perf:budget:enforce
+pnpm perf:route-budgets
+pnpm monitor:synthetic       # scheduled synthetic probes, run manually for a point-in-time check
 ```
 
 ## 14) Agent Final Checklist
@@ -563,6 +571,7 @@ pnpm perf:budget:enforce
 Before finalizing changes:
 
 - Work is on a **branch created from `main`** (after pull), not on `main` or `staging` directly; PRs target **`main`**.
+- §16 operational rules checked: no new dependency without a consumer + rationale; aliases/env synced across `vite.config.ts` ↔ `tsconfig.json` ↔ `turbo.json` ↔ `wrangler.toml`; change set stays focused on one concern; nothing that degrades production ships without a revert path.
 - **Branch cap respected**: no more than two open feature/hotfix PRs exist after this work is pushed. If opening this PR would push the count to three, land or close an existing one first (or fold the work into an existing open PR). After merge, the remote branch is deleted.
 - Architecture/layer boundaries are respected.
 - HTTP handlers and clients share Zod-defined shapes; payloads omit unused fields.
@@ -604,9 +613,9 @@ When this file says to follow existing patterns, use these concrete references b
 
 ### 15.2 Frontend Patterns
 
-- **Feature layout**: `apps/app/features/<feature>/{components,hooks,rules,lib,types,index.ts}` with public imports through `index.ts`.
-- **Non-feature code** (shared across features) lives in `apps/<app>/shared/{components,hooks,lib}` and is reached via `@/components/...`, `@/hooks/...`, `@/lib/...` (the aliases now resolve into `shared/`). Promote into `packages/ui`, `packages/hooks`, or `packages/utils` once a second app needs it.
-- **Per-domain data hooks** live in `packages/data-access/src/hooks/` (e.g. `useAppointments`, `usePatients`, `useBillingHistory`). The package owns the React Query wrappers; the app injects the session-aware fetcher via `<DataAccessProvider>` (mounted by `apps/app/providers/data-access-bridge.tsx`). Add new data hooks here, not in app-local API hook folders. App-only composition (auth, locale, toasts) belongs in `apps/app/features/<feature>/hooks/` (e.g. `features/subscription/hooks/use-pricing.ts`, `features/patients/hooks/use-patient-history.ts`). The legacy `apps/app/shared/hooks/api/` directory must stay deleted (`check:legacy-app-api-hooks`).
+- **Feature layout**: `apps/<app>/src/features/<feature>/{components,hooks,lib,types.ts,index.ts}` with public imports through `index.ts`.
+- **Non-feature code** (shared across features) lives in `apps/<app>/src/components`, `apps/<app>/src/hooks`, `apps/<app>/src/lib` and is reached via `@/components/...`, `@/hooks/...`, `@/lib/...`. Promote into `packages/ui`, `packages/hooks`, or `packages/utils` once a second app needs it.
+- **Per-domain data hooks** live in `packages/data-access/src/hooks/` (e.g. `useAppointments`, `usePatients`, `useBillingHistory`). The package owns the React Query wrappers; the app injects the session-aware fetcher via `<DataAccessProvider>` (mounted by `apps/app-vite/src/providers/react-query-provider.tsx`). Add new data hooks here, not in app-local API hook folders. App-only composition (auth, locale, toasts) belongs in `apps/<app>/src/features/<feature>/hooks/`. The legacy `apps/app/shared/hooks/api/` directory must stay deleted (`check:legacy-app-api-hooks`).
 - **Pages**: route files compose feature shells; business logic belongs in feature components/hooks.
 - **Data fetching**: feature code consumes `packages/data-access` hooks or approved app API wrappers. Inline `fetch` in client features is blocked by `scripts/checks/check-frontend-fetch.mjs`.
 - **State**: React Query for server state, established stores for cross-cutting client state, and local state only for view-local behavior.
@@ -661,7 +670,7 @@ Split or extract when **responsibility**, **pattern fit**, or **duplication** de
 - `XCommandService` / `XQueryService` (+ optional calculator) registered in the domain module.
 - Facade `XService` may remain for stable constructor/DI compatibility; must delegate (`check:facade-delegation`).
 
-**Line-count backstop (automation only):** `pnpm check:file-size-budget` fails API `*.service.ts` and `apps/app/features/**` files above **400** lines (tests excluded). `pnpm audit:structure` may **advise** splits (e.g. feature components >400 lines, controllers >260, route pages >180). Passing the backstop does **not** prove SOLID; failing it means split or document an exception in the PR.
+**Line-count backstop (automation only):** `pnpm check:file-size-budget` fails API `*.service.ts` and `apps/app-vite/src/features/**` files above **400** lines (tests excluded). `pnpm audit:structure` may **advise** splits (e.g. feature components >400 lines, controllers >260, route pages >180). Passing the backstop does **not** prove SOLID; failing it means split or document an exception in the PR.
 
 **Imports:** cross-directory imports use `@/` or `@workspace/...`. Sibling `./` imports are allowed; parent `../` is ESLint-banned.
 
@@ -687,12 +696,12 @@ Each shape below has a canonical example to copy from. The frontmatter cites the
 
 | Shape | Canonical example |
 | --- | --- |
-| Page shell (`AppPageScaffold → PageHeader → DataState → Content`) | Any page under [`apps/app/app/(protected)/`](apps/app/app/(protected)/) |
-| Feature folder layout | [`apps/app/features/patients/`](apps/app/features/patients/) (`components/`, `hooks/`, `rules/`, `lib/`, `index.ts`) |
-| Colocation rule for types | [`apps/app/features/patients/types.ts`](apps/app/features/patients/) (feature-local types) vs `packages/types` (shared) |
-| Draft pattern (localStorage with expiry) | [`apps/app/features/onboarding/components/forms/use-onboarding-draft.ts`](apps/app/features/onboarding/components/forms/use-onboarding-draft.ts) |
-| Sections file (`*-sections.tsx`) | Any feature using the split, e.g. `apps/app/features/<feature>/components/<feature>-sections.tsx` |
-| Helpers file (`*-helpers.ts`) | Any feature using the split, e.g. `apps/app/features/<feature>/lib/<feature>-helpers.ts` |
+| Page shell (`AppPageScaffold → PageHeader → DataState → Content`) | Any page under `apps/app-vite/src/features/<feature>/pages/` (e.g. [`apps/app-vite/src/features/appointments/pages/`](apps/app-vite/src/features/appointments/pages/)) |
+| Feature folder layout | [`apps/app-vite/src/features/patients/`](apps/app-vite/src/features/patients/) (`components/`, `pages/`, `hooks/`, `lib/` as needed) |
+| Colocation rule for types | `apps/app-vite/src/features/<feature>/types.ts` (feature-local types) vs `packages/types` (shared) |
+| Draft pattern (localStorage with expiry) | Legacy ref (until ported): `git show HEAD:apps/app/features/onboarding/components/forms/use-onboarding-draft.ts` |
+| Sections file (`*-sections.tsx`) | `apps/app-vite/src/features/<feature>/components/*-sections.tsx`, e.g. [`ConsultationDetailPageSections.tsx`](apps/app-vite/src/features/consultation/components/ConsultationDetailPageSections.tsx) |
+| Helpers file (`*-helpers.ts`) | `apps/app-vite/src/features/<feature>/lib/` (or `hooks/`) `*-helpers.ts`, e.g. [`billing-subscription-helpers.ts`](apps/app-vite/src/features/subscription/components/billing-subscription-helpers.ts) |
 | Per-domain data hook | [`packages/data-access/src/hooks/use-patients.ts`](packages/data-access/src/hooks/use-patients.ts) |
 | Page-level loading/error/empty | `DataState` from [`packages/ui/src/components/data-display/data-state.tsx`](packages/ui/src/components/data-display/data-state.tsx) |
 
@@ -765,12 +774,48 @@ These patterns were established during the SSOT cleanup sweep. Follow them for n
 | **Appointment status mapper** | `appointments/infrastructure/mappers/appointment.mapper.ts` — exports `PRISMA_TO_DOMAIN_STATUS`, `DOMAIN_TO_PRISMA_STATUS`, `APPOINTMENT_STATUS_TO_PRISMA`, `parseAppointmentStatus` | Single canonical mapper; all 4 maps live in one file |
 | **Invoice status model** | 5 states only: `PENDING`, `PARTIALLY_PAID`, `PAID`, `OVERDUE`, `CANCELLED` | The 9-state domain model (`DRAFT`, `ISSUED`, `SENT`, `VIEWED`, `CREDIT_MEMO`) was dead code — do not reintroduce |
 | **Invoice status labels** | `INVOICE_STATUS_LABELS` in `packages/types/src/billing/invoices.ts` | 5 entries matching the 5-state model |
-| **Claim status labels** | `CLAIM_STATUS_LABELS`, `CLAIM_TYPE_LABELS`, `CLAIM_STATUS_TRANSITIONS`, `CLAIM_STATUS_TONE` in `packages/types/src/billing/insurance-claims.ts` | Centralized from `apps/app/features/insurance-claims/lib/claim-display.ts`; app now re-exports from types |
+| **Claim status labels** | `CLAIM_STATUS_LABELS`, `CLAIM_TYPE_LABELS`, `CLAIM_STATUS_TRANSITIONS`, `CLAIM_STATUS_TONE` in `packages/types/src/billing/insurance-claims.ts` | Centralized from the legacy Next app (`apps/app/features/insurance-claims/lib/claim-display.ts`, deleted); app-vite re-exports from types |
 | **Discount type** | `discountTypeSchema` in `packages/types/src/billing/tier.ts` (Zod enum); 11 values | The old API domain `DiscountType` (PROMOTIONAL-only) was a 1-value enum that caused `discountTypeFromStored()` to silently drop non-promotional discounts. Always import from `@workspace/types`. |
 | **Prescription status** | `prescriptionStatusSchema` in `packages/types/src/clinical/medications.ts` | Values: `ACTIVE`, `COMPLETED` |
 | **Facility type labels** | Use `facilityTypeSchema.options` from `@workspace/types` instead of `["CLINIC", "HOSPITAL"]` | Rather than duplicating the list of facility types, read them from the canonical Zod schema. |
 | **Email validation** | `isValidEmail()` in `@workspace/utils` | Single regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`. Do not define additional email validators. |
 | **Phone validation** | `validatePhoneForCountry()` in `@/lib/validation/phone` | Uses `react-phone-number-input` for country-aware validation via `isPossiblePhoneNumber()`, `parsePhoneNumber()`, and `getCountryCallingCode()`. Validates against the clinic's `operatingCountryCode` (defaults to `"IN"`). Always country-aware; never use India-only regex patterns. |
-| **Support email** | `SUPPORT_EMAIL` = `"support@docita.work"` in both `apps/app/shared/lib/constants/support-contact.ts` and `apps/api/src/shared/common/constants/support-contact.constants.ts` | Do not hardcode the email string elsewhere; import the constant. |
+| **Support email** | `SUPPORT_EMAIL` = `"support@docita.work"` in `apps/app-vite/src/lib/constants/support-contact.ts` and `apps/api/src/shared/common/constants/support-contact.constants.ts` | Do not hardcode the email string elsewhere; import the constant. |
 | **Tier string comparisons** | Variables typed as `TierName` (string union) from `@workspace/types` are canonical | `Tier` enum is **numeric** (STARTER=0, ESSENTIAL=1, etc.), never compare strings against `Tier.STARTER`. Use `TierName` type for string comparisons, `getTierName(Tier.STARTER)` for enum→string conversion, or `ClinicTier.STARTER` from `@workspace/db` for Prisma writes. Prefer typed helpers like `isFrontDeskTier()` over ad-hoc `=== "FRONT_DESK"` checks. |
 | **Front Desk tier check** | `isFrontDeskPlanMode(tier, planMode)` from `@workspace/types` | Always use the helper — never inline `planMode === 'FRONT_DESK''` alone. |
+
+## 16) Repo-wide Operational Rules
+
+These rules complement the sections above; they apply to every change set regardless of surface.
+
+### 16.1 Dependency policy
+
+- Internal packages use the `workspace:*` protocol only — never pin a version of `@workspace/*` in a package manifest; the lockfile resolves them.
+- No new dependency (runtime or dev) without a consumer in the same change set and a one-line rationale in the PR description. `pnpm knip` enforces unused deps; the rationale covers why the standard library or an existing workspace package is insufficient.
+- One library per concern area: one form library (react-hook-form), one toast surface (`@workspace/ui` toast/sonner), one date/time handling approach, one HTTP client. Duplicate libraries found during review are removed, not kept alongside.
+- Lockfile changes go through `pnpm install` only — never hand-edit `pnpm-lock.yaml`. CI installs with `--frozen-lockfile`; a dirty lockfile in a PR is a blocking error.
+- Run `pnpm audit --audit-level=high` locally before pushing dependency-manifest changes (CI gates on the same).
+
+### 16.2 Config sync rule (aliases, env, turbo, wrangler)
+
+- App import aliases are defined in exactly two places that must stay in sync: `vite.config.ts` (`resolve.alias`) and `tsconfig.json` (`paths`). Adding an alias to one without the other breaks `dev` or `check-types` — change both in the same commit.
+- When adding a build-time variable to a Vite app: add it to the app's `.env.example` (with the `VITE_` prefix), to `turbo.json` task `env` passthrough, and to `wrangler.toml` `[env.*.vars]` if the production Worker needs it. A var missing from `.env.example` or turbo `env` is a review blocker.
+- Domain names, Worker names, and environment names live in `wrangler.toml` only; CI and docs read them from there (see §11.1) — do not duplicate them in workflow files.
+
+### 16.3 Focused change sets
+
+- One change set = one concern: a feature, a bug, or a refactor — never mixed. A PR that fixes a bug while refactoring unrelated code, or ports a feature while renaming shared modules, is returned to the author.
+- Refactors that touch more than a few files beyond the change's surface belong in their own PR (and count against the §11.3 branch cap like any other PR).
+- The porting migration is the single documented exception: it lands as one coherent branch/PR series per [`docs/PORTING_PLAN_APP_VITE.md`](docs/PORTING_PLAN_APP_VITE.md), but individual commits inside it still stay focused per surface.
+
+### 16.4 Production incidents: revert-first
+
+- Any deploy that degrades production (errors, latency, data risk) is rolled back immediately — fix-forward is only acceptable when the fix is proven in staging and the revert path is blocked.
+- Migrations must remain reversible (`pnpm check:migration-reversibility` gates); a destructive migration with no rollback script is a blocking review error.
+- After an incident, the learning goes into `docs/operations/RUNBOOKS/` (or a tracked issue) in the same change set that ships the fix — never into an untracked note. The hotfix branch is deleted after merge per §11.3.
+
+### 16.5 External provider resilience
+
+- Every outbound call to a third-party service (payments, WhatsApp, AI, storage, SMS) must have: an explicit timeout, retry with backoff and jitter where the provider permits idempotent retry, and graceful degradation so the clinical flow stays usable when the provider is down. `check-external-http-timeouts` and `check-job-idempotency` enforce the mechanical parts.
+- Honor provider rate limits with client-side backoff and queue bounds; do not retry unboundedly or buffer work in memory. Provider outages follow the runbooks (e.g. `cloudflare-upstream-timeout`, `openai-rate-limit`, `razorpay-outage`).
+- Never log provider API keys, tokens, or request bodies containing PHI in error paths (see §6, §7.1).

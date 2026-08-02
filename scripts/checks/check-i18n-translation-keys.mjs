@@ -10,8 +10,7 @@
  * the matching keys to en.json. This check would have caught it.
  *
  * Scope:
- *  - Source files in apps/app and apps/internal that import `useTranslations`
- *    from `next-intl`.
+ *  - Source files in the apps that import `useTranslations` from `next-intl`.
  *  - The corresponding en.json (hi.json is checked in report mode only).
  *  - The top-level namespace ("X" in "X.Y") must resolve as an object in the
  *    JSON; the leaf (e.g. "X.Y.foo") is intentionally NOT checked because the
@@ -29,21 +28,11 @@ const enforce = process.argv.includes("--enforce");
 
 const USE_TRANSLATIONS = /useTranslations\(\s*["']([^"']+)["']/g;
 
-// Map a source file's app to its messages bundle. Apps other than these
-// three are skipped — they're workspace packages or one-off scripts that
-// don't ship a next-intl messages file at the canonical path.
-const APP_TO_MESSAGES = [
-  {
-    app: "@docita/app",
-    dir: "apps/app",
-    messages: "apps/app/messages/en.json",
-  },
-  {
-    app: "@docita/internal",
-    dir: "apps/internal",
-    messages: "apps/internal/messages/en.json",
-  },
-];
+// Apps that ship a next-intl messages bundle. The Vite apps
+// (app-vite, internal-vite) use i18next/react-i18next, not next-intl, so they
+// are not registered here. Keep the array empty to pass cleanly; add entries
+// only if a next-intl app returns.
+const APP_TO_MESSAGES = [];
 
 function listSourceFiles(appDir) {
   try {

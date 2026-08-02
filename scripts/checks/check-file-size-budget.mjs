@@ -20,7 +20,7 @@ const budgets = [
     label: "API domain service",
   },
   {
-    root: "apps/app/features",
+    root: "apps/app-vite/src/features",
     pattern: /\.(ts|tsx)$/,
     exclude: EXCLUDED_PATTERN,
     max: 400,

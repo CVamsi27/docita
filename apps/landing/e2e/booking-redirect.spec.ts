@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 /**
  * Landing "Book guided demo" CTA must redirect to the public booking
- * flow on apps/app, with the marketing campaign params preserved in
+ * flow on apps/app-vite, with the marketing campaign params preserved in
  * the URL so attribution tracking works downstream.
  *
  * SYSTEM_DESIGN_AND_PATTERNS.md §28.6 item 55.

@@ -7,8 +7,8 @@ import process from "node:process";
 const repoRoot = process.cwd();
 
 const SCAN_ROOTS = [
-  "apps/app",
-  "apps/internal",
+  "apps/app-vite/src",
+  "apps/internal-vite/src",
   "apps/landing/src",
   "packages/ui/src",
 ];
@@ -23,8 +23,8 @@ const SOURCE_EXTENSIONS = new Set([
 ]);
 
 const APPROVED_TOAST_WRAPPERS = new Set([
-  "apps/app/shared/lib/errors/user-facing-errors.ts",
-  "apps/internal/shared/lib/errors/user-facing-errors.ts",
+  "apps/app-vite/src/lib/errors/user-facing-errors.ts",
+  "apps/internal-vite/src/lib/errors/user-facing-errors.ts",
 ]);
 
 const EXCLUDED_SEGMENTS = [

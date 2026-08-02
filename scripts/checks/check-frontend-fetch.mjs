@@ -7,15 +7,13 @@ import {
 } from "../lib/check-runner.mjs";
 
 const allowedPatterns = [
-  /^apps\/app\/middleware\.ts$/,
-  /^apps\/internal\/middleware\.ts$/,
   /^packages\/utils\/src\/http\/upstream-api-proxy\.ts$/,
-  /^apps\/(app|internal)\/shared\/lib\/api\//,
-  /^apps\/(app|internal)\/shared\/lib\/auth\//,
-  /^apps\/(app|internal)\/features\/[^/]+\/api\/[^/]+\.api\.ts$/,
+  /^apps\/(app-vite|internal-vite)\/src\/lib\/api\//,
+  /^apps\/(app-vite|internal-vite)\/src\/lib\/auth\//,
+  /^apps\/(app-vite|internal-vite)\/src\/features\/[^/]+\/api\/[^/]+\.api\.ts$/,
 ];
 
-const files = gitLsSourceFiles(["apps/app", "apps/internal"], {
+const files = gitLsSourceFiles(["apps/app-vite", "apps/internal-vite"], {
   extensions: [".ts", ".tsx"],
   exclude: [/\.(test|spec)\.[tj]sx?$/, ...allowedPatterns],
 });

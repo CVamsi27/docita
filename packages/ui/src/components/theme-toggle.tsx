@@ -1,6 +1,3 @@
-"use client";
-
-import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
 import { useMounted } from "@workspace/hooks";
@@ -10,12 +7,20 @@ import { cn } from "@workspace/ui/lib/utils";
 export interface ThemeToggleProps {
   /** Called after selecting light/dark so app state (e.g. persisted appearance) can stay in sync. */
   onSelectTheme?: (mode: "light" | "dark") => void;
+  /** Read current resolved theme from an external store. */
+  resolvedTheme?: string;
+  /** Toggle callback managed by an external store. */
+  onToggle?: () => void;
   className?: string;
 }
 
-export function ThemeToggle({ onSelectTheme, className }: ThemeToggleProps) {
+export function ThemeToggle({
+  onSelectTheme,
+  resolvedTheme,
+  onToggle,
+  className,
+}: ThemeToggleProps) {
   const mounted = useMounted();
-  const { resolvedTheme, setTheme } = useTheme();
 
   if (!mounted) {
     return (
@@ -49,7 +54,7 @@ export function ThemeToggle({ onSelectTheme, className }: ThemeToggleProps) {
           className="size-9 shrink-0 rounded-lg"
           aria-label={switchLabel}
           onClick={() => {
-            setTheme(nextTheme);
+            onToggle?.();
             onSelectTheme?.(nextTheme);
           }}
           type="button"

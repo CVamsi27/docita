@@ -1,0 +1,43 @@
+name = "docita-app-vite"
+compatibility_date = "2026-07-29"
+main = "api/index.ts"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[env.production]
+name = "docita-app"
+
+[[env.production.routes]]
+pattern = "app.docita.work"
+custom_domain = true
+
+[env.production.vars]
+NODE_ENV = "production"
+VITE_API_URL = "/api/v1"
+VITE_APP_URL = "https://app.docita.work"
+VITE_SOCKET_URL = "https://api.docita.work"
+VITE_SENTRY_DSN = "https://f22671b3cd9222c1c1f8d7ad3b508ea9@o4511121149198336.ingest.de.sentry.io/4511121158242384"
+API_PROXY_TARGET = "https://api.docita.work"
+VITE_RAZORPAY_KEY_ID = "rzp_live_SPNm7w8Ig24OSX"
+VITE_AI_ENABLED = "false"
+
+[env.staging]
+name = "docita-app-vite-staging"
+
+[[env.staging.routes]]
+pattern = "staging-app.docita.work"
+custom_domain = true
+
+[env.staging.vars]
+NODE_ENV = "production"
+VITE_API_URL = "/api/v1"
+VITE_APP_URL = "https://staging-app.docita.work"
+VITE_SOCKET_URL = "https://staging-api.docita.work"
+VITE_SENTRY_DSN = "https://f22671b3cd9222c1c1f8d7ad3b508ea9@o4511121149198336.ingest.de.sentry.io/4511121158242384"
+API_PROXY_TARGET = "https://staging-api.docita.work"
+VITE_RAZORPAY_KEY_ID = ""
+VITE_AI_ENABLED = "false"

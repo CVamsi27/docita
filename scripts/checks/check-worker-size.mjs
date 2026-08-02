@@ -1,3 +1,10 @@
+// fallow-ignore-file unused-file
+// Referenced from root package.json (`check:worker-size:*`) via
+// `cd apps/<app> && node ../../scripts/...` — wrangler dry-run needs the app
+// dir as cwd (wrangler.toml). Fallow skips `../`-traversal references, hence
+// the false-positive unused-file report; the refs are live (see root
+// package.json lines 60-62).
+
 import { execSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

@@ -431,3 +431,7 @@ export {
   useCancelClinicWhatsappCampaign,
 } from "./hooks/use-whatsapp";
 export type { NotificationUnreadCountResponse } from "./hooks/use-whatsapp";
+
+// File upload hooks
+export { useUploadFile } from "./hooks/use-file-upload";
+export type { UploadFileResult } from "./hooks/use-file-upload";

@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 
 const repoRoot = process.cwd();
-const reportDir = path.join(repoRoot, "apps/app/accessibility-reports");
+const reportDir = path.join(repoRoot, "apps/app-vite/accessibility-reports");
 const outputPath = path.join(repoRoot, "artifacts/a11y-baseline.json");
 
 function latestReportFile() {
@@ -36,7 +36,7 @@ function flattenViolations(report) {
 const sourcePath = latestReportFile();
 if (!sourcePath) {
   console.log(
-    "No apps/app/accessibility-reports/baseline-app-*.json found. Run pnpm audit:app first.",
+    "No apps/app-vite/accessibility-reports/baseline-app-*.json found. Run pnpm audit:app first.",
   );
   process.exit(0);
 }

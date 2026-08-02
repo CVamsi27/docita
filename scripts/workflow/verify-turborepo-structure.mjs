@@ -8,16 +8,13 @@ const root = process.cwd();
 
 const requiredPaths = [
   'apps',
-  'apps/app',
-  'apps/internal',
+  'apps/app-vite',
+  'apps/internal-vite',
   'apps/landing',
   'apps/api',
   'apps/worker',
   'apps/worker/src',
-  'apps/app/e2e',
-  'apps/internal/tests/unit',
-  'apps/internal/tests/integration',
-  'apps/internal/tests/e2e',
+  // Vite apps use Playwright via root config, no dedicated e2e/ dir
   'apps/landing/src',
   'apps/landing/public',
   'apps/landing/e2e',

@@ -1,0 +1,144 @@
+import { useNavigate } from "react-router";
+import { HeartPulse, Users, CreditCard } from "lucide-react";
+import { getPatientFullName } from "@workspace/utils";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Section } from "@workspace/ui/components";
+import { AppointmentRowActionsMenu } from "@/features/appointments/components/forms/AppointmentRowActionsMenu";
+import type { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
+import type { useConsultationDashboard } from "../hooks/use-consultation-dashboard";
+import { buildConsultationRoute } from "../rules/consultationTabRouting";
+
+type ConsultationDashboardState = ReturnType<typeof useConsultationDashboard>;
+type AppointmentRowActions = ReturnType<typeof useAppointmentRowActions>;
+
+export interface NursePrepSectionProps {
+  opdQueueRows: ConsultationDashboardState["opdQueueRows"];
+  rowActions: AppointmentRowActions;
+  clinicType: ConsultationDashboardState["clinicType"];
+  handleScheduleFollowUp: (patientId?: string | null) => void;
+  onVitalsClick: (appointmentId: string, patientName: string) => void;
+  onInvoiceClick: (appointmentId: string, patientId: string) => void;
+}
+
+/**
+ * Nurse prep queue — for a triage nurse preparing walk-ins before the doctor
+ * starts. Split out of `consultation-dashboard-sections` so the dashboard file
+ * stays under the 400-line feature budget while keeping the doctor / error /
+ * stats / header blocks co-located.
+ */
+export function NursePrepSection({
+  opdQueueRows,
+  rowActions,
+  clinicType,
+  handleScheduleFollowUp,
+  onVitalsClick,
+  onInvoiceClick,
+}: NursePrepSectionProps) {
+  const navigate = useNavigate();
+  return (
+    <Section
+      id="consultation-nurse-prep"
+      title="Prep"
+      description="Capture vitals and invoice patients before the doctor starts."
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-[var(--fs-md)] font-semibold">
+            Queue
+          </CardTitle>
+          <CardDescription>
+            Record vitals or create an invoice for any waiting patient.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {opdQueueRows.length === 0 ? (
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-6 text-center rounded-lg">
+              <Users
+                className="mb-2 h-8 w-8 opacity-50 text-muted-foreground"
+                aria-hidden
+              />
+              <p className="text-sm text-muted-foreground">
+                No patients are in the queue right now.
+              </p>
+            </div>
+          ) : (
+            opdQueueRows
+              .filter((q) => Boolean(q.appointmentId))
+              .slice(0, 10)
+              .map((q) => {
+                const queuePatientId = q.patient?.id ?? q.patientId ?? null;
+                const queueAppointmentId = q.appointmentId ?? null;
+                const patientName = getPatientFullName(q.patient);
+                return (
+                  <div
+                    key={q.id}
+                    className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{patientName}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        Token {(q.tokenNumber ?? 0) > 0 ? q.tokenNumber : "—"} •{" "}
+                        {String(q.status).toLowerCase()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {queueAppointmentId ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 gap-1 px-2.5 text-xs"
+                          onClick={() =>
+                            onVitalsClick(queueAppointmentId, patientName)
+                          }
+                        >
+                          <HeartPulse className="h-3 w-3 text-destructive" />
+                          Vitals
+                        </Button>
+                      ) : null}
+                      {queueAppointmentId && queuePatientId ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 gap-1 px-2.5 text-xs"
+                          onClick={() =>
+                            onInvoiceClick(queueAppointmentId, queuePatientId)
+                          }
+                        >
+                          <CreditCard className="h-3 w-3 text-success" />
+                          Invoice
+                        </Button>
+                      ) : null}
+                      {queueAppointmentId ? (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            navigate(
+                              buildConsultationRoute(queueAppointmentId, {
+                                tab: "vitals",
+                                clinicType,
+                              }),
+                            )
+                          }
+                        >
+                          Open
+                        </Button>
+                      ) : null}
+                      <AppointmentRowActionsMenu
+                        appointmentId={queueAppointmentId}
+                        patientId={queuePatientId}
+                        status={q.status}
+                        onCancelClick={rowActions.onCancelClick}
+                        onNoShowClick={rowActions.onNoShowClick}
+                        onScheduleFollowUp={() =>
+                          handleScheduleFollowUp(queuePatientId)
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })
+          )}
+        </CardContent>
+      </Card>
+    </Section>
+  );
+}

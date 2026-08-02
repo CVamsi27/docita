@@ -61,8 +61,8 @@ function stripStrings(source) {
 
 const roots = [
   "apps/api/src",
-  "apps/app",
-  "apps/internal",
+  "apps/app-vite/src",
+  "apps/internal-vite/src",
   "apps/landing",
   "packages/data-access/src",
   "packages/hooks/src",

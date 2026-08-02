@@ -12,15 +12,15 @@ export interface LazySentryClientLoaderOptions<TSentryModule> {
 
 /**
  * Builds a lazily-loaded, memoized handle to the Sentry client SDK shared by
- * `apps/app` and `apps/internal`. Both apps defer importing `@sentry/nextjs`
- * until it's actually needed (and only when enabled — DSN present, browser,
- * not dev), then cache the loaded module/in-flight promise so repeated
- * `captureException`/`captureMessage`/init calls don't re-trigger the dynamic
- * import.
+ * `apps/app-vite` and `apps/internal-vite`. Both apps defer importing
+ * `@sentry/react` until it's actually needed (and only when enabled — DSN
+ * present, browser, not dev), then cache the loaded module/in-flight promise
+ * so repeated `captureException`/`captureMessage`/init calls don't re-trigger
+ * the dynamic import.
  *
- * Generic over the SDK module type so this stays free of an `@sentry/nextjs`
+ * Generic over the SDK module type so this stays free of a Sentry SDK
  * dependency in `@workspace/utils` — each app supplies its own
- * `typeof import("@sentry/nextjs")` type via the type parameter.
+ * `typeof import("@sentry/react")` type via the type parameter.
  */
 export function createLazySentryClientLoader<TSentryModule>({
   importModule,
@@ -84,8 +84,8 @@ export function createLazySentryClientLoader<TSentryModule>({
 
 /**
  * Wires a single `unhandledrejection` listener that forwards the rejection to
- * Sentry as a captured exception. Identical across `apps/app` and
- * `apps/internal` client bootstraps, so it lives here once.
+ * Sentry as a captured exception. Identical across `apps/app-vite` and
+ * `apps/internal-vite` client bootstraps, so it lives here once.
  */
 export function wireUnhandledRejectionCapture<
   TSentryModule extends SentryExceptionCapturer,
@@ -106,6 +106,8 @@ export interface SentryClientBootstrapOptions<TSentryModule, TContext> {
   getContext: () => TContext | null;
   /** Applies the resolved context to the loaded Sentry module (setUser/setTag/...). */
   applyContext: (Sentry: TSentryModule, context: TContext) => void;
+  /** Optional hook to configure the SDK (Sentry.init) once, before context is applied. */
+  initClient?: (Sentry: TSentryModule) => void;
   /** Optional hook fired once bootstrap finishes successfully (e.g. mark a ready flag). */
   onReady?: (Sentry: TSentryModule) => void;
 }
@@ -116,9 +118,9 @@ export interface SentryClientBootstrapOptions<TSentryModule, TContext> {
  * (optionally) signals readiness — all guarded by a best-effort try/catch so
  * monitoring setup can never block app boot.
  *
- * `apps/app` and `apps/internal` differ only in *what* context they read and
- * *which* tags they set, both of which are supplied via `getContext` /
- * `applyContext`.
+ * `apps/app-vite` and `apps/internal-vite` differ only in *what* context they
+ * read and *which* tags they set, both of which are supplied via `getContext`
+ * / `applyContext`.
  */
 export function bootstrapSentryClient<
   TSentryModule extends SentryExceptionCapturer,
@@ -127,6 +129,7 @@ export function bootstrapSentryClient<
   loadSentryModule,
   getContext,
   applyContext,
+  initClient,
   onReady,
 }: SentryClientBootstrapOptions<TSentryModule, TContext>): void {
   void loadSentryModule().then((Sentry) => {
@@ -135,6 +138,8 @@ export function bootstrapSentryClient<
     }
 
     try {
+      initClient?.(Sentry);
+
       const context = getContext();
       if (context) {
         applyContext(Sentry, context);
