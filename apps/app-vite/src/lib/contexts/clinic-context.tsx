@@ -8,7 +8,7 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 import { appClinicSchema, type AppClinic } from "@workspace/types";
-import { api } from "@/lib/api/api-client";
+import { fetchClinicSettings } from "@/lib/api/clinic-settings";
 import { useAuth } from "@/lib/auth/auth-context";
 import { logger } from "@/lib/monitoring/logger";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -63,7 +63,7 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
 
   const refreshClinic = useCallback(async () => {
     try {
-      const data = await api.get<unknown>("/clinic/settings");
+      const data = await fetchClinicSettings();
       const parsed = appClinicSchema.safeParse(data);
       if (!parsed.success) {
         logger.warn("Invalid clinic settings payload", {

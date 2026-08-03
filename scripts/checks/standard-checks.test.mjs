@@ -442,3 +442,36 @@ test("zod-interface-parity check flags interface colliding with packages/types s
     ),
   );
 });
+
+test("accessible-name check flags icon-only links and allows text-labeled ones", () => {
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app-vite/src/features/demo/components/icon-only.tsx":
+          `import { Link } from "react-router";\nexport function IconOnly() {\n  return <Link to="/x"><Icon aria-hidden /></Link>;\n}\n`,
+      }),
+      "check-accessible-name.mjs",
+      ["--enforce"],
+    ),
+  );
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/app-vite/src/features/demo/components/good.tsx":
+          `import { Link } from "react-router";\nexport function Good() {\n  return <Link to="/x" aria-label="Open settings"><Icon aria-hidden /></Link>;\n}\n`,
+      }),
+      "check-accessible-name.mjs",
+      ["--enforce"],
+    ),
+  );
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/app-vite/src/features/demo/components/text.tsx":
+          `import { Link } from "react-router";\nexport function Text() {\n  return <Link to="/x">View all</Link>;\n}\n`,
+      }),
+      "check-accessible-name.mjs",
+      ["--enforce"],
+    ),
+  );
+});

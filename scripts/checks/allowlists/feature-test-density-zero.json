@@ -1,12 +1,9 @@
 [
   "ai-assistant",
   "analytics",
-  "billing-locked",
   "booking",
   "consultation",
   "documents",
-  "errors",
-  "follow-ups",
   "guided-tour",
   "help",
   "imports",
@@ -30,10 +27,6 @@
   "setup",
   "subscription",
   "templates",
-  "today",
-  "tools",
-  "upgrade",
   "upload-signature",
-  "verify-email",
   "whatsapp"
 ]

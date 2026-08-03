@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api/api-client";
 import { CardGridSkeleton } from "@/components/loaders/page-skeleton";
 import { AppPageScaffold, Button, DataState, PageHeader } from "@workspace/ui/components";
 import { Hospital } from "lucide-react";
 import { ReferralsPageContent } from "@/features/referrals/components/ReferralsPageContent";
 import { FollowUpsPageContent } from "@/features/follow-ups/components/FollowUpsPageContent";
+import { getHospitalBeds, type HospitalBed } from "@/features/referrals/api/referrals.api";
 
 export function ReferralsPage() {
   return <ReferralsPageContent />;
@@ -16,21 +16,12 @@ export function FollowUpsPage() {
   return <FollowUpsPageContent />;
 }
 
-interface HospitalBed {
-  id: string;
-  ward: string;
-  roomNumber: string;
-  bedNumber: string;
-  status: string;
-  patientName?: string;
-}
-
 export function HospitalBedsPage() {
   const { t } = useTranslation("Referrals");
   const navigate = useNavigate();
   const { data: beds, isLoading, isError, refetch } = useQuery<HospitalBed[]>({
     queryKey: ["hospital-beds"],
-    queryFn: () => apiFetch<HospitalBed[]>("/hospital/beds"),
+    queryFn: getHospitalBeds,
   });
 
   return (

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { UploadResult } from "@workspace/data-access";
 import { getUserFacingErrorMessage } from "@workspace/utils";
-import { uploadSignature, validateToken } from "../lib/signature-helpers";
+import { uploadSignature, validateToken } from "../api/signature.api";
 
 interface UploadSignatureTokenState {
   validating: boolean;

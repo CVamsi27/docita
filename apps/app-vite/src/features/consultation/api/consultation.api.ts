@@ -1,4 +1,4 @@
-import { api } from "@/lib/api/api-client";
+import { api, apiFetch } from "@/lib/api/api-client";
 import type { UpdateAppointmentRequest, VitalSign } from "@workspace/types";
 import {
   appointmentResponseSchema,
@@ -36,4 +36,49 @@ export const consultationApi = {
   // Mark appointment as completed.
   complete: (appointmentId: string) =>
     api.patch(`/appointments/${appointmentId}`, { status: "completed" }),
+};
+
+export interface ConsultationQueueRow {
+  id: string;
+  appointmentId?: string | null;
+  patientId?: string | null;
+  patientName: string;
+  status: string;
+  startTime?: string | null;
+  chiefComplaint?: string | null;
+  type?: string | null;
+  tokenNumber?: number;
+  tokenType?: string;
+  visitSummary?: string | null;
+  invoice?: { status?: string | null } | null;
+  kind?: "appointment" | "queue";
+  createdAt?: string;
+  patient?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
+export interface ConsultationDashboardStats {
+  scheduledToday: number;
+  waiting: number;
+  inProgress: number;
+  completed: number;
+}
+
+export interface ConsultationDoctorNextNow {
+  mode: "fcfs" | "scheduled";
+  inProgress: ConsultationQueueRow[];
+  combinedUpcoming: ConsultationQueueRow[];
+}
+
+export const consultationDashboardApi = {
+  getStats: () =>
+    apiFetch<ConsultationDashboardStats>("/consultation/stats"),
+  getQueue: () => apiFetch<ConsultationQueueRow[]>("/consultation/queue"),
+  getDoctorNextNow: (doctorId: string) =>
+    apiFetch<ConsultationDoctorNextNow>(`/consultation/doctor-next/${doctorId}`),
+  start: (appointmentId: string) =>
+    apiFetch(`/consultation/start/${appointmentId}`, { method: "POST" }),
 };

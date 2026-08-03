@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/form/button";
 import { sanitizeUserFacingMessage } from "@workspace/utils";
-import type { SearchResult } from "@/features/search/api/search-api";
+import type { SearchResult } from "@/features/search/api/search.api";
 import { typeColors, typeIcons } from "./global-search-constants";
 
 export function GlobalSearchResultsPanel({

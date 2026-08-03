@@ -12,7 +12,7 @@ vi.mock("@workspace/hooks/use-debounce", () => ({
 
 const searchGlobalMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/features/search/api/search-api", () => ({
+vi.mock("@/features/search/api/search.api", () => ({
   searchGlobal: (...args: unknown[]) => searchGlobalMock(...args),
 }));
 

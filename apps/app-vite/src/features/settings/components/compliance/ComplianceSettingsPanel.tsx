@@ -1,8 +1,8 @@
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { complianceApi } from "@/features/settings/api/settings.api";
 import {
   Alert,
   AlertDescription,
@@ -43,20 +43,21 @@ export function ComplianceSettingsPanel() {
 
   const { data: compliance } = useQuery<AppComplianceSummary>({
     queryKey: ["compliance", clinicId],
-    queryFn: () => api.get(`/clinics/${clinicId}/compliance`),
+    queryFn: () => complianceApi.getSummary<AppComplianceSummary>(),
     enabled: !!clinicId,
   });
 
   const { data: recentAuditLogs } = useQuery<AppAuditLogSummary[]>({
     queryKey: ["audit", "recent"],
-    queryFn: () => api.get("/audit/recent?limit=5"),
+    queryFn: () => complianceApi.getRecentAuditLogs<AppAuditLogSummary[]>(),
     enabled: !!clinicId,
   });
 
   const { data: dataSubjectRequests = [] } = useQuery<AppDataSubjectRequest[]>(
     {
       queryKey: ["compliance", "data-subject-requests"],
-      queryFn: () => api.get(`/clinics/${clinicId}/data-subject-requests`),
+      queryFn: () =>
+        complianceApi.getDataSubjectRequests<AppDataSubjectRequest[]>(),
       enabled: !!clinicId,
     },
   );
@@ -75,7 +76,7 @@ export function ComplianceSettingsPanel() {
     CreateDataSubjectRequest
   >({
     mutationFn: (data) =>
-      api.post(`/clinics/${clinicId}/data-subject-requests`, data),
+      complianceApi.createDataSubjectRequest<AppDataSubjectRequest>(data),
     onSuccess: () => {
       toast.success("Patient rights request logged");
       setRequestDialogOpen(false);
@@ -97,9 +98,9 @@ export function ComplianceSettingsPanel() {
     UpdateRequestPayload
   >({
     mutationFn: (data) =>
-      api.patch(
-        `/clinics/${clinicId}/data-subject-requests/${data.requestId}`,
-        { status: data.status },
+      complianceApi.updateDataSubjectRequestStatus<AppDataSubjectRequest>(
+        data.requestId,
+        data.status,
       ),
     onSuccess: () => {
       toast.success("Patient rights request updated");

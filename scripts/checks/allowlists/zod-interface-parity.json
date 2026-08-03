@@ -56,10 +56,6 @@
     "reason": "Phase 9 documented form-local divergence: onboarding team-member draft shape."
   },
   {
-    "id": "apps/app-vite/src/lib/errors/error-parser.ts:ApiError",
-    "reason": "Name collision only — client-side API error shape is unrelated to packages/types apiErrorSchema."
-  },
-  {
     "id": "apps/internal-vite/src/features/dashboard/types.ts:DashboardStats",
     "reason": "Name collision only — internal admin dashboard stats shape is unrelated to admin dashboardStatsSchema."
   }

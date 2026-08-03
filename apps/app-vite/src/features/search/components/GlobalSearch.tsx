@@ -2,7 +2,7 @@ import { Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button, Input, Popover, PopoverContent, PopoverTrigger, SymbolTooltip } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
-import type { SearchResult } from "@/features/search/api/search-api";
+import type { SearchResult } from "@/features/search/api/search.api";
 import { GLOBAL_SEARCH_INPUT_ID } from "./global-search-constants";
 import { GlobalSearchResultsPanel } from "./global-search-results-panel";
 import { useGlobalSearch } from "./use-global-search";

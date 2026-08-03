@@ -1,45 +1,19 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { buildFollowUpAppointmentHref } from "@/features/consultation/components/consultation-dashboard-ui-helpers";
+import {
+  consultationDashboardApi,
+  type ConsultationDashboardStats,
+  type ConsultationDoctorNextNow,
+  type ConsultationQueueRow,
+} from "@/features/consultation/api/consultation.api";
 
-export interface QueueRow {
-  id: string;
-  appointmentId?: string | null;
-  patientId?: string | null;
-  patientName: string;
-  status: string;
-  startTime?: string | null;
-  chiefComplaint?: string | null;
-  type?: string | null;
-  tokenNumber?: number;
-  tokenType?: string;
-  visitSummary?: string | null;
-  invoice?: { status?: string | null } | null;
-  kind?: "appointment" | "queue";
-  createdAt?: string;
-  patient?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-}
-
-export interface DashboardStats {
-  scheduledToday: number;
-  waiting: number;
-  inProgress: number;
-  completed: number;
-}
-
-export interface DoctorNextNow {
-  mode: "fcfs" | "scheduled";
-  inProgress: QueueRow[];
-  combinedUpcoming: QueueRow[];
-}
+export type QueueRow = ConsultationQueueRow;
+export type DashboardStats = ConsultationDashboardStats;
+export type DoctorNextNow = ConsultationDoctorNextNow;
 
 export function useConsultationDashboard() {
   const navigate = useNavigate();
@@ -47,24 +21,24 @@ export function useConsultationDashboard() {
   const userRole = user?.role ?? "";
 
   /* ── Stats ───────────────────────────────────────────── */
-  const statsQuery = useQuery<DashboardStats>({
+  const statsQuery = useQuery<ConsultationDashboardStats>({
     queryKey: ["consultation", "stats"],
-    queryFn: () => apiFetch<DashboardStats>("/consultation/stats"),
+    queryFn: consultationDashboardApi.getStats,
     enabled: isAuthenticated,
   });
 
   /* ── Queue / OPD rows ───────────────────────────────── */
-  const queueQuery = useQuery<QueueRow[]>({
+  const queueQuery = useQuery<ConsultationQueueRow[]>({
     queryKey: ["consultation", "queue"],
-    queryFn: () => apiFetch<QueueRow[]>("/consultation/queue"),
+    queryFn: consultationDashboardApi.getQueue,
     enabled: isAuthenticated,
   });
 
   /* ── Doctor now/next ─────────────────────────────────── */
-  const doctorQuery = useQuery<DoctorNextNow>({
+  const doctorQuery = useQuery<ConsultationDoctorNextNow>({
     queryKey: ["consultation", "doctor-next", user?.id],
     queryFn: () =>
-      apiFetch<DoctorNextNow>(`/consultation/doctor-next/${user?.id}`),
+      consultationDashboardApi.getDoctorNextNow(user?.id ?? ""),
     enabled: isAuthenticated && !!user?.id,
   });
 
@@ -72,9 +46,7 @@ export function useConsultationDashboard() {
   const handleStartConsultation = useCallback(
     async (appointmentId: string) => {
       try {
-        await apiFetch(`/consultation/start/${appointmentId}`, {
-          method: "POST",
-        });
+        await consultationDashboardApi.start(appointmentId);
         navigate(`/consultation/${appointmentId}`);
       } catch (error) {
         showUserFacingErrorToast(

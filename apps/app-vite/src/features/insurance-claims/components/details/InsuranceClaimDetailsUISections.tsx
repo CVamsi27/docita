@@ -229,7 +229,12 @@ export function ClaimDocumentsCard({
                   {document.name}
                 </span>
                 <Button asChild size="sm" variant="outline">
-                  <a href={document.url} target="_blank" rel="noreferrer">
+                  <a
+                    href={document.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`View ${document.name}`}
+                  >
                     View
                   </a>
                 </Button>

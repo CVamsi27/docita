@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { HelmetProvider } from "react-helmet-async";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
+import { DataAccessBridge } from "@/providers/data-access-bridge";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { AppProviders } from "@/components/layout/providers";
 import { ThemeProvider } from "@/components/layout/theme-provider";
@@ -25,16 +26,18 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <ReactQueryProvider>
           <AuthProvider>
-            <ThemeProvider>
-              <AppProviders>
-                <SocketProvider>
-                  <ErrorBoundaryWrapper>
-                    <App />
-                  </ErrorBoundaryWrapper>
-                  <PwaRegister />
-                </SocketProvider>
-              </AppProviders>
-            </ThemeProvider>
+            <DataAccessBridge>
+              <ThemeProvider>
+                <AppProviders>
+                  <SocketProvider>
+                    <ErrorBoundaryWrapper>
+                      <App />
+                    </ErrorBoundaryWrapper>
+                    <PwaRegister />
+                  </SocketProvider>
+                </AppProviders>
+              </ThemeProvider>
+            </DataAccessBridge>
           </AuthProvider>
         </ReactQueryProvider>
       </BrowserRouter>

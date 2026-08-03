@@ -28,6 +28,7 @@ export function PublicBookingSkipLink() {
 export function PublicBookingTopChrome() {
   return (
     <header
+      role="banner"
       className={cn(
         "sticky top-0 z-30 border-b border-b-border/40 bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:backdrop-blur-sm",
         "pb-1.5 pt-[max(0.625rem,env(safe-area-inset-top))] sm:pb-2",

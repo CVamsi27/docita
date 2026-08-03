@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@workspace/hooks/use-debounce";
-import { searchGlobal, type SearchResult } from "@/features/search/api/search-api";
+import { searchGlobal, type SearchResult } from "@/features/search/api/search.api";
 
 const searchQueryKey = (query: string) => ["search", "global", query] as const;
 import { searchResultRoutes } from "./global-search-constants";

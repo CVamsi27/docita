@@ -10,16 +10,14 @@ import { PaymentFailedError } from "@/hooks/razorpay-checkout-errors";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import { BRAND_FOREGROUND_HEX } from "@/lib/constants/branding";
-import { api } from "@/lib/api/api-client";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { queryKeys } from "@workspace/data-access";
+import { type PlanMode, type TierName } from "@workspace/types";
 import {
-  type PlanMode,
-  subscriptionBillingActivateResponseSchema,
-  subscriptionBillingCheckoutResponseSchema,
-  type TierName,
-} from "@workspace/types";
+  activateSubscription,
+  createSubscriptionCheckout,
+} from "@/features/subscription/api/subscription.api";
 
 export interface CheckoutSuccessData {
   planName: string;
@@ -74,13 +72,11 @@ export function useSubscriptionCheckout(
       setProcessingId(`tier-${tier}`);
 
       try {
-        const createData = subscriptionBillingCheckoutResponseSchema.parse(
-          await api.post("/subscription/billing/checkout", {
-            tier,
-            billingCycle,
-            planMode,
-          }),
-        );
+        const createData = await createSubscriptionCheckout({
+          tier,
+          billingCycle,
+          planMode,
+        });
         const {
           orderId,
           amountCents,
@@ -112,16 +108,14 @@ export function useSubscriptionCheckout(
           description: `Upgrade to ${tier} Plan`,
           order_id: orderId,
           handler: async (response: RazorpayResponse) => {
-            subscriptionBillingActivateResponseSchema.parse(
-              await api.post("/subscription/billing/activate", {
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpayOrderId: response.razorpay_order_id,
-                razorpaySignature: response.razorpay_signature,
-                tier,
-                billingCycle,
-                planMode,
-              }),
-            );
+            await activateSubscription({
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature,
+              tier,
+              billingCycle,
+              planMode,
+            });
 
             setTier(tier);
             await invalidateSubscriptionQueries();

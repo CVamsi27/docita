@@ -8,6 +8,9 @@ import {
 
 const allowedPatterns = [
   /^packages\/utils\/src\/http\/upstream-api-proxy\.ts$/,
+  // Cloudflare proxy Worker entry (server-side runtime, not browser code): the
+  // `fetch` here forwards /api/* and /socket.io/* to the upstream API host.
+  /^apps\/(app-vite|internal-vite)\/api\//,
   /^apps\/(app-vite|internal-vite)\/src\/lib\/api\//,
   /^apps\/(app-vite|internal-vite)\/src\/lib\/auth\//,
   /^apps\/(app-vite|internal-vite)\/src\/features\/[^/]+\/api\/[^/]+\.api\.ts$/,

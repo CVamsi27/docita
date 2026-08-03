@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from "react";
 import { useTierFeatureEnabled } from "@/lib/access-control/use-tier-feature-enabled";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api/api-client";
 import { appQueryKeys } from "@/lib/api/query-keys";
 import {
   type Admission,
@@ -11,6 +10,7 @@ import {
   Feature,
   type TransferPatientRequest,
 } from "@workspace/types";
+import { ipdApi } from "../api/ipd.api";
 import {
   computeIpdStats,
   type WardWithRooms,
@@ -32,14 +32,14 @@ export const useIpdLogic = () => {
     refetch: refetchWards,
   } = useQuery<WardWithRooms[]>({
     queryKey: [...appQueryKeys.ipd.wards, debouncedSearch],
-    queryFn: () => apiFetch(`/ipd/wards${debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ""}`),
+    queryFn: () => ipdApi.getWards(debouncedSearch),
     staleTime: 15 * 1000,
     enabled: ipdOk,
   });
 
   const { data: activeAdmissions } = useQuery<Admission[]>({
     queryKey: appQueryKeys.ipd.activeAdmissions,
-    queryFn: () => apiFetch("/ipd/admissions?status=ADMITTED"),
+    queryFn: ipdApi.getActiveAdmissions,
     staleTime: 15 * 1000,
     enabled: ipdOk,
   });
@@ -50,29 +50,17 @@ export const useIpdLogic = () => {
   }, [queryClient]);
 
   const admitPatientMutation = useMutation<Admission, Error, AdmitPatientRequest>({
-    mutationFn: (data) =>
-      apiFetch("/ipd/admissions", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+    mutationFn: ipdApi.admitPatient,
     onSuccess: invalidateIpdQueries,
   });
 
   const transferPatientMutation = useMutation<Admission, Error, TransferPatientRequest>({
-    mutationFn: (data) =>
-      apiFetch("/ipd/transfers", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+    mutationFn: ipdApi.transferPatient,
     onSuccess: invalidateIpdQueries,
   });
 
   const dischargePatientMutation = useMutation<Admission, Error, DischargePatientRequest>({
-    mutationFn: (data) =>
-      apiFetch("/ipd/discharges", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+    mutationFn: ipdApi.dischargePatient,
     onSuccess: invalidateIpdQueries,
   });
 

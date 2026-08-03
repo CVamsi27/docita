@@ -3,24 +3,19 @@ import { useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { PageMeta } from "@/components/layout/page-meta";
 import { Button } from "@workspace/ui/components";
-import { api } from "@/lib/api/api-client";
 import { Building2, Plus, Search, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
-
-interface Clinic {
-  id: string;
-  name: string;
-  address?: string;
-  city?: string;
-  role: string;
-}
+import {
+  getClinicsForSelection,
+  type ClinicSelection,
+} from "@/features/setup/api/clinic-selection.api";
 
 export function ClinicSelectionPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
-  const { data: clinics, isLoading, error } = useQuery<Clinic[]>({
+  const { data: clinics, isLoading, error } = useQuery<ClinicSelection[]>({
     queryKey: ["clinics"],
-    queryFn: () => api.get<Clinic[]>("/api/v1/clinics"),
+    queryFn: getClinicsForSelection,
   });
 
   const filteredClinics = useMemo(() => {

@@ -11,10 +11,6 @@ vi.mock("./WhatsappRecentSentView", () => ({
   WhatsappRecentSentView: () => <div>Recent sent messages</div>,
 }));
 
-vi.mock("./WhatsappConversationsView", () => ({
-  WhatsappConversationsView: () => <div>Conversation inbox</div>,
-}));
-
 vi.mock("./WhatsappCampaignsView", () => ({
   WhatsappCampaignsView: () => <div>Campaign list</div>,
 }));

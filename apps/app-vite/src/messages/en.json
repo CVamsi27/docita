@@ -684,6 +684,27 @@
       "toLabel": "To",
       "anyDatePlaceholder": "Any",
       "clearFiltersButton": "Clear filters"
+    },
+    "upgrade": {
+      "title": "Upgrade your plan",
+      "description": "Unlock more capacity and advanced features for your clinic.",
+      "perMonth": "/ month",
+      "current": "Current plan",
+      "upgradeButton": "Upgrade",
+      "plans": {
+        "Starter": {
+          "name": "Starter",
+          "price": "₹0"
+        },
+        "Professional": {
+          "name": "Professional",
+          "price": "₹2,499"
+        },
+        "Enterprise": {
+          "name": "Enterprise",
+          "price": "Contact sales"
+        }
+      }
     }
   },
   "Invoices": {
@@ -1951,6 +1972,20 @@
       "interactiveCardTitle": "Interactive Card Variant",
       "interactiveCardBody": "This card uses opt-in interactivity.",
       "inlineAlertLabel": "Inline alert style reference"
+    },
+    "visualTest": {
+      "title": "Visual Test",
+      "fixtureTitle": "Fixture",
+      "none": "none selected",
+      "description": "Render UI fixtures in isolation for visual review.",
+      "backToDashboard": "Back to dashboard"
+    },
+    "e2eSeed": {
+      "title": "E2E Session Seed",
+      "description": "Seed a test session for end-to-end automation.",
+      "cancel": "Cancel",
+      "seedButton": "Seed session",
+      "seeded": "Seeded"
     }
   },
   "InternalEnterpriseContracts": {
@@ -2309,5 +2344,21 @@
     "signIn": "Sign in",
     "invalidCredentials": "Invalid credentials",
     "loginFailed": "Login failed"
+  },
+  "Billing": {
+    "locked": {
+      "title": "Billing Locked",
+      "workspaceAccessPaused": "Workspace access paused",
+      "description": "Your clinic's subscription needs attention before you can continue using the workspace.",
+      "contactAdmin": "Please contact your clinic administrator to restore access.",
+      "mistakeNote": "If you believe this is a mistake, please reach out to our support team."
+    }
+  },
+  "Errors": {
+    "notFound": {
+      "title": "Page Not Found",
+      "message": "The page you are looking for does not exist or has moved.",
+      "goToToday": "Go to today's schedule"
+    }
   }
 }
