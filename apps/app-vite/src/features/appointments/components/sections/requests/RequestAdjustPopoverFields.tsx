@@ -29,7 +29,7 @@ type ApproveFieldErrors =
 
 type SetByRequest = React.Dispatch<React.SetStateAction<Record<string, string>>>;
 
-export interface RequestAdjustDoctorFieldProps {
+interface RequestAdjustDoctorFieldProps {
   requestId: string;
   doctorOptions: SchedulableDoctor[];
   effectiveDoctorId: string;
@@ -92,7 +92,7 @@ export function RequestAdjustDoctorField({
   );
 }
 
-export interface RequestAdjustDateFieldProps {
+interface RequestAdjustDateFieldProps {
   requestId: string;
   slotDayLabel: string;
   startDayIso: string;
@@ -152,7 +152,7 @@ export function RequestAdjustDateField({
   );
 }
 
-export interface RequestAdjustTimeFieldProps {
+interface RequestAdjustTimeFieldProps {
   requestId: string;
   startDayIso: string;
   startTimeHHmm: string;

@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — window global flag + PerformanceObserver entry typing gaps (platform API, no safe narrowing)
 import { captureMessage } from "./sentry.client.config";
 
 export function installWebVitalsReporter(): void {

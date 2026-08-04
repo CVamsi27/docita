@@ -27,7 +27,7 @@ export function PublicBookingPageFooter({ className }: { className?: string }) {
   );
 }
 
-export function PublicBookingPoweredByFooter({
+function PublicBookingPoweredByFooter({
   className,
 }: {
   className?: string;

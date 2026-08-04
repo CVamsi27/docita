@@ -15,8 +15,9 @@ import { cn } from "@workspace/ui/lib/utils";
 import { getTierInfo, Tier, type FeatureComparisonRow } from "@/lib/subscription/tier-access";
 import { FEATURE_TIER_MAP } from "@/lib/subscription/tier-access";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
-import { LIMIT_ROW_DESCRIPTIONS, FeatureCategoryRows, isLimitRowBlockedInMode, SectionHeader } from "./comparison-table-helpers";
-import type { FEATURE_CATEGORIES } from "./comparison-table-helpers";
+import { FeatureCategoryRows, SectionHeader } from "./comparison-table-helpers";
+import { LIMIT_ROW_DESCRIPTIONS, isLimitRowBlockedInMode } from "./comparison-table-data";
+import type { FEATURE_CATEGORIES } from "./comparison-table-data";
 import type { PlanMode } from "@workspace/types";
 
 type FeatureCategory = (typeof FEATURE_CATEGORIES)[number];

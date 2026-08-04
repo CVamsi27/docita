@@ -12,7 +12,7 @@ interface DentalToothButtonProps {
   onClick: (toothId: number) => void;
 }
 
-export function DentalToothButton({
+function DentalToothButton({
   toothId,
   condition,
   conditionLabel,

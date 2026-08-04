@@ -16,7 +16,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import type { TeamMember } from "@/features/setup/components/onboarding/types";
 import { ROLE_OPTIONS, isDoctorRole, parseTeamMemberRole } from "./team-invite-step-constants";
 
-export interface TeamMemberRowHeaderProps {
+interface TeamMemberRowHeaderProps {
   member: TeamMember;
   index: number;
   hasRowContent: (member: TeamMember) => boolean;
@@ -65,7 +65,7 @@ export function TeamMemberRowHeader({
   );
 }
 
-export interface TeamMemberNameEmailFieldsProps {
+interface TeamMemberNameEmailFieldsProps {
   member: TeamMember;
   index: number;
   emailError?: string;
@@ -121,7 +121,7 @@ export function TeamMemberNameEmailFields({
 }
 
 // jscpd:ignore-start
-export interface TeamMemberPhonePasswordFieldsProps {
+interface TeamMemberPhonePasswordFieldsProps {
   member: TeamMember;
   index: number;
   updateMember: (index: number, field: keyof TeamMember, value: string) => void;
@@ -167,7 +167,7 @@ export function TeamMemberPhonePasswordFields({
 }
 // jscpd:ignore-end
 
-export interface TeamMemberRoleSectionProps {
+interface TeamMemberRoleSectionProps {
   member: TeamMember;
   index: number;
   updateMember: (index: number, field: keyof TeamMember, value: string) => void;
@@ -250,7 +250,7 @@ export function TeamMemberRoleSection({
 }
 
 // jscpd:ignore-start
-export interface TeamMemberDoctorFieldsProps {
+interface TeamMemberDoctorFieldsProps {
   member: TeamMember;
   index: number;
   updateMember: (index: number, field: keyof TeamMember, value: string) => void;
@@ -299,7 +299,7 @@ export function TeamMemberDoctorFields({
 }
 // jscpd:ignore-end
 
-export interface TeamMemberIssueMessageProps {
+interface TeamMemberIssueMessageProps {
   member: TeamMember;
   index: number;
   getMemberIssue: (member: TeamMember, index: number) => string | null;

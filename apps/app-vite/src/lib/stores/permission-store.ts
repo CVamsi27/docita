@@ -29,7 +29,7 @@ import { AI_FEATURES_ENABLED, AI_GATED_FEATURES } from "@/lib/config/ai-features
 
 export { Tier, Feature, FEATURE_TIER_MAP, TIER_INFO };
 
-export type FacilityType = FacilityTypeType;
+type FacilityType = FacilityTypeType;
 
 interface PermissionState {
   currentTier: Tier;

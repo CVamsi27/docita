@@ -3,9 +3,9 @@
  * Grouped by shell; used to document coverage and drive parameterized tests.
  */
 
-export type MobileRouteFixture = "patient" | "appointment" | "invoice" | "none";
+type MobileRouteFixture = "patient" | "appointment" | "invoice" | "none";
 
-export interface MobileRouteEntry {
+interface MobileRouteEntry {
   path: string;
   label: string;
   group:

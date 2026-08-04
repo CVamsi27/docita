@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 import { ConfirmContextValue, ConfirmDialogSection, PromptDialogSection, AlertDialogSection } from "./use-confirm-sections";
 import { useConfirmDialogState } from "./use-confirm-dialog-state";
@@ -64,37 +64,4 @@ export function useConfirm(): ConfirmContextValue {
   const context = useContext(ConfirmContext);
   if (!context) throw new Error("useConfirm must be used within a ConfirmProvider");
   return context;
-}
-
-interface UseConfirmDialogOptions {
-  defaultOpen?: boolean;
-}
-
-interface UseConfirmDialogReturn {
-  isOpen: boolean;
-  open: () => void;
-  close: () => void;
-  DialogProps: {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-  };
-}
-
-export function useConfirmDialog(
-  options: UseConfirmDialogOptions = {},
-): UseConfirmDialogReturn {
-  const [isOpen, setIsOpen] = useState(options.defaultOpen ?? false);
-
-  const open = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => setIsOpen(false), []);
-
-  return {
-    isOpen,
-    open,
-    close,
-    DialogProps: {
-      open: isOpen,
-      onOpenChange: setIsOpen,
-    },
-  };
 }

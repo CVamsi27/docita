@@ -1,3 +1,5 @@
+import { SUPPORT_EMAIL } from "@/lib/constants/support-contact";
+
 export function PrivacyPolicyContent() {
   return (
     <div className="rounded-lg border bg-background p-4 md:p-5">
@@ -73,7 +75,7 @@ export function PrivacyPolicyContent() {
             <p>For any privacy-related grievances or to exercise your rights, please contact our Data Protection Officer (DPO):</p>
             <div className="bg-muted p-3 rounded-md text-sm">
               <strong>Data Protection Officer</strong><br />
-              Email: <a href="mailto:support@docita.work">support@docita.work</a><br />
+              Email: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a><br />
               Address: Docita HQ, Hyderabad, India
             </div>
           </li>

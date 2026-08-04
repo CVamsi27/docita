@@ -14,20 +14,20 @@ export const CLINIC_TYPE_KEYS: ClinicType[] = [
   "SPECIALTY",
 ];
 
-export interface SpecialtySection {
+interface SpecialtySection {
   id: string;
   label: string;
   icon: string;
   description?: string;
 }
 
-export interface PresetTag {
+interface PresetTag {
   tag: string;
   color: string;
   category?: string;
 }
 
-export interface ClinicFeatureConfig {
+interface ClinicFeatureConfig {
   specialtySections: SpecialtySection[];
   presetTags: PresetTag[];
   defaultExaminationFields: string[];
@@ -43,7 +43,7 @@ export const BASE_PRESET_TAGS: PresetTag[] = [
   { tag: "Urgent", category: "Priority", color: "var(--tag-amber)" },
 ];
 
-export interface MedicationRoute {
+interface MedicationRoute {
   value: string;
   label: string;
   category: "Oral" | "Injectable" | "Topical" | "Respiratory" | "Other";

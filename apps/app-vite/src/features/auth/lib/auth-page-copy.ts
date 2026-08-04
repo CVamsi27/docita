@@ -1,6 +1,6 @@
 import type { AuthStep } from "../types/auth";
 
-export interface AuthStepCopy {
+interface AuthStepCopy {
   titleKey: string;
   title: string;
   descriptionKey: string;

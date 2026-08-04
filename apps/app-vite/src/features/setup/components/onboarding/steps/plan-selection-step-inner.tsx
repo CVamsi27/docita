@@ -10,7 +10,8 @@ import { ContactSalesModal } from "@/features/dialogs";
 import { getAllFeaturesUpToTier, getTierInfo, getTierValue } from "@/lib/subscription/tier-access";
 import { Tier, applyModeToPricing, planModeSchema, tierSchema, type PlanMode } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { DISPLAY_TIERS, PLAN_AUDIENCE, buildTierCardConfig, getEnterpriseContactMessage, getPricingRegionLabel, PlanComparisonCollapsible } from "./plan-selection-step-helpers";
+import { PlanComparisonCollapsible } from "./plan-selection-step-helpers";
+import { DISPLAY_TIERS, PLAN_AUDIENCE, buildTierCardConfig, getEnterpriseContactMessage, getPricingRegionLabel } from "./plan-selection-data";
 import { PlanSelectionLoading, PlanSelectionError, TeamRecommendationAlert, PlanModeBar, TierCardGrid } from "./plan-selection-step-sections";
 import type { PlanSelectionProps } from "./plan-selection-step.types";
 

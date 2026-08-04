@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
-import { patientName, type SchedulableDoctor } from "./request-row-helpers";
+import {patientName} from "./request-row-helpers";
 import { RequestAdjustPopover } from "./RequestAdjustPopover";
 import { RequestRejectPopover } from "./RequestRejectPopover";
 import { AppointmentRequestRowInfo } from "./AppointmentRequestRowSections";
@@ -9,9 +9,8 @@ import {
   type UseAppointmentRequestRowInput,
 } from "./use-appointment-request-row";
 
-export type { SchedulableDoctor };
 
-export type AppointmentRequestRowProps = UseAppointmentRequestRowInput;
+type AppointmentRequestRowProps = UseAppointmentRequestRowInput;
 
 export function AppointmentRequestRow(props: AppointmentRequestRowProps) {
   const h = useAppointmentRequestRow(props);

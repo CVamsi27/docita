@@ -19,7 +19,7 @@ const initialFormData: InventoryItemFormData = {
   expiryDate: "",
   minStock: "10",
 };
-export function InventoryAddItemDialogContainer({
+function InventoryAddItemDialogContainer({
   isOpen,
   onClose,
   onSuccess,

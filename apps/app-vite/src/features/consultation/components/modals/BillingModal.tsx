@@ -9,11 +9,10 @@ import { BillingLineItemsEditor } from "./BillingLineItemsEditor";
 import { BillingModalSummaryPanel } from "./billing-modal-summary-panel";
 import { useBillingModal } from "./use-billing-modal";
 
-export type { LineItem } from "./billing-modal-types";
 
 // In the Next.js app this interface came from ./PrescriptionModal; that modal
 // is not ported yet, so it is defined here until the shared type lands.
-export interface ModalProps {
+interface ModalProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   appointmentId?: string;
@@ -23,7 +22,7 @@ export interface ModalProps {
   onSaved?: () => void;
 }
 
-export interface BillingModalProps extends ModalProps {
+interface BillingModalProps extends ModalProps {
   existingInvoice?: InvoiceListRow | null;
 }
 

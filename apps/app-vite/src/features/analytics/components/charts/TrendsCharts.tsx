@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@work
 import { Activity } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { DiseaseTrend } from "@/features/analytics/hooks/use-analytics-logic";
-import { COLORS, EmptyState, LoadingSpinner } from "./chart-helpers";
+import { EmptyState, LoadingSpinner } from "./chart-helpers";
+import { COLORS } from "./chart-colors";
 
 interface TrendsChartProps {
 // jscpd:ignore-end

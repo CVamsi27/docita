@@ -60,7 +60,7 @@ export interface HistoryOperations {
   ) => void;
 }
 
-export interface PatientHistoryData {
+interface PatientHistoryData {
   medicalConditions: PatientMedicalCondition[];
   patientAllergies: PatientAllergy[];
   surgicalHistory: PatientSurgicalHistory[];
@@ -69,7 +69,7 @@ export interface PatientHistoryData {
   customData: Record<string, unknown>;
 }
 
-export interface UsePatientHistoryResult {
+interface UsePatientHistoryResult {
   historyData: PatientHistoryData;
   patient: PatientWithMedicalHistory | undefined;
   isLoading: boolean;

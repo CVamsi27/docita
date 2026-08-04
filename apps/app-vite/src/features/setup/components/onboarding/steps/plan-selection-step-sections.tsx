@@ -9,7 +9,8 @@ import { getTierInfo, getTierValue, PLAN_LIMITS } from "@/lib/subscription/tier-
 import { type TierPricing, TierCard, PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
 import type { PlanFeature } from "@/features/subscription";
 import { applyModeToPricing, getAvailableModesForTier, MODE_TIER_HIGHLIGHTS, PLAN_MODE_INFO, PLAN_MODES, type PlanMode, type TierInfo, type TierName } from "@workspace/types";
-import { buildTierCardConfig, BillingCycleToggle } from "./plan-selection-step-helpers";
+import { BillingCycleToggle } from "./plan-selection-step-helpers";
+import { buildTierCardConfig } from "./plan-selection-data";
 
 // ---------------------------------------------------------------------------
 // Loading state

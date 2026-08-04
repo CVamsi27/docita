@@ -101,7 +101,3 @@ export function TierGate({
   });
 }
 
-export function useFeature(feature: Feature): boolean {
-  const { canAccess } = usePermissionStore();
-  return canAccess(feature);
-}

@@ -8,7 +8,6 @@ import {
 } from "./phone-signature-qr-flow-helpers";
 import { usePhoneSignaturePolling } from "./use-phone-signature-polling";
 
-export type { PhoneSignatureQrSession, UsePhoneSignatureQrFlowOptions };
 
 export function usePhoneSignatureQrFlow({
   createSession,

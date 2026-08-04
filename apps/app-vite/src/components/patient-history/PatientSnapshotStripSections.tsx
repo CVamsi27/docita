@@ -2,12 +2,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { AlertTriangle, Heart, Pill, type LucideIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { PatientSnapshot } from "@workspace/types";
-export const ALLERGY_SEVERITY_COLOR: Record<string, string> = {
-  LIFE_THREATENING: "bg-destructive/10 text-destructive border-destructive/20",
-  SEVERE: "bg-destructive/10 text-destructive border-destructive/20",
-  MODERATE: "bg-warning/10 text-warning border-warning/20",
-  MILD: "bg-success/10 text-success border-success/20",
-};
+import { ALLERGY_SEVERITY_COLOR } from "./patient-snapshot-strip-helpers";
 
 interface VerticalSnapshotContentProps {
   activeAllergies: PatientSnapshot["activeAllergies"];
@@ -205,7 +200,7 @@ interface SnapshotCellProps {
   overflow?: string;
 }
 
-export function SnapshotCell({
+function SnapshotCell({
   icon: Icon,
   label,
   value,

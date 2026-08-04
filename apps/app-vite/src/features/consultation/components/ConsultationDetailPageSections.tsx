@@ -11,7 +11,7 @@ import { Stethoscope } from "lucide-react";
 import type { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
 
 type ConsultationState = ReturnType<typeof useConsultationLogic>["state"];
-export type AppointmentData = NonNullable<ConsultationState["appointmentData"]>;
+type AppointmentData = NonNullable<ConsultationState["appointmentData"]>;
 
 // ---------------------------------------------------------------------------
 // ConsultationLoadingPage

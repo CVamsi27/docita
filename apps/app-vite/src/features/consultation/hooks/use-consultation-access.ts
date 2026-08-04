@@ -8,7 +8,7 @@ import {
   useUpdateAppointment,
 } from "@workspace/data-access";
 
-import { isConsultationReadOnlyStatus } from "@/features/appointments/rules/appointment-rules";
+import { isConsultationReadOnlyStatus } from "@/features/appointments";
 import type { UpdateAppointmentInput } from "@workspace/types";
 
 interface UseConsultationAccessParams {

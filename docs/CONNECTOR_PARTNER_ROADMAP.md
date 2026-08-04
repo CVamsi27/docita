@@ -27,6 +27,14 @@ paying for that access; we are paying for the introduction.
 The connector is **not** a salesperson. They are a referrer. The
 founder closes.
 
+> **Current product contract (2026-08-03):** the implementation and economics
+> are governed by [`REFERRAL_PARTNER_PROGRAM_PLAN.md`](REFERRAL_PARTNER_PROGRAM_PLAN.md).
+> The older ₹1,500/₹2,000 examples and 5%/15% examples in this recruitment
+> playbook are historical pilot assumptions, not the current offer. The
+> proposed default is 10% of net collected subscription revenue for the first
+> 12 billed months, plus a separately approved clinic discount policy and a
+> one-level partner-sponsor bonus. Do not publish the old figures.
+
 ---
 
 ## 2. Connector types, ranked by leverage
@@ -190,6 +198,12 @@ Green flags — proceed:
 ---
 
 ## 5. The offer structure
+
+> **Historical pilot assumptions:** the examples in this section (including
+> fixed rupee amounts and older 5%/15%-5% bands) are retained for context only
+> and are not publishable commercial terms. Use the current 10% net-collected,
+> first-12-billed-month proposal and its approval gates from
+> [`REFERRAL_PARTNER_PROGRAM_PLAN.md`](REFERRAL_PARTNER_PROGRAM_PLAN.md).
 
 The offer is what makes the connector strategy work. Wrong offer = ghost.
 Right offer = the connector now has a reason to bring you up

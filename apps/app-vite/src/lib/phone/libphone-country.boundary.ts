@@ -2,7 +2,7 @@
 import { DEFAULT_COUNTRY_CODE, normalizeCountryCode } from "@workspace/utils";
 import type { Country } from "react-phone-number-input";
 
-export function toLibPhoneCountry(code: string): Country {
+function toLibPhoneCountry(code: string): Country {
   return code as Country;
 }
 

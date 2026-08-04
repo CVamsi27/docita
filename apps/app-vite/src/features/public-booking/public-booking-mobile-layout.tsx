@@ -5,7 +5,8 @@ import { PublicBookingProgressChrome } from "@/features/public-booking/public-bo
 import { PUBLIC_BOOKING_MOBILE_CONTENT_TAIL_PAD_CLASS, type PublicBookingMobileStep } from "@/features/public-booking/public-booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";
-import { visitContinueHint, contactContinueHint, PublicBookingMobileStepHeading, PublicBookingMobileVisitStep, PublicBookingMobileContactStep, PublicBookingMobileReviewStep, PublicBookingMobileBottomBar } from "./public-booking-mobile-layout-sections";
+import { PublicBookingMobileStepHeading, PublicBookingMobileVisitStep, PublicBookingMobileContactStep, PublicBookingMobileReviewStep, PublicBookingMobileBottomBar } from "./public-booking-mobile-layout-sections";
+import { visitContinueHint, contactContinueHint } from "./public-booking-mobile-layout-helpers";
 
 const STEP_ORDER: PublicBookingMobileStep[] = ["visit", "contact", "review"];
 

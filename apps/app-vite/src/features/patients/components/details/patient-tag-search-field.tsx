@@ -3,7 +3,7 @@ import { Input, SymbolTooltip } from "@workspace/ui/components";
 import { Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-export interface TagSearchFieldProps {
+interface TagSearchFieldProps {
   value: string;
   onChange: (value: string) => void;
   onClear: () => void;

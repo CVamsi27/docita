@@ -5,7 +5,7 @@ import {
   PatientWithMedicalHistory,
 } from "@workspace/types";
 
-export interface PatientStatistics {
+interface PatientStatistics {
   totalVisits: number;
   lastVisit: string | null;
   nextVisit: string | null;

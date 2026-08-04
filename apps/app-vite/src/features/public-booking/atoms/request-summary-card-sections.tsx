@@ -5,31 +5,7 @@ import { CardTitle, MicroLabel } from "@workspace/ui/components";
 import { formatDate } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatTime } from "@/lib/formatters";
-
-export interface RequestSummaryState {
-  hasVisitSelection: boolean;
-  scheduleComplete: boolean;
-  anyFilled: boolean;
-  compact: boolean;
-}
-
-export function buildRequestSummaryState(params: {
-  selectedDoctorName: string | null;
-  selectedCalendarDay: Date | undefined;
-  selectedStart: string | null;
-  selectedEnd: string | null;
-  density: "default" | "compact";
-}): RequestSummaryState {
-  const scheduleComplete = Boolean(
-    params.selectedCalendarDay && params.selectedStart && params.selectedEnd,
-  );
-  return {
-    scheduleComplete,
-    hasVisitSelection: Boolean(params.selectedDoctorName && scheduleComplete),
-    anyFilled: Boolean(params.selectedDoctorName || params.selectedCalendarDay),
-    compact: params.density === "compact",
-  };
-}
+import { type RequestSummaryState } from "./request-summary-state";
 
 export function RequestSummaryHeader({
   state,

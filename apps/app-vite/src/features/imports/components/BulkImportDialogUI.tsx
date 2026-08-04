@@ -11,7 +11,7 @@ import { BulkImportStep, EntityType, STEPS } from "./bulk-import/types";
 
 export type { EntityType, BulkImportStep };
 
-export interface BulkImportDialogUIProps {
+interface BulkImportDialogUIProps {
   isOpen: boolean;
   step: BulkImportStep;
   selectedEntity: EntityType;

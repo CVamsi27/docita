@@ -7,7 +7,7 @@ export interface LabTestResult {
   status?: "normal" | "low" | "high" | "critical";
 }
 
-export interface LabPanel {
+interface LabPanel {
   name: string;
   tests: string[];
   category:

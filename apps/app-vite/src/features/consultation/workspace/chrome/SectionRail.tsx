@@ -5,7 +5,6 @@ import { Button, MicroLabel, StepProgress } from "@workspace/ui/components";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 import { findNextStep, useSectionCompletion } from "./SectionRail-sections";
 
-export type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 
 interface SectionRailProps {
   sections: ConsultationSection[];

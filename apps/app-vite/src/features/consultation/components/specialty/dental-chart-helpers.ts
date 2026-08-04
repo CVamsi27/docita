@@ -16,10 +16,3 @@ export function getConditionColor(code: string): string {
       return "bg-muted";
   }
 }
-
-export function getToothData(
-  value: Record<number, { condition: string; notes: string }>,
-  toothId: number,
-): { condition: string; notes: string } {
-  return value?.[toothId] || { condition: "HEALTHY", notes: "" };
-}

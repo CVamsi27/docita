@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { Feature } from "@workspace/types";
-import { useFeature } from "@/components/auth/feature-gate";
+import { useFeature } from "@/components/auth/use-feature";
 import { BackButton } from "@/components/navigation/back-button";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import { InvoiceActionsBar } from "./InvoiceActionsBar";

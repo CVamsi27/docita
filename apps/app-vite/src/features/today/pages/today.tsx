@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { TodayPageContent } from "@/features/dashboard/components/today/today-page-content";
+import { TodayPageContent } from "@/features/dashboard";
 
 import { PageMeta } from "@/components/layout/page-meta";
 

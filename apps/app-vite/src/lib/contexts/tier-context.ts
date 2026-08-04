@@ -15,4 +15,3 @@ export function useTier(): TierContextValue {
 }
 
 export { TierContext };
-export type { TierContextValue };

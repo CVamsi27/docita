@@ -7,7 +7,7 @@ import { buildConsultationHeaderDisplay } from "./consultation-page-header-helpe
 import { ConsultationPageHeaderToolbar } from "./consultation-page-header-toolbar";
 import { ConsultationHeaderNavControls, ConsultationHeaderPatientSummary } from "./ConsultationPageHeaderUISections";
 
-export interface ConsultationPageHeaderUIProps {
+interface ConsultationPageHeaderUIProps {
   patientName: string;
   appointmentDate: string | Date;
   appointmentId: string;

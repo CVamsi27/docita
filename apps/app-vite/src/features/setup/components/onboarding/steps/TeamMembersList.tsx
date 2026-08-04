@@ -4,9 +4,9 @@ import { Plus } from "lucide-react";
 import type { TeamMember } from "@/features/setup/components/onboarding/types";
 import { Button } from "@workspace/ui/components/form/button";
 import { TeamMemberRow } from "./TeamMemberRow";
-import { hasRowContent, getMemberIssue } from "./TeamInviteStepSections";
+import { hasRowContent, getMemberIssue } from "./team-invite-helpers";
 
-export interface TeamMembersListProps {
+interface TeamMembersListProps {
   members: TeamMember[];
   emailErrors: Record<number, string>;
   maxMembers: number;

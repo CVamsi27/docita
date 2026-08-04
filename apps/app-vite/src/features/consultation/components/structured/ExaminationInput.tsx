@@ -1,7 +1,6 @@
 import { GeneralExaminationCard, SystemicExaminationCard } from "./ExaminationInputSections";
 import type { ExaminationData } from "./examination-input.types";
 
-export type { ExaminationData } from "./examination-input.types";
 
 interface ExaminationInputProps {
   value: ExaminationData;

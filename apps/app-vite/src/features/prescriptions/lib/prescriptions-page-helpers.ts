@@ -73,7 +73,7 @@ export function sortPrescriptions(
   );
 }
 
-export interface PrescriptionsHeaderDescriptionInput {
+interface PrescriptionsHeaderDescriptionInput {
   hasDateRange: boolean;
   startDate: string;
   endDate: string;

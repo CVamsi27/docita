@@ -3,7 +3,8 @@ import { User } from "@workspace/types";
 import { InviteTeamMemberDialog } from "@/features/settings/components/management/invite-team-member-dialog";
 import { ManageTeamMemberDialog } from "@/features/settings/components/management/manage-team-member-dialog";
 import { formatDateSafe } from "@/lib/formatters";
-import { getVerificationBadgeVariant, getVerificationBadgeLabel, MemberManagementLoadingSkeleton, MemberListRow, MemberCardHeader } from "./member-management-helpers";
+import { MemberManagementLoadingSkeleton, MemberListRow, MemberCardHeader } from "./member-management-helpers";
+import { getVerificationBadgeVariant, getVerificationBadgeLabel } from "./member-verification-badge";
 import { useMemberManagement } from "./use-member-management";
 
 interface MemberManagementUIProps {

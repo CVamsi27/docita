@@ -55,7 +55,7 @@ function SectionCard({
   );
 }
 
-export interface ReminderRowProps {
+interface ReminderRowProps {
   label: string;
   description: string;
   enabledName:

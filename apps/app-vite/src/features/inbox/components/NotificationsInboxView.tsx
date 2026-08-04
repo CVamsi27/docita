@@ -8,7 +8,7 @@ import { queryKeys, useAllNotifications, useMarkNotificationRead, useDeleteNotif
 import { useSocket } from "@/lib/socket/socket-context";
 import { buildNotificationCategoryRecord } from "@/components/navigation/notification-category-record";
 import { isNotificationCategoryId, NOTIFICATION_CATEGORIES, type NotificationCategoryId } from "@/components/navigation/notification-href";
-import { filterByCategory } from "./notification-inbox-row";
+import { filterByCategory } from "./notification-inbox-helpers";
 import { NotificationsInboxHeader, NotificationsInboxTabs } from "./NotificationsInboxViewSections";
 
 export function NotificationsInboxView() {

@@ -75,7 +75,7 @@ export const consultationDraftSessionSchema = z.object({
   investigations: z.array(clinicalInvestigationSchema).optional(),
 });
 
-export interface ConsultationHydrateSeed {
+interface ConsultationHydrateSeed {
   chiefComplaint: ChiefComplaintItem[];
   examination: ExaminationData;
   diagnosis: DiagnosisItem[];
@@ -93,7 +93,7 @@ export interface ConsultationHydrateSeed {
   serverUpdatedAtMs: number;
 }
 
-export type ConsultationDraftSession = z.infer<
+type ConsultationDraftSession = z.infer<
   typeof consultationDraftSessionSchema
 >;
 
@@ -216,7 +216,7 @@ function normalizeComplaintList(
   }));
 }
 
-export function buildChiefComplaintSeed(
+function buildChiefComplaintSeed(
   data: Record<string, unknown>,
 ): ChiefComplaintItem[] {
   const structured = parseStructuredChiefComplaints(

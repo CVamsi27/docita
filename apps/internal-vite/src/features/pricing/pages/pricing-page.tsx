@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — literal pricing field list narrowed to TierPricing keys for mapping
 import { useState, useEffect } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Save, Sparkles } from "lucide-react";

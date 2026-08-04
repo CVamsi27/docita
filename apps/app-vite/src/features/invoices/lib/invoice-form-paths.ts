@@ -6,7 +6,7 @@ import type {
 import { dynamicInvoiceItemPath } from "@/features/invoices/lib/invoice-form-paths.boundary";
 
 /** Dynamic invoice line-item field paths for react-hook-form `setValue`. */
-export function invoiceItemFieldPath<TForm extends CreateInvoiceFormValues | InvoiceEditFormValues>(
+function invoiceItemFieldPath<TForm extends CreateInvoiceFormValues | InvoiceEditFormValues>(
   index: number,
   fieldName: string,
 ): Path<TForm> {

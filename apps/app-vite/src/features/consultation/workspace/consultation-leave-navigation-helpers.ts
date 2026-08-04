@@ -6,14 +6,14 @@ import {
 export const CONSULTATION_LEAVE_GUARD_SKIP_ATTR =
   "data-docita-skip-consultation-leave-guard";
 
-export function isSameConsultationAppointmentPathname(
+function isSameConsultationAppointmentPathname(
   pathname: string,
   activeAppointmentId: string,
 ): boolean {
   return pathname === `/consultation/${activeAppointmentId}`;
 }
 
-export type ConsultationHrefNavigationResolution =
+type ConsultationHrefNavigationResolution =
   | { kind: "noop" }
   | { kind: "allow_default" }
   | { kind: "push"; destination: string }

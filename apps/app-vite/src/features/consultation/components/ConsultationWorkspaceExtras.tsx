@@ -1,70 +1,11 @@
-import { useNavigate } from "react-router";
-import { Button, MicroLabel } from "@workspace/ui/components";
-import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-import { formatChiefComplaintSummary } from "@workspace/utils";
-import { formatDate, DATE_FORMAT_OPTIONS_US_LONG } from "@/lib/formatters";
+import { MicroLabel } from "@workspace/ui/components";
 import { APP_ACCESS_TARGETS, Feature, type Appointment } from "@workspace/types";
 import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
-import { isConsultationReadOnlyStatus } from "@/features/appointments/rules/appointment-rules";
+import { isConsultationReadOnlyStatus } from "@/features/appointments";
 import { PrimaryActionButtons, ViewActionsInline, ViewActionsOverflow } from "./ConsultationWorkspaceExtrasSections";
-
-interface ConsultationVisitOverviewStripProps {
-  appointment: Appointment;
-  readOnly?: boolean;
-}
-
-export function ConsultationVisitOverviewStrip({
-  appointment,
-  readOnly,
-}: ConsultationVisitOverviewStripProps) {
-  const navigate = useNavigate();
-  const typeLabel = appointment.type
-    ? humanizeUiLabel(appointment.type)
-    : "Consultation";
-  const when = appointment.startTime
-    ? formatDate(appointment.startTime, DATE_FORMAT_OPTIONS_US_LONG)
-    : null;
-  const complaint = formatChiefComplaintSummary(
-    appointment.chiefComplaint ?? undefined,
-  );
-
-  return (
-    <div className="rounded-[var(--radius-lg)] border border-border/60 bg-muted/20 px-4 py-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-        <div className="min-w-0 space-y-1">
-          <MicroLabel>This visit</MicroLabel>
-          <p className="text-sm font-medium text-foreground">
-            {[typeLabel, when].filter(Boolean).join(" · ")}
-          </p>
-          {complaint ? (
-            <p className="text-xs text-muted-foreground line-clamp-2">
-              {complaint}
-            </p>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              Chief complaint can be captured in Subjective.
-            </p>
-          )}
-          {readOnly ? (
-            <p className="text-xs text-muted-foreground">View-only visit.</p>
-          ) : null}
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="shrink-0 self-start"
-          onClick={() => navigate("/consultation")}
-        >
-          OPD queue
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 interface ConsultationAfterVisitStripProps {
   appointment: Appointment;

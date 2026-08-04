@@ -1,4 +1,4 @@
-import { CheckCircle2, Command as CommandIcon, CreditCard, HeartPulse, MoreVertical, PanelLeft, PencilLine, Sparkles } from "lucide-react";
+import { CheckCircle2, Command as CommandIcon, CreditCard, HeartPulse, MoreVertical, PencilLine, Sparkles } from "lucide-react";
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, SymbolTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
 
@@ -239,33 +239,4 @@ export function ConsultationToolbarMarkDoneAction({
   );
 }
 
-interface ConsultationToolbarSidebarToggleProps {
-  isDesktopSidebarOpen: boolean;
-  onToggleDesktopSidebar?: () => void;
-}
 
-/** Desktop patient-history sidebar toggle — split out as its own self-contained, independently gated action. */
-export function ConsultationToolbarSidebarToggle({
-  isDesktopSidebarOpen,
-  onToggleDesktopSidebar,
-}: ConsultationToolbarSidebarToggleProps) {
-  if (!onToggleDesktopSidebar) return null;
-
-  const label = isDesktopSidebarOpen
-    ? "Hide patient history"
-    : "Show patient history";
-
-  return (
-    <SymbolTooltip label={label} side="bottom">
-      <Button
-        variant="outline"
-        size="icon"
-        className="hidden xl:inline-flex h-8 w-8"
-        onClick={onToggleDesktopSidebar}
-        aria-label={label}
-      >
-        <PanelLeft className="h-3.5 w-3.5" />
-      </Button>
-    </SymbolTooltip>
-  );
-}

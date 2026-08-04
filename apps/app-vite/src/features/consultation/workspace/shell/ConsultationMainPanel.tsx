@@ -4,8 +4,10 @@ import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 import { SectionTabs } from "@/features/consultation/workspace/chrome/SectionRail";
 import { ConsultationAfterVisitStrip } from "@/features/consultation/components/ConsultationWorkspaceExtras";
-import { ConsultationPastHistoryCard, summariseHistory, type HistorySummary } from "@/features/consultation/components/ConsultationPastHistoryCard";
-import { buildConsultationSectionComponents, StepNavigation } from "./ConsultationMainPanelSections";
+import { ConsultationPastHistoryCard } from "@/features/consultation/components/ConsultationPastHistoryCard";
+import { summariseHistory, type HistorySummary } from "@/features/consultation/components/consultation-past-history-helpers";
+import { StepNavigation } from "./ConsultationMainPanelSections";
+import { buildConsultationSectionComponents } from "./consultation-section-components";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
 

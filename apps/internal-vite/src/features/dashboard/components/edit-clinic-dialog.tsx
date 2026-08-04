@@ -25,6 +25,7 @@ export function EditClinicDialog({ clinic, onClinicUpdated }: { clinic: Clinic; 
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<EditClinicFormData>({
     name: clinic.name, email: clinic.email, phone: clinic.phone,
+    // check-as-cast-density: allow-file — clinic payload enums (tier/type) narrowed to canonical unions
     address: clinic.address, tier: clinic.tier as TierName, type: (clinic.type || "GENERAL") as ClinicType,
     active: clinic.active,
   });

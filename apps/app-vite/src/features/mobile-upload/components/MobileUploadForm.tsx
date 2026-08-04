@@ -3,7 +3,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Upload } from "lucide-react";
 import { MobileFileUploader } from "@/features/mobile-upload/components/MobileFileUploader";
 
-export interface MobileUploadFormProps {
+interface MobileUploadFormProps {
   file: File | null;
   previewUrl: string | null;
   errorMessage: string | null;

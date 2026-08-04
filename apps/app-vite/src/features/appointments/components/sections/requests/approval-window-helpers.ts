@@ -9,7 +9,7 @@ import {
   utcRequestedSlotToWallLocal,
 } from "./request-row-helpers";
 
-export type ApprovalWindowResult =
+type ApprovalWindowResult =
   | {
       kind: "ok";
       startUtc: string;

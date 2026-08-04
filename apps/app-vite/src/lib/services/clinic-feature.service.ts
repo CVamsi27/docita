@@ -1,8 +1,4 @@
 import {
-  type ClinicFeatureConfig,
-  type MedicationRoute,
-  type PresetTag,
-  type SpecialtySection,
   MEDICATION_ROUTES,
   getConfig,
   getPresetTags,
@@ -14,12 +10,6 @@ import {
   getCategorizedTags,
 } from "./clinic-feature-service-helpers";
 
-export type {
-  ClinicFeatureConfig,
-  MedicationRoute,
-  PresetTag,
-  SpecialtySection,
-};
 
 export const ClinicFeatureService = {
   getConfig,

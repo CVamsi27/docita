@@ -14,7 +14,7 @@ export interface RecentPatient {
   phoneNumber?: string;
 }
 
-export interface RecentPatientsUIProps {
+interface RecentPatientsUIProps {
   patients: RecentPatient[];
 }
 export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {

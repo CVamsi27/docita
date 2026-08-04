@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Sparkles, Zap } from "lucide-react";
 import { Badge, Card, CardContent } from "@workspace/ui/components";
 
-export interface DailyProgressUIProps {
+interface DailyProgressUIProps {
   completedToday: number;
   totalAppointments: number;
   uncodedVisits: number;

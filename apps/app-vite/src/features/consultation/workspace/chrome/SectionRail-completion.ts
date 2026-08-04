@@ -1,6 +1,6 @@
 import type { ConsultationDraftState } from "@/features/consultation/state/useConsultationDraft";
 
-export type SectionCompletionDraft = Pick<
+type SectionCompletionDraft = Pick<
   ConsultationDraftState,
   | "chiefComplaint"
   | "history"

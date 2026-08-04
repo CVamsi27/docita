@@ -1,7 +1,7 @@
 import { passwordSchema } from "@workspace/types";
 import type { AuthStep, FieldErrors } from "../types/auth";
 
-export interface AuthPageLayout {
+interface AuthPageLayout {
   contentAlignment: "start" | "center";
   contentMaxWidth: string;
   copyAlignment: string;

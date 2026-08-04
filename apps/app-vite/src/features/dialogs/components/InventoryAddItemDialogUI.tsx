@@ -7,12 +7,12 @@ import { FormControl, FormField, Input, Select, SelectContent, SelectItem, Selec
 import { CRUDDialog, DatePicker, Form, FormFieldGroup } from "@workspace/ui/components";
 export type InventoryItemFormData = InventoryAddItemFormValues;
 
-export interface CategoryOption {
+interface CategoryOption {
   value: string;
   label: string;
 }
 
-export interface InventoryAddItemDialogUIProps {
+interface InventoryAddItemDialogUIProps {
   isOpen: boolean;
   defaultValues?: Partial<InventoryAddItemFormValues>;
   isLoading: boolean;

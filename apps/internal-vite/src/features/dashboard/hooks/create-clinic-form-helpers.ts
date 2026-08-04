@@ -42,6 +42,7 @@ const ERROR_FIELD_KEYS = new Set<keyof FieldErrors>([
 ]);
 
 export function isErrorFieldKey(field: string): field is keyof FieldErrors {
+  // check-as-cast-density: allow-file — react-hook-form FieldErrors key narrowing for membership check
   return ERROR_FIELD_KEYS.has(field as keyof FieldErrors);
 }
 

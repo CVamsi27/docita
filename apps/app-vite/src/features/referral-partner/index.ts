@@ -6,4 +6,3 @@
 // the same feature.
 export { formatPaise } from "./lib/format-currency";
 export { partnerSession } from "./lib/partner-session";
-export type { PartnerSessionShape } from "./lib/partner-session";

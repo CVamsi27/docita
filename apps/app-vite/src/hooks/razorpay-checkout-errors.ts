@@ -16,7 +16,7 @@ export function notifyPaymentCanceled(): void {
   toast.info(PAYMENT_CANCELED_TOAST_MESSAGE);
 }
 
-export interface RazorpayCheckoutError extends Error {
+interface RazorpayCheckoutError extends Error {
   paymentCanceled?: boolean;
 }
 

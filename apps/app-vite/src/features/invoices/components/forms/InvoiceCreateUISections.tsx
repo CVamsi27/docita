@@ -6,7 +6,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@workspace/ui/components/form/form";
-import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
+import { PatientSelector } from "@/features/appointments";
 import { InvoiceDetailsCard, InvoiceStatusField } from "./invoice-form-sections-shared";
 
 export function InvoiceCreateDetailsSection({

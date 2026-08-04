@@ -3,6 +3,7 @@ import en from "@/messages/en.json";
 
 type MessageTree = { [key: string]: string | MessageTree };
 
+// check-as-cast-density: allow-file — en.json message tree cast to the shared MessageTree type for the i18n test mock
 const resources = en as MessageTree;
 
 /**

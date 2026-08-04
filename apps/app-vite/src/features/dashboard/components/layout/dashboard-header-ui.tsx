@@ -3,7 +3,7 @@ import { Stethoscope } from "lucide-react";
 import { formatDate } from "@/lib/formatters";
 import { ClinicReferralShareToolbar } from "./clinic-referral-share-toolbar";
 
-export interface DashboardHeaderUIProps {
+interface DashboardHeaderUIProps {
   userName: string;
   greeting: string;
   clinicCode?: string | null;

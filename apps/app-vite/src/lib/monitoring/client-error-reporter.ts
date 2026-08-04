@@ -10,6 +10,7 @@ export function installGlobalErrorHandler(): void {
   if (typeof window === "undefined") return;
 
   // Prevent duplicate installation
+  // check-as-cast-density: allow-file — window global flag read via untyped Record (platform gap)
   const win = window as unknown as Record<string, unknown>;
   if (win.__errorHandlerInstalled) return;
   win.__errorHandlerInstalled = true;

@@ -9,7 +9,7 @@ import { ContactSalesSuccessPanel, ContactSalesFormFields, ContactSalesFormFoote
 
 export type ContactSalesFormData = ContactSalesFormValues;
 
-export interface ContactSalesModalUIProps {
+interface ContactSalesModalUIProps {
   open: boolean;
   defaultValues?: Partial<ContactSalesFormValues>;
   isSubmitting: boolean;

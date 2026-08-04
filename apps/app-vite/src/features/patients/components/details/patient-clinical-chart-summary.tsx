@@ -1,7 +1,7 @@
 import { usePatientSnapshot } from "@workspace/data-access";
 import { PatientSnapshotStrip } from "@/components/patient-history";
 
-export interface PatientClinicalChartSummaryProps {
+interface PatientClinicalChartSummaryProps {
   patientId: string;
 }
 

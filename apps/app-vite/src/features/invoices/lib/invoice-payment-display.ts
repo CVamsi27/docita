@@ -25,7 +25,7 @@ export function formatInvoicePaymentMethodLabel(
   return humanizeUiLabel(raw.replace(/_/g, " "));
 }
 
-export type InvoicePaymentSummaryFormatDate = (
+type InvoicePaymentSummaryFormatDate = (
   value: string | Date | null | undefined,
   pattern?: string,
   timezone?: string,

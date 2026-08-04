@@ -9,7 +9,6 @@ import {
   starterMonthlyAccessTermMismatch,
 } from "../components/billing-subscription-helpers";
 
-export type { SubscriptionLike };
 
 export function computeSubscriptionDerivedState(
   subscription: SubscriptionLike | null | undefined,

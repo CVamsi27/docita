@@ -3,7 +3,8 @@ import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { ErrorBanner } from "@/components/errors/error-banner";
 import { Button, Input, Label, SymbolTooltip } from "@workspace/ui/components";
 import { hasFieldError, getFieldError } from "@/lib/utils/form-errors";
-import { BackEmailField, fieldClass, InlineFieldError } from "./AuthSharedFields";
+import { BackEmailField, InlineFieldError } from "./AuthSharedFields";
+import { fieldClass } from "./auth-field-error-helpers";
 import type { FieldErrors } from "../types/auth";
 
 interface LoginStepProps {

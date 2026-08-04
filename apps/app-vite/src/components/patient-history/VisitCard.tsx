@@ -5,7 +5,7 @@ import { type VisitCardProps } from "./visit-card-config";
 import { CompactVisitCard, VisitCardHeader, VisitCardVitalsSection, VisitCardDiagnosisSection, VisitCardMedicationsSection, VisitCardProceduresSection } from "./VisitCardSections";
 import { buildVisitCardViewModel } from "./visit-card-view-model";
 
-export { EVENT_TYPE_CONFIG, type VisitCardProps } from "./visit-card-config";
+export { EVENT_TYPE_CONFIG} from "./visit-card-config";
 
 export function VisitCard({
   event,

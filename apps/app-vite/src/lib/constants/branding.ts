@@ -18,10 +18,3 @@ export const BRAND_FOREGROUND_HEX = "#0F172A";
  * the supplied default when the variable is not defined or the document is
  * unavailable (SSR).
  */
-export function readCssVar(name: string, fallback: string): string {
-  if (typeof window === "undefined" || typeof document === "undefined") return fallback;
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue(name)
-    .trim();
-  return value || fallback;
-}

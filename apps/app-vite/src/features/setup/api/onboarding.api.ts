@@ -4,16 +4,16 @@ import {
   type PlanMode,
 } from "@workspace/types";
 
-export interface OnboardingIdResponse {
+interface OnboardingIdResponse {
   onboardingId: string;
 }
 
-export interface UploadSessionCredentials {
+interface UploadSessionCredentials {
   id: string;
   uploadSecret: string;
 }
 
-export interface CompleteOnboardingResponse {
+interface CompleteOnboardingResponse {
   success?: boolean;
   message?: string;
   errors?: string[];
@@ -21,7 +21,7 @@ export interface CompleteOnboardingResponse {
   user?: unknown;
 }
 
-export interface OnboardingCheckoutResponse {
+interface OnboardingCheckoutResponse {
   orderId: string;
   amountCents: number;
   currency: string;

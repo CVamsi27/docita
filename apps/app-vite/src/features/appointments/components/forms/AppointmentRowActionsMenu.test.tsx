@@ -2,7 +2,8 @@ import { screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithTooltip as render } from "@/test-utils/render-with-tooltip";
-import { AppointmentRowActionsMenu, getAppointmentRowActionVisibility } from "./AppointmentRowActionsMenu";
+import { AppointmentRowActionsMenu } from "./AppointmentRowActionsMenu";
+import { getAppointmentRowActionVisibility } from "./appointment-row-actions-visibility";
 
 describe("getAppointmentRowActionVisibility", () => {
   it("shows all items for a scheduled appointment with a patient, follow-up, and OPD slip handler", () => {

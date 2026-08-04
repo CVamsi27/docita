@@ -9,7 +9,7 @@ import { shouldRedirectToWorkspace } from "@/features/setup/lib/redirect-logic";
 
 export type DoctorVerificationProfile = User | AppAuthUser;
 
-export interface ResolvedSignatureUrls {
+interface ResolvedSignatureUrls {
   onboardingSignatureSourceUrl: string | null;
   resolvedOnboardingSignatureUrl: string | null;
   resolvedProfileSignatureUrl: string | null;
@@ -49,7 +49,7 @@ export function resolveDoctorSignatureUrls(params: {
   };
 }
 
-export interface DoctorRegistrationState {
+interface DoctorRegistrationState {
   hasSignature: boolean;
   hasSavedRegistration: boolean;
   hasDraftRegistration: boolean;

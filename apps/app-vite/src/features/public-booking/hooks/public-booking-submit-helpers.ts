@@ -4,7 +4,7 @@ import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import { ANY_DOCTOR_ID } from "@/features/public-booking/public-booking-constants";
 import { buildPublicBookingSubmitErrors } from "@/lib/utils/api-validation-errors";
 
-export interface BookingValidationState {
+interface BookingValidationState {
   slotDate: string;
   phone: string;
   requiresOtp: boolean | null;
@@ -34,7 +34,7 @@ export function validateBookingFields(
   return null;
 }
 
-export interface BookingBodyInput {
+interface BookingBodyInput {
   phone: string;
   firstName: string;
   lastName: string;

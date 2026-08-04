@@ -3,7 +3,8 @@
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/indicators/card";
 import { bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
-import { buildRequestSummaryState, DoctorSummaryTile, RequestSummaryHeader, ScheduleSummary } from "./request-summary-card-sections";
+import { DoctorSummaryTile, RequestSummaryHeader, ScheduleSummary } from "./request-summary-card-sections";
+import { buildRequestSummaryState } from "./request-summary-state";
 export function RequestSummaryCard({
   selectedDoctorName,
   selectedCalendarDay,

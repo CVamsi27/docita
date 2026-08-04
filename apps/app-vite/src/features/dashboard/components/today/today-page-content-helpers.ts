@@ -1,4 +1,4 @@
-export interface TodayRailVisibilityInput {
+interface TodayRailVisibilityInput {
   referralCode?: string | null;
   publicOnlineBookingUrl?: string | null;
   pendingJoinRequests: number;

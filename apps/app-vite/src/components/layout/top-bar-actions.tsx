@@ -10,7 +10,3 @@ export function TopBarActions({ compact: _compact = false }: { compact?: boolean
     </>
   );
 }
-
-export function openCommandPaletteFromUi() {
-  window.dispatchEvent(new Event("docita:open-command-palette"));
-}

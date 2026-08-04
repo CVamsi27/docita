@@ -7,7 +7,7 @@ import { PrescriptionsTable, type PrescriptionsTableProps } from "./Prescription
 // on `PrescriptionsTableProps` and reused here via `Omit<…, "prescriptions">`
 // (this component renders both the full and filtered+sorted lists, so it
 // needs two `Prescription[]` props rather than the table's single one).
-export interface PrescriptionsListContentProps
+interface PrescriptionsListContentProps
   extends Omit<PrescriptionsTableProps, "prescriptions"> {
   searchQuery: string;
   setSearchQuery: (query: string) => void;

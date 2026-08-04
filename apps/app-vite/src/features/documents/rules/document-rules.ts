@@ -1,6 +1,6 @@
 import { ALLOWED_EXTENSIONS, MAX_FILE_SIZE } from "@workspace/utils";
 
-export type DocumentType =
+type DocumentType =
   | "lab_report"
   | "prescription"
   | "discharge_summary"
@@ -15,19 +15,6 @@ export type DocumentType =
   | "referral"
   | "other";
 
-export interface Document {
-  id: string;
-  name: string;
-  type: DocumentType;
-  mimeType: string;
-  size: number;
-  url: string;
-  patientId: string;
-  appointmentId?: string;
-  uploadedAt: Date;
-  extractedText?: string;
-}
-
 export function isValidFileExtension(filename: string): boolean {
   const ext = filename.toLowerCase().slice(filename.lastIndexOf("."));
   return ALLOWED_EXTENSIONS.includes(ext);
@@ -35,25 +22,6 @@ export function isValidFileExtension(filename: string): boolean {
 
 export function isValidFileSize(size: number): boolean {
   return size <= MAX_FILE_SIZE;
-}
-
-export function getDocumentTypeLabel(type: DocumentType): string {
-  const labels: Record<DocumentType, string> = {
-    lab_report: "Lab Report",
-    prescription: "Prescription",
-    discharge_summary: "Discharge Summary",
-    consultation_note: "Consultation Note",
-    imaging: "Medical Imaging",
-    xray: "X-Ray",
-    mri: "MRI",
-    ct_scan: "CT Scan",
-    ultrasound: "Ultrasound",
-    insurance: "Insurance Document",
-    consent_form: "Consent Form",
-    referral: "Referral Letter",
-    other: "Other",
-  };
-  return labels[type] || "Document";
 }
 
 export function detectDocumentType(filename: string): DocumentType {

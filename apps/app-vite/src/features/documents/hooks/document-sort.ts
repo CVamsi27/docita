@@ -1,6 +1,5 @@
 import type { Document } from "@workspace/types";
 import type { SortConfig, SortDirection, SortKey } from "./document-sort-types";
-export type { SortConfig, SortDirection, SortKey } from "./document-sort-types";
 
 function lowerText(...values: Array<string | undefined>): string {
   return values.find((value) => value && value.length > 0)?.toLowerCase() ?? "";

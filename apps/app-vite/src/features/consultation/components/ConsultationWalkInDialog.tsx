@@ -1,5 +1,5 @@
 import { useCheckInAppointment } from "@workspace/data-access";
-import { AddAppointmentDialogContainer } from "@/features/appointments/components";
+import { AddAppointmentDialogContainer } from "@/features/appointments";
 import { createWalkInCheckInHandler } from "./consultation-dashboard-ui-helpers";
 
 interface ConsultationWalkInDialogProps {

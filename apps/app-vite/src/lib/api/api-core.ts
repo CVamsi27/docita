@@ -2,21 +2,16 @@ import {
   APIRequestError,
   useAPIMutation as useAPIMutationBase,
   useAPIQuery as useAPIQueryBase,
-  useAPIQueryValidated as useAPIQueryValidatedBase,
   type RequestConfig,
   type UseAPIMutationOptions,
 } from "@workspace/data-access";
 import type { UseMutationOptions, UseQueryOptions } from "@tanstack/react-query";
-import type { z } from "zod";
-import { type PaginatedResponse } from "@workspace/types";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { getAppApiUrl } from "./api-config";
 import { apiFetch } from "./api-client";
 import { ApiError } from "@/lib/errors";
 
 export { getAppApiUrl };
-export type { PaginatedResponse };
-
 // React Query wrappers live in @workspace/data-access (transport-agnostic,
 // fetcher injected via <DataAccessProvider>). The thin wrappers below pin
 // TError to ApiError so the 30+ existing app hooks keep their familiar error
@@ -29,23 +24,6 @@ export function useAPIQuery<T>(
   options?: Omit<UseQueryOptions<T, ApiError>, "queryKey" | "queryFn">,
 ) {
   return useAPIQueryBase<T, ApiError>(key, endpoint, options);
-}
-
-export function useAPIQueryValidated<TSchema extends z.ZodTypeAny>(
-  key: QueryKey,
-  endpoint: string,
-  schema: TSchema,
-  options?: Omit<
-    UseQueryOptions<z.infer<TSchema>, ApiError>,
-    "queryKey" | "queryFn"
-  >,
-) {
-  return useAPIQueryValidatedBase<TSchema, ApiError>(
-    key,
-    endpoint,
-    schema,
-    options,
-  );
 }
 
 export function useAPIMutation<TData, TVariables>(
@@ -67,10 +45,7 @@ export function useAPIMutation<TData, TVariables>(
   );
 }
 
-export type { AppConstants } from "@workspace/data-access";
-export type { MedicalHistoryTimelineItem } from "@workspace/data-access";
 
-export type { FormOptions } from "@workspace/types";
 
 
 function toRecord(value: unknown): Record<string, unknown> | null {

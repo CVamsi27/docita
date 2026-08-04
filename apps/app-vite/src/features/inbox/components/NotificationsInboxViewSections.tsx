@@ -2,11 +2,12 @@
 
 import { Badge, Button, DataState, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { BellIcon, TrashIcon } from "lucide-react";
-import { NotificationRow, categorize } from "./notification-inbox-row";
+import { NotificationRow } from "./notification-inbox-row";
+import { categorize } from "./notification-inbox-helpers";
 import type { StaffNotification } from "@workspace/data-access";
 import type { NotificationCategoryDef } from "@/components/navigation/notification-href";
 
-export interface NotificationsInboxHeaderProps {
+interface NotificationsInboxHeaderProps {
   unreadCount: number;
   isDeleting: boolean;
   onClearAll: () => void;
@@ -37,7 +38,7 @@ export function NotificationsInboxHeader({
   );
 }
 
-export interface NotificationsInboxTabsProps {
+interface NotificationsInboxTabsProps {
   activeTab: string;
   onTabChange: (v: string) => void;
   visibleCategories: readonly NotificationCategoryDef[];

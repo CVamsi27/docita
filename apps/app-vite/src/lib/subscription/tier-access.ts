@@ -7,8 +7,6 @@ export {
   WHATSAPP_ADDON_PRICING,
   Tier,
   type TierName,
-  type TierInfo,
-  type FeatureDisplay,
 } from "@workspace/types";
 
 import { TIER_LIMITS, TIER_PRICING } from "@workspace/types";

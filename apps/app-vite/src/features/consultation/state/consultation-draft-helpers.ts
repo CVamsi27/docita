@@ -1,7 +1,6 @@
 import type { ExaminationData } from "@/features/consultation/components/structured/examination-input.types";
 import type {
   ConsultationDraftState,
-  SaveState,
 } from "@/features/consultation/state/consultation-draft.types";
 import { applyDraftUpdater } from "@/features/consultation/state/consultation-draft-updater.boundary";
 import type {
@@ -11,8 +10,6 @@ import type {
   GynecologyExamData,
   PsychiatryExamData,
 } from "@workspace/types";
-
-export type { SaveState };
 
 export const DEFAULT_EXAMINATION: ExaminationData = {
   general: {

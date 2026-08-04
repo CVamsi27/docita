@@ -13,7 +13,7 @@ export const ALLOWED_REGISTRATION_CERTIFICATE_MIMES = [
 
 export const MAX_REGISTRATION_CERTIFICATE_BYTES = 5 * 1024 * 1024;
 
-export type CertificateValidationError =
+type CertificateValidationError =
   | { code: "mime_not_allowed"; message: string }
   | { code: "file_too_large"; message: string };
 

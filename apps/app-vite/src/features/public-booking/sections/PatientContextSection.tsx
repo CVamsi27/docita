@@ -3,7 +3,8 @@
 import { Building2, Calendar as CalendarIcon, Sparkles } from "lucide-react";
 import { Badge, Card, CardContent, CardHeader, DataState, DescriptionList, EmptyState, MicroLabel, Timeline } from "@workspace/ui/components";
 import { formatDate } from "@workspace/utils";
-import { appointmentTimelineAccent, BookingSectionHeader, bookingCardClass, bookingSectionHeaderBar, bookingSectionShell, formatAppointmentStatus } from "@/features/public-booking/public-booking-components";
+import { BookingSectionHeader } from "@/features/public-booking/public-booking-components";
+import { appointmentTimelineAccent, bookingCardClass, bookingSectionHeaderBar, bookingSectionShell, formatAppointmentStatus } from "@/features/public-booking/atoms/booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { formatDateTime } from "@/lib/formatters";
 import { cn } from "@workspace/ui/lib/utils";

@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — error.data merge over untyped Axios error data (single cast)
 import {
   type APIError,
   getAPIClient,

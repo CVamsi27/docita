@@ -1,7 +1,7 @@
 import type { UploadResult } from "@workspace/data-access";
 import { apiFetch } from "@/lib/api/api-client";
 
-export interface ValidateTokenResult {
+interface ValidateTokenResult {
   tokenId: string;
   purpose: string;
   doctor: {

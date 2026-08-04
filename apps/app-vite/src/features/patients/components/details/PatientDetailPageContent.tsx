@@ -8,7 +8,7 @@ import { PatientAdvisorRail } from "@/features/patients/components/details/patie
 import { AppPageScaffold, DataState } from "@workspace/ui/components";
 import { User } from "lucide-react";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
-import { AddAppointmentDialogContainer } from "@/features/appointments/components";
+import { AddAppointmentDialogContainer } from "@/features/appointments";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
@@ -27,7 +27,7 @@ export function PatientDetailPageRoute({
   );
 }
 
-export function PatientDetailPageContent({
+function PatientDetailPageContent({
   patientId,
 }: PatientDetailPageContentProps) {
   const { state, handlers } = usePatientDetailLogic(patientId);

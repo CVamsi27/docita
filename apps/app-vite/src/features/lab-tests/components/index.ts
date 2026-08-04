@@ -6,11 +6,7 @@ export {
   LabTestsOrders,
   SortableHeader,
   LabOrderActionsCell,
-  LabOrderMobileRow,
   PatientNameCell,
-  CategoryCell,
-  OrderedByCell,
-  PaymentStatusCell,
 } from "./tabs/LabTestsOrders";
 export { LabTestsCatalog } from "./tabs/LabTestsCatalog";
 export { OrderLabTestDialog } from "./dialogs/OrderLabTestDialog";

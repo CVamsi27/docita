@@ -3,10 +3,10 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useAuth, VERIFICATION_EMAIL_STATUS_STORAGE_KEY } from "@/lib/auth/auth-context";
 import { logger } from "@/lib/monitoring/logger";
-import { resendVerificationEmail } from "@/features/auth/api/auth.api";
+import { resendVerificationEmail } from "@/features/auth";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 import { EmailVerifiedContent, CheckEmailHero, CheckEmailMessage, DeliveryStatusBanner, ResendButtonSection, WrongEmailFooter } from "./VerifyEmailSentPageContentSections";
 import { getNextPathForVerifiedUser } from "../lib/verified-user-routing";
 

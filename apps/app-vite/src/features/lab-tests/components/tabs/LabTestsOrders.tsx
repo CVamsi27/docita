@@ -62,7 +62,7 @@ export function LabOrderActionsCell({
   );
 }
 
-export function LabOrderMobileRow({ test }: { test: LabTestOrder }) {
+function LabOrderMobileRow({ test }: { test: LabTestOrder }) {
   const { t } = useTranslation("LabTests");
   return (
     <ListRow
@@ -79,15 +79,15 @@ export function PatientNameCell({ test }: { test: LabTestOrder }) {
   return <span className="font-medium">{test.patient ? getPatientFullName(test.patient) : t("orders.unknown")}</span>;
 }
 
-export function CategoryCell({ test }: { test: LabTestOrder }) {
+function CategoryCell({ test }: { test: LabTestOrder }) {
   return <span className="capitalize text-muted-foreground">{test.labTest?.category || "—"}</span>;
 }
 
-export function OrderedByCell({ test }: { test: LabTestOrder }) {
+function OrderedByCell({ test }: { test: LabTestOrder }) {
   return <span className="text-muted-foreground">{test.doctor?.name || "—"}</span>;
 }
 
-export function PaymentStatusCell({ test }: { test: LabTestOrder }) {
+function PaymentStatusCell({ test }: { test: LabTestOrder }) {
   return <StatusBadge status={test.paidAt ? "paid" : "unpaid"} />;
 }
 

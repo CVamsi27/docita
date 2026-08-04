@@ -2,15 +2,17 @@ import { useNavigate } from "react-router";
 import { HeartPulse, Users, CreditCard } from "lucide-react";
 import { getPatientFullName } from "@workspace/utils";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Section } from "@workspace/ui/components";
-import { AppointmentRowActionsMenu } from "@/features/appointments/components/forms/AppointmentRowActionsMenu";
-import type { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
+import {
+  AppointmentRowActionsMenu,
+  type useAppointmentRowActions,
+} from "@/features/appointments";
 import type { useConsultationDashboard } from "../hooks/use-consultation-dashboard";
 import { buildConsultationRoute } from "../rules/consultationTabRouting";
 
 type ConsultationDashboardState = ReturnType<typeof useConsultationDashboard>;
 type AppointmentRowActions = ReturnType<typeof useAppointmentRowActions>;
 
-export interface NursePrepSectionProps {
+interface NursePrepSectionProps {
   opdQueueRows: ConsultationDashboardState["opdQueueRows"];
   rowActions: AppointmentRowActions;
   clinicType: ConsultationDashboardState["clinicType"];

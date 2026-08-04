@@ -3,7 +3,7 @@ import { Button, MicroLabel } from "@workspace/ui/components";
 import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { AI_FEATURES_ENABLED } from "@/lib/config/ai-features";
 
-export type SettingsAiChipScope =
+type SettingsAiChipScope =
   | "doctor-profile"
   | "clinic-general"
   | "compliance"

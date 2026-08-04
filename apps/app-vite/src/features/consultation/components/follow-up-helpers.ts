@@ -17,7 +17,7 @@ export const followUpSchema = z.object({
   }),
 });
 
-export type FollowUp = z.infer<typeof followUpSchema>;
+type FollowUp = z.infer<typeof followUpSchema>;
 
 export function parseFollowUpList(data: unknown): FollowUp[] {
   if (!Array.isArray(data)) {

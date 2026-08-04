@@ -15,7 +15,7 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 
 export type Clinic = AppClinic;
 
-export interface ClinicContextValue {
+interface ClinicContextValue {
   clinicId: string | null;
   clinic: Clinic | null;
   isLoading: boolean;
@@ -81,6 +81,7 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
         intelligenceAddon: clinicData.intelligenceAddon,
         // The clinic schema stores overrides as a JSON object; the permission
         // store treats every key as a boolean toggle, so narrow the boundary.
+        // check-as-cast-density: allow-file — features flags map from untyped clinic payload
         features: clinicData.features as Record<string, boolean> | null,
         type: clinicData.type,
         settings: clinicData.settings,

@@ -39,7 +39,7 @@ export function PrescriptionDefaultsCardHeader() {
   );
 }
 
-export interface PrescriptionDefaultsFieldProps {
+interface PrescriptionDefaultsFieldProps {
   form: UseFormReturn<PrescriptionDefaultsFormValues>;
 }
 
@@ -161,7 +161,7 @@ export function PrescriptionDefaultsCheckboxGroup({
   );
 }
 
-export interface PrescriptionDefaultsFormActionsProps {
+interface PrescriptionDefaultsFormActionsProps {
   saving: boolean;
 }
 

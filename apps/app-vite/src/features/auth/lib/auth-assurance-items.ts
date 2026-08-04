@@ -5,7 +5,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type AuthAssuranceItem = {
+type AuthAssuranceItem = {
   icon: LucideIcon;
   label: string;
 };

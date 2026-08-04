@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Object.keys narrows to key union for the mode label map
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";
 import { MessageCircle, RotateCcw, ShieldCheck } from "lucide-react";
 

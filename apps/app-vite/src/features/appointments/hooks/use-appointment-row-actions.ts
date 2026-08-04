@@ -8,7 +8,7 @@ import {
 } from "@workspace/data-access";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
-export interface UseAppointmentRowActionsOptions {
+interface UseAppointmentRowActionsOptions {
   /** Called after a successful cancel/no-show so the consumer can refetch its own list. */
   onMutated?: () => void | Promise<void>;
 }
@@ -23,7 +23,7 @@ export interface AppointmentRowActionDialogProps {
   onNoShowConfirm: () => Promise<void>;
 }
 
-export interface UseAppointmentRowActionsResult {
+interface UseAppointmentRowActionsResult {
   onCancelClick: (appointmentId: string) => void;
   onNoShowClick: (appointmentId: string) => void;
   handleCancelAppointment: (reason: string) => Promise<void>;

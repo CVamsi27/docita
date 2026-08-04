@@ -1,7 +1,6 @@
 import type { GenderValue as GV } from "./add-patient-dialog-constants";
-import { GENDER_OPTIONS as SHARED_OPTIONS } from "./add-patient-dialog-constants";
 
-export type GenderValue = GV;
+type GenderValue = GV;
 
 export const GENDER_VALUES: readonly GenderValue[] = [
   "MALE",
@@ -12,4 +11,3 @@ export const GENDER_VALUES: readonly GenderValue[] = [
   "PREFER_NOT_TO_SAY",
 ] as const;
 
-export const GENDER_OPTIONS = SHARED_OPTIONS;

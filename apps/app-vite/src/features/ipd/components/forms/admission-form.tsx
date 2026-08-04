@@ -29,11 +29,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@workspace/ui/components/form/select";
-
-export type AdmissionFormData = IpdAdmissionFormValues;
-export { ipdAdmissionFormSchema };
-
+} from "@workspace/ui/components/form/select";export type AdmissionFormData = IpdAdmissionFormValues;
 export interface AdmissionFormProps {
   defaultValues?: Partial<IpdAdmissionFormValues>;
   onSubmit?: (data: IpdAdmissionFormValues) => void;

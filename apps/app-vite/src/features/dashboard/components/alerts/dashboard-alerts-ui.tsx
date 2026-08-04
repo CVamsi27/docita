@@ -17,7 +17,7 @@ export interface AlertItem {
   dismissible?: boolean;
 }
 
-export interface DashboardAlertsUIProps {
+interface DashboardAlertsUIProps {
   alerts: AlertItem[];
   progressPercentage: number;
   todayAppointments: number;

@@ -18,11 +18,7 @@ export const canEditPatient = (user: User): boolean => {
   return hasPermission(user.role, "editPatient");
 };
 
-export const canViewPatient = (user: User): boolean => {
-  return !!user;
-};
-
-export const getPatientAge = (patient: PatientDateLike): number | null => {
+const getPatientAge = (patient: PatientDateLike): number | null => {
   if (!patient.dateOfBirth) return null;
   return calculateAge(patient.dateOfBirth);
 };

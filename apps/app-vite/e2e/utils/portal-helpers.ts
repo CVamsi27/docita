@@ -19,7 +19,7 @@ const portalVerifyOtpResponseSchema = z.object({
     .optional(),
 });
 
-export function insertPortalE2eOtp(phoneNumber: string): boolean {
+function insertPortalE2eOtp(phoneNumber: string): boolean {
   const databaseUrl = readRepoDatabaseUrl();
   if (!databaseUrl) return false;
 

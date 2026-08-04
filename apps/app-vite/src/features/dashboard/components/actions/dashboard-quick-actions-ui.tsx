@@ -11,7 +11,7 @@ export interface QuickAction {
   badge?: number;
 }
 
-export interface DashboardQuickActionsUIProps {
+interface DashboardQuickActionsUIProps {
   quickActions: QuickAction[];
 }
 

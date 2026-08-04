@@ -15,7 +15,7 @@ import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import type { AppointmentListItem } from "@workspace/data-access";
 import { getInitials } from "@/lib/formatters";
 
-export interface TodayScheduleUIProps {
+interface TodayScheduleUIProps {
   appointments: AppointmentListItem[];
   className?: string;
 }

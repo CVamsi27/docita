@@ -49,4 +49,3 @@ export function usePrescriptionsFilters() {
   };
 }
 
-export type PrescriptionsFiltersState = ReturnType<typeof usePrescriptionsFilters>;

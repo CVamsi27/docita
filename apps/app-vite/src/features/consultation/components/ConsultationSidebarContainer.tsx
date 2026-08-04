@@ -1,5 +1,5 @@
 import { type FC } from "react";
-import { usePatientHistoryReadOnly } from "@/features/patients/hooks/use-patient-history";
+import { usePatientHistoryReadOnly } from "@/features/patients";
 import { usePatientTimeline, usePatientSnapshot } from "@workspace/data-access";
 import { Appointment } from "@workspace/types";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";

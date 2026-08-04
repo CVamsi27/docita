@@ -10,7 +10,7 @@ import {
 import type { AlertItem } from "./dashboard-alerts-ui";
 import type { DashboardAlertDensity } from "./dashboard-alerts-types";
 
-export interface DashboardAlertsBuildInput {
+interface DashboardAlertsBuildInput {
   density: DashboardAlertDensity;
   todayAppointments: number;
   completedAppointments: number;

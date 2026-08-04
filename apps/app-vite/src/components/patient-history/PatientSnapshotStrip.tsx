@@ -5,7 +5,7 @@ import type { PatientSnapshot } from "@workspace/types";
 import { formatDate } from "@/lib/formatters";
 import { VerticalSnapshotContent, HorizontalSnapshotContent } from "./PatientSnapshotStripSections";
 
-export { ALLERGY_SEVERITY_COLOR } from "./PatientSnapshotStripSections";
+export { ALLERGY_SEVERITY_COLOR } from "./patient-snapshot-strip-helpers";
 
 interface PatientSnapshotStripProps {
   snapshot: PatientSnapshot;

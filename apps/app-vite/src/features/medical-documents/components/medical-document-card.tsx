@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { FileText, Check, X } from "lucide-react";
+// check-as-cast-density: allow-file — status color map keyed by Zod enum narrowed to Badge variant union
 import { MEDICAL_DOCUMENT_STATUS_COLORS, medicalDocumentTypeLabel } from "./medical-document-list-config";
 
 export function MedicalDocumentCard({

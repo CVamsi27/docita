@@ -11,7 +11,6 @@ import { useMedicationRoutes } from "./use-medication-routes";
 import { usePrescriptionForm } from "./use-prescription-form";
 import type { Medication } from "./prescription-input.types";
 
-export type { Medication } from "./prescription-input.types";
 
 /** Maps a stored sig-code (e.g. "BID") to its label, falling back to the raw value. */
 function formatFrequencyLabel(frequency: string): string {

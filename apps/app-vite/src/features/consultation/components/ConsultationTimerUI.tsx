@@ -15,7 +15,7 @@ import {
 import { Clock, Pause, Play, RotateCcw, Timer } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
-export interface ConsultationTimerUIProps {
+interface ConsultationTimerUIProps {
   seconds: number;
   isRunning: boolean;
   showDetails: boolean;

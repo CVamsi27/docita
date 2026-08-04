@@ -121,13 +121,6 @@ export function isNotificationCategoryId(
   return NOTIFICATION_CATEGORIES.some((category) => category.id === value);
 }
 
-export function categoryForType(type: string): NotificationCategoryId {
-  for (const cat of NOTIFICATION_CATEGORIES) {
-    if (cat.types?.includes(type)) return cat.id;
-  }
-  return "system";
-}
-
 function readString(data: unknown, key: string): string | null {
   if (!isRecord(data)) return null;
   const value = data[key];

@@ -5,7 +5,7 @@ import { useFacilityLabel } from "@/lib/formatters/facility-label";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { StaffWorkspaceSection, PatientBookingSection } from "./clinic-referral-share-toolbar-sections";
 
-export interface ClinicReferralShareToolbarProps {
+interface ClinicReferralShareToolbarProps {
   clinicCode?: string | null;
   clinicName?: string;
   publicOnlineBookingUrl?: string | null;

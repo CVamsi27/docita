@@ -17,6 +17,7 @@ interface MetricReport {
 export function installWebVitalsReporter(): void {
   if (typeof window === "undefined" || !window.PerformanceObserver) return;
 
+  // check-as-cast-density: allow-file — window flag + PerformanceObserver/LayoutShift entry typing gaps (platform API, no safe narrowing)
   const win = window as unknown as Record<string, unknown>;
   if (win.__vitalsReporterInstalled) return;
   win.__vitalsReporterInstalled = true;

@@ -8,7 +8,7 @@ import { TagSearchField } from "./patient-tag-search-field";
 import { useTagInlineEditing } from "./use-tag-inline-editing";
 import { useTagSearchAndCreate } from "./use-tag-search-and-create";
 
-export type { PatientTag, PresetTag };
+export type {PatientTag};
 
 interface PatientTagManagerUIProps {
   open: boolean;

@@ -10,13 +10,6 @@ import { shouldSkipAuthenticatedBootstrapFetch } from "@/lib/auth/pre-clinic-set
 
 export type {
   SelectOption,
-  DurationOption,
-  PatientImportField,
-  CurrencyOption,
-  FormOptions,
-  DefaultValues,
-  ClinicSettings,
-  AppConfig,
 } from "@/lib/constants/app-config";
 
 interface AppConfigContextType {

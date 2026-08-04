@@ -144,7 +144,7 @@ export interface UserData {
   accessToken: string;
 }
 
-export interface BasicAuthUserData extends UserData {
+interface BasicAuthUserData extends UserData {
   role: string;
 }
 

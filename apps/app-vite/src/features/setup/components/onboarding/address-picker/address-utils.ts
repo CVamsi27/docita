@@ -17,7 +17,7 @@ export type ClinicAddressSelection = {
   details?: ClinicAddressDetails;
 };
 
-export type OSMAddress = {
+type OSMAddress = {
   house_number?: string;
   road?: string;
   neighbourhood?: string;

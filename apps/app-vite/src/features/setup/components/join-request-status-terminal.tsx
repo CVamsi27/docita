@@ -7,7 +7,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@workspace/ui/components/feedback/alert";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 
 export type JoinRequestTerminalState =
   | { kind: "rejected"; clinicName: string; reason?: string }

@@ -6,7 +6,7 @@ import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import type { AppointmentListItemContractResponse } from "@workspace/types";
 import { formatLocaleDateShortMonthYear, formatTime } from "@/lib/formatters";
 
-export interface ConsultationListDoctor {
+interface ConsultationListDoctor {
   id: string;
   name: string;
 }

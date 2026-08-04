@@ -2,7 +2,7 @@ import { Activity } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { RevenueByCPT } from "@/features/analytics/hooks/use-analytics-logic";
 import { RevenueChartShell } from "./RevenueChartShell";
-import { COLORS } from "./chart-helpers";
+import { COLORS } from "./chart-colors";
 
 interface RevenueChartProps {
   data: RevenueByCPT[];

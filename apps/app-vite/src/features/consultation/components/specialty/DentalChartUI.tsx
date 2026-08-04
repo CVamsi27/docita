@@ -4,7 +4,7 @@ import { useConstants } from "@workspace/data-access";
 import type { DentalChartData } from "@workspace/types";
 import { DentalToothGrid, DentalToothEditor } from "./DentalChartSections";
 
-export type DentalChartValue = DentalChartData;
+type DentalChartValue = DentalChartData;
 
 interface DentalChartUIProps {
   value: DentalChartValue;

@@ -1,13 +1,25 @@
-import { Badge, Button, ListRow, SortableHeaderButton, SymbolTooltip, type DataTableColumn } from "@workspace/ui/components";
-import { Download, ExternalLink, Eye, FileText } from "lucide-react";
+// jscpd:ignore-start — import-only overlap with the column builder; logic is not duplicated.
+import {
+  Badge,
+  Button,
+  ListRow,
+  SortableHeaderButton,
+  SymbolTooltip,
+} from "@workspace/ui/components";
+import { Download, ExternalLink, Eye } from "lucide-react";
 import type { Document } from "@workspace/types";
-import { DOCUMENT_TYPE_LABELS } from "@workspace/types";
-import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { formatDate } from "@workspace/utils";
 import type {
   SortConfig,
   SortKey,
 } from "@/features/documents/hooks/document-sort-types";
+import {
+  formatDocumentTypeLabel,
+  getDocumentPatientName,
+  getDocumentTitle,
+  getDocumentTypeBadgeVariant,
+} from "./documents-table-helpers";
+// jscpd:ignore-end
 
 // jscpd:ignore-start
 export function DocumentsSortableHeader({
@@ -30,41 +42,7 @@ export function DocumentsSortableHeader({
     />
   );
 }
-
-export function getDocumentTypeBadgeVariant(type: string) {
 // jscpd:ignore-end
-  switch (type?.toLowerCase()) {
-    case "lab_report":
-    case "lab report":
-      return "default" as const;
-    case "prescription":
-      return "secondary" as const;
-    case "xray":
-    case "x-ray":
-    case "scan":
-    case "mri":
-    case "ct":
-      return "outline" as const;
-    default:
-      return "secondary" as const;
-  }
-}
-
-/** Human-readable document type label — never surface the raw enum (e.g. LAB_REPORT). */
-export function formatDocumentTypeLabel(type: string): string {
-  const match = Object.entries(DOCUMENT_TYPE_LABELS).find(
-    ([key]) => key === type,
-  );
-  return match ? match[1] : humanizeUiLabel(type);
-}
-
-export function getDocumentTitle(document: Document) {
-  return document.name || document.filename || document.title || "—";
-}
-
-export function getDocumentPatientName(document: Document) {
-  return document.patient?.name || document.patient?.firstName || "—";
-}
 // jscpd:ignore-start
 export function DocumentActions({
   document,
@@ -183,99 +161,4 @@ export function DocumentMobileRow({
       </div>
     </div>
   );
-}
-
-export function buildDocumentsTableColumns(
-  sortConfig: SortConfig,
-  onSort: (key: SortKey) => void,
-  onView: (document: Document) => void,
-  onDownload: (document: Document) => void,
-  t: (key: string) => string,
-): DataTableColumn<Document>[] {
-  return [
-    {
-      id: "id",
-      header: t("columns.documentId"),
-      hiddenOnMobile: true,
-      cell: (document) => (
-        <span className="font-mono text-sm">
-          {(document.id || "").slice(0, 8).toUpperCase()}
-        </span>
-      ),
-    },
-    {
-      id: "filename",
-      header: (
-        <DocumentsSortableHeader
-          column="filename"
-          label={t("columns.fileName")}
-          sortConfig={sortConfig}
-          onSort={onSort}
-        />
-      ),
-      cell: (document) => (
-        <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <span className="max-w-[150px] truncate font-medium sm:max-w-[200px]">
-            {getDocumentTitle(document)}
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: "patient",
-      header: (
-        <DocumentsSortableHeader
-          column="patient"
-          label={t("columns.patient")}
-          sortConfig={sortConfig}
-          onSort={onSort}
-        />
-      ),
-      cell: (document) => getDocumentPatientName(document),
-    },
-    {
-      id: "type",
-      header: (
-        <DocumentsSortableHeader
-          column="type"
-          label={t("columns.type")}
-          sortConfig={sortConfig}
-          onSort={onSort}
-        />
-      ),
-      hiddenOnMobile: true,
-      cell: (document) => (
-        <Badge variant={getDocumentTypeBadgeVariant(document.type)}>
-          {formatDocumentTypeLabel(document.type)}
-        </Badge>
-      ),
-    },
-    {
-      id: "date",
-      header: (
-        <DocumentsSortableHeader
-          column="date"
-          label={t("columns.date")}
-          sortConfig={sortConfig}
-          onSort={onSort}
-        />
-      ),
-      hiddenOnMobile: true,
-      cell: (document) => formatDate(document.createdAt, "MMM d, yyyy"),
-    },
-    {
-      id: "actions",
-      header: t("columns.actions"),
-      align: "right",
-      cell: (document) => (
-        <DocumentActions
-          document={document}
-          onView={onView}
-          onDownload={onDownload}
-          t={t}
-        />
-      ),
-    },
-  ];
 }

@@ -1,21 +1,13 @@
 /**
  * Barrel re-export — keeps all callers unchanged while each component
- * lives in its own ≤ 400-line atom file under `atoms/`.
+ * lives in its own ≤ 400-line atom file under `atoms/`. The data/format
+ * helpers (bookingCardClass, bookingSectionShell, formatAppointmentStatus,
+ * …) live in `atoms/booking-constants` and are imported from there directly.
  */
-export {
-  bookingCardClass,
-  bookingSectionShell,
-  bookingSectionHeaderBar,
-  bookingSteps,
-  publicBookingSlotEmptyMessage,
-  formatAppointmentStatus,
-  appointmentTimelineAccent,
-} from "@/features/public-booking/atoms/booking-constants";
-
 export { BookingSectionHeader } from "@/features/public-booking/atoms/booking-section-header";
 export { PublicBookingSkipLink, PublicBookingTopChrome } from "@/features/public-booking/atoms/public-booking-top-chrome";
 export { PublicBookingTrustRow } from "@/features/public-booking/atoms/public-booking-trust-row";
-export { PublicBookingPageFooter, PublicBookingPoweredByFooter } from "@/features/public-booking/atoms/public-booking-footer";
+export { PublicBookingPageFooter } from "@/features/public-booking/atoms/public-booking-footer";
 export { PublicBookingHeroCompact } from "@/features/public-booking/atoms/public-booking-hero";
 export { PublicBookingProgressChrome } from "@/features/public-booking/atoms/booking-progress-chrome";
 export { PublicBookingHowItWorksSheet } from "@/features/public-booking/atoms/booking-how-it-works";

@@ -4,45 +4,14 @@ import { Clock, Users } from "lucide-react";
 import { Avatar, AvatarFallback, Card, CardContent, CardHeader, CardTitle, EmptyState, Section } from "@workspace/ui/components";
 import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
 import { cn } from "@workspace/ui/lib/utils";
+import {
+  formatScheduled,
+  formatToken,
+  initialsOf,
+  type DeskFloorRow,
+} from "./desk-floor-panel-helpers";
 
-export interface DeskFloorRow {
-  id: string;
-  tokenNumber: number;
-  patientName: string;
-  scheduledTime?: string | null;
-  doctorName?: string | null;
-  visitSummary?: string | null;
-  isWalkIn: boolean;
-}
-
-export function initialsOf(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
-
-export function formatToken(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
-export function formatScheduled(
-  value: string | null | undefined,
-): string | null {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-
-export interface FloorStatsSectionProps {
+interface FloorStatsSectionProps {
   waitingCount: number;
   inProgressCount: number;
   completedCount: number;
@@ -98,7 +67,7 @@ export function FloorStatsSection({
   );
 }
 
-export interface WaitingListSectionProps {
+interface WaitingListSectionProps {
   waiting: DeskFloorRow[];
 }
 
@@ -170,7 +139,7 @@ export function WaitingListSection({ waiting }: WaitingListSectionProps) {
   );
 }
 
-export interface RecentlyCompletedSectionProps {
+interface RecentlyCompletedSectionProps {
   recentlyCompleted: DeskFloorRow[];
 }
 

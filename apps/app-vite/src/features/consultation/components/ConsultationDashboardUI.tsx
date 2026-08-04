@@ -3,8 +3,7 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { useConsultationDashboard } from "../hooks/use-consultation-dashboard";
 import { useConsultationQueueRealtime } from "../hooks/use-consultation-queue-realtime";
 import { useCheckInAppointment } from "@workspace/data-access";
-import { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
-import { AppointmentRowActionDialogs } from "@/features/appointments/components/dialogs/AppointmentRowActionDialogs";
+import { useAppointmentRowActions, AppointmentRowActionDialogs } from "@/features/appointments";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   ConsultationDashboardStats,

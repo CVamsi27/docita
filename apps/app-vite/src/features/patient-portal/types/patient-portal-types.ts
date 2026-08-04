@@ -41,9 +41,3 @@ export interface PatientPortalSnapshot {
     status: PatientInvoiceStatus;
   }[];
 }
-
-export type PatientPortalSection =
-  | "overview"
-  | "appointments"
-  | "prescriptions"
-  | "billing";

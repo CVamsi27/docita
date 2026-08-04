@@ -1,4 +1,4 @@
-export interface ConsentDataCategory {
+interface ConsentDataCategory {
   id: string;
   title: string;
   purpose: string;
@@ -138,7 +138,7 @@ export const CONSENT_DATA_CATEGORIES: ConsentDataCategory[] = [
   },
 ];
 
-export interface ConsentRetentionEntry {
+interface ConsentRetentionEntry {
   category: string;
   retention: string;
 }

@@ -18,12 +18,12 @@ const DELAY_OPTIONS = [
   { value: "120", label: "2 hours" },
 ];
 
-export interface DoctorOption {
+interface DoctorOption {
   id: string;
   name: string;
 }
 
-export interface MarkDoctorDelayDialogProps {
+interface MarkDoctorDelayDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** If provided, the doctor is pre-selected and cannot be changed. */

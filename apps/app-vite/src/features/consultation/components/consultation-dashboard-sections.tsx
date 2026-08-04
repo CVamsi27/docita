@@ -3,8 +3,10 @@ import { Button, DataState, PageHeader, Section, StatGrid } from "@workspace/ui/
 import { CONSULTATION_DASHBOARD_TITLE, CONSULTATION_DASHBOARD_DESCRIPTION } from "./consultation-dashboard-ui-helpers";
 import { BadgeCheck, Activity, Calendar, CreditCard, HeartPulse, Play, Stethoscope, Users } from "lucide-react";
 import { formatClockTime } from "@/lib/formatters";
-import { AppointmentRowActionsMenu } from "@/features/appointments/components/forms/AppointmentRowActionsMenu";
-import type { useAppointmentRowActions } from "@/features/appointments/hooks/use-appointment-row-actions";
+import {
+  AppointmentRowActionsMenu,
+  type useAppointmentRowActions,
+} from "@/features/appointments";
 import type { useConsultationDashboard } from "../hooks/use-consultation-dashboard";
 
 type Dashboard = ReturnType<typeof useConsultationDashboard>;

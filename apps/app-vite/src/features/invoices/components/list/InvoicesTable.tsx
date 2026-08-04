@@ -1,14 +1,14 @@
 import { DataTable } from "@workspace/ui/components/data-display/data-table";
 import { useTranslation } from "react-i18next";
+import { MobileCard } from "./InvoicesTableSections";
 import {
   getInvoiceColumns,
-  MobileCard,
   useInvoiceColumnLabels,
-} from "./InvoicesTableSections";
+} from "./invoices-table-helpers";
 import type { InvoiceListRow } from "@workspace/types";
 import type { SortConfig, SortKey } from "@/features/invoices/hooks/use-invoices-logic";
 
-export interface InvoicesTableProps {
+interface InvoicesTableProps {
   invoices: InvoiceListRow[];
   loading: boolean;
   formatCurrency: (amount: number | undefined) => string;

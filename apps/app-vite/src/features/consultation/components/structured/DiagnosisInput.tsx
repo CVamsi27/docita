@@ -9,10 +9,6 @@ import type {
   DiagnosisItem,
 } from "./diagnosis-input-types";
 
-export type {
-  DiagnosisItem,
-  DiagnosisInputProps,
-} from "./diagnosis-input-types";
 
 export function DiagnosisInput({
   value = [],

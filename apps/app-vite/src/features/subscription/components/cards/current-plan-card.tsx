@@ -5,7 +5,6 @@ import { type CurrentPlanCardProps, TIER_COLOR_MAP } from "./current-plan-card-t
 import { CurrentPlanCardMeta } from "./current-plan-card-meta";
 import { CurrentPlanCardUsage } from "./current-plan-card-usage";
 
-export type { CurrentPlanCardProps } from "./current-plan-card-types";
 
 export function CurrentPlanCard({
   tierInfo,

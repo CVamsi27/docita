@@ -17,7 +17,7 @@ const cancelReasonSchema = z
 
 const OTHER_VALUE = "other";
 
-export interface CancelAppointmentDialogProps {
+interface CancelAppointmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isLoading?: boolean;

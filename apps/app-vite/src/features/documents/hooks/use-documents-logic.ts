@@ -7,7 +7,6 @@ import {
 } from "./document-actions";
 import { sortDocuments } from "./document-sort";
 import type { SortConfig, SortKey } from "./document-sort-types";
-export type { SortConfig, SortDirection, SortKey } from "./document-sort-types";
 
 export const useDocumentsLogic = () => {
   const [searchQuery, setSearchQuery] = useState("");

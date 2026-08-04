@@ -12,7 +12,7 @@ import type { ListInvoicesContractQuery } from "@workspace/types";
 
 type InvoiceStatusFilter = ListInvoicesContractQuery["status"] | "all";
 
-export interface InvoicesFiltersProps {
+interface InvoicesFiltersProps {
   filter: InvoiceStatusFilter;
   setFilter: (value: InvoiceStatusFilter) => void;
   searchQuery: string;

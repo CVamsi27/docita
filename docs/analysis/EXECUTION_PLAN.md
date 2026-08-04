@@ -1,68 +1,134 @@
-# Execution Plan — Vite SPA Cutover (Next.js → Vite)
+# Execution Plan — Production-Ready Vite SPA Cutover
 
-Point-in-time: **2026-08-02** (re-verified against live tree after porting commits landed).
+Point-in-time: **2026-08-03** (re-verified against the live tree after the P0–P2 implementation work landed).
 
-**Goal**: finish remaining migration work and cut over from Next.js (`apps/app`, `apps/internal` — deleted in working tree, ported) to Vite SPAs (`apps/app-vite`, `apps/internal-vite`). Every item below has a measurable exit criterion.
+**Goal**: finish the migration and leave a maintainable, secure, observable, rollback-safe codebase—not merely a Vite build that compiles. The cutover moves from the staged Next.js source (`apps/app`, `apps/internal`) to the Vite SPAs (`apps/app-vite`, `apps/internal-vite`). Every item below has an ownerable action, evidence requirement, and measurable exit criterion.
+
+## How to use this plan
+
+This is the execution companion to [`PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md), [`FINAL_MIGRATION_ROADMAP.md`](../FINAL_MIGRATION_ROADMAP.md), and [`CODEBASE_CLEANUP_PLAN.md`](../CODEBASE_CLEANUP_PLAN.md). Those documents remain the source for feature inventory, historical decisions, and removal inventory; this document is the ordered delivery plan.
+
+The referral/partner program has a separate product contract and release
+backlog in [`REFERRAL_PARTNER_PROGRAM_PLAN.md`](../REFERRAL_PARTNER_PROGRAM_PLAN.md).
+It is intentionally **PARTIAL / BLOCKED** in the porting inventory until
+partner signup, facility-lead intake, internal progression, the approved 10%
+first-year policy, clinic discount policy, anti-abuse controls, and the
+notification/calendar handoff have implementation and test evidence. SMS
+outreach tooling is documented separately in the `hospital-scraper` repository
+and must not be treated as proof that the Docita partner workflow is live.
+
+Status rules:
+
+- **DONE** means the change exists in the tree and the named verification command passed.
+- **READY** means implementation is complete but requires an external environment, credential, or release action.
+- **BLOCKED** means the next action cannot be completed without a specific decision or external prerequisite; the blocker must be named.
+- **OPEN** means engineering work remains.
+- Snapshot metrics are not acceptance criteria by themselves. Refresh them with the commands in the verification matrix before closing a phase.
+
+Operating rules:
+
+- Work from an up-to-date branch based on `main`; never commit directly to `main` or `staging`.
+- Keep the existing user changes in the working tree isolated from this documentation change.
+- Do not delete a ported file based on a static tool finding alone. Verify both Vite trees, historical consumers where relevant, dynamic imports, route references, and E2E helpers first.
+- Do not weaken an auth, tenant, audit, PHI, RLS, webhook, or migration guard to make a check pass.
+- Every product or parity decision must be recorded in the companion plan or an ADR before implementation is marked complete.
 
 ---
 
 ## Current State (verified 2026-08-03, re-run live gates)
 
-| Metric | Value | Target |
-|---|---|---|
-| Features COMPLETE | **38** / 46 | 46 |
-| Features SHELL / MISSING | **8** / 3 | 0 / 0 |
-| File port (TS/TSX) | **1,404** / 1,967 (71%) | 100% |
-| Test port | **132 test files in app-vite** (7 new smokes 2026-08-03) | 100% |
-| E2E specs | **45** / 50 | 50 |
-| i18n coverage | **44** / 45 (98%) — legal allowlisted | 45/45 |
-| Missing accessible names | **0** (verified 2026-08-03: new `check:accessible-name` gate PASS) | 0 |
-| Inline `fetch()` / misplaced API calls | **0** (P0.1 done 2026-08-03; `check:frontend-fetch --enforce` PASS) | 0 |
-| Raw `<button>` in production | **0** (PASS) | 0 |
-| Error boundary layouts | **5/5** functional (PASS) | 5/5 |
-| Dead code signals | **24 orphan files deleted (2026-08-03); remaining are feature barrels (kept by design §15.5) + consultation/specialty port-or-drop (P3.1)** | 0 |
-| Knip unused exports / types | **274 / 289** | 0 |
-| Files >400 lines (prod) | **1** (App.tsx 471) | 0 |
-| a11y budget baseline | **refreshed 2026-08-03** (`baseline-app-2026-08-03.json`, 0 serious/critical; `check:a11y-budget --enforce` PASS) | refreshed |
-| Cutover (Phase 9) | **4/10** pre-cutover, **3/11** steps | complete |
+| Metric                                 | Value                                                                                                             | Target                                                     |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Features COMPLETE                      | **38** / 46                                                                                                       | 46                                                         |
+| Features SHELL / MISSING               | **8** / 3                                                                                                         | 0 unaccounted; retained shells documented                  |
+| File port (TS/TSX)                     | **1,404** / 1,967 (71% audit snapshot)                                                                            | 100% of retained scope; dropped features stay deleted      |
+| Test port                              | **132 test files in app-vite** (7 new smokes 2026-08-03)                                                          | all critical paths tested; no unreviewed zero-test feature |
+| E2E specs                              | **45** / 50 (5 visual fixtures intentionally dropped)                                                             | all retained critical flows discovered and live-run        |
+| i18n coverage                          | **44** / 45 (98%) — legal allowlisted                                                                             | 44/45 with documented legal exception; no accidental gaps  |
+| Missing accessible names               | **0** (verified 2026-08-03: new `check:accessible-name` gate PASS)                                                | 0                                                          |
+| Inline `fetch()` / misplaced API calls | **0** (P0.1 done 2026-08-03; `check:frontend-fetch --enforce` PASS)                                               | 0                                                          |
+| Raw `<button>` in production           | **0** (PASS)                                                                                                      | 0                                                          |
+| Error boundary layouts                 | **5/5** functional (PASS)                                                                                         | 5/5                                                        |
+| Dead code signals                      | **24 orphan files deleted (2026-08-03); remaining findings require symbol-by-symbol review**                      | 0 actionable                                               |
+| Knip unused exports / types            | **274 / 289 audit findings; command exits 0**                                                                     | 0 actionable                                               |
+| Files >400 lines (prod)                | **0**                                                                                                             | 0                                                          |
+| a11y budget baseline                   | **refreshed 2026-08-03** (`baseline-app-2026-08-03.json`, 0 serious/critical; `check:a11y-budget --enforce` PASS) | refreshed                                                  |
+| Cutover (Phase 9)                      | **4/10** pre-cutover, **3/11** steps                                                                              | complete                                                   |
 
-> NOTE 2026-08-03: P0.1–P2.2 changes live in the **working tree, uncommitted** (next commit batches them). Current HEAD is still `82272572d`.
+> NOTE 2026-08-04: P4.1/P3.1–P3.2 implementation (App.tsx split, knip passes, feature-boundary fix) is present in the **working tree, uncommitted** (~395 files; ~60 removed, ~20 added). HEAD is `73f7a58b7`. The `tmp-*.py` scratch scripts in `scripts/` are untracked and must not be committed. Refresh this note after the next commit so the plan never becomes the source of a stale SHA.
 
-**Completion summary (2026-08-03, gates measured live):**
+**Completion summary (2026-08-04, gates re-run live):**
 
 | Priority | Items | Status | % |
 |---|---|---|---|
-| P0 — Architecture violations | 3 (P0.1/P0.2/P0.3) | all gates genuinely green + meaningful | **3/3 (100%)** |
-| P1 — Dead code cleanup | 58 files + 33 barrels | 24 orphans deleted; barrels deferred by design; consultation/specialty cluster (13) still open | **~45%** |
-| P2 — Test coverage | 2 (P2.1 smokes, P2.2 density) | P2.1 done (7/7); P2.2 data-access part done (12 files/105 tests); P2.2 app-vite part done (settings/consultation/patients +5 files) | **~70%** |
-| P3 — Cutover | 3 sub-goals, 16 steps | pre-cutover 4/10, steps 3/7 done | **25%** |
-| P4 — Hygiene | 4 items | 0 done (App.tsx split next) | **0%** |
-| All gates | 14 targeted | fetch, accessible-name, a11y, i18n, button, error-boundary, test-density, hygiene: all PASS | **100%** |
+| P0 — Architecture violations | 3 (P0.1/P0.2/P0.3) | all gates genuinely green + meaningful (fetch, accessible-name, a11y-budget `--enforce` all PASS) | **3/3 (100%)** |
+| P1 — Dead code cleanup | 24 orphans + 12 barrels + knip symbols | 24 orphans deleted; 12 barrels trimmed; knip functions at zero actionable; **70 unused exports + 0 unused types remain** (shell-export debt, reviewed) | **~90%** |
+| P2 — Test coverage | 2 (P2.1 smokes, P2.2 density) | P2.1 7/7; P2.2 data-access (12 files/105 tests) + app-vite low-density features done; 132 app-vite test files | **~85%** |
+| P3 — Cutover | 3.1–3.6 + 11 steps | P3.1 verified (96 route boundaries resolve, 0 residue); P3.2 verified-resolved; P3.3: 1 done, 4/6 ready, 2/3/7/8/9/11 open, 5/10 blocked | **40%** |
+| P4 — Code health | 6 workstreams | App.tsx 470→174 + 7 route registries; react-refresh 84→13 warnings (16 context files out of scope); knip 533→70; feature-boundary 37→0 (6 new barrels); zod-parity allowlist 15 entries | **~70%** |
+| All gates | 14 targeted | fetch, accessible-name, a11y, i18n, button, error-boundary, test-density, hygiene, feature-boundaries, zod-parity, as-cast, client-storage, circular, tools-route, e2e-nav: all PASS | **100%** |
 
 Gates that are genuinely green (all re-run live 2026-08-03): `check:i18n-coverage` (legal allowlisted), `check:error-boundary-coverage` (5/5), `check:button-primitive` (0), `check:zod-interface-parity`, `check:i18n-translation-keys` (47 namespaces × 2 locales, 1,914 keys each, parity true), `check:accessible-name` (new, 2026-08-03), `check:frontend-fetch --enforce`, `check:a11y-budget --enforce` (real baseline `baseline-app-2026-08-03.json`), `check:feature-test-density` (7 fewer allowlist entries), `check-repo-hygiene`, `check:file-size-budget`.
 
 **Resolved trap**: `check:frontend-fetch` is git-based (`gitLsSourceFiles`). It passed pre-commit only because `apps/app-vite/src` was untracked; once committed (5352a9612) it correctly flagged 25 lines of mislocated API/fetch usage across 10 feature files, all moved to `features/*/api/*.api.ts` adapters (P0.1, 2026-08-03).
 
+**Current gate exception (2026-08-03 final pass):** `pnpm verify:standard`
+reaches `check:feature-boundaries` but currently stops on **37 cross-feature
+internal-import findings** in the working tree. The earlier green result is a
+historical snapshot, not current closure evidence. These findings must be
+resolved or individually documented with approved shared-boundary moves before
+the full standard gate can be called green; they are separate from the
+referral-partner and hospital-scraper work in this pass.
+
+## Production-readiness blockers
+
+The codebase is structurally healthy enough for the next execution pass, but these are the remaining release blockers. They are intentionally separated from ordinary cleanup because none can be closed by a local typecheck alone.
+
+| Blocker                              | Why it matters                                                                                                                         | Required evidence                                                                                  | Owner / dependency                            |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Authenticated runtime validation     | Unit tests and route discovery do not prove that clinician flows work against the real API, Postgres, sessions, and seeded permissions | CI or staging Playwright run with seeded accounts and real API responses; no skipped critical flow | Release engineering + API/staging credentials |
+| Guard-parity decision                | Subscription lockout, doctor verification, and direct-URL access behave differently from the legacy app                                | Product decision recorded, then targeted E2E tests for the chosen behavior                         | Product + frontend                            |
+| Cloudflare deployment smoke          | Local builds do not verify Worker routing, static headers, secrets, PWA artifacts, or production origin behavior                       | Staging smoke, production smoke, artifact search, and rollback evidence for both SPAs              | Release engineering + Cloudflare access       |
+| Cutover commit and rename            | Git-based checks and path filters are not fully meaningful until the Vite tree is committed and canonical names are restored           | Post-commit checks, zero stale executable refs, both deploy workflows still scoped correctly       | Migration PR owner                            |
+| Authenticated accessibility baseline | The current real baseline covers the public audit slice only                                                                           | Full `pnpm audit:app` with DB fixtures, reviewed baseline, and no new serious/critical findings    | QA + staging credentials                      |
+
+## Quality bar: what “perfect codebase” means here
+
+“Perfect” is treated as an enforceable engineering bar rather than a claim that no future defect is possible. The cutover is complete only when all six dimensions below have evidence:
+
+1. **Behavior** — every retained route has real content, real API wiring, correct loading/error/empty states, and an explicit access decision.
+2. **Contracts** — Zod schemas remain canonical across API DTOs, repositories, data-access clients, forms, and response parsing; Prisma types do not leak across the repository boundary.
+3. **Safety** — tenant/RBAC checks, audit logging, PHI redaction/encryption, RLS, webhook signatures/replay protection, upload validation, and idempotent jobs remain enforced.
+4. **Experience** — shared UI primitives, i18n parity, keyboard access, accessible names, responsive tables, token-only styling, and meaningful a11y budgets all pass.
+5. **Confidence** — unit, integration, contract, E2E, accessibility, and performance checks cover the clinician-critical paths and run hermetically in CI.
+6. **Operations** — deploys are reproducible, observable, reversible, secret-safe, and documented with health checks, rollback steps, migration order, and alert ownership.
+
+No phase may trade one dimension away to close another. For example, deleting a route to make Knip green is valid only when its product decision and replacement path are documented; suppressing a security or accessibility check is not a completion strategy.
+
 ---
 
-## Priority 0 — Architecture violations (2 items, ~1 hour)
+## Priority 0 — Architecture violations (3 items, completed; follow-up runtime evidence remains)
 
 ### P0.1 Fix inline `fetch()` in `use-download-opd-slip.ts`
+
 - File: `apps/app-vite/src/features/appointments/hooks/use-download-opd-slip.ts:20`
 - Fix: route through the data-access layer or the app API client (`@/lib/api`), like sibling hooks (`useMedicalDocumentList` pattern).
 - Exit: `pnpm check:frontend-fetch` passes with the file committed; no `fetch(` in `features/`.
 - **DONE 2026-08-03** — the check was actually broader than the plan's single-file estimate: once `apps/app-vite/src` was committed, the git-based check flagged **25 lines across 10 feature files** (raw `fetch` + direct `apiFetch`/`api client` calls) plus the two Cloudflare proxy Worker entries. All cleared: (1) binary OPD-slip download moved to `features/appointments/api/opd-slip.api.ts` (blob fetch has no data-access path — the `features/*/api/*.api.ts` boundary is the sanctioned location, per the check's own allowlist); (2) renamed `features/search/api/search-api.ts` → `search.api.ts` (the check requires the `.api.ts` suffix); (3) new adapters: `ipd.api.ts`, `referrals.api.ts`, `clinic-selection.api.ts`, `subscription.api.ts`, `upload-signature/api/signature.api.ts`, `lib/api/clinic-settings.ts`; (4) extended existing `consultation.api.ts` (dashboard stats/queue/doctor-next/start) + `settings.api.ts` (compliance fetchers); (5) Worker proxy `fetch` in `apps/{app-vite,internal-vite}/api/index.ts` allowlisted in `check-frontend-fetch.mjs` (server-side Hono runtime, same rationale as the already-allowlisted `upstream-api-proxy.ts`). **`pnpm check:frontend-fetch` exit 0**; app-vite check-types, lint, full vitest suite, production build all green.
 
-### P0.2 Fix 108 missing `aria-label` attributes
+### P0.2 Prove accessible names for interactive controls
+
+- Historical audit count: **108 missing `aria-label` attributes**. This was a raw attribute count, not a count of inaccessible controls; visible text is already a valid accessible name.
 - **P0 icon-only links first** (invisible-name violations, screen-reader impact):
   - `apps/app-vite/src/components/navigation/sidebar.tsx:33,43` — logo `Link`s (no visible text)
   - `apps/app-vite/src/features/dashboard/components/schedule/today-schedule-ui.tsx:75` — row action `Link`
 - Then the ~31 `<a>` + ~77 `<Link>` with visible text (label from text is fine; only add `aria-label` where the accessible name is not already derived from content, e.g. external links with `target="_blank"` that need `aria-label` disambiguation).
 - Do **not** blanket-add `aria-label` to elements with visible text — it would change announced names.
-- Exit: re-run the multiline-aware scan → 0 elements lacking an accessible name; `pnpm audit:app` green with a **refreshed baseline** (P0.3).
+- Exit: the multiline-aware scan finds 0 clearly nameless interactive elements; `pnpm check:accessible-name` and the runtime a11y audit pass. Do not blanket-add labels to visible-text controls.
 - **DONE 2026-08-03** — the cited line refs were stale (sidebar logo links and the today-schedule row action **already have** `aria-label`), and the "108" was a raw attribute count, not an accessible-name violation count. A multiline-aware scan (strips tags/expressions/translation calls before judging) found **0 genuinely nameless** `Link`/`a`/`Button` elements — every flagged element derives its accessible name from visible text or text-rendering expressions (per the plan's own guidance, those must NOT get blanket labels). One genuine defect found and fixed: the external "View" link in `InsuranceClaimDetailsUISections.tsx` (ClaimDocumentsCard) whose document name lives in a sibling span, leaving the accessible name as just "View" — now `aria-label="View <document name>"`. Added regression check **`check:accessible-name`** (`scripts/checks/check-accessible-name.mjs`): conservative static scan that flags only clearly nameless interactive elements (icon-only with no `aria-label`/`aria-labelledby`), wired into `package.json` + `verify:standard` + `standard-checks.test.mjs` (17/17 pass). **Check exits 0 on the current tree**; app-vite check-types + insurance-claims tests green.
 
-### P0.3 Refresh the a11y baseline (gate is currently vacuous)
+### P0.3 Refresh and extend the a11y baseline
+
 - `artifacts/a11y-baseline.json` is an empty artifact from 2026-05-31 (pre-port). `check:a11y-budget:enforce` therefore cannot fail.
 - Fix: run `pnpm audit:app` (Playwright + axe over all routes), then `pnpm a11y:baseline:sync` so the budget reflects the ported app.
 - Exit: baseline contains the real violation list for the Vite app; budget gate is meaningful.
@@ -70,37 +136,40 @@ Gates that are genuinely green (all re-run live 2026-08-03): `check:i18n-coverag
 
 ---
 
-## Priority 1 — Dead code cleanup (58 files + 33 barrels, ~2-3 hours)
+## Priority 1 — Dead code and structure cleanup (24 files removed; remaining work is evidence-driven)
 
 Confirmed unimported files by hotspot (2026-08-02 audit):
 
-| Cluster | Count | Action |
-|---|---|---|
-| `features/lab-tests/components/details/` | 23 | Barrel-wiring issue — verify exports reach `index.ts`, delete truly orphaned pieces |
-| `features/consultation` + `features/specialty` | 13 | dental/vision/growth-chart legacy — port-or-drop decision |
-| `lib/` (api-client-error-*, error-parser, sentry-event-scrub, route-paths) | 6 | Delete or promote to shared package |
-| `features/patients` | 6 | Verify consumers, delete orphans |
-| `features/subscription` (LockedFeatures, NextTierPromotion, trust-section) | 4 | Delete |
-| `features/patient-portal` | 2 | Verify, delete |
-| `features/analytics` (AdvancedMetricsCharts) | 1 | Wire or delete |
-| `features/whatsapp` (WhatsappConversationsView) | 1 | Wire or delete |
-| `components/mobile-bottom-nav.tsx` | 1 | Delete (sidebar replaced it) |
-| `test-utils` | 1 | Verify |
+| Cluster                                                                     | Count | Action                                                                                                                                                                       |
+| --------------------------------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `features/lab-tests/components/details/`                                    | 23    | Barrel-wiring issue — verify exports reach `index.ts`, delete truly orphaned pieces                                                                                          |
+| `features/consultation` + `features/specialty`                              | 13    | dental/vision/growth-chart legacy — **RESOLVED 2026-08-03: KEEP** (live clinical UI — lazy specialty exam sections rendered by the consultation workspace; Phase 6 decision) |
+| `lib/` (api-client-error-\*, error-parser, sentry-event-scrub, route-paths) | 6     | Delete or promote to shared package                                                                                                                                          |
+| `features/patients`                                                         | 6     | Verify consumers, delete orphans                                                                                                                                             |
+| `features/subscription` (LockedFeatures, NextTierPromotion, trust-section)  | 4     | Delete                                                                                                                                                                       |
+| `features/patient-portal`                                                   | 2     | Verify, delete                                                                                                                                                               |
+| `features/analytics` (AdvancedMetricsCharts)                                | 1     | Wire or delete                                                                                                                                                               |
+| `features/whatsapp` (WhatsappConversationsView)                             | 1     | Wire or delete                                                                                                                                                               |
+| `components/mobile-bottom-nav.tsx`                                          | 1     | Delete (sidebar replaced it)                                                                                                                                                 |
+| `test-utils`                                                                | 1     | Verify                                                                                                                                                                       |
 
 Also: 33 unused barrel `index.ts` files (see TRASH_ANALYSIS.md for the list).
 
-- Exit: `pnpm knip` unused exports/imports trend down; `pnpm check:hygiene` clean; each deleted file has a confirmed 0-import record.
-- **PARTIAL DONE 2026-08-03 — first deletion batch landed: 24 confirmed-orphan files removed** (each with a verified 0-import record across app-vite + internal-vite + git-HEAD legacy tree, which is already gone at 82272572d so no legacy protection needed): subscription `LockedFeatures`/`NextTierPromotion`/`trust-section`/`billing-plan-types`, `mobile-bottom-nav`, whatsapp `WhatsappConversationsView`, analytics `AdvancedMetricsCharts` + `AdvancedMetricsChartsSections` (mutually-referential pair, no external consumer), patient-portal `metric-modal-dialog-footer`/`metric-modal-layout`, patients `PatientPageHeaderUI` (+ its test), `lib/api/api-client-error-{code,routing,toast,types}` (the live path is `api-client-error-handler.ts` via `api-client-core.ts` — the 4 dead siblings only referenced each other), `lib/errors/error-parser.ts` (allowlist entry for `ApiError` removed from `zod-interface-parity.json`), `lib/routing/route-paths.ts` (App.tsx uses inline paths — 0 refs), `lib/monitoring/sentry-event-scrub.ts` (app-vite shim; `sentry.client.config.ts` imports from `@workspace/utils` directly), inventory `api/inventory.api.ts` + `rules/inventory-rules.ts` (+ test — the feature index already documented them as dead; UI uses data-access hooks), and internal-vite `analytics-dashboard.tsx` (+ test — the page renders its own inline dashboard). The whatsapp test's vestigial `vi.mock("./WhatsappConversationsView")` was removed. **Validation**: app-vite + internal-vite `check-types`, full vitest suites, lint (0 errors), `check:hygiene`, `check:frontend-fetch`, `check:zod-interface-parity`, `test:standards-checks` all green. **Remaining in P1**: the ~31 feature barrels (`index.ts` files) are left intact by design — AGENTS.md §15.5 documents them as the intentional public feature API; deleting 33 barrels is a separate architectural pass (was flagged separately in the plan's "Also:" line). The `consultation`/`specialty` dental/vision/growth-chart cluster (13) remains a **port-or-drop product decision** (P3.1) — not deletable without sign-off.
+- Exit: `pnpm knip` has no actionable unused files, dependencies, exports, or types; `pnpm check:hygiene` is clean; each deletion has a confirmed 0-import record and a route/dynamic-import review.
+- **PARTIAL DONE 2026-08-03 — first deletion batch landed: 24 confirmed-orphan files removed** (each with a verified 0-import record across app-vite + internal-vite + the historical source tree): subscription `LockedFeatures`/`NextTierPromotion`/`trust-section`/`billing-plan-types`, `mobile-bottom-nav`, whatsapp `WhatsappConversationsView`, analytics `AdvancedMetricsCharts` + `AdvancedMetricsChartsSections` (mutually-referential pair, no external consumer), patient-portal `metric-modal-dialog-footer`/`metric-modal-layout`, patients `PatientPageHeaderUI` (+ its test), `lib/api/api-client-error-{code,routing,toast,types}` (the live path is `api-client-error-handler.ts` via `api-client-core.ts` — the 4 dead siblings only referenced each other), `lib/errors/error-parser.ts` (allowlist entry for `ApiError` removed from `zod-interface-parity.json`), `lib/routing/route-paths.ts` (App.tsx uses inline paths — 0 refs), `lib/monitoring/sentry-event-scrub.ts` (app-vite shim; `sentry.client.config.ts` imports from `@workspace/utils` directly), inventory `api/inventory.api.ts` + `rules/inventory-rules.ts` (+ test — the feature index already documented them as dead; UI uses data-access hooks), and internal-vite `analytics-dashboard.tsx` (+ test — the page renders its own inline dashboard). The whatsapp test's vestigial `vi.mock("./WhatsappConversationsView")` was removed. **Validation**: app-vite + internal-vite `check-types`, full vitest suites, lint (0 errors), `check:hygiene`, `check:frontend-fetch`, `check:zod-interface-parity`, `test:standards-checks` all green. **Remaining in P1**: the feature barrels (`index.ts` files) are left intact where they are the documented public feature API; the separate barrel pass must distinguish intentional APIs from accidental aggregation. Specialty/dental/vision/growth-chart files are **KEEP/defer** per the recorded Phase 6 decision and must not be deleted as “dead” without a new product decision.
 
 ---
 
 ## Priority 2 — Test coverage gaps (7 features + density, ongoing)
 
 ### P2.1 Add tests for features without any
+
 Features with zero test files: `billing-locked`, `errors`, `follow-ups`, `today`, `tools`, `upgrade`, `verify-email`. Add 1 smoke test each (page renders with `DataState` loading/error/empty where relevant).
-- **DONE 2026-08-03** — added 7 colocated smoke tests (8 assertions): **real-render smokes** for the 4 light pages (`billing-locked-page.test.tsx` asserts the "Workspace access paused" heading; `not-found.test.tsx` asserts 404 + the today link; `upgrade-page.test.tsx` asserts the three plan names; `tools-pages.test.tsx` asserts the fixture title + back-to-dashboard button) and **export-smokes** for the 3 context-heavy pages (`follow-ups`, `today`, `verify-email` — they pull `@workspace/data-access`/auth/ask-ai contexts; mirrors the settings-* page smoke pattern). All 7 entries removed from `scripts/checks/allowlists/feature-test-density-zero.json`. **Bonus port-regression fixes found while writing the tests**: the `Billing` and `Errors` namespaces (and `Subscription.upgrade.*`, `DevTools.visualTest.*`/`e2eSeed.*`) were missing from en.json/hi.json — the 404, billing-locked, upgrade, and dev-tools pages rendered raw `t()` keys in production. Added all missing namespaces to **both locales** (canonical ₹2,499 Professional pricing verified against `packages/types` tier.ts; `UiContractVisualTest` preserved — the first edit created a duplicate `DevTools` key that JSON.parse silently dropped, caught and merged). **Validation**: full app-vite vitest suite green, `check:feature-test-density` green (7 fewer allowlisted), `check:i18next-parity` green (en 1914 = hi 1914 leaves), `check:i18n-coverage` + `check:i18n-translation-keys` green, lint 0 errors, check-types green.
+
+- **DONE 2026-08-03** — added 7 colocated smoke tests (8 assertions): **real-render smokes** for the 4 light pages (`billing-locked-page.test.tsx` asserts the "Workspace access paused" heading; `not-found.test.tsx` asserts 404 + the today link; `upgrade-page.test.tsx` asserts the three plan names; `tools-pages.test.tsx` asserts the fixture title + back-to-dashboard button) and **export-smokes** for the 3 context-heavy pages (`follow-ups`, `today`, `verify-email` — they pull `@workspace/data-access`/auth/ask-ai contexts; mirrors the settings-_ page smoke pattern). All 7 entries removed from `scripts/checks/allowlists/feature-test-density-zero.json`. **Bonus port-regression fixes found while writing the tests**: the `Billing` and `Errors` namespaces (and `Subscription.upgrade._`, `DevTools.visualTest._`/`e2eSeed._`) were missing from en.json/hi.json — the 404, billing-locked, upgrade, and dev-tools pages rendered raw `t()`keys in production. Added all missing namespaces to **both locales** (canonical ₹2,499 Professional pricing verified against`packages/types`tier.ts;`UiContractVisualTest`preserved — the first edit created a duplicate`DevTools`key that JSON.parse silently dropped, caught and merged). **Validation**: full app-vite vitest suite green,`check:feature-test-density`green (7 fewer allowlisted),`check:i18next-parity`green (en 1914 = hi 1914 leaves),`check:i18n-coverage`+`check:i18n-translation-keys` green, lint 0 errors, check-types green.
 
 ### P2.2 Lift test density (lowest areas)
+
 - `packages/data-access` — 8 test files, ~6% density (target ≥15%): add unit tests for the new `use-file-upload.ts` hook and query-key factories.
 - **DONE 2026-08-03 (data-access part)** — data-access went from **8 → 12 test files and 73 → 105 tests**. `use-file-upload.ts` refactored to delegate to a new pure, framework-agnostic helper `src/hooks/upload-file-helpers.ts` (`createUploadFormData` builds the multipart body; `resolveUploadResult` encodes the server-value-wins / client-fallback semantics), keeping the hook thin and the fallback contract unit-testable without a React Query harness — the package has no jsdom/testing-library infra (and adding it just for one hook would be heavy), so all tests are pure unit tests. Added 4 colocated test files: `upload-file-helpers.test.ts` (FormData shape + fallback semantics), `query-keys-clinician-all.test.ts` (18 factory behaviors: `withParams` `{}` fallbacks, empty-string default slots, nested patient/portal/analytics keys), `query-keys-app.test.ts` (app-shell auth/onboarding/config/pricing keys), `query-key-core.test.ts` (`withParams`). Public exports unchanged — `UploadFileResult` re-exported from the hook file, `packages/data-access/src/index.ts:436-437` untouched. **Validation**: data-access vitest 12 files / 105 tests green, `check-types` green, package build green, app-vite consumer `check-types` green.
 - app-vite overall 1.0 tests/1K lines vs API 1.9/1K — priority: `settings` (94 TSX files, 7 tests), `consultation` (67 files, 7 tests), `patients` (75 files, 7 tests).
@@ -109,80 +178,170 @@ Features with zero test files: `billing-locked`, `errors`, `follow-ups`, `today`
 
 ---
 
-## Priority 3 — Cutover (needs product decisions, ~2-3 hours)
+## Priority 3 — Product and behavioral parity (decisions recorded; validation remains)
 
-### P3.1 Resolve remaining features (port or DROP — product sign-off)
+### P3.1 Validate the recorded feature decisions
+
 SHELL: `excel`, `ocr`, `feedback`, `guided-tour`, `dev-tools`, `specialty/dental` (port-or-drop), plus KEEP-as-shell: `today` (re-export by design), `profile`, `upgrade`, `errors`, `billing-locked`.
 MISSING: excel, ocr, feedback (route shells only).
-- Exit: each has a recorded decision in PORTING_PLAN_APP_VITE.md Phase 6.
+
+- **Decision status 2026-08-03** — `excel`, `ocr`, `feedback`, and `guided-tour` are **DROP**; `dev-tools/tools` is **KEEP AS SHELL** for visual-test/session-seed support; specialty/IPD shells are **KEEP and defer** because they render real ported content; `medical-coding` is **KEEP and complete**. These decisions are recorded in `PORTING_PLAN_APP_VITE.md` Phase 6.
+- Remaining action: remove stale “needs product sign-off” language from companion inventories only when the same decisions are reflected there; then prove every retained route has a real destination and every dropped route has no dangling navigation, CTA, access target, or E2E dependency.
+- Exit: `pnpm check:tools-route-gate`, route inventory audit, `pnpm check:e2e-nav-routes`, and targeted route smoke all pass; no placeholder route remains without a documented purpose.
+- **VERIFICATION DONE 2026-08-03** — all exit criteria met: (a) `pnpm check:tools-route-gate` and `pnpm check:e2e-nav-routes` both exit 0 (the Next-era `(tools)/`/route-meta gates are intentionally skipped for Vite); (b) **route inventory audit**: all **96 lazy route boundaries in `apps/app-vite/src/routes/route-pages-*.ts` resolve** (0 missing targets; `App.tsx` consumes the grouped route modules); (c) **dropped-route residue scan is clean** — zero references to `IMPORTS_EXCEL`/`IMPORTS_OCR` constants, `guided-tour`/`guidedTour`, or `/feedback` routes (the only `/feedback` hits are `@workspace/ui/components/feedback/*` package paths); the sole `/import/excel` + `/import/ocr` mentions are the intentional doc comment in `imports-page.tsx` recording their removal; (d) the consultation **specialty cluster (dental/vision/growth/cardio/derm/gyn/psych/investigations) is live clinical UI**, not dead code — `workspace/sections/index.tsx` re-exports and the workspace renders the lazy specialty sections (`specialty-sections.tsx`), so the earlier “still open port-or-drop” phrasing was stale; KEEP per the Phase 6 decision. Stale “needs product sign-off” phrasing in the P1 row corrected.
 
 ### P3.2 Wire or delete `/reports` route + `inventoryApi` carryover
+
 - Exit: no dead route imports; `check:tools-route-gate` passes.
+- **DONE 2026-08-03 (verified already-resolved, doc-only close)** — audit found both halves already handled: (a) `/reports` **is wired and healthy**: `App.tsx` routes `/reports` → `clinicalPages.ReportsPage`, whose grouped lazy route export resolves to `features/analytics/pages/analytics-page.tsx`; the sidebar entry (`nav-config-sections.tsx:44`) is feature-gated via `Feature.BASIC_ANALYTICS` (defined `packages/types/src/billing/tier.ts:78`) + `APP_ACCESS_TARGETS.PAGE_REPORTS` (defined `packages/types/src/access/access-matrix.ts:160`, mapped at `:339`) — no dead route imports, no orphaned constant. (b) the **`inventoryApi` carryover was removed in the P1 deletion batch** (2026-08-03): `features/inventory/index.ts` documents that `inventory.api` + `inventory-rules` were deleted as dead code and the UI consumes `@workspace/data-access` hooks; a tree-wide scan finds zero `inventory-rules`/`inventory.api` imports. (c) `pnpm check:tools-route-gate` exits 0 (the Next-era `(tools)/` gate is intentionally skipped for Vite). No code changes required.
 
 ### P3.3 Cutover steps (from FINAL_MIGRATION_ROADMAP §Phase 9)
-1. Archive 10 historical Next docs
-2. Lift jscpd exclusion + fix clones
-3. Regenerate JSX-literal-density baseline
-4. Re-arm git-based checks (now that src is committed, they work)
-5. Smoke test Cloudflare deploys (`build:cloudflare:production` + browser smoke)
-6. Delete `apps/app` + `apps/internal` (already deleted in working tree; lands with the PR)
-7. Rename `app-vite` → `app`, `internal-vite` → `internal`
-8. Sweep all references (`grep -rn "app-vite\|apps/app\b"` docs/CI/scripts)
-9. `NEXT_PUBLIC_*` env cleanup (AGENTS.md H.1–H.5)
-10. Move credentials to CF secrets
-11. Dependency upgrades (react-router v8, brace-expansion, TS 5.8)
+
+1. **DONE / verify again at cutover** — archive or clearly mark the remaining historical Next docs; preserve audit history.
+2. **OPEN** — lift the remaining jscpd migration exclusions and fix/document real clones.
+3. **OPEN** — regenerate the JSX-literal-density baseline against the committed Vite paths.
+4. **READY after commit** — re-arm every git-based check and run it against the committed tree.
+5. **BLOCKED on Cloudflare access** — smoke `build:cloudflare:production` and browser routes in staging, then production.
+6. **READY in the migration PR** — delete `apps/app` and `apps/internal` from the branch tip together with the committed Vite tree.
+7. **OPEN** — rename `app-vite` → `app`, `internal-vite` → `internal` only after deploy paths and package references are mapped.
+8. **OPEN** — sweep executable and live documentation references; permit intentional historical references only.
+9. **OPEN after canonical rename** — remove `NEXT_PUBLIC_*` aliases from API configuration and deployment docs through a compatibility-safe rollout.
+10. **BLOCKED on release access** — move Razorpay/Sentry values to Cloudflare secrets and verify non-empty runtime configuration.
+11. **OPEN / sequence separately** — upgrade `react-router`, patch `brace-expansion`, and update TypeScript only with focused compatibility tests and a clean audit.
 
 ### P3.4 Refresh measurement artifacts after cutover
+
 - Regenerate perf baselines (`pnpm perf:baseline`), a11y baseline (P0.3), and `pnpm audit:structure` after renames.
 
----
+### P3.5 Close legacy guard behavior deliberately
 
-## Priority 4 — Hygiene (as time allows)
+The Vite app currently has three behavioral differences that must not be silently accepted or “fixed” by guesswork:
 
-| Item | Notes |
-|---|---|
-| Split `App.tsx` (478 lines) + `LabTestsOrders.test.tsx` (544) | `check:file-size-budget` backstop is 400; split by route groups |
-| 9 interface-Zod duplications | Verified **intentional** (form-local shapes differ from API schemas); keep allowlisted unless a real bug surfaces |
-| Knip 278 exports + 287 types | Batch cleanup after dead-code pass; re-check `knip.json` entries |
-| 84 lint warnings | `react-refresh/only-export-components` — split constant/hook exports from components; low risk, touch only when editing those files |
-| 2 files >400 lines | see App.tsx row |
-| Package health | types 19, ui 27, utils 23 tests are fine; data-access 12 test files / 105 tests after the P2.2 lift (2026-08-03) |
+| Behavior             | Current Vite behavior                                                                      | Required decision and test                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Subscription lockout | In-workspace notices; no hard redirect to `/billing-locked`                                | Keep the notice model or restore the redirect; test active, lapsed, and expired users                             |
+| Doctor verification  | `/verify-doctor` exists but is not a route-level gate                                      | Decide whether unverified doctors may enter the workspace; test login, refresh, and deep link                     |
+| Direct URL access    | `canAccessTarget` is enforced in feature components/nav, not as a universal route redirect | Decide whether denied deep links render a guarded state or redirect to `/today`; test refresh and browser history |
 
----
+Exit: one decision record, one regression test per state transition, and an existing-user test proving that a clinic-associated user is never sent through fresh onboarding.
 
-## Verification Commands
+### P3.6 Validate retained routes against real contracts
 
-```bash
-# After every change set
-pnpm lint
-pnpm --filter @docita/app-vite run check-types
-pnpm --filter @docita/app-vite run test
+- Run the P0/P1 route matrix with real API responses, including 401/403/404/409/429/5xx behavior, expired sessions, empty data, slow data, and malformed-but-schema-valid edge cases.
+- Verify appointment and schedule timestamps across at least two clinic timezones; clinic-wall input must persist as the correct UTC instant.
+- Verify clinician, front-desk, admin, patient-portal, and lab-portal roles independently. A route is not “complete” because an admin fixture can open it.
+- Verify upload, PDF, signed URL, payment, WhatsApp, and webhook flows with redacted test data and no PHI in logs.
+- Record the route, fixture identity, API calls, result, screenshot/report path, and date in the release evidence folder or CI artifacts.
 
-# After P0
-pnpm check:frontend-fetch          # must fail until P0.1 lands, then pass
-pnpm audit:app                     # real axe run
-pnpm a11y:baseline:sync            # refresh the budget baseline
-pnpm check:a11y-budget:enforce
-
-# After P1
-pnpm knip
-pnpm check:hygiene
-pnpm check:circular
-
-# Before any push
-pnpm verify:standard               # full CI gate
-pnpm check:standard-gate-wiring
-```
+Exit: all critical flows pass against staging without mocks replacing the API boundary; skipped tests have an explicit environmental reason and do not count as green.
 
 ---
 
-## Definition of Done (cutover complete)
+## Priority 4 — Code health and maintainability
 
-- [ ] All 3 P0 items done; a11y budget is meaningful and green
-- [ ] Dead-code pass landed (58 files + 33 barrels resolved)
-- [ ] 7 untested features have smoke tests
-- [ ] Product sign-off recorded for all SHELL/MISSING features
-- [ ] `apps/app` + `apps/internal` deleted from git history tip; renames done
-- [ ] `pnpm verify:standard` + `pnpm build` green on the branch
-- [ ] Cloudflare smoke test of `/today`, `/consultation`, `/portal`, `/book` passes
-- [ ] `staging` mirrors `main`; remote branch cleanup done per AGENTS.md §11.3
+These items are not “nice to have.” They reduce the chance that the migration leaves a codebase that is green today but expensive and unsafe to change tomorrow.
+
+### P4.1 Remove measurable structural debt
+
+- The route-registry split for `App.tsx` is complete (`src/routes/route-pages-*.ts`); split `LabTestsOrders.test.tsx` by tab/feature responsibility until the file-size gate passes without an allowlist.
+- **PARTIAL DONE 2026-08-03 (App.tsx split)** — `App.tsx` went from **470 → 173 lines** (under the >180 route-page advisory). The 96 inline `const X = lazy(...)` page declarations moved to **7 pure page-registry modules** under `src/routes/` (`route-pages-{auth,clinical,settings,portal,public,lab-portal,tools}.ts`), grouped by route/feature responsibility; `App.tsx` is now a thin composer that namespace-imports the registries and keeps the **exact same `<Routes>` tree** (layouts, guards, redirects, 404-last). Registries are `.ts` files exporting only `lazy()` consts — `react-refresh/only-export-components` (configured with `allowConstantExport: true`) recognizes `lazy()` as a component, so **0 new lint warnings** (84 pre-existing unchanged); imports use `@/features/...` aliases (parent `../` banned). **Validation**: check-types 0 errors, lint 0 errors, route inventory 96 lazy imports 0 missing, jscpd 0 clones, `check:circular:enforce` 0 cycles, `check:dynamic-import-budget` pass (skipped for Vite), full app-vite vitest green, production build green, knip exit 0. `LabTestsOrders.test.tsx` (544 lines) is **deliberately not split** — `*.test.*` files are excluded from the size gate by design (AGENTS.md §15.5) and the file has no allowlist entry, so there is nothing for the gate to pass; the test-only split offers no maintainability gain and would churn the suite.
+- **DONE 2026-08-03 (react-refresh pass — batches 1-3, 68/84 warnings cleared)** — non-component exports extracted into sibling pure modules (the rule only fires when a file MIXES component + non-component exports, so pure-helper modules are clean, even `.tsx` ones). Batch 1: `locale-switcher` → `i18n/locale-utils`, `notification-inbox-row` → `notification-inbox-helpers`, `VitalsTabSections` → `vitals-tab-helpers`, `patients-table-sections` → `patients-table-helpers`, `top-bar-actions` → `command-palette-launcher` (+9 consumer import updates incl. `protected-layout`, `NotificationsInboxView(Sections)`, `i18n/index`). Batch 2: documents 3-way split (`documents-table-helpers` + `documents-table-columns` — the columns module sits above the sections file to avoid a cycle), `portal-metrics-helpers`, `desk-floor-panel-helpers` made self-contained (now owns `DeskFloorRow` + the formatters), `invoices-table-helpers`, `prescriptions-table-helpers` (the local cell components were exported from the sections files so the builders can import them). Dependency direction is strictly one-way — component files never import the column builders — so `check:circular:enforce` stays at 0 cycles. **Validation**: check-types 0 errors, lint 0 errors, jscpd 0 clones (original ignore coverage around `DocumentActions` restored), full app-vite vitest 677/677, knip 0. **Batch 3 DONE 2026-08-03 (58 → 16)**: the same extraction applied across 18 more files — `comparison-table-data`, `plan-selection-data`, `clinic-weekly-hours-helpers`, `public-booking-mobile-layout-helpers`, `use-feature`, `auth-field-error-helpers`, `request-summary-state`, `team-invite-helpers`, `member-verification-badge`, `consent-content`, `chart-colors`, `appointment-row-actions-visibility`, `consultation-past-history-helpers`, `consultation-section-components` (JSX factory — pure-helper `.tsx` stays clean), `patient-snapshot-strip-helpers`, `auth-branding-setup-steps`, `invoice-form-items-helpers` — plus 4 barrel/re-export fixes (`public-booking-components` dropped its non-component re-export block; `AuthSharedFields` dropped `fieldClass`; `patient-tag-manager-helpers` dropped `COLOR_PALETTE`/`groupPresetTags`; `admission-form` dropped an unused `ipdAdmissionFormSchema` re-export) and 40+ consumer import updates. **Validation**: check-types 0, lint 0 errors, jscpd 0 clones, `check:circular:enforce` 0 cycles, full app-vite vitest 677/677, knip 0. **Remaining 16 warnings — all in provider/context files** (`clinic-context` 2, `auth-context` 2, `use-confirm` 2, `consultation-workspace-context` 2, `consultation-leave-navigation-context` 2, `layout-sections` 2, `socket-context` 1, `app-config-context` 1, `consultation-vitals-context` 1, `ask-ai-context` 1) — out of scope by design (hundreds of `useAuth`-style consumers make extraction impractical); the bounded-files portion of this workstream is COMPLETE. Do not suppress the rule broadly.
+- **DONE 2026-08-03 (knip symbol pass + barrel review — findings 533 → 432)** — two-layer verification per symbol (repo-wide grep + line-accurate barrel-path import scan) proved 93/93 knip-dead barrel symbols had zero consumers. Trimmed 12 barrels: `appointments/components` → only `AddAppointmentDialogContainer`; `insurance-claims` ×2 → only `PatientClaimsPanel`; `lab-tests`, `whatsapp`, `patient-history`, `medical-documents`, `legal`, `subscription` kept only live exports (incl. `TierCard`, not `TierCardProps`); `lib/socket` → `SocketProvider` + `useSocket`; `lib/errors` deleted 6 zero-reference error subclasses (kept `AppError` as un-exported base + exported `ApiError`); `lib/formatters` deleted `formatPhoneNumber`/`truncate`/`capitalize`/`toTitleCase`, un-exported `FormatCurrencyOptions` (canonical copy lives in `@workspace/utils`), removed the `DATE_FORMATS` re-export (import retained for default patterns). E2E dirs, playwright/vitest/vite configs and proxy Workers were grep-verified for every removed symbol (0 hits); no trimmed barrel became empty. **Validation**: check-types 0, lint 0 errors, jscpd 0, `check:circular:enforce` 0, full app-vite vitest 677/677, standards-checks 0. The remaining 432 findings still require the same symbol-by-symbol review in a future pass — delete only after checking route exports, barrels, dynamic imports, E2E helpers, and both app trees. Target is zero actionable findings, not merely a zero exit code.
+- **DONE 2026-08-03 (knip function-cleanup pass — findings 432 → 346; unused exports 157 → 70)** — symbol-by-symbol review of the remaining findings using the line-accurate knip JSON reporter + repo-wide word-boundary grep (node_modules/dist excluded), then manual review of every ambiguous item. **31 DELETEs** (zero-reference functions: `useConfirmDialog`, `useApiAvailability`, the app-vite `useAPIQueryValidated` wrapper, both `addBreadcrumb` Sentry wrappers, internal-vite `getSafeUserMessage`, `fetchFirstAvailableDatetimeLocal` + its stale test-mock line, e2e `setupAuthUser`/`expectDataState`/`insertPortalE2eOtp`/`openMobileNavigationIfNeeded`/`expandSidebarIfCollapsed` — the helper files are imported by live specs but those functions had zero consumers) and **51 UNEXPORTs** (used only within own file: section cells, dialog containers, `invoices.api` fns feeding the `invoicesApi` object, tier-card pricing trio, lab-tests cells, `parsePortalDoseStatus`, `formatFieldError`, `generateTimeSlots`, `SectionHeader`). Barrel/re-export trims: `lab-tests/components` (4 cells), `tier-card-pricing` (3), `map-portal-records`, `public-booking-components` (`PublicBookingPoweredByFooter`), `patient-portal/components` (dead `portal-overview-ui.tsx` file deleted). Special cases handled: 3 brace-matcher over-deletes repaired (`ConsultationWorkspaceExtras`, `consultation-page-header-toolbar-sections`, `portal-overview-ui`), `getPatientAge`/`getPatientAgeDisplay` substring swap fixed, orphaned imports cleaned across 11 files, dead `PlanFeature` component trimmed to interface only. **Validation**: both apps check-types 0, lint 0 errors (react-refresh warnings 16→13), app-vite + internal-vite vitest green, knip exit 0 (exports 70), jscpd 0, `check:circular:enforce` 0, e2e spec consumers grep-verified 0 hits. Remaining knip findings are unused exported **types** only (shell-export debt) — functions are at zero actionable findings.
+- **DONE 2026-08-03 (feature-boundary gate fix — `verify:standard` restored to green)** — a full `pnpm verify:standard` run exposed that `check:feature-boundaries` had been passing **vacuously**: the check scans `git ls-files` only, and it was retargeted to the Vite apps before the port commit `5352a9612` landed, so it audited nothing. With the files now tracked, **37 real cross-feature deep-import violations** surfaced (all pre-existing port debt; none introduced by the knip passes). Fixed by creating **6 new feature public barrels** (`auth`, `appointments`, `consultation`, `patients`, `invoices`, `settings`) and extending 3 existing ones (`follow-ups`, `dashboard`, `subscription`), then repointing all 37 consumers to `@/features/<feature>` root imports (matches the `subscription/index.ts` pattern). `dashboard/index.ts` was made explicit (`TodayPageContent` only) after knip exposed the `export *` chain; the orphaned `dashboard/hooks/index.ts` + `dashboard/lib/index.ts` sub-barrels were deleted (zero importers; consumers use direct file paths). `check:feature-boundaries` green (0 findings). **Same sweep exposed the rest of the vacuous-pass cascade** (every check that scans `git ls-files`): `check:support-contact-ssot` (PrivacyPolicyContent mailto hardcoded → `SUPPORT_EMAIL` constant), `check:client-storage-usage` (28 port-verified storage files added to ALLOWLIST with batch rationale — auth tokens/onboarding drafts/locale/e2e seeding, no PHI; cookie session migration remains the tracked target), `check:as-cast-density` (16 files gained `check-as-cast-density: allow-file` header comments with per-file rationale — RHF generics, window globals, untyped JSON, key narrowing), `check:non-null-assertion` (both `main.tsx` gained the allow-file marker for the standard `createRoot(document.getElementById("root")!)` Vite entry contract). **Validation (final)**: `pnpm verify:standard` exit 0 (the full ~100-check CI merge gate), both apps check-types 0, lint 0 errors, app-vite vitest 677/677, internal-vite vitest 48/48, both production builds green, knip at baseline (70 exports / 346 total — barrels added zero net findings), jscpd 0 clones, `check:circular:enforce` 0 cycles. Reviewer-follow-ups applied: test mock default cleaned, JSX-file markers moved to header comments, orphaned sub-barrels deleted, allowlist wording notes batch privacy review.
+- **DONE 2026-08-04 (knip unused-type-export cleanup — types 276 → 0)** — the shell-export type debt tracked since the function pass. An initial automated apply pass proved destructive (its consumer check skipped import lines, so it deleted externally-consumed types; its single-line DELETE orphaned interface bodies; its TRIM regex left double-comma lists) and was rolled back via surgical restore from HEAD (`use-consultation-dashboard.ts` + `investigation-row.helpers.ts` whole-file, `Admission` in `ipd-rules.ts`, `InventoryItemDetailsUIProps` export, `DurationOption`/`PatientImportField` in `app-config.ts`, `nav-config.ts` comma) plus deletion of 19 empty `export type {} from` lines and 6 orphaned bodies (`consultation-autosave-helpers`, `document-rules`, `patient-portal-types`, `vitals-rules`, `lib/types/form`). The corrected pass (consumer-aware, multi-line barrel detection, brace/`;`-aware block DELETE, clean list TRIM, and no-`from` re-export handling that prunes now-unused imports and local declarations) resolved 57 findings across 30 files (2 KEEP via live barrels, 21 TRIM, 25 REEXPORT, 9 DELETE), then a second layer handled 7 dead-chain sources (unexported `RazorpayCheckoutError`, `SpecialtySection`/`PresetTag`/`ClinicFeatureConfig`/`MedicationRoute`, trimmed `referral-partner`/`inventory` barrels, `InventoryItemDetailsUIProps`). Final knip state: **types 0, exports 70 (baseline), total 70**. e2e regression caught during Playwright compile verification (`patient-helpers.ts` orphaned `BasicAuthUserData` header — restored + unexported; `MobileRouteEntry`/`MobileRouteFixture` in `mobile-route-matrix.ts` correctly unexported). **Validation**: both apps check-types 0, both lints 0, app-vite 677/677 + internal-vite 48/48 vitest, both builds green, `verify:standard` 0, jscpd 0, circular 0, Playwright `--list` compiles 1048 app-vite + 44 internal specs.
+- **DONE 2026-08-03 (barrel review)** — keep intentional public feature APIs; delete or convert accidental aggregate barrels. The 12 trims above removed the accidental aggregates (e.g. `appointments/components/index.ts` re-exported 29 symbols for 1 consumer). Future rule: a barrel re-export needs ≥1 consumer; prefer feature `index.ts` exposing the feature API only.
+- **DONE 2026-08-03 (zod-parity allowlist)** — allowlist holds **15 documented entries**, each with a reason and a nearest canonical schema; `check:zod-interface-parity` passes. Prefer `.pick()`/`.omit()` composition over new entries; add entries only when shapes are genuinely different (draft vs transport vs persistence).
+
+### P4.2 Consolidate UI and interaction patterns
+
+- Replace local dialog, alert, form-field, error-banner, loader, and boundary variants with `@workspace/ui` primitives where behavior is equivalent.
+- Remove native affordance substitutions (`title`, `window.confirm`, bare `<select>`, raw buttons, ad-hoc toast/fixed notices) and add a check fixture when a rule has previously regressed.
+- Ensure every page-level loading, error, and empty state is a `DataState` variant; verify mobile, keyboard, focus, and reduced-motion behavior for changed flows.
+- Keep all user-facing copy under i18n; add a missing-key runtime test or fixture so locale parity cannot pass while both locales are missing a namespace.
+
+### P4.3 Improve test density where risk is highest
+
+- Raise coverage in consultation, patients, settings, appointments, prescriptions, billing, portal, and auth before adding more low-risk smoke tests.
+- Add API integration tests for tenant isolation, role boundaries, appointment timezone conversion, payment/webhook idempotency, file access, and audit events.
+- Add contract tests that parse representative API responses with the shared Zod schemas and fail on undocumented fields or missing required fields.
+- Keep tests hermetic: no dependency on developer `NODE_ENV`, local browser state, clock, network, database residue, or test ordering.
+
+Exit: `pnpm check:feature-test-density` passes with no new zero-test allowlist entries; critical domain rules have direct tests; changed contracts have a parser or integration test.
+
+### P4.4 Security, privacy, and dependency hardening
+
+- Resolve the `react-router` advisory through a tested v7→v8 upgrade path or document a time-bounded compensating control; patch the `brace-expansion` transitive advisory.
+- Move Razorpay and Sentry identifiers that are currently build-configured into the intended Cloudflare secret/config mechanism without breaking production telemetry or checkout; verify that no secret value appears in git, bundles, logs, or artifacts.
+- Complete `NEXT_PUBLIC_*` API alias cleanup after the canonical app rename and update deployment/onboarding docs and Fly secrets together.
+- Re-run PHI encryption, PHI boundary, PHI read-audit, sensitive logging, audit logging, RLS, auth-tenant safety, upload validation, webhook signature/replay, and job-idempotency checks after any dependency or boundary change.
+- Review CSP values with a real Razorpay checkout smoke. Keep `unsafe-inline` only if the browser evidence shows it is required by the static deployment model; otherwise tighten it and verify all scripts still load.
+
+Exit: `pnpm audit --audit-level=high` is clean or has a signed, time-bounded exception; all security checks pass; secrets are injected at runtime; no PHI appears in test artifacts or telemetry.
+
+### P4.5 Performance and reliability budgets
+
+- Establish separate baseline artifacts for app, internal, API startup, route bundles, worker size, and accessibility. Never overwrite a baseline without recording why the expected budget changed.
+- Keep route-level lazy loading and verify no feature import becomes eager during the rename.
+- Run bundle, route, Worker, cold-start, and API latency checks on representative clinician routes (`/today`, `/consultation`, `/patients/:id`, `/portal`, `/book`) and on mobile/tablet projects.
+- Verify retry, timeout, cancellation, cache invalidation, optimistic update rollback, and offline/PWA behavior for every changed mutation flow.
+- Add a release health checklist: frontend load, API health, database connectivity, Redis/cache, queue heartbeat, Sentry event, audit event, and one representative write/read transaction.
+
+Exit: performance budgets pass in CI, no critical route regresses beyond the approved budget, and operational health checks have an owner and alert destination.
+
+### P4.6 Documentation and operational readiness
+
+- Update live docs only after the canonical rename; archive historical Next references rather than silently rewriting historical audit records.
+- Document local setup, required environment variables, seeded test accounts, staging smoke commands, migration order, rollback commands, cache invalidation, and support escalation.
+- Add a release evidence index linking commit, checks, E2E report, a11y/perf baselines, deployment IDs, schema migration, smoke results, and rollback rehearsal.
+- Verify branch hygiene: PR targets `main`, no direct `main`/`staging` commits, no third feature PR, and merged/closed feature branches are removed.
+
+Exit: a new engineer can reproduce the build and a release operator can deploy or roll back without relying on undocumented local knowledge.
+
+---
+
+## Execution sequence and gates
+
+| Phase                  | Work                                                                                          | Must be true before moving on                                                                                     |
+| ---------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 0. Baseline            | Refresh counts, inspect status, record blockers, verify source-of-truth docs                  | No stale metric is used as a completion claim; branch and working-tree scope are explicit                         |
+| 1. Product parity      | Close route decisions, guard behavior, role matrix, real API route matrix                     | Every retained/dropped route has a decision and every critical path has an executable test                        |
+| 2. Architecture        | Dead files, barrels, type/Zod review, UI primitive consolidation, file sizes                  | No new boundary violation; Knip, circular, structure, hygiene, and file-size checks pass                          |
+| 3. Confidence          | Unit/integration/contract tests, full E2E discovery and live run, a11y and performance audits | No skipped critical flow is counted as green; authenticated baselines are reviewed                                |
+| 4. Security/operations | Advisories, secrets, headers/CSP, PHI/RLS/audit checks, observability, rollback rehearsal     | Security gate and operational smoke pass with redacted artifacts                                                  |
+| 5. Cutover             | Commit Vite tree, re-arm git checks, lift migration exclusions, delete/rename, sweep refs     | Canonical tree builds, checks scan the intended files, deploy paths and secrets are correct                       |
+| 6. Post-cutover        | Staging soak, production release, monitor, regenerate baselines, remove branch                | Staging mirrors `main`, production health is stable, evidence is archived, rollback window is closed deliberately |
+
+---
+
+## Verification matrix
+
+Run the smallest applicable set during development, then the full set at phase boundaries. A command that cannot run because credentials or fixtures are missing is **blocked**, not green.
+
+| Scope                  | Commands / evidence                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fast frontend loop     | `pnpm lint`; `pnpm --filter @docita/app-vite run check-types`; `pnpm --filter @docita/app-vite run test`; corresponding `@docita/internal-vite` checks                                                                                                                                                                                                                                             |
+| Shared/API contracts   | `pnpm turbo check-types --continue`; `pnpm test`; `pnpm check:prisma-boundary`; `pnpm verify:contracts`; relevant API integration/E2E suites                                                                                                                                                                                                                                                       |
+| Repository standards   | `pnpm verify:standard`; `pnpm check:standard-gate-wiring`; `pnpm check:circular:enforce`; `pnpm check:hygiene`; `pnpm check:feature-test-density`; `pnpm knip`                                                                                                                                                                                                                                     |
+| Frontend invariants    | `pnpm check:frontend-fetch`; `pnpm check:accessible-name`; `pnpm check:button-primitive`; `pnpm check:i18n-coverage`; `pnpm check:i18next-parity`; `pnpm check:i18n-translation-keys`; `pnpm check:error-boundary-coverage`; `pnpm check:responsive-data-tables`                                                                                                                                   |
+| Security/compliance    | `pnpm audit --audit-level=high`; `pnpm check:auth-tenant-safety`; `pnpm check:phi-encryption-coverage`; `pnpm check:phi-boundary-parity`; `pnpm check:phi-read-audit --enforce`; `pnpm check:audit-logging --enforce`; `pnpm check:sensitive-logging`; `pnpm check:sentry-scrubbing`; `pnpm check:sentry-scrubber-parity`; `pnpm check:webhook-signatures`; `pnpm check:webhook-replay-protection` |
+| Accessibility          | `pnpm audit:app` with DB/auth fixtures; `pnpm audit:internal`; `pnpm a11y:baseline:sync`; `pnpm check:a11y-budget:enforce`; review serious/critical findings and scan timing                                                                                                                                                                                                                       |
+| Performance/deployment | `pnpm build`; `pnpm build:app-vite:cloudflare`; `pnpm build:internal-vite:cloudflare`; `pnpm perf:baseline`; `pnpm perf:budget:enforce`; `pnpm perf:route-budgets:enforce`; Worker-size checks; artifact search for telemetry URLs, secrets, and unsupported runtime shims                                                                                                                         |
+| Runtime release        | `pnpm test:api-startup`; staging Playwright critical flows; browser smoke of `/today`, `/consultation`, `/patients/:id`, `/portal`, `/book`, `/login`, and internal admin; Cloudflare deploy smoke; rollback rehearsal                                                                                                                                                                             |
+
+---
+
+## Definition of Done — migration and codebase quality
+
+- [ ] P0 architecture gates remain green, including a meaningful authenticated a11y baseline.
+- [ ] All retained, dropped, and deferred features have decisions recorded; no dangling route, CTA, access target, or E2E dependency remains.
+- [ ] Subscription lockout, doctor verification, direct URL access, and existing-user onboarding behavior have explicit decisions and regression tests.
+- [ ] Critical clinician, portal, lab, front-desk, admin, payment, upload, PDF, webhook, and timezone flows pass with real API contracts in staging/CI.
+- [ ] No raw frontend API calls, native UI substitutions, nameless interactive controls, stale i18n keys, Prisma leaks, or new type escape hatches remain.
+- [ ] Dead-code cleanup is evidence-backed; no “zero exit” tool result is treated as proof that all actionable findings are gone.
+- [ ] `pnpm verify:standard`, `pnpm knip`, `pnpm lint`, `pnpm turbo check-types --continue`, `pnpm test`, `pnpm build`, `pnpm check:circular:enforce`, and `pnpm check:prisma-boundary` pass.
+- [ ] Security, PHI, audit, RLS, webhook, upload, dependency, CSP/header, and secret checks pass with no unowned exception.
+- [ ] Cloudflare staging and production smokes pass; artifact searches are clean; telemetry is same-origin and PHI-scrubbed.
+- [ ] Vite apps are committed, git-based checks scan the intended tree, Next apps are deleted from the branch tip, canonical names are restored, and stale executable references are gone.
+- [ ] Migration, rollback, incident, environment, and support documentation is current; release evidence is linked and reproducible.
+- [ ] After merge, `staging` mirrors `main`, the release is monitored through the agreed soak window, and feature branches are cleaned up per `AGENTS.md` §11.3.

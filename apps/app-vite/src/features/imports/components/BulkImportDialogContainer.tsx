@@ -6,7 +6,7 @@ interface BulkImportDialogContainerProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export function BulkImportDialogContainer({
+function BulkImportDialogContainer({
   open,
   onOpenChange,
 }: BulkImportDialogContainerProps) {

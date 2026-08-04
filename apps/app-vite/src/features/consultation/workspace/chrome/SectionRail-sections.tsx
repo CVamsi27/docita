@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { buildSectionCompletion } from "./SectionRail-completion";
 
-export type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 export { findNextStep } from "./SectionRail-next-step";
 
 export function useSectionCompletion() {

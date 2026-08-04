@@ -100,6 +100,7 @@ export async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let body: Record<string, unknown> = {};
     try {
+      // check-as-cast-density: allow-file — untyped JSON error body parsed to Record before field reads
       body = (await response.json()) as Record<string, unknown>;
     } catch {
       // Response body was not JSON — fall back to status text

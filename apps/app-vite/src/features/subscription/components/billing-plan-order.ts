@@ -6,4 +6,3 @@ export const PLAN_ORDER = [
   "ENTERPRISE",
 ] as const;
 
-export type PlanOrderTier = (typeof PLAN_ORDER)[number];

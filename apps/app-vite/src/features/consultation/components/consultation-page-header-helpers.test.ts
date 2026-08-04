@@ -47,7 +47,9 @@ describe("buildConsultationHeaderDisplay", () => {
       readOnly: true,
     });
     expect(display.statusLabel).toContain("View only");
-    expect(display.statusLabel).toContain("In Progress");
+    // Case-insensitive: the label comes from `humanizeUiLabel` in
+    // @workspace/ui, whose casing could change without a behavior change.
+    expect(display.statusLabel).toMatch(/in progress/i);
   });
 
   it("omits the suffix when not readOnly", () => {

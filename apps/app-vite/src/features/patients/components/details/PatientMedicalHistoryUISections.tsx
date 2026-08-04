@@ -5,7 +5,7 @@ import { PatientSurgeries } from "./history/PatientSurgeries";
 import { PatientFamilyHistory } from "./history/PatientFamilyHistory";
 import { PatientSocialHistoryComp } from "./history/PatientSocialHistory";
 
-export interface PatientConditionsBlockProps {
+interface PatientConditionsBlockProps {
   patient: PatientWithMedicalHistory;
   readOnly: boolean;
 // jscpd:ignore-start
@@ -37,7 +37,7 @@ export function PatientConditionsBlock({
   );
 }
 
-export interface PatientAllergiesBlockProps {
+interface PatientAllergiesBlockProps {
   patient: PatientWithMedicalHistory;
   readOnly: boolean;
 // jscpd:ignore-start
@@ -84,7 +84,7 @@ export function PatientAllergiesBlock({
   );
 }
 
-export interface PatientSurgeriesBlockProps {
+interface PatientSurgeriesBlockProps {
   patient: PatientWithMedicalHistory;
   readOnly: boolean;
   isCompact: boolean;
@@ -120,7 +120,7 @@ export function PatientSurgeriesBlock({
   );
 }
 
-export interface PatientFamilyHistoryBlockProps {
+interface PatientFamilyHistoryBlockProps {
   patient: PatientWithMedicalHistory;
   readOnly: boolean;
   isCompact: boolean;
@@ -158,7 +158,7 @@ export function PatientFamilyHistoryBlock({
   );
 }
 
-export interface PatientSocialHistoryBlockProps {
+interface PatientSocialHistoryBlockProps {
   patient: PatientWithMedicalHistory;
   readOnly: boolean;
   isCompact: boolean;

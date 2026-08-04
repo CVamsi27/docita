@@ -2,7 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import en from "../messages/en.json";
 import hi from "../messages/hi.json";
-import { DEFAULT_LOCALE, isLocale } from "@/components/i18n/locale-switcher";
+import { DEFAULT_LOCALE, isLocale } from "@/i18n/locale-utils";
 
 function resolveInitialLocale(): string {
   if (typeof window === "undefined") return DEFAULT_LOCALE;

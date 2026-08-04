@@ -5,7 +5,7 @@ import {
   type GrowthChartData,
   type OphthalmologyExamData,
 } from "@workspace/types";
-import type { DentalChartValue } from "@/features/consultation/components/specialty/dental-chart.types";
+import type { DentalChartValue } from "@/features/consultation";
 
 export function parseDentalChartValue(value: unknown): DentalChartValue {
   const parsed = dentalChartSchema.safeParse(value);
@@ -19,7 +19,7 @@ export function parseOphthalmologyExamValue(
   return parsed.success ? parsed.data : {};
 }
 
-export function defaultGrowthChartData(
+function defaultGrowthChartData(
   patientGender: string | null | undefined,
 ): GrowthChartData {
   return {

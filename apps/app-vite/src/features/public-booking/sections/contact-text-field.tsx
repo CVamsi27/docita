@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Input, Label } from "@workspace/ui/components";
 
-export interface ContactTextFieldProps {
+interface ContactTextFieldProps {
   id: string;
   label: ReactNode;
   value: string;

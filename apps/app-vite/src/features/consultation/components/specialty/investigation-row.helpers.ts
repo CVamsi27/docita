@@ -23,8 +23,6 @@ export const INVESTIGATION_STATUSES = [
   "CANCELLED",
 ] as const;
 
-export type InvestigationCategory = (typeof INVESTIGATION_CATEGORIES)[number];
-export type InvestigationStatus = (typeof INVESTIGATION_STATUSES)[number];
 
 export interface InvestigationRowProps {
   row: ClinicalInvestigation;

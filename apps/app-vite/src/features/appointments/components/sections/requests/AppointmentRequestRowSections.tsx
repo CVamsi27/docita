@@ -1,6 +1,6 @@
 import { AlertCircle } from "lucide-react";
 
-export interface AppointmentRequestRowInfoProps {
+interface AppointmentRequestRowInfoProps {
   patientNameText: string;
   phone: string | null;
   arrivalRelative: string | null;

@@ -1,13 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { QueueItem } from "@workspace/data-access";
-import type { DeskFloorRow } from "./DeskFloorPanelUISections";
+import type { DeskFloorRow } from "./desk-floor-panel-helpers";
 import { patientNameOf, toRow, tokenSort, recentSort } from "./desk-floor-panel-helpers";
 
-vi.mock("@/features/consultation/lib/opd-queue-display", () => ({
-  getOpdQueueSummaryLine: vi.fn(),
-}));
+vi.mock("@/features/consultation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/consultation")>();
+  return {
+    ...actual,
+    getOpdQueueSummaryLine: vi.fn(),
+  };
+});
 
-import { getOpdQueueSummaryLine } from "@/features/consultation/lib/opd-queue-display";
+import { getOpdQueueSummaryLine } from "@/features/consultation";
 const mockGetOpdQueueSummaryLine = vi.mocked(getOpdQueueSummaryLine);
 
 // ---------------------------------------------------------------------------

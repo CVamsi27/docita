@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 
-export interface SelectFieldOption {
+interface SelectFieldOption {
   value: string;
   labelKey: string;
 }

@@ -2,7 +2,8 @@
 
 import { Calendar as CalendarIcon, ChevronDown, Clock, UserCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle, Button, Collapsible, CollapsibleContent, CollapsibleTrigger, EmptyState } from "@workspace/ui/components";
-import { publicBookingSlotEmptyMessage, SlotTimesScrollArea, SlotTimesSkeletonGrid } from "@/features/public-booking/public-booking-components";
+import { SlotTimesScrollArea, SlotTimesSkeletonGrid } from "@/features/public-booking/public-booking-components";
+import { publicBookingSlotEmptyMessage } from "@/features/public-booking/atoms/booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { formatTime } from "@/lib/formatters";
 import { SlotGridAvailableSlotList } from "./slot-grid-available-slot-list";

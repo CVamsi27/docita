@@ -9,7 +9,6 @@ import {
 } from "@workspace/utils";
 import type { Gender } from "@workspace/types";
 import { GENDER_LABELS } from "@workspace/utils";
-export { DATE_FORMATS } from "@workspace/utils";
 
 export function formatDate(
   date: Date | string | null | undefined,
@@ -63,7 +62,7 @@ export function formatDateTime(
 export const DATE_FORMAT_OPTIONS_US_LONG = "MMMM d, yyyy";
 export const DATE_FORMAT_OPTIONS_US_SHORT = "MMM d, yyyy";
 
-export interface FormatCurrencyOptions {
+interface FormatCurrencyOptions {
   locale?: string;
   fractionDigits?: number;
 }
@@ -83,34 +82,11 @@ export function formatCurrency(
   });
 }
 
-export function formatPhoneNumber(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length !== 10) return phone;
-  return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
-}
-
 export function getInitials(firstName: string, lastName?: string): string {
   if (!firstName) return "";
   const first = firstName.charAt(0).toUpperCase();
   const last = lastName ? lastName.charAt(0).toUpperCase() : "";
   return `${first}${last}`;
-}
-
-export function truncate(text: string, length: number = 50): string {
-  if (text.length <= length) return text;
-  return text.slice(0, length) + "\u2026";
-}
-
-export function capitalize(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-export function toTitleCase(text: string): string {
-  return text
-    .toLowerCase()
-    .split(" ")
-    .map((word) => capitalize(word))
-    .join(" ");
 }
 
 function isKnownGender(value: string): value is Gender {

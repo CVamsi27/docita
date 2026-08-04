@@ -111,33 +111,3 @@ export async function expectConsultationWorkspaceReady(page: Page) {
     )
     .toBe("ready");
 }
-
-export async function expectDataState(
-  page: Page,
-  state: "loading" | "error" | "empty" | "ready",
-  options: {
-    emptyText?: RegExp | string;
-    errorText?: RegExp | string;
-    loadingText?: RegExp | string;
-  } = {},
-) {
-  if (state === "ready") {
-    await expect(page.locator("body")).toBeVisible();
-    return;
-  }
-
-  if (state === "loading") {
-    const text = options.loadingText ?? /Loading/i;
-    await expect(page.getByText(text).first()).toBeVisible();
-    return;
-  }
-
-  if (state === "error") {
-    const text = options.errorText ?? /Retry|Something went wrong|Error/i;
-    await expect(page.getByText(text).first()).toBeVisible();
-    return;
-  }
-
-  const text = options.emptyText ?? /No .* yet|No results|Nothing here/i;
-  await expect(page.getByText(text).first()).toBeVisible();
-}

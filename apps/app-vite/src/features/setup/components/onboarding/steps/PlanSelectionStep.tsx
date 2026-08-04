@@ -5,7 +5,6 @@ import { Suspense } from "react";
 import { PlanSelectionStepInner } from "./plan-selection-step-inner";
 import type { PlanSelectionProps } from "./plan-selection-step.types";
 
-export type { PlanSelectionProps };
 
 export function PlanSelectionStep(props: PlanSelectionProps) {
   return (

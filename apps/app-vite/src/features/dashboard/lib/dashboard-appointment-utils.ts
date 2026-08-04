@@ -1,6 +1,6 @@
 import { type AppointmentListItem } from "@workspace/data-access";
 
-export interface DashboardAppointmentStats {
+interface DashboardAppointmentStats {
   todayAppointments: AppointmentListItem[];
   completedToday: number;
   inProgressToday: number;

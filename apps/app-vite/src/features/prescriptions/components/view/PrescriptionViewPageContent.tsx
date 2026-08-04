@@ -14,7 +14,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { canCreatePrescription } from "@/lib/auth/permissions";
 import { useClinic } from "@/lib/contexts/clinic-context";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
+import { buildConsultationRoute } from "@/features/consultation";
 import { PrescriptionDocument } from "./PrescriptionDocument";
 import { PrescriptionHeader } from "./PrescriptionHeader";
 import type { ClinicInfo } from "./prescription-document-types";

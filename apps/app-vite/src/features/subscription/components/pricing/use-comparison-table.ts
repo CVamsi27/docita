@@ -14,7 +14,7 @@ import {
   comparisonTiersForMode,
   FEATURE_CATEGORIES,
   KEY_FEATURE_CATEGORIES,
-} from "./comparison-table-helpers";
+} from "./comparison-table-data";
 
 export type AvailableFeatureItem =
   | { kind: "header"; label: string }

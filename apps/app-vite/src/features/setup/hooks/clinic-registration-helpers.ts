@@ -45,7 +45,7 @@ export function resolveOwnerRole(role?: string): "ADMIN_DOCTOR" | "ADMIN" {
   return role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN";
 }
 
-export interface RegistrationValidationResult {
+interface RegistrationValidationResult {
   valid: boolean;
   targetStep: number;
   errorMessage?: string;
@@ -84,7 +84,7 @@ export function validateRegistrationData(
   return { valid: true, targetStep: -1, parsedDetails: details };
 }
 
-export interface ResolvedPricing {
+interface ResolvedPricing {
   price: number;
   currency: string;
   mode: PlanMode;
@@ -104,7 +104,7 @@ export function resolvePlanPricing(
   };
 }
 
-export interface PlanPaymentConfig {
+interface PlanPaymentConfig {
   onboardingId: string;
   tier: string;
   billingCycle: "MONTHLY" | "YEARLY";

@@ -31,7 +31,7 @@ const RESPONSE_VARIANT: Record<
   UNKNOWN: "secondary",
 };
 
-export interface PatientWhatsAppResponseBadgeProps {
+interface PatientWhatsAppResponseBadgeProps {
   responseType: string;
   responseTime?: string | Date | null;
   delayMinutes?: number | null;

@@ -32,7 +32,7 @@ export function isStaleOnboardingSessionError(error: unknown): boolean {
   return /onboarding session not found|expired/i.test(error.message);
 }
 
-export type LegalDocConfig = {
+type LegalDocConfig = {
   key: LegalDocumentType;
   title: string;
   summary: string;

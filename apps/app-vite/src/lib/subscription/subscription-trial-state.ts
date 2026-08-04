@@ -3,7 +3,7 @@ import type { Clinic } from "@/lib/contexts/clinic-context";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export type TrialState = "ACTIVE" | "GRACE" | "EXPIRED";
+type TrialState = "ACTIVE" | "GRACE" | "EXPIRED";
 
 function toDateOrNull(value: unknown): Date | null {
   if (value == null) return null;

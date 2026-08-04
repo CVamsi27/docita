@@ -10,7 +10,7 @@ import type { LegalDocumentType } from "./compliance-step-helpers";
 import { ComplianceLegalCard } from "./compliance-legal-card";
 import { ComplianceLegalDocumentDialog } from "./compliance-legal-document-dialog";
 
-export interface LegalDocEntry {
+interface LegalDocEntry {
   key: LegalDocumentType;
   title: string;
   summary: string;

@@ -6,20 +6,6 @@ import {
 import { fetchDoctorAvailabilitySlots } from "@/lib/api/doctor-availability.api";
 
 /** First available opening on the preferred calendar day only (legacy helper). */
-export async function fetchFirstAvailableDatetimeLocal(
-  calendarDate: string | Date,
-  doctorId: string,
-  timezone: string,
-): Promise<string | null> {
-  const window = await fetchNextAvailableSlotWindow(
-    calendarDate,
-    doctorId,
-    timezone,
-    1,
-  );
-  return window?.startLocal ?? null;
-}
-
 /**
  * Walks forward from the preferred date (same day first) and returns the first
  * bookable slot window for the doctor from `/doctor-availability/slots`.

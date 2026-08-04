@@ -17,7 +17,6 @@ import {
 
 export {
   createInvoiceFormSchema,
-  type CreateInvoiceFormValues,
 } from "@workspace/types";
 
 export const useInvoiceCreateLogic = () => {

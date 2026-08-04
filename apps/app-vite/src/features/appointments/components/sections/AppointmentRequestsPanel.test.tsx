@@ -54,7 +54,6 @@ vi.mock("@/lib/contexts/clinic-context", () => ({
 }));
 
 vi.mock("@/lib/utils/doctor-availability-first-slot", () => ({
-  fetchFirstAvailableDatetimeLocal: vi.fn().mockResolvedValue(null),
   fetchNextAvailableSlotWindow: vi.fn().mockResolvedValue(null),
 }));
 

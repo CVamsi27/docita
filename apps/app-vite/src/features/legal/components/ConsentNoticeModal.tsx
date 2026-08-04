@@ -10,8 +10,8 @@ import {
   DialogTitle,
   ScrollArea,
 } from "@workspace/ui/components";
+import { CONSENT_CONTENT } from "./consent-content";
 import {
-  CONSENT_CONTENT,
   ConsentLanguageSelector,
   ConsentPurposeList,
   ConsentRightsList,

@@ -5,7 +5,7 @@ import { CardGridSkeleton } from "@/components/loaders/page-skeleton";
 import { AppPageScaffold, Button, DataState, PageHeader } from "@workspace/ui/components";
 import { Hospital } from "lucide-react";
 import { ReferralsPageContent } from "@/features/referrals/components/ReferralsPageContent";
-import { FollowUpsPageContent } from "@/features/follow-ups/components/FollowUpsPageContent";
+import { FollowUpsPageContent } from "@/features/follow-ups";
 import { getHospitalBeds, type HospitalBed } from "@/features/referrals/api/referrals.api";
 
 export function ReferralsPage() {

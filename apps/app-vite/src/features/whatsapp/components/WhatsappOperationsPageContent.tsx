@@ -3,7 +3,7 @@ import { Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Settings2 } from "lucide-react";
 import { AppPageScaffold, Button, PageHeader, PageTabs, type PageTabItem } from "@workspace/ui/components";
-import { WhatsappTemplatesSettings } from "@/features/settings/components/whatsapp/WhatsappTemplatesSettings";
+import { WhatsappTemplatesSettings } from "@/features/settings";
 import { useAuth } from "@/lib/auth/auth-context";
 import { isAdmin } from "@/lib/auth/permissions";
 import { WhatsappCampaignsView } from "./WhatsappCampaignsView";

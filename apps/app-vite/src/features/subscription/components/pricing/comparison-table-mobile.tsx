@@ -6,7 +6,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { getTierInfo, getTierName, hasFeatureAccess, Tier } from "@/lib/subscription/tier-access";
 import type { FeatureComparisonRow } from "@/lib/subscription/tier-access";
 import type { PlanMode } from "@workspace/types";
-import { isFeatureBlockedInMode, isLimitRowBlockedInMode } from "./comparison-table-helpers";
+import { isFeatureBlockedInMode, isLimitRowBlockedInMode } from "./comparison-table-data";
 import type { AvailableFeatureItem } from "./use-comparison-table";
 
 export function ComparisonTableMobile({

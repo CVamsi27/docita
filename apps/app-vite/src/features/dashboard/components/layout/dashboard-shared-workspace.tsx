@@ -11,7 +11,7 @@ import { type DashboardAlertDensity, DashboardAlertsContainer } from "@/features
 import { DoctorDashboardCards } from "@/features/dashboard/components/stats/doctor-dashboard-cards";
 import type { AppointmentListItem } from "@workspace/data-access";
 
-export type DashboardWorkspaceMode = "dashboard" | "today";
+type DashboardWorkspaceMode = "dashboard" | "today";
 
 function defaultAlertDensity(
   mode: DashboardWorkspaceMode,
@@ -19,7 +19,7 @@ function defaultAlertDensity(
   return mode === "today" ? "urgent-only" : "full";
 }
 
-export interface DashboardSharedWorkspaceProps {
+interface DashboardSharedWorkspaceProps {
   mode: DashboardWorkspaceMode;
   alertDensity?: DashboardAlertDensity;
   todayAppointments: AppointmentListItem[];

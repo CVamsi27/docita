@@ -17,7 +17,7 @@ const initialFormData: ContactSalesFormData = {
   clinic: "",
   message: "",
 };
-export function ContactSalesModalContainer({
+function ContactSalesModalContainer({
   open,
   onOpenChange,
   source,

@@ -6,7 +6,7 @@ import { ClearSearchButton } from "@/components/buttons/clear-search-button";
 import { LocateFixed, Search } from "lucide-react";
 import type { PlaceSuggestion } from "./address-utils";
 
-export interface AddressSearchInputProps {
+interface AddressSearchInputProps {
   searchQuery: string;
   setSearchQuery: (value: string) => void;
   suggestions: PlaceSuggestion[];

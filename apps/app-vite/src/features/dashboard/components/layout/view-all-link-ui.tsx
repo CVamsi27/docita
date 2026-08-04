@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
-export interface ViewAllLinkUIProps {
+interface ViewAllLinkUIProps {
   to: string;
   text?: string;
   className?: string;

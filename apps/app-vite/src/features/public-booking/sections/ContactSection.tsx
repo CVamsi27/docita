@@ -2,7 +2,8 @@
 
 import { UserCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, Input, Label, Textarea } from "@workspace/ui/components";
-import { BookingSectionHeader, bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "@/features/public-booking/public-booking-components";
+import { BookingSectionHeader } from "@/features/public-booking/public-booking-components";
+import { bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "@/features/public-booking/atoms/booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";
 import { ContactSectionPhone } from "./contact-section-phone";

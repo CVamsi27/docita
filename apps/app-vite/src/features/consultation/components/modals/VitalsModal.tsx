@@ -3,7 +3,6 @@ import { HeartPulse } from "lucide-react";
 import { useVitalsForm } from "./use-vitals-form";
 import { VitalsFieldGrid } from "./VitalsModalSections";
 
-export type { VitalsFormData } from "./use-vitals-form";
 
 interface VitalsModalProps {
   open: boolean;

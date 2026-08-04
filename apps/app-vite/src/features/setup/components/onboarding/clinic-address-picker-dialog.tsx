@@ -7,10 +7,6 @@ import { AddressSearchInput } from "./address-picker/AddressSearchInput";
 import { useClinicAddressPicker } from "./address-picker/use-clinic-address-picker";
 import { ClinicAddressPickerFooter } from "./clinic-address-picker-dialog-sections";
 
-export type {
-  ClinicAddressDetails,
-  ClinicAddressSelection,
-} from "./address-picker/address-utils";
 
 export function ClinicAddressPickerDialog({
   open,

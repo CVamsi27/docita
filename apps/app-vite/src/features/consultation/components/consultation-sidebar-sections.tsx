@@ -144,7 +144,7 @@ interface SurgicalHistoryListProps {
   items: PatientSurgicalHistory[];
 }
 
-export function SurgicalHistoryList({ items }: SurgicalHistoryListProps) {
+function SurgicalHistoryList({ items }: SurgicalHistoryListProps) {
   const t = useConsultationSidebarTranslations();
   if (items.length === 0) return null;
   return (
@@ -170,7 +170,7 @@ interface FamilyHistoryListProps {
   items: PatientFamilyHistory[];
 }
 
-export function FamilyHistoryList({ items }: FamilyHistoryListProps) {
+function FamilyHistoryList({ items }: FamilyHistoryListProps) {
   const t = useConsultationSidebarTranslations();
   if (items.length === 0) return null;
   return (

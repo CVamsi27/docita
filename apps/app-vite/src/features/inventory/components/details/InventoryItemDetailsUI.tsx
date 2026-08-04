@@ -5,7 +5,7 @@ import { ItemInfoCard, ItemMovementsSection, type ItemDetail } from "./Inventory
 
 export type { ItemMovement, ItemDetail } from "./InventoryItemDetailsUISections";
 
-export interface InventoryItemDetailsUIProps {
+interface InventoryItemDetailsUIProps {
   open: boolean;
   item: ItemDetail | null;
   isLoading: boolean;

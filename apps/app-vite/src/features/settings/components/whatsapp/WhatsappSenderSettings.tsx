@@ -28,6 +28,7 @@ export function WhatsappSenderSettings() {
 
   useEffect(() => {
     if (sender.data) {
+      // check-as-cast-density: allow-file — persisted sender mode string narrowed to the mode union
       setMode(sender.data.mode as "SHARED" | "BYO" | "MANAGED");
       setPhoneNumberId(sender.data.phoneNumberId ?? "");
       setWabaId(sender.data.wabaId ?? "");

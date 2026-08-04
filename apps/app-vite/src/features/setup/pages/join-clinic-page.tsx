@@ -7,7 +7,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Card } from "@workspace/ui/components/indicators/card";
 import { SUPPORT_EMAIL } from "@/lib/constants/support-contact";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 import { BackButton } from "@/components/navigation/back-button";
 import { JoinClinicRequestDialog } from "@/features/setup/components/join-clinic-request-dialog";
 import { JoinClinicSearchResults } from "@/features/setup/components/join-clinic-search-results";

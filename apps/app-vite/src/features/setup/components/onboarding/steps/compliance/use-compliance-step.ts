@@ -16,7 +16,7 @@ import {
   type LegalDocumentType,
 } from "./compliance-step-helpers";
 
-export interface UseComplianceStepProps {
+interface UseComplianceStepProps {
   complianceForm: UseFormReturn<ComplianceSettings>;
   onboardingId?: string;
   ensureOnboardingId?: (options?: { forceRefresh?: boolean }) => Promise<string>;

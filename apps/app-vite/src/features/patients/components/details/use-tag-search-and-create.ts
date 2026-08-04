@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { groupPresetTags } from "./patient-tag-manager-helpers";
+import { groupPresetTags } from "./patient-tag-manager-logic";
 import type { PatientTag, PresetTag } from "./patient-tag.types";
 
 /**

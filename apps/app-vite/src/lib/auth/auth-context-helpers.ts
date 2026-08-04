@@ -8,7 +8,7 @@ import {
 
 export type User = AppAuthUser;
 
-export interface AuthPayload {
+interface AuthPayload {
   access_token?: string;
   verificationEmailSent?: boolean;
   user: User;

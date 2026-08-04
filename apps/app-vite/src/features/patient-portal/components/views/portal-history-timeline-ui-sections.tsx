@@ -96,7 +96,7 @@ function PortalMedicalHistoryListGroup({
   );
 }
 
-export interface PortalMedicalHistoryData {
+interface PortalMedicalHistoryData {
   conditions: Record<string, unknown>[];
   allergies: Record<string, unknown>[];
   familyHistory: Record<string, unknown>[];

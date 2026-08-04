@@ -6,13 +6,13 @@ import {
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import { hasFeatureAccess, type TierName } from "@/lib/subscription/tier-access";
 
-export interface FeatureDeltaItem {
+interface FeatureDeltaItem {
   feature: Feature;
   name: string;
   description: string;
 }
 
-export interface TierFeatureDelta {
+interface TierFeatureDelta {
   gained: FeatureDeltaItem[];
   lost: FeatureDeltaItem[];
 }

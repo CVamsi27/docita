@@ -7,7 +7,7 @@ import {
 } from "@workspace/ui/components/data-display/right-rail-card";
 import { Button } from "@workspace/ui/components/form/button";
 
-export type TodayAdvisorCounts = {
+type TodayAdvisorCounts = {
   pendingJoinRequests: number;
   uncodedVisits: number;
   waitingCount: number;

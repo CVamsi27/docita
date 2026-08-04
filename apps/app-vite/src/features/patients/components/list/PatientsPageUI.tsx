@@ -6,7 +6,6 @@ import { PatientsPageHeader } from "./patients-page-header";
 import { PatientsTable } from "./patients-table";
 import type { PatientsPageUIProps } from "./patients-page-types";
 
-export type { PatientsPageUIProps } from "./patients-page-types";
 
 export function PatientsPageUI({
   isLoading,

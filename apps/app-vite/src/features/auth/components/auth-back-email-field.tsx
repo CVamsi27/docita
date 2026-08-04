@@ -1,5 +1,6 @@
 import { BackButton, Input, Label } from "@workspace/ui/components";
-import { fieldClass, InlineFieldError } from "./auth-field-error";
+import { InlineFieldError } from "./auth-field-error";
+import { fieldClass } from "./auth-field-error-helpers";
 import type { FieldErrors } from "../types/auth";
 
 interface BackEmailFieldProps {

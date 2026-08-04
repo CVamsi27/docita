@@ -9,7 +9,7 @@ import { useAuth, VERIFICATION_EMAIL_STATUS_STORAGE_KEY } from "@/lib/auth/auth-
 import { logger } from "@/lib/monitoring/logger";
 import { getAppApiUrl } from "@/lib/api/api-config";
 import { browserRequest } from "@/lib/auth/browser-request";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 import { BackButton } from "@/components/navigation/back-button";
 
 type VerifyState = "loading" | "success" | "error" | "missing";

@@ -1,4 +1,4 @@
-export interface RouteMeta {
+interface RouteMeta {
   labelKey: string;
   label: string;
   parentPath?: string;

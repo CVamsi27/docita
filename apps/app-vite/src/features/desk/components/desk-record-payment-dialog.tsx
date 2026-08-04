@@ -14,7 +14,7 @@ import {
 } from "@workspace/ui/components/overlay/dialog";
 import { type DeskPaymentMethod, PAYMENT_CHANNEL_OPTIONS } from "./desk-collect-payment-helpers";
 
-export interface RecordPaymentDialogProps {
+interface RecordPaymentDialogProps {
   dialogInvoice: InvoiceListRow | null;
   paymentMethod: DeskPaymentMethod;
   amount: string;

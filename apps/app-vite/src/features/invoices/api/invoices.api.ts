@@ -49,7 +49,7 @@ function buildInvoiceSearchParams(
   return searchParams;
 }
 
-export async function getAllInvoices(
+async function getAllInvoices(
   params?: ListInvoicesContractQuery,
 ): Promise<Invoice[]> {
   const searchParams = buildInvoiceSearchParams(params);
@@ -60,12 +60,12 @@ export async function getAllInvoices(
   return normalizeInvoices(invoicesListResponseSchema.parse(response));
 }
 
-export async function getInvoiceById(id: string): Promise<Invoice> {
+async function getInvoiceById(id: string): Promise<Invoice> {
   const response = await api.get<unknown>(`/invoices/${id}`);
   return invoiceResponseSchema.parse(response);
 }
 
-export async function createInvoice(
+async function createInvoice(
   data: CreateInvoiceRequest,
 ): Promise<Invoice> {
   const response = await api.post<unknown>(
@@ -75,7 +75,7 @@ export async function createInvoice(
   return invoiceResponseSchema.parse(response);
 }
 
-export async function updateInvoice(
+async function updateInvoice(
   id: string,
   data: UpdateInvoiceRequest,
 ): Promise<Invoice> {
@@ -86,13 +86,13 @@ export async function updateInvoice(
   return invoiceResponseSchema.parse(response);
 }
 
-export function enqueueInvoicePdf(id: string): Promise<EnqueuePdfJobResponse> {
+function enqueueInvoicePdf(id: string): Promise<EnqueuePdfJobResponse> {
   return api
     .get(`/invoices/${id}/pdf?async=true`)
     .then((response) => enqueuePdfJobResponseSchema.parse(response));
 }
 
-export function getInvoicePdfStatus(
+function getInvoicePdfStatus(
   id: string,
   jobId: string,
 ): Promise<PdfJobStatusResponse> {

@@ -12,10 +12,6 @@ import {
   type MemberRole,
 } from "@/features/settings/components/management/member-management-schemas";
 
-export function sortMembersByName(members: User[]): User[] {
-  return [...members].sort((a, b) => a.name.localeCompare(b.name));
-}
-
 export function computeUserCanChangeRoles(role: string | undefined): boolean {
   return isAdmin(role);
 }

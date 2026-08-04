@@ -5,7 +5,7 @@ import { DATE_FORMAT_OPTIONS_US_LONG, formatDate } from "@/lib/formatters";
 import { ExternalLink } from "lucide-react";
 import { Link } from "react-router";
 
-export interface DeskOpenInvoicesProps {
+interface DeskOpenInvoicesProps {
   selectedPatientId: string | null;
   invoices: InvoiceListRow[];
   loading: boolean;

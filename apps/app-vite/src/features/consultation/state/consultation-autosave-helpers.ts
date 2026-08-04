@@ -2,13 +2,6 @@ import type { ConsultationDraftState } from "@/features/consultation/state/consu
 
 export const AUTOSAVE_DEBOUNCE_MS = 2200;
 
-export interface UseConsultationAutosaveOptions {
-  appointmentId: string;
-  readOnly?: boolean;
-  clinicType?: string;
-  patientId?: string;
-}
-
 export function serializeDraftForSession(
   state: Pick<
     ConsultationDraftState,
@@ -51,7 +44,7 @@ export function serializeDraftForSession(
   });
 }
 
-export interface CodedDiagnosisItem {
+interface CodedDiagnosisItem {
   icdCodeId: string | undefined;
   notes: string | undefined;
   isPrimary: boolean;

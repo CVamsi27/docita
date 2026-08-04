@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Object.entries(ROLE_CONFIG) needs tuple narrowing to the config key type (single cast)
 import { useState, useEffect, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { Eye, Search, Shield, Stethoscope, UserCog, Users } from "lucide-react";

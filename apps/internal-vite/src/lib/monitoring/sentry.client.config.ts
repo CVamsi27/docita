@@ -141,25 +141,3 @@ export function captureMessage(
     // Monitoring calls are best-effort and must remain non-blocking.
   }
 }
-
-export function addBreadcrumb(
-  message: string,
-  data?: Record<string, unknown>,
-  category: string = "user-action",
-): void {
-  if (!isSentryEnabled()) return;
-
-  try {
-    runWithSentryModule((Sentry) => {
-      Sentry.addBreadcrumb({
-        message,
-        level: "info",
-        category,
-        data,
-        timestamp: Date.now() / 1000,
-      });
-    });
-  } catch {
-    // Breadcrumb recording is best-effort and must remain non-blocking.
-  }
-}

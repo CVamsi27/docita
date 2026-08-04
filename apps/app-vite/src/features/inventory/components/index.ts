@@ -1,9 +1,6 @@
 "use client";
 
-export {
-  InventoryItemDetailsUI,
-  type InventoryItemDetailsUIProps,
-} from "./details/InventoryItemDetailsUI";
+export { InventoryItemDetailsUI } from "./details/InventoryItemDetailsUI";
 export type {
   ItemDetail,
   ItemMovement,

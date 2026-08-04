@@ -1,6 +1,6 @@
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 
-export type DashboardSkeletonVariant = "full" | "today";
+type DashboardSkeletonVariant = "full" | "today";
 
 interface DashboardSkeletonUIProps {
   variant?: DashboardSkeletonVariant;

@@ -1,8 +1,8 @@
 import type { LineItem } from "./billing-modal-types";
 
-export type BillingDiscountType = "PERCENTAGE" | "AMOUNT";
+type BillingDiscountType = "PERCENTAGE" | "AMOUNT";
 
-export interface BillingCalculations {
+interface BillingCalculations {
   subtotal: number;
   taxAmount: number;
   discountAmount: number;

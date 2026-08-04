@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/lib/auth/auth-context";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 import { ClinicOnboardingWizard } from "@/features/setup/components/onboarding";
 
 export function OnboardingPage() {

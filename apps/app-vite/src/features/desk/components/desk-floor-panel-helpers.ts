@@ -1,6 +1,42 @@
 import type { QueueItem } from "@workspace/data-access";
-import type { DeskFloorRow } from "./DeskFloorPanelUISections";
-import { getOpdQueueSummaryLine } from "@/features/consultation/lib/opd-queue-display";
+import { getOpdQueueSummaryLine } from "@/features/consultation";
+
+export interface DeskFloorRow {
+  id: string;
+  tokenNumber: number;
+  patientName: string;
+  scheduledTime?: string | null;
+  doctorName?: string | null;
+  visitSummary?: string | null;
+  isWalkIn: boolean;
+}
+
+export function initialsOf(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
+export function formatToken(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+export function formatScheduled(
+  value: string | null | undefined,
+): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
 
 export function patientNameOf(item: QueueItem): string {
   const first = item.patient?.firstName?.trim() ?? "";

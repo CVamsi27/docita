@@ -10,7 +10,7 @@ interface SectionProps {
   sectionRef?: Ref<HTMLElement>;
 }
 
-export interface InvestigationsSectionProps extends SectionProps {
+interface InvestigationsSectionProps extends SectionProps {
   patientId?: string;
   appointmentId?: string;
   doctorId?: string;

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { PatientMetricsHistoryUI } from "@/features/patients/components/details/PatientMetricsHistoryUI";
+import { formatVitalNumber } from "./vitals-tab-helpers";
 
 export interface VitalsRow {
   id: string;
@@ -25,12 +26,6 @@ export interface VitalsRow {
   height: number | null;
   bmi: number | null;
 }
-
-export const formatVitalNumber = (
-  value: number | null | undefined,
-  suffix = "",
-): string =>
-  value === null || value === undefined ? "--" : `${value}${suffix}`;
 
 interface VitalCellProps {
   icon: ComponentType<{ className?: string }>;

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { PatientTag } from "./patient-tag.types";
 import { ColorSwatchButton, ColorPickerGrid } from "./patient-tag-color-pickers";
 
-export interface CurrentTagsTabProps {
+interface CurrentTagsTabProps {
   filteredTags: PatientTag[];
   searchQuery: string;
   editingTagId: string | null;

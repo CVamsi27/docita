@@ -3,7 +3,7 @@
 import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import { cn } from "@workspace/ui/lib/utils";
 
-export interface ContactDateOfBirthFieldProps {
+interface ContactDateOfBirthFieldProps {
   value: string;
   error?: string;
   onValueChange: (iso: string) => void;

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Form, FormControl, FormField, FormFieldGroup, Input } from "@workspace/ui/components";
 import { settingsApi } from "@/features/settings/api/settings.api";
-import { PasswordStrengthIndicator } from "@/features/auth/components/auth-password-strength";
+import { PasswordStrengthIndicator } from "@/features/auth";
 
 export function ChangePasswordSettings() {
   const { t } = useTranslation("Patients.changePassword");

@@ -1,10 +1,4 @@
 import { AlertCircle } from "lucide-react";
-import type { FieldErrors } from "../types/auth";
-
-export const fieldClass = (fieldErrors: FieldErrors, field: string) =>
-  fieldErrors[field]
-    ? "border-destructive focus-visible:ring-destructive"
-    : "";
 
 export function InlineFieldError({
   id: _id,

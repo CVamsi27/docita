@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — react-hook-form Path<T> generics require as-casts
 import { useTranslation } from "react-i18next";
 import type { ComponentProps } from "react";
 import type { Control, FieldValues, Path } from "react-hook-form";

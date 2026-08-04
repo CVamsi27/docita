@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { AppPageScaffold, DataState, LoadingState, NowServingBoard, PageHeader } from "@workspace/ui/components";
-import { FloorStatsSection, WaitingListSection, RecentlyCompletedSection, formatToken, type DeskFloorRow } from "./DeskFloorPanelUISections";
+import { FloorStatsSection, WaitingListSection, RecentlyCompletedSection } from "./DeskFloorPanelUISections";
+import { formatToken, type DeskFloorRow } from "./desk-floor-panel-helpers";
 
-export type { DeskFloorRow } from "./DeskFloorPanelUISections";
 
 export interface DeskFloorCurrent {
   tokenNumber: number;
@@ -10,7 +10,7 @@ export interface DeskFloorCurrent {
   doctorName?: string | null;
 }
 
-export interface DeskFloorPanelUIProps {
+interface DeskFloorPanelUIProps {
   current: DeskFloorCurrent | null;
   waiting: DeskFloorRow[];
   recentlyCompleted: DeskFloorRow[];

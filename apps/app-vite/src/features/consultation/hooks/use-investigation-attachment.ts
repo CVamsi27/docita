@@ -12,7 +12,7 @@ const ALLOWED_MIME_TYPES = [
   "application/pdf",
 ] as const;
 
-export interface InvestigationAttachmentResult {
+interface InvestigationAttachmentResult {
   attachmentUrl: string;
   attachmentName: string;
   attachmentDocumentId?: string;

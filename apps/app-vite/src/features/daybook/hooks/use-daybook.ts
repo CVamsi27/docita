@@ -7,7 +7,7 @@ import {
   type DaybookSummary,
 } from "@/features/daybook/lib/daybook-aggregate";
 
-export interface UseDaybookResult {
+interface UseDaybookResult {
   selectedDayIso: string;
   setSelectedDayIso: (iso: string) => void;
   todayIso: string;

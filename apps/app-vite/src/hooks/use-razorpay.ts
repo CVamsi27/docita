@@ -9,7 +9,6 @@ import {
   type RazorpayInstance,
 } from "./razorpay-helpers";
 import {
-  type RazorpayCheckoutError,
   isPaymentCanceledError,
   notifyPaymentCanceled,
 } from "./razorpay-checkout-errors";
@@ -17,10 +16,9 @@ import {
 export {
   isPaymentCanceledError,
   notifyPaymentCanceled,
-  type RazorpayCheckoutError,
 };
 
-export type { RazorpayCheckoutResult, RazorpayResponse };
+export type {RazorpayResponse};
 
 export function useRazorpay() {
   const [isLoaded, setIsLoaded] = useState(false);

@@ -15,7 +15,7 @@ const portalDoseStatusByInput: Record<string, PortalDoseStatus> = {
   ADMINISTERED: "ADMINISTERED",
 };
 
-export function parsePortalDoseStatus(value: unknown): PortalDoseStatus | null {
+function parsePortalDoseStatus(value: unknown): PortalDoseStatus | null {
   return typeof value === "string"
     ? (portalDoseStatusByInput[value.toUpperCase()] ?? null)
     : null;

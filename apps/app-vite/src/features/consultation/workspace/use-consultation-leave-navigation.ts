@@ -22,11 +22,6 @@ import type {
 export { CONSULTATION_LEAVE_GUARD_SKIP_ATTR };
 export type {
   ConsultationSaveHandles,
-  PeelingHistoryTrapsRef,
-  PendingHistoryTrapsRef,
-  PendingHrefRef,
-  ReadOnlyRef,
-  SetLeaveDialogOpen,
 } from "./consultation-leave-navigation-types";
 
 interface UseConsultationLeaveNavigationOptions {

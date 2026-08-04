@@ -1,18 +1,21 @@
-export type AdmissionStatus =
+type AdmissionStatus =
   | "admitted"
   | "discharged"
   | "transferred"
   | "deceased";
-export type BedStatus = "available" | "occupied" | "maintenance" | "reserved";
-export type BedType = "general" | "icu" | "private" | "semi-private";
-export type WardType =
-  | "general"
-  | "icu"
-  | "pediatric"
-  | "maternity"
-  | "surgical";
+type BedStatus = "available" | "occupied" | "maintenance" | "reserved";
 
-export interface Admission {
+interface Bed {
+  id: string;
+  wardId: string;
+  bedNumber: string;
+  status: BedStatus;
+  currentPatientId?: string;
+  type: "general" | "icu" | "private" | "semi-private";
+}
+
+
+interface Admission {
   id: string;
   patientId: string;
   admissionDate: Date;
@@ -23,23 +26,6 @@ export interface Admission {
   attendingDoctorId: string;
   diagnosis?: string;
   notes?: string;
-}
-
-export interface Bed {
-  id: string;
-  wardId: string;
-  bedNumber: string;
-  status: BedStatus;
-  currentPatientId?: string;
-  type: "general" | "icu" | "private" | "semi-private";
-}
-
-export interface Ward {
-  id: string;
-  name: string;
-  floor: number;
-  totalBeds: number;
-  type: "general" | "icu" | "pediatric" | "maternity" | "surgical";
 }
 
 export function canAdmitPatient(bed: Bed): boolean {
@@ -70,39 +56,4 @@ export function getAvailableBeds(beds: Bed[], wardId?: string): Bed[] {
   return beds.filter(
     (b) => b.status === "available" && (!wardId || b.wardId === wardId),
   );
-}
-
-export function getWardStats(ward: Ward, beds: Bed[]) {
-  const wardBeds = beds.filter((b) => b.wardId === ward.id);
-  return {
-    totalBeds: wardBeds.length,
-    available: wardBeds.filter((b) => b.status === "available").length,
-    occupied: wardBeds.filter((b) => b.status === "occupied").length,
-    maintenance: wardBeds.filter((b) => b.status === "maintenance").length,
-    occupancyRate: getBedOccupancyRate(wardBeds),
-  };
-}
-
-export function bedNeedsCleaning(bed: Bed): boolean {
-  return bed.status === "maintenance";
-}
-
-export function getAdmissionStatusLabel(status: AdmissionStatus): string {
-  const labels: Record<AdmissionStatus, string> = {
-    admitted: "Admitted",
-    discharged: "Discharged",
-    transferred: "Transferred",
-    deceased: "Deceased",
-  };
-  return labels[status];
-}
-
-export function getBedTypeLabel(type: Bed["type"]): string {
-  const labels: Record<Bed["type"], string> = {
-    general: "General Ward",
-    icu: "ICU",
-    private: "Private Room",
-    "semi-private": "Semi-Private",
-  };
-  return labels[type];
 }

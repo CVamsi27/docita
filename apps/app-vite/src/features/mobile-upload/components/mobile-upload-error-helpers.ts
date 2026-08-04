@@ -1,6 +1,6 @@
 import { APIRequestError } from "@workspace/data-access";
 
-export interface UploadErrorPresentation {
+interface UploadErrorPresentation {
   /** User-facing message shown both inline and in the toast. */
   message: string;
   /** Value to hand `showUserFacingErrorToast` as the error — `null` for

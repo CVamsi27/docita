@@ -1,4 +1,3 @@
-import { useSyncExternalStore } from "react";
 import { getAppApiUrl } from "./api-config";
 
 const API_HEALTH_RETRY_DELAY_MS = 2_000;
@@ -89,21 +88,4 @@ export function trackApiResponse(response: Response): void {
   }
 
   markApiAvailable();
-}
-
-function getApiAvailabilitySnapshot(): ApiAvailabilitySnapshot {
-  return snapshot;
-}
-
-function subscribeToApiAvailability(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-export function useApiAvailability(): ApiAvailabilitySnapshot {
-  return useSyncExternalStore(
-    subscribeToApiAvailability,
-    getApiAvailabilitySnapshot,
-    () => availableSnapshot,
-  );
 }

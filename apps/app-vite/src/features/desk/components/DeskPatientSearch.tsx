@@ -9,7 +9,7 @@ interface DeskPatientListItem {
   phoneNumber?: string | null;
 }
 
-export interface DeskPatientSearchProps {
+interface DeskPatientSearchProps {
   searchQuery: string;
   selectedPatientId: string | null;
   patients: DeskPatientListItem[];

@@ -23,7 +23,7 @@ export function normalizeStatus(status: string | undefined): string {
   return normalizeSubscriptionPaymentStatus(status);
 }
 
-export function isPaidStatus(status: string): boolean {
+function isPaidStatus(status: string): boolean {
   if (PAID_SUBSCRIPTION_STATUSES.has(status)) {
     return true;
   }
@@ -51,7 +51,7 @@ export function isFailedLike(status: string): boolean {
   return isFailedSubscriptionPaymentStatus(status);
 }
 
-export function isPendingLike(status: string): boolean {
+function isPendingLike(status: string): boolean {
   return isPendingSubscriptionPaymentStatus(status);
 }
 
@@ -123,7 +123,7 @@ export function parseDayBoundary(
   return Number.isFinite(t) ? t : null;
 }
 
-export type BillingHistoryItemWithActions = BillingHistoryItem & {
+type BillingHistoryItemWithActions = BillingHistoryItem & {
   payUrl?: string;
   receiptUrl?: string;
 };

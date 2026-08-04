@@ -51,7 +51,7 @@ export function extractProblemDetail(error: unknown): string | null {
   return typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : null;
 }
 
-export function inferPublicBookingFieldErrorsFromDetail(
+function inferPublicBookingFieldErrorsFromDetail(
   detail: string | null | undefined,
 ): Record<string, string> {
   if (!detail) return {};

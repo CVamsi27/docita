@@ -6,7 +6,8 @@ import { DAY_OF_WEEK_LABELS, type DayOfWeek } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { OnboardingStepBody, OnboardingStepCard, OnboardingStepFooter, OnboardingStepHeader } from "@/features/setup/components/onboarding/shared";
 import type { ClinicWeeklyHourRow } from "@/features/setup/components/onboarding/types";
-import { DISPLAY_ORDER, buildWeeklyHourRows, sortRowsForApi, DayRowCard } from "./ClinicWeeklyHoursStepSections";
+import { DayRowCard } from "./ClinicWeeklyHoursStepSections";
+import { DISPLAY_ORDER, buildWeeklyHourRows, sortRowsForApi } from "./clinic-weekly-hours-helpers";
 
 export function ClinicWeeklyHoursStep({
   initialRows,

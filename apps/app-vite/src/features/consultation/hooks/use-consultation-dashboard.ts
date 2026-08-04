@@ -11,9 +11,6 @@ import {
   type ConsultationQueueRow,
 } from "@/features/consultation/api/consultation.api";
 
-export type QueueRow = ConsultationQueueRow;
-export type DashboardStats = ConsultationDashboardStats;
-export type DoctorNextNow = ConsultationDoctorNextNow;
 
 export function useConsultationDashboard() {
   const navigate = useNavigate();
@@ -117,6 +114,7 @@ export function useConsultationDashboard() {
     currentUserRole: userRole,
     clinicType: "",
     canViewAllDoctors: false,
+    // check-as-cast-density: allow-file — selectedDoctorId widened to string|null at the boundary for optional scoping
     selectedDoctorId: null as string | null,
     setSelectedDoctorId: (_: string | null) => {},
     scopedDoctorId: user?.id ?? null,

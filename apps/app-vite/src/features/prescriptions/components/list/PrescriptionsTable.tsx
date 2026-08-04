@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle, DataTable } from "@workspace/ui/components";
-import { getPrescriptionColumns, MobileCard } from "./PrescriptionsTableSections";
+import { MobileCard } from "./PrescriptionsTableSections";
+import { getPrescriptionColumns } from "./prescriptions-table-helpers";
 import type { Prescription } from "@workspace/types";
 import type { SortConfig, SortKey } from "./PrescriptionsTableSections";
 
-export type { SortConfig, SortKey, SortDirection } from "./PrescriptionsTableSections";
+export type { SortConfig, SortKey} from "./PrescriptionsTableSections";
 
 export interface PrescriptionsTableProps {
   prescriptions: Prescription[];

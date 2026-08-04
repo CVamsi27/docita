@@ -1,4 +1,4 @@
-export type TagColorToken =
+type TagColorToken =
   | "rose"
   | "amber"
   | "emerald"
@@ -9,7 +9,7 @@ export type TagColorToken =
   | "pink"
   | "slate";
 
-export interface TagColor {
+interface TagColor {
   token: TagColorToken;
   name: string;
   cssVar: string;

@@ -8,7 +8,7 @@ type SortKey = "date" | "amount" | "patient" | "status";
 type SortDirection = "asc" | "desc";
 type SortConfig = { key: SortKey; direction: SortDirection };
 
-export type { SortConfig, SortDirection, SortKey };
+export type {SortConfig, SortKey};
 
 export const useInvoicesLogic = () => {
   const [filter, setFilter] =

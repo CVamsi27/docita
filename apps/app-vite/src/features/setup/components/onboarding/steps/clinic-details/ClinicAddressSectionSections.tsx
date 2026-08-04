@@ -7,7 +7,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/setup/components/onboarding/types";
 import { applyMapsLinkLocation } from "./clinic-details-utils";
 
-export interface ClinicAddressHeaderProps {
+interface ClinicAddressHeaderProps {
   isPinned: boolean;
   onOpenMapPicker: () => void;
   mapsLocationError?: string;
@@ -70,7 +70,7 @@ export function ClinicAddressHeader({
   );
 }
 
-export interface AddressLine1FieldProps {
+interface AddressLine1FieldProps {
   clinicForm: UseFormReturn<ClinicDetails>;
 }
 
@@ -103,7 +103,7 @@ export function AddressLine1Field({ clinicForm }: AddressLine1FieldProps) {
   );
 }
 
-export interface AddressLine2FieldProps {
+interface AddressLine2FieldProps {
   clinicForm: UseFormReturn<ClinicDetails>;
 }
 
@@ -134,7 +134,7 @@ export function AddressLine2Field({ clinicForm }: AddressLine2FieldProps) {
   );
 }
 
-export interface CityStateFieldsProps {
+interface CityStateFieldsProps {
   clinicForm: UseFormReturn<ClinicDetails>;
 }
 
@@ -189,7 +189,7 @@ export function CityStateFields({ clinicForm }: CityStateFieldsProps) {
   );
 }
 
-export interface CountryPostalFieldsProps {
+interface CountryPostalFieldsProps {
   clinicForm: UseFormReturn<ClinicDetails>;
   resolvedCountryCode: string;
 }
@@ -243,7 +243,7 @@ export function CountryPostalFields({
   );
 }
 
-export interface AddressPreviewProps {
+interface AddressPreviewProps {
   addressSummary: string;
 }
 
@@ -260,7 +260,7 @@ export function AddressPreview({ addressSummary }: AddressPreviewProps) {
   );
 }
 
-export interface GoogleMapsLinkFieldProps {
+interface GoogleMapsLinkFieldProps {
   clinicForm: UseFormReturn<ClinicDetails>;
 }
 

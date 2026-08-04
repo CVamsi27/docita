@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { AppointmentWithRelations } from "@workspace/data-access";
-import { isConsultationReadOnlyStatus } from "@/features/appointments/rules/appointment-rules";
+import { isConsultationReadOnlyStatus } from "@/features/appointments";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import {
   canCompleteConsultation,

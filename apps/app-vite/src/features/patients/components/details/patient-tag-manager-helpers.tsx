@@ -3,26 +3,21 @@ import { Badge, Button, Input, Label, ScrollArea } from "@workspace/ui/component
 import { Check, Palette, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { PresetTag } from "./patient-tag.types";
-import { COLOR_PALETTE, type PresetTagLike, groupPresetTags } from "./patient-tag-manager-logic";
+import { type PresetTagLike } from "./patient-tag-manager-logic";
 import { ColorPickerGrid, ColorSwatchButton } from "./patient-tag-color-pickers";
-export type { ColorPickerGridProps, ColorSwatchButtonProps } from "./patient-tag-color-pickers";
 
-// Re-export logic helpers so existing callers that import from this file still work
-export { COLOR_PALETTE, groupPresetTags };
-export type { PresetTagLike };
 
 // Re-export color pickers so existing callers keep working
 export { ColorPickerGrid, ColorSwatchButton };
 
 // Re-export CurrentTagsTab (extracted to its own file to stay within SRP budget)
 export { CurrentTagsTab } from "./patient-tag-current-tab";
-export type { CurrentTagsTabProps } from "./patient-tag-current-tab";
 
 // ---------------------------------------------------------------------------
 // PresetsTab
 // ---------------------------------------------------------------------------
 
-export interface PresetsTabProps {
+interface PresetsTabProps {
   searchQuery: string;
   filteredPresets: PresetTag[];
   groupedPresets: Record<string, PresetTagLike[]>;
@@ -95,7 +90,7 @@ export function PresetsTab({
 // CustomTagTab
 // ---------------------------------------------------------------------------
 
-export interface CustomTagTabProps {
+interface CustomTagTabProps {
   newTag: string;
   newColor: string;
   loading: boolean;

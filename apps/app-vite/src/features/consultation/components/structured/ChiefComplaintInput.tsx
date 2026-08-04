@@ -7,7 +7,6 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { ChiefComplaintItemRow } from "./chief-complaint-item-row";
 import type { ChiefComplaintItem } from "./chief-complaint.types";
 
-export type { ChiefComplaintItem };
 
 interface ChiefComplaintInputProps {
   value: ChiefComplaintItem[];

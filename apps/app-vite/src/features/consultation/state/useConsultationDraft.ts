@@ -7,17 +7,12 @@ import {
   resolveDraftUpdater,
 } from "./consultation-draft-helpers";
 import type {
-  ConsultationDraftActions,
   ConsultationDraftState,
   ConsultationDraftStore,
-  SaveState,
 } from "./consultation-draft.types";
 
 export type {
-  ConsultationDraftActions,
   ConsultationDraftState,
-  ConsultationDraftStore,
-  SaveState,
 };
 
 /** Aligns leave navigation, history traps, and `beforeunload` warnings. */

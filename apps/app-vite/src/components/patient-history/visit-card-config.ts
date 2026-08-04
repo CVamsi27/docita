@@ -125,7 +125,7 @@ function parseDiagnosisMetadataArray(value: unknown): DiagnosisMetadata[] {
   return diagnoses;
 }
 
-export interface VisitCardMetadataFields {
+interface VisitCardMetadataFields {
   doctorName: string | null | undefined;
   consultationId: string | null | undefined;
   vitals: VitalsMetadata | null | undefined;

@@ -5,7 +5,6 @@ export const VIEWPORT_PRESETS = {
   laptop: { width: 1280, height: 720 },
 } as const;
 
-export type ViewportPresetName = keyof typeof VIEWPORT_PRESETS;
 
 export const RESPONSIVE_PROJECTS = [
   "mobile-chrome",

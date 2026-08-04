@@ -7,7 +7,6 @@ import {
   Pill,
   Printer,
 } from "lucide-react";
-import type { DataTableColumn } from "@workspace/ui/components/data-display/data-table";
 import { SortableHeaderButton } from "@workspace/ui/components/data-display/sortable-header-button";
 import { ListRow } from "@workspace/ui/components/data-display/list-row";
 import { Button } from "@workspace/ui/components/form/button";
@@ -48,7 +47,7 @@ function getPatientName(prescription: Prescription) {
   return getPatientFullName(prescription.patient);
 }
 
-function PatientCell({ prescription }: { prescription: Prescription }) {
+export function PatientCell({ prescription }: { prescription: Prescription }) {
   const fullName = getPatientName(prescription);
   const phone = prescription.patient?.phoneNumber ?? "";
   return (
@@ -71,7 +70,7 @@ function PatientCell({ prescription }: { prescription: Prescription }) {
   );
 }
 
-function DiagnosisCell({ prescription }: { prescription: Prescription }) {
+export function DiagnosisCell({ prescription }: { prescription: Prescription }) {
   return (
     <span className="max-w-[200px] truncate">
       {prescription.diagnosis || "-"}
@@ -79,7 +78,7 @@ function DiagnosisCell({ prescription }: { prescription: Prescription }) {
   );
 }
 
-function MedicationsCell({ prescription }: { prescription: Prescription }) {
+export function MedicationsCell({ prescription }: { prescription: Prescription }) {
   return (
     <Badge variant="secondary">
       <Pill className="mr-1 h-3 w-3" />
@@ -88,7 +87,7 @@ function MedicationsCell({ prescription }: { prescription: Prescription }) {
   );
 }
 
-function DateCell({ prescription }: { prescription: Prescription }) {
+export function DateCell({ prescription }: { prescription: Prescription }) {
   return (
     <span className="whitespace-nowrap">
       {formatDate(prescription.createdAt, "MMM d, yyyy")}
@@ -96,7 +95,7 @@ function DateCell({ prescription }: { prescription: Prescription }) {
   );
 }
 
-function ActionsCell({
+export function ActionsCell({
   prescription,
   onDownloadPDF,
 }: {
@@ -179,19 +178,4 @@ export function MobileCard({ prescription, onDownloadPDF }: {
       </div>
     </div>
   );
-}
-
-export function getPrescriptionColumns(
-  sortConfig: SortConfig, onSort: (key: SortKey) => void, onDownloadPDF: (id: string) => void,
-): DataTableColumn<Prescription>[] {
-  return [
-    { id: "id", header: "Prescription ID", hiddenOnMobile: true, cell: (p) => (
-      <span className="font-mono text-sm">{(p.id || "").slice(0, 8).toUpperCase()}</span>
-    ) },
-    { id: "patient", header: <SortableHeader column="patient" label="Patient" sortConfig={sortConfig} onSort={onSort} />, cell: (p) => <PatientCell prescription={p} /> },
-    { id: "diagnosis", header: <SortableHeader column="diagnosis" label="Diagnosis" sortConfig={sortConfig} onSort={onSort} />, hiddenOnMobile: true, cell: (p) => <DiagnosisCell prescription={p} /> },
-    { id: "medications", header: <SortableHeader column="medications" label="Medications" sortConfig={sortConfig} onSort={onSort} />, cell: (p) => <MedicationsCell prescription={p} /> },
-    { id: "date", header: <SortableHeader column="date" label="Date" sortConfig={sortConfig} onSort={onSort} />, hiddenOnMobile: true, cell: (p) => <DateCell prescription={p} /> },
-    { id: "actions", header: "Actions", cell: (p) => <ActionsCell prescription={p} onDownloadPDF={onDownloadPDF} /> },
-  ];
 }

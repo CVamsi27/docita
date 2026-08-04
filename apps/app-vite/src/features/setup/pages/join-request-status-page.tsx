@@ -1,5 +1,5 @@
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 import { BackButton } from "@/components/navigation/back-button";
 import { JoinRequestStatusPendingCard } from "@/features/setup/components/join-request-status-pending-card";
 import { JoinRequestStatusTerminal } from "@/features/setup/components/join-request-status-terminal";

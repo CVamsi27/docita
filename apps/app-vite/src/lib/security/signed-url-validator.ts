@@ -17,7 +17,7 @@ const SIGNED_URL_REQUIRED_PARAMS = [
   "X-Amz-Credential",
 ] as const;
 
-export interface SignedUrlValidationResult {
+interface SignedUrlValidationResult {
   valid: boolean;
   reason?: string;
 }

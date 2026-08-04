@@ -317,7 +317,7 @@ export function DocumentFooter() {
   );
 }
 
-export function SignatureField({ label }: { label: string }) {
+function SignatureField({ label }: { label: string }) {
   return (
     <div className="space-y-1">
       <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -328,7 +328,7 @@ export function SignatureField({ label }: { label: string }) {
   );
 }
 
-export function SignatureLine({ label }: { label: string }) {
+function SignatureLine({ label }: { label: string }) {
   return (
     <div className="space-y-1">
       <div className="h-12 border-b-2 border-muted-foreground/60" />
@@ -337,7 +337,7 @@ export function SignatureLine({ label }: { label: string }) {
   );
 }
 
-export function ConsentOptionRow({
+function ConsentOptionRow({
   label,
   options,
 }: {

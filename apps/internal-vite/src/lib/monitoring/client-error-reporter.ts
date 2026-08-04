@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — window global flag read via untyped Record (platform gap, no DOM typings for app globals)
 import { captureException } from "./sentry.client.config";
 
 export function installGlobalErrorHandler(): void {

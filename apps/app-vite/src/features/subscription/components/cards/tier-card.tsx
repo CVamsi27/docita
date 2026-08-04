@@ -5,7 +5,6 @@ import { type TierCardProps, TIER_GRADIENTS } from "./tier-card-types";
 import { TierCardHeader } from "./tier-card-header";
 import { TierCardSelectButton } from "./tier-card-cta";
 
-export type { TierCardProps } from "./tier-card-types";
 
 const TIER_NAMES = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE", "INTELLIGENCE"];
 

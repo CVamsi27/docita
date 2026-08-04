@@ -10,7 +10,7 @@ import { logger } from "@/lib/monitoring/logger";
 import { useAuth } from "@/lib/auth/auth-context";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { PreDashboardShell } from "@/features/auth";
 import { persistReturnPathBeforeLogin } from "@/lib/auth/safe-return-path";
 
 const CREATE_BULLETS = [

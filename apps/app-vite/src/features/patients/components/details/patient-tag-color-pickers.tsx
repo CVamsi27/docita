@@ -4,7 +4,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components/overlay/tooltip";
 import { COLOR_PALETTE } from "./patient-tag-manager-logic";
 
-export interface ColorPickerGridProps {
+interface ColorPickerGridProps {
   selectedColor: string;
   onSelect: (color: string) => void;
   cols: number;
@@ -47,7 +47,7 @@ export function ColorPickerGrid({
   );
 }
 
-export interface ColorSwatchButtonProps {
+interface ColorSwatchButtonProps {
   color: string;
   label: string;
   onClick: () => void;

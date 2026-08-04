@@ -6,7 +6,7 @@ import { formatTierPrice, type TierCardProps } from "./tier-card-types";
 
 type TierPricing = NonNullable<TierCardProps["pricing"]>;
 
-export function TierCardPriceAmount({
+function TierCardPriceAmount({
   tier,
   pricing,
   billingCycle,
@@ -124,7 +124,7 @@ export function TierCardSummaryOverage({ overageHint, overageItems }: { overageH
   );
 }
 
-export function TierCardLimitHighlights({ limitHighlights }: { limitHighlights: string[] }) {
+function TierCardLimitHighlights({ limitHighlights }: { limitHighlights: string[] }) {
   return (
     <ul className="grid grid-cols-2 gap-2 text-sm text-foreground">
       {limitHighlights.map((item, index) => {
@@ -141,7 +141,7 @@ export function TierCardLimitHighlights({ limitHighlights }: { limitHighlights: 
   );
 }
 
-export function TierCardUsageHints({ usageHints }: { usageHints: NonNullable<TierCardProps["usageHints"]> }) {
+function TierCardUsageHints({ usageHints }: { usageHints: NonNullable<TierCardProps["usageHints"]> }) {
   return (
     <ul className="grid grid-cols-1 gap-2 text-sm text-foreground">
       {usageHints.patients !== undefined ? (

@@ -1,8 +1,6 @@
 import type { Appointment } from "@workspace/types";
 import {
   addMinutes,
-  getMinutesDifference,
-  isFuture,
   isPast,
   isToday,
   startOfMinute,
@@ -15,10 +13,6 @@ export const isAppointmentPast = (appointment: Appointment): boolean => {
 
 export const isAppointmentToday = (appointment: Appointment): boolean => {
   return isToday(appointment.startTime);
-};
-
-export const isAppointmentUpcoming = (appointment: Appointment): boolean => {
-  return isFuture(appointment.startTime);
 };
 
 /** Visit is finished: clinical record should not be edited in the consultation workspace. */
@@ -49,12 +43,6 @@ export const canCancel = (appointment: Appointment): boolean => {
   );
 };
 
-export const canReschedule = (appointment: Appointment): boolean => {
-  return (
-    appointment.status === "scheduled" && isAppointmentUpcoming(appointment)
-  );
-};
-
 /**
  * True when the row should expose its primary "Start / Resume / View" action.
  *
@@ -82,10 +70,4 @@ export const canStartConsultationAtTime = (
     default:
       return new Date(appointment.startTime).getTime() <= now.getTime();
   }
-};
-
-export const getAppointmentDuration = (appointment: Appointment): number => {
-  if (!appointment.endTime) return 30;
-
-  return getMinutesDifference(appointment.startTime, appointment.endTime);
 };

@@ -1,3 +1,4 @@
+// check-non-null-assertion: allow-file — createRoot(document.getElementById("root")!) is the standard Vite entry contract; index.html guarantees the node
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";

@@ -6,16 +6,9 @@ import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
 import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Pencil } from "lucide-react";
 import type { PatientsSortConfig } from "./patients-page-types";
+import { getAriaSort } from "./patients-table-helpers";
 
-export function getAriaSort(
-  sortConfig: PatientsSortConfig | null,
-  column: keyof Patient | "fullName",
-) {
-  if (sortConfig?.key !== column) return "none" as const;
-  return sortConfig.direction === "asc" ? "ascending" : "descending";
-}
-
-export function SortIcon({
+function SortIcon({
   sortConfig,
   column,
 }: {

@@ -6,13 +6,13 @@ import {
   type TierName,
 } from "@workspace/types";
 
-export interface SubscriptionCheckoutParams {
+interface SubscriptionCheckoutParams {
   tier: TierName;
   billingCycle: "MONTHLY" | "YEARLY";
   planMode?: PlanMode;
 }
 
-export interface SubscriptionActivateParams {
+interface SubscriptionActivateParams {
   razorpayPaymentId: string;
   razorpayOrderId: string;
   razorpaySignature: string;

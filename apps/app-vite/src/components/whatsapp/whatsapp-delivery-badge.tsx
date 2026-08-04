@@ -38,7 +38,7 @@ const STATE_CONFIG: Record<
   unknown: { label: "Not sent", variant: "secondary", icon: Send },
 };
 
-export interface WhatsAppDeliveryBadgeProps {
+interface WhatsAppDeliveryBadgeProps {
   status: string | null | undefined;
   sentAt?: string | Date | null;
   onRetry?: () => void;

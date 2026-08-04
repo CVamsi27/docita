@@ -19,7 +19,7 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useConsultationShellScroll } from "./use-consultation-shell-scroll";
 import { useConsultationShellChrome } from "./use-consultation-shell-chrome";
 
-export interface UseConsultationShellOptions {
+interface UseConsultationShellOptions {
   appointmentData: Appointment & { patient?: PatientWithMedicalHistory };
   clinicType?: string;
   readOnly?: boolean;

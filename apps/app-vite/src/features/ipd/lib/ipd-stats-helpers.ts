@@ -40,7 +40,7 @@ export function countTotalBeds(wards: WardWithRooms[] | undefined): number {
   }, 0);
 }
 
-export interface IpdStats {
+interface IpdStats {
   totalBeds: number;
   occupiedBeds: number;
   availableBeds: number;

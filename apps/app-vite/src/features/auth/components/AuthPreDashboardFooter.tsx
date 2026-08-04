@@ -5,7 +5,7 @@ import { getPhoneDigits, getSupportPhoneDisplay, getSupportPhoneNumber, SUPPORT_
 import { cn } from "@workspace/ui/lib/utils";
 import { AUTH_ASSURANCE_ITEMS } from "../lib/auth-assurance-items";
 
-export interface AuthPreDashboardFooterProps {
+interface AuthPreDashboardFooterProps {
   className?: string;
   "data-testid"?: string;
   whatsappMessage?: string;

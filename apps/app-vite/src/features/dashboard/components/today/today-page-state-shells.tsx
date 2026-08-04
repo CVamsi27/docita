@@ -6,7 +6,7 @@ import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffo
 import { DashboardSkeletonUI } from "@/features/dashboard/components/layout/dashboard-skeleton-ui";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 
-export interface TodayHeaderSlotProps {
+interface TodayHeaderSlotProps {
   header: ReactNode;
 }
 

@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   chiefComplaintDraftItemSchema,
-  diagnosisDraftItemSchema,
   examinationDraftSchema,
   type ChiefComplaintDraftItem,
   type DiagnosisDraftItem,
@@ -13,7 +12,7 @@ import type { ExaminationData } from "@/features/consultation/components/structu
 
 const chiefComplaintStructuredSchema = z.array(chiefComplaintDraftItemSchema);
 
-export function mapDraftChiefComplaintItem(
+function mapDraftChiefComplaintItem(
   item: ChiefComplaintDraftItem,
 ): ChiefComplaintItem {
   const duration = item.duration?.trim() ?? "";
@@ -78,7 +77,7 @@ function mapDiagnosisType(
   return "provisional";
 }
 
-export function mapDraftDiagnosisItem(item: DiagnosisDraftItem): DiagnosisItem {
+function mapDraftDiagnosisItem(item: DiagnosisDraftItem): DiagnosisItem {
   return {
     id: item.id,
     condition: item.condition,
@@ -108,10 +107,4 @@ export function parseStructuredChiefComplaints(
   const parsed = chiefComplaintStructuredSchema.safeParse(raw);
   if (!parsed.success) return undefined;
   return mapSessionChiefComplaints(parsed.data);
-}
-
-export function parseDiagnosisList(raw: unknown): DiagnosisItem[] {
-  const parsed = z.array(diagnosisDraftItemSchema).safeParse(raw);
-  if (parsed.success) return mapSessionDiagnosis(parsed.data);
-  return [];
 }

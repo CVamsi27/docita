@@ -16,7 +16,7 @@ import {
   type AvailableTime,
 } from "./RequestAdjustPopoverFields";
 
-export interface RequestAdjustPopoverProps {
+interface RequestAdjustPopoverProps {
   requestId: string;
   doctorOptions: SchedulableDoctor[];
   effectiveDoctorId: string;

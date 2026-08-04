@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — shared form-field section props require structural casts (formData/field key)
 import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import { FacilityDetailsSection } from "./facility-details-section";
 import type { ClinicType, TierName } from "@workspace/types";

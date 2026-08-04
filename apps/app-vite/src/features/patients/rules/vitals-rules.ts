@@ -4,18 +4,7 @@ import {
   getBMIStatus as getSharedBMIStatus,
 } from "@workspace/utils";
 
-export interface VitalsData {
-  bloodPressure?: string;
-  pulse?: number;
-  temperature?: number;
-  weight?: number;
-  height?: number;
-  spo2?: number;
-  respiratoryRate?: number;
-  bmi?: number;
-}
-
-export interface VitalsWithDate {
+interface VitalsWithDate {
   vitals: VitalSign;
   date: string;
 }

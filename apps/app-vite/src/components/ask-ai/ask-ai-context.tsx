@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-export interface AskAiScope {
+interface AskAiScope {
   id: string;
   label: string;
   payload?: Record<string, unknown>;

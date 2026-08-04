@@ -15,7 +15,7 @@ export function ManageMemberLabField({
   return <TeamMemberLabField form={memberForm} />;
 }
 
-export interface ManageMemberInfoCardProps {
+interface ManageMemberInfoCardProps {
   member: User;
   selectedMemberRole: MemberRole;
   roleLabels: Record<MemberRole, string>;
@@ -39,7 +39,7 @@ export function ManageMemberInfoCard({
   );
 }
 
-export interface ManageMemberNameRoleFieldsProps {
+interface ManageMemberNameRoleFieldsProps {
   memberForm: UseFormReturn<MemberFormValues>;
   canChangeSelectedMemberRole: boolean;
   selectedMemberRole: MemberRole;
@@ -106,7 +106,7 @@ export function ManageMemberNameRoleFields({
   );
 }
 
-export interface ManageMemberContactFieldsProps {
+interface ManageMemberContactFieldsProps {
   memberForm: UseFormReturn<MemberFormValues>;
 }
 
@@ -116,7 +116,7 @@ export function ManageMemberContactFields({
   return <TeamMemberContactFields form={memberForm} />;
 }
 
-export interface ManageMemberCreatedDateProps {
+interface ManageMemberCreatedDateProps {
   member: User;
   formatDate: (value?: string | Date) => string;
 }
@@ -134,7 +134,7 @@ export function ManageMemberCreatedDate({
   );
 }
 
-export interface ManageMemberFooterProps {
+interface ManageMemberFooterProps {
   onOpenChange: (open: boolean) => void;
   isManaging: boolean;
   isUpdatingMember: boolean;

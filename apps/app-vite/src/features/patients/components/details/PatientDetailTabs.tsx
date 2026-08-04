@@ -13,8 +13,6 @@ export {
   PATIENT_DETAIL_TAB_VALUES,
   PATIENT_RECORDS_SUB_TABS,
   LEGACY_PATIENT_TAB_REDIRECTS,
-  type PatientDetailTabValue,
-  type PatientRecordsSubTab,
 } from "./patient-detail-tabs-config";
 
 interface PatientDetailTabsProps {

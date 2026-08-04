@@ -1,17 +1,17 @@
 import { apiFetch } from "@/lib/api/api-client";
 
-export interface UploadSessionCredentials {
+interface UploadSessionCredentials {
   id: string;
   uploadSecret: string;
 }
 
-export interface UploadSessionResponse {
+interface UploadSessionResponse {
   id?: string;
   status?: string;
   fileUrl?: string | null;
 }
 
-export function createUploadSession(): Promise<UploadSessionCredentials> {
+function createUploadSession(): Promise<UploadSessionCredentials> {
   return apiFetch<UploadSessionCredentials>("/uploads/session", {
     method: "POST",
   });
@@ -47,21 +47,4 @@ export async function uploadFileViaSession(
     uploadSecret: session.uploadSecret,
     file,
   });
-}
-
-export function fetchUploadSessionStatus(
-  sessionId: string,
-): Promise<UploadSessionResponse> {
-  const cacheBuster = Date.now();
-  return apiFetch<UploadSessionResponse>(
-    `/uploads/session/${sessionId}?t=${cacheBuster}`,
-    {
-      method: "GET",
-      cache: "no-store",
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-      },
-    },
-  );
 }

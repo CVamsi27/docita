@@ -21,7 +21,7 @@ export const resolveAppApiUrl = resolveApiUrl;
  * upstream Fly origin, browser fetches become cross-origin and fail CORS +
  * cookie auth. Prefer the app-origin proxy whenever we are not on the API host.
  */
-export function shouldUseSameOriginAppProxy(
+function shouldUseSameOriginAppProxy(
   configured: string,
   hostname: string,
 ): boolean {

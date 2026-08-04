@@ -23,7 +23,7 @@ import {
   UserCog,
 } from "lucide-react";
 import { PageMeta } from "@/components/layout/page-meta";
-import { SubscriptionSettingsContent } from "@/features/subscription/components/subscription-settings-content";
+import { SubscriptionSettingsContent } from "@/features/subscription";
 
 export function SettingsPage() {
   const navigate = useNavigate();

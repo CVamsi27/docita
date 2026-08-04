@@ -16,7 +16,7 @@ import {
 import type { AppointmentRequestResponse } from "@workspace/types";
 import { REJECT_REASON_CUSTOM, REJECT_REASON_OPTIONS } from "./request-row-helpers";
 
-export interface RequestRejectPopoverProps {
+interface RequestRejectPopoverProps {
   request: AppointmentRequestResponse;
   rejectReason: string;
   rejectCustom: string;

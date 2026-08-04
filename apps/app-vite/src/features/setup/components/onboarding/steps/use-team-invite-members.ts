@@ -7,9 +7,9 @@ import {
   isDoctorRole,
   type TeamInviteStepProps,
 } from "./team-invite-step-constants";
-import { hasRowContent, getMemberIssue } from "./TeamInviteStepSections";
+import { hasRowContent, getMemberIssue } from "./team-invite-helpers";
 
-export interface UseTeamInviteMembersOptions {
+interface UseTeamInviteMembersOptions {
   onComplete: TeamInviteStepProps["onComplete"];
   maxMembers: number;
   ownerEmail?: string;

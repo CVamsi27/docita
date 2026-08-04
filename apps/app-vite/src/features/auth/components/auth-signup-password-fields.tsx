@@ -1,7 +1,8 @@
 import { Eye, EyeOff } from "lucide-react";
 import { Button, Input, Label, SymbolTooltip } from "@workspace/ui/components";
 import { hasFieldError, getFieldError } from "@/lib/utils/form-errors";
-import { fieldClass, InlineFieldError, PasswordStrengthIndicator } from "./AuthSharedFields";
+import { InlineFieldError, PasswordStrengthIndicator } from "./AuthSharedFields";
+import { fieldClass } from "./auth-field-error-helpers";
 import type { FieldErrors } from "../types/auth";
 
 function renderPasswordInput({

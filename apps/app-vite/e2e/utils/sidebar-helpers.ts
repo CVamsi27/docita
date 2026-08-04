@@ -6,7 +6,7 @@ function sidebarNavLinkTestId(href: string): string {
 }
 
 /** Opens the mobile navigation sheet when the desktop sidebar is hidden. */
-export async function openMobileNavigationIfNeeded(page: Page) {
+async function openMobileNavigationIfNeeded(page: Page) {
   const openNav = page.getByRole("button", { name: "Open navigation" });
   if (await openNav.isVisible().catch(() => false)) {
     await openNav.click();
@@ -17,7 +17,7 @@ export async function openMobileNavigationIfNeeded(page: Page) {
 }
 
 /** Expands the desktop sidebar rail when labels are collapsed to icons only. */
-export async function expandSidebarIfCollapsed(page: Page) {
+async function expandSidebarIfCollapsed(page: Page) {
   const expandSidebar = page.getByRole("button", { name: "Expand sidebar" });
   if (await expandSidebar.isVisible().catch(() => false)) {
     await expandSidebar.click();
