@@ -55,7 +55,7 @@ Operating rules:
 | a11y budget baseline                   | **refreshed 2026-08-03** (`baseline-app-2026-08-03.json`, 0 serious/critical; `check:a11y-budget --enforce` PASS) | refreshed                                                  |
 | Cutover (Phase 9)                      | **4/10** pre-cutover, **3/11** steps                                                                              | complete                                                   |
 
-> NOTE 2026-08-04: P4.1/P3.1–P3.2 implementation committed at `29db800fd`. Only the 10 untracked `scripts/tmp-*.py` scratch files remain outside git (intentional, do not commit). Refresh this note after the next commit so the plan never becomes the source of a stale SHA.
+> NOTE 2026-08-04: P4.1/P3.1–P3.2 implementation committed at `29db800fd`; the P4.3–P4.6 code-health/ops batch (audit contract parity + PHI-read e2e, internal-vite route-parity sweep, react-router v8 + react 19.2.8, Vite-aware perf toolchain, docs/ops readiness) committed at `d0ade8f65` after a live `verify:standard` exit 0. The `scripts/tmp-*.py` scratch files were removed during the docs/ops pass; nothing intentionally untracked remains. Refresh this note after the next commit so the plan never becomes the source of a stale SHA.
 
 **Completion summary (2026-08-04, gates re-run live):**
 
@@ -72,13 +72,13 @@ Gates that are genuinely green (all re-run live 2026-08-03): `check:i18n-coverag
 
 **Resolved trap**: `check:frontend-fetch` is git-based (`gitLsSourceFiles`). It passed pre-commit only because `apps/app-vite/src` was untracked; once committed (5352a9612) it correctly flagged 25 lines of mislocated API/fetch usage across 10 feature files, all moved to `features/*/api/*.api.ts` adapters (P0.1, 2026-08-03).
 
-**Current gate exception (2026-08-03 final pass):** `pnpm verify:standard`
-reaches `check:feature-boundaries` but currently stops on **37 cross-feature
-internal-import findings** in the working tree. The earlier green result is a
-historical snapshot, not current closure evidence. These findings must be
-resolved or individually documented with approved shared-boundary moves before
-the full standard gate can be called green; they are separate from the
-referral-partner and hospital-scraper work in this pass.
+**Gate status (2026-08-04):** the 37 cross-feature `check:feature-boundaries`
+findings flagged on 2026-08-03 were resolved in P4.1 (6 new feature barrels +
+3 extended; consumers repointed to `@/features/<feature>` roots) and a full
+`pnpm verify:standard` run was re-executed live on the committed tree
+(`d0ade8f65`) with **exit 0** — the gate exception below is closed. Remaining
+release blockers are only the environment/credential-bound items in the
+Production-readiness blockers table.
 
 ## Production-readiness blockers
 
