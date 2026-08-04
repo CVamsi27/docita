@@ -112,7 +112,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         aria-label="Loading"
       >
         <DocitaLoadingIndicator variant="page" withStatusRole={false} />
-        <p className="text-sm text-muted-foreground">Loading…</p>
       </div>
     );
   }

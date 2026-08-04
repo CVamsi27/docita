@@ -7,8 +7,6 @@
  * design system. Any change to the brand ramp should be reflected here.
  */
 
-/** Hex twin of `--primary` (clinical blue). Used as the Razorpay accent. */
-export const BRAND_PRIMARY_HEX = "#2563EB";
 
 /** Hex twin of the deep slate `--foreground` for dark-on-light surfaces. */
 export const BRAND_FOREGROUND_HEX = "#0F172A";

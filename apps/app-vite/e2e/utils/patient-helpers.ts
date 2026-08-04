@@ -144,10 +144,6 @@ export interface UserData {
   accessToken: string;
 }
 
-interface BasicAuthUserData extends UserData {
-  role: string;
-}
-
 type SetupUserCache = Map<string, Promise<UserData>>;
 
 let setupUserCache: SetupUserCache | undefined;
@@ -321,61 +317,6 @@ async function postWithRetry(
   return lastRes;
 }
 
-/**
- * Fast auth setup for UI tests.
- *
- * Unlike `setupTestUser`, this avoids onboarding and email verification (which
- * can require DB access in some environments).
- */
-export async function setupAuthUser(
-  request: APIRequestContext,
-  requestHeaders: Record<string, string> = {},
-  options: {
-    role?: "DOCTOR" | "ADMIN" | "ADMIN_DOCTOR";
-    clinicName?: string;
-  } = {},
-): Promise<BasicAuthUserData> {
-  const uniqueId = randomUUID();
-  const email = `doctor-${uniqueId}@test.com`;
-  const password = TEST_PASSWORD;
-  const role = options.role ?? "ADMIN_DOCTOR";
-  const clinicName = options.clinicName ?? `Test Clinic ${uniqueId}`;
-  const clientIp = requestHeaders["X-Forwarded-For"] ?? createUniqueClientIp();
-  const headers = { "X-Forwarded-For": clientIp, ...requestHeaders };
-
-  const registerRes = await postWithRetry(
-    request,
-    `${API_URL}/auth/register`,
-    {
-      headers,
-      data: {
-        email,
-        password,
-        firstName: "Test",
-        lastName: "Doctor",
-        role,
-        clinicName,
-      },
-    },
-    { retries: 8, baseDelayMs: 800 },
-  );
-
-  if (!registerRes.ok()) {
-    throw new Error(`User registration failed: ${await registerRes.text()}`);
-  }
-
-  const registerData = await registerRes.json();
-  const accessToken = registerData.access_token || registerData.accessToken;
-  const user = registerData.user ?? registerData;
-
-  return {
-    id: user.id,
-    email: user.email ?? email,
-    clinicId: user.clinicId ?? "",
-    accessToken,
-    role: user.role ?? role,
-  };
-}
 
 export async function fetchPatientByApi(
   request: APIRequestContext,

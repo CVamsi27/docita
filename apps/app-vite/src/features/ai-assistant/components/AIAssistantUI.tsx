@@ -11,14 +11,12 @@ import {
 } from "@workspace/ui/components/navigation/tabs";
 import { Brain, FileText, Pill, Sparkles, TrendingUp } from "lucide-react";
 import { FeatureGate, Feature } from "@/components/auth/feature-gate";
-import { EmptyState } from "./empty-state";
 import { PrescriptionAssistantTab } from "./tabs/PrescriptionAssistantTab";
 import { DiagnosisAssistantTab } from "./tabs/DiagnosisAssistantTab";
 import { InsightsTab } from "./tabs/InsightsTab";
 import { SmartTasksTab } from "./tabs/SmartTasksTab";
 import type { AIAssistantHandlers, AIAssistantState } from "@workspace/types";
 
-export { EmptyState };
 
 interface AIAssistantUIProps {
   state: AIAssistantState;

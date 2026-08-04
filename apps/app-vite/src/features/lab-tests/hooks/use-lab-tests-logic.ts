@@ -20,7 +20,6 @@ import { useDebounce } from "@workspace/hooks/use-debounce";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export {
-  createLabTestOrderFormSchema,
   type CreateLabTestOrderFormValues,
 } from "@workspace/types";
 

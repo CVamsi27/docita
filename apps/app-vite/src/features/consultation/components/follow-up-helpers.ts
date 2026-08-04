@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { APIRequestError } from "@workspace/data-access";
 
-export const followUpSchema = z.object({
+const followUpSchema = z.object({
   id: z.string(),
   scheduledDate: z.string(),
   reason: z.string(),

@@ -3,11 +3,9 @@ import { devtools } from "zustand/middleware";
 import {
   type ClinicFeatureOverrides,
   Feature,
-  FEATURE_TIER_MAP,
   type FacilityTypeType,
   type PlanMode,
   Tier,
-  TIER_INFO,
 } from "@workspace/types";
 import { mapDbClinicTierToTierAndMode } from "@workspace/types/access";
 import { type ClinicType } from "@workspace/types/shared";
@@ -27,7 +25,7 @@ import {
 } from "./permission-state-setters";
 import { AI_FEATURES_ENABLED, AI_GATED_FEATURES } from "@/lib/config/ai-features";
 
-export { Tier, Feature, FEATURE_TIER_MAP, TIER_INFO };
+export { Feature };
 
 type FacilityType = FacilityTypeType;
 

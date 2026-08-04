@@ -14,4 +14,3 @@ export function useTier(): TierContextValue {
   return useContext(TierContext);
 }
 
-export { TierContext };

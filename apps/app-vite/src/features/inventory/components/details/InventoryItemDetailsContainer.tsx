@@ -28,4 +28,3 @@ export function InventoryItemDetailsContainer({
   );
 }
 
-export { InventoryItemDetailsContainer as InventoryItemDetails };

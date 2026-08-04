@@ -1,6 +1,5 @@
 import { useEffect, useState, type ComponentType } from "react";
 import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "@workspace/ui/components/overlay/command";
-import { ClipboardList, Eye, HeartPulse, Pill, Save, Stethoscope, Target } from "lucide-react";
 
 export interface CommandPaletteAction {
   id: string;
@@ -99,12 +98,3 @@ export function CommandPalette({
   );
 }
 
-export const CONSULTATION_PALETTE_ICONS = {
-  subjective: ClipboardList,
-  objective: Stethoscope,
-  assessment: Target,
-  plan: Pill,
-  specialty: Eye,
-  vitals: HeartPulse,
-  save: Save,
-} as const;

@@ -1,6 +1,5 @@
 import { useRef, type RefObject } from "react";
 import { useNavigate } from "react-router";
-import { CONSULTATION_LEAVE_GUARD_SKIP_ATTR } from "@/features/consultation/workspace/consultation-leave-navigation-helpers";
 import {
   useAttemptNavigateToHref,
   useLeaveDialogState,
@@ -19,7 +18,6 @@ import type {
   ConsultationSaveHandles,
 } from "./consultation-leave-navigation-types";
 
-export { CONSULTATION_LEAVE_GUARD_SKIP_ATTR };
 export type {
   ConsultationSaveHandles,
 } from "./consultation-leave-navigation-types";

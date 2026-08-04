@@ -4,7 +4,7 @@ import { Activity, FileText, Heart, Stethoscope, Wind } from "lucide-react";
 import type { ReactNode } from "react";
 import type { ExaminationData } from "./examination-input.types";
 
-export const GENERAL_FINDINGS = [
+const GENERAL_FINDINGS = [
   { key: "pallor", label: "Pallor" },
   { key: "icterus", label: "Icterus" },
   { key: "cyanosis", label: "Cyanosis" },

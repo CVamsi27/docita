@@ -443,6 +443,27 @@ test("zod-interface-parity check flags interface colliding with packages/types s
   );
 });
 
+test("native-ui-affordances check blocks browser dialogs and allows shadowed confirm hook", () => {
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app-vite/src/features/demo/components/dialogs.ts":
+          `export function confirmDelete() {\n  return window.confirm("Delete?");\n}\nexport function warn() {\n  return alert("Heads up");\n}\nexport function ask() {\n  return prompt("Name");\n}\n`,
+      }),
+      "check-native-ui-affordances.mjs",
+    ),
+  );
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/app-vite/src/features/demo/components/hook.tsx":
+          `import { useConfirm } from "@/hooks/use-confirm";\nexport function UseConfirmDemo() {\n  const { confirm } = useConfirm();\n  return <button onClick={() => confirm({ title: "Remove?" })}>Remove</button>;\n}\n`,
+      }),
+      "check-native-ui-affordances.mjs",
+    ),
+  );
+});
+
 test("accessible-name check flags icon-only links and allows text-labeled ones", () => {
   expectFail(
     runCheck(

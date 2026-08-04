@@ -11,7 +11,7 @@ import type { DataStateStatus } from "@workspace/ui/components/data-display/data
 import type { TimelineEventType } from "@workspace/types";
 import { isRecord } from "@workspace/utils";
 
-export const ALL_TIMELINE_EVENT_TYPES: TimelineEventType[] = [
+const ALL_TIMELINE_EVENT_TYPES: TimelineEventType[] = [
   "APPOINTMENT",
   "PRESCRIPTION",
   "METRIC_RECORD",

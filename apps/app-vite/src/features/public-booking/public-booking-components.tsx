@@ -6,7 +6,6 @@
  */
 export { BookingSectionHeader } from "@/features/public-booking/atoms/booking-section-header";
 export { PublicBookingSkipLink, PublicBookingTopChrome } from "@/features/public-booking/atoms/public-booking-top-chrome";
-export { PublicBookingTrustRow } from "@/features/public-booking/atoms/public-booking-trust-row";
 export { PublicBookingPageFooter } from "@/features/public-booking/atoms/public-booking-footer";
 export { PublicBookingHeroCompact } from "@/features/public-booking/atoms/public-booking-hero";
 export { PublicBookingProgressChrome } from "@/features/public-booking/atoms/booking-progress-chrome";

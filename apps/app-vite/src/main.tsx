@@ -14,6 +14,7 @@ import { installGlobalErrorHandler } from "@/lib/monitoring/client-error-reporte
 import { installWebVitalsReporter } from "@/lib/monitoring/web-vitals";
 import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
 import { PwaRegister } from "@/components/pwa/pwa-register";
+import { I18nProvider } from "@/i18n/provider";
 import App from "./App";
 import "@workspace/ui/styles/globals.css";
 
@@ -29,14 +30,16 @@ createRoot(document.getElementById("root")!).render(
           <AuthProvider>
             <DataAccessBridge>
               <ThemeProvider>
-                <AppProviders>
-                  <SocketProvider>
-                    <ErrorBoundaryWrapper>
-                      <App />
-                    </ErrorBoundaryWrapper>
-                    <PwaRegister />
-                  </SocketProvider>
-                </AppProviders>
+                <I18nProvider>
+                  <AppProviders>
+                    <SocketProvider>
+                      <ErrorBoundaryWrapper>
+                        <App />
+                      </ErrorBoundaryWrapper>
+                      <PwaRegister />
+                    </SocketProvider>
+                  </AppProviders>
+                </I18nProvider>
               </ThemeProvider>
             </DataAccessBridge>
           </AuthProvider>

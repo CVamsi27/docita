@@ -18,7 +18,7 @@ export const canEditInvoice = (invoice: { status: string }): boolean => {
   return invoice.status !== "PAID" && invoice.status !== "CANCELLED";
 };
 
-export const DEFAULT_INVOICE_ITEM = {
+const DEFAULT_INVOICE_ITEM = {
   description: "",
   quantity: 1,
   price: 0,

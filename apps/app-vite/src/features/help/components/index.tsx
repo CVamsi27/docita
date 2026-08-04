@@ -190,4 +190,3 @@ export const FAQSection: FC<{
   );
 };
 
-export default { HelpCenter, FAQSection };

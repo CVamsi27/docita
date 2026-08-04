@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-export const PAYMENT_CANCELED_TOAST_MESSAGE =
+const PAYMENT_CANCELED_TOAST_MESSAGE =
   "Payment was canceled. No charge was made." as const;
 
 const PAYMENT_CANCELED_TOAST_DEDUPE_MS = 2_000;
@@ -20,7 +20,7 @@ interface RazorpayCheckoutError extends Error {
   paymentCanceled?: boolean;
 }
 
-export class PaymentCanceledError extends Error implements RazorpayCheckoutError {
+class PaymentCanceledError extends Error implements RazorpayCheckoutError {
   readonly paymentCanceled = true;
 
   constructor() {

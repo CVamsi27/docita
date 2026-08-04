@@ -1,6 +1,6 @@
 import type { ClinicType } from "@workspace/types";
 
-export const CLINIC_TYPE_KEYS: ClinicType[] = [
+const CLINIC_TYPE_KEYS: ClinicType[] = [
   "GENERAL",
   "DENTAL",
   "PEDIATRIC",
@@ -36,7 +36,7 @@ interface ClinicFeatureConfig {
   supportsVisionExam: boolean;
 }
 
-export const BASE_PRESET_TAGS: PresetTag[] = [
+const BASE_PRESET_TAGS: PresetTag[] = [
   { tag: "Chronic", category: "Priority", color: "var(--tag-rose)" },
   { tag: "Follow-up", category: "Status", color: "var(--tag-sky)" },
   { tag: "New Patient", category: "Status", color: "var(--tag-emerald)" },
@@ -66,7 +66,7 @@ export const MEDICATION_ROUTES: MedicationRoute[] = [
   { value: "OTHER", label: "Other", category: "Other" },
 ];
 
-export const CLINIC_DEFAULT_ROUTES: Record<string, string[]> = {
+const CLINIC_DEFAULT_ROUTES: Record<string, string[]> = {
   GENERAL: ["ORAL", "IV", "IM", "TOPICAL"],
   DENTAL: ["TOPICAL", "ORAL", "IV", "IM"],
   PEDIATRIC: ["ORAL", "NEBULIZED", "TOPICAL", "IM"],
@@ -80,7 +80,7 @@ export const CLINIC_DEFAULT_ROUTES: Record<string, string[]> = {
   SPECIALTY: ["ORAL", "IV", "IM", "TOPICAL"],
 };
 
-export const CLINIC_CONFIGS: Record<ClinicType, ClinicFeatureConfig> = {
+const CLINIC_CONFIGS: Record<ClinicType, ClinicFeatureConfig> = {
   GENERAL: {
     specialtySections: [],
     presetTags: [

@@ -29,5 +29,4 @@ export function render(
   return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
 }
 
-export { renderWithTooltip } from "./render-with-tooltip";
-export { screen, cleanup, act, fireEvent, waitFor } from "@testing-library/react";
+export { screen, fireEvent, waitFor } from "@testing-library/react";

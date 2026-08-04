@@ -15,9 +15,6 @@ import {
   createDefaultInvoiceItems,
 } from "@/features/invoices/rules/invoice-rules";
 
-export {
-  createInvoiceFormSchema,
-} from "@workspace/types";
 
 export const useInvoiceCreateLogic = () => {
   const router = useNavigate();

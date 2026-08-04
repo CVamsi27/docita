@@ -143,26 +143,6 @@ export const PROTECTED_STATIC_MOBILE_ROUTES: MobileRouteEntry[] = [
   },
 ];
 
-export const PROTECTED_DYNAMIC_MOBILE_ROUTES: MobileRouteEntry[] = [
-  {
-    path: "/patients/[id]",
-    label: "Patient detail",
-    group: "protected-dynamic",
-    fixture: "patient",
-  },
-  {
-    path: "/consultation/[id]",
-    label: "Consultation detail",
-    group: "protected-dynamic",
-    fixture: "appointment",
-  },
-  {
-    path: "/invoices/[id]",
-    label: "Invoice detail",
-    group: "protected-dynamic",
-    fixture: "invoice",
-  },
-];
 
 export const PORTAL_MOBILE_ROUTES: MobileRouteEntry[] = [
   { path: "/portal", label: "Portal home", group: "portal", fixture: "none" },

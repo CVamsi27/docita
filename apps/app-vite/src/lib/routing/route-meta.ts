@@ -4,7 +4,7 @@ interface RouteMeta {
   parentPath?: string;
 }
 
-export const ROUTE_META: Record<string, RouteMeta> = {
+const ROUTE_META: Record<string, RouteMeta> = {
   "/today": { labelKey: "today", label: "Today" },
   "/dashboard": { labelKey: "today", label: "Today" },
   "/patients": { labelKey: "patients", label: "Patients" },

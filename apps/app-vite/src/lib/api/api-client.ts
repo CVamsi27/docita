@@ -1,7 +1,6 @@
 export {
   api,
   apiFetch,
-  withAppClient,
   getAuthHeaders,
   handleResponse,
 } from "./api-client-core";

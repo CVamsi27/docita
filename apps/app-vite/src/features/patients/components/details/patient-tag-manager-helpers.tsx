@@ -7,8 +7,6 @@ import { type PresetTagLike } from "./patient-tag-manager-logic";
 import { ColorPickerGrid, ColorSwatchButton } from "./patient-tag-color-pickers";
 
 
-// Re-export color pickers so existing callers keep working
-export { ColorPickerGrid, ColorSwatchButton };
 
 // Re-export CurrentTagsTab (extracted to its own file to stay within SRP budget)
 export { CurrentTagsTab } from "./patient-tag-current-tab";

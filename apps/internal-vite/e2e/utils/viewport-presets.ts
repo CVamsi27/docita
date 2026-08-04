@@ -5,12 +5,3 @@ export const VIEWPORT_PRESETS = {
   laptop: { width: 1280, height: 720 },
 } as const;
 
-
-export const RESPONSIVE_PROJECTS = [
-  "mobile-chrome",
-  "tablet-chrome",
-  "laptop-chrome",
-] as const;
-
-/** @deprecated Use VIEWPORT_PRESETS.mobile */
-export const MOBILE_VIEWPORT = VIEWPORT_PRESETS.mobile;

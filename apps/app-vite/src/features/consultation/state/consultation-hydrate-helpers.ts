@@ -35,8 +35,7 @@ import { buildExaminationSeed } from "./consultation-hydrate-examination";
 import { parseDiagnosis } from "./consultation-hydrate-diagnosis";
 import { parseZodField, readStringField } from "./consultation-hydrate-utils";
 
-export { toRecord, readStringField } from "./consultation-hydrate-utils";
-export { parseDiagnosis } from "./consultation-hydrate-diagnosis";
+export { toRecord } from "./consultation-hydrate-utils";
 
 const DEFAULT_GROWTH_DATA: GrowthChartData = {
   patientGender: "MALE",
@@ -253,4 +252,3 @@ function buildChiefComplaintSeed(
     : [];
 }
 
-export { buildExaminationSeed } from "./consultation-hydrate-examination";

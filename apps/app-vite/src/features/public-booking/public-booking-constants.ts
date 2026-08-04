@@ -14,7 +14,6 @@ export const PUBLIC_BOOKING_SUBMIT_FIELD_KEYS = new Set([
   "bookingVerificationToken",
 ]);
 
-export const SUBMIT_ERROR_TOAST_DURATION_MS = 8000;
 
 export const ANY_DOCTOR_ID = "__ANY__";
 

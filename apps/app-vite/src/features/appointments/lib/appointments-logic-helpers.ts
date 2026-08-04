@@ -9,19 +9,6 @@ import {
 import type { AppointmentListItem } from "@workspace/data-access";
 import { VISIBLE_APPOINTMENT_STATUS_QUERY } from "@workspace/types";
 
-function generateTimeSlots(): string[] {
-  const slots: string[] = [];
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 30) {
-      const timeStr = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
-      slots.push(timeStr);
-    }
-  }
-  return slots;
-}
-
-export const TIME_SLOTS = generateTimeSlots();
-
 export function computeMonthRangeQueryOptions(
   calendarMonth: Date,
   clinicTz: string,

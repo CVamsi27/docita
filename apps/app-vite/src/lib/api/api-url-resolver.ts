@@ -14,7 +14,7 @@ const UPSTREAM_API_HOSTS = new Set([
  * auth cookies (set on app.docita.work) ride on every fetch. Pointing the
  * client at https://api.docita.work breaks refresh and protected routes.
  */
-export const resolveAppApiUrl = resolveApiUrl;
+const resolveAppApiUrl = resolveApiUrl;
 
 /**
  * When a Cloudflare build accidentally inlines VITE_API_URL as the
@@ -67,4 +67,3 @@ export function apiPath(path: string): string {
   return `${normalizedBase}${normalizedPath}`;
 }
 
-export const API_URL = getAppApiUrl();

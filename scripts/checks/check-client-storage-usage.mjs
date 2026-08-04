@@ -51,6 +51,7 @@ const ALLOWLIST = new Set([
   "apps/app-vite/src/hooks/use-can-go-back.ts",
   "apps/app-vite/src/hooks/use-repeat-prescription.ts",
   "apps/app-vite/src/i18n/index.ts",
+  "apps/app-vite/src/i18n/locale-utils.ts", // locale pref (docita_locale) read/write helpers, no PHI
   "apps/app-vite/src/lib/auth/auth-context-helpers.ts",
   "apps/app-vite/src/lib/auth/e2e-session-token.ts",
   "apps/app-vite/src/lib/auth/login-lockout-storage.ts",

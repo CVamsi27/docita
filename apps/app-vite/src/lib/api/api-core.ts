@@ -7,11 +7,9 @@ import {
 } from "@workspace/data-access";
 import type { UseMutationOptions, UseQueryOptions } from "@tanstack/react-query";
 import { getUserFacingErrorMessage } from "@workspace/utils";
-import { getAppApiUrl } from "./api-config";
 import { apiFetch } from "./api-client";
 import { ApiError } from "@/lib/errors";
 
-export { getAppApiUrl };
 // React Query wrappers live in @workspace/data-access (transport-agnostic,
 // fetcher injected via <DataAccessProvider>). The thin wrappers below pin
 // TError to ApiError so the 30+ existing app hooks keep their familiar error

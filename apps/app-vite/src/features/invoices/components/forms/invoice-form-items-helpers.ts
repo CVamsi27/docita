@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — react-hook-form watched item record coerced to typed field shapes
 import type { InvoiceLineItemFormValues } from "@workspace/types";
 
 export function computeInvoiceItems(

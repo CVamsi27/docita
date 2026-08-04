@@ -1,3 +1,5 @@
+import { SUPPORT_EMAIL } from "@/lib/constants/support-contact";
+
 export interface ConsentContent {
   title: string;
   description: string;
@@ -25,7 +27,8 @@ export const CONSENT_CONTENT: Record<string, ConsentContent> = {
       "Export your data in a portable format",
       "Withdraw this consent via 'Privacy Settings' in your profile",
     ],
-    dpoContact: "For grievances, contact our Data Protection Officer at support@docita.work",
+    dpoContact: `For grievances, contact our Data Protection Officer at ${SUPPORT_EMAIL}`,
+
     agreeButton: "I Agree",
     declineButton: "Decline",
   },
@@ -45,7 +48,8 @@ export const CONSENT_CONTENT: Record<string, ConsentContent> = {
       "अपने डेटा को पोर्टेबल प्रारूप में निर्यात करें",
       "अपनी प्रोफ़ाइल में 'गोपनीयता सेटिंग्स' के माध्यम से इस सहमति को वापस लें",
     ],
-    dpoContact: "शिकायतों के लिए, हमारे डेटा सुरक्षा अधिकारी से support@docita.work पर संपर्क करें",
+    dpoContact: `शिकायतों के लिए, हमारे डेटा सुरक्षा अधिकारी से ${SUPPORT_EMAIL} पर संपर्क करें`,
+
     agreeButton: "मैं सहमत हूं",
     declineButton: "अस्वीकार करें",
   },

@@ -20,14 +20,14 @@ export interface DaySchedule {
   isActive: boolean;
 }
 
-export const DEFAULT_DAY_SCHEDULE: Omit<DaySchedule, "dayOfWeek"> = {
+const DEFAULT_DAY_SCHEDULE: Omit<DaySchedule, "dayOfWeek"> = {
   startTime: "09:00",
   endTime: "17:00",
   slotDuration: DEFAULT_SLOT_DURATION,
   isActive: false,
 };
 
-export const WEEKEND_DEFAULT: Partial<Omit<DaySchedule, "dayOfWeek">> = {
+const WEEKEND_DEFAULT: Partial<Omit<DaySchedule, "dayOfWeek">> = {
   isActive: false,
 };
 

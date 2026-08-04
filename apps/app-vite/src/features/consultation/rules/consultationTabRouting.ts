@@ -26,7 +26,7 @@ const LEGACY_TAB_MAPPING: Record<string, string> = {
 };
 
 /** Maps normalized legacy `tab` query values to workspace `section` ids (SOAP + specialty). */
-export const LEGACY_TAB_TO_SECTION_ID: Record<string, string> = {
+const LEGACY_TAB_TO_SECTION_ID: Record<string, string> = {
   "chief-complaint": "subjective",
   history: "subjective",
   examination: "objective",
