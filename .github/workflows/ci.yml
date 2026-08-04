@@ -42,7 +42,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           package-manager-cache: false
 
       - name: Detect changed areas
@@ -62,10 +62,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
 
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: "pnpm"
 
       - name: Install dependencies
@@ -96,10 +96,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
 
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: "pnpm"
 
       - name: Install dependencies
@@ -140,10 +140,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
 
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: "pnpm"
 
       - name: Install dependencies
@@ -185,10 +185,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
 
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: "pnpm"
 
       - name: Install dependencies
@@ -230,10 +230,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
 
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: "pnpm"
 
       - name: Install dependencies
@@ -266,10 +266,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
 
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: "pnpm"
 
       - name: Install dependencies
@@ -363,10 +363,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
 
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: "pnpm"
 
       - name: Install dependencies
@@ -409,10 +409,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
 
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: "pnpm"
 
       - name: Install dependencies

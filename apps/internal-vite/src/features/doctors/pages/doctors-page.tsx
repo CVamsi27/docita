@@ -3,7 +3,19 @@ import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitl
 import { Eye, ShieldCheck, ShieldX, Stethoscope } from "lucide-react";
 import { apiGet } from "@/lib/api/api-client";
 
-interface Doctor { id: string; name: string; email: string; specialization?: string; verificationStatus?: string; signatureUploadedAt?: string; qualification?: string; registrationNumber?: string; hospitalRole?: string; education?: Array<{ degree: string; institution: string; year: number }>; specializations?: Array<{ name: string; type: string }>; clinicName?: string; phoneNumber?: string; experience?: number; bio?: string; }
+interface Doctor {
+  id: string;
+  name: string;
+  email: string;
+  registrationNumber?: string;
+  registrationCouncil?: string;
+  registrationStateCode?: string;
+  verificationStatus?: string;
+  verificationReason?: string;
+  verificationSource?: string;
+  verificationCheckedAt?: string;
+  clinic?: { id: string; name: string };
+}
 
 export function DoctorsPage() {
   const [loading, setLoading] = useState(true);
@@ -15,7 +27,7 @@ export function DoctorsPage() {
   const fetchDoctors = async () => {
     setLoading(true);
     try {
-      const data = await apiGet<Doctor[]>("/api/internal/doctors");
+      const data = await apiGet<Doctor[]>("/api/internal/doctors/verification-queue");
       setDoctors(data);
     } catch { /* ignore */ }
     finally { setLoading(false); }
@@ -40,20 +52,20 @@ export function DoctorsPage() {
               <div className="flex flex-col items-center justify-center h-48 text-muted-foreground"><Stethoscope className="h-10 w-10 mb-4" /><p>No doctors found</p></div>
             ) : (
               <div className="rounded-md border"><Table><TableHeader><TableRow>
-                <TableHead>Doctor</TableHead><TableHead>Specialization</TableHead><TableHead>Compliance</TableHead><TableHead>Qualifications</TableHead><TableHead className="text-right">Actions</TableHead>
+                <TableHead>Doctor</TableHead><TableHead>Clinic</TableHead><TableHead>Registration</TableHead><TableHead>Verification</TableHead><TableHead className="text-right">Actions</TableHead>
               </TableRow></TableHeader>
               <TableBody>{filteredDoctors.map((doctor) => (
                 <TableRow key={doctor.id}>
                   <TableCell><div><p className="font-medium">Dr. {doctor.name}</p><p className="text-sm text-muted-foreground">{doctor.email}</p></div></TableCell>
-                  <TableCell>{doctor.specialization ? <Badge variant="outline">{doctor.specialization}</Badge> : <span className="text-muted-foreground">-</span>}</TableCell>
+                  <TableCell>{doctor.clinic?.name ?? <span className="text-muted-foreground">-</span>}</TableCell>
+                  <TableCell>{doctor.registrationNumber ? <Badge variant="outline">{doctor.registrationNumber}</Badge> : <span className="text-muted-foreground">-</span>}</TableCell>
                   <TableCell><div className="flex flex-wrap gap-2">
                     <Badge variant={doctor.verificationStatus === "VERIFIED" ? "default" : "secondary"}>
                       {doctor.verificationStatus === "VERIFIED" ? <ShieldCheck className="mr-1 h-3.5 w-3.5" /> : <ShieldX className="mr-1 h-3.5 w-3.5" />}
                       {doctor.verificationStatus || "Pending"}
                     </Badge>
-                    <Badge variant={doctor.signatureUploadedAt ? "default" : "outline"}>Sig: {doctor.signatureUploadedAt ? "Yes" : "No"}</Badge>
+                    {doctor.verificationReason && <span className="text-xs text-muted-foreground">{doctor.verificationReason}</span>}
                   </div></TableCell>
-                  <TableCell>{doctor.qualification || <span className="text-muted-foreground">-</span>}</TableCell>
                   <TableCell className="text-right"><Button variant="ghost" size="sm" onClick={() => { setSelectedDoctor(doctor); setIsViewOpen(true); }}><Eye className="h-4 w-4" /></Button></TableCell>
                 </TableRow>
               ))}</TableBody></Table></div>
@@ -69,13 +81,13 @@ export function DoctorsPage() {
           {selectedDoctor && <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div><p className="text-sm font-medium text-muted-foreground">Email</p><p className="font-medium">{selectedDoctor.email}</p></div>
-              <div><p className="text-sm font-medium text-muted-foreground">Phone</p><p className="font-medium">{selectedDoctor.phoneNumber || "-"}</p></div>
-              <div><p className="text-sm font-medium text-muted-foreground">Specialization</p><p className="font-medium">{selectedDoctor.specialization || "-"}</p></div>
+              <div><p className="text-sm font-medium text-muted-foreground">Clinic</p><p className="font-medium">{selectedDoctor.clinic?.name || "-"}</p></div>
+              <div><p className="text-sm font-medium text-muted-foreground">Registration No.</p><p className="font-medium">{selectedDoctor.registrationNumber || "-"}</p></div>
               <div><p className="text-sm font-medium text-muted-foreground">Verification</p><Badge variant={selectedDoctor.verificationStatus === "VERIFIED" ? "default" : "secondary"}>{selectedDoctor.verificationStatus || "Pending"}</Badge></div>
             </div>
-            {selectedDoctor.education && selectedDoctor.education.length > 0 && (
-              <div className="border-t pt-4"><h3 className="font-semibold mb-3">Education</h3>
-                {selectedDoctor.education.map((edu, idx) => (<div key={idx} className="flex justify-between text-sm"><span>{edu.degree} - {edu.institution}</span><span className="text-muted-foreground">{edu.year}</span></div>))}
+            {selectedDoctor.verificationReason && (
+              <div className="border-t pt-4"><h3 className="font-semibold mb-3">Verification Notes</h3>
+                <p className="text-sm text-muted-foreground">{selectedDoctor.verificationReason}</p>
               </div>
             )}
           </div>}

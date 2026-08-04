@@ -39,7 +39,7 @@ export function BillingPage() {
   const handleSendReminder = async (subscription: Subscription) => {
     setSending(true);
     try {
-      await apiPost(`/api/internal/billing/subscriptions/${subscription.id}/reminder`);
+      await apiPost(`/api/internal/billing/subscriptions/${subscription.id}/remind`);
     } catch { /* ignore */ }
     finally { setSending(false); }
   };

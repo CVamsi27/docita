@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --host 127.0.0.1 --port 3003",
-    "build": "node scripts/clean-dist.mjs && astro build",
-    "build:cloudflare": "node ../../scripts/deploy/ensure-landing-astro-manifest-injection.mjs && DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/ui && node scripts/clean-dist.mjs && astro build",
-    "preview:cloudflare": "node scripts/clean-dist.mjs && astro build && printf \"_worker.js\\n\" > dist/.assetsignore && wrangler dev",
-    "deploy:cloudflare": "node scripts/clean-dist.mjs && astro build && printf \"_worker.js\\n\" > dist/.assetsignore && wrangler deploy",
+    "build": "node scripts/clean-dist.mjs && DOCITA_CLOUDFLARE=1 astro build",
+    "build:cloudflare": "node ../../scripts/deploy/ensure-landing-astro-manifest-injection.mjs && DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/ui && DOCITA_CLOUDFLARE=1 node scripts/clean-dist.mjs && DOCITA_CLOUDFLARE=1 astro build",
+    "preview:cloudflare": "DOCITA_CLOUDFLARE=1 node scripts/clean-dist.mjs && DOCITA_CLOUDFLARE=1 astro build && printf \"_worker.js\\n\" > dist/.assetsignore && wrangler dev",
+    "deploy:cloudflare": "DOCITA_CLOUDFLARE=1 node scripts/clean-dist.mjs && DOCITA_CLOUDFLARE=1 astro build && printf \"_worker.js\\n\" > dist/.assetsignore && wrangler deploy",
     "lint": "eslint src e2e astro.config.mjs playwright.config.ts --ext .ts,.tsx,.js,.mjs",
     "check-types": "astro check",
     "test": "vitest run src",
@@ -21,8 +21,8 @@
     "@workspace/utils": "workspace:*",
     "lucide-react": "^0.475.0",
     "motion": "^12.38.0",
-    "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

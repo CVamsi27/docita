@@ -6,12 +6,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
-import { AuditService, AuditLogFilter } from './audit.service';
+import { AuditService } from './audit.service';
 import {
   AuditLogsApiAccess,
   AuditSummaryApiAccess,
 } from '@/shared/modules/audit/audit/audit.controller.access';
-import { AnyAuditResponseDto } from './dto/audit.dto';
+import { AuditLogFilterDto, AuditLogListResponseDto } from './dto/audit.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('audit-logs')
@@ -20,11 +20,11 @@ export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
-  @ZodSerializerDto(AnyAuditResponseDto)
+  @ZodSerializerDto(AuditLogListResponseDto)
   async getAuditLogs(
     @Req()
     req: ExpressRequest & { user: { clinicId?: string; role?: string } },
-    @Query() filter: AuditLogFilter,
+    @Query() filter: AuditLogFilterDto,
   ) {
     const userRole = req.user?.role;
     if (!userRole) throw new UnauthorizedException('User role is required');

@@ -25,15 +25,20 @@ function getRoleBadgeColor(role: string): string {
 export function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<RoleFilter>("ALL");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
 
+  // The API exposes only clinic-facing user routes (users/profile), not an
+  // internal all-users list; surface an explicit error state instead of a
+  // silently empty table.
   const fetchUsers = async () => {
     setLoading(true);
+    setHasError(false);
     try { setUsers(await apiGet<User[]>("/api/internal/users")); }
-    catch { /* ignore */ }
+    catch { setHasError(true); }
     finally { setLoading(false); }
   };
 
@@ -53,7 +58,9 @@ export function UsersPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Team Members" description="View and manage all users across facilities" size="compact" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading team members\u2026"
+      <DataState status={loading ? "loading" : hasError ? "error" : "success"} loadingMessage="Loading team members\u2026"
+        errorMessage="We could not load team members. The internal users list endpoint is not available yet."
+        onRetry={() => { void fetchUsers(); }}
         emptyTitle="No team members found" emptyDescription="Team members will appear here once facilities add users." emptyIcon={Users}>
         <div className="grid gap-4 md:grid-cols-5 mb-6">
           {(Object.entries(ROLE_CONFIG) as [RoleFilter, typeof ROLE_CONFIG[RoleFilter]][]).map(([role, config]) => (

@@ -23,7 +23,7 @@ export function FeedbackPage() {
     setLoading(true);
     try {
       const [items, statsData] = await Promise.all([
-        apiGet<Feedback[]>("/api/internal/feedback"),
+        apiGet<Feedback[]>("/api/internal/feedback/all"),
         apiGet<FeedbackStats>("/api/internal/feedback/stats"),
       ]);
       setFeedbacks(items);

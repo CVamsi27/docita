@@ -19,7 +19,7 @@ export function DashboardPage() {
     try {
       const [clinics, stats] = await Promise.all([
         apiGet<DashboardClinic[]>("/api/internal/clinics"),
-        apiGet<DashboardStats & { trends?: DashboardTrends }>("/api/internal/dashboard/stats"),
+        apiGet<DashboardStats & { trends?: DashboardTrends }>("/api/internal/stats"),
       ]);
       setClinics(clinics);
       setStats(stats);

@@ -13,7 +13,7 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 
 - Monorepo: Turborepo + pnpm workspaces.
 - Runtime baseline:
-  - Node.js `>=22.12.0`
+  - Node.js `>=22.22.0`
   - Package manager: **pnpm only** (`pnpm@10.30.3`)
   - Do not use npm or yarn in this repo.
 - Apps:
@@ -801,6 +801,7 @@ These rules complement the sections above; they apply to every change set regard
 - App import aliases are defined in exactly two places that must stay in sync: `vite.config.ts` (`resolve.alias`) and `tsconfig.json` (`paths`). Adding an alias to one without the other breaks `dev` or `check-types` — change both in the same commit.
 - When adding a build-time variable to a Vite app: add it to the app's `.env.example` (with the `VITE_` prefix), to `turbo.json` task `env` passthrough, and to `wrangler.toml` `[env.*.vars]` if the production Worker needs it. A var missing from `.env.example` or turbo `env` is a review blocker.
 - Domain names, Worker names, and environment names live in `wrangler.toml` only; CI and docs read them from there (see §11.1) — do not duplicate them in workflow files.
+- The root `pnpm.overrides` pins for `react` / `react-dom` (19.2.8) must stay in lockstep with the exact `react`/`react-dom` manifest pins in `apps/app-vite`, `apps/internal-vite`, and `apps/landing` — a React patch release requires bumping all four in the same commit (the override forces a single React tree; drifting pins split react-hook-form type identity).
 
 ### 16.3 Focused change sets
 

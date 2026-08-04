@@ -1,11 +1,9 @@
-import { resolveApiUrl } from "@workspace/utils";
+import {
+  resolveApiUrl,
+  shouldUseSameOriginApiProxy,
+} from "@workspace/utils";
 
 const DEFAULT_API_URL = "/api/v1";
-
-const UPSTREAM_API_HOSTS = new Set([
-  "api.docita.work",
-  "staging-api.docita.work",
-]);
 
 /**
  * Resolve the browser-facing API base URL.
@@ -16,38 +14,13 @@ const UPSTREAM_API_HOSTS = new Set([
  */
 const resolveAppApiUrl = resolveApiUrl;
 
-/**
- * When a Cloudflare build accidentally inlines VITE_API_URL as the
- * upstream Fly origin, browser fetches become cross-origin and fail CORS +
- * cookie auth. Prefer the app-origin proxy whenever we are not on the API host.
- */
-function shouldUseSameOriginAppProxy(
-  configured: string,
-  hostname: string,
-): boolean {
-  if (UPSTREAM_API_HOSTS.has(hostname)) {
-    return false;
-  }
-
-  if (configured.startsWith("/")) {
-    return false;
-  }
-
-  try {
-    const configuredHost = new URL(configured).hostname;
-    return UPSTREAM_API_HOSTS.has(configuredHost);
-  } catch {
-    return false;
-  }
-}
-
 function resolvePublishedAppApiUrl(): string {
   const configured = process.env["VITE_API_URL"] || DEFAULT_API_URL;
 
   if (typeof window !== "undefined") {
     const { hostname, origin } = window.location;
 
-    if (shouldUseSameOriginAppProxy(configured, hostname)) {
+    if (shouldUseSameOriginApiProxy(configured, hostname)) {
       return resolveAppApiUrl("/api/v1", origin);
     }
   }

@@ -36,7 +36,8 @@ Critical variables:
 - `DATABASE_URL`
 - `JWT_SECRET`
 - `ENCRYPTION_KEY`
-- `VITE_API_URL` (frontend apps; legacy `NEXT_PUBLIC_API_URL` alias still accepted during migration)
+- `VITE_API_URL` (frontend apps; build-time inlined from each app's `.env.example`)
+- `NEXT_PUBLIC_API_URL` (API process only — a historical key name on the backend, unrelated to the frontend `VITE_*` rename; the frontend no longer reads it)
 
 ## Verification
 

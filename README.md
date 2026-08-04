@@ -87,7 +87,7 @@ docita/
 
 ### Prerequisites
 
-- Node.js `>=22.12.0` (see root `package.json` `engines`)
+- Node.js `>=22.22.0` (see root `package.json` `engines`)
 - pnpm `10.30.3` (see root `package.json` `packageManager`)
 - PostgreSQL (local or Docker)
 

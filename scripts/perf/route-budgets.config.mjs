@@ -7,22 +7,32 @@
  * critical-path routes. Lesser routes inherit the global delta budget
  * (PERF_MAX_ROUTE_SIZE_DELTA_PERCENT, default 15%) from check-perf-budget.mjs.
  *
+ * Since the Vite cutover (2026-08), measurements come from
+ * `collectAppRouteBundleSizes` in `scripts/lib/perf-metrics.mjs`, which reads
+ * `dist/assets/*.js` and reports the gzipped **upper-bound first-load proxy**
+ * per route (the full shared core + the route's own chunks). The absolute caps
+ * below are a bloat alarm; route regressions are caught by the per-route delta
+ * check (`perf:budget:enforce`) against `logs/performance/baseline.json`.
+ * Routes use the React Router paths of `apps/app-vite/src/App.tsx` (`:id`
+ * param syntax).
+ *
  * Update when a route's budget intentionally changes; treat unintended
  * regressions as bugs.
  */
 
-/** First-load bundle target per route, in KB (gzipped, observed). */
+/** First-load JS proxy target per route, in KB (gzipped, measured 2026-08-04). */
 export const ROUTE_BUNDLE_KB = {
-  "/login": 180,
-  "/dashboard": 260,
-  "/patients": 280,
-  "/patients/[id]": 320,
-  "/appointments": 280,
-  "/consultation/[id]": 360,
-  "/prescriptions/[id]": 300,
-  "/invoices/[id]": 300,
-  "/book/[referralCode]": 200,
-  "/mobile-upload/[id]": 200,
+  "/login": 720,
+  "/dashboard": 730,
+  "/patients": 740,
+  "/patients/:id": 720,
+  "/appointments": 760,
+  "/analytics": 720,
+  "/consultation/:id": 760,
+  "/prescriptions/:id": 720,
+  "/invoices/:id": 730,
+  "/book/:referralCode": 740,
+  "/mobile-upload/:id": 730,
 };
 
 /** Web Vitals targets per route bucket. */
@@ -30,10 +40,10 @@ export const ROUTE_WEB_VITALS = {
   "/login":            { LCP: 1500, INP: 200, CLS: 0.05 },
   "/dashboard":        { LCP: 1800, INP: 200, CLS: 0.05 },
   "/patients":         { LCP: 2000, INP: 200, CLS: 0.05 },
-  "/patients/[id]":    { LCP: 2200, INP: 250, CLS: 0.05 },
-  "/consultation/[id]":{ LCP: 2200, INP: 250, CLS: 0.05 },
-  "/book/[referralCode]":{ LCP: 1800, INP: 200, CLS: 0.05 },
-  "/mobile-upload/[id]":{ LCP: 1800, INP: 200, CLS: 0.05 },
+  "/patients/:id":     { LCP: 2200, INP: 250, CLS: 0.05 },
+  "/consultation/:id": { LCP: 2200, INP: 250, CLS: 0.05 },
+  "/book/:referralCode": { LCP: 1800, INP: 200, CLS: 0.05 },
+  "/mobile-upload/:id": { LCP: 1800, INP: 200, CLS: 0.05 },
 };
 
 /**

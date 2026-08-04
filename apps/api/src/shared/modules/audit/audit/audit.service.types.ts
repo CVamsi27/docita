@@ -13,10 +13,10 @@ export interface AuditLogData {
 export interface AuditLogFilter {
   clinicId?: string;
   userId?: string;
-  actionType?: string;
-  resourceType?: string;
-  startDate?: Date;
-  endDate?: Date;
-  skip?: number;
-  take?: number;
+  action?: string;
+  resource?: string;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+  page?: number;
 }

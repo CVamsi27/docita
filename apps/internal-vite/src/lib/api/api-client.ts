@@ -88,3 +88,7 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
 export async function apiPatch<T>(path: string, body?: unknown): Promise<T> {
   return client.patch<T>(normalizeInternalPath(path), body);
 }
+
+export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
+  return client.put<T>(normalizeInternalPath(path), body);
+}

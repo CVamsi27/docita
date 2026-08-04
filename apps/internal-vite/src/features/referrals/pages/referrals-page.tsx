@@ -4,7 +4,18 @@ import { ArrowLeftRight, TrendingUp, Users } from "lucide-react";
 import { formatDate } from "../../../lib/formatters";
 import { apiGet } from "@/lib/api/api-client";
 
-interface Referral { id: string; clinicName: string; referredBy: string; status: string; commissionAmount: number; currency: string; date: string; }
+interface Referral {
+  id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  code?: string | null;
+  active: boolean;
+  createdAt: string;
+}
+
+/** Real contract for GET /api/v1/internal/referral-payouts/summary. */
+interface PayoutSummaryRow { status: string; count: number; totalCents: number; }
 
 export function ReferralsPage() {
   const [loading, setLoading] = useState(true);
@@ -14,9 +25,16 @@ export function ReferralsPage() {
   const fetchReferrals = async () => {
     setLoading(true);
     try {
-      const data = await apiGet<{ referrals: Referral[]; stats: { total: number; converted: number; commission: number } }>("/api/internal/referrals");
-      setReferrals(data.referrals);
-      setStats(data.stats);
+      const [referrerData, payoutData] = await Promise.all([
+        apiGet<Referral[]>("/api/internal/referrers"),
+        apiGet<PayoutSummaryRow[]>("/api/internal/referral-payouts/summary"),
+      ]);
+      setReferrals(referrerData);
+      setStats({
+        total: referrerData.length,
+        converted: referrerData.filter((r) => r.active).length,
+        commission: payoutData.reduce((sum, row) => sum + row.totalCents, 0) / 100,
+      });
     } catch { /* ignore */ }
     finally { setLoading(false); }
   };
@@ -43,15 +61,15 @@ export function ReferralsPage() {
               </div>
             ) : (
               <div className="rounded-md border"><Table><TableHeader><TableRow>
-                <TableHead>Clinic</TableHead><TableHead>Referred By</TableHead><TableHead>Status</TableHead><TableHead>Commission</TableHead><TableHead>Date</TableHead>
+                <TableHead>Name</TableHead><TableHead>Contact</TableHead><TableHead>Code</TableHead><TableHead>Status</TableHead><TableHead>Date</TableHead>
               </TableRow></TableHeader>
               <TableBody>{referrals.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.clinicName}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.referredBy}</TableCell>
-                  <TableCell><Badge variant={r.status === "Converted" ? "default" : r.status === "Active" ? "secondary" : "outline"}>{r.status}</Badge></TableCell>
-                  <TableCell>{r.status === "Converted" ? `\u20b9${r.commissionAmount.toLocaleString()}` : "-"}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{formatDate(r.date)}</TableCell>
+                  <TableCell className="font-medium">{r.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{r.email || r.phone || "-"}</TableCell>
+                  <TableCell>{r.code ? <Badge variant="outline">{r.code}</Badge> : "-"}</TableCell>
+                  <TableCell><Badge variant={r.active ? "default" : "outline"}>{r.active ? "Active" : "Inactive"}</Badge></TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{formatDate(r.createdAt)}</TableCell>
                 </TableRow>
               ))}</TableBody></Table></div>
             )}

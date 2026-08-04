@@ -7,6 +7,23 @@ interface HealthCheck { status: string; uptime?: number; version?: string; check
 interface PerformanceData { memory: { heapUsed: number; heapTotal: number; rss: number }; cpu: { user: number; system: number }; }
 interface Endpoint { path: string; method: string; avgLatency: number; count: number; }
 
+/** Real contract for GET /api/v1/monitoring/health (SystemHealthSchema). */
+interface SystemHealthPayload {
+  uptime: number;
+  memoryUsage: { rss: number; heapTotal: number; heapUsed: number; external: number };
+  cpuUsage: { user: number; system: number };
+  databaseConnected: boolean;
+  lastErrors: number;
+  avgResponseTime: number;
+  requestsLastHour: number;
+  errorsLastHour: number;
+}
+
+/** Real contract for GET /api/v1/monitoring/performance (getPerformanceMetrics). */
+interface MonitoringPerformancePayload {
+  slowestEndpoints: Array<{ path: string; method: string; avgDuration: number; maxDuration: number; count: number }>;
+}
+
 export function SystemMonitoringPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -19,14 +36,36 @@ export function SystemMonitoringPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [healthData, perfData, endpointData] = await Promise.all([
-        apiGet<HealthCheck>("/api/internal/monitoring/health"),
-        apiGet<PerformanceData>("/api/internal/monitoring/performance"),
-        apiGet<Endpoint[]>("/api/internal/monitoring/endpoints"),
+      const [healthData, perfData] = await Promise.all([
+        apiGet<SystemHealthPayload>("/monitoring/health"),
+        apiGet<MonitoringPerformancePayload>("/monitoring/performance"),
       ]);
-      setHealth(healthData);
-      setPerformance(perfData);
-      setEndpoints(endpointData);
+      setHealth({
+        status: healthData.databaseConnected ? "healthy" : "degraded",
+        uptime: healthData.uptime,
+        checks: {
+          "API Server": { status: "healthy", latency: healthData.avgResponseTime },
+          Database: {
+            status: healthData.databaseConnected ? "healthy" : "down",
+            error: healthData.databaseConnected ? undefined : "Connection failed",
+          },
+          "Requests (last hour)": { status: "healthy", latency: healthData.requestsLastHour },
+          "Errors (last hour)": {
+            status: healthData.errorsLastHour > 0 ? "degraded" : "healthy",
+            error: healthData.errorsLastHour > 0 ? `${String(healthData.errorsLastHour)} errors` : undefined,
+          },
+        },
+      });
+      setPerformance({
+        memory: healthData.memoryUsage,
+        cpu: healthData.cpuUsage,
+      });
+      setEndpoints(perfData.slowestEndpoints.map((ep) => ({
+        path: ep.path,
+        method: ep.method,
+        avgLatency: ep.avgDuration,
+        count: ep.count,
+      })));
     } catch { /* ignore */ }
     finally { setLoading(false); }
   };

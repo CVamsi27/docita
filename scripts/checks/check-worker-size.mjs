@@ -6,7 +6,7 @@
 // package.json lines 60-62).
 
 import { execSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { gzipSync } from "node:zlib";
 import path from "node:path";
@@ -65,8 +65,17 @@ function resolveWranglerBundlePath(cwd, wranglerEnv) {
         env: process.env,
       },
     );
+    // Wrangler names the bundle after the main entry file: OpenNext-era
+    // workers emitted `worker.js`; the Vite SPAs build `api/index.ts`, which
+    // wrangler emits as `index.js`. Accept either.
+    const bundlePath = ["worker.js", "index.js"]
+      .map((file) => path.join(outdir, file))
+      .find((candidate) => existsSync(candidate));
+    if (!bundlePath) {
+      throw new Error("wrangler dry-run produced no JS bundle in the outdir");
+    }
     return {
-      bundlePath: path.join(outdir, "worker.js"),
+      bundlePath,
       cleanup: () => rmSync(outdir, { recursive: true, force: true }),
     };
   } catch (error) {
@@ -90,6 +99,17 @@ try {
   console.warn(
     `${labelArg} wrangler dry-run failed: ${error.message}; measuring raw worker.`,
   );
+  if (!existsSync(absoluteWorkerPath)) {
+    // No raw worker artifact either (the Vite SPA worker only exists as a
+    // wrangler build). Nothing to measure; report and exit cleanly. Exiting 0
+    // here is intentional — the check is advisory (root `check:worker-size`
+    // also wraps app-vite in `|| true`) and a transient wrangler failure
+    // should not fail a build; the wrangler dry-run path is the primary gate.
+    console.warn(
+      `${labelArg} no raw worker artifact at ${workerPathArg}; skipping worker-size measurement.`,
+    );
+    process.exit(0);
+  }
   const rawBytes = readFileSync(absoluteWorkerPath).length;
   const rawKb = (rawBytes / 1024).toFixed(1);
   console.log(

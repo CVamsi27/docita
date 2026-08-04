@@ -43,8 +43,6 @@
     "apps/app-vite/src/features/patient-portal/components/views/*.tsx",
     "apps/app-vite/src/features/referral-partner/components/Partner*View.tsx",
     "apps/app-vite/src/components/loaders/page-skeleton.tsx",
-    "apps/app-vite/src/lib/api/api-url-resolver.ts",
-    "apps/app-vite/src/lib/api/api-config.ts",
     "**/api/index.ts",
     "**/playwright.config.ts",
     "**/eslint.config.mjs",

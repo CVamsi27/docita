@@ -7,6 +7,7 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import { isRecord } from '@workspace/utils';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { runOutsideActiveTx } from '@/shared/modules/rls/active-tx.storage';
 import type { AppAuditLogSummary } from '@workspace/types';
@@ -130,12 +131,12 @@ export class AuditService {
         where.userId = filter.userId;
       }
 
-      if (filter.actionType) {
-        where.action = filter.actionType;
+      if (filter.action) {
+        where.action = filter.action;
       }
 
-      if (filter.resourceType) {
-        where.entityType = filter.resourceType;
+      if (filter.resource) {
+        where.entityType = filter.resource;
       }
 
       if (filter.startDate || filter.endDate) {
@@ -148,18 +149,41 @@ export class AuditService {
         }
       }
 
+      const page = Math.max(filter.page ?? 1, 1);
+      const take = Math.min(Math.max(filter.limit ?? 10, 1), 100);
+
       const logs = await this.prisma.auditLog.findMany({
         where,
         orderBy: { createdAt: 'desc' },
-        skip: filter.skip || 0,
-        take: filter.take || 10,
+        skip: (page - 1) * take,
+        take,
       });
 
       this.logger.debug(
         `Fetched ${logs.length} audit logs with filter: ${JSON.stringify(where)}`,
       );
 
-      return logs;
+      // Map persistence rows to the shared auditLogSchema contract
+      // (resource/resourceId/details instead of the raw entityType/entityId
+      // column names) so clients can rely on one canonical shape.
+      return logs.map((log) => ({
+        id: log.id,
+        clinicId: log.clinicId,
+        userId: log.userId,
+        action: log.action,
+        resource: log.entityType,
+        resourceId: log.entityId ?? undefined,
+        // auditLogSchema.details is z.record — only pass through JSON objects
+        // so a scalar/array newValue cannot break the response serializer.
+        details:
+          log.newValue && isRecord(log.newValue)
+            ? log.newValue
+            : undefined,
+        ipAddress: log.ipAddress ?? undefined,
+        userAgent: log.userAgent ?? undefined,
+        status: log.status,
+        createdAt: log.createdAt,
+      }));
     } catch (error) {
       this.logger.error(
         `Failed to get audit logs: ${error instanceof Error ? error.message : 'Unknown error'}`,

@@ -35,10 +35,12 @@ export function PaymentProcessingPage() {
     if (!selectedClinic || !amount) return;
     setProcessing(true);
     try {
-      await apiPost("/api/internal/billing/process-payment", {
-        clinicId: selectedClinic,
+      await apiPost(`/api/internal/clinics/${selectedClinic}/process-payment`, {
+        paymentId: `manual-${Date.now()}`,
         amount: Number(amount),
-        tier: newTier,
+        currency: "INR",
+        newTier,
+        paymentMethod: "MANUAL",
       });
       setAmount("");
       await fetchData();

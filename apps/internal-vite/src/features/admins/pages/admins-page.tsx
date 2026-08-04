@@ -15,6 +15,7 @@ const getRoleBadgeV = (r: string): "default" | "outline" => BADGE[r] ?? "outline
 
 export function AdminsPage() {
   const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [search, setSearch] = useState("");
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
@@ -26,12 +27,16 @@ export function AdminsPage() {
   const [editForm, setEditForm] = useState({ name: "", email: "", phoneNumber: "", adminType: "admin" });
   const [saving, setSaving] = useState(false);
 
+  // The API exposes only clinic-scoped admin routes (clinics/:id/admins)
+  // and admins/:id mutations, not an all-admins list; surface an explicit
+  // error state instead of a silently empty table.
   const fetchAdmins = async () => {
     setLoading(true);
+    setHasError(false);
     try {
       const data = await apiGet<Admin[]>("/api/internal/admins");
       setAdmins(data);
-    } catch { /* ignore */ }
+    } catch { setHasError(true); }
     finally { setLoading(false); }
   };
 
@@ -78,7 +83,9 @@ export function AdminsPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Admins" description="Manage clinic administrators and admin doctors" size="compact" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading admins\u2026">
+      <DataState status={loading ? "loading" : hasError ? "error" : "success"} loadingMessage="Loading admins\u2026"
+        errorMessage="We could not load admin records. The internal admins list endpoint is not available yet."
+        onRetry={() => { void fetchAdmins(); }}>
         <div className="mb-4 flex items-center gap-4">
           <Input className="max-w-sm" placeholder="Enter name or email" value={search} onChange={(e) => { setSearch(e.target.value); }} />
           <Button onClick={() => { setIsCreateOpen(true); }}><Plus className="h-4 w-4 mr-2" /> Add Admin</Button>

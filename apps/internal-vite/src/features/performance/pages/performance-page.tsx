@@ -5,6 +5,17 @@ import { apiGet } from "@/lib/api/api-client";
 
 interface Metric { name: string; value: string; change: number; unit: string; }
 
+/** Real contract for GET /api/v1/internal/performance (getPerformanceMetrics). */
+interface PerformanceMetricsPayload {
+  uptimeSeconds: number;
+  uptimeFormatted: string;
+  avgResponseTime: number;
+  requestsPerMinute: number;
+  errorsLastHour: number;
+  errorRate: number;
+  databaseConnected: boolean;
+}
+
 export function PerformancePage() {
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<Metric[]>([]);
@@ -12,8 +23,14 @@ export function PerformancePage() {
   const fetchMetrics = async () => {
     setLoading(true);
     try {
-      const data = await apiGet<Metric[]>("/api/internal/performance");
-      setMetrics(data);
+      const data = await apiGet<PerformanceMetricsPayload>("/api/internal/performance");
+      setMetrics([
+        { name: "Avg Response Time", value: String(data.avgResponseTime), change: 0, unit: "ms" },
+        { name: "Requests/min", value: String(data.requestsPerMinute), change: 0, unit: "" },
+        { name: "Error Rate", value: String(data.errorRate), change: 0, unit: "%" },
+        { name: "Uptime", value: data.uptimeFormatted, change: 0, unit: "" },
+        { name: "Errors (last hour)", value: String(data.errorsLastHour), change: 0, unit: "" },
+      ]);
     } catch { /* ignore */ }
     finally { setLoading(false); }
   };

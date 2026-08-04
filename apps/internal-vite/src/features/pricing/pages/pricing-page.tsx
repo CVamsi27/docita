@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Save, Sparkles } from "lucide-react";
-import { apiGet, apiPatch } from "@/lib/api/api-client";
+import { apiGet, apiPut } from "@/lib/api/api-client";
 
 interface TierPricing { id: string; tier: string; monthlyBasePriceCents: number; includedPatients: number; includedAppointments: number; includedStorageGB: number; includedUsers: number; overagePatientCents: number; overageAppointmentCents: number; overagePrescriptionCents: number; overageInvoiceCents: number; overageOcrPageCents: number; overageApiCallCents: number; }
 interface Offer { id: string; clinicId: string; title: string; percentOff: number; durationMonths: number; validUntil?: string; }
@@ -17,8 +17,8 @@ export function PricingPage() {
     setLoading(true);
     try {
       const [tierData, offerData] = await Promise.all([
-        apiGet<TierPricing[]>("/api/internal/billing/pricing-tiers"),
-        apiGet<Offer[]>("/api/internal/billing/pricing-offers"),
+        apiGet<TierPricing[]>("/api/internal/billing/pricing/tiers"),
+        apiGet<Offer[]>("/api/internal/billing/pricing/offers"),
       ]);
       setTiers(tierData);
       setOffers(offerData);
@@ -31,7 +31,7 @@ export function PricingPage() {
   const saveTier = async (tier: TierPricing) => {
     setSavingId(tier.id);
     try {
-      await apiPatch(`/api/internal/billing/pricing-tiers/${tier.id}`, tier);
+      await apiPut(`/api/internal/billing/pricing/tiers/${tier.id}`, tier);
     } catch { /* ignore */ }
     finally { setSavingId(null); }
   };

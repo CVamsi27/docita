@@ -69,11 +69,11 @@ fly ssh console
 ```
 
 Fly-specific notes:
-- The Fly API deployment uses [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and [`apps/api/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/api/Dockerfile).
-- The Fly worker deployment uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml) and [`apps/worker/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/Dockerfile) (no HTTP service; runs `dist/worker/src/main.js` in the image). For local runs against production-like settings, use `apps/worker/.env.production` (gitignored), not `apps/api/.env.production`.
-- GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
+- The Fly API deployment uses [`fly.toml`](../../fly.toml) and [`apps/api/Dockerfile`](../../apps/api/Dockerfile).
+- The Fly worker deployment uses [`apps/worker/fly.toml`](../../apps/worker/fly.toml) and [`apps/worker/Dockerfile`](../../apps/worker/Dockerfile) (no HTTP service; runs `dist/worker/src/main.js` in the image). For local runs against production-like settings, use `apps/worker/.env.production` (gitignored), not `apps/api/.env.production`.
+- GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](../../fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
 - For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret.
-- The worker app uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml), builds from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
+- The worker app uses [`apps/worker/fly.toml`](../../apps/worker/fly.toml), builds from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
 - Keep `auto_stop_machines = "suspend"` and `min_machines_running = 0` for the production API. Scale-to-zero saves cost during off-hours; cold starts are bounded by synthetic probes which wake the app.
 - Do not scale the no-service worker to zero unless scheduler and queue wake-up behavior has a separate trigger; it does not receive HTTP traffic that Fly can use for autostart.
 - Verify the API image locally before infra changes with:
@@ -163,6 +163,7 @@ SELECT "clinicId", "phoneNumber"
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.
 - Frontend production deploys run through the path-scoped Cloudflare jobs in [`deploy.yml`](../../.github/workflows/deploy.yml) when repository credentials verify. Cloudflare Git integration or dashboard deploys remain the fallback.
 - The Vite SPA build outputs static assets to `dist/` plus `_headers`/`_redirects`; `wrangler deploy` ships both the assets and the proxy Worker (`main = "api/index.ts"`) in one command.
+- The root `pnpm build` is a compile gate. Deploy through the `deploy:*:cloudflare` scripts, which run `build:*:cloudflare` (for landing this also applies the Astro manifest-injection patch that Cloudflare deploys require — a plain-build `dist/` is not deployable).
 
 ## Release Gates
 
@@ -173,12 +174,16 @@ SELECT "clinicId", "phoneNumber"
 - `docker build -f apps/api/Dockerfile -t docita-api-verify .`
 - `docker build -f apps/worker/Dockerfile -t docita-worker-verify .`
 
+For each release, record the evidence (commit, CI run, test counts, E2E/a11y/perf
+artifacts, deploy IDs, migration, smoke results, rollback rehearsal, post-release
+health) in [`RELEASE_EVIDENCE_CHECKLIST.md`](RELEASE_EVIDENCE_CHECKLIST.md).
+
 ## Post-merge production checklist (API + worker)
 
 After merging to `main` and before or right after Fly deploys:
 
 1. **`docita-api`**: set `ENABLE_SCHEDULERS=false` (Fly `[env]` or `fly secrets` as you prefer). Confirms HTTP API does not run `@Cron` handlers.
-2. **`docita-worker`**: set `ENABLE_SCHEDULERS=true` and `QUEUE_BACKEND=postgres` (already in [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml)); align secrets with `apps/worker/.env.production` locally for smoke tests only—**never commit** that file.
+2. **`docita-worker`**: set `ENABLE_SCHEDULERS=true` and `QUEUE_BACKEND=postgres` (already in [`apps/worker/fly.toml`](../../apps/worker/fly.toml)); align secrets with `apps/worker/.env.production` locally for smoke tests only—**never commit** that file.
 3. **Observe**: queue depth (`QueueJob` counts by status/name), `PdfJob` completion rate, worker logs for cron start lines, API RSS after the API scheduler flag is off.
 
 ## Optional next: scheduler-only modules (does this affect the main API?)

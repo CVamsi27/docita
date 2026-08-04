@@ -22,10 +22,10 @@ VITE_APP_URL = "https://app.docita.work"
 VITE_SOCKET_URL = "https://api.docita.work"
 VITE_SENTRY_DSN = "https://f22671b3cd9222c1c1f8d7ad3b508ea9@o4511121149198336.ingest.de.sentry.io/4511121158242384"
 API_PROXY_TARGET = "https://api.docita.work"
-# Publishable Razorpay key id is injected at build time via CI vars
-# (VITE_RAZORPAY_KEY_ID); the browser receives it from the checkout API
-# response, so this var is unused by the app and kept empty to avoid
-# embedding live identifiers in the repo.
+# VITE_RAZORPAY_KEY_ID is intentionally unused by the app: the browser
+# receives the publishable key id from the checkout API response
+# (checkout.razorpayKeyId). Kept empty so no live identifier is embedded in
+# the repo or in built artifacts. Do not re-add a literal here.
 VITE_RAZORPAY_KEY_ID = ""
 VITE_AI_ENABLED = "false"
 

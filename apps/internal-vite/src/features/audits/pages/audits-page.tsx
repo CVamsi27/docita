@@ -4,7 +4,7 @@ import { RefreshCw } from "lucide-react";
 import { formatInternalTimestamp } from "../../../lib/formatters";
 import { apiGet } from "@/lib/api/api-client";
 
-interface AuditLog { id: string; createdAt: string; actionType: string; resourceType?: string; resourceId?: string; clinicId?: string; userId?: string; status: string; }
+interface AuditLog { id: string; createdAt: string; action: string; resource?: string; resourceId?: string; clinicId?: string; userId?: string; status?: string; }
 
 export function AuditsPage() {
   const [loading, setLoading] = useState(true);
@@ -13,7 +13,9 @@ export function AuditsPage() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const data = await apiGet<AuditLog[]>("/api/internal/audit-logs?limit=100");
+      // The client baseURL is /api/v1 (versioned API), so the bare path is
+      // correct here — the audit-logs controller is not under /internal/.
+      const data = await apiGet<AuditLog[]>("/audit-logs?limit=100");
       setLogs(data);
     } catch { /* ignore */ }
     finally { setLoading(false); }
@@ -34,11 +36,11 @@ export function AuditsPage() {
             {logs.map((log) => (
               <TableRow key={log.id}>
                 <TableCell className="whitespace-nowrap text-xs">{formatInternalTimestamp(log.createdAt)}</TableCell>
-                <TableCell className="font-mono text-xs">{log.actionType}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{log.resourceType ? `${log.resourceType}${log.resourceId ? ` \u00b7 ${log.resourceId}` : ""}` : "\u2014"}</TableCell>
+                <TableCell className="font-mono text-xs">{log.action}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{log.resource ? `${log.resource}${log.resourceId ? ` \u00b7 ${log.resourceId}` : ""}` : "\u2014"}</TableCell>
                 <TableCell className="font-mono text-xs">{log.clinicId || "\u2014"}</TableCell>
                 <TableCell className="font-mono text-xs">{log.userId || "\u2014"}</TableCell>
-                <TableCell><Badge variant={log.status === "success" ? "secondary" : "destructive"}>{log.status === "success" ? "Success" : "Failed"}</Badge></TableCell>
+                <TableCell><Badge variant={log.status === "SUCCESS" ? "secondary" : "destructive"}>{log.status === "SUCCESS" ? "Success" : "Failed"}</Badge></TableCell>
               </TableRow>
             ))}
           </TableBody></Table>

@@ -4,7 +4,7 @@ import { Search, Send, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "../../../lib/formatters";
 import { apiGet, apiPost } from "@/lib/api/api-client";
 
-interface Thread { threadPhoneNumber: string; contactName?: string; lastMessageBody: string; lastMessageAt: string; unreadCount: number; lastMessageType: string; lastMessageDirection: string; }
+interface Thread { threadPhoneNumber: string; senderName?: string | null; lastMessageBody: string; lastMessageAt: string; unreadCount: number; lastMessageType: string; lastMessageDirection: string; }
 interface Message { id: string; body: string; from: string; createdAt: string; direction: string; }
 
 export function SupportPage() {
@@ -19,7 +19,7 @@ export function SupportPage() {
   const fetchThreads = async () => {
     setLoading(true);
     try {
-      const data = await apiGet<Thread[]>("/api/internal/support/whatsapp/threads");
+      const data = await apiGet<Thread[]>("/api/internal/support/whatsapp");
       setThreads(data);
     } catch { /* ignore */ }
     finally { setLoading(false); }
@@ -27,7 +27,7 @@ export function SupportPage() {
 
   const fetchMessages = async (phone: string) => {
     try {
-      const data = await apiGet<Message[]>(`/api/internal/support/whatsapp/threads/${phone}/messages`);
+      const data = await apiGet<Message[]>(`/api/internal/support/whatsapp/${phone}/messages`);
       setMessages(data);
     } catch { /* ignore */ }
   };
@@ -37,7 +37,7 @@ export function SupportPage() {
   useEffect(() => { if (selectedPhone) { void fetchMessages(selectedPhone); } }, [selectedPhone]);
 
   const filteredThreads = useMemo(() =>
-    threads.filter((t) => !search || t.threadPhoneNumber.includes(search) || (t.contactName?.toLowerCase() || "").includes(search.toLowerCase())),
+    threads.filter((t) => !search || t.threadPhoneNumber.includes(search) || (t.senderName?.toLowerCase() || "").includes(search.toLowerCase())),
     [threads, search]);
 
   const currentThread = useMemo(() =>
@@ -49,7 +49,7 @@ export function SupportPage() {
   const handleSendReply = () => {
     if (!selectedPhone || !replyMessage.trim()) return;
     void (async () => {
-      await apiPost(`/api/internal/support/whatsapp/threads/${selectedPhone}/reply`, { message: replyMessage });
+      await apiPost(`/api/internal/support/whatsapp/${selectedPhone}/reply`, { message: replyMessage });
       setReplyMessage("");
       await fetchMessages(selectedPhone);
     })();
@@ -89,7 +89,7 @@ export function SupportPage() {
                   <div className="flex w-full items-start justify-between gap-3">
                     <div className="min-w-0 space-y-1">
                       <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-semibold">{thread.contactName || thread.threadPhoneNumber}</p>
+                        <p className="truncate text-sm font-semibold">{thread.senderName || thread.threadPhoneNumber}</p>
                         {thread.unreadCount > 0 && <Badge>{String(thread.unreadCount)} new</Badge>}
                       </div>
                       <p className="line-clamp-2 text-sm text-muted-foreground">{thread.lastMessageBody}</p>
@@ -105,7 +105,7 @@ export function SupportPage() {
             {currentThread ? (
               <>
                 <CardHeader className="border-b bg-muted/20">
-                  <CardTitle>{currentThread.contactName || currentThread.threadPhoneNumber}</CardTitle>
+                  <CardTitle>{currentThread.senderName || currentThread.threadPhoneNumber}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 p-5">
                   <DataState status={loading ? "loading" : messages.length === 0 ? "empty" : "success"}

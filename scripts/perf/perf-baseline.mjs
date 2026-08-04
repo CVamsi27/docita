@@ -60,6 +60,23 @@ async function main() {
   for (const [route, bytes] of Object.entries(bundleMetrics.routeSizes)) {
     process.stdout.write(`- ${route}: ${formatBytes(bytes)}\n`);
   }
+
+  if (bundleMetrics.unclassifiedChunks?.length) {
+    const shown = bundleMetrics.unclassifiedChunks.slice(0, 15);
+    process.stdout.write(
+      `\nWarning: ${bundleMetrics.unclassifiedChunks.length} route chunk(s) matched no pattern — ` +
+        "update SHARED_CHUNK_PATTERNS / TRACKED_ROUTES in scripts/lib/perf-metrics.mjs " +
+        "or the classification will silently drift (first 15 shown):\n",
+    );
+    for (const file of shown) {
+      process.stdout.write(`- ${file}\n`);
+    }
+    if (bundleMetrics.unclassifiedChunks.length > shown.length) {
+      process.stdout.write(
+        `- … and ${bundleMetrics.unclassifiedChunks.length - shown.length} more\n`,
+      );
+    }
+  }
 }
 
 main().catch((error) => {
