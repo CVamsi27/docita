@@ -10,6 +10,7 @@ import {
   type WithAdvisoryLock,
   WITH_ADVISORY_LOCK_TOKEN,
 } from '@/shared/common/utils/postgres-advisory-lock';
+import { isRecord } from '@workspace/utils';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { generateReferrerCode } from './referral-code.rules';
 
@@ -90,10 +91,9 @@ export class ReferrerCodeBackfillService implements OnApplicationBootstrap {
           where: { code: null },
         });
       } catch (err) {
-        // check-as-cast-density: allow-file — narrowing a PrismaClientKnownRequestError
-        // to `{ code?: string }` to read the `P2021` discriminator without
-        // importing the full Prisma namespace into this file.
-        const code = (err as { code?: string }).code;
+        // Read the P2021 discriminator without importing the full Prisma
+        // namespace into this file.
+        const code = isRecord(err) ? err.code : undefined;
         if (code === 'P2021' /* table does not exist */) {
           this.logger.warn(
             'Referrer table is not present; skipping backfill. Apply the partner migrations to enable.',

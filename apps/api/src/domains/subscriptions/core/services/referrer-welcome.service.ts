@@ -1,10 +1,7 @@
-// check-as-cast-density: allow-file — `as Prisma.InputJsonValue` narrows
-// the redacted welcome payload; inlining the predicate would just be
-// the same JSON-shaped runtime check with no extra safety.
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
@@ -226,10 +223,4 @@ function errorMessage(error: unknown): string {
 
 function truncate(value: string, max: number): string {
   return value.length <= max ? value : `${value.slice(0, max - 3)}...`;
-}
-
-function toPrismaInputJsonValue(
-  value: Record<string, unknown>,
-): Prisma.InputJsonValue {
-  return value as Prisma.InputJsonValue;
 }

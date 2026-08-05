@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — narrowing casts for Prisma JSON fields
 import { Inject, Injectable } from '@nestjs/common';
 import { Prisma, type DatabaseControlAction } from '@workspace/db';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
@@ -77,9 +76,7 @@ export class DatabaseControlStateRepository {
         errorMessage: completion.errorMessage ?? null,
         completedAt: completion.completedAt,
         metadata: completion.metadata
-          ? (toPrismaInputJsonValue(
-              completion.metadata,
-            ) as Prisma.InputJsonValue)
+          ? toPrismaInputJsonValue(completion.metadata)
           : Prisma.JsonNull,
       },
     });
