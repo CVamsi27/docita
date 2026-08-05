@@ -43,7 +43,7 @@ ls -la scripts/checks/allowlists/
 
 | Check                           | Total entries | File-level | Line-level | Allowlist  | Notes                                                             |
 | ------------------------------- | ------------: | ---------: | ---------: | ---------: | ----------------------------------------------------------------- |
-| `check:as-cast-density`         |        **57** |         57 |          0 |         — | `check-as-cast-density: allow-file` (file-level marker in JSDoc). 80 → 73 on 2026-08-05 (P5.2a/P5.2e −6; RUM consolidation −2 app markers + 1 data-access marker = −1); 73 → 67 on 2026-08-05 (P5.2b — 6 Prisma-JSON/InputJsonValue sites routed through the canonical `toPrismaInputJsonValue` codec + `isRecord`/`Array.isArray` guards); 67 → 64 on 2026-08-05 (P5.2c — 3 AWS response-narrowing markers closed); 64 → 63 on 2026-08-05 (P5.2d — outgoing-webhook payload narrowing closed; queue boundary kept as sanctioned seam); 63 → 61 on 2026-08-05 (P5.2f — stub-factory + notification-category-record closed; partial-bucket seams documented); 61 → 60 on 2026-08-05 (P5.2g — libphone-country boundary closed via `getCountries()` membership check; the write-time bucket count of 2 was inflated — only 1 marked file existed); 60 → 57 on 2026-08-05 (P5.2h — 3 Object.keys/label-map allow-files closed: WhatsApp `as const` UI_MODES tuple, edit-clinic-dialog zod `safeParse` for tier/type, label-map-keys boundary deleted with consumers migrated to `leaveTypeSchema.options`). |
+| `check:as-cast-density`         |        **56** |         56 |          0 |         — | `check-as-cast-density: allow-file` (file-level marker in JSDoc). 80 → 73 on 2026-08-05 (P5.2a/P5.2e −6; RUM consolidation −2 app markers + 1 data-access marker = −1); 73 → 67 on 2026-08-05 (P5.2b — 6 Prisma-JSON/InputJsonValue sites routed through the canonical `toPrismaInputJsonValue` codec + `isRecord`/`Array.isArray` guards); 67 → 64 on 2026-08-05 (P5.2c — 3 AWS response-narrowing markers closed); 64 → 63 on 2026-08-05 (P5.2d — outgoing-webhook payload narrowing closed; queue boundary kept as sanctioned seam); 63 → 61 on 2026-08-05 (P5.2f — stub-factory + notification-category-record closed; partial-bucket seams documented); 61 → 60 on 2026-08-05 (P5.2g — libphone-country boundary closed via `getCountries()` membership check; the write-time bucket count of 2 was inflated — only 1 marked file existed); 60 → 57 on 2026-08-05 (P5.2h — 3 Object.keys/label-map allow-files closed: WhatsApp `as const` UI_MODES tuple, edit-clinic-dialog zod `safeParse` for tier/type, label-map-keys boundary deleted with consumers migrated to `leaveTypeSchema.options`); 57 → 56 on 2026-08-05 (P5.2i — clinic-scoped.decorator's 4 Express-request casts closed via `isRecord` guards; the historical `Reflect.defineMetadata` cast was already gone since the P5 ratchet sweep `9cd84fdcf`). |
 | `check:non-null-assertion`      |         **0** |          0 |          0 |         — | 7 → 0 on 2026-08-05 (P5.3).                                       |
 | `check:frontend-fetch`          |         ~12   |         ~6 |          0 |          6 | Worker proxy `api/index.ts` + intentional `.api.ts` boundary     |
 | `.jscpd.json` ignore list       |        **31** |         31 |          0 |         — | Production source paths; one entry per file or pattern (60 raw incl. test/e2e patterns). RUM reporters consolidated out (−4); boilerplate (sentry/logger/error-reporter) promotion to `@workspace/utils` removed −6 (48 → 42, 2026-08-05 P5.4e); P5.4a sibling-dialog extraction removed −3 (42 → 39, 2026-08-05); P5.4b list/table extraction removed −4 (39 → 35, 2026-08-05); P5.4c sectioned-form extraction removed −4 (35 → 31, 2026-08-05) |
@@ -57,7 +57,7 @@ without a rule list) exist.
 
 ---
 
-## 2. `check:as-cast-density` — 57 file-level allow-files
+## 2. `check:as-cast-density` — 56 file-level allow-files
 
 Categorized by the rationale text (one-liner that follows `allow-file — `). The
 file-level marker is **`// check-as-cast-density: allow-file`** placed in a
@@ -80,17 +80,20 @@ removing the cast makes the file not typecheck. Both are tracked in
 | **Repository / Prisma `findFirst` include shape** — Prisma include returns a wider shape than the domain type | 4 | Already encapsulated in mapper classes (`prescription-detail.mapper.ts`); the cast is the seam. **Keep**. |
 | **OCR / OpenAI JSON payload** — third-party SDK returns `unknown` payloads | 1 | Wrap with a Zod schema in `ocr-raw-data.boundary.ts`. **Keep**. |
 | **Encryption patient-field boundary** — `encrypt/decrypt` operates on a `Record<string, unknown>` of known keys | 1 | Already typed in `encryption-patient-fields.boundary.ts`. **Keep**. |
-| **`Reflect.defineMetadata` return** — `Reflect.defineMetadata` returns `boolean` but the usage site expects the value | 1 | Trivial; rewrite as `Reflect.defineMetadata(...) \|\| undefined` to drop the cast. Target: P5.2i. |
+| **`Reflect.defineMetadata` return** — `Reflect.defineMetadata` returns `boolean` but the usage site expects the value | 0 | **P5.2i DONE 2026-08-05 (1 → 0)**: the only file carrying this marker (`clinic-scoped.decorator.ts`) no longer has the cast — the historical `Reflect.defineMetadata` narrow was removed in the P5 ratchet sweep (`9cd84fdcf`), and the marker's remaining 4 Express-request narrowing casts (`request.user/query/body/params as Record<string, unknown> | undefined`) were closed this pass via `isRecord` type guards, so the marker was removed outright. |
 | **`as Prisma.InputJsonValue` narrow** — Prisma constraint not expressible | 3 | Already allowlisted with rationale. **Keep**. |
 | **RedactPhiDeep `<T>` propagation** — recursive `walk` returns `unknown`; the `as T` propagates the generic identity | 1 | Canonical pattern for structure-preserving utilities. **Keep**. |
-| **Generic `fetch` client erasure** — `packages/data-access/src/lib/typed-http-boundary.ts` boundary | 2 | Add Zod `parse()` at the boundary; drop the cast. Target: P5.2j. |
+| **Generic `fetch` client erasure** — `packages/data-access/src/lib/typed-http-boundary.ts` boundary | 0 | **P5.2j DONE 2026-08-05 (2 → 0, kept as sanctioned seams)**: both helpers — `assertTyped` (`typed-http-boundary.ts`) and `assertTypedJsonValue` (`parse-serialized-json.boundary.ts`) — are generic last-mile JSON assertions where zod `parse()` cannot target an unknown generic `T`: `browserJson<T>` (the only `assertTyped` consumer) is itself generic and its sole caller passes `unknown`. Same class as the P5.2b Prisma codec seam + P5.2d `coerceQueueJob`; rationales upgraded in both marker comments. |
 | **Misc one-offs** (RHF superRefine mismatch, en.json mock tree, setState updater union, etc.) | 14 | Per-file review in P5.2; each entry has a unique one-line rationale. |
 
-**Refactor target (P5.2)**: drive the file-level allow count from 79 → **≤40**
-by closing the 12 RHF + 9 Prisma JSON + 3 AWS SDK + 3 queue + 3 Object.keys
-+ 1 Reflect + 2 typed-http = **33 closures**, plus 3 "review and decide".
-Each closure is a single-file PR; the gate stays green throughout because the
-`allow-file` marker is removed in the same commit that adds the typed helper.
+**Refactor target (P5.2)**: drive the file-level allow count from 79 → **≤40**.
+Closed 2026-08-05 (P5.2a–P5.2i + P5.4e/RUM): **80 → 56**. Every remaining
+allow-file is documented above — the typed-http boundary pair is a sanctioned
+seam (P5.2j, same class as `parse-serialized-json`/`coerceQueueJob`), and the
+14 misc one-offs + 3 "review and decide" entries stay open for per-file
+closure. Each closure is a single-file PR; the gate stays green throughout
+because the `allow-file` marker is removed in the same commit that adds the
+typed helper.
 
 ---
 
@@ -220,6 +223,8 @@ marker exists and is non-empty. Suppressions without a marker fail the gate.
 | 2026-08-05 | **P5.2f**: 2 partial-builder allow-files closed (63 → 61) — stub-factory (`Object.create` typed `any`, cast redundant) + notification-category-record (`as const` categories + `Object.assign` spread satisfies the mapped `Record`); social-history boundary + as-type documented as sanctioned seams (makePartial in `@workspace/utils` would be net-zero). | P5 sweep |
 | 2026-08-05 | **P5.2g**: react-phone-number-input country allow-file closed (61 → 60) — `libphone-country.boundary.ts` `as Country` replaced by a `getCountries()` membership check with `DEFAULT_COUNTRY_CODE` fallback + unit test (5 cases); the bucket count of 2 was inflated (only 1 marked file existed). | P5 sweep |
 | 2026-08-05 | **P5.2h**: 3 Object.keys/label-map allow-files closed (60 → 57) — WhatsApp `UI_MODES` `as const` tuple replaces the `Object.keys(...) as UiSenderMode[]` iteration; edit-clinic-dialog tier/type payload casts closed via zod `safeParse` with `STARTER`/`GENERAL` fallbacks; `label-map-keys.boundary.ts` deleted (both consumers migrated to `leaveTypeSchema.options`). | P5 sweep |
+| 2026-08-05 | **P5.2i**: 1 Reflect-bucket allow-file closed (57 → 56) — `clinic-scoped.decorator.ts`'s 4 Express-request casts (`request.user/query/body/params as Record<string, unknown>`) replaced with `isRecord` type guards; the historical `Reflect.defineMetadata` cast was already gone (P5 ratchet sweep `9cd84fdcf`), so the marker was removed outright. | P5 sweep |
+| 2026-08-05 | **P5.2j**: assessed — both typed-http boundary helpers (`assertTyped` in `typed-http-boundary.ts`, `assertTypedJsonValue` in `parse-serialized-json.boundary.ts`) documented as sanctioned seams (generic last-mile JSON assertion; zod `parse()` cannot target an unknown generic `T` — the single `browserJson<T>` consumer is itself generic and its only caller passes `unknown`). | P5 sweep |
 | 2026-08-05 | **P5.6**: eslint-disable 6 → 1 (stdout/stderr, sort-imports, `inBrowser()`, stable `refresh`). | P5 sweep |
 | 2026-08-05 | **P5.20**: client-storage allowlist 35 → 30 (in-memory `rum_session_id` + 2 stale entries). | P5 sweep |
 | 2026-08-05 | **P5.19**: route budgets re-baselined to the post-RUM core (all 11 routes ~10% headroom); `perf:route-budgets` + `perf:budget:enforce` green. | P5 sweep |
