@@ -47,7 +47,7 @@ ls -la scripts/checks/allowlists/
 | `check:non-null-assertion`      |         **0** |          0 |          0 |         — | 7 → 0 on 2026-08-05 (P5.3).                                       |
 | `check:frontend-fetch`          |         ~12   |         ~6 |          0 |          6 | Worker proxy `api/index.ts` + intentional `.api.ts` boundary     |
 | `.jscpd.json` ignore list       |        **23** |         23 |          0 |         — | Production source paths; one entry per file or pattern (52 raw incl. test/e2e patterns). RUM reporters consolidated out (−4); boilerplate (sentry/logger/error-reporter) promotion to `@workspace/utils` removed −6 (48 → 42, 2026-08-05 P5.4e); P5.4a sibling-dialog extraction removed −3 (42 → 39, 2026-08-05); P5.4b list/table extraction removed −4 (39 → 35, 2026-08-05); P5.4c sectioned-form extraction removed −4 (35 → 31, 2026-08-05); **P5.4d extraction batch removed −8 (31 → 23, 2026-08-05)** — shared `use-reset-password-translations` hook, shared `useAddDialogUrlSync` hook, shared `InvoiceDetailActionProps` type, `showUserFacingErrorToast` promoted to `@workspace/ui` (new `sonner` dep on the documented toast surface) — **≤25 target HIT** |
-| `scripts/checks/allowlists/`    |        **17** |         15 |          0 |          2 | `zod-interface-parity.json` (15) + `i18n-coverage.json` (1) + empty feature-test-density |
+| `scripts/checks/allowlists/`    |         **7** |          5 |          0 |          2 | `zod-interface-parity.json` (5) + `i18n-coverage.json` (1) + empty feature-test-density |
 | `eslint-disable*` in source     |         **1** |          1 |          0 |         — | 6 → 1 on 2026-08-05 (P5.6); only the documented ConsultationMainPanel perf-memo remains |
 | `@ts-ignore` / `@ts-expect-error` in source | 0 (target) | 0 | 0 | — | Replaced by type-safe narrowing or `// check-as-cast-density: allow-file` |
 
@@ -153,19 +153,27 @@ sentry/logger/error-reporter half already landed).
 
 ---
 
-## 5. `scripts/checks/allowlists/` — 17 entries
+## 5. `scripts/checks/allowlists/` — 7 entries
 
 | File                                            | Entries | Notes                                                                                                  |
 | ----------------------------------------------- | ------: | ------------------------------------------------------------------------------------------------------ |
-| `allowlists/zod-interface-parity.json`          |      15 | Each entry: `{id, reason}`. Largest single source of "form-local divergence" (13 of 15). Plan §P4.3.    |
+| `allowlists/zod-interface-parity.json`          |       5 | Each entry: `{id, reason}`. **P5.5 DONE 2026-08-05**: 10 of 15 entries were stale (interface renamed/de-exported or schema moved — the check no longer flags them; the porting renamed the draft-item/form shapes organically). Pruned to the 5 still-exported colliding shapes (form-local divergence ×4 + name-collision-only ×1). Plan §P4.3.    |
 | `allowlists/i18n-coverage.json`                 |       1 | `legal` namespace (English-only legal text + built-in en/hi selector in `ConsentNoticeModal`).         |
 | `allowlists/feature-test-density-zero.json`     |       0 | **Emptied 2026-08-03** (28 stale + 2 missing-dir entries deleted). Ratchet is now strict.              |
 | `scripts/checks/check-client-storage-usage.mjs` `ALLOWLIST` | 30 (2026-08-05; 35 → 30) | **P5.20 DONE 2026-08-05**: the 2 web-vitals entries removed (the reporters now use a module-level in-memory `rum_session_id` singleton instead of `sessionStorage`); 2 stale entries removed (`internal-vite client-error-reporter.ts` — never used storage; `internal-filters-store.ts` — file no longer exists). `pnpm check:client-storage-usage` exit 0 at exactly the ≤ 30 target. |
 
-**Refactor target (P5.5)**: 15 → **≤8** by composing the 13
-"form-local divergence" entries from canonical base schemas (`.pick()` /
-`.omit()`) so they no longer need allowlist entries; the two `Name collision
-only` entries stay.
+**Refactor target (P5.5)**: 15 → **≤8** — **DONE 2026-08-05 (15 → 5)**. An audit
+script replicated the gate's exact logic (exported `interface` name == current
+`packages/types` schema stem) and found **10 of 15 entries were stale** — the
+interfaces had already been renamed to draft-item/form shapes
+(`ChiefComplaintDraftItem`, `DiagnosisDraftItem`, `ExaminationDraft`, vitals
+form/rules shapes, de-exported IPD rules, `ConsultationDashboardStats`
+consuming a renamed API type, `Document` rules non-exported) or the colliding
+schema had moved — so the allowlist was pure dead weight. Removed the 10 stale
+entries; the remaining **5** are the still-exported, still-colliding shapes
+(`Medication`, `DoctorSchedule`, `InvoiceItem`, `TeamMember` form-local
+divergences + `DashboardStats` name-collision-only). Zero un-allowlisted
+collisions remain; `check-zod-interface-parity --enforce` passes.
 
 ---
 
@@ -241,4 +249,5 @@ marker exists and is non-empty. Suppressions without a marker fail the gate.
 | 2026-08-05 | **P5.2b DONE — Prisma JSON boundary closures**: 6 as-cast allow-files closed (73 → 67) — `referrer-welcome.service` (local dup `toPrismaInputJsonValue` helper deleted, shared codec used), `invoice-settlement.service` (`isRecord` guard replaces `as { source?: unknown }`), `outbox.service` (payload via shared codec; P2002 code via `isRecord`), `database-control-state.repository` (redundant `as InputJsonValue` dropped), `internal-referral.service` + `referrer-code-backfill.service` (cast-free `Array.isArray`/`isRecord` narrowing of `PrismaClientKnownRequestError` meta/code). The canonical `to-prisma-input-json-value.ts` keeps its 1 seam cast with a documented rationale (local JsonValue incl. top-level null/arrays is not assignable to Prisma's `InputJsonValue`; heterogeneous consumer field types) — same category as `typed-http-boundary`. `parse-serialized-json.boundary.ts` empty marker rationale filled in. Gate: api check-types 0, as-cast 67, jest 25/25 on touched specs, lint 0. | P5 sweep |
 | 2026-08-05 | **P5.4b DONE — mirrored list/table extraction**: `DoctorFilterSelect` added to `@workspace/ui` (`form/` group, +4 tests with Radix-in-jsdom polyfills: ResizeObserver, Pointer capture, scrollIntoView) — 2-feature consumer (appointments calendar + consultation history), absorbed the All-doctors filter `Select` clone; shared `AppointmentRowActionProps` (`appointments/components/appointment-row-action-props.types.ts`, feature-local, 2 consumers in the appointments feature) absorbed the TimeSlotRow↔AppointmentsListUI row-action interface clone. 4 jscpd ignores removed (39 → 35). Kept with rationale: InvoiceActionsBar↔InvoiceHeaderSection (generic button-row false positive), PatientClaimsPanel↔AppointmentRequestsPanel (barrel import block), DocumentsPageUI↔PatientsPageUI (mandated page-shell `AppPageScaffold → DataState` composition). Optional follow-up: `AppointmentsPageContentSections` + `AppointmentRowActionsMenu` declare the same row-action signatures — adopt `AppointmentRowActionProps` when next touched (prop sets are supersets). Gate: jscpd 0 clones, ui 90 + app-vite 697 tests, ui + app-vite check-types 0, lint 0, as-cast 0, knip 0. | P5 sweep |
 | 2026-08-05 | **P5.4c DONE — sectioned-form extraction**: new `FormSelectField` in `@workspace/ui` (`form/` group, +5 tests incl. sentinel coverage) with `unsetValue`/`unsetLabel` absorbed the leaveType/claimType label-map Select clones and the staffId "self" sentinel select; ApplyLeave + EditPatient + AddAppointment footers adopted the existing `FormDialogFooter` (closing the footer clone; `DialogFooter` canonical border-t layout replaces the duplicated custom divs — cancel-button disabled states harmonized to the primitive's `isLoading || disabled`). The `FormSelectField` closing scaffold is a structural false positive — inline `jscpd:ignore-start/end` inside the primitive (form-dialog.tsx precedent). 4 jscpd ignores removed (35 → 31). Gate: jscpd 0 clones, ui 95 + app-vite 697 tests, ui + app-vite check-types 0, lint 0, as-cast 0, NNA 0, knip 0. | P5 sweep |
-| target 2026-08-12 | P5.2: drive as-cast 74 → ≤40; P5.4: drive jscpd 45 → ≤25; P5.5: drive zod-parity 15 → ≤8. | P5 sweep |
+| 2026-08-05 | **P5.5 DONE — zod-parity stale-entry prune (15 → 5)**: an audit script replicating the gate's exact logic found 10 of 15 `zod-interface-parity.json` entries stale — the interfaces were already renamed to draft-item/form shapes or de-exported during the port (or the colliding schema moved), so the check no longer flags them and the entries were dead weight. Removed the 10; the remaining 5 are still-exported, still-colliding shapes (`Medication`, `DoctorSchedule`, `InvoiceItem`, `TeamMember` form-local divergence + `DashboardStats` name-collision-only). Zero un-allowlisted collisions; `check-zod-interface-parity --enforce` exit 0. | P5 sweep |
+| target 2026-08-12 | P5.2: drive as-cast 74 → ≤40 — **DONE (80 → 40)**; P5.4: drive jscpd 45 → ≤25 — **DONE (48 → 23)**; P5.5: drive zod-parity 15 → ≤8 — **DONE (15 → 5)**. | P5 sweep |

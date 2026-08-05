@@ -1,51 +1,11 @@
 [
   {
-    "id": "apps/app-vite/src/features/ipd/rules/ipd-rules.ts:Admission",
-    "reason": "Phase 9 documented form-local divergence: admission rule shape stays local to ipd-rules."
-  },
-  {
-    "id": "apps/app-vite/src/features/ipd/rules/ipd-rules.ts:Bed",
-    "reason": "Phase 9 documented form-local divergence: bed rule shape stays local to ipd-rules."
-  },
-  {
-    "id": "apps/app-vite/src/features/ipd/rules/ipd-rules.ts:Ward",
-    "reason": "Phase 9 documented form-local divergence: ward rule shape stays local to ipd-rules."
-  },
-  {
     "id": "apps/app-vite/src/features/consultation/components/structured/prescription-input.types.ts:Medication",
     "reason": "Phase 9 documented form-local divergence: structured Rx input item shape."
   },
   {
-    "id": "apps/app-vite/src/features/consultation/components/structured/chief-complaint.types.ts:ChiefComplaintItem",
-    "reason": "Phase 9 documented form-local divergence: chief-complaint input item shape."
-  },
-  {
-    "id": "apps/app-vite/src/features/consultation/components/structured/diagnosis-input-types.ts:DiagnosisItem",
-    "reason": "Phase 9 documented form-local divergence: diagnosis input item shape."
-  },
-  {
-    "id": "apps/app-vite/src/features/consultation/components/structured/examination-input.types.ts:ExaminationData",
-    "reason": "Phase 9 documented form-local divergence: structured examination input shape."
-  },
-  {
-    "id": "apps/app-vite/src/features/consultation/components/modals/use-vitals-form.ts:VitalsFormData",
-    "reason": "Phase 9 documented form-local divergence: vitals form draft state shape."
-  },
-  {
-    "id": "apps/app-vite/src/features/patients/rules/vitals-rules.ts:VitalsData",
-    "reason": "Phase 9 documented form-local divergence: vitals rule shape."
-  },
-  {
     "id": "apps/app-vite/src/features/appointments/hooks/auto-pick-start-time-helpers.ts:DoctorSchedule",
     "reason": "Phase 9 documented form-local divergence: availability schedule picker shape."
-  },
-  {
-    "id": "apps/app-vite/src/features/consultation/hooks/use-consultation-dashboard.ts:DashboardStats",
-    "reason": "Name collision only — consultation dashboard stat aggregation is unrelated to admin dashboardStatsSchema."
-  },
-  {
-    "id": "apps/app-vite/src/features/documents/rules/document-rules.ts:Document",
-    "reason": "Phase 9 documented form-local divergence: document list rule shape."
   },
   {
     "id": "apps/app-vite/src/features/invoices/components/forms/InvoiceItemsTableSections.tsx:InvoiceItem",
