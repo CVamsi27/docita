@@ -2,8 +2,7 @@ import { z } from "zod";
 import type { UseFormReturn } from "react-hook-form";
 import { createAppointmentSchema, Doctor, Patient, type AvailableSlot } from "@workspace/types";
 import type { SelectOption } from "@/lib/contexts/app-config-context";
-import { Badge, Button, FormField, FormItem, FormLabel, FormMessage, IsoDatePickerField, parseIsoDateToLocalDate } from "@workspace/ui/components";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { Badge, FormDialogFooter, FormField, FormItem, FormLabel, FormMessage, IsoDatePickerField, parseIsoDateToLocalDate } from "@workspace/ui/components";
 import { formatClinicPickerDayIsoFromSelection } from "@workspace/utils";
 import { AppointmentFormFields } from "@/features/appointments/components/sections/add-dialog/AppointmentFormFields";
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
@@ -228,29 +227,15 @@ export function FormActionsSection({
   slotReady,
   onOpenChange,
 }: FormActionsSectionProps) {
+  const slotPending =
+    isResolvingDefaultSlot || (mode === "walk-in" && !slotReady);
   return (
-    <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => onOpenChange(false)}
-        disabled={loading}
-      >
-        Cancel
-      </Button>
-      <Button
-        type="submit"
-        disabled={
-          loading ||
-          isResolvingDefaultSlot ||
-          (mode === "walk-in" && !slotReady)
-        }
-      >
-        {loading && (
-          <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
-        )}
-        {mode === "walk-in" ? "Add walk-in" : "Schedule"}
-      </Button>
-    </div>
+    <FormDialogFooter
+      isLoading={loading}
+      disabled={slotPending}
+      submitLabel={mode === "walk-in" ? "Add walk-in" : "Schedule"}
+      cancelLabel="Cancel"
+      onCancel={() => onOpenChange(false)}
+    />
   );
 }

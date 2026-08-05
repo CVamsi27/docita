@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/form/select";
 import { Button } from "@workspace/ui/components/form/button";
+import { FormSelectField } from "@workspace/ui/components/form/form-select-field";
 import { CLAIM_TYPE_LABELS } from "@/features/insurance-claims/lib/claim-display";
 import type { ClaimCreatePresets } from "@/features/insurance-claims/hooks/use-insurance-claim-create-logic";
 import type { CreateInsuranceClaimFormValues, Patient } from "@workspace/types";
@@ -150,33 +151,15 @@ interface ClaimTypeFieldProps {
 function ClaimTypeField({ control, presets }: ClaimTypeFieldProps) {
   const { t } = useTranslation("InsuranceClaims");
   return (
-    <FormField
+    <FormSelectField
       control={control}
       name="claimType"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{t("createFormSections.claimTypeLabel")}</FormLabel>
-          <Select value={field.value} onValueChange={field.onChange}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {(["PRE_AUTH", "REIMBURSEMENT"] as const).map((ct) => (
-                <SelectItem
-                  key={ct}
-                  value={ct}
-                  disabled={ct === "REIMBURSEMENT" && !presets?.invoiceId}
-                >
-                  {CLAIM_TYPE_LABELS[ct]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
+      label={t("createFormSections.claimTypeLabel")}
+      options={(["PRE_AUTH", "REIMBURSEMENT"] as const).map((ct) => ({
+        value: ct,
+        label: CLAIM_TYPE_LABELS[ct],
+        disabled: ct === "REIMBURSEMENT" && !presets?.invoiceId,
+      }))}
     />
   );
 }

@@ -50,6 +50,7 @@ export * from "./feedback/error-state";
 export * from "./form/form-dialog";
 export * from "./form/form-field-group";
 export * from "./form/form-grid";
+export * from "./form/form-select-field";
 export * from "./form/form";
 export * from "./form/input";
 export * from "./form/label";

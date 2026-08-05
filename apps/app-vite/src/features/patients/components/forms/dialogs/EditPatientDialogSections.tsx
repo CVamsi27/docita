@@ -1,6 +1,5 @@
 import type { Control } from "react-hook-form";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
-import { Button } from "@workspace/ui/components/form/button";
+import { FormDialogFooter } from "@workspace/ui/components";
 import type { UpdatePatientRequest } from "@workspace/types";
 import { SharedPatientContactFields, SharedPatientIdentityFields, SharedPatientNameFields } from "./shared-patient-info-fields";
 
@@ -39,25 +38,11 @@ export function DialogActionButtons({
   isPending,
 }: DialogActionButtonsProps) {
   return (
-    <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onCancel}
-        disabled={isPending}
-      >
-        Cancel
-      </Button>
-      <Button type="submit" disabled={isPending}>
-        {isPending && (
-          <DocitaLoadingIndicator
-            variant="inline"
-            decorative
-            className="mr-2"
-          />
-        )}
-        Save Changes
-      </Button>
-    </div>
+    <FormDialogFooter
+      isLoading={isPending}
+      submitLabel="Save Changes"
+      cancelLabel="Cancel"
+      onCancel={onCancel}
+    />
   );
 }

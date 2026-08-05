@@ -1,7 +1,6 @@
 import type { UseFormReturn } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
-import { Button, DatePicker, DialogFooter } from "@workspace/ui/components";
-import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, Textarea } from "@workspace/ui/components/form/form-primitives";
+import { DatePicker, FormDialogFooter, FormSelectField } from "@workspace/ui/components";
 import type { User } from "@workspace/types";
 import type { z } from "zod";
 import { createLeaveRequestSchema } from "@workspace/types";
@@ -31,35 +30,14 @@ export function ApplyLeaveStaffField({
 }: ApplyLeaveStaffFieldProps) {
   const { t } = useApplyLeaveTranslations();
   return (
-    <FormField
+    <FormSelectField
       control={form.control}
       name="staffId"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{t("onBehalfOfLabel")}</FormLabel>
-          <Select
-            value={field.value || "self"}
-            onValueChange={(v) =>
-              field.onChange(v === "self" ? undefined : v)
-            }
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder={t("staffMemberPlaceholder")} />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="self">{t("myselfOption")}</SelectItem>
-              {staffMembers.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
-                  {m.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
+      label={t("onBehalfOfLabel")}
+      placeholder={t("staffMemberPlaceholder")}
+      unsetValue="self"
+      unsetLabel={t("myselfOption")}
+      options={staffMembers.map((m) => ({ value: m.id, label: m.name }))}
     />
   );
 }
@@ -72,29 +50,15 @@ export function ApplyLeaveFormFields({ form }: ApplyLeaveFormFieldsProps) {
   const { t } = useApplyLeaveTranslations();
   return (
     <>
-      <FormField
+      <FormSelectField
         control={form.control}
         name="leaveType"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t("leaveTypeLabel")}</FormLabel>
-            <Select value={field.value} onValueChange={field.onChange}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("leaveTypePlaceholder")} />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {labelMapKeys(LEAVE_TYPE_LABELS).map((lt) => (
-                  <SelectItem key={lt} value={lt}>
-                    {LEAVE_TYPE_LABELS[lt]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
+        label={t("leaveTypeLabel")}
+        placeholder={t("leaveTypePlaceholder")}
+        options={labelMapKeys(LEAVE_TYPE_LABELS).map((lt) => ({
+          value: lt,
+          label: LEAVE_TYPE_LABELS[lt],
+        }))}
       />
       <div className="grid grid-cols-2 gap-3">
         <FormField
@@ -176,20 +140,11 @@ export function ApplyLeaveDialogFooter({
 }: ApplyLeaveDialogFooterProps) {
   const { t } = useApplyLeaveTranslations();
   return (
-    <DialogFooter>
-      <Button type="button" variant="outline" onClick={onCancel}>
-        {t("cancelButton")}
-      </Button>
-      <Button type="submit" disabled={isPending}>
-        {isPending && (
-          <DocitaLoadingIndicator
-            variant="inline"
-            decorative
-            className="mr-2"
-          />
-        )}
-        {t("submitButton")}
-      </Button>
-    </DialogFooter>
+    <FormDialogFooter
+      isLoading={isPending}
+      submitLabel={t("submitButton")}
+      cancelLabel={t("cancelButton")}
+      onCancel={onCancel}
+    />
   );
 }
