@@ -46,12 +46,12 @@ ls -la scripts/checks/allowlists/
 | `check:as-cast-density`         |        **73** |         73 |          0 |         — | `check-as-cast-density: allow-file` (file-level marker in JSDoc). 80 → 73 on 2026-08-05 (P5.2a/P5.2e −6; RUM consolidation −2 app markers + 1 data-access marker = −1). |
 | `check:non-null-assertion`      |         **0** |          0 |          0 |         — | 7 → 0 on 2026-08-05 (P5.3).                                       |
 | `check:frontend-fetch`          |         ~12   |         ~6 |          0 |          6 | Worker proxy `api/index.ts` + intentional `.api.ts` boundary     |
-| `.jscpd.json` ignore list       |        **39** |         39 |          0 |         — | Production source paths; one entry per file or pattern (68 raw incl. test/e2e patterns). RUM reporters consolidated out (−4); boilerplate (sentry/logger/error-reporter) promotion to `@workspace/utils` removed −6 (48 → 42, 2026-08-05 P5.4e); P5.4a sibling-dialog extraction removed −3 (42 → 39, 2026-08-05) |
+| `.jscpd.json` ignore list       |        **35** |         35 |          0 |         — | Production source paths; one entry per file or pattern (64 raw incl. test/e2e patterns). RUM reporters consolidated out (−4); boilerplate (sentry/logger/error-reporter) promotion to `@workspace/utils` removed −6 (48 → 42, 2026-08-05 P5.4e); P5.4a sibling-dialog extraction removed −3 (42 → 39, 2026-08-05); P5.4b list/table extraction removed −4 (39 → 35, 2026-08-05) |
 | `scripts/checks/allowlists/`    |        **17** |         15 |          0 |          2 | `zod-interface-parity.json` (15) + `i18n-coverage.json` (1) + empty feature-test-density |
 | `eslint-disable*` in source     |         **1** |          1 |          0 |         — | 6 → 1 on 2026-08-05 (P5.6); only the documented ConsultationMainPanel perf-memo remains |
 | `@ts-ignore` / `@ts-expect-error` in source | 0 (target) | 0 | 0 | — | Replaced by type-safe narrowing or `// check-as-cast-density: allow-file` |
 
-**Total measurable suppressions: 141.** All are intentional, all have a rationale, all
+**Total measurable suppressions: 137.** All are intentional, all have a rationale, all
 are owned by a specific check. No "blanket" suppressions (e.g. `eslint-disable file-level`
 without a rule list) exist.
 
@@ -112,7 +112,7 @@ Validation: `pnpm check:non-null-assertion` exit 0; all touched apps/packages ty
 
 ---
 
-## 4. `.jscpd.json` ignore list — 39 production entries (68 raw)
+## 4. `.jscpd.json` ignore list — 35 production entries (64 raw)
 
 jscpd duplicates are detected by token similarity. The ignores cover two
 shapes:
@@ -128,21 +128,22 @@ shapes:
 | --------------------------------------- | ----: | ------------------------------------------------------------------------------------------- |
 | Boilerplate (logger, sentry, errors, entry files) |     9 | **Keep** — same source in app-vite + internal-vite by design; promote to `@workspace/utils`/`packages/data-access`. **RUM reporters consolidated out 2026-08-05 (P4.5/P5.4e DONE)**: the mirrored `web-vitals.ts`/`web-vitals-payload.ts` became one shared `installWebVitalsReporter` in `packages/data-access/src/lib/monitoring/web-vitals.ts` (+ ported tests) — 4 ignores removed and the dead `postInternalWebVitals` export deleted. **Sentry/logger/error-reporter promotion DONE 2026-08-05 (P5.4e)**: `createSentryClientConfig` + `installGlobalErrorHandler` landed in `@workspace/utils` (10 new unit tests); the per-app `sentry.client.config.ts` files are now thin DSN/context bindings and `logger.ts`/`client-error-reporter.ts` are re-export shims — 6 ignores removed (48 → 42). `**/main.tsx` matches the existing `**/App.tsx` entry-file ignore. |
 | Sibling dialog sections                 |     4 | **P5.4a DONE 2026-08-05 (7 → 4)**: cast-free generic `TeamMemberNameRoleFields` (grid + name + role, `roleItems`/`readOnly`/`readOnlyValue` props) added to the feature-local `team-member-form-fields.tsx` — not a `@workspace/ui` primitive, per AGENTS.md §4.3/§15.5 sourcing order (2 consumers, 1 feature). Closed the invite↔manage name/role grid clone (−2 ignores). `LabTestOrderComboboxState` shared type in `order-lab-test-combobox-options.tsx` closed the OrderLabTestDialog↔combobox-fields interface clone (−1 ignore). Kept with rationale: `OrderLabTestDialog` (generic outline+primary button pair with `lab-tests-page-ui` — not extractable), `join-clinic-request-dialog` + `join-request-review-dialogs` (import-header block only — not extractable). The shared component's home file (`team-member-form-fields.tsx`) stays in the ignore list for its own lab-select clones, so the dedup is enforced by the component API rather than the gate. |
-| Mirrored list/table views               |     9 | Extract a `<ResponsiveDataTable>` section primitive. Target: P5.4.                          |
+| Mirrored list/table views               |     5 | **P5.4b DONE 2026-08-05 (9 → 5)**: `DoctorFilterSelect` (new `@workspace/ui` primitive, `form/` group — 2 features: appointments + consultation) absorbed the All-doctors filter `Select` clone in `AppointmentsCalendarUI` ↔ `ConsultationHistoryListSections`; shared `AppointmentRowActionProps` type (feature-local `appointments/components/appointment-row-action-props.ts` — 2 consumers, 1 feature) absorbed the row-action interface clone in `TimeSlotRow` ↔ `AppointmentsListUI`. 4 ignores removed (39 → 35). Kept with rationale: `InvoiceActionsBar` ↔ `InvoiceHeaderSection` (generic outline+primary button row — token normalization false positive), `PatientClaimsPanel` ↔ `AppointmentRequestsPanel` (barrel import block only), `DocumentsPageUI` ↔ `PatientsPageUI` (the page-level `AppPageScaffold → DataState` guard composition mandated by AGENTS.md §4.3/§15.7 — intentional structure, not a smell). The `DataTable` primitive family already exists in `@workspace/ui` (with `stackOnMobile`/`mobileRenderer` enforcement) — no new table primitive was needed. |
 | Page-skeleton + loaders                 |     3 | **Keep** — already excluded at `components/loaders/page-skeleton.tsx`.                      |
 | Sectioned forms (e.g. `*-form-sections-shared.tsx`) | 8 | Extract a `<FormSections>` primitive. Target: P5.4.                                |
 | Consultation specialty views             |     5 | **Keep** — clinical UI; mirror is intentional.                                              |
 | `*Sections.tsx` / `*PageUI.tsx` / `*PageUI.tsx` | 5 | Refactor: see P5.4.                                                                   |
 
-**Refactor target (P5.4)**: 39 → **≤25** production entries by extracting the
-`<ResponsiveDataTable>` and `<FormSections>` primitives (the sibling-dialog
-half of the `TwoColumnDialogSections` plan landed feature-locally in P5.4a as
-`TeamMemberNameRoleFields` — the remaining 4 sibling-dialog entries are the
-two non-extractable shapes documented above). Each extraction closes 5–10
-ignores; gate remains 0 clones. The `**/main.tsx` entry is temporary and
-disappears when the P5.4e boilerplate promotion of the entry files lands (the
-RUM half and the sentry/logger/error-reporter half already landed — only the
-`main.tsx` provider-stack mirror remains).
+**Refactor target (P5.4)**: 35 → **≤25** production entries by extracting the
+`<FormSections>` primitive (the sibling-dialog half of the
+`TwoColumnDialogSections` plan landed feature-locally in P5.4a as
+`TeamMemberNameRoleFields`; the mirrored list/table half landed in P5.4b as
+`DoctorFilterSelect` + `AppointmentRowActionProps` — the remaining list/table
+entries are the three non-extractable shapes documented above). Each
+extraction closes 5–10 ignores; gate remains 0 clones. The `**/main.tsx`
+entry is temporary and disappears when the P5.4e boilerplate promotion of the
+entry files lands (the RUM half and the sentry/logger/error-reporter half
+already landed — only the `main.tsx` provider-stack mirror remains).
 
 ---
 
@@ -219,4 +220,5 @@ marker exists and is non-empty. Suppressions without a marker fail the gate.
 | 2026-08-05 | **P4.5/P5.4e DONE — RUM reporter consolidation**: shared `installWebVitalsReporter` + `postWebVitalsRum` in `packages/data-access/src/lib/monitoring/web-vitals.ts`; both app reporters became thin wrappers; both `web-vitals-payload.ts` files + the app test + the dead `internal-monitoring.ts` deleted; 4 jscpd ignores + the `check-frontend-fetch` payload entry removed; tests ported into data-access (3). Gate: 0 clones. | P5 sweep |
 | 2026-08-05 | **P5.4e DONE — sentry/logger/error-reporter promotion**: `createSentryClientConfig` (SentryClientSdk structural type, shared init options + PHI scrub + capture + logger) and `installGlobalErrorHandler` (module-level install flag) landed in `@workspace/utils` (+10 tests: sentry-client-config 4, global-error-handler 3, monitoring 3). Per-app `sentry.client.config.ts` thinned to DSN/context/tag bindings; `logger.ts` + `client-error-reporter.ts` are re-export shims; `app-globals.d.ts` ×2 deleted (no window globals remain). 6 jscpd ignores removed (48 → 42); as-cast 74 → 73. Gate: as-cast 0, NNA 0, client-storage 30, frontend-fetch PASS, jscpd 0 clones, utils 154 + app-vite 697 + internal-vite 48 tests. | P5 sweep |
 | 2026-08-05 | **P5.4a DONE — sibling-dialog extraction**: cast-free generic `TeamMemberNameRoleFields` in `team-member-form-fields.tsx` (grid + name field + role field with `roleItems`/`readOnly`/`readOnlyValue`; feature-local per §4.3/§15.5 — only 2 consumers in 1 feature) absorbed the invite↔manage team-member name/role grid clone; `LabTestOrderComboboxState` in `order-lab-test-combobox-options.tsx` absorbed the OrderLabTestDialog↔combobox-fields interface-prop clone. 3 jscpd ignores removed (42 → 39); the remaining sibling-dialog entries (`OrderLabTestDialog` button-pair, join-request dialog import headers) kept with rationale. Gate: jscpd 0 clones, app-vite check-types 0, lint 0 on touched files, as-cast 0, NNA 0, knip 0, app-vite 697 tests. | P5 sweep |
+| 2026-08-05 | **P5.4b DONE — mirrored list/table extraction**: `DoctorFilterSelect` added to `@workspace/ui` (`form/` group, +4 tests with Radix-in-jsdom polyfills: ResizeObserver, Pointer capture, scrollIntoView) — 2-feature consumer (appointments calendar + consultation history), absorbed the All-doctors filter `Select` clone; shared `AppointmentRowActionProps` (`appointments/components/appointment-row-action-props.types.ts`, feature-local, 2 consumers in the appointments feature) absorbed the TimeSlotRow↔AppointmentsListUI row-action interface clone. 4 jscpd ignores removed (39 → 35). Kept with rationale: InvoiceActionsBar↔InvoiceHeaderSection (generic button-row false positive), PatientClaimsPanel↔AppointmentRequestsPanel (barrel import block), DocumentsPageUI↔PatientsPageUI (mandated page-shell `AppPageScaffold → DataState` composition). Optional follow-up: `AppointmentsPageContentSections` + `AppointmentRowActionsMenu` declare the same row-action signatures — adopt `AppointmentRowActionProps` when next touched (prop sets are supersets). Gate: jscpd 0 clones, ui 90 + app-vite 697 tests, ui + app-vite check-types 0, lint 0, as-cast 0, knip 0. | P5 sweep |
 | target 2026-08-12 | P5.2: drive as-cast 74 → ≤40; P5.4: drive jscpd 45 → ≤25; P5.5: drive zod-parity 15 → ≤8. | P5 sweep |

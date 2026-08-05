@@ -38,6 +38,7 @@ export * from "./overlay/confirmation-dialog";
 export * from "./overlay/crud-dialog";
 export * from "./indicators/kbd";
 export * from "./form/date-picker";
+export * from "./form/doctor-filter-select";
 export * from "./form/iso-date-picker-field";
 export * from "./form/date-time-picker";
 export * from "./data-display/data-state";

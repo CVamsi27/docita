@@ -4,8 +4,9 @@ import { CalendarDays } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
 import type { AppointmentListItem } from "@workspace/data-access";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
+import type { AppointmentRowActionProps } from "@/features/appointments/components/appointment-row-action-props.types";
 
-interface AppointmentsListUIProps {
+interface AppointmentsListUIProps extends AppointmentRowActionProps {
   selectedPickerIso: string;
   clinicTz: string;
   canViewAllDoctors?: boolean;
@@ -19,14 +20,6 @@ interface AppointmentsListUIProps {
   isToday?: boolean;
   currentTimeSlot?: string;
   currentTimeSlotRef?: React.RefObject<HTMLDivElement | null>;
-  checkingIn: string | null;
-  startingConsultationId: string | null;
-  onCheckIn: (id: string) => void;
-  onStartConsultation: (id: string) => void;
-  onCancelClick: (id: string) => void;
-  onNoShowClick: (id: string) => void;
-  onScheduleFollowUp?: (appointment: AppointmentListItem) => void;
-  currentUserId?: string;
 }
 
 export function AppointmentsListUI({

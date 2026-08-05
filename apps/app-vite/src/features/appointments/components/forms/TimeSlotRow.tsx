@@ -10,17 +10,10 @@ import { useDownloadOpdSlip } from "@/features/appointments/hooks/use-download-o
 import { canStartConsultationAtTime } from "@/features/appointments/rules/appointment-rules";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { TimeSlotStatus, TimeSlotLabel, TimeSlotPatientInfo, TimeSlotActions } from "./TimeSlotRowSections";
+import type { AppointmentRowActionProps } from "@/features/appointments/components/appointment-row-action-props.types";
 
-interface TimeSlotRowProps {
+interface TimeSlotRowProps extends AppointmentRowActionProps {
   appointment: AppointmentListItem;
-  checkingIn: string | null;
-  startingConsultationId: string | null;
-  onCheckIn: (id: string) => void;
-  onStartConsultation: (id: string) => void;
-  onCancelClick: (id: string) => void;
-  onNoShowClick: (id: string) => void;
-  onScheduleFollowUp?: (appointment: AppointmentListItem) => void;
-  currentUserId?: string;
 }
 
 export const TimeSlotRow = memo<TimeSlotRowProps>(

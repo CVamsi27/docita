@@ -1,5 +1,6 @@
 import { Link } from "react-router";
-import { Badge, Button, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
+import { Badge, Button, CardHeader, CardTitle } from "@workspace/ui/components";
+import { DoctorFilterSelect } from "@workspace/ui/components/form/doctor-filter-select";
 import { ClipboardList, Eye, FileText, Pill, Receipt } from "lucide-react";
 import { getPatientFullName } from "@workspace/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
@@ -35,27 +36,13 @@ export function ConsultationListHeader({
           </p>
         </div>
         {canViewAllDoctors && doctorsList.length > 0 && onDoctorSelect ? (
-          <Select
-            value={selectedDoctorId || "all"}
-            onValueChange={(value) =>
-              onDoctorSelect(value === "all" ? undefined : value)
-            }
-          >
-            <SelectTrigger
-              className="h-9 w-full sm:w-[220px] text-sm"
-              aria-label="Filter completed consultations by doctor"
-            >
-              <SelectValue placeholder="Doctor" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All doctors</SelectItem>
-              {doctorsList.map((doctor) => (
-                <SelectItem key={doctor.id} value={doctor.id}>
-                  Dr. {doctor.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <DoctorFilterSelect
+            doctors={doctorsList}
+            selectedDoctorId={selectedDoctorId}
+            onDoctorSelect={onDoctorSelect}
+            triggerClassName="h-9 w-full sm:w-[220px] text-sm"
+            ariaLabel="Filter completed consultations by doctor"
+          />
         ) : null}
       </div>
     </CardHeader>

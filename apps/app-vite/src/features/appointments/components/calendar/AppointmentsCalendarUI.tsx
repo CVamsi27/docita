@@ -1,4 +1,5 @@
-import { Button, Calendar, Card, CardContent, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
+import { Button, Calendar, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
+import { DoctorFilterSelect } from "@workspace/ui/components/form/doctor-filter-select";
 import { DEFAULT_TIMEZONE, formatClinicPickerDayIsoFromSelection, formatClinicPickerIsoLabel, formatClinicTodayPickerIso, pickerIsoToLocalDate } from "@workspace/utils";
 import { useClinic } from "@/lib/contexts/clinic-context";
 
@@ -80,27 +81,11 @@ export function AppointmentsCalendarUI({
         </div>
 
         {canViewAllDoctors && doctorsList.length > 0 && (
-          <Select
-            value={selectedDoctorId || "all"}
-            onValueChange={(value) =>
-              onDoctorSelect(value === "all" ? undefined : value)
-            }
-          >
-            <SelectTrigger
-              className="h-9 w-full text-sm"
-              aria-label="Filter by doctor"
-            >
-              <SelectValue placeholder="Doctor" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All doctors</SelectItem>
-              {doctorsList.map((doctor) => (
-                <SelectItem key={doctor.id} value={doctor.id}>
-                  Dr. {doctor.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <DoctorFilterSelect
+            doctors={doctorsList}
+            selectedDoctorId={selectedDoctorId}
+            onDoctorSelect={onDoctorSelect}
+          />
         )}
       </CardHeader>
 
