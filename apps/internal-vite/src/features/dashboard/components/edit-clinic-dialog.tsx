@@ -3,7 +3,7 @@ import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
 import { Pencil } from "lucide-react";
 import { Button, SymbolTooltip } from "@workspace/ui/components";
 import { toast } from "sonner";
-import type { ClinicType, TierName } from "@workspace/types";
+import { clinicTypeSchema, tierSchema } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { apiPatch } from "@/lib/api/api-client";
 import { EditClinicDetailsSection, type EditClinicFieldErrors, type EditClinicFormData } from "./edit-clinic-dialog-sections";
@@ -23,11 +23,16 @@ interface Clinic {
 export function EditClinicDialog({ clinic, onClinicUpdated }: { clinic: Clinic; onClinicUpdated: () => void }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<EditClinicFormData>({
-    name: clinic.name, email: clinic.email, phone: clinic.phone,
-    // check-as-cast-density: allow-file — clinic payload enums (tier/type) narrowed to canonical unions
-    address: clinic.address, tier: clinic.tier as TierName, type: (clinic.type || "GENERAL") as ClinicType,
-    active: clinic.active,
+  const [formData, setFormData] = useState<EditClinicFormData>(() => {
+    const parsedTier = tierSchema.safeParse(clinic.tier);
+    const parsedClinicType = clinicTypeSchema.safeParse(clinic.type ?? "GENERAL");
+    return {
+      name: clinic.name, email: clinic.email, phone: clinic.phone,
+      address: clinic.address,
+      tier: parsedTier.success ? parsedTier.data : "STARTER",
+      type: parsedClinicType.success ? parsedClinicType.data : "GENERAL",
+      active: clinic.active,
+    };
   });
   const [fieldErrors, setFieldErrors] = useState<EditClinicFieldErrors>({});
 

@@ -1,9 +1,10 @@
-// check-as-cast-density: allow-file — Object.keys narrows to key union for the mode label map
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";
 import { MessageCircle, RotateCcw, ShieldCheck } from "lucide-react";
 
 type SenderMode = "SHARED" | "BYO" | "MANAGED";
-type UiSenderMode = "DOCITA_MANAGED" | "BYO";
+
+const UI_MODES = ["DOCITA_MANAGED", "BYO"] as const;
+type UiSenderMode = (typeof UI_MODES)[number];
 
 const UI_MODE_LABELS: Record<UiSenderMode, { title: string; description: string }> = {
   DOCITA_MANAGED: {
@@ -40,7 +41,7 @@ export function ModeSelector({
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      {(Object.keys(UI_MODE_LABELS) as UiSenderMode[]).map((key) => {
+      {UI_MODES.map((key) => {
         const selected = uiMode === key;
         const disabled = key === "BYO" && !byoAllowed;
         const info = UI_MODE_LABELS[key];

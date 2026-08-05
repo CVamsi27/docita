@@ -3,10 +3,9 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage, Textarea } fr
 import { DatePicker, FormDialogFooter, FormSelectField } from "@workspace/ui/components";
 import type { User } from "@workspace/types";
 import type { z } from "zod";
-import { createLeaveRequestSchema } from "@workspace/types";
+import { createLeaveRequestSchema, leaveTypeSchema } from "@workspace/types";
 import { useTranslation } from "react-i18next";
 import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
-import { labelMapKeys } from "@workspace/utils";
 
 type ApplyLeaveFormValues = z.infer<typeof createLeaveRequestSchema>;
 
@@ -55,7 +54,7 @@ export function ApplyLeaveFormFields({ form }: ApplyLeaveFormFieldsProps) {
         name="leaveType"
         label={t("leaveTypeLabel")}
         placeholder={t("leaveTypePlaceholder")}
-        options={labelMapKeys(LEAVE_TYPE_LABELS).map((lt) => ({
+        options={leaveTypeSchema.options.map((lt) => ({
           value: lt,
           label: LEAVE_TYPE_LABELS[lt],
         }))}

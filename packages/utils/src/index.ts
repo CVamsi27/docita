@@ -8,7 +8,6 @@ export * from "./security.js";
 export * from "./security-headers.js";
 export * from "./country.js";
 export * from "./string-enum.js";
-export * from "./label-map-keys.boundary.js";
 export * from "./is-record.js";
 export * from "./non-null.js";
 export * from "./browser.js";

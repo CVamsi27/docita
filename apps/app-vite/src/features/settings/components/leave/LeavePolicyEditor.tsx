@@ -16,9 +16,12 @@ import { Plus } from "lucide-react";
 import { useCreateLeavePlan, useLeavePlans } from "@workspace/data-access";
 import type { LeavePlan } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { leavePlanDialogFormSchema, type LeavePlanDialogFormValues } from "@workspace/types";
+import {
+  leavePlanDialogFormSchema,
+  leaveTypeSchema,
+  type LeavePlanDialogFormValues,
+} from "@workspace/types";
 import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
-import { labelMapKeys } from "@workspace/utils";
 
 const DEFAULT_VALUES: LeavePlanDialogFormValues = {
   leaveType: "CASUAL",
@@ -122,7 +125,7 @@ export function LeavePolicyEditor() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {labelMapKeys(LEAVE_TYPE_LABELS).map((lt) => (
+                        {leaveTypeSchema.options.map((lt) => (
                           <SelectItem key={lt} value={lt}>
                             {LEAVE_TYPE_LABELS[lt]}
                           </SelectItem>
