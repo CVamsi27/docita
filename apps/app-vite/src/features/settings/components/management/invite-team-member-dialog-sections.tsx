@@ -8,13 +8,6 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form/form-primitives";
 import { Input } from "@workspace/ui/components/form/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/form/select";
 import { Button } from "@workspace/ui/components/form/button";
 import {
   DialogFooter,
@@ -25,6 +18,7 @@ import {
   DoctorRegistrationFields,
   TeamMemberContactFields,
   TeamMemberLabField,
+  TeamMemberNameRoleFields,
 } from "./team-member-form-fields";
 
 function useInviteTranslations() {
@@ -41,55 +35,19 @@ export function InviteNameRoleFields({
   userCanChangeRoles,
 }: InviteNameRoleFieldsProps) {
   const { t } = useInviteTranslations();
-  return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <FormField
-        control={form.control}
-        name="name"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t("nameLabel")}</FormLabel>
-            <FormControl>
-              <Input placeholder={t("namePlaceholder")} {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="role"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t("roleLabel")}</FormLabel>
-            <Select
-              value={field.value ?? "NURSE"}
-              onValueChange={field.onChange}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="NURSE">{t("roleNurse")}</SelectItem>
-                <SelectItem value="RECEPTIONIST">{t("roleReceptionist")}</SelectItem>
-                <SelectItem value="DOCTOR">{t("roleDoctor")}</SelectItem>
-                <SelectItem value="LAB">{t("roleLab")}</SelectItem>
-                {userCanChangeRoles && (
-                  <>
-                    <SelectItem value="ADMIN">{t("roleAdmin")}</SelectItem>
-                    <SelectItem value="ADMIN_DOCTOR">{t("roleAdminDoctor")}</SelectItem>
-                  </>
-                )}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
+  const roleItems = [
+    { value: "NURSE", label: t("roleNurse") },
+    { value: "RECEPTIONIST", label: t("roleReceptionist") },
+    { value: "DOCTOR", label: t("roleDoctor") },
+    { value: "LAB", label: t("roleLab") },
+    ...(userCanChangeRoles
+      ? [
+          { value: "ADMIN", label: t("roleAdmin") },
+          { value: "ADMIN_DOCTOR", label: t("roleAdminDoctor") },
+        ]
+      : []),
+  ];
+  return <TeamMemberNameRoleFields form={form} t={t} roleItems={roleItems} />;
 }
 
 interface InviteContactFieldsProps {

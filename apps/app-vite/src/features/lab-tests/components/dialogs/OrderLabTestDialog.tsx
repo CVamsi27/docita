@@ -2,33 +2,19 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, Textarea } from "@workspace/ui/components/form/form-primitives";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components";
 import { FormProvider, UseFormReturn } from "react-hook-form";
-import { LabTest, Patient } from "@workspace/types";
 import { CreateLabTestOrderInput } from "@/features/lab-tests/hooks/use-lab-tests-logic";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { formatCurrency as formatCurrencyUtil } from "@/lib/formatters";
 import { OrderLabTestComboboxFields } from "./order-lab-test-combobox-fields";
 import { OrderLabSelectField } from "./order-lab-select-field";
+import type { LabTestOrderComboboxState } from "./order-lab-test-combobox-options";
 
-interface OrderLabTestDialogProps {
+interface OrderLabTestDialogProps extends LabTestOrderComboboxState {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<CreateLabTestOrderInput>;
   onSubmit: (data: CreateLabTestOrderInput) => void;
   isCreating: boolean;
-  patients: Patient[];
-  patientsLoading: boolean;
-  testCatalog: LabTest[];
-  catalogLoading: boolean;
-  patientSearch: string;
-  setPatientSearch: (value: string) => void;
-  testSearch: string;
-  setTestSearch: (value: string) => void;
-  patientComboboxOpen: boolean;
-  setPatientComboboxOpen: (open: boolean) => void;
-  testComboboxOpen: boolean;
-  setTestComboboxOpen: (open: boolean) => void;
-  selectedPatient: Patient | undefined;
-  selectedTest: LabTest | undefined;
 }
 
 export function OrderLabTestDialog({

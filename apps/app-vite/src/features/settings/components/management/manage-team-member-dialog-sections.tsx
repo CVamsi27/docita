@@ -1,11 +1,10 @@
 import type { UseFormReturn } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
-import { Badge, Button } from "@workspace/ui/components";
+import { Button } from "@workspace/ui/components";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { useTranslation } from "react-i18next";
 import { User } from "@workspace/types";
 import { type MemberFormValues, type MemberRole } from "@/features/settings/components/management/member-management-schemas";
-import { TeamMemberContactFields, TeamMemberLabField } from "@/features/settings/components/management/team-member-form-fields";
+import { TeamMemberContactFields, TeamMemberLabField, TeamMemberNameRoleFields } from "@/features/settings/components/management/team-member-form-fields";
 
 export function ManageMemberLabField({
   memberForm,
@@ -49,60 +48,23 @@ interface ManageMemberNameRoleFieldsProps {
 export function ManageMemberNameRoleFields({
   memberForm,
   canChangeSelectedMemberRole,
-  selectedMemberRole: _selectedMemberRole,
+  selectedMemberRole,
   roleLabels,
 }: ManageMemberNameRoleFieldsProps) {
   const { t } = useTranslation("Settings.manageMember");
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <FormField
-        control={memberForm.control}
-        name="name"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t("nameLabel")}</FormLabel>
-            <FormControl>
-              <Input placeholder={t("namePlaceholder")} {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={memberForm.control}
-        name="role"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t("roleLabel")}</FormLabel>
-            {canChangeSelectedMemberRole ? (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="ADMIN">{t("roleAdmin")}</SelectItem>
-                  <SelectItem value="ADMIN_DOCTOR">
-                    {t("roleAdminDoctor")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="flex h-10 items-center rounded-md border bg-muted/20 px-3">
-                <Badge variant="outline">
-                  {roleLabels[field.value]}
-                </Badge>
-              </div>
-            )}
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
+    <TeamMemberNameRoleFields
+      form={memberForm}
+      t={t}
+      roleItems={[
+        { value: "ADMIN", label: t("roleAdmin") },
+        { value: "ADMIN_DOCTOR", label: t("roleAdminDoctor") },
+      ]}
+      readOnly={!canChangeSelectedMemberRole}
+      // Read-only: the form role is immutable and initialized from the
+      // member, so the `selectedMemberRole` prop matches `field.value`.
+      readOnlyValue={roleLabels[selectedMemberRole]}
+    />
   );
 }
 

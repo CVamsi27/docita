@@ -1,6 +1,7 @@
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import { rhfPath } from "@workspace/ui/lib/rhf-path";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Badge } from "@workspace/ui/components/indicators/badge";
 import { useLabs } from "@workspace/data-access";
 import { useTranslation } from "react-i18next";
 
@@ -36,6 +37,81 @@ export function TeamMemberContactFields<TFormValues extends FieldValues>({
             <FormControl>
               <Input placeholder={t("phonePlaceholder")} {...field} />
             </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+}
+
+interface TeamMemberNameRoleFieldsProps<TFormValues extends FieldValues> {
+  form: UseFormReturn<TFormValues>;
+  /**
+   * Translation function scoped to the calling component's namespace.
+   * The caller must ensure the following keys exist:
+   *   - `nameLabel`, `namePlaceholder`
+   *   - `roleLabel`
+   * The caller's form must also initialize the `role` field in
+   * `defaultValues` (the Select renders `field.value` as-is).
+   */
+  t: (key: string) => string;
+  /** Role options rendered in the Select control. */
+  roleItems: ReadonlyArray<{ value: string; label: string }>;
+  /** When true, renders a read-only badge instead of the role Select. */
+  readOnly?: boolean;
+  /** Label rendered in the read-only badge (used only when `readOnly`). */
+  readOnlyValue?: string;
+}
+
+export function TeamMemberNameRoleFields<TFormValues extends FieldValues>({
+  form,
+  t,
+  roleItems,
+  readOnly = false,
+  readOnlyValue,
+}: TeamMemberNameRoleFieldsProps<TFormValues>) {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <FormField
+        control={form.control}
+        name={rhfPath<TFormValues>("name")}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t("nameLabel")}</FormLabel>
+            <FormControl>
+              <Input placeholder={t("namePlaceholder")} {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name={rhfPath<TFormValues>("role")}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t("roleLabel")}</FormLabel>
+            {readOnly ? (
+              <div className="flex h-10 items-center rounded-md border bg-muted/20 px-3">
+                <Badge variant="outline">{readOnlyValue}</Badge>
+              </div>
+            ) : (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {roleItems.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <FormMessage />
           </FormItem>
         )}

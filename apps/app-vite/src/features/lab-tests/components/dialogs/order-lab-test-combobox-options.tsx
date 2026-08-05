@@ -10,6 +10,28 @@ export type LabTestFormatCurrency = (
   options?: { fractionDigits?: number },
 ) => string;
 
+/**
+ * Shared selection state threaded from the order-lab-test dialog into its
+ * combobox fields. Kept as one type so the dialog and its field components
+ * cannot drift apart.
+ */
+export interface LabTestOrderComboboxState {
+  patients: Patient[];
+  patientsLoading: boolean;
+  testCatalog: LabTest[];
+  catalogLoading: boolean;
+  patientSearch: string;
+  setPatientSearch: (value: string) => void;
+  testSearch: string;
+  setTestSearch: (value: string) => void;
+  patientComboboxOpen: boolean;
+  setPatientComboboxOpen: (open: boolean) => void;
+  testComboboxOpen: boolean;
+  setTestComboboxOpen: (open: boolean) => void;
+  selectedPatient: Patient | undefined;
+  selectedTest: LabTest | undefined;
+}
+
 export function PatientCommandList({
   patients,
   patientsLoading,
