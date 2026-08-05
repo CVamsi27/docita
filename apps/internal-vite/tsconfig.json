@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2021",
-    "lib": ["ES2021", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2021",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
@@ -14,19 +18,55 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@workspace/types": ["../../packages/types/src/index"],
-      "@workspace/types/*": ["../../packages/types/src/*"],
-      "@workspace/ui": ["../../packages/ui/src/index"],
-      "@workspace/ui/*": ["../../packages/ui/src/*"],
-      "@workspace/utils": ["../../packages/utils/src/index"],
-      "@workspace/utils/*": ["../../packages/utils/src/*"],
-      "@workspace/hooks": ["../../packages/hooks/src/index"],
-      "@workspace/hooks/*": ["../../packages/hooks/src/*"],
-      "@workspace/data-access": ["../../packages/data-access/src/index"],
-      "@workspace/data-access/*": ["../../packages/data-access/src/*"]
-    }
+      "@/*": [
+        "./src/*"
+      ],
+      "@workspace/types": [
+        "../../packages/types/src/index"
+      ],
+      "@workspace/types/*": [
+        "../../packages/types/src/*"
+      ],
+      "@workspace/ui": [
+        "../../packages/ui/src/index"
+      ],
+      "@workspace/ui/*": [
+        "../../packages/ui/src/*"
+      ],
+      "@workspace/utils": [
+        "../../packages/utils/src/index"
+      ],
+      "@workspace/utils/*": [
+        "../../packages/utils/src/*"
+      ],
+      "@workspace/hooks": [
+        "../../packages/hooks/src/index"
+      ],
+      "@workspace/hooks/*": [
+        "../../packages/hooks/src/*"
+      ],
+      "@workspace/data-access": [
+        "../../packages/data-access/src/index"
+      ],
+      "@workspace/data-access/*": [
+        "../../packages/data-access/src/*"
+      ]
+    },
+    "ignoreDeprecations": "6.0",
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
 }

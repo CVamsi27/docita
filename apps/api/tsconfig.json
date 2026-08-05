@@ -14,9 +14,15 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     },
-    "types": ["node", "jest", "multer"],
+    "types": [
+      "node",
+      "jest",
+      "multer"
+    ],
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
@@ -24,7 +30,8 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": true,
     "strictBindCallApply": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "ignoreDeprecations": "6.0"
   },
   "exclude": [
     "node_modules",
@@ -35,5 +42,7 @@
     "src/test-utils",
     "src/test-utils/**"
   ],
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts"
+  ]
 }

@@ -270,7 +270,7 @@ Features with i18n: ai-assistant, analytics, appointments, auth, consultation, d
 | G.1 | `react-router` 7.18.2 — CSRF advisory (needs v8.3.0+)        | Verify v7→v8 compat, then upgrade |
 | G.2 | `brace-expansion` ≤5.0.7 — DoS advisory                      | Bump owning dev tool              |
 | G.3 | `react-signature-canvas` 1.1.0-alpha.2 — alpha in production | Monitor for stable release        |
-| G.4 | TypeScript 5.7.3 — not latest (5.8+)                         | Update during maintenance window  |
+| G.4 | TypeScript 5.7.3 → 6.0.3                         | DONE 2026-08-04 (bridge release; 7.0 deferred until NestJS supports the native compiler API) |
 
 ### H. Backend Config (after cutover)
 

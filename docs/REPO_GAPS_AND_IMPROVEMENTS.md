@@ -1,6 +1,8 @@
 # Repo Gap & Improvement Audit (non-frontend)
 
-Point-in-time audit: **2026-08-03**. Scope: everything outside the frontend migration — API, worker, shared packages, scripts/checks, CI, docs commands, repo hygiene. The frontend parity inventory is owned by [`PORTING_PLAN_APP_VITE.md`](PORTING_PLAN_APP_VITE.md); this audit owns cross-cutting gaps and remains valid after cutover. Release sequencing and the complete quality bar are consolidated in [`analysis/EXECUTION_PLAN.md`](analysis/EXECUTION_PLAN.md).
+Point-in-time audit: **2026-08-05** (refreshed). Scope: everything outside the frontend migration — API, worker, shared packages, scripts/checks, CI, docs commands, repo hygiene. The frontend parity inventory is owned by [`PORTING_PLAN_APP_VITE.md`](PORTING_PLAN_APP_VITE.md); this audit owns cross-cutting gaps and remains valid after cutover. Release sequencing and the complete quality bar are consolidated in [`analysis/EXECUTION_PLAN.md`](analysis/EXECUTION_PLAN.md).
+
+> **2026-08-05 update**: rows 37, 39, 40 (jscpd intentional-structure clones, audit-events gap, internal-vite route-parity sweep) and the suppression-inventory workstream are now owned by [`analysis/POST_CUTOVER_GAPS.md`](analysis/POST_CUTOVER_GAPS.md) and [`analysis/SUPPRESSION_LEDGER.md`](analysis/SUPPRESSION_LEDGER.md) respectively. This doc continues to own the cross-cutting post-cutover rows not migrated to those docs. The "M. Action register" table is the current queue.
 
 ## % Completed
 
@@ -9,15 +11,18 @@ Point-in-time audit: **2026-08-03**. Scope: everything outside the frontend migr
 | A. Silent check regressions       | **100%** | All retargeted to Vite apps                                                                                |
 | B. Dead migration residue         | **100%** | next/opennext/configs fully cleaned                                                                        |
 | C. Docs ↔ scripts mismatches      | **~90%** | Most fixed; cosmetic items remain                                                                          |
-| D. Backend config modernization   | **0%**   | `NEXT_PUBLIC_*` cleanup deferred to cutover                                                                 |
-| E. Hygiene & docs gaps            | **~85%** | Package READMEs + hygiene checks done                                                                      |
+| D. Backend config modernization   | **100%** | `NEXT_PUBLIC_*` cleanup done (P4.4); CSP checkout smoke is P5.10                                          |
+| E. Hygiene & docs gaps            | **~95%** | Package READMEs + hygiene checks done; suppression ledger + post-cutover + stability/security/patterns docs added |
 | F. Healthy / verified             | **100%** | No issues found                                                                                            |
-| G. Dependency advisories          | **0%**   | react-router v8 + brace-expansion pending                                                                  |
+| G. Dependency advisories          | **100%** | All P0 advisories patched; 0 high; 2 low (esbuild Windows-only, accepted)                                  |
 | H. jscpd + monitoring duplication | **100%** | Logger deduped, Sentry consolidated, 4 real dups fixed + boilerplate exclusions documented (gate 0 clones) |
 | I. Dead CI jobs + credentials     | **100%** | Deleted + Razorpay key removed                                                                             |
-| **Overall repo gaps**             | **~75%** |                                                                                                            |
+| J. Standards checks + port-or-drop| **100%** | 24 orphans + 12 barrels + knip symbols; 0 actionable                                                       |
+| K. Phase 9 cutover checklist      | **65%**  | Steps 1/2/3/8/11 done; 4/6 ready, 5/10 blocked, 7/9 open — owned by EXECUTION_PLAN P3.3                    |
+| L. Production-readiness follow-up | **OPEN** | Full authenticated E2E + Cloudflare smoke + canonical rename still required (production-readiness blockers) |
+| **Overall repo gaps**             | **~92%** |                                                                                                            |
 
-**See also**: the 2026-08-01 whole-repo analysis series in [`analysis/`](analysis/README.md) (features, UI/UX, database, standards, security, performance, cost, trash) + [`FUTURE_FEATURE_REQUIREMENTS.md`](FUTURE_FEATURE_REQUIREMENTS.md).
+**See also**: the 2026-08-01 whole-repo analysis series in [`analysis/`](analysis/README.md) (features, UI/UX, database, standards, security, performance, cost, trash, suppression, post-cutover, ABAC) + [`FUTURE_FEATURE_REQUIREMENTS.md`](FUTURE_FEATURE_REQUIREMENTS.md) + [`operations/STABILITY_RUNBOOK.md`](operations/STABILITY_RUNBOOK.md) + [`operations/SECURITY_HARDENING_CHECKLIST.md`](operations/SECURITY_HARDENING_CHECKLIST.md).
 
 ## Cross-cutting release standard
 

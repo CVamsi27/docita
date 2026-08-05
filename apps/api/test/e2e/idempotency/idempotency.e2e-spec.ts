@@ -57,7 +57,9 @@ describe('Idempotency (e2e)', () => {
     await resetDatabase();
     clearMockPaymentLinkProvider(mockPaymentProvider);
 
-    const clinic = await factories.clinic();
+    // PAYMENT_LINKS is an ESSENTIAL-tier feature; the default STARTER fixture
+    // 403s every /payments/link call.
+    const clinic = await factories.clinic({ tier: 'ESSENTIAL' });
     testClinicId = clinic.id;
     const admin = await factories.user({
       clinicId: testClinicId,

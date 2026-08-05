@@ -51,7 +51,7 @@ The endpoint had **zero consumers** (app, internal, data-access, e2e, API tests)
 `.github/` had container scanning but no Dependabot/Renovate — which is exactly how the hono pin went stale. Added [.github/dependabot.yml](../../.github/dependabot.yml): weekly npm (grouped minor/patch, majors excluded — majors go through [DEPENDENCY_UPGRADE_TRACKER.md](../operations/DEPENDENCY_UPGRADE_TRACKER.md)) + github-actions ecosystems.
 
 ### 2.7 Safe dependency bumps — applied
-`turbo` 2.9.17, `@playwright/test` 1.60, `@types/node` 25.9.2, `prettier` 3.8.4, `prisma`/`@prisma/client` 7.8.0 (+ regenerated client), `fallow` 2.91.0. Full gate re-run green. **Held for dedicated PRs:** TypeScript 6, Zod 4, NestJS 12 (tracked), jscpd 5.
+`turbo` 2.9.17, `@playwright/test` 1.60, `@types/node` 25.9.2, `prettier` 3.8.4, `prisma`/`@prisma/client` 7.8.0 (+ regenerated client), `fallow` 2.91.0. Full gate re-run green. **Held for dedicated PRs:** Zod 4, NestJS 12 (tracked), jscpd 5. (TypeScript 6.0.3 landed 2026-08-04 as the P3.3 step 11 bridge upgrade; TS 7.0 native `tsgo` remains held until NestJS 11 supports the new compiler API.)
 
 ---
 
