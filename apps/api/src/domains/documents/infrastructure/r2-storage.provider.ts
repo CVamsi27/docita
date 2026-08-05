@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external SDK types
 import { Injectable, Logger } from '@nestjs/common';
 import type { IClock } from '@/shared/common/ports/clock.port';
 import {
@@ -190,13 +189,17 @@ export class R2StorageProvider extends StorageProvider {
     });
 
     const response = await this.client.send(command);
-    const chunks: Uint8Array[] = [];
-    for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
-      chunks.push(chunk);
+    const body = response.Body;
+    if (!body) {
+      // A successful GetObject always carries a stream; an undefined body
+      // would previously fail the for-await loop — keep that strictness
+      // instead of silently returning an empty document.
+      throw new Error(`R2 object "${objectKey}" returned an empty body.`);
     }
+    const bytes = await body.transformToByteArray();
 
     return {
-      buffer: Buffer.concat(chunks),
+      buffer: Buffer.from(bytes),
       contentType: response.ContentType ?? 'application/octet-stream',
     };
   }

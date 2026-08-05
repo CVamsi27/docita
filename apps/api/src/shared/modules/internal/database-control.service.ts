@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — narrowing casts for AWS SDK response metadata
 import {
   ForbiddenException,
   Inject,
@@ -412,13 +411,14 @@ export class DatabaseControlService {
     reason: string;
     snapshotId?: string;
   }): Promise<void> {
+    const forwardedFor = input.request?.headers['x-forwarded-for'];
     const ipAddress = input.request
-      ? ((input.request.headers['x-forwarded-for'] as string | undefined) ??
+      ? ((typeof forwardedFor === 'string' ? forwardedFor : undefined) ??
         input.request.ip)
       : undefined;
-    const userAgent = input.request
-      ? (input.request.headers['user-agent'] as string | undefined)
-      : undefined;
+    const userAgentHeader = input.request?.headers['user-agent'];
+    const userAgent =
+      typeof userAgentHeader === 'string' ? userAgentHeader : undefined;
     await this.audit.log({
       action: AuditAction.SYSTEM_SETTING_CHANGED,
       userId: input.user.id,

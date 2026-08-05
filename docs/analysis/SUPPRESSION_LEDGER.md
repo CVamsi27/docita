@@ -43,7 +43,7 @@ ls -la scripts/checks/allowlists/
 
 | Check                           | Total entries | File-level | Line-level | Allowlist  | Notes                                                             |
 | ------------------------------- | ------------: | ---------: | ---------: | ---------: | ----------------------------------------------------------------- |
-| `check:as-cast-density`         |        **67** |         67 |          0 |         — | `check-as-cast-density: allow-file` (file-level marker in JSDoc). 80 → 73 on 2026-08-05 (P5.2a/P5.2e −6; RUM consolidation −2 app markers + 1 data-access marker = −1); 73 → 67 on 2026-08-05 (P5.2b — 6 Prisma-JSON/InputJsonValue sites routed through the canonical `toPrismaInputJsonValue` codec + `isRecord`/`Array.isArray` guards). |
+| `check:as-cast-density`         |        **64** |         64 |          0 |         — | `check-as-cast-density: allow-file` (file-level marker in JSDoc). 80 → 73 on 2026-08-05 (P5.2a/P5.2e −6; RUM consolidation −2 app markers + 1 data-access marker = −1); 73 → 67 on 2026-08-05 (P5.2b — 6 Prisma-JSON/InputJsonValue sites routed through the canonical `toPrismaInputJsonValue` codec + `isRecord`/`Array.isArray` guards); 67 → 64 on 2026-08-05 (P5.2c — 3 AWS response-narrowing markers closed). |
 | `check:non-null-assertion`      |         **0** |          0 |          0 |         — | 7 → 0 on 2026-08-05 (P5.3).                                       |
 | `check:frontend-fetch`          |         ~12   |         ~6 |          0 |          6 | Worker proxy `api/index.ts` + intentional `.api.ts` boundary     |
 | `.jscpd.json` ignore list       |        **31** |         31 |          0 |         — | Production source paths; one entry per file or pattern (60 raw incl. test/e2e patterns). RUM reporters consolidated out (−4); boilerplate (sentry/logger/error-reporter) promotion to `@workspace/utils` removed −6 (48 → 42, 2026-08-05 P5.4e); P5.4a sibling-dialog extraction removed −3 (42 → 39, 2026-08-05); P5.4b list/table extraction removed −4 (39 → 35, 2026-08-05); P5.4c sectioned-form extraction removed −4 (35 → 31, 2026-08-05) |
@@ -57,7 +57,7 @@ without a rule list) exist.
 
 ---
 
-## 2. `check:as-cast-density` — 74 file-level allow-files
+## 2. `check:as-cast-density` — 64 file-level allow-files
 
 Categorized by the rationale text (one-liner that follows `allow-file — `). The
 file-level marker is **`// check-as-cast-density: allow-file`** placed in a
@@ -69,7 +69,7 @@ removing the cast makes the file not typecheck. Both are tracked in
 | ----------------------------------------------------------------------------------------------- | ----: | ----------------------------------------------------------------------------------------------------- |
 | **React Hook Form `Path<T>` generic narrowing** — RHF generics erase string-keyed paths; the canonical escape is one cast per `useForm` site | 9 | **P5.2a shipped 2026-08-05**: the `rhfPath<T>()` shim lives in `@workspace/ui/lib/rhf-path` (react-hook-form is already a `@workspace/ui` dependency, and the package is outside the as-cast scan roots, so the helper needs no marker). 3 files converted + markers removed (`invoice-form-paths.boundary.ts`, `shared-patient-info-fields.tsx`, `team-member-form-fields.tsx`). Remaining 9 are non-`Path`-cast RHF sites (superRefine resolver, FieldErrors key narrowing, watched-record coercion) — per-file closures in P5.2. |
 | **Prisma JSON / Decimal / InputJsonValue boundary** — Prisma's `JsonValue` union + `InputJsonValue` constraint cannot be expressed without a cast at the API/repository boundary | 3 | **P5.2b DONE 2026-08-05 (9 → 3, −6)**: 6 scattered sites closed by routing JSON writes through the canonical `toPrismaInputJsonValue` codec (`referrer-welcome` local dup helper deleted, `outbox` payload, `database-control-state` redundant cast dropped) and by cast-free narrowing (`invoice-settlement` meta via `isRecord` guard, `internal-referral` + `referrer-code-backfill` `meta.target`/`err.code` via `Array.isArray`/`isRecord`). Remaining 3 are sanctioned seams: `to-prisma-input-json-value.ts` (the canonical codec — its local JsonValue shape incl. top-level null/arrays is not assignable to Prisma's `InputJsonValue` which rejects top-level null for sentinels, and consumers have heterogeneous field types, so the seam cast is the only uniform contract; rationale updated), `parse-serialized-json.boundary.ts` (generic last-mile assertion for DB-JSON/HTTP/cache boundaries — rationale was empty, now documented), `prisma-query-event.boundary.ts` ($on overloads). |
-| **AWS SDK response narrowing** — `@aws-sdk/*` returns `Metadata`/`Response` as untyped records | 6 | Add `@aws-sdk/types` generics; project the union into a domain type. Target: P5.2c. |
+| **AWS SDK response narrowing** — `@aws-sdk/*` returns `Metadata`/`Response` as untyped records | 3 | **P5.2c DONE 2026-08-05 (6 → 3, −3)**: `r2-storage.provider.ts` closed via `SdkStreamMixin.transformToByteArray()` — the `GetObjectCommandOutput.Body` union is all `SdkStream` members (verified against @smithy/types 4.14.2), so the `for await` chunk loop + `as AsyncIterable<Uint8Array>` became one await; `database-rds.service.ts` closed via `readonly RdsInstanceStatus[]` + `.find()` — lib `includes(searchElement: T)` rejects `string` (no cast-free narrowing path), so `.find(candidate => candidate === status) ?? 'unknown'` is the cast-free membership + narrow; `database-control.service.ts` had a **stale "AWS SDK" rationale** — its only 2 casts were Express header reads (`x-forwarded-for`/`user-agent`), closed with `typeof === 'string'` guards. Note: the write-time bucket of 6 was inflated — only 2 of its entries import `@aws-sdk`; the 3 remaining entries are mis-bucketed non-AWS files (e.g. `database-control.controller.ts`, Express req.user/role, and two "external SDK types" markers that are OpenAI/WhatsApp) that stay counted here until their per-file P5.2d–P5.2j closures re-bucket them. |
 | **Untyped JSON error body / `unknown` boundary** — `error.data` (Axios), `JSON.parse` results, webhook payloads | 7 | Already narrowed with `isRecord()` guards; the cast is the last-mile assertion. **Keep**. |
 | **Queue / event handler registry generic erasure** — `Job<T>` and `EventEmitter2` payloads erase generics at the handler map | 3 | Migrate to a typed `Handler<T>` registry; remove the cast at registration. Target: P5.2d. |
 | **Window globals / `PerformanceObserver` / `LayoutShift`** — DOM lib gap; no safe narrowing | 1 | **P5.2e + P4.5/P5.4e (2026-08-05)**: both `client-error-reporter.ts` files closed via `app-globals.d.ts` ambient `Window` declarations; the 2 `web-vitals.ts` markers were replaced by the consolidated `packages/data-access/src/lib/monitoring/web-vitals.ts` marker (PerformanceObserver/entry-typing casts only — the shared reporter uses a module-level installed flag, so no window cast is needed). The `app-globals.d.ts` files were deleted in the P5.4e boilerplate promotion: both the global error handler and the RUM reporter now use module-level flags in `@workspace/utils`/`packages/data-access`, so no app-level `Window` declarations remain. |
@@ -87,8 +87,8 @@ removing the cast makes the file not typecheck. Both are tracked in
 | **Misc one-offs** (RHF superRefine mismatch, en.json mock tree, setState updater union, etc.) | 14 | Per-file review in P5.2; each entry has a unique one-line rationale. |
 
 **Refactor target (P5.2)**: drive the file-level allow count from 79 → **≤40**
-by closing the 12 RHF + 9 Prisma JSON + 6 AWS SDK + 3 queue + 3 Object.keys
-+ 1 Reflect + 2 typed-http = **36 closures**, plus 3 "review and decide".
+by closing the 12 RHF + 9 Prisma JSON + 3 AWS SDK + 3 queue + 3 Object.keys
++ 1 Reflect + 2 typed-http = **33 closures**, plus 3 "review and decide".
 Each closure is a single-file PR; the gate stays green throughout because the
 `allow-file` marker is removed in the same commit that adds the typed helper.
 
@@ -215,6 +215,7 @@ marker exists and is non-empty. Suppressions without a marker fail the gate.
 | 2026-08-05 | **P5.2a**: `rhfPath<T>()` shim in `@workspace/ui/lib/rhf-path` (+ unit test); 3 RHF allow-files closed. | P5 sweep |
 | 2026-08-05 | **P5.3**: NNA 7 → 0 via `nonNull<T>()` in `@workspace/utils` (+ tests), guarded hoists, and a stale-marker removal. | P5 sweep |
 | 2026-08-05 | **P5.2e**: `app-globals.d.ts` (both Vite apps) closes 2 `client-error-reporter` allow-files; as-cast 80 → 74. | P5 sweep |
+| 2026-08-05 | **P5.2c**: 3 AWS response-narrowing allow-files closed (67 → 64): r2-storage via `SdkStreamMixin.transformToByteArray()`, database-rds via `readonly` status array + `.find()`, database-control stale-rationale Express-header `typeof` guards. | P5 sweep |
 | 2026-08-05 | **P5.6**: eslint-disable 6 → 1 (stdout/stderr, sort-imports, `inBrowser()`, stable `refresh`). | P5 sweep |
 | 2026-08-05 | **P5.20**: client-storage allowlist 35 → 30 (in-memory `rum_session_id` + 2 stale entries). | P5 sweep |
 | 2026-08-05 | **P5.19**: route budgets re-baselined to the post-RUM core (all 11 routes ~10% headroom); `perf:route-budgets` + `perf:budget:enforce` green. | P5 sweep |
