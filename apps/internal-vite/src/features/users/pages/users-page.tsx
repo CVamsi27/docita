@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — Object.entries(ROLE_CONFIG) needs tuple narrowing to the config key type (single cast)
 import { useState, useEffect, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { Eye, Search, Shield, Stethoscope, UserCog, Users } from "lucide-react";
@@ -7,7 +6,15 @@ import { formatInternalListDate, formatInternalTimestamp } from "../../../lib/fo
 import { apiGet } from "@/lib/api/api-client";
 
 interface User { id: string; name: string; email: string; role: string; phoneNumber?: string; specialization?: string; qualification?: string; registrationNumber?: string; yearsOfExperience?: number; bio?: string; createdAt: string; clinicName?: string; }
-type RoleFilter = "ALL" | "ADMIN" | "ADMIN_DOCTOR" | "DOCTOR" | "RECEPTIONIST";
+
+const ROLE_FILTERS = [
+  "ALL",
+  "ADMIN",
+  "ADMIN_DOCTOR",
+  "DOCTOR",
+  "RECEPTIONIST",
+] as const;
+type RoleFilter = (typeof ROLE_FILTERS)[number];
 
 const ROLE_CONFIG: Record<RoleFilter, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
   ALL: { label: "All Users", icon: Users },
@@ -63,16 +70,15 @@ export function UsersPage() {
         onRetry={() => { void fetchUsers(); }}
         emptyTitle="No team members found" emptyDescription="Team members will appear here once facilities add users." emptyIcon={Users}>
         <div className="grid gap-4 md:grid-cols-5 mb-6">
-          {(Object.entries(ROLE_CONFIG) as [RoleFilter, typeof ROLE_CONFIG[RoleFilter]][]).map(([role, config]) => (
+          {ROLE_FILTERS.map((role) => { const config = ROLE_CONFIG[role]; return (
             <Card key={role} className={`cursor-pointer transition-shadow duration-150 ${selectedRole === role ? "ring-2 ring-primary shadow-lg" : "hover:shadow-md"}`}
               onClick={() => { setSelectedRole(role); }}>
               <CardContent className="pt-6"><div className="flex items-center justify-between">
                 <div><p className="text-sm font-medium text-muted-foreground">{config.label}</p>
                   <p className="mt-1 text-2xl font-semibold tabular-nums">{roleStats[role]}</p></div>
                 <config.icon className="h-8 w-8 text-muted-foreground" />
-              </div></CardContent>
-            </Card>
-          ))}
+              </div>              </CardContent></Card>
+          ); })}
         </div>
 
         <div className="flex items-center gap-4 mb-4">

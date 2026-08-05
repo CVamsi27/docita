@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — narrowing user (Express req.user) and role (string from dict) to known types; no runtime behavior change.
 import {
   Body,
   Controller,
@@ -11,6 +10,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { Role } from '@workspace/db';
+import { isRecord } from '@workspace/utils';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
@@ -27,15 +27,21 @@ import {
   type AuthenticatedUser,
 } from './database-control.service';
 
+// String enums have no reverse mapping, so this is exactly the role strings.
+const ROLE_VALUES = Object.values(Role);
+
 function toAuthenticatedUser(user: unknown): AuthenticatedUser {
-  if (!user || typeof user !== 'object') {
+  if (!isRecord(user)) {
     throw new Error('Authenticated user is required for database control.');
   }
-  const u = user as Record<string, unknown>;
+  const role = ROLE_VALUES.find((candidate) => candidate === user['role']);
   return {
-    id: String(u['id'] ?? ''),
-    email: String(u['email'] ?? ''),
-    role: u['role'] as Role,
+    id: String(user['id'] ?? ''),
+    email: String(user['email'] ?? ''),
+    // The @Roles(Role.INTERNAL) guard runs before this method, so an
+    // unmatched role is unreachable in practice; fall back to INTERNAL to
+    // preserve the previous cast's lenient behavior.
+    role: role ?? Role.INTERNAL,
   };
 }
 

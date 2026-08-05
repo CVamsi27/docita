@@ -1,8 +1,14 @@
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { FileText, Check, X } from "lucide-react";
-// check-as-cast-density: allow-file — status color map keyed by Zod enum narrowed to Badge variant union
 import { MEDICAL_DOCUMENT_STATUS_COLORS, medicalDocumentTypeLabel } from "./medical-document-list-config";
+
+const BADGE_VARIANTS = [
+  "default",
+  "secondary",
+  "destructive",
+  "outline",
+] as const;
 
 export function MedicalDocumentCard({
   doc, onSign, onRevoke,
@@ -23,7 +29,16 @@ export function MedicalDocumentCard({
               <p className="text-xs text-muted-foreground">{medicalDocumentTypeLabel(doc.type)}</p>
             </div>
           </div>
-          <Badge variant={(MEDICAL_DOCUMENT_STATUS_COLORS[doc.status] as "default" | "secondary" | "destructive" | "outline") || "outline"}>{doc.status}</Badge>
+          <Badge
+            variant={
+              BADGE_VARIANTS.find(
+                (variant) =>
+                  variant === MEDICAL_DOCUMENT_STATUS_COLORS[doc.status],
+              ) ?? "outline"
+            }
+          >
+            {doc.status}
+          </Badge>
         </div>
       </CardHeader>
       {doc.pdfUrl ? (
