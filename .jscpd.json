@@ -36,11 +36,7 @@
     "**/portal-pages.tsx",
     "**/partner-pages.tsx",
     "**/lab-portal-pages.tsx",
-    "apps/app-vite/src/lib/monitoring/sentry.client.config.ts",
-    "apps/app-vite/src/lib/monitoring/logger.ts",
     "apps/app-vite/src/lib/errors/user-facing-errors.ts",
-    "apps/internal-vite/src/lib/monitoring/sentry.client.config.ts",
-    "apps/internal-vite/src/lib/monitoring/logger.ts",
     "apps/internal-vite/src/lib/errors/user-facing-errors.ts",
     "apps/app-vite/src/features/consultation/components/specialty/*.tsx",
     "apps/app-vite/src/features/patient-portal/components/views/*.tsx",
@@ -85,9 +81,7 @@
     "apps/app-vite/src/features/consultation/components/consultation-dashboard-sections.tsx",
     "apps/app-vite/src/features/auth/components/ResetPasswordPageContent.tsx",
     "apps/app-vite/src/features/auth/components/ResetPasswordPageContentSections.tsx",
-    "**/main.tsx",
-    "apps/app-vite/src/lib/monitoring/client-error-reporter.ts",
-    "apps/internal-vite/src/lib/monitoring/client-error-reporter.ts"
+    "**/main.tsx"
   ],
   "format": [
     "typescript",

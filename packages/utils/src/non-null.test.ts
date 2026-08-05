@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nonNull } from "./non-null";
+import { nonNull } from "./non-null.js";
 
 describe("nonNull", () => {
   it("returns the value when it is non-null", () => {

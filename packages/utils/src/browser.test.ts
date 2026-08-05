@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inBrowser } from "./browser";
+import { inBrowser } from "./browser.js";
 
 describe("inBrowser", () => {
   it("returns a boolean", () => {

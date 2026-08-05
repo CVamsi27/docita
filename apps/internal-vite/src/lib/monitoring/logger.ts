@@ -1,10 +1,3 @@
-import { createSentryLogger } from "@workspace/utils";
-
-type SentryModule = typeof import("@sentry/react");
-
-const SENTRY_DSN = process.env.VITE_SENTRY_DSN;
-
-export const logger = createSentryLogger<SentryModule>({
-  importModule: () => import("@sentry/react"),
-  dsn: SENTRY_DSN,
-});
+// The shared breadcrumb logger is built by the app's Sentry config binding
+// (P5.4e); keep this path so existing consumers resolve the same instance.
+export { logger } from "./sentry.client.config";
