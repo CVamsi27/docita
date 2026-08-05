@@ -435,3 +435,15 @@ export type { NotificationUnreadCountResponse } from "./hooks/use-whatsapp";
 // File upload hooks
 export { useUploadFile } from "./hooks/use-file-upload";
 export type { UploadFileResult } from "./hooks/use-file-upload";
+
+// Web Vitals RUM (shared reporter for app-vite + internal-vite; P4.5/P5.4e)
+export {
+  installWebVitalsReporter,
+  postWebVitalsRum,
+} from "./lib/monitoring/web-vitals";
+export type {
+  WebVitalsRumPayload,
+  WebVitalsMetricName,
+  WebVitalsMetricRating,
+  WebVitalsReporterOptions,
+} from "./lib/monitoring/web-vitals";

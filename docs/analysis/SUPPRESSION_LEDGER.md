@@ -43,15 +43,15 @@ ls -la scripts/checks/allowlists/
 
 | Check                           | Total entries | File-level | Line-level | Allowlist  | Notes                                                             |
 | ------------------------------- | ------------: | ---------: | ---------: | ---------: | ----------------------------------------------------------------- |
-| `check:as-cast-density`         |        **74** |         74 |          0 |         — | `check-as-cast-density: allow-file` (file-level marker in JSDoc). 80 → 74 on 2026-08-05 (P5.2a/P5.2e). |
+| `check:as-cast-density`         |        **73** |         73 |          0 |         — | `check-as-cast-density: allow-file` (file-level marker in JSDoc). 80 → 73 on 2026-08-05 (P5.2a/P5.2e −6; RUM consolidation −2 app markers + 1 data-access marker = −1). |
 | `check:non-null-assertion`      |         **0** |          0 |          0 |         — | 7 → 0 on 2026-08-05 (P5.3).                                       |
 | `check:frontend-fetch`          |         ~12   |         ~6 |          0 |          6 | Worker proxy `api/index.ts` + intentional `.api.ts` boundary     |
-| `.jscpd.json` ignore list       |        **50** |         50 |          0 |         — | Production source paths; one entry per file or pattern (79 raw incl. test/e2e patterns) |
+| `.jscpd.json` ignore list       |        **48** |         48 |          0 |         — | Production source paths; one entry per file or pattern (77 raw incl. test/e2e patterns). RUM reporters consolidated out (−4); client-error-reporter mirrors joined (+2) |
 | `scripts/checks/allowlists/`    |        **17** |         15 |          0 |          2 | `zod-interface-parity.json` (15) + `i18n-coverage.json` (1) + empty feature-test-density |
 | `eslint-disable*` in source     |         **1** |          1 |          0 |         — | 6 → 1 on 2026-08-05 (P5.6); only the documented ConsultationMainPanel perf-memo remains |
 | `@ts-ignore` / `@ts-expect-error` in source | 0 (target) | 0 | 0 | — | Replaced by type-safe narrowing or `// check-as-cast-density: allow-file` |
 
-**Total measurable suppressions: 154.** All are intentional, all have a rationale, all
+**Total measurable suppressions: 150.** All are intentional, all have a rationale, all
 are owned by a specific check. No "blanket" suppressions (e.g. `eslint-disable file-level`
 without a rule list) exist.
 
@@ -72,7 +72,7 @@ removing the cast makes the file not typecheck. Both are tracked in
 | **AWS SDK response narrowing** — `@aws-sdk/*` returns `Metadata`/`Response` as untyped records | 6 | Add `@aws-sdk/types` generics; project the union into a domain type. Target: P5.2c. |
 | **Untyped JSON error body / `unknown` boundary** — `error.data` (Axios), `JSON.parse` results, webhook payloads | 7 | Already narrowed with `isRecord()` guards; the cast is the last-mile assertion. **Keep**. |
 | **Queue / event handler registry generic erasure** — `Job<T>` and `EventEmitter2` payloads erase generics at the handler map | 3 | Migrate to a typed `Handler<T>` registry; remove the cast at registration. Target: P5.2d. |
-| **Window globals / `PerformanceObserver` / `LayoutShift`** — DOM lib gap; no safe narrowing | 2 | **P5.2e partial 2026-08-05**: both `client-error-reporter.ts` files closed via `apps/{app-vite,internal-vite}/src/app-globals.d.ts` ambient `Window` declarations (`__errorHandlerInstalled`, `__vitalsReporterInstalled`). The 2 `web-vitals.ts` files keep markers for the PerformanceObserver/entry-typing casts only (their window-flag casts were also cleaned). |
+| **Window globals / `PerformanceObserver` / `LayoutShift`** — DOM lib gap; no safe narrowing | 1 | **P5.2e + P4.5/P5.4e (2026-08-05)**: both `client-error-reporter.ts` files closed via `app-globals.d.ts` ambient `Window` declarations; the 2 `web-vitals.ts` markers were replaced by the consolidated `packages/data-access/src/lib/monitoring/web-vitals.ts` marker (PerformanceObserver/entry-typing casts only — the shared reporter uses a module-level installed flag, so no window cast is needed). |
 | **Partial domain-object builder / test fixture** — `Object.create(prototype)` stubs + RHF default values | 4 | Add a `makePartial<T>()` helper to `@workspace/utils`; replace inline casts. Target: P5.2f. |
 | **react-phone-number-input / branded Country string** — upstream types are not branded | 2 | Wrap the import behind a `parseCountryCode()` helper. Target: P5.2g. |
 | **Notification category record / Object.keys** — `Object.keys` returns `string[]`; the canonical map-key cast is unavoidable | 3 | Replace with a typed `Object.entries(KEYED_MAP)` + `as const` literal. Target: P5.2h. |
@@ -112,21 +112,21 @@ Validation: `pnpm check:non-null-assertion` exit 0; all touched apps/packages ty
 
 ---
 
-## 4. `.jscpd.json` ignore list — 50 production entries (79 raw)
+## 4. `.jscpd.json` ignore list — 48 production entries (77 raw)
 
 jscpd duplicates are detected by token similarity. The ignores cover two
 shapes:
 
 1. **Boilerplate that is structurally identical by design** (logging
    initialisation, Sentry init, error helpers, telemetry payloads, env
-   readers) — 13 entries.
+   readers) — 15 entries.
 2. **Canonical sections-split / sibling-dialog / mirrored-view patterns** —
-   37 entries. These are the "intentional-structure clones" tracked in
+   33 entries. These are the "intentional-structure clones" tracked in
    [REPO_GAPS row 37 / `POST_CUTOVER_GAPS.md`](POST_CUTOVER_GAPS.md) §1.
 
 | Bucket                                  | Count | Owner action                                                                                |
 | --------------------------------------- | ----: | ------------------------------------------------------------------------------------------- |
-| Boilerplate (logger, sentry, errors, **RUM reporters**) |    13 | **Keep** — same source in app-vite + internal-vite by design; promote to `@workspace/utils`. The 4 web-vitals reporter/payload files + `**/main.tsx` joined 2026-08-05 (P5.4e): the mirrored RUM reporters are the tracked consolidation follow-up (P4.5 note — consolidate into a shared helper in `packages/data-access`, which already hosts the unused `postInternalWebVitals`); `main.tsx` matches the existing `**/App.tsx` entry-file ignore. |
+| Boilerplate (logger, sentry, errors, entry files) |    15 | **Keep** — same source in app-vite + internal-vite by design; promote to `@workspace/utils`/`packages/data-access`. **RUM reporters consolidated out 2026-08-05 (P4.5/P5.4e DONE)**: the mirrored `web-vitals.ts`/`web-vitals-payload.ts` became one shared `installWebVitalsReporter` in `packages/data-access/src/lib/monitoring/web-vitals.ts` (+ ported tests) — 4 ignores removed and the dead `postInternalWebVitals` export deleted. `client-error-reporter.ts` ×2 joined the bucket (parity fix surfaced the mirror); `**/main.tsx` matches the existing `**/App.tsx` entry-file ignore. |
 | Sibling dialog sections                 |     7 | Extract a `<TwoColumnDialogSections>` primitive to `@workspace/ui`. Target: P5.4.           |
 | Mirrored list/table views               |     9 | Extract a `<ResponsiveDataTable>` section primitive. Target: P5.4.                          |
 | Page-skeleton + loaders                 |     3 | **Keep** — already excluded at `components/loaders/page-skeleton.tsx`.                      |
@@ -134,11 +134,12 @@ shapes:
 | Consultation specialty views             |     5 | **Keep** — clinical UI; mirror is intentional.                                              |
 | `*Sections.tsx` / `*PageUI.tsx` / `*PageUI.tsx` | 5 | Refactor: see P5.4.                                                                   |
 
-**Refactor target (P5.4)**: 50 → **≤25** production entries by extracting the
+**Refactor target (P5.4)**: 48 → **≤25** production entries by extracting the
 `<TwoColumnDialogSections>`, `<ResponsiveDataTable>`, and `<FormSections>`
 primitives into `@workspace/ui`. Each extraction closes 5–10 ignores; gate
-remains 0 clones. The 5 entries added 2026-08-05 (RUM reporters ×4 + `main.tsx`)
-are temporary: they disappear when the P4.5/P5.4e RUM consolidation lands.
+remains 0 clones. The `client-error-reporter.ts` ×2 + `**/main.tsx` entries are
+temporary: they disappear when the P5.4e boilerplate promotion to
+`packages/data-access`/`@workspace/utils` lands (the RUM half already landed).
 
 ---
 
@@ -211,5 +212,6 @@ marker exists and is non-empty. Suppressions without a marker fail the gate.
 | 2026-08-05 | **P5.6**: eslint-disable 6 → 1 (stdout/stderr, sort-imports, `inBrowser()`, stable `refresh`). | P5 sweep |
 | 2026-08-05 | **P5.20**: client-storage allowlist 35 → 30 (in-memory `rum_session_id` + 2 stale entries). | P5 sweep |
 | 2026-08-05 | **P5.19**: route budgets re-baselined to the post-RUM core (all 11 routes ~10% headroom); `perf:route-budgets` + `perf:budget:enforce` green. | P5 sweep |
-| 2026-08-05 | **jscpd gate fix (P5.4e)**: the web-vitals batch shipped 5 pre-existing clone pairs (mirrored RUM reporters/payloads + provider stacks) — the duplication gate was already red at `589272e2f`. Added 5 boilerplate ignores (RUM ×4 + `**/main.tsx`) → 0 clones; consolidated RUM reporter remains the tracked P4.5/P5.4e follow-up. | P5 sweep |
+| 2026-08-05 | **jscpd gate fix (P5.4e)**: the web-vitals batch shipped 5 pre-existing clone pairs (mirrored RUM reporters/payloads + provider stacks) — the duplication gate was already red at `589272e2f`. Added 5 boilerplate ignores (RUM ×4 + `**/main.tsx`) → 0 clones. | P5 sweep |
+| 2026-08-05 | **P4.5/P5.4e DONE — RUM reporter consolidation**: shared `installWebVitalsReporter` + `postWebVitalsRum` in `packages/data-access/src/lib/monitoring/web-vitals.ts`; both app reporters became thin wrappers; both `web-vitals-payload.ts` files + the app test + the dead `internal-monitoring.ts` deleted; 4 jscpd ignores + the `check-frontend-fetch` payload entry removed; tests ported into data-access (3). `client-error-reporter.ts` ×2 joined the boilerplate bucket (parity fix surfaced the mirror). Gate: 0 clones. | P5 sweep |
 | target 2026-08-12 | P5.2: drive as-cast 74 → ≤40; P5.4: drive jscpd 45 → ≤25; P5.5: drive zod-parity 15 → ≤8. | P5 sweep |

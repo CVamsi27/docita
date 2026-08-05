@@ -85,11 +85,9 @@
     "apps/app-vite/src/features/consultation/components/consultation-dashboard-sections.tsx",
     "apps/app-vite/src/features/auth/components/ResetPasswordPageContent.tsx",
     "apps/app-vite/src/features/auth/components/ResetPasswordPageContentSections.tsx",
-    "apps/app-vite/src/lib/monitoring/web-vitals.ts",
-    "apps/app-vite/src/lib/monitoring/web-vitals-payload.ts",
-    "apps/internal-vite/src/lib/monitoring/web-vitals.ts",
-    "apps/internal-vite/src/lib/monitoring/web-vitals-payload.ts",
-    "**/main.tsx"
+    "**/main.tsx",
+    "apps/app-vite/src/lib/monitoring/client-error-reporter.ts",
+    "apps/internal-vite/src/lib/monitoring/client-error-reporter.ts"
   ],
   "format": [
     "typescript",

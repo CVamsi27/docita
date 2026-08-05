@@ -1,20 +1,29 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { postWebVitalsRum } from "./web-vitals-payload";
+import {
+  postWebVitalsRum,
+  type WebVitalsRumPayload,
+} from "./web-vitals";
 
-const PAYLOAD = {
+const PAYLOAD: WebVitalsRumPayload = {
   name: "LCP",
   value: 1234,
   rating: "good",
   page: "/login",
   feature: "clinician-app",
   sessionId: "sess_1",
-} as const;
+};
 
 describe("postWebVitalsRum", () => {
   const originalNavigator = globalThis.navigator;
+  const originalWindow = globalThis.window;
 
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response("{}"))));
+    // The same-origin proxy base resolves against window.location.origin via
+    // buildURL; the node test env has no window, so stub one.
+    vi.stubGlobal("window", {
+      location: { origin: "http://localhost" },
+    });
   });
 
   afterEach(() => {
@@ -23,21 +32,25 @@ describe("postWebVitalsRum", () => {
       value: originalNavigator,
       configurable: true,
     });
+    Object.defineProperty(globalThis, "window", {
+      value: originalWindow,
+      configurable: true,
+    });
   });
 
-  it("posts to the same-origin /api/v1 monitoring path via sendBeacon when available", async () => {
+  it("posts to the monitoring path via sendBeacon when available", async () => {
     const sendBeacon = vi.fn();
     Object.defineProperty(globalThis, "navigator", {
       value: { sendBeacon },
       configurable: true,
     });
 
-    postWebVitalsRum(PAYLOAD);
+    postWebVitalsRum("/api/v1", PAYLOAD);
 
     expect(sendBeacon).toHaveBeenCalledTimes(1);
     const [url, body] = sendBeacon.mock.calls[0] as [string, Blob];
     expect(url).toContain("/api/v1/monitoring/web-vitals");
-    await expect(readBlobText(body)).resolves.toBe(JSON.stringify(PAYLOAD));
+    await expect(body.text()).resolves.toBe(JSON.stringify(PAYLOAD));
     expect(fetch).not.toHaveBeenCalled();
   });
 
@@ -47,13 +60,11 @@ describe("postWebVitalsRum", () => {
       configurable: true,
     });
 
-    postWebVitalsRum(PAYLOAD);
+    postWebVitalsRum("/api/v1", PAYLOAD);
 
     expect(fetch).toHaveBeenCalledTimes(1);
-    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
-      string,
-      RequestInit,
-    ];
+    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock
+      .calls[0] as [string, RequestInit];
     expect(url).toContain("/api/v1/monitoring/web-vitals");
     expect(init.method).toBe("POST");
     expect(init.keepalive).toBe(true);
@@ -67,19 +78,9 @@ describe("postWebVitalsRum", () => {
     });
     vi.mocked(fetch).mockRejectedValueOnce(new Error("network down"));
 
-    expect(() => postWebVitalsRum(PAYLOAD)).not.toThrow();
+    expect(() => postWebVitalsRum("/api/v1", PAYLOAD)).not.toThrow();
     await vi.waitFor(() => {
       expect(fetch).toHaveBeenCalled();
     });
   });
 });
-
-function readBlobText(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsText(blob);
-  });
-}
-

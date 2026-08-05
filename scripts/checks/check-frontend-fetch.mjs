@@ -14,12 +14,6 @@ const allowedPatterns = [
   /^apps\/(app-vite|internal-vite)\/src\/lib\/api\//,
   /^apps\/(app-vite|internal-vite)\/src\/lib\/auth\//,
   /^apps\/(app-vite|internal-vite)\/src\/features\/[^/]+\/api\/[^/]+\.api\.ts$/,
-  // RUM telemetry beacon (lib/monitoring, not a feature data-fetch path): the
-  // fetch keepalive fallback posts anonymous web-vitals to the same-origin
-  // /api/v1/monitoring/web-vitals surface. Consolidating into the
-  // packages/data-access postInternalWebVitals helper is the tracked P4.5/P5.4e
-  // follow-up, which removes this allowlist entry.
-  /^apps\/(app-vite|internal-vite)\/src\/lib\/monitoring\/web-vitals-payload\.ts$/,
 ];
 
 const files = gitLsSourceFiles(["apps/app-vite", "apps/internal-vite"], {

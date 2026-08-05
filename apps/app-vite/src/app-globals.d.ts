@@ -6,5 +6,4 @@
  */
 interface Window {
   __errorHandlerInstalled?: boolean;
-  __vitalsReporterInstalled?: boolean;
 }
