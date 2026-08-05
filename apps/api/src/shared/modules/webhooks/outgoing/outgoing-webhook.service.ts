@@ -1,6 +1,7 @@
-// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external SDK types
 import { Injectable, Logger } from '@nestjs/common';
 import { createHmac, randomUUID } from 'crypto';
+import { isRecord } from '@workspace/utils';
+import { Prisma } from '@workspace/db';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 import { OutgoingWebhookRepository } from './outgoing-webhook.repository';
 
@@ -73,7 +74,7 @@ export class OutgoingWebhookService {
   async sendDelivery(delivery: {
     id: string;
     targetUrl: string;
-    payload: Record<string, unknown>;
+    payload: Prisma.JsonValue;
     signingSecret: string;
   }): Promise<boolean> {
     const payloadJson = JSON.stringify(delivery.payload);
@@ -114,7 +115,7 @@ export class OutgoingWebhookService {
         const delivered = await this.sendDelivery({
           id: delivery.id,
           targetUrl: delivery.targetUrl,
-          payload: delivery.payload as Record<string, unknown>,
+          payload: delivery.payload,
           signingSecret: 'resolved-from-subscription',
         });
 
@@ -147,10 +148,6 @@ export class OutgoingWebhookService {
   }
 
   private isUniqueViolation(error: unknown): boolean {
-    return (
-      typeof error === 'object' &&
-      error !== null &&
-      (error as Record<string, unknown>).code === 'P2002'
-    );
+    return isRecord(error) && error.code === 'P2002';
   }
 }
