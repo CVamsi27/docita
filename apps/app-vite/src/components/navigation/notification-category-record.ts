@@ -4,13 +4,18 @@ import {
   type NotificationCategoryId,
 } from "./notification-href";
 
-/** check-as-cast-density: allow-file — partial category map build must become a full `Record`. */
 export function buildNotificationCategoryRecord<T>(
   buildValue: (category: NotificationCategoryDef) => T,
 ): Record<NotificationCategoryId, T> {
-  const record: Partial<Record<NotificationCategoryId, T>> = {};
-  for (const category of NOTIFICATION_CATEGORIES) {
-    record[category.id] = buildValue(category);
-  }
-  return record as Record<NotificationCategoryId, T>;
+  // `Object.assign`'s variadic overload (spread argument) returns the merged
+  // object as `any`, so the return annotation narrows without an `as`. The
+  // completeness claim rests on `NOTIFICATION_CATEGORIES` (`as const`) being
+  // the single source of truth for the key set: the mapped return type forces
+  // every `NotificationCategoryId` to be produced at runtime.
+  return Object.assign(
+    {},
+    ...NOTIFICATION_CATEGORIES.map((category) => ({
+      [category.id]: buildValue(category),
+    })),
+  );
 }
