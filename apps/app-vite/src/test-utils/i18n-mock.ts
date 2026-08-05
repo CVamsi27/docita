@@ -3,8 +3,11 @@ import en from "@/messages/en.json";
 
 type MessageTree = { [key: string]: string | MessageTree };
 
-// check-as-cast-density: allow-file — en.json message tree cast to the shared MessageTree type for the i18n test mock
-const resources = en as MessageTree;
+function isMessageTree(value: unknown): value is MessageTree {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+const resources: MessageTree = isMessageTree(en) ? en : {};
 
 /**
  * Resolve an i18next key (relative to `namespace` when given, otherwise a
@@ -15,8 +18,8 @@ function lookup(namespace: string | undefined, key: string): string {
   let node: unknown = namespace ? resources[namespace] : resources;
   if (node === undefined) node = resources;
   for (const part of key.split(".")) {
-    if (typeof node !== "object" || node === null) return key;
-    node = (node as MessageTree)[part];
+    if (!isMessageTree(node)) return key;
+    node = node[part];
     if (node === undefined) return key;
   }
   return typeof node === "string" ? node : key;

@@ -1,14 +1,10 @@
-// check-as-cast-density: allow-file — the single `as Parameters<...>[1]`
-// cast narrows the filtered partner-out subset of Docita defaults to
-// the Prisma-bound `WhatsappTemplateCategory` subset that
-// `templateData.seedDefaultTemplates` accepts. Both halves of the
-// cast are static; inlining the predicate would just duplicate it.
 import { Injectable, Logger } from '@nestjs/common';
 import type {
   WhatsappButtonType,
   WhatsappTemplateCategory,
   WhatsappTemplateStatus,
 } from '@workspace/db';
+import type { WhatsAppDefaultTemplateDefinition } from '@workspace/types';
 import { DefaultTemplatesService } from './default-templates.service';
 import { TemplateDataService } from './template-data.service';
 import { TemplateVariableService } from './template-variable.service';
@@ -17,6 +13,14 @@ import {
   type ResolvedTemplate,
 } from './template-resolution.service';
 import { TemplateModeService } from './template-mode.service';
+
+/** Docita catalogue definition minus the partner set. */
+type SeedableTemplateDefinition = Omit<
+  WhatsAppDefaultTemplateDefinition,
+  'category'
+> & {
+  category: WhatsappTemplateCategory;
+};
 
 @Injectable()
 export class TemplatesFacadeService {
@@ -62,14 +66,17 @@ export class TemplatesFacadeService {
     // the partner surface and have no clinic-side editor. The
     // `defaultTemplates.templates` map is the full Docita catalogue
     // (including the partner set), so we filter down to the
-    // clinic-seedable subset here. The cast is safe: every remaining
-    // entry's `category` is one of the `WhatsappTemplateCategory` enum
-    // values accepted by the Prisma layer.
+    // clinic-seedable subset here. The predicate narrows `category` to
+    // the Prisma enum: the Docita category schema is exactly the
+    // `WhatsappTemplateCategory` enum plus `PARTNER`, so excluding it
+    // leaves only values the Prisma layer accepts (checked at runtime
+    // by the filter body).
     const seedable = Object.fromEntries(
       Object.entries(this.defaultTemplates.templates).filter(
-        ([, t]) => t.category !== 'PARTNER',
+        (entry): entry is [string, SeedableTemplateDefinition] =>
+          entry[1].category !== 'PARTNER',
       ),
-    ) as Parameters<typeof this.templateData.seedDefaultTemplates>[1];
+    );
     return this.templateData.seedDefaultTemplates(clinicId, seedable);
   }
 
