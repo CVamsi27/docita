@@ -8,6 +8,7 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 import { appClinicSchema, type AppClinic } from "@workspace/types";
+import { isRecord } from "@workspace/utils";
 import { fetchClinicSettings } from "@/lib/api/clinic-settings";
 import { useAuth } from "@/lib/auth/auth-context";
 import { logger } from "@/lib/monitoring/logger";
@@ -25,6 +26,17 @@ interface ClinicContextValue {
 const ClinicContext = createContext<ClinicContextValue | undefined>(undefined);
 
 const STORAGE_KEY = "selectedClinicId";
+
+function toBooleanRecord(value: unknown): Record<string, boolean> | null {
+  // Intentionally normalizes absent features to `null` (not `undefined`);
+  // the permission store treats both as `{}` via `clinic.features || {}`.
+  if (!isRecord(value)) return null;
+  const result: Record<string, boolean> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (typeof entry === "boolean") result[key] = entry;
+  }
+  return result;
+}
 
 function getStoredClinicId(): string | null {
   try {
@@ -81,8 +93,7 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
         intelligenceAddon: clinicData.intelligenceAddon,
         // The clinic schema stores overrides as a JSON object; the permission
         // store treats every key as a boolean toggle, so narrow the boundary.
-        // check-as-cast-density: allow-file — features flags map from untyped clinic payload
-        features: clinicData.features as Record<string, boolean> | null,
+        features: toBooleanRecord(clinicData.features),
         type: clinicData.type,
         settings: clinicData.settings,
       });

@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — literal pricing field list narrowed to TierPricing keys for mapping
 import { useState, useEffect } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Save, Sparkles } from "lucide-react";
@@ -6,6 +5,20 @@ import { apiGet, apiPut } from "@/lib/api/api-client";
 
 interface TierPricing { id: string; tier: string; monthlyBasePriceCents: number; includedPatients: number; includedAppointments: number; includedStorageGB: number; includedUsers: number; overagePatientCents: number; overageAppointmentCents: number; overagePrescriptionCents: number; overageInvoiceCents: number; overageOcrPageCents: number; overageApiCallCents: number; }
 interface Offer { id: string; clinicId: string; title: string; percentOff: number; durationMonths: number; validUntil?: string; }
+
+const TIER_PRICING_FIELDS = [
+  "monthlyBasePriceCents",
+  "includedPatients",
+  "includedAppointments",
+  "includedStorageGB",
+  "includedUsers",
+  "overagePatientCents",
+  "overageAppointmentCents",
+  "overagePrescriptionCents",
+  "overageInvoiceCents",
+  "overageOcrPageCents",
+  "overageApiCallCents",
+] as const satisfies readonly (keyof TierPricing)[];
 
 export function PricingPage() {
   const [loading, setLoading] = useState(true);
@@ -63,9 +76,9 @@ export function PricingPage() {
                     <TableBody>{tiers.map((tier) => (
                       <TableRow key={tier.id}>
                         <TableCell className="font-medium">{tier.tier}</TableCell>
-                        {(["monthlyBasePriceCents", "includedPatients", "includedAppointments", "includedStorageGB", "includedUsers", "overagePatientCents", "overageAppointmentCents", "overagePrescriptionCents", "overageInvoiceCents", "overageOcrPageCents", "overageApiCallCents"] as (keyof TierPricing)[]).map((field) => (
+                        {TIER_PRICING_FIELDS.map((field) => (
                           <TableCell key={field}>
-                            <Input type="number" className="w-16 h-7 text-xs" value={tier[field] as number}
+                            <Input type="number" className="w-16 h-7 text-xs" value={tier[field]}
                               onChange={(e) => { updateTierField(tier.id, field, e.target.value); }} />
                           </TableCell>
                         ))}

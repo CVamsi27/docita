@@ -1,4 +1,5 @@
 import type { ClinicType, InternalClinicAdminType, TierName } from "@workspace/types";
+import { isStringEnumMember } from "@workspace/utils";
 
 export type CreateClinicFormData = {
   name: string;
@@ -42,8 +43,7 @@ const ERROR_FIELD_KEYS = new Set<keyof FieldErrors>([
 ]);
 
 export function isErrorFieldKey(field: string): field is keyof FieldErrors {
-  // check-as-cast-density: allow-file — react-hook-form FieldErrors key narrowing for membership check
-  return ERROR_FIELD_KEYS.has(field as keyof FieldErrors);
+  return isStringEnumMember(Array.from(ERROR_FIELD_KEYS), field);
 }
 
 export function validateCreateClinicForm(formData: CreateClinicFormData): FieldErrors {

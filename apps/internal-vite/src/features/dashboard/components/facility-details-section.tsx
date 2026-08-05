@@ -3,7 +3,18 @@ import type { CreateClinicFormData, FieldErrors } from "../hooks/create-clinic-f
 
 const TIER_OPTIONS = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE"];
 
-type Props = { formData: CreateClinicFormData; fieldErrors: FieldErrors; onFieldChange: (field: keyof CreateClinicFormData, value: string) => void; };
+// Structural subset shared by the create-clinic and edit-clinic surfaces, so
+// both can pass their form data without an assertion bridge.
+type FacilityFormData = Pick<
+  CreateClinicFormData,
+  "name" | "email" | "phone" | "address" | "tier"
+>;
+
+type Props = {
+  formData: FacilityFormData;
+  fieldErrors: FieldErrors;
+  onFieldChange: (field: keyof FacilityFormData, value: string) => void;
+};
 
 export function FacilityDetailsSection({ formData, fieldErrors, onFieldChange }: Props) {
   return (

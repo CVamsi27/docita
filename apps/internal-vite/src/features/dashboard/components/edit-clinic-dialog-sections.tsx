@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — shared form-field section props require structural casts (formData/field key)
 import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import { FacilityDetailsSection } from "./facility-details-section";
 import type { ClinicType, TierName } from "@workspace/types";
@@ -12,9 +11,9 @@ export function EditClinicDetailsSection({ formData, fieldErrors, onFieldChange 
   return (
     <div className="space-y-4">
       <FacilityDetailsSection
-        formData={formData as never}
+        formData={formData}
         fieldErrors={fieldErrors}
-        onFieldChange={(field, value) => { onFieldChange(field as keyof EditClinicFormData, value); }}
+        onFieldChange={(field, value) => { onFieldChange(field, value); }}
       />
       <div className="space-y-2"><Label htmlFor="edit-active">Status</Label>
         <Select value={formData.active ? "active" : "inactive"} onValueChange={(val) => { onFieldChange("active", val === "active"); }}>
