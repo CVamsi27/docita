@@ -24,7 +24,7 @@ export const MEMBER_ROLE_LABELS: Record<MemberRole, string> = {
   LAB: "Lab Technician",
 };
 
-const MEMBER_ROLE_VALUES = [
+export const MEMBER_ROLE_VALUES = [
   "DOCTOR",
   "NURSE",
   "RECEPTIONIST",

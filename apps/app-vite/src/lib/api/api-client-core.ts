@@ -6,6 +6,7 @@ import {
 } from "@workspace/data-access";
 
 import { appSession } from "@/lib/auth/session";
+import { isRecord } from "@workspace/utils";
 import { ApiError } from "@/lib/errors";
 
 import { trackApiResponse } from "./api-availability";
@@ -100,17 +101,20 @@ export async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let body: Record<string, unknown> = {};
     try {
-      // check-as-cast-density: allow-file — untyped JSON error body parsed to Record before field reads
-      body = (await response.json()) as Record<string, unknown>;
+      const parsed = await response.json();
+      if (isRecord(parsed)) body = parsed;
     } catch {
       // Response body was not JSON — fall back to status text
     }
+    const message = typeof body.message === "string" ? body.message : undefined;
+    const code = typeof body.code === "string" ? body.code : undefined;
     throw new ApiError(
-      (body.message as string) || response.statusText || `Request failed with status ${response.status}`,
+      message || response.statusText || `Request failed with status ${response.status}`,
       response.status,
-      (body.code as string) || "API_ERROR",
-      body.details as Record<string, unknown> | undefined,
+      code || "API_ERROR",
+      isRecord(body.details) ? body.details : undefined,
     );
   }
-  return response.json() as Promise<T>;
+  const data: T = await response.json();
+  return data;
 }

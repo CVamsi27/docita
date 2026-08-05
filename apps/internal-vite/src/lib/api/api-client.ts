@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — error.data merge over untyped Axios error data (single cast)
 import {
   type APIError,
   getAPIClient,
@@ -57,7 +56,10 @@ export const client = getAPIClient({
           ? error.data.message
           : undefined;
       if (message) {
-        error.data = { ...(error.data as Record<string, unknown>), message };
+        error.data = {
+          ...(isRecord(error.data) ? error.data : {}),
+          message,
+        };
       }
     }
   },

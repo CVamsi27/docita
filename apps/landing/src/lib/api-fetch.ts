@@ -1,4 +1,7 @@
-// check-as-cast-density: allow-file — fetch Response type narrowing requires as cast
+// check-as-cast-density: allow-file — sanctioned seam (P5.2j class): generic
+// last-mile JSON assertion for `fetchLandingJson<T>`; zod `parse()` cannot
+// target an unknown generic `T`, and the landing callers pass type-only
+// arguments (same class as `typed-http-boundary`/`parse-serialized-json`).
 import { resolveApiUrl } from "./public-api";
 
 export async function fetchLandingJson<T>(path: string, baseOrigin?: string): Promise<T> {

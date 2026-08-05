@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — MemberRole cast needed for Set membership checks
 import { User } from "@workspace/types";
 import { isAdmin } from "@/lib/auth/permissions";
 import { parseStringEnumMember } from "@workspace/utils";
@@ -7,9 +6,9 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   ADMIN_SWITCH_ROLES,
   DOCTOR_ROLES,
+  MEMBER_ROLE_VALUES,
   type InviteFormValues,
   type MemberFormValues,
-  type MemberRole,
 } from "@/features/settings/components/management/member-management-schemas";
 
 export function computeUserCanChangeRoles(role: string | undefined): boolean {
@@ -17,7 +16,7 @@ export function computeUserCanChangeRoles(role: string | undefined): boolean {
 }
 
 export function computeIsSelectedMemberDoctor(role: string): boolean {
-  return DOCTOR_ROLES.has(role as MemberRole);
+  return parseStringEnumMember(Array.from(DOCTOR_ROLES), role) !== null;
 }
 
 export function computeCanChangeSelectedMemberRole(params: {
@@ -82,7 +81,7 @@ export function getMemberFormDefaultValues(member: User): MemberFormValues {
     name: member.name ?? "",
     email: member.email ?? "",
     phoneNumber: member.phoneNumber ?? "",
-    role: (member.role as MemberRole) ?? "NURSE",
+    role: parseStringEnumMember(MEMBER_ROLE_VALUES, member.role ?? "") ?? "NURSE",
     specialization: member.specialization ?? "",
     qualification: member.qualification ?? "",
     registrationNumber: member.registrationNumber ?? "",
