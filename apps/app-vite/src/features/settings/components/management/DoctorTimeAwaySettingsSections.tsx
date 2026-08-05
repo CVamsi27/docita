@@ -1,4 +1,3 @@
-// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 import { useTranslation } from "react-i18next";
 import {
   CardDescription,
@@ -222,6 +221,7 @@ function TimeAwayListItem({
   isDeleting,
 }: TimeAwayListItemProps) {
   const { t } = useTimeAwayTranslations();
+  const rowId = off.id;
   const start = new Date(off.startDate);
   const end = new Date(off.endDate);
   return (
@@ -239,7 +239,7 @@ function TimeAwayListItem({
           <div className="text-muted-foreground">{off.reason}</div>
         ) : null}
       </div>
-      {off.id && (isAdminCheck(userRole) || off.doctorId === currentUserId) ? (
+      {rowId && (isAdminCheck(userRole) || off.doctorId === currentUserId) ? (
         <SymbolTooltip label={t("removeTooltip")}>
           <Button
             type="button"
@@ -248,7 +248,7 @@ function TimeAwayListItem({
             className="shrink-0 text-destructive hover:text-destructive"
             aria-label={t("removeTooltip")}
             disabled={isDeleting}
-            onClick={() => void onDelete(off.id!)}
+            onClick={() => void onDelete(rowId)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>

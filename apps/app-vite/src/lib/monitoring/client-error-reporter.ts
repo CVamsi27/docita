@@ -1,4 +1,5 @@
 import { captureException } from "./sentry.client.config";
+import { inBrowser } from "@workspace/utils";
 
 /**
  * Install global error handlers that capture unhandled promise rejections
@@ -7,13 +8,13 @@ import { captureException } from "./sentry.client.config";
  * Call once at app bootstrap (in main.tsx) after initializeSentryClient().
  */
 export function installGlobalErrorHandler(): void {
-  if (typeof window === "undefined") return;
+  // Defensive for any non-browser runtime; inBrowser() lives in
+  // @workspace/utils where the check is a genuine runtime condition.
+  if (!inBrowser()) return;
 
-  // Prevent duplicate installation
-  // check-as-cast-density: allow-file — window global flag read via untyped Record (platform gap)
-  const win = window as unknown as Record<string, unknown>;
-  if (win.__errorHandlerInstalled) return;
-  win.__errorHandlerInstalled = true;
+  // Prevent duplicate installation (flags declared in src/app-globals.d.ts)
+  if (window.__errorHandlerInstalled) return;
+  window.__errorHandlerInstalled = true;
 
   window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
     const reason = event.reason;

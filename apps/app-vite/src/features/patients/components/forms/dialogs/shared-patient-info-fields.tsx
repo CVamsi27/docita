@@ -1,7 +1,7 @@
-// check-as-cast-density: allow-file — react-hook-form Path<T> generics require as-casts
 import { useTranslation } from "react-i18next";
 import type { ComponentProps } from "react";
-import type { Control, FieldValues, Path } from "react-hook-form";
+import type { Control, FieldValues } from "react-hook-form";
+import { rhfPath } from "@workspace/ui/lib/rhf-path";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { DatePicker } from "@workspace/ui/components";
 import { GENDER_OPTIONS } from "./add-patient-dialog-constants";
@@ -30,7 +30,7 @@ function PatientTextField<T extends FieldValues>({
   return (
     <FormField
       control={control}
-      name={config.name as Path<T>}
+      name={rhfPath<T>(config.name)}
       render={({ field }) => (
         <FormItem>
           <FormLabel>
@@ -122,7 +122,7 @@ export function SharedPatientIdentityFields<T extends FieldValues>({
     <>
       <FormField
         control={control}
-        name={"gender" as Path<T>}
+        name={rhfPath<T>("gender")}
         render={({ field }) => (
           <FormItem>
             <FormLabel>
@@ -157,7 +157,7 @@ export function SharedPatientIdentityFields<T extends FieldValues>({
       />
       <FormField
         control={control}
-        name={"dateOfBirth" as Path<T>}
+        name={rhfPath<T>("dateOfBirth")}
         render={({ field }) => (
           <FormItem>
             <FormLabel>

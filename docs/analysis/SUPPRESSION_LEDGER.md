@@ -43,21 +43,21 @@ ls -la scripts/checks/allowlists/
 
 | Check                           | Total entries | File-level | Line-level | Allowlist  | Notes                                                             |
 | ------------------------------- | ------------: | ---------: | ---------: | ---------: | ----------------------------------------------------------------- |
-| `check:as-cast-density`         |        **80** |         80 |          0 |         — | `check-as-cast-density: allow-file` (file-level marker in JSDoc) |
-| `check:non-null-assertion`      |         **7** |          7 |          0 |         — | `check-non-null-assertion: allow-file`                            |
+| `check:as-cast-density`         |        **74** |         74 |          0 |         — | `check-as-cast-density: allow-file` (file-level marker in JSDoc). 80 → 74 on 2026-08-05 (P5.2a/P5.2e). |
+| `check:non-null-assertion`      |         **0** |          0 |          0 |         — | 7 → 0 on 2026-08-05 (P5.3).                                       |
 | `check:frontend-fetch`          |         ~12   |         ~6 |          0 |          6 | Worker proxy `api/index.ts` + intentional `.api.ts` boundary     |
-| `.jscpd.json` ignore list       |        **45** |         45 |          0 |         — | Production source paths; one entry per file or pattern            |
+| `.jscpd.json` ignore list       |        **50** |         50 |          0 |         — | Production source paths; one entry per file or pattern (79 raw incl. test/e2e patterns) |
 | `scripts/checks/allowlists/`    |        **17** |         15 |          0 |          2 | `zod-interface-parity.json` (15) + `i18n-coverage.json` (1) + empty feature-test-density |
-| `eslint-disable*` in source     |         **6** |          6 |          0 |         — | 4 in app code, 1 in `@types/node` (legit), 1 in `generate-openapi.ts` |
+| `eslint-disable*` in source     |         **1** |          1 |          0 |         — | 6 → 1 on 2026-08-05 (P5.6); only the documented ConsultationMainPanel perf-memo remains |
 | `@ts-ignore` / `@ts-expect-error` in source | 0 (target) | 0 | 0 | — | Replaced by type-safe narrowing or `// check-as-cast-density: allow-file` |
 
-**Total measurable suppressions: 166.** All are intentional, all have a rationale, all
+**Total measurable suppressions: 154.** All are intentional, all have a rationale, all
 are owned by a specific check. No "blanket" suppressions (e.g. `eslint-disable file-level`
 without a rule list) exist.
 
 ---
 
-## 2. `check:as-cast-density` — 79 file-level allow-files
+## 2. `check:as-cast-density` — 74 file-level allow-files
 
 Categorized by the rationale text (one-liner that follows `allow-file — `). The
 file-level marker is **`// check-as-cast-density: allow-file`** placed in a
@@ -67,12 +67,12 @@ removing the cast makes the file not typecheck. Both are tracked in
 
 | Category                                                                                        | Count | Mitigation path                                                                                       |
 | ----------------------------------------------------------------------------------------------- | ----: | ----------------------------------------------------------------------------------------------------- |
-| **React Hook Form `Path<T>` generic narrowing** — RHF generics erase string-keyed paths; the canonical escape is one cast per `useForm` site | 12 | Wrap each `useForm` with a typed `FieldValues` shim and add a `Path<TFormValues>` helper to `@workspace/utils`. Target: P5.2a. |
+| **React Hook Form `Path<T>` generic narrowing** — RHF generics erase string-keyed paths; the canonical escape is one cast per `useForm` site | 9 | **P5.2a shipped 2026-08-05**: the `rhfPath<T>()` shim lives in `@workspace/ui/lib/rhf-path` (react-hook-form is already a `@workspace/ui` dependency, and the package is outside the as-cast scan roots, so the helper needs no marker). 3 files converted + markers removed (`invoice-form-paths.boundary.ts`, `shared-patient-info-fields.tsx`, `team-member-form-fields.tsx`). Remaining 9 are non-`Path`-cast RHF sites (superRefine resolver, FieldErrors key narrowing, watched-record coercion) — per-file closures in P5.2. |
 | **Prisma JSON / Decimal / InputJsonValue boundary** — Prisma's `JsonValue` union + `InputJsonValue` constraint cannot be expressed without a cast at the API/repository boundary | 9 | Adopt a `prisma-json-value.ts` schema-backed codec; route all JSON writes through it. Target: P5.2b. |
 | **AWS SDK response narrowing** — `@aws-sdk/*` returns `Metadata`/`Response` as untyped records | 6 | Add `@aws-sdk/types` generics; project the union into a domain type. Target: P5.2c. |
 | **Untyped JSON error body / `unknown` boundary** — `error.data` (Axios), `JSON.parse` results, webhook payloads | 7 | Already narrowed with `isRecord()` guards; the cast is the last-mile assertion. **Keep**. |
 | **Queue / event handler registry generic erasure** — `Job<T>` and `EventEmitter2` payloads erase generics at the handler map | 3 | Migrate to a typed `Handler<T>` registry; remove the cast at registration. Target: P5.2d. |
-| **Window globals / `PerformanceObserver` / `LayoutShift`** — DOM lib gap; no safe narrowing | 5 | Add an `app-globals.d.ts` ambient declaration for the feature flags + vitals. Target: P5.2e. |
+| **Window globals / `PerformanceObserver` / `LayoutShift`** — DOM lib gap; no safe narrowing | 2 | **P5.2e partial 2026-08-05**: both `client-error-reporter.ts` files closed via `apps/{app-vite,internal-vite}/src/app-globals.d.ts` ambient `Window` declarations (`__errorHandlerInstalled`, `__vitalsReporterInstalled`). The 2 `web-vitals.ts` files keep markers for the PerformanceObserver/entry-typing casts only (their window-flag casts were also cleaned). |
 | **Partial domain-object builder / test fixture** — `Object.create(prototype)` stubs + RHF default values | 4 | Add a `makePartial<T>()` helper to `@workspace/utils`; replace inline casts. Target: P5.2f. |
 | **react-phone-number-input / branded Country string** — upstream types are not branded | 2 | Wrap the import behind a `parseCountryCode()` helper. Target: P5.2g. |
 | **Notification category record / Object.keys** — `Object.keys` returns `string[]`; the canonical map-key cast is unavoidable | 3 | Replace with a typed `Object.entries(KEYED_MAP)` + `as const` literal. Target: P5.2h. |
@@ -94,40 +94,39 @@ Each closure is a single-file PR; the gate stays green throughout because the
 
 ---
 
-## 3. `check:non-null-assertion` — 7 file-level allow-files
+## 3. `check:non-null-assertion` — 0 file-level allow-files (DONE 2026-08-05, P5.3)
 
-| File                                                                                  | Reason                                                                                                            |
-| ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `apps/landing/src/lib/api-fetch.ts`                                                   | `fetch` `Response` shape narrowing requires postfix `!` on `headers.get()` for known-present keys.                |
-| `apps/app-vite/src/test-utils/i18n-mock.ts`                                           | Mock tree access path; the test fixture guarantees the shape.                                                    |
-| `apps/app-vite/src/features/patients/lib/patient-social-history-update.boundary.ts`    | `socialHistory` partial field update with required keys; runtime guard precedes the `!`.                          |
-| `apps/app-vite/src/features/settings/components/whatsapp/WhatsappSenderSettings.tsx`   | Persisted sender-mode string narrowed via Zod; the cast is the last-mile assertion.                              |
-| `apps/app-vite/src/features/settings/components/whatsapp/WhatsappSenderSettingsSections.tsx` | Same; sections composition.                                                                                  |
-| `apps/app-vite/src/features/patients/components/forms/dialogs/shared-patient-info-fields.tsx` | RHF `Path<T>` indexing; the field is guaranteed by the schema.                                              |
-| `apps/app-vite/src/features/settings/components/management/team-member-form-fields.tsx` | Same RHF pattern.                                                                                                |
+**7 → 0 closed 2026-08-05.** The `nonNull<T>()` helper in
+`@workspace/utils` (`packages/utils/src/non-null.ts`, 4 unit tests) narrows a
+value whose non-nullness a prior guard established and throws on violation —
+no `!`, no cast, so the helper needs no marker of its own. Closures:
 
-**Target**: drive 7 → **0** by adding a `narrow<T>()` helper to
-`@workspace/utils` that combines an `isRecord` guard with a non-null
-assertion; the helper itself contains the `!` so the call sites stay clean.
-Target: **P5.3**.
+- `invoices-query.service.ts` — `invoice.patient!` → patient captured + guarded (clinic name check implies it).
+- `notify-subscription-grace-deadline.use-case.ts` — `sub.graceUntil!` → `nonNull(sub.graceUntil)` (the reminder filter skips nulls first).
+- `useConsultationAutosave.ts` — `state.appointmentId!` → `nonNull(state.appointmentId)` (inside the existing try/catch).
+- `DoctorTimeAwaySettingsSections.tsx` — `off.id!` → hoisted `const rowId = off.id` narrowed by the `&&` guard.
+- `main.tsx` (both apps) — `document.getElementById("root")!` → hoisted element + explicit `if (!rootElement) throw`.
+- `use-clinical.ts` — the marker was **stale** (no `!` in the file); removed.
+
+Validation: `pnpm check:non-null-assertion` exit 0; all touched apps/packages typecheck.
 
 ---
 
-## 4. `.jscpd.json` ignore list — 45 entries
+## 4. `.jscpd.json` ignore list — 50 production entries (79 raw)
 
-jscpd duplicates are detected by token similarity. The 45 ignores cover two
+jscpd duplicates are detected by token similarity. The ignores cover two
 shapes:
 
 1. **Boilerplate that is structurally identical by design** (logging
    initialisation, Sentry init, error helpers, telemetry payloads, env
-   readers) — 12 entries.
+   readers) — 13 entries.
 2. **Canonical sections-split / sibling-dialog / mirrored-view patterns** —
-   33 entries. These are the "intentional-structure clones" tracked in
+   37 entries. These are the "intentional-structure clones" tracked in
    [REPO_GAPS row 37 / `POST_CUTOVER_GAPS.md`](POST_CUTOVER_GAPS.md) §1.
 
 | Bucket                                  | Count | Owner action                                                                                |
 | --------------------------------------- | ----: | ------------------------------------------------------------------------------------------- |
-| Boilerplate (logger, sentry, errors)    |     8 | **Keep** — same source in app-vite + internal-vite by design; promote to `@workspace/utils`. |
+| Boilerplate (logger, sentry, errors, **RUM reporters**) |    13 | **Keep** — same source in app-vite + internal-vite by design; promote to `@workspace/utils`. The 4 web-vitals reporter/payload files + `**/main.tsx` joined 2026-08-05 (P5.4e): the mirrored RUM reporters are the tracked consolidation follow-up (P4.5 note — consolidate into a shared helper in `packages/data-access`, which already hosts the unused `postInternalWebVitals`); `main.tsx` matches the existing `**/App.tsx` entry-file ignore. |
 | Sibling dialog sections                 |     7 | Extract a `<TwoColumnDialogSections>` primitive to `@workspace/ui`. Target: P5.4.           |
 | Mirrored list/table views               |     9 | Extract a `<ResponsiveDataTable>` section primitive. Target: P5.4.                          |
 | Page-skeleton + loaders                 |     3 | **Keep** — already excluded at `components/loaders/page-skeleton.tsx`.                      |
@@ -135,10 +134,11 @@ shapes:
 | Consultation specialty views             |     5 | **Keep** — clinical UI; mirror is intentional.                                              |
 | `*Sections.tsx` / `*PageUI.tsx` / `*PageUI.tsx` | 5 | Refactor: see P5.4.                                                                   |
 
-**Refactor target (P5.4)**: 45 → **≤25** by extracting the
+**Refactor target (P5.4)**: 50 → **≤25** production entries by extracting the
 `<TwoColumnDialogSections>`, `<ResponsiveDataTable>`, and `<FormSections>`
 primitives into `@workspace/ui`. Each extraction closes 5–10 ignores; gate
-remains 0 clones.
+remains 0 clones. The 5 entries added 2026-08-05 (RUM reporters ×4 + `main.tsx`)
+are temporary: they disappear when the P4.5/P5.4e RUM consolidation lands.
 
 ---
 
@@ -149,7 +149,7 @@ remains 0 clones.
 | `allowlists/zod-interface-parity.json`          |      15 | Each entry: `{id, reason}`. Largest single source of "form-local divergence" (13 of 15). Plan §P4.3.    |
 | `allowlists/i18n-coverage.json`                 |       1 | `legal` namespace (English-only legal text + built-in en/hi selector in `ConsentNoticeModal`).         |
 | `allowlists/feature-test-density-zero.json`     |       0 | **Emptied 2026-08-03** (28 stale + 2 missing-dir entries deleted). Ratchet is now strict.              |
-| `scripts/checks/check-client-storage-usage.mjs` `ALLOWLIST` | 35 (2026-08-05; +2 web-vitals) | Inline allowlist of file paths allowed to call `localStorage` / `sessionStorage`; added 2 for web-vitals session dedupe (2026-08-05). Total grows; ledger tracks the **new** entries per change. Ratchet target P5.20: ≤ 30 (drop sessionStorage usage in the 2 web-vitals files; move `rum_session_id` to a cookie or in-memory module-level singleton). |
+| `scripts/checks/check-client-storage-usage.mjs` `ALLOWLIST` | 30 (2026-08-05; 35 → 30) | **P5.20 DONE 2026-08-05**: the 2 web-vitals entries removed (the reporters now use a module-level in-memory `rum_session_id` singleton instead of `sessionStorage`); 2 stale entries removed (`internal-vite client-error-reporter.ts` — never used storage; `internal-filters-store.ts` — file no longer exists). `pnpm check:client-storage-usage` exit 0 at exactly the ≤ 30 target. |
 
 **Refactor target (P5.5)**: 15 → **≤8** by composing the 13
 "form-local divergence" entries from canonical base schemas (`.pick()` /
@@ -158,20 +158,22 @@ only` entries stay.
 
 ---
 
-## 6. `eslint-disable*` in production source — 6 entries
+## 6. `eslint-disable*` in production source — 1 entry (DONE 2026-08-05, P5.6)
+
+**6 → 1 closed 2026-08-05.** The remaining entry:
 
 | File                                                              | Rule                                | Reason                                                                                                                            |
 | ----------------------------------------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/app-vite/src/features/consultation/workspace/shell/ConsultationMainPanel.tsx` | `react-hooks/exhaustive-deps` | Consultation hot path; the effect intentionally only re-binds on consultation id change, not on every prop.                  |
-| `apps/app-vite/src/features/referral-partner/components/PartnerShell.tsx`           | `react-hooks/exhaustive-deps` | Same pattern; partner shell effect only re-binds on partner id.                                                                   |
-| `apps/internal-vite/src/lib/monitoring/client-error-reporter.ts`                    | `@typescript-eslint/no-unnecessary-condition` | Defensive for SSR; `globalThis` may be `undefined` in the dev runtime.                                                       |
-| `apps/api/scripts/generate-openapi.ts` (×2)                                         | `no-console`                        | OpenAPI generator deliberately uses `console.log` for the build banner.                                                            |
-| `packages/types/src/shared/users/clinic-config.ts`                                  | `sort-imports`                      | Import order is intentional to keep type-only imports grouped.                                                                    |
+| `apps/app-vite/src/features/consultation/workspace/shell/ConsultationMainPanel.tsx` | `react-hooks/exhaustive-deps` | Consultation hot path; `useMemo` intentionally keys on primitive identity fields (`apptId`/`patientId`/`doctorId`) instead of the `appointmentData` object reference, which changes every render. Fixing it properly means changing `buildConsultationSectionComponents`' contract to take primitives — kept with this justification, re-review in a later P5 pass. |
 
-**Target**: 6 → **0** (or 1 if `no-console` keeps the openapi generator). The
-two `react-hooks/exhaustive-deps` entries are pre-existing in the ported code
-and are P5.6 candidates; the SSR condition is fixable with an `inBrowser()`
-guard.
+Closed entries: `generate-openapi.ts` ×2 (`no-console`) — banner/failure output moved to
+`process.stdout.write` / `process.stderr.write`; `clinic-config.ts` (`sort-imports`) — member
+order corrected to the rule's case-insensitive sort; `internal-vite client-error-reporter.ts`
+(`no-unnecessary-condition`) — SSR guard moved to the new `inBrowser()` helper in
+`@workspace/utils` (where `window` is undeclared and the check is genuinely necessary);
+`PartnerShell.tsx` (`exhaustive-deps`) — `auth.refresh` is now a real `useCallback` in
+`use-partner-auth.ts` (stable over the React Query `mutateAsync`), and the shell effect
+depends on the destructured binding.
 
 ---
 
@@ -203,4 +205,11 @@ marker exists and is non-empty. Suppressions without a marker fail the gate.
 | 2026-08-04 | knip: 0/0/0 (exports/types/unlisted). 70 shell exports removed; i18n cutover bug fixed (raw `t()` keys in prod).     | Knip pass            |
 | 2026-08-05 | This ledger created. `as-cast-density` failing on dirty tree (`xlsx-load-boundary.ts`) — marker added; 79 → 80 entries. | Migration PR (open)  |
 | 2026-08-05 | `check:client-storage-usage` allowlist: 2 new entries (`apps/{app-vite,internal-vite}/src/lib/monitoring/web-vitals.ts` for `rum_session_id` dedupe — PII-free session marker). | Migration PR (open)  |
-| target 2026-08-12 | P5.2: drive as-cast 80 → ≤40; P5.3: drive NNA 7 → 0; P5.4: drive jscpd 45 → ≤25; P5.5: drive zod-parity 15 → ≤8. | P5 sweep |
+| 2026-08-05 | **P5.2a**: `rhfPath<T>()` shim in `@workspace/ui/lib/rhf-path` (+ unit test); 3 RHF allow-files closed. | P5 sweep |
+| 2026-08-05 | **P5.3**: NNA 7 → 0 via `nonNull<T>()` in `@workspace/utils` (+ tests), guarded hoists, and a stale-marker removal. | P5 sweep |
+| 2026-08-05 | **P5.2e**: `app-globals.d.ts` (both Vite apps) closes 2 `client-error-reporter` allow-files; as-cast 80 → 74. | P5 sweep |
+| 2026-08-05 | **P5.6**: eslint-disable 6 → 1 (stdout/stderr, sort-imports, `inBrowser()`, stable `refresh`). | P5 sweep |
+| 2026-08-05 | **P5.20**: client-storage allowlist 35 → 30 (in-memory `rum_session_id` + 2 stale entries). | P5 sweep |
+| 2026-08-05 | **P5.19**: route budgets re-baselined to the post-RUM core (all 11 routes ~10% headroom); `perf:route-budgets` + `perf:budget:enforce` green. | P5 sweep |
+| 2026-08-05 | **jscpd gate fix (P5.4e)**: the web-vitals batch shipped 5 pre-existing clone pairs (mirrored RUM reporters/payloads + provider stacks) — the duplication gate was already red at `589272e2f`. Added 5 boilerplate ignores (RUM ×4 + `**/main.tsx`) → 0 clones; consolidated RUM reporter remains the tracked P4.5/P5.4e follow-up. | P5 sweep |
+| target 2026-08-12 | P5.2: drive as-cast 74 → ≤40; P5.4: drive jscpd 45 → ≤25; P5.5: drive zod-parity 15 → ≤8. | P5 sweep |

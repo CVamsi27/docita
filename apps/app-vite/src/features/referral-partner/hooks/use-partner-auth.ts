@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import {
   type PartnerApiContext,
@@ -37,6 +37,9 @@ export function usePartnerAuth() {
   const requestOtp = usePartnerRequestOtp();
   const verifyOtp = usePartnerVerifyOtp();
   const refreshOtp = usePartnerRefresh();
+  // Destructure the stable mutation fn so effects can depend on the binding
+  // (exhaustive-deps tracks the object otherwise).
+  const { mutateAsync: refreshPartnerToken } = refreshOtp;
 
   const request = async () => {
     setError(null);
@@ -107,13 +110,15 @@ export function usePartnerAuth() {
 
   /**
    * Refresh the access token. Called from the dashboard shell when
-   * the access token is about to expire.
+   * the access token is about to expire. Stable identity (useCallback over
+   * the stable React Query mutateAsync) so shell effects can depend on it
+   * without re-running on every render.
    */
-  const refresh = async (): Promise<boolean> => {
+  const refresh = useCallback(async (): Promise<boolean> => {
     const persisted = partnerSession.get();
     if (!persisted?.refreshToken) return false;
     try {
-      const result = await refreshOtp.mutateAsync({
+      const result = await refreshPartnerToken({
         refreshToken: persisted.refreshToken,
       });
       const expiresAt = Date.now() + result.expiresIn * 1000 - EXPIRY_BUFFER_MS;
@@ -124,7 +129,7 @@ export function usePartnerAuth() {
       setSignedIn(false);
       return false;
     }
-  };
+  }, [refreshPartnerToken]);
 
   return {
     phone,

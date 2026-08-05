@@ -39,17 +39,17 @@ function getPagePath(): string | null {
   }
 }
 
+// In-memory session marker (P5.20): the dedupe only needs to survive the
+// page lifetime, so a module-level singleton replaces the storage API
+// round-trip — no storage API usage, nothing for check:client-storage-usage
+// to allowlist. Per-tab, per-load grouping is preserved by the caller's
+// `sessionId` field on each payload.
+let rumSessionId: string | null = null;
+
 function getSessionId(): string {
-  try {
-    let sessionId = window.sessionStorage.getItem("rum_session_id");
-    if (!sessionId) {
-      sessionId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-      window.sessionStorage.setItem("rum_session_id", sessionId);
-    }
-    return sessionId;
-  } catch {
-    return "";
-  }
+  if (rumSessionId) return rumSessionId;
+  rumSessionId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  return rumSessionId;
 }
 
 /**
@@ -63,10 +63,9 @@ function getSessionId(): string {
 export function installWebVitalsReporter(): void {
   if (typeof window === "undefined" || !window.PerformanceObserver) return;
 
-  // check-as-cast-density: allow-file — window flag + PerformanceObserver/LayoutShift entry typing gaps (platform API, no safe narrowing)
-  const win = window as unknown as Record<string, unknown>;
-  if (win.__vitalsReporterInstalled) return;
-  win.__vitalsReporterInstalled = true;
+  // check-as-cast-density: allow-file — PerformanceObserver/LayoutShift entry typing gaps (platform API, no safe narrowing); the __vitalsReporterInstalled flag is typed in src/app-globals.d.ts
+  if (window.__vitalsReporterInstalled) return;
+  window.__vitalsReporterInstalled = true;
 
   const page = getPagePath();
   const sessionId = getSessionId();

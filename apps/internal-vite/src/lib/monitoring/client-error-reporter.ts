@@ -1,13 +1,14 @@
-// check-as-cast-density: allow-file — window global flag read via untyped Record (platform gap, no DOM typings for app globals)
 import { captureException } from "./sentry.client.config";
+import { inBrowser } from "@workspace/utils";
 
 export function installGlobalErrorHandler(): void {
-  /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- defensive for SSR */
-  if (typeof window === "undefined") return;
+  // Defensive for any non-browser runtime; inBrowser() lives in
+  // @workspace/utils where the check is a genuine runtime condition.
+  if (!inBrowser()) return;
 
-  const win = window as unknown as Record<string, boolean | undefined>;
-  if (win.__errorHandlerInstalled) return;
-  win.__errorHandlerInstalled = true;
+  // Prevent duplicate installation (flags declared in src/app-globals.d.ts)
+  if (window.__errorHandlerInstalled) return;
+  window.__errorHandlerInstalled = true;
 
   window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
     const reason: unknown = event.reason;

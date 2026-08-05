@@ -1,4 +1,3 @@
-// check-non-null-assertion: allow-file — createRoot(document.getElementById("root")!) is the standard Vite entry contract; index.html guarantees the node
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
@@ -22,7 +21,12 @@ initializeSentryClient();
 installGlobalErrorHandler();
 installWebVitalsReporter();
 
-createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error("Root element #root not found");
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <HelmetProvider>
       <BrowserRouter>

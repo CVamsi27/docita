@@ -17,6 +17,9 @@ export function PartnerShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const auth = usePartnerAuth();
   const ctx = auth.buildContext();
+  // Destructure the stable refresh fn so the effect can depend on the
+  // binding (exhaustive-deps tracks the auth object otherwise).
+  const { refresh: refreshAccessToken } = auth;
 
   useEffect(() => {
     if (!auth.signedIn) {
@@ -25,16 +28,15 @@ export function PartnerShell({ children }: { children: ReactNode }) {
   }, [auth.signedIn, navigate]);
 
   // Background refresh on shell mount so the access token is fresh
-  // for the duration of a typical browsing session.
+  // for the duration of a typical browsing session. refreshAccessToken has
+  // a stable identity (useCallback over the stable React Query mutateAsync).
   useEffect(() => {
-    void auth.refresh();
+    void refreshAccessToken();
     const id = setInterval(() => {
-      void auth.refresh();
+      void refreshAccessToken();
     }, 14 * 60 * 1000);
     return () => clearInterval(id);
-    // auth.refresh is stable (closure over state setters).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refreshAccessToken]);
 
   const me = usePartnerMe(
     auth.signedIn ? ctx.accessToken : null,

@@ -20,19 +20,29 @@
  * regressions as bugs.
  */
 
-/** First-load JS proxy target per route, in KB (gzipped, measured 2026-08-04). */
+/**
+ * First-load JS proxy target per route, in KB (gzipped).
+ *
+ * Re-baselined 2026-08-05 (P5.19): the shared core grew ~10% after the
+ * web-vitals RUM reporter + I18nProvider mount landed in main.tsx (both are
+ * core-chunk imports, so every route's first-load proxy grew). The previous
+ * 2026-08-04 budgets (720-760) were set from the pre-RUM core; the new values
+ * are the measured post-RUM sizes + ~10% headroom. These absolute caps are a
+ * bloat alarm — real route regressions are caught by the per-route delta gate
+ * (`perf:budget:enforce` against logs/performance/baseline.json).
+ */
 export const ROUTE_BUNDLE_KB = {
-  "/login": 720,
-  "/dashboard": 730,
-  "/patients": 740,
-  "/patients/:id": 720,
-  "/appointments": 760,
-  "/analytics": 720,
-  "/consultation/:id": 760,
-  "/prescriptions/:id": 720,
-  "/invoices/:id": 730,
-  "/book/:referralCode": 740,
-  "/mobile-upload/:id": 730,
+  "/login": 805,
+  "/dashboard": 810,
+  "/patients": 820,
+  "/patients/:id": 805,
+  "/appointments": 840,
+  "/analytics": 800,
+  "/consultation/:id": 845,
+  "/prescriptions/:id": 805,
+  "/invoices/:id": 815,
+  "/book/:referralCode": 820,
+  "/mobile-upload/:id": 810,
 };
 
 /** Web Vitals targets per route bucket. */

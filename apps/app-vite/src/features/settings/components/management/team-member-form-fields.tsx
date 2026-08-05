@@ -1,5 +1,5 @@
-// check-as-cast-density: allow-file — React Hook Form generic field names require as Path<TFormValues>
-import type { FieldValues, UseFormReturn, Path } from "react-hook-form";
+import type { FieldValues, UseFormReturn } from "react-hook-form";
+import { rhfPath } from "@workspace/ui/lib/rhf-path";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { useLabs } from "@workspace/data-access";
 import { useTranslation } from "react-i18next";
@@ -16,7 +16,7 @@ export function TeamMemberContactFields<TFormValues extends FieldValues>({
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <FormField
         control={form.control}
-        name={"email" as Path<TFormValues>}
+        name={rhfPath<TFormValues>("email")}
         render={({ field }) => (
           <FormItem>
             <FormLabel>{t("emailLabel")}</FormLabel>
@@ -29,7 +29,7 @@ export function TeamMemberContactFields<TFormValues extends FieldValues>({
       />
       <FormField
         control={form.control}
-        name={"phoneNumber" as Path<TFormValues>}
+        name={rhfPath<TFormValues>("phoneNumber")}
         render={({ field }) => (
           <FormItem>
             <FormLabel>{t("phoneLabel")}</FormLabel>
@@ -58,7 +58,7 @@ export function TeamMemberLabField<TFormValues extends FieldValues>({
   return (
     <FormField
       control={form.control}
-      name={"labId" as Path<TFormValues>}
+      name={rhfPath<TFormValues>("labId")}
       render={({ field }) => (
         <FormItem>
           <FormLabel>{t("labLabel")}</FormLabel>
@@ -138,7 +138,7 @@ export function DoctorRegistrationFields<TFormValues extends FieldValues>({
         <FormField
           key={name}
           control={form.control}
-          name={name as Path<TFormValues>}
+          name={rhfPath<TFormValues>(name)}
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t(labelKey)}</FormLabel>

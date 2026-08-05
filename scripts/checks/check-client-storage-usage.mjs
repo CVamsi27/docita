@@ -22,8 +22,6 @@ const PATTERN = /\b(?:window\.)?(?:localStorage|sessionStorage)\b/g;
 const ALLOWLIST = new Set([
   // apps/internal-vite — theme, auth context, navigation history
   "apps/internal-vite/src/lib/monitoring/sentry.client.config.ts",
-  "apps/internal-vite/src/lib/monitoring/client-error-reporter.ts",
-  "apps/internal-vite/src/lib/stores/internal-filters-store.ts",
   // Port-verified storage usage (2026-08-03, committed with the Vite cutover
   // 5352a9612). Reviewed as one batch at PR time (privacy-reviewer sign-off per
   // the policy above): none stores PHI — auth tokens/session markers, onboarding
@@ -58,8 +56,6 @@ const ALLOWLIST = new Set([
   "apps/app-vite/src/lib/auth/safe-return-path.ts",
   "apps/app-vite/src/lib/contexts/clinic-context.tsx",
   "apps/app-vite/src/lib/monitoring/sentry.client.config.ts",
-  "apps/app-vite/src/lib/monitoring/web-vitals.ts", // rum_session_id dedupe (no PHI; PII-free session marker; see STABILITY_RUNBOOK.md §7.1)
-  "apps/internal-vite/src/lib/monitoring/web-vitals.ts", // rum_session_id dedupe (no PHI; PII-free session marker)
   "apps/internal-vite/src/lib/auth/auth.tsx",
   "apps/internal-vite/src/lib/auth/use-auth-session.ts",
 ]);

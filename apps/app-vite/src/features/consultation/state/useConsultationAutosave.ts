@@ -1,5 +1,5 @@
-// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { nonNull } from "@workspace/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 import {
@@ -51,7 +51,7 @@ export function useConsultationAutosave(
       const payload = serializeDraftForSession(state);
       if (!payload) return;
       window.sessionStorage.setItem(
-        draftSessionStorageKey(state.appointmentId!),
+        draftSessionStorageKey(nonNull(state.appointmentId)),
         payload,
       );
     } catch (error) {

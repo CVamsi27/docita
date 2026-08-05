@@ -1,4 +1,4 @@
-// check-as-cast-density: allow-file — Reflect.defineMetadata return requires as cast
+// check-as-cast-density: allow-file — untyped Express request properties (user/query/body/params) are read off a Record<string, unknown> request and narrowed to the clinic-scope fields; the historical Reflect.defineMetadata cast is gone (P5.2i)
 import {
   BadRequestException,
   SetMetadata,

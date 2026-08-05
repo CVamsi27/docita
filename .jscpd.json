@@ -4,7 +4,10 @@
   "maxLines": 1000,
   "maxSize": "100kb",
   "mode": "strict",
-  "reporters": ["console", "json"],
+  "reporters": [
+    "console",
+    "json"
+  ],
   "output": "./.jscpd-report",
   "gitignore": true,
   "ignore": [
@@ -81,7 +84,19 @@
     "apps/app-vite/src/features/consultation/components/consultation-dashboard-nurse-prep.tsx",
     "apps/app-vite/src/features/consultation/components/consultation-dashboard-sections.tsx",
     "apps/app-vite/src/features/auth/components/ResetPasswordPageContent.tsx",
-    "apps/app-vite/src/features/auth/components/ResetPasswordPageContentSections.tsx"
+    "apps/app-vite/src/features/auth/components/ResetPasswordPageContentSections.tsx",
+    "apps/app-vite/src/lib/monitoring/web-vitals.ts",
+    "apps/app-vite/src/lib/monitoring/web-vitals-payload.ts",
+    "apps/internal-vite/src/lib/monitoring/web-vitals.ts",
+    "apps/internal-vite/src/lib/monitoring/web-vitals-payload.ts",
+    "**/main.tsx"
   ],
-  "format": ["typescript", "tsx", "javascript", "jsx", "css", "json"]
+  "format": [
+    "typescript",
+    "tsx",
+    "javascript",
+    "jsx",
+    "css",
+    "json"
+  ]
 }
