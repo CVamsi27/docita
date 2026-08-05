@@ -1,40 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useCallback, useState } from "react";
+import { useNavigate } from "react-router";
 import { Feature } from "@workspace/types";
 import type { Patient } from "@workspace/types";
+import { useAddDialogUrlSync } from "@/hooks/use-add-dialog-url-sync";
 
 export function usePatientsDialogs(
   canAccess: (feature: Feature) => boolean,
 ) {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [schedulingPatientId, setSchedulingPatientId] = useState<
     string | undefined
   >(undefined);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
 
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
-  const currentAction = searchParams.get("action");
-  useEffect(() => {
-    if (currentAction === "new") {
-      setIsAddDialogOpen(true);
-    }
-  }, [currentAction]);
-
-  const handleDialogChange = useCallback(
-    (open: boolean) => {
-      setIsAddDialogOpen(open);
-      if (!open) {
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.delete("action");
-        const query = newParams.toString();
-        navigate(query ? `?${query}` : ".", { replace: true });
-      }
-    },
-    [searchParams, navigate],
-  );
+  const { isAddDialogOpen, setIsAddDialogOpen, handleDialogChange } =
+    useAddDialogUrlSync({ basePath: "" });
 
   const handleScheduleDialogChange = useCallback((open: boolean) => {
     setIsScheduleDialogOpen(open);

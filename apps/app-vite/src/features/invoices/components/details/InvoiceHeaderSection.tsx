@@ -4,22 +4,14 @@ import { useFeature } from "@/components/auth/use-feature";
 import { BackButton } from "@/components/navigation/back-button";
 import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import { InvoiceActionsBar } from "./InvoiceActionsBar";
+import type { InvoiceDetailActionProps } from "./invoice-detail-types";
 
-interface InvoiceHeaderSectionProps {
-  invoiceId: string;
-  invoice: {
+interface InvoiceHeaderSectionProps extends InvoiceDetailActionProps {
+  invoice: InvoiceDetailActionProps["invoice"] & {
     id?: string;
     invoiceNumber?: string | null;
     status: string;
-    whatsappStatus?: string | null;
-    whatsappSentAt?: string | Date | null;
-    patientId?: string;
   };
-  handlePrint: () => void;
-  handleDownload: () => void;
-  isDownloading: boolean;
-  handleWhatsappRetry: () => void;
-  isRetrying: boolean;
   paidSummaryLine: string | null;
 }
 

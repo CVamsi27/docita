@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { CheckCircle } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { Controller, type Control, type UseFormReturn } from "react-hook-form";
+import { useResetPasswordTranslations } from "@/features/auth/hooks/use-reset-password-translations";
 import { Button } from "@workspace/ui/components/form/button";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { type ResetPasswordFormValues } from "@workspace/types";
@@ -11,14 +11,6 @@ import { PreDashboardShell } from "./PreDashboardShell";
 import { AuthErrorDisplay } from "./AuthErrorDisplay";
 
 const PASSWORD_RULES_HELPER = "Must be 8+ characters with uppercase, lowercase, number, and special character";
-
-function useResetPasswordTranslations() {
-  const { t } = useTranslation("Auth");
-  return (key: string) => {
-    const result = t(`resetPassword.${key}`);
-    return result !== `resetPassword.${key}` ? result : key;
-  };
-}
 
 interface ResetPasswordShellProps {
   children: React.ReactNode;

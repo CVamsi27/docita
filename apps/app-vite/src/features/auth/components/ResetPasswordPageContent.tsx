@@ -1,16 +1,8 @@
 import { Suspense } from "react";
-import { useTranslation } from "react-i18next";
 import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { useResetPasswordFlow } from "@/features/auth/hooks/use-reset-password-flow";
+import { useResetPasswordTranslations } from "@/features/auth/hooks/use-reset-password-translations";
 import { ResetLinkExpiredCard, ResetPasswordFormCard, ResetPasswordShell, ResetPasswordSuccessCard } from "./ResetPasswordPageContentSections";
-
-function useResetPasswordTranslations() {
-  const { t } = useTranslation("Auth");
-  return (key: string) => {
-    const result = t(`resetPassword.${key}`);
-    return result !== `resetPassword.${key}` ? result : key;
-  };
-}
 
 function ResetPasswordInner() {
   const t = useResetPasswordTranslations();

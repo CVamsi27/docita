@@ -3,19 +3,9 @@ import { Button } from "@workspace/ui/components/form/button";
 import { Download, Edit, Printer, ShieldPlus } from "lucide-react";
 import { Link } from "react-router";
 import { WhatsAppDeliveryBadge } from "@/components/whatsapp/whatsapp-delivery-badge";
+import type { InvoiceDetailActionProps } from "./invoice-detail-types";
 
-interface InvoiceActionsBarProps {
-  invoiceId: string;
-  invoice: {
-    whatsappStatus?: string | null;
-    whatsappSentAt?: string | Date | null;
-    patientId?: string;
-  };
-  handlePrint: () => void;
-  handleDownload: () => void;
-  isDownloading: boolean;
-  handleWhatsappRetry: () => void;
-  isRetrying: boolean;
+interface InvoiceActionsBarProps extends InvoiceDetailActionProps {
   canCreateClaim: boolean;
 }
 
