@@ -25,7 +25,7 @@ sectioned forms). 22 pairs of 11–20 lines each.
 | Sibling dialog sections                |     7 | Extract `<TwoColumnDialogSections>` to `@workspace/ui` (sections/header/footer slots) | P5.4a   |
 | Mirrored list/table views              |     9 | Extract `<ResponsiveDataTable sections>` primitive (header/row/empty slots)      | P5.4b   |
 | Sectioned forms (`*-form-sections-shared.tsx`) | 8 | Extract `<FormSections>` (section/field/error slots)                              | P5.4c   |
-| Consultation specialty sections        |     5 | **Keep** — clinical mirror is intentional; rename to `*-specialty-sections.tsx` for clarity | P5.4d   |
+| Consultation specialty sections        |     5 | **Keep** — clinical mirror is intentional; **P5.4d DONE 2026-08-05**: renamed to `*-specialty-sections.tsx` (cardiology/dermatology/gynecology/psychiatry exam sections + investigations) for clarity; no extraction, the 5 ignores stay with rationale | P5.4d   |
 | Page-skeleton + loaders                |     3 | **Keep** — already in `components/loaders/page-skeleton.tsx`                     | —       |
 | Boilerplate (logger, sentry, errors)   |     8 | Promote logger/sentry/error helpers to `@workspace/utils`                        | P5.4e   |
 

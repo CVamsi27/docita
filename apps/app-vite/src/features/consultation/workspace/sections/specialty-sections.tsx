@@ -69,35 +69,35 @@ const VisionExamUILazy = withSectionLoading(
 );
 const CardiologyExamSectionLazy = withSectionLoading(
   lazy(() =>
-    import("@/features/consultation/components/specialty/CardiologyExamSection").then(
+    import("@/features/consultation/components/specialty/cardiology-specialty-sections").then(
       (m) => ({ default: m.CardiologyExamSection }),
     ),
   ),
 );
 const DermatologyExamSectionLazy = withSectionLoading(
   lazy(() =>
-    import("@/features/consultation/components/specialty/DermatologyExamSection").then(
+    import("@/features/consultation/components/specialty/dermatology-specialty-sections").then(
       (m) => ({ default: m.DermatologyExamSection }),
     ),
   ),
 );
 const GynecologyExamSectionLazy = withSectionLoading(
   lazy(() =>
-    import("@/features/consultation/components/specialty/GynecologyExamSection").then(
+    import("@/features/consultation/components/specialty/gynecology-specialty-sections").then(
       (m) => ({ default: m.GynecologyExamSection }),
     ),
   ),
 );
 const PsychiatryExamSectionLazy = withSectionLoading(
   lazy(() =>
-    import("@/features/consultation/components/specialty/PsychiatryExamSection").then(
+    import("@/features/consultation/components/specialty/psychiatry-specialty-sections").then(
       (m) => ({ default: m.PsychiatryExamSection }),
     ),
   ),
 );
 const InvestigationsSectionLazy = withSectionLoading(
   lazy(() =>
-    import("@/features/consultation/components/specialty/InvestigationsSection").then(
+    import("@/features/consultation/components/specialty/investigations-specialty-sections").then(
       (m) => ({ default: m.InvestigationsSection }),
     ),
   ),
