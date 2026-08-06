@@ -1,11 +1,11 @@
-import { ANNUAL_DISCOUNT_PERCENT, applyModeToPricing, getAvailableModesForTier, PLAN_MODE_INFO, PLAN_MODES, type PlanMode, PRICING_CURRENCY_SYMBOLS, TIER_INFO, type TierName } from "@workspace/types";
+import { ANNUAL_DISCOUNT_PERCENT, SUBSCRIPTION_TRIAL_DAYS, applyModeToPricing, getAvailableModesForTier, PLAN_MODE_INFO, PLAN_MODES, type PlanMode, PRICING_CURRENCY_SYMBOLS, TIER_INFO, type TierName } from "@workspace/types";
 import { parseSupportedCurrency } from "@workspace/utils";
 import { Button, SymbolTooltip } from "@workspace/ui/components";
 import { TierCard } from "./cards/tier-card";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@workspace/ui/lib/utils";
-import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "../config/plan-onboarding-highlights";
+import { planHighlightKeys } from "../config/plan-highlight-keys";
 import type { TierRecommendation } from "../lib/recommend-tier";
 
 type Recommendation = TierRecommendation | null;
@@ -84,6 +84,7 @@ export function BillingPlanCards({ planCards, selectedMode, selectedCycle, curre
   effectiveCurrentTier: number; recommendation: Recommendation; billingAllowed: boolean;
   onSelectTier: (tier: TierName, cycle: "MONTHLY" | "YEARLY") => void; onContactSales: () => void;
 }) {
+  const { t: tHighlights } = useTranslation("Subscription.planHighlights");
   const { t } = useTranslation("Subscription.billingPlans");
   const tierNames: TierName[] = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE"];
   const pricingCurrency = parseSupportedCurrency(currency);
@@ -97,7 +98,11 @@ export function BillingPlanCards({ planCards, selectedMode, selectedCycle, curre
         const effectiveMode: PlanMode = supportedModes.includes(selectedMode) ? selectedMode : "FULL";
         const resolvedPricing = applyModeToPricing(basePricing, effectiveMode);
         const currencySymbol = PRICING_CURRENCY_SYMBOLS[pricingCurrency] ?? "\u20B9";
-        const keyHighlights = PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? [];
+        const keyHighlights = planHighlightKeys(tierName).map((key) =>
+          key === "essential.trial"
+            ? tHighlights(key, { days: SUBSCRIPTION_TRIAL_DAYS })
+            : tHighlights(key),
+        );
         const modeSuffix = effectiveMode === "FULL" ? null : ` \u00b7 ${PLAN_MODE_INFO[effectiveMode].name}`;
         const cardInfo = modeSuffix ? { ...info, name: `${info.name}${modeSuffix}` } : info;
         const modeMismatched = effectiveMode !== selectedMode && selectedMode !== "FULL";

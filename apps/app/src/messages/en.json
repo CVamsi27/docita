@@ -1105,6 +1105,38 @@
         "other": "Other service"
       }
     },
+    "planHighlights": {
+      "starter": {
+        "patients": "Patients, visits, and prescriptions in one workspace",
+        "excel": "Excel import, exports, and paper-friendly uploads",
+        "singleDoctor": "Single doctor seat on the free tier",
+        "upgrade": "Upgrade anytime when you outgrow limits"
+      },
+      "essential": {
+        "whatsapp": "WhatsApp flows with 500 msgs / month included",
+        "invoicing": "Invoicing and GST-ready totals",
+        "queue": "Queue and calendar tuned for busy OPD",
+        "trial": "{days}-day trial where checkout is eligible"
+      },
+      "professional": {
+        "doctors": "Up to 5 doctors with role-aware access",
+        "bundles": "Higher consultation and WhatsApp bundles",
+        "analytics": "Multi-branch analytics on the roadmap",
+        "support": "Priority support for growing clinics"
+      },
+      "hospital": {
+        "doctors": "Up to 25 doctors and 5 branches",
+        "whatsapp": "Pooled WhatsApp (6,000 msgs / month) across branches",
+        "analytics": "Multi-location analytics & dashboards",
+        "csm": "Dedicated customer success manager"
+      },
+      "enterprise": {
+        "scale": "Unlimited scale for users, branches, and patients",
+        "contracts": "Custom contracts, SLAs, and integrations",
+        "rollout": "Dedicated rollout and account team",
+        "pricing": "Sales-led pricing for your exact scope"
+      }
+    },
     "estimatorInputs": {
       "planLabel": "Plan",
       "billingCycleLabel": "Billing cycle",

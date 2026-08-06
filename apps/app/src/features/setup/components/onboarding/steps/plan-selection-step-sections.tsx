@@ -7,9 +7,9 @@ import { cn } from "@workspace/ui/lib/utils";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { OnboardingStepBody, OnboardingStepCard } from "@/features/setup/components/onboarding/shared";
 import { getTierInfo, getTierValue, PLAN_LIMITS } from "@/lib/subscription/tier-access";
-import { type TierPricing, TierCard, PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription";
+import { type TierPricing, TierCard, planHighlightKeys } from "@/features/subscription";
 import type { PlanFeature } from "@/features/subscription";
-import { applyModeToPricing, getAvailableModesForTier, MODE_TIER_HIGHLIGHTS, PLAN_MODE_INFO, PLAN_MODES, type PlanMode, type TierInfo, type TierName } from "@workspace/types";
+import { applyModeToPricing, getAvailableModesForTier, MODE_TIER_HIGHLIGHTS, PLAN_MODE_INFO, PLAN_MODES, SUBSCRIPTION_TRIAL_DAYS, type PlanMode, type TierInfo, type TierName } from "@workspace/types";
 import { BillingCycleToggle } from "./plan-selection-step-helpers";
 import { buildTierCardConfig } from "./plan-selection-data";
 
@@ -202,6 +202,7 @@ export const TierCardGrid: FC<TierCardGridProps> = ({
   isSubmitting,
   onSelectCard,
 }) => {
+  const { t: tHighlights } = useTranslation("Subscription.planHighlights");
   const { t } = useTranslation("Onboarding.planSelection");
   return (
   <div className="grid auto-rows-fr items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -225,7 +226,11 @@ export const TierCardGrid: FC<TierCardGridProps> = ({
         : info;
       const keyHighlights =
         MODE_TIER_HIGHLIGHTS[effectiveMode]?.[tierName] ??
-        PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ??
+        planHighlightKeys(tierName).map((key) =>
+          key === "essential.trial"
+            ? tHighlights(key, { days: SUBSCRIPTION_TRIAL_DAYS })
+            : tHighlights(key),
+        ) ??
         [];
 
       return (
