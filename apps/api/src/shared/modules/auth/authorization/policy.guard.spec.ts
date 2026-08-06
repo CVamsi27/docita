@@ -78,6 +78,14 @@ describe('PolicyGuard', () => {
     expect(result).toBe(true);
   });
 
+  it('denies (fail-closed) when metadata exists but there is no user', async () => {
+    const { guard } = makeGuard();
+    const meta = { requirePolicy: { resource: 'patient', action: 'read' } };
+    await expect(
+      guard.canActivate(makeContext(meta, undefined)),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
   it('denies when the policy decision is a deny', async () => {
     const { guard } = makeGuard({ allow: false });
     const meta = { requirePolicy: { resource: 'patient', action: 'read' } };

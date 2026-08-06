@@ -48,9 +48,19 @@ export class PolicyGuard implements CanActivate {
         RequestWithUser & { params: Record<string, string | undefined> }
       >();
     const user = request.user;
-    if (!user) return true; // JwtAuthGuard denies before this stage; defensive.
+    // Fail-closed: a declared policy with no authenticated user denies.
+    // JwtAuthGuard normally denies before this stage; this is the defensive
+    // path and must not pass silently (e.g. a future @Public + @RequirePolicy
+    // route would otherwise skip the entire policy stage).
+    if (!user) {
+      throw forbiddenProblem('INSUFFICIENT_PERMISSIONS', 'Access denied.');
+    }
 
     const isInternal = user.role === Role.INTERNAL;
+    // Clinic-less subjects are denied here except INTERNAL. NOTE (ADR-0013):
+    // the future patient-portal surface will need this relaxed so a PATIENT
+    // token without clinicId can reach the own-row branch of the policy —
+    // that slice must change this check, not just the resolver.
     if (!isInternal && !user.clinicId) {
       throw forbiddenProblem('INSUFFICIENT_PERMISSIONS', 'Access denied.');
     }
@@ -94,7 +104,10 @@ export class PolicyGuard implements CanActivate {
       // deny at the policy stage must keep that wire contract; anything else
       // is a real authorization denial (403).
       if (decision.reason === 'tenant_mismatch') {
-        throw new NotFoundException('Patient not found');
+        // Generic message: this guard is global across resources, and the
+        // resolver already 404s with an entity-specific message for rows that
+        // genuinely do not exist.
+        throw new NotFoundException('Resource not found');
       }
       throw forbiddenProblem('INSUFFICIENT_PERMISSIONS', 'Access denied.');
     }

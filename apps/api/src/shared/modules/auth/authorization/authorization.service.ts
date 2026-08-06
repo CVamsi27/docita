@@ -17,6 +17,7 @@ import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-c
 import { ResourcePolicyRegistry } from './policies/registry';
 import { dbRoleToUserRole } from './role-bridge';
 import { AbacPolicyRegistry } from './abac-policy.registry';
+import { evaluatePolicy } from '@workspace/authorization';
 import type { AbacAction } from '@workspace/authorization';
 import type {
   EnvAttributes,
@@ -162,7 +163,12 @@ export class AuthorizationService {
     }
 
     const env = await this.buildAbacEnv(subject);
-    const decision = policy.can(action, subject, resource, env);
+    const decision = evaluatePolicy(policy, {
+      action,
+      subject,
+      resource,
+      env,
+    });
 
     if (decision.effect !== 'allow') {
       return {
@@ -177,9 +183,14 @@ export class AuthorizationService {
   private async buildAbacEnv(
     subject: SubjectAttributes,
   ): Promise<EnvAttributes> {
-    const clinic = subject.clinicId
-      ? await this.clinicAuthCache.getClinicAuth(subject.clinicId)
-      : null;
+    // INTERNAL subjects carry a sentinel clinicId ('internal-bypass') that is
+    // not a real clinic; their policy branch never reads env, so skip the
+    // lookup (getClinicAuth throws NotFound for a missing row).
+    const isInternal = subject.roles.includes('INTERNAL');
+    const clinic =
+      !isInternal && subject.clinicId
+        ? await this.clinicAuthCache.getClinicAuth(subject.clinicId)
+        : null;
     return {
       authnContext: 'session',
       time: new Date().toISOString(),

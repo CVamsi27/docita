@@ -9,6 +9,9 @@ const controllerFiles = gitLsSourceFiles(["apps/api/src"], {
   include: [/\.controller\.ts$/],
 });
 
+// Only literal lowercase-hyphen resource names are matched. A dynamic
+// resource argument (e.g. @RequirePolicy(resourceVar, ...)) would escape
+// coverage — do not introduce one without extending this gate.
 const usageRe = /@RequirePolicy\(\s*["']([a-z-]+)["']/g;
 const usage = new Map(); // resource -> sites[]
 
