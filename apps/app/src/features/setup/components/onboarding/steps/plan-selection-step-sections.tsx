@@ -230,8 +230,7 @@ export const TierCardGrid: FC<TierCardGridProps> = ({
           key === "essential.trial"
             ? tHighlights(key, { days: SUBSCRIPTION_TRIAL_DAYS })
             : tHighlights(key),
-        ) ??
-        [];
+        );
 
       return (
         <div key={tier} className="relative flex flex-col">

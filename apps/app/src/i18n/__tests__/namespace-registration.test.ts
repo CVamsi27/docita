@@ -264,7 +264,8 @@ describe("i18n namespace registration", () => {
         let mm: RegExpExecArray | null;
         while ((mm = jsxRe.exec(callerText)) !== null) sites.push(mm.index);
         const callRe = new RegExp(
-          `${consumer.name}\\s*\\([\\s\\S]{0,500}?,\\s*t\\)`, "g",
+          `${consumer.name}\\s*\\([\\s\\S]{0,500}?,\\s*t\\)|${consumer.name}\\s*\\(\\s*t\\s*\\)`,
+          "g",
         );
         while ((mm = callRe.exec(callerText)) !== null) sites.push(mm.index);
         if (sites.length === 0) continue;
@@ -358,12 +359,14 @@ describe("i18n namespace registration", () => {
 
   it("no local label map carries untranslated English display values", async () => {
     // App-local display maps (X_LABELS / X_LABEL_KEYS consts with values like
-    // "Casual" / "Comp Off") render English regardless of the UI locale. The
-    // t-prop trace cannot see them (no t: signature), so this counter-assertion
-    // scans the source directly. Values that contain an uppercase letter or a
-    // space are display text; i18n keys are lowercase-dotted ("leaveTypes.casual").
-    // Converted maps are deleted or become t-prop helpers, so they leave the
-    // allowlist. New English maps must be converted, not allowlisted.
+    // "Casual" / "Comp Off" / "UPI") render English regardless of the UI
+    // locale. The t-prop trace cannot see them (no t: signature), so this
+    // counter-assertion scans the source directly. i18n keys are
+    // lowercase-dotted ("leaveTypes.casual"), so any value that is not a
+    // lowercase-dotted key (contains uppercase, a space, or other separators)
+    // is display text. Converted maps are deleted or become t-prop helpers,
+    // so they leave the allowlist. New English maps must be converted, not
+    // allowlisted.
     const allowlist: Record<string, string> = {};
 
     const labelMapRe =
@@ -391,8 +394,10 @@ describe("i18n namespace registration", () => {
         }
         const body = text.slice(open, end);
         const values = [...body.matchAll(/:\s*"([^"]*)"/g)].map((m) => m[1]);
+        // A value that is not a lowercase-dotted i18n key is display text.
+        // Pure all-caps tokens ("UPI", "N/A") are caught here too.
         const hasDisplayValue = values.some(
-          (v) => /[A-Z ]/.test(v) && !/^[A-Z0-9 ./-]+$/.test(v),
+          (v) => !/^[a-z][a-z0-9_.]*$/.test(v),
         );
         if (hasDisplayValue) {
           const key = `${file}:${name}`;

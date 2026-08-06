@@ -3177,6 +3177,12 @@
       "completed": "Completed",
       "cancelled": "Cancelled",
       "expired": "Expired"
+    },
+    "viewOptions": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "upcoming": "Upcoming",
+      "all": "All open"
     }
   },
   "PublicBooking": {

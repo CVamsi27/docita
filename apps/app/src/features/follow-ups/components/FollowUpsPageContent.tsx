@@ -21,16 +21,20 @@ import { useCancelFollowUp, useCompleteFollowUp, useFollowUps } from "@workspace
 import { formatDate } from "@/lib/formatters";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { followUpStatusLabel } from "@/features/follow-ups/lib/follow-up-status-label";
+import { followUpViewLabel } from "@/features/follow-ups/lib/follow-up-view-label";
 
-const VIEW_OPTIONS: Array<{ value: FollowUpListView; label: string }> = [
-  { value: "overdue", label: "Overdue" },
-  { value: "today", label: "Today" },
-  { value: "upcoming", label: "Upcoming" },
-  { value: "all", label: "All open" },
-];
+const VIEW_OPTIONS: ReadonlySet<FollowUpListView> = new Set([
+  "overdue",
+  "today",
+  "upcoming",
+  "all",
+]);
 
 function isFollowUpListView(id: string): id is FollowUpListView {
-  return VIEW_OPTIONS.some((option) => option.value === id);
+  for (const view of VIEW_OPTIONS) {
+    if (view === id) return true;
+  }
+  return false;
 }
 
 function patientName(followUp: FollowUpResponse) {
@@ -158,9 +162,9 @@ export function FollowUpsPageContent() {
               ariaLabel={t("viewSelectorAriaLabel")}
               size="sm"
               className="min-w-[min(100%,28rem)]"
-              items={VIEW_OPTIONS.map((option) => ({
-                id: option.value,
-                label: option.label,
+              items={[...VIEW_OPTIONS].map((view) => ({
+                id: view,
+                label: followUpViewLabel(view, t),
               }))}
               activeId={view}
               onSelect={(id) => {

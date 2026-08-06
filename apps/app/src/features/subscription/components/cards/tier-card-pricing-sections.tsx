@@ -18,14 +18,14 @@ function TierCardPriceAmount({
   billingCycle: "MONTHLY" | "YEARLY";
   currencySymbol?: string;
 }) {
-  const { t } = useTranslation("Subscription.usageMeter");
+  const { t } = useTranslation("Subscription");
   if (billingCycle === "YEARLY" && typeof pricing.monthly === "number" && typeof pricing.yearly === "number" && tier < 4) {
     const discount = pricing.monthly * 12 - pricing.yearly;
     return (
       <span>
-        {currencySymbol ?? ""}{formatAmountLocale(pricing.yearly)}{t("yearSuffix")}
+        {currencySymbol ?? ""}{formatAmountLocale(pricing.yearly)}{t("usageMeter.yearSuffix")}
         <span className="ml-2 shrink-0 rounded-full border border-success/40 bg-success/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold tabular-nums text-success">
-          {t("saveBadge", { amount: `${currencySymbol ?? ""}${formatAmountLocale(discount)}` })}
+          {t("usageMeter.saveBadge", { amount: `${currencySymbol ?? ""}${formatAmountLocale(discount)}` })}
         </span>
       </span>
     );
@@ -74,8 +74,7 @@ export function TierCardFullPricing({
   tier: number; pricing: TierPricing; billingCycle: "MONTHLY" | "YEARLY"; currencySymbol?: string;
   overageHint?: string; overageItems?: string[]; limitHighlights?: string[]; usageHints?: TierCardProps["usageHints"];
 }) {
-  const { t: tSub } = useTranslation("Subscription");
-  const { t } = useTranslation("Subscription.usageMeter");
+  const { t } = useTranslation("Subscription");
   return (
     <div className="mt-5 space-y-4">
       <div className="rounded-lg border border-border/70 bg-background/80 p-4 shadow-sm">
@@ -85,11 +84,11 @@ export function TierCardFullPricing({
           </p>
         </div>
         {pricing.monthly !== 0 && pricing.monthly !== "custom" ? (
-          <p className="mt-1 text-[var(--fs-2xs)] leading-snug text-muted-foreground">{subscriptionGstNotice(tSub)}</p>
+          <p className="mt-1 text-[var(--fs-2xs)] leading-snug text-muted-foreground">{subscriptionGstNotice(t)}</p>
         ) : null}
         {overageItems?.length || overageHint ? (
           <div className="mt-3 border-t border-border/70 pt-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("additionalUsageLabel")}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("usageMeter.additionalUsageLabel")}</p>
             {overageItems?.length ? (
               <ul className="mt-2 flex flex-wrap gap-1.5">
                 {overageItems.map((item) => (

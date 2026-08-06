@@ -2878,6 +2878,12 @@
       "completed": "पूर्ण",
       "cancelled": "रद्द",
       "expired": "समाप्त"
+    },
+    "viewOptions": {
+      "overdue": "अतिदेय",
+      "today": "आज",
+      "upcoming": "आगामी",
+      "all": "सभी खुले"
     }
   },
   "PublicBooking": {
