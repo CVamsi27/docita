@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { ExecutionContext } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import type { ResourceAttributes } from '@workspace/types';
-import type { PolicyResourceResolver } from './policy-resource-resolver';
+import type { PolicyResourceResolver } from './policy-resource-resolver.interface';
 
 /**
  * Resolves a `patient` resource from the route param (`:id` on the staff

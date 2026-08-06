@@ -33,6 +33,7 @@ import {
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
@@ -159,6 +160,7 @@ export class PatientsController {
   }
 
   @Get(':id')
+  @RequirePolicy('patient', 'read')
   @ApiOperation({ summary: 'Get patient by ID' })
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
     const patient = await this.patientService.getPatient(
@@ -170,6 +172,7 @@ export class PatientsController {
   }
 
   @Patch(':id')
+  @RequirePolicy('patient', 'update')
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_WRITE, 'write'))
   @ApiOperation({ summary: 'Update patient' })
   async update(

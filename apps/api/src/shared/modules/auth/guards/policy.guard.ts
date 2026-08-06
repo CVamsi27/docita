@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
@@ -88,6 +89,13 @@ export class PolicyGuard implements CanActivate {
       this.logger.warn(
         `ABAC deny: policy=${decision.detail?.policyId} reason=${decision.reason} user=${user.id}`,
       );
+      // Differential-equivalence: cross-tenant rows were hidden by the
+      // clinic-scoped repository (404, no existence disclosure). A tenant
+      // deny at the policy stage must keep that wire contract; anything else
+      // is a real authorization denial (403).
+      if (decision.reason === 'tenant_mismatch') {
+        throw new NotFoundException('Patient not found');
+      }
       throw forbiddenProblem('INSUFFICIENT_PERMISSIONS', 'Access denied.');
     }
     return true;

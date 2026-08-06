@@ -6,10 +6,8 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { REQUIRE_POLICY_KEY } from '../decorators/require-policy.decorator';
 import { AuthorizationService } from './authorization.service';
 import { PolicyGuard } from '../guards/policy.guard';
-import {
-  PolicyResourceResolverRegistry,
-  type PolicyResourceResolver,
-} from './resolvers/policy-resource-resolver';
+import { PolicyResourceResolverRegistry } from './resolvers/policy-resource-resolver';
+import type { PolicyResourceResolver } from './resolvers/policy-resource-resolver.interface';
 import type { ResourceAttributes } from '@workspace/types';
 
 function makeContext(

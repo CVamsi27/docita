@@ -11,6 +11,7 @@ import { PatientsController } from './patients.controller';
 import { PatientService as PatientsService } from '@/domains/patients/application/services/patient.service';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { PolicyGuard } from '@/shared/modules/auth/guards/policy.guard';
 import {
   IdempotencyInterceptor,
   IdempotencyService,
@@ -100,6 +101,8 @@ describe('PatientsController (Authorization)', () => {
       .overrideGuard(RolesGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .overrideGuard(TierGuard)
+      .useValue({ canActivate: jest.fn(() => true) })
+      .overrideGuard(PolicyGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .compile();
 
