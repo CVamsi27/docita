@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -24,6 +25,7 @@ interface InvoiceDetailsUIProps {
 }
 
 export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
+  const { t } = useTranslation("Invoices");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const shouldAutoPrint = searchParams.get("print") === "true";
@@ -78,12 +80,15 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     );
   }
 
-  const paidSummaryLine = buildInvoicePaidSummaryLine({
-    status: invoice.status,
-    paidAt: invoice.paidAt,
-    paymentMethod: invoice.paymentMethod,
-    formatDate,
-  });
+  const paidSummaryLine = buildInvoicePaidSummaryLine(
+    {
+      status: invoice.status,
+      paidAt: invoice.paidAt,
+      paymentMethod: invoice.paymentMethod,
+      formatDate,
+    },
+    t,
+  );
 
   const invoiceClinic = invoice.patient?.clinic;
   const authorizedSignatureUrl =

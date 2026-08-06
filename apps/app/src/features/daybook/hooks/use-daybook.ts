@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useInvoices } from "@workspace/data-access";
 import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
 import { useClinic } from "@/lib/contexts/clinic-context";
@@ -24,6 +25,7 @@ interface UseDaybookResult {
  * pure {@link aggregateDaybook} helper.
  */
 export function useDaybook(): UseDaybookResult {
+  const { t } = useTranslation("Invoices");
   const { clinic } = useClinic();
   const clinicTz = clinic?.timezone ?? DEFAULT_TIMEZONE;
   const todayIso = formatClinicTodayPickerIso(clinicTz);
@@ -36,7 +38,10 @@ export function useDaybook(): UseDaybookResult {
     refetch,
   } = useInvoices({ date: selectedDayIso, limit: 100 });
 
-  const summary = useMemo(() => aggregateDaybook(invoices), [invoices]);
+  const summary = useMemo(
+    () => aggregateDaybook(invoices, t),
+    [invoices, t],
+  );
 
   return {
     selectedDayIso,

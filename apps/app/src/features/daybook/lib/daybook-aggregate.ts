@@ -58,6 +58,7 @@ const PENDING_STATUSES = new Set(["PENDING", "OVERDUE", "PARTIALLY_PAID"]);
  */
 export function aggregateDaybook(
   invoices: readonly InvoiceListRow[],
+  t: (key: string) => string,
 ): DaybookSummary {
   let collected = 0;
   let pending = 0;
@@ -74,7 +75,10 @@ export function aggregateDaybook(
     const method = invoice.paymentMethod
       ? String(invoice.paymentMethod).toLowerCase()
       : "unknown";
-    const methodLabel = formatInvoicePaymentMethodLabel(invoice.paymentMethod);
+    const methodLabel = formatInvoicePaymentMethodLabel(
+      invoice.paymentMethod,
+      t,
+    );
 
     if (PAID_STATUSES.has(status)) {
       collected += amount;
@@ -88,7 +92,7 @@ export function aggregateDaybook(
       } else {
         methodMap.set(method, {
           method,
-          label: methodLabel ?? "Unspecified",
+          label: methodLabel ?? t("paidSummary.unspecified"),
           count: 1,
           total: amount,
         });

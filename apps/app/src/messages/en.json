@@ -1196,6 +1196,19 @@
       "statusLabel": "Status",
       "allStatuses": "All statuses"
     },
+    "paymentMethods": {
+      "cash": "Cash",
+      "card": "Card",
+      "upi": "UPI",
+      "online": "Online",
+      "netBanking": "Net banking",
+      "wallet": "Wallet"
+    },
+    "paidSummary": {
+      "paid": "Paid",
+      "partiallyPaid": "Partially paid",
+      "unspecified": "Unspecified"
+    },
     "table": {
       "emptyTitle": "No invoices found",
       "emptyDescription": "Create your first invoice to get started.",

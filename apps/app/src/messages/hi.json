@@ -835,6 +835,19 @@
       "statusLabel": "स्थिति",
       "allStatuses": "सभी स्थितियाँ"
     },
+    "paymentMethods": {
+      "cash": "नकद",
+      "card": "कार्ड",
+      "upi": "UPI",
+      "online": "ऑनलाइन",
+      "netBanking": "नेट बैंकिंग",
+      "wallet": "वॉलेट"
+    },
+    "paidSummary": {
+      "paid": "भुगतान किया गया",
+      "partiallyPaid": "आंशिक भुगतान",
+      "unspecified": "अनिर्दिष्ट"
+    },
     "table": {
       "downloadPdfTooltip": "PDF डाउनलोड करें",
       "emptyTitle": "कोई चालान नहीं मिला",

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { InvoiceListRow } from "@workspace/types";
+import { createEnMessageResolver } from "@/test-utils/en-message-resolver";
 import { aggregateDaybook } from "./daybook-aggregate";
+
+const t = createEnMessageResolver("Invoices");
 
 function row(partial: Partial<InvoiceListRow>): InvoiceListRow {
   return {
@@ -15,7 +18,7 @@ function row(partial: Partial<InvoiceListRow>): InvoiceListRow {
 
 describe("aggregateDaybook", () => {
   it("returns zeros for no invoices", () => {
-    const s = aggregateDaybook([]);
+    const s = aggregateDaybook([], t);
     expect(s).toMatchObject({
       collected: 0,
       pending: 0,
@@ -28,14 +31,17 @@ describe("aggregateDaybook", () => {
   });
 
   it("sums collected/pending/cash and groups by method, excluding cancelled", () => {
-    const s = aggregateDaybook([
-      row({ id: "a", status: "PAID", grandTotal: 100, paymentMethod: "cash" as never }),
-      row({ id: "b", status: "PAID", grandTotal: 250, paymentMethod: "upi" as never }),
-      row({ id: "c", status: "PAID", total: 50, paymentMethod: "cash" as never }),
-      row({ id: "d", status: "PENDING", grandTotal: 400 }),
-      row({ id: "e", status: "OVERDUE", grandTotal: 75 }),
-      row({ id: "f", status: "CANCELLED", grandTotal: 999, paymentMethod: "cash" as never }),
-    ]);
+    const s = aggregateDaybook(
+      [
+        row({ id: "a", status: "PAID", grandTotal: 100, paymentMethod: "cash" as never }),
+        row({ id: "b", status: "PAID", grandTotal: 250, paymentMethod: "upi" as never }),
+        row({ id: "c", status: "PAID", total: 50, paymentMethod: "cash" as never }),
+        row({ id: "d", status: "PENDING", grandTotal: 400 }),
+        row({ id: "e", status: "OVERDUE", grandTotal: 75 }),
+        row({ id: "f", status: "CANCELLED", grandTotal: 999, paymentMethod: "cash" as never }),
+      ],
+      t,
+    );
 
     expect(s.collected).toBe(400); // 100 + 250 + 50
     expect(s.cashOnHand).toBe(150); // 100 + 50
@@ -50,9 +56,12 @@ describe("aggregateDaybook", () => {
   });
 
   it("prefers grandTotal over total when both present", () => {
-    const s = aggregateDaybook([
-      row({ status: "PAID", grandTotal: 300, total: 999, paymentMethod: "card" as never }),
-    ]);
+    const s = aggregateDaybook(
+      [
+        row({ status: "PAID", grandTotal: 300, total: 999, paymentMethod: "card" as never }),
+      ],
+      t,
+    );
     expect(s.collected).toBe(300);
   });
 });
