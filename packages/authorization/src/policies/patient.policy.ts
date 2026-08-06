@@ -31,7 +31,8 @@ const CLINICAL_STAFF_ROLES = new Set([
  *   3. tenant discipline (mirrors BaseResourcePolicy.checkTenantAccess)
  *   4. PATIENT own-row (Patient.userId === subject.userId — PatientDoctorGuard semantics)
  *   5. doctor assignment-pinning, only when resource.requiresAssignment is set
- *      (off on the staff surface today, on for the future portal surface — ADR-0013)
+ *      AND the subject is a plain DOCTOR (ADMIN_DOCTOR/NURSE/RECEPTIONIST/ADMIN
+ *      bypass per the legacy PatientDoctorGuard — C1 phase-2, ADR-0013)
  *   6. clinical staff same-clinic (current effective behavior)
  *   7. default-deny
  */
@@ -63,11 +64,7 @@ export class PatientAbacPolicy implements AbacPolicy {
       return allowDecision(this.id);
     }
 
-    if (
-      resource.requiresAssignment &&
-      (subject.roles.includes("DOCTOR") ||
-        subject.roles.includes("ADMIN_DOCTOR"))
-    ) {
+    if (resource.requiresAssignment && subject.roles.includes("DOCTOR")) {
       if (
         !subject.doctorId ||
         !resource.assignedDoctorIds.includes(subject.doctorId)

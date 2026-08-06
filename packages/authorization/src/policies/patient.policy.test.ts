@@ -131,6 +131,26 @@ describe("PatientAbacPolicy", () => {
     expect(result).toMatchObject({ effect: "deny", reason: "ownership_denied" });
   });
 
+  it("exempts ADMIN_DOCTOR from assignment-pinning when requiresAssignment is on (legacy guard bypass)", () => {
+    const result = policy.can(
+      "read",
+      subject({ roles: ["ADMIN_DOCTOR"], doctorId: null }),
+      resource({ requiresAssignment: true, assignedDoctorIds: ["d1"] }),
+      env,
+    );
+    expect(result.effect).toBe("allow");
+  });
+
+  it("exempts NURSE from assignment-pinning when requiresAssignment is on (legacy guard bypass)", () => {
+    const result = policy.can(
+      "read",
+      subject({ roles: ["NURSE"], doctorId: null }),
+      resource({ requiresAssignment: true, assignedDoctorIds: ["d1"] }),
+      env,
+    );
+    expect(result.effect).toBe("allow");
+  });
+
   it("denies a PATIENT on a row with no ownerId (missing attribute = deny)", () => {
     const result = policy.can(
       "read",
@@ -181,6 +201,30 @@ const ORACLE_ROWS: OracleRow[] = [
     sub: subject({ roles: ["DOCTOR"] }),
     res: resource({ clinicId: "clinic-b" }),
     legacyEffective: "deny",
+  },
+  {
+    name: "unassigned DOCTOR is denied on the pinned surface",
+    sub: subject({ roles: ["DOCTOR"], doctorId: "d9" }),
+    res: resource({ requiresAssignment: true, assignedDoctorIds: ["d1"] }),
+    legacyEffective: "deny",
+  },
+  {
+    name: "assigned DOCTOR is allowed on the pinned surface",
+    sub: subject({ roles: ["DOCTOR"], doctorId: "d1" }),
+    res: resource({ requiresAssignment: true, assignedDoctorIds: ["d1"] }),
+    legacyEffective: "allow",
+  },
+  {
+    name: "ADMIN_DOCTOR bypasses pinning (legacy guard exempts it)",
+    sub: subject({ roles: ["ADMIN_DOCTOR"], doctorId: null }),
+    res: resource({ requiresAssignment: true, assignedDoctorIds: ["d1"] }),
+    legacyEffective: "allow",
+  },
+  {
+    name: "NURSE bypasses pinning (legacy guard exempts it)",
+    sub: subject({ roles: ["NURSE"], doctorId: null }),
+    res: resource({ requiresAssignment: true, assignedDoctorIds: ["d1"] }),
+    legacyEffective: "allow",
   },
 ];
 
