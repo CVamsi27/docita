@@ -5,6 +5,7 @@ import type {
   AppPermission,
   Feature,
 } from '@workspace/types';
+import type { AbacAction, AbacReason } from '@workspace/authorization';
 
 /**
  * Canonical resource identifiers for ABAC policies. Add a new value here and
@@ -22,13 +23,8 @@ export type AuthorizationResource =
   | 'broadcast'
   | 'generic';
 
-export type AuthorizationAction =
-  | 'create'
-  | 'read'
-  | 'update'
-  | 'delete'
-  | 'export'
-  | 'manage';
+/** Stable outward contract — aliases of the @workspace/authorization vocabulary. */
+export type AuthorizationAction = AbacAction;
 
 export interface AuthorizationUser {
   id: string;
@@ -57,17 +53,7 @@ export interface AuthorizationContext {
   meta?: Record<string, unknown>;
 }
 
-export type AuthorizationDenyReason =
-  | 'no_user'
-  | 'no_clinic'
-  | 'subscription_inactive'
-  | 'subscription_billing_locked'
-  | 'feature_not_available'
-  | 'feature_locked'
-  | 'role_denied'
-  | 'permission_denied'
-  | 'ownership_denied'
-  | 'tenant_mismatch';
+export type AuthorizationDenyReason = AbacReason;
 
 export type AuthorizationDecision =
   | { allowed: true }
