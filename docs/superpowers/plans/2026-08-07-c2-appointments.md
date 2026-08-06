@@ -63,7 +63,7 @@ Modified files:
 **Files:**
 - Modify: `packages/types/src/authorization/attributes.ts`
 
-- [ ] **Step 1: Add the attribute**
+- [x] **Step 1: Add the attribute**
 
 In `resourceAttributesSchema`, after `consentState`:
 
@@ -78,7 +78,7 @@ In `resourceAttributesSchema`, after `consentState`:
   requiresAssignment: z.boolean().default(false),
 ```
 
-- [ ] **Step 2: Typecheck + commit**
+- [x] **Step 2: Typecheck + commit**
 
 ```bash
 pnpm --filter @workspace/types run check-types
@@ -101,7 +101,7 @@ git commit -m "feat(types): add status resource attribute for ABAC state-based c
 
 **Design note (mirror the patient policy shape):** Unlike `PatientAbacPolicy`, the appointment policy pins DOCTOR **unconditionally** (no `requiresAssignment` flag) because an appointment row always carries its `doctorId` — the resolver always populates `assignedDoctorIds` from it. The PATIENT branch mirrors the legacy policy for the future portal surface (unreachable on staff routes today — the roles gate denies PATIENT tokens first; ADR-0013 portal note applies).
 
-- [ ] **Step 1: Write the failing tests** (TDD — create the spec first)
+- [x] **Step 1: Write the failing tests** (TDD — create the spec first)
 
 `packages/authorization/src/policies/appointment.policy.test.ts`, mirroring the patient policy spec's helpers (`subject()`, `resource()`, `env` builders) and the `ORACLE_ROWS` differential table. Required cases:
 
@@ -118,14 +118,14 @@ git commit -m "feat(types): add status resource attribute for ABAC state-based c
 // ORACLE row: update on a COMPLETED appointment by staff → allow (legacyEffective; write-lock DEFERRED — the row pins the baseline so a future flip must update the oracle)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd packages/authorization && pnpm vitest run src/policies/appointment.policy.test.ts
 ```
 Expected: FAIL — module not found (`appointment.policy.ts` does not exist).
 
-- [ ] **Step 3: Write the minimal policy**
+- [x] **Step 3: Write the minimal policy**
 
 `packages/authorization/src/policies/appointment.policy.ts`:
 
@@ -225,14 +225,14 @@ export class AppointmentAbacPolicy implements AbacPolicy {
 
 Add the export to `packages/authorization/src/index.ts` next to `PatientAbacPolicy`.
 
-- [ ] **Step 4: Run tests + typecheck + build to verify they pass**
+- [x] **Step 4: Run tests + typecheck + build to verify they pass**
 
 ```bash
 cd packages/authorization && pnpm vitest run src/policies/appointment.policy.test.ts && pnpm run check-types && pnpm run build
 ```
 Expected: all tests PASS; check-types + build exit 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/authorization/src/policies/appointment.policy.ts packages/authorization/src/policies/appointment.policy.test.ts packages/authorization/src/index.ts
@@ -253,7 +253,7 @@ git commit -m "feat(authz): AppointmentAbacPolicy — mirror legacy AppointmentP
 - Consumes: `PolicyResourceResolver` interface, `PrismaService`, `ResourceAttributes`.
 - Produces: a resolver registered for `appointment`; the ABAC registry + module wired. The `check:policy-resolver-coverage` gate auto-discovers `@RequirePolicy('appointment', ...)` → resolver file + registration, so this task must land **before** Task 4's decorators.
 
-- [ ] **Step 1: Write the resolver**
+- [x] **Step 1: Write the resolver**
 
 `apps/api/src/shared/modules/auth/authorization/resolvers/appointment-resource.resolver.ts`:
 
@@ -312,7 +312,7 @@ export class AppointmentResourceResolver implements PolicyResourceResolver {
 }
 ```
 
-- [ ] **Step 2: Register in both registries + module**
+- [x] **Step 2: Register in both registries + module**
 
 In `policy-resource-resolver.ts` — add `AppointmentResourceResolver` to the constructor injection and the map:
 
@@ -344,7 +344,7 @@ In `abac-policy.registry.ts`:
 
 In `authorization.module.ts` — import `AppointmentAbacPolicy` from `@workspace/authorization` and `AppointmentResourceResolver`, add both to `providers`.
 
-- [ ] **Step 3: Typecheck + coverage gate + commit**
+- [x] **Step 3: Typecheck + coverage gate + commit**
 
 ```bash
 pnpm --filter @docita/api run check-types
@@ -363,7 +363,7 @@ git commit -m "feat(api): AppointmentResourceResolver + ABAC registries + module
 
 **Design note:** Decorators are additive metadata; the legacy `AuthorizationService`/legacy `AppointmentPolicy` and the service-layer access-context checks stay untouched (defense-in-depth). Only the four object-level routes get `@RequirePolicy`; list/create stay matrix-gated.
 
-- [ ] **Step 1: Schedule controller** (`appointments-schedule.controller.ts`)
+- [x] **Step 1: Schedule controller** (`appointments-schedule.controller.ts`)
 
 Add the import:
 
@@ -387,7 +387,7 @@ On `update`:
   @ApiOperation({ summary: 'Update appointment details' })
 ```
 
-- [ ] **Step 2: Workflow controller** (`appointments-workflow.controller.ts`)
+- [x] **Step 2: Workflow controller** (`appointments-workflow.controller.ts`)
 
 Add the same import; decorate `cancel` and `reschedule`:
 
@@ -402,7 +402,7 @@ Add the same import; decorate `cancel` and `reschedule`:
   @RequiresIdempotency()
 ```
 
-- [ ] **Step 3: Typecheck + unit tests + coverage gate + commit**
+- [x] **Step 3: Typecheck + unit tests + coverage gate + commit**
 
 ```bash
 pnpm --filter @docita/api run check-types
@@ -425,7 +425,7 @@ Expected: controller unit specs still green (decorators are additive; `check:con
 - Consumes: `factories.clinic()`, `factories.user({ clinicId, role })`, `factories.doctorClinic(...)`, `factories.patient(clinicId)`, `factories.appointment(patientId, doctorId, clinicId, overrides?)` (factory at `apps/api/test/factories.ts:110`), `signE2eAccessToken`, the same provider overrides as `patient-abac-policy.e2e-spec.ts` (WhatsApp mock + payment-link mock).
 - Produces: wire-level proof that the ABAC stage changes nothing on the staff surface while the pipeline is armed.
 
-- [ ] **Step 1: Write the spec** — fixture skeleton identical to `apps/api/test/e2e/patients/patient-abac-policy.e2e-spec.ts` (setup/reset/close/getPrismaInstance/factories/signE2eAccessToken + overrides). Cases:
+- [x] **Step 1: Write the spec** — fixture skeleton identical to `apps/api/test/e2e/patients/patient-abac-policy.e2e-spec.ts` (setup/reset/close/getPrismaInstance/factories/signE2eAccessToken + overrides). Cases:
 
 ```ts
 // assigned DOCTOR reads own appointment (200)
@@ -444,7 +444,7 @@ Expected: controller unit specs still green (decorators are additive; `check:con
 
 The appointment factory's default `status` is `SCHEDULED`; for the COMPLETED case pass `overrides: { status: 'COMPLETED' }` (verify the Prisma enum spelling — the factory uses `AppointmentStatus.SCHEDULED`; use the same enum or the exact string the e2e factories already use).
 
-- [ ] **Step 2: Typecheck + run the appointments e2e folder**
+- [x] **Step 2: Typecheck + run the appointments e2e folder**
 
 ```bash
 pnpm --filter @docita/api run check-types
@@ -452,7 +452,7 @@ cd apps/api && npx jest --config ./test/jest-e2e.json --runInBand test/e2e/appoi
 ```
 Expected: the two existing specs (`appointment-timezone`, `appointments`) stay green AND the new `appointment-abac` spec passes. If an existing spec breaks, the differential contract was violated — investigate before committing.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add apps/api/test/e2e/appointments
@@ -468,13 +468,13 @@ git commit -m "test(api): e2e proof for AppointmentAbacPolicy differential-equiv
 - Modify: `docs/compliance/ACCESS_AUDIT.md`
 - Modify: `docs/analysis/EXECUTION_PLAN.md`
 
-- [ ] **Step 1: Amend ADR-0013** — add a C2 section: appointment surface enforced 2026-08-07 (`GET/PATCH /appointments/:id`, `PATCH /appointments/:id/cancel|reschedule`) via `AppointmentAbacPolicy`, mirror-only semantics, `status` attribute shipped, write-lock (no-show/completed) **DEFERRED** (C2.1) pending a recorded product decision because no service-layer guard exists today.
+- [x] **Step 1: Amend ADR-0013** — add a C2 section: appointment surface enforced 2026-08-07 (`GET/PATCH /appointments/:id`, `PATCH /appointments/:id/cancel|reschedule`) via `AppointmentAbacPolicy`, mirror-only semantics, `status` attribute shipped, write-lock (no-show/completed) **DEFERRED** (C2.1) pending a recorded product decision because no service-layer guard exists today.
 
-- [ ] **Step 2: Update ACCESS_AUDIT.md** — ABAC policy index: `appointment` row (roles/outcomes, mirror-only, deferred write-lock note).
+- [x] **Step 2: Update ACCESS_AUDIT.md** — ABAC policy index: `appointment` row (roles/outcomes, mirror-only, deferred write-lock note).
 
-- [ ] **Step 3: Update EXECUTION_PLAN.md** — (a) NOTE paragraph for C2; (b) refresh the stale suppression-inventory total on the inventory row (~line 65): `110 measurable suppressions` → **99** with the corrected breakdown `(40 as-cast allow-file + 0 NNA + 23 jscpd ignore + 5 zod-parity + 0 i18n + 0 feature-test-density + 30 client-storage allowlist + 1 eslint-disable + 0 ts-ignore)` and note the zod-parity 15→5 (P5.5) and i18n 1→0 (legal-docs migration) closures that the 2026-08-05 row predates.
+- [x] **Step 3: Update EXECUTION_PLAN.md** — (a) NOTE paragraph for C2; (b) refresh the stale suppression-inventory total on the inventory row (~line 65): `110 measurable suppressions` → **99** with the corrected breakdown `(40 as-cast allow-file + 0 NNA + 23 jscpd ignore + 5 zod-parity + 0 i18n + 0 feature-test-density + 30 client-storage allowlist + 1 eslint-disable + 0 ts-ignore)` and note the zod-parity 15→5 (P5.5) and i18n 1→0 (legal-docs migration) closures that the 2026-08-05 row predates.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/architecture/decisions/0013-abac.md docs/compliance/ACCESS_AUDIT.md docs/analysis/EXECUTION_PLAN.md
@@ -485,7 +485,7 @@ git commit -m "docs(authz): record C2 appointments enforcement + deferred write-
 
 ### Task 7: Full validation gate
 
-- [ ] **Step 1: Run every gate (each must exit 0)**
+- [x] **Step 1: Run every gate (each must exit 0)**
 
 ```bash
 pnpm --filter @workspace/authorization run check-types
@@ -500,14 +500,14 @@ pnpm check:policy-resolver-coverage
 pnpm verify:standard
 ```
 
-- [ ] **Step 2: Re-run the guard-adjacent e2e suites**
+- [x] **Step 2: Re-run the guard-adjacent e2e suites**
 
 ```bash
 cd apps/api && npx jest --config ./test/jest-e2e.json --runInBand test/e2e/appointments test/e2e/patients test/e2e/auth
 ```
 Expected: all green; no existing spec regressed.
 
-- [ ] **Step 3: Verify the tree**
+- [x] **Step 3: Verify the tree**
 
 ```bash
 git status --short   # only expected files; no stray logs/artifacts
@@ -517,13 +517,13 @@ git status --short   # only expected files; no stray logs/artifacts
 
 ## Definition of done for C2
 
-- [ ] `resourceAttributesSchema` carries `status` (Zod-first, exported through `@workspace/types`).
-- [ ] `AppointmentAbacPolicy` in `@workspace/authorization` passes unit tests + the differential oracle (legacy `AppointmentPolicy` semantics: DOCTOR assignment, PATIENT own-row, staff clinic-wide, INTERNAL bypass, tenant discipline, default-deny).
-- [ ] `AppointmentResourceResolver` registered; both DI registries + module wired; `check:policy-resolver-coverage` green with the four decorated routes.
-- [ ] The four object-level routes declare `@RequirePolicy('appointment', 'read'|'update')`; list/create untouched.
-- [ ] e2e proves the wire outcomes are unchanged (assigned 200, doctor-mismatch 403, cross-clinic/missing 404, staff 200, unauth 401) and pins the deferred write-lock baseline (staff PATCH on COMPLETED = 200).
-- [ ] ADR-0013 records C2 enablement + the deferred write-lock decision (C2.1); ACCESS_AUDIT and EXECUTION_PLAN updated; the suppression-inventory total corrected to the live 99.
-- [ ] All Task 7 gates pass; no guard, tenant, tier, feature, RLS, or audit check weakened.
+- [x] `resourceAttributesSchema` carries `status` (Zod-first, exported through `@workspace/types`).
+- [x] `AppointmentAbacPolicy` in `@workspace/authorization` passes unit tests + the differential oracle (legacy `AppointmentPolicy` semantics: DOCTOR assignment, PATIENT own-row, staff clinic-wide, INTERNAL bypass, tenant discipline, default-deny).
+- [x] `AppointmentResourceResolver` registered; both DI registries + module wired; `check:policy-resolver-coverage` green with the four decorated routes.
+- [x] The four object-level routes declare `@RequirePolicy('appointment', 'read'|'update')`; list/create untouched.
+- [x] e2e proves the wire outcomes are unchanged (assigned 200, doctor-mismatch 403, cross-clinic/missing 404, staff 200, unauth 401) and pins the deferred write-lock baseline (staff PATCH on COMPLETED = 200).
+- [x] ADR-0013 records C2 enablement + the deferred write-lock decision (C2.1); ACCESS_AUDIT and EXECUTION_PLAN updated; the suppression-inventory total corrected to the live 99.
+- [x] All Task 7 gates pass; no guard, tenant, tier, feature, RLS, or audit check weakened.
 
 ## Out of scope (later plans)
 
