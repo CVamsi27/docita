@@ -7,6 +7,10 @@ import { PatientPolicy } from './policies/patient.policy';
 import { PrescriptionPolicy } from './policies/prescription.policy';
 import { InvoicePolicy } from './policies/invoice.policy';
 import { GenericTenantPolicy } from './policies/generic.policy';
+import { AbacPolicyRegistry } from './abac-policy.registry';
+import { PatientResourceResolver } from './resolvers/patient-resource.resolver';
+import { PolicyResourceResolverRegistry } from './resolvers/policy-resource-resolver';
+import { PatientAbacPolicy } from '@workspace/authorization';
 
 @Module({
   imports: [AuthModule],
@@ -18,7 +22,15 @@ import { GenericTenantPolicy } from './policies/generic.policy';
     PrescriptionPolicy,
     InvoicePolicy,
     GenericTenantPolicy,
+    AbacPolicyRegistry,
+    PatientAbacPolicy,
+    PatientResourceResolver,
+    PolicyResourceResolverRegistry,
   ],
-  exports: [AuthorizationService],
+  exports: [
+    AuthorizationService,
+    AbacPolicyRegistry,
+    PolicyResourceResolverRegistry,
+  ],
 })
 export class AuthorizationModule {}

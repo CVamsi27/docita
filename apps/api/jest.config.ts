@@ -44,6 +44,7 @@ const config: Config = {
     '^@workspace/types/(.*)$': '<rootDir>/../../packages/types/src/$1',
     '^@workspace/utils$': '<rootDir>/../../packages/utils/dist/index.cjs',
     '^@workspace/utils/(.*)$': '<rootDir>/../../packages/utils/dist/$1',
+    '^@workspace/authorization$': '<rootDir>/../../packages/authorization/dist/index.cjs',
     '^@workspace/auth$': '<rootDir>/../../packages/auth/dist/index.cjs',
     '^@workspace/(.*)$': '<rootDir>/../../packages/$1/src/index.ts',
     '^otplib$': '<rootDir>/test/mocks/otplib.mock.ts',

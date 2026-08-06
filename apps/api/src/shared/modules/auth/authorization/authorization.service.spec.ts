@@ -1,6 +1,9 @@
 import { ClinicTier, Role, SubscriptionStatus } from '@workspace/db';
 import { Feature } from '@workspace/types';
+import { PatientAbacPolicy } from '@workspace/authorization';
+import { subjectAttributesSchema } from '@workspace/types';
 import { AuthorizationService } from './authorization.service';
+import { AbacPolicyRegistry } from './abac-policy.registry';
 import { ResourcePolicyRegistry } from './policies/registry';
 import { AppointmentPolicy } from './policies/appointment.policy';
 import { PatientPolicy } from './policies/patient.policy';
@@ -37,7 +40,21 @@ function makeService(overrides: Partial<typeof baseAuth> = {}) {
     new InvoicePolicy(),
     new GenericTenantPolicy(),
   );
-  return new AuthorizationService(cache as ClinicAuthCacheService, registry);
+  const abacRegistry = new AbacPolicyRegistry(new PatientAbacPolicy());
+  return new AuthorizationService(
+    cache as ClinicAuthCacheService,
+    registry,
+    abacRegistry,
+  );
+}
+
+function abacSubject() {
+  return subjectAttributesSchema.parse({
+    userId: 'u1',
+    roles: ['DOCTOR'],
+    clinicId: 'clinic-a',
+    doctorId: 'd1',
+  });
 }
 
 function user(over: Partial<AuthorizationUser> = {}): AuthorizationUser {
@@ -181,5 +198,53 @@ describe('AuthorizationService', () => {
       { resourceOwnerId: 'p2' },
     );
     expect(result).toEqual({ allowed: false, reason: 'ownership_denied' });
+  });
+
+  describe('evaluateAbac', () => {
+    it('denies with policy_not_found for an unregistered resource', async () => {
+      const svc = makeService();
+      const result = await svc.evaluateAbac(abacSubject(), 'read', {
+        type: 'invoice',
+        clinicId: 'clinic-a',
+        ownerId: 'x',
+        assignedDoctorIds: [],
+        classification: 'billing',
+        requiresAssignment: false,
+      });
+      expect(result.allowed).toBe(false);
+      if (!result.allowed) {
+        expect(result.reason).toBe('role_denied');
+        expect(result.detail?.policyId).toBe('policy_not_found');
+      }
+    });
+
+    it('allows a clinical staff user on a same-clinic patient', async () => {
+      const svc = makeService();
+      const result = await svc.evaluateAbac(abacSubject(), 'read', {
+        type: 'patient',
+        clinicId: 'clinic-a',
+        ownerId: 'pat-user-1',
+        assignedDoctorIds: [],
+        classification: 'phi',
+        requiresAssignment: false,
+      });
+      expect(result.allowed).toBe(true);
+    });
+
+    it('denies cross-clinic patient access', async () => {
+      const svc = makeService();
+      const result = await svc.evaluateAbac(abacSubject(), 'read', {
+        type: 'patient',
+        clinicId: 'clinic-b',
+        ownerId: 'pat-user-1',
+        assignedDoctorIds: [],
+        classification: 'phi',
+        requiresAssignment: false,
+      });
+      expect(result.allowed).toBe(false);
+      if (!result.allowed) {
+        expect(result.reason).toBe('tenant_mismatch');
+      }
+    });
   });
 });

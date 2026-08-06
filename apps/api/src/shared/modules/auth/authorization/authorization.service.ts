@@ -16,6 +16,13 @@ import {
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import { ResourcePolicyRegistry } from './policies/registry';
 import { dbRoleToUserRole } from './role-bridge';
+import { AbacPolicyRegistry } from './abac-policy.registry';
+import type { AbacAction } from '@workspace/authorization';
+import type {
+  EnvAttributes,
+  ResourceAttributes,
+  SubjectAttributes,
+} from '@workspace/types';
 import type {
   AuthorizationAction,
   AuthorizationContext,
@@ -51,6 +58,7 @@ export class AuthorizationService {
   constructor(
     private readonly clinicAuthCache: ClinicAuthCacheService,
     private readonly policies: ResourcePolicyRegistry,
+    private readonly abacPolicies: AbacPolicyRegistry,
   ) {}
 
   async can(
@@ -132,6 +140,60 @@ export class AuthorizationService {
     context: AuthorizationContext = {},
   ): Promise<boolean> {
     return (await this.can(user, action, resource, context)).allowed;
+  }
+
+  /**
+   * ABAC stage: evaluates a pure resource policy against resolved attributes.
+   * Runs AFTER the legacy guard chain (JWT → tenant → roles → subscription →
+   * tier/feature), so it only adds object-level conditions.
+   */
+  async evaluateAbac(
+    subject: SubjectAttributes,
+    action: AbacAction,
+    resource: ResourceAttributes,
+  ): Promise<AuthorizationDecision> {
+    const policy = this.abacPolicies.get(resource.type);
+    if (!policy) {
+      return {
+        allowed: false,
+        reason: 'role_denied',
+        detail: { policyId: 'policy_not_found' },
+      };
+    }
+
+    const env = await this.buildAbacEnv(subject);
+    const decision = policy.can(action, subject, resource, env);
+
+    if (decision.effect !== 'allow') {
+      return {
+        allowed: false,
+        reason: decision.reason ?? 'role_denied',
+        detail: { policyId: decision.policyId },
+      };
+    }
+    return { allowed: true };
+  }
+
+  private async buildAbacEnv(
+    subject: SubjectAttributes,
+  ): Promise<EnvAttributes> {
+    const clinic = subject.clinicId
+      ? await this.clinicAuthCache.getClinicAuth(subject.clinicId)
+      : null;
+    return {
+      authnContext: 'session',
+      time: new Date().toISOString(),
+      zone: 'UTC',
+      clinic: clinic
+        ? {
+            tier: clinic.tier,
+            planMode: clinic.planMode,
+            hasIntelligence: clinic.hasIntelligence,
+            features: clinic.features,
+            subscriptionStatus: clinic.subscriptionStatus,
+          }
+        : null,
+    };
   }
 }
 

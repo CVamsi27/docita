@@ -64,6 +64,7 @@ import { PasswordExpiredGuard } from './shared/modules/auth/guards/password-expi
 import { EmailVerifiedGuard } from './shared/modules/auth/guards/email-verified.guard';
 import { UserRateLimitGuard } from './shared/modules/auth/guards/user-rate-limit.guard';
 import { E2EThrottlerGuard } from './shared/modules/auth/guards/e2e-throttler.guard';
+import { PolicyGuard } from './shared/modules/auth/guards/policy.guard';
 import { CsrfInterceptor } from './shared/common/interceptors/csrf.interceptor';
 import { RateLimitInterceptor } from './shared/common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/common/interceptors/timeout.interceptor';
@@ -225,6 +226,10 @@ import { getClientIp } from '@/shared/common/http/client-ip';
     {
       provide: APP_GUARD,
       useClass: UserRateLimitGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PolicyGuard,
     },
 
     {
