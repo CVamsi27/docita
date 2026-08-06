@@ -1,6 +1,6 @@
 import { ClinicTier, Role, SubscriptionStatus } from '@workspace/db';
 import { Feature } from '@workspace/types';
-import { PatientAbacPolicy } from '@workspace/authorization';
+import { AppointmentAbacPolicy, PatientAbacPolicy } from '@workspace/authorization';
 import { subjectAttributesSchema } from '@workspace/types';
 import { AuthorizationService } from './authorization.service';
 import { AbacPolicyRegistry } from './abac-policy.registry';
@@ -40,7 +40,10 @@ function makeService(overrides: Partial<typeof baseAuth> = {}) {
     new InvoicePolicy(),
     new GenericTenantPolicy(),
   );
-  const abacRegistry = new AbacPolicyRegistry(new PatientAbacPolicy());
+  const abacRegistry = new AbacPolicyRegistry(
+    new PatientAbacPolicy(),
+    new AppointmentAbacPolicy(),
+  );
   return new AuthorizationService(
     cache as ClinicAuthCacheService,
     registry,

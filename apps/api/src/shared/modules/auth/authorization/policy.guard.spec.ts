@@ -68,7 +68,10 @@ function makeGuard(options: { allow?: boolean } = {}) {
         : { allowed: true },
     ),
   } as unknown as AuthorizationService;
-  const registry = new PolicyResourceResolverRegistry(makeResolver());
+  const registry = new PolicyResourceResolverRegistry(
+    makeResolver(),
+    makeResolver(),
+  );
   return {
     guard: new PolicyGuard(reflector, authorization, registry),
     authorization,
@@ -156,8 +159,12 @@ describe('PolicyGuard', () => {
     const authorization = {
       evaluateAbac: jest.fn(async () => ({ allowed: true })),
     } as unknown as AuthorizationService;
-    // Only 'patient' has a resolver; declaring any other resource must deny.
-    const registry = new PolicyResourceResolverRegistry(makeResolver());
+    // Only 'patient'/'appointment' have resolvers; declaring any other
+    // resource must deny (fail-closed on misconfiguration).
+    const registry = new PolicyResourceResolverRegistry(
+      makeResolver(),
+      makeResolver(),
+    );
     const guard = new PolicyGuard(reflector, authorization, registry);
     const meta = { requirePolicy: { resource: 'invoice', action: 'read' } };
     await expect(

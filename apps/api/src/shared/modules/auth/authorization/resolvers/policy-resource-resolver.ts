@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PatientResourceResolver } from './patient-resource.resolver';
+import { AppointmentResourceResolver } from './appointment-resource.resolver';
 import type { PolicyResourceResolver } from './policy-resource-resolver.interface';
 
 /** DI registry mirroring ResourcePolicyRegistry: resource → resolver. */
@@ -9,9 +10,11 @@ export class PolicyResourceResolverRegistry {
 
   constructor(
     @Inject(PatientResourceResolver) patient: PolicyResourceResolver,
+    @Inject(AppointmentResourceResolver) appointment: PolicyResourceResolver,
   ) {
     this.resolvers = new Map<string, PolicyResourceResolver>([
       ['patient', patient],
+      ['appointment', appointment],
     ]);
   }
 
