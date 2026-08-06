@@ -1,3 +1,9 @@
+export type MessageTree = { [key: string]: string | MessageTree };
+
+export function isMessageTree(value: unknown): value is MessageTree {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 const LOCALE_STORAGE_KEY = "docita_locale";
 
 export const LOCALES = ["en", "hi"] as const;

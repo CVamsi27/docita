@@ -71,6 +71,32 @@ leaves. The remaining literal debt (755 − target floor) is spread across the
 long-tail of feature files and tracked as steady-state i18n work, not a
 release blocker.
 
+### 2a. Dead i18n namespaces (found 2026-08-06 during the locale-switcher fix)
+
+The EN/हिंदी toggle was switching the i18next language but not the UI: the
+i18n init registered a single flat `translation` namespace while every
+consumer addresses message sections via `useTranslation("Section")` (284
+sites). Fixed by registering each top-level and nested section as its own
+i18next namespace (`apps/app/src/i18n/index.ts` `buildResources`; the
+`isMessageTree` guard moved to `i18n/locale-utils.ts` to share with the test
+mock). The regression is locked by
+`apps/app/src/i18n/__tests__/namespace-registration.test.ts`, which scans
+every `useTranslation("…")` call in source and requires it to resolve in
+both en and hi.
+
+**Remaining dead namespaces (pre-existing port gap, NOT fixed here)**: 13
+`Settings.*` namespaces referenced by the settings feature but absent from
+the message corpus (only `account`/`clinic`/`clinical` shipped):
+`Settings.{Appearance, security, teamMemberForm, invite, doctorAvailability,
+timeAway, TeamManagement, manageMember, joinRequestReview,
+manageTeamMemberDoctorPanel, doctorProfile, queueHoursFields,
+applyLeaveDialog}` — those components render raw keys today. Additionally the
+auth step UIs (`AuthEmailStepUI`/`AuthLoginStepUI`/`AuthSignupStepUI`)
+contain hardcoded English literals ("Email address", "Continue", "Sign in",
+"Create Account", "First name", …) instead of `t()` calls. Both are tracked
+as steady-state i18n debt; the test allowlists the 13 dead namespaces
+explicitly so the scan stays strict for everything else.
+
 ---
 
 ## 3. Web Vitals enforcement (P4.5 — **DONE 2026-08-06, P5.8**)

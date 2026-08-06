@@ -19,7 +19,6 @@ export function LocaleSwitcher() {
   const activeLocale = isLocale(i18n.resolvedLanguage)
     ? i18n.resolvedLanguage
     : readStoredLocale();
-  const otherLocale: Locale = activeLocale === "hi" ? "en" : "hi";
 
   function handleSwitch(nextLocale: Locale) {
     if (nextLocale === activeLocale) return;
@@ -27,7 +26,6 @@ export function LocaleSwitcher() {
     persistLocale(nextLocale);
   }
 
-  const otherLabel = otherLocale === "hi" ? "हिंदी" : "EN";
   const activeLabel = activeLocale === "hi" ? "हिंदी" : "EN";
 
   return (
@@ -54,7 +52,7 @@ export function LocaleSwitcher() {
         aria-pressed={activeLocale === "hi"}
         onClick={() => handleSwitch("hi")}
       >
-        {otherLabel}
+        हिंदी
       </Button>
       <span className="sr-only">Active language: {activeLabel}</span>
     </div>

@@ -1,11 +1,6 @@
 import type { ReactNode } from "react";
 import en from "@/messages/en.json";
-
-type MessageTree = { [key: string]: string | MessageTree };
-
-function isMessageTree(value: unknown): value is MessageTree {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+import { isMessageTree, type MessageTree } from "@/i18n/locale-utils";
 
 const resources: MessageTree = isMessageTree(en) ? en : {};
 
