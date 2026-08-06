@@ -25,6 +25,9 @@ const EXCLUDED_STATUSES: AppointmentStatus[] = [
   AppointmentStatus.NO_SHOW,
 ];
 
+const stdout = (line: string) => process.stdout.write(`${line}\n`);
+const stderr = (line: string) => process.stderr.write(`${line}\n`);
+
 async function collectCandidatePairs() {
   const appointments = await prisma.appointment.findMany({
     where: { status: { notIn: EXCLUDED_STATUSES } },
@@ -72,7 +75,7 @@ async function collectCandidatePairs() {
 async function main() {
   const apply = process.argv.includes("--apply");
   const pairs = await collectCandidatePairs();
-  console.log(`Candidate distinct (patientId, doctorId) pairs: ${pairs.length}`);
+  stdout(`Candidate distinct (patientId, doctorId) pairs: ${pairs.length}`);
 
   const existing = await prisma.patientDoctor.findMany({
     where: { isActive: true },
@@ -86,18 +89,18 @@ async function main() {
     (pair) => !existingKeys.has(`${pair.patientId}:${pair.doctorId}`),
   );
 
-  console.log(`Already active: ${pairs.length - toInsert.length}`);
-  console.log(`To insert: ${toInsert.length}`);
+  stdout(`Already active: ${pairs.length - toInsert.length}`);
+  stdout(`To insert: ${toInsert.length}`);
 
   if (!apply) {
-    console.log("Dry-run — pass --apply to write.");
+    stdout("Dry-run — pass --apply to write.");
     for (const row of toInsert.slice(0, 20)) {
-      console.log(
+      stdout(
         `  would insert patient=${row.patientId} doctor=${row.doctorId} clinic=${row.clinicId} firstSeen=${row.first.toISOString()}`,
       );
     }
     if (toInsert.length > 20)
-      console.log(`  ... and ${toInsert.length - 20} more`);
+      stdout(`  ... and ${toInsert.length - 20} more`);
     return;
   }
 
@@ -115,12 +118,12 @@ async function main() {
     });
     inserted += 1;
   }
-  console.log(`Inserted ${inserted} PatientDoctor rows.`);
+  stdout(`Inserted ${inserted} PatientDoctor rows.`);
 }
 
 main()
   .catch((error) => {
-    console.error(error);
+    stderr(String(error));
     process.exitCode = 1;
   })
   .finally(async () => {
