@@ -171,9 +171,10 @@ describe('AppointmentsController (e2e)', () => {
         .set('Authorization', `Bearer ${jwtToken}`)
         .expect(403);
 
-      expect(response.body.message).toContain(
-        'Doctors can only access their appointments',
-      );
+      // C2 (ADR-0013): the deny now fires at the ABAC guard stage
+      // (PolicyGuard → AppointmentAbacPolicy) with the generic message;
+      // the 403 wire contract is unchanged.
+      expect(response.body.message).toContain('Access denied.');
     });
   });
 
