@@ -1,3 +1,7 @@
+// jscpd:ignore-start — intentional mirror of patient.policy.ts (C2, ADR-0013):
+// policies share the posture scaffold (imports + decision ordering);
+// parameterizing it into a shared core would hide the decision ordering behind
+// precomputed flags for 2 files. See docs/analysis/SUPPRESSION_LEDGER.md.
 import type {
   AbacAction,
   AbacDecision,
@@ -36,7 +40,7 @@ const CLINICAL_STAFF_ROLES = new Set([
  *   5. DOCTOR assignment (assignedDoctorIds derived from appointment.doctorId;
  *      unconditional — an appointment always carries its doctor)
  *   6. clinical staff same-clinic
- *   7. default-deny
+ * 7. default-deny
  * Status-based write locks (no-show/completed) are DEFERRED by recorded
  * decision (ADR-0013, C2.1): no service-layer guard exists today, so
  * enforcing them would tighten staff behavior beyond the legacy policy.
@@ -89,3 +93,4 @@ export class AppointmentAbacPolicy implements AbacPolicy {
     return denyDecision(this.id, "role_denied");
   }
 }
+// jscpd:ignore-end

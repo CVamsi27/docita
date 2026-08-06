@@ -1,3 +1,7 @@
+// jscpd:ignore-start — intentional mirror of patient-resource.resolver.ts
+// (C2, ADR-0013): resolvers share the standard scaffold (imports + resolve
+// posture); a shared base class would be an abstraction with a single extra
+// consumer. See docs/analysis/SUPPRESSION_LEDGER.md.
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { ExecutionContext } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -50,3 +54,4 @@ export class AppointmentResourceResolver implements PolicyResourceResolver {
     };
   }
 }
+// jscpd:ignore-end
