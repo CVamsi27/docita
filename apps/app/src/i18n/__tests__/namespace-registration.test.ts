@@ -355,4 +355,69 @@ describe("i18n namespace registration", () => {
       `untraceable t-prop signatures (extend the trace or allowlist with rationale):\n${unallowed.join("\n")}`,
     ).toEqual([]);
   });
+
+  it("no local label map carries untranslated English display values", async () => {
+    // App-local display maps (X_LABELS / X_LABEL_KEYS consts with values like
+    // "Casual" / "Comp Off") render English regardless of the UI locale. The
+    // t-prop trace cannot see them (no t: signature), so this counter-assertion
+    // scans the source directly. Values that contain an uppercase letter or a
+    // space are display text; i18n keys are lowercase-dotted ("leaveTypes.casual").
+    // Converted maps are deleted or become t-prop helpers, so they leave the
+    // allowlist. New English maps must be converted, not allowlisted.
+    const allowlist: Record<string, string> = {
+      // Task 2 removes: "src/features/settings/components/leave/LeaveBalanceCard.tsx:LEAVE_TYPE_LABELS"
+      // Task 3 removes: "src/features/follow-ups/lib/follow-up-constants.ts:FOLLOW_UP_STATUS_LABELS"
+      // Task 4 removes: "src/features/settings/components/profile/SettingsProfileHeader.tsx:ROLE_LABELS"
+      // Task 4 removes: "src/features/settings/components/management/member-management-schemas.ts:MEMBER_ROLE_LABELS"
+      // Task 4 removes: "src/features/settings/components/management/member-management-schemas.ts:INVITE_SUCCESS_LABELS"
+      // Task 5 removes: "src/features/medical-documents/components/medical-document-list-config.ts:MEDICAL_DOCUMENT_TYPE_LABELS"
+      // Task 6 removes: "src/features/invoices/lib/invoice-payment-display.ts:PAYMENT_METHOD_LABELS"
+      // Task 7 removes: "src/components/whatsapp/patient-whatsapp-response-badge.tsx:RESPONSE_LABELS"
+      // Task 8 removes: "src/features/settings/components/whatsapp/TemplateListContent.tsx:CATEGORY_LABELS"
+      // Task 9 removes: "src/features/subscription/lib/billing-display-messages.ts:INTERNAL_CATEGORY_LABELS"
+      // Task 10 removes: "src/features/subscription/config/plan-onboarding-highlights.ts:PLAN_ONBOARDING_KEY_HIGHLIGHTS"
+    };
+
+    const labelMapRe =
+      /const\s+([A-Z][A-Z0-9_]*_(?:LABELS|LABEL_KEYS))\s*(?::\s*Record\s*<[^>]*>)?\s*=\s*\{/g;
+    const offenders: string[] = [];
+
+    for await (const file of glob("src/**/*.{ts,tsx}")) {
+      if (file.includes("test-utils") || file.includes("__tests__") || file.includes("/messages/")) {
+        continue;
+      }
+      const text = await readFile(file, "utf8");
+      for (const match of text.matchAll(labelMapRe)) {
+        const name = match[1];
+        // Capture the object body until the matching closing brace (best-effort:
+        // values are flat strings, so a simple depth count suffices).
+        const open = match.index + match[0].length;
+        let depth = 0;
+        let end = open;
+        for (; end < text.length; end++) {
+          if (text[end] === "{") depth++;
+          else if (text[end] === "}") {
+            depth--;
+            if (depth === 0) break;
+          }
+        }
+        const body = text.slice(open, end);
+        const values = [...body.matchAll(/:\s*"([^"]*)"/g)].map((m) => m[1]);
+        const hasDisplayValue = values.some(
+          (v) => /[A-Z ]/.test(v) && !/^[A-Z0-9 ./-]+$/.test(v),
+        );
+        if (hasDisplayValue) {
+          const key = `${file}:${name}`;
+          if (!(key in allowlist)) offenders.push(key);
+        }
+      }
+    }
+
+    expect(offenders).toEqual([]);
+    // Self-test: the detector must flag a synthetic English map (guards against
+    // a future refactor silently breaking the scan while the repo happens to
+    // have zero offenders).
+    const synthetic = "const SAMPLE_LABELS: Record<string, string> = { A: \"Sample Label\" };";
+    expect([...synthetic.matchAll(labelMapRe)].length).toBe(1);
+  });
 });
