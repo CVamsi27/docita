@@ -2792,6 +2792,18 @@
     "pageTitle": "WhatsApp",
     "pageDescription": "Outbound messages, campaigns, templates, and delivery health.",
     "senderSettings": "Sender settings",
+    "templateCategories": {
+      "followUp": "Follow-up",
+      "appointment": "Appointment",
+      "prescription": "Prescription",
+      "invoice": "Invoice",
+      "payment": "Payment",
+      "marketing": "Marketing",
+      "loadError": "We could not load templates.",
+      "emptyTitle": "No templates yet",
+      "emptyDescription": "Create a reusable message to speed up patient outreach.",
+      "newTemplate": "New template"
+    },
     "senderSettingsSections": {
       "managedTitle": "Docita-managed",
       "managedDescription": "Use Docita's shared WhatsApp number. Messages include your clinic name. No setup required.",

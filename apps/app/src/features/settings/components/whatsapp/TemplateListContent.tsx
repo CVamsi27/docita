@@ -1,17 +1,10 @@
+import { useTranslation } from "react-i18next";
 import { MessageSquarePlus } from "lucide-react";
 import type { ClinicWhatsappTemplate } from "@workspace/types";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { TableSkeleton } from "@/components/loaders/page-skeleton";
+import { templateCategoryLabel } from "./template-category-label";
 import { TemplateListItem } from "./TemplateListItem";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  FOLLOW_UP: "Follow-up",
-  APPOINTMENT: "Appointment",
-  PRESCRIPTION: "Prescription",
-  INVOICE: "Invoice",
-  PAYMENT: "Payment",
-  MARKETING: "Marketing",
-};
 
 interface TemplateListContentProps {
   isLoading: boolean;
@@ -32,6 +25,8 @@ export function TemplateListContent({
   onEdit,
   onDelete,
 }: TemplateListContentProps) {
+  const { t } = useTranslation("WhatsApp");
+
   if (isLoading)
     return <TableSkeleton rowCount={4} />;
 
@@ -39,7 +34,7 @@ export function TemplateListContent({
     return (
       <DataState
         status="error"
-        errorMessage="We could not load templates."
+        errorMessage={t("templateCategories.loadError")}
         onRetry={onRetry}
       />
     );
@@ -50,9 +45,12 @@ export function TemplateListContent({
       <DataState
         status="empty"
         emptyIcon={MessageSquarePlus}
-        emptyTitle="No templates yet"
-        emptyDescription="Create a reusable message to speed up patient outreach."
-        emptyAction={{ label: "New template", onClick: onCreate }}
+        emptyTitle={t("templateCategories.emptyTitle")}
+        emptyDescription={t("templateCategories.emptyDescription")}
+        emptyAction={{
+          label: t("templateCategories.newTemplate"),
+          onClick: onCreate,
+        }}
       />
     );
   }
@@ -63,7 +61,7 @@ export function TemplateListContent({
         <TemplateListItem
           key={template.id}
           template={template}
-          categoryLabel={CATEGORY_LABELS[template.category] ?? template.category}
+          categoryLabel={templateCategoryLabel(template.category, t)}
           onEdit={onEdit}
           onDelete={onDelete}
         />

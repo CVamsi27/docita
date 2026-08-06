@@ -2493,6 +2493,18 @@
     "pageTitle": "WhatsApp",
     "pageDescription": "आउटबाउंड संदेश, कैंपेन, टेम्पलेट और डिलीवरी स्वास्थ्य।",
     "senderSettings": "प्रेषक सेटिंग",
+    "templateCategories": {
+      "followUp": "फॉलो-अप",
+      "appointment": "अपॉइंटमेंट",
+      "prescription": "प्रिस्क्रिप्शन",
+      "invoice": "इनवॉइस",
+      "payment": "भुगतान",
+      "marketing": "मार्केटिंग",
+      "loadError": "हम टेम्पलेट लोड नहीं कर सके।",
+      "emptyTitle": "अभी कोई टेम्पलेट नहीं",
+      "emptyDescription": "रोगी संपर्क तेज़ करने के लिए पुन: प्रयोज्य संदेश बनाएँ।",
+      "newTemplate": "नया टेम्पलेट"
+    },
     "senderSettingsSections": {
       "managedTitle": "डॉकिटा-प्रबंधित",
       "managedDescription": "डॉकिटा का साझा WhatsApp नंबर उपयोग करें। संदेशों में आपके क्लिनिक का नाम शामिल होता है। कोई सेटअप आवश्यक नहीं।",
