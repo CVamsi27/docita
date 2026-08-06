@@ -364,19 +364,7 @@ describe("i18n namespace registration", () => {
     // space are display text; i18n keys are lowercase-dotted ("leaveTypes.casual").
     // Converted maps are deleted or become t-prop helpers, so they leave the
     // allowlist. New English maps must be converted, not allowlisted.
-    const allowlist: Record<string, string> = {
-      // Task 2 removes: "src/features/settings/components/leave/LeaveBalanceCard.tsx:LEAVE_TYPE_LABELS"
-      // Task 3 removes: "src/features/follow-ups/lib/follow-up-constants.ts:FOLLOW_UP_STATUS_LABELS"
-      // Task 4 removes: "src/features/settings/components/profile/SettingsProfileHeader.tsx:ROLE_LABELS"
-      // Task 4 removes: "src/features/settings/components/management/member-management-schemas.ts:MEMBER_ROLE_LABELS"
-      // Task 4 removes: "src/features/settings/components/management/member-management-schemas.ts:INVITE_SUCCESS_LABELS"
-      // Task 5 removes: "src/features/medical-documents/components/medical-document-list-config.ts:MEDICAL_DOCUMENT_TYPE_LABELS"
-      // Task 6 removes: "src/features/invoices/lib/invoice-payment-display.ts:PAYMENT_METHOD_LABELS"
-      // Task 7 removes: "src/components/whatsapp/patient-whatsapp-response-badge.tsx:RESPONSE_LABELS"
-      // Task 8 removes: "src/features/settings/components/whatsapp/TemplateListContent.tsx:CATEGORY_LABELS"
-      // Task 9 removes: "src/features/subscription/lib/billing-display-messages.ts:INTERNAL_CATEGORY_LABELS"
-      // Task 10 removes: "src/features/subscription/config/plan-onboarding-highlights.ts:PLAN_ONBOARDING_KEY_HIGHLIGHTS"
-    };
+    const allowlist: Record<string, string> = {};
 
     const labelMapRe =
       /const\s+([A-Z][A-Z0-9_]*_(?:LABELS|LABEL_KEYS))\s*(?::\s*Record\s*<[^>]*>)?\s*=\s*\{/g;

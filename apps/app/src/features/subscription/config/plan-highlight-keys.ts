@@ -1,5 +1,5 @@
 /** i18n keys (relative to Subscription.planHighlights) per tier. */
-export const PLAN_ONBOARDING_KEY_HIGHLIGHT_KEYS: Record<string, string[]> = {
+const PLAN_ONBOARDING_KEY_HIGHLIGHT_KEYS: Record<string, string[]> = {
   STARTER: ["starter.patients", "starter.excel", "starter.singleDoctor", "starter.upgrade"],
   ESSENTIAL: ["essential.whatsapp", "essential.invoicing", "essential.queue", "essential.trial"],
   PROFESSIONAL: ["professional.doctors", "professional.bundles", "professional.analytics", "professional.support"],

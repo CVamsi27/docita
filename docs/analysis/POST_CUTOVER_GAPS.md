@@ -95,6 +95,24 @@ cutoff) — the residual counts on already-converted files are the checker's
 arrow-body false-positive class, and the top-density files are all
 `apps/internal`.
 
+**DONE 2026-08-06 (data-map labels)**: converted all app-local English
+data-driven label maps to i18n t-prop helpers/key-maps with en/hi parity
+(2,859 = 2,859 leaves) and added an 8th audit test that fails the build on
+any new local `*_LABELS`/`*_LABEL_KEYS` const carrying English display
+values (allowlist is empty). Maps converted: `LEAVE_TYPE_LABELS` →
+`Settings.leaveTypes`, `FOLLOW_UP_STATUS_LABELS` → `FollowUps.statusLabels`,
+`ROLE_LABELS`/`MEMBER_ROLE_LABELS`/`INVITE_SUCCESS_LABELS` →
+`Settings.roles` (`memberRoleLabel` helper + `MemberRoleBadge` component),
+`MEDICAL_DOCUMENT_TYPE_LABELS` → `MedicalDocuments.documentTypes`,
+`PAYMENT_METHOD_LABELS` → `Invoices.paymentMethods`/`paidSummary`
+(`t` threaded through `aggregateDaybook`),
+`RESPONSE_LABELS` → `Appointments.patientResponse`,
+`CATEGORY_LABELS` → `WhatsApp.templateCategories`,
+`INTERNAL_CATEGORY_LABELS`/`SUBSCRIPTION_GST_INCLUSIVE_NOTICE`/`BILLING_HISTORY_TABLE_CAPTION` →
+`Subscription.billingDisplay`, and `PLAN_ONBOARDING_KEY_HIGHLIGHTS` →
+`Subscription.planHighlights` (key-maps). New `createEnMessageResolver()`
+test-utils helper backs the pure-helper unit tests.
+
 **DONE 2026-08-06 (P5.7 extension, density 755 → 689, −183 vs baseline)**:
 converted 12 more app-side files with real literals: the referral-partner
 cluster (`PartnerBankingForm`, `PartnerPayoutsView`, `PartnerReferralsView`,

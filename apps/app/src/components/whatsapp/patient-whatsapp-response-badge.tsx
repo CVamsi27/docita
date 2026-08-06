@@ -19,14 +19,14 @@ const RESPONSE_VARIANT: Record<
   UNKNOWN: "secondary",
 };
 
-const RESPONSE_TYPES: readonly PatientResponseType[] = [
+const RESPONSE_TYPES: ReadonlySet<string> = new Set([
   "CONFIRM",
   "ON_THE_WAY",
   "DELAY",
   "RESCHEDULE",
   "CANCEL",
   "UNKNOWN",
-];
+]);
 
 interface PatientWhatsAppResponseBadgeProps {
   responseType: string;
@@ -36,7 +36,7 @@ interface PatientWhatsAppResponseBadgeProps {
 }
 
 function isPatientResponseType(value: string): value is PatientResponseType {
-  return (RESPONSE_TYPES as readonly string[]).includes(value);
+  return RESPONSE_TYPES.has(value);
 }
 
 export function PatientWhatsAppResponseBadge({

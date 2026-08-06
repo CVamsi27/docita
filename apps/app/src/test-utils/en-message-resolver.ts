@@ -13,7 +13,7 @@ export function createEnMessageResolver(ns: string) {
     let node: unknown = en;
     for (const part of [ns, ...key.split(".")]) {
       if (!isMessageTree(node)) return key;
-      node = (node as Record<string, unknown>)[part];
+      node = node[part];
       if (node === undefined) return key;
     }
     return typeof node === "string" ? node : key;
