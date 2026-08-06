@@ -7,8 +7,9 @@ import type { PolicyResourceResolver } from './policy-resource-resolver.interfac
 /**
  * Resolves a `patient` resource from the route param (`:id` on the staff
  * controller, `:patientId` on sub-resources). Missing row → 404 (no
- * existence disclosure). `requiresAssignment` is false on the staff surface
- * (differential-equivalent to today); the future portal resolver flips it on.
+ * existence disclosure). `requiresAssignment` is true on the staff surface
+ * since C1 phase-2 (ADR-0013): unassigned DOCTORs are denied object-level
+ * access; the patient-portal resolver flips the same flag for portal reads.
  */
 @Injectable()
 export class PatientResourceResolver implements PolicyResourceResolver {
@@ -42,7 +43,7 @@ export class PatientResourceResolver implements PolicyResourceResolver {
       assignedPatientId: patient.id,
       classification: 'phi',
       consentState: null,
-      requiresAssignment: false,
+      requiresAssignment: true,
     };
   }
 }

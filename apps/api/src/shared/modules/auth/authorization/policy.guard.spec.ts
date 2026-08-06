@@ -20,6 +20,7 @@ function makeContext(
         patientId?: string;
       }
     | undefined,
+  headers: Record<string, string> = {},
 ): ExecutionContext {
   const handler = {};
   if (handlerMeta.requirePolicy) {
@@ -29,11 +30,15 @@ function makeContext(
       handler,
     );
   }
+  if (handlerMeta.emergencyAccess) {
+    Reflect.defineMetadata('emergency_access', true, handler);
+  }
+  const request = { user, params: { id: 'pat-1' }, headers };
   return {
     getHandler: () => handler,
     getClass: () => ({}),
     switchToHttp: () => ({
-      getRequest: () => ({ user, params: { id: 'pat-1' } }),
+      getRequest: () => request,
     }),
   } as unknown as ExecutionContext;
 }
@@ -111,6 +116,37 @@ describe('PolicyGuard', () => {
       expect.objectContaining({ userId: 'u1', roles: ['DOCTOR'] }),
       'read',
       expect.objectContaining({ type: 'patient', clinicId: 'clinic-a' }),
+    );
+  });
+
+  it('allows emergency access (x-break-the-glass) on an @EmergencyAccess route without an assignment', async () => {
+    const { guard, authorization } = makeGuard({ allow: false });
+    const meta = {
+      requirePolicy: { resource: 'patient', action: 'read' },
+      emergencyAccess: true,
+    };
+    const context = makeContext(
+      meta,
+      { id: 'u1', role: Role.DOCTOR, clinicId: 'clinic-a' },
+      { 'x-break-the-glass': 'true' },
+    );
+
+    const result = await guard.canActivate(context);
+    expect(result).toBe(true);
+    expect(authorization.evaluateAbac).not.toHaveBeenCalled();
+  });
+
+  it('still denies emergency access on a route that is NOT @EmergencyAccess-eligible', async () => {
+    const { guard } = makeGuard({ allow: false });
+    const meta = { requirePolicy: { resource: 'patient', action: 'read' } };
+    const context = makeContext(
+      meta,
+      { id: 'u1', role: Role.DOCTOR, clinicId: 'clinic-a' },
+      { 'x-break-the-glass': 'true' },
+    );
+
+    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(
+      ForbiddenException,
     );
   });
 

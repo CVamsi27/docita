@@ -16,6 +16,7 @@ import {
   REQUIRE_POLICY_KEY,
   type RequirePolicyMetadata,
 } from '@/shared/modules/auth/decorators/require-policy.decorator';
+import { EMERGENCY_ACCESS_KEY } from '@/shared/modules/auth/decorators/emergency-access.decorator';
 import { dbRoleToUserRole } from '@/shared/modules/auth/authorization/role-bridge';
 
 /**
@@ -64,6 +65,20 @@ export class PolicyGuard implements CanActivate {
     if (!isInternal && !user.clinicId) {
       throw forbiddenProblem('INSUFFICIENT_PERMISSIONS', 'Access denied.');
     }
+
+    // EmergencyAccess (Break-the-Glass): the BreakTheGlassInterceptor runs
+    // AFTER guards, so this guard must honor the header + eligibility itself
+    // or emergency access would be denied before the interceptor can audit
+    // and bypass RLS. The interceptor emits EMERGENCY_ACCESS_GRANTED and sets
+    // tenantStorage.bypassed. Missing patients still 404 from the resolver
+    // (no existence disclosure) — BTG only bypasses the policy stage.
+    const isEmergencyRequest =
+      request.headers?.['x-break-the-glass'] === 'true';
+    const isEmergencyEligible = this.reflector.getAllAndOverride<boolean>(
+      EMERGENCY_ACCESS_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+    if (isEmergencyRequest && isEmergencyEligible) return true;
 
     const resolver = this.resolvers.get(metadata.resource);
     if (!resolver) {
