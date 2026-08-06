@@ -3,7 +3,8 @@ import { getPatientFullName } from "@workspace/utils";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { formatDate } from "@/lib/formatters";
-import { FOLLOW_UP_STATUS_LABELS as STATUS_LABELS, getFollowUpListQuery } from "@/features/follow-ups";
+import { getFollowUpListQuery } from "@/features/follow-ups";
+import { followUpStatusLabel } from "@/features/follow-ups/lib/follow-up-status-label";
 import { useFollowUps } from "@workspace/data-access";
 import type { FollowUpResponse } from "@workspace/types";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState } from "@workspace/ui/components";
@@ -21,6 +22,7 @@ interface TodayFollowUpsPanelProps {
 }
 
 export function TodayFollowUpsPanel({ enabled }: TodayFollowUpsPanelProps) {
+  const { t: tFollowUp } = useTranslation("FollowUps");
   const { t } = useTranslation("Dashboard");
   const query = getFollowUpListQuery("today");
   const {
@@ -84,7 +86,7 @@ export function TodayFollowUpsPanel({ enabled }: TodayFollowUpsPanelProps) {
                       {patientName(fu)}
                     </span>
                     <Badge variant="secondary" className="text-xs">
-                      {STATUS_LABELS[fu.status]}
+                      {followUpStatusLabel(fu.status, tFollowUp)}
                     </Badge>
                   </div>
                   <span className="text-xs text-muted-foreground line-clamp-2">

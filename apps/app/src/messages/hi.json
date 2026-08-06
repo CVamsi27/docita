@@ -2783,6 +2783,14 @@
       "unassigned": "अनअसाइन्ड",
       "completeButton": "पूरा करें",
       "cancelButton": "रद्द करें"
+    },
+    "statusLabels": {
+      "pending": "लंबित",
+      "reminderSent": "अनुस्मारक भेजा गया",
+      "booked": "बुक किया गया",
+      "completed": "पूर्ण",
+      "cancelled": "रद्द",
+      "expired": "समाप्त"
     }
   },
   "PublicBooking": {

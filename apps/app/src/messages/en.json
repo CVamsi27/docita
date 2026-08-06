@@ -3071,6 +3071,14 @@
       "unassigned": "Unassigned",
       "completeButton": "Complete",
       "cancelButton": "Cancel"
+    },
+    "statusLabels": {
+      "pending": "Pending",
+      "reminderSent": "Reminder sent",
+      "booked": "Booked",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
     }
   },
   "PublicBooking": {

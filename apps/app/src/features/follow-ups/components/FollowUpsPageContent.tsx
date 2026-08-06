@@ -20,7 +20,7 @@ import { type FollowUpListView, getFollowUpListQuery } from "@/features/follow-u
 import { useCancelFollowUp, useCompleteFollowUp, useFollowUps } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { FOLLOW_UP_STATUS_LABELS as STATUS_LABELS } from "@/features/follow-ups/lib/follow-up-constants";
+import { followUpStatusLabel } from "@/features/follow-ups/lib/follow-up-status-label";
 
 const VIEW_OPTIONS: Array<{ value: FollowUpListView; label: string }> = [
   { value: "overdue", label: "Overdue" },
@@ -57,7 +57,7 @@ function FollowUpCard({
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-base font-semibold">{patientName(followUp)}</h2>
-            <Badge variant="secondary">{STATUS_LABELS[followUp.status]}</Badge>
+            <Badge variant="secondary">{followUpStatusLabel(followUp.status, t)}</Badge>
           </div>
           <p className="text-sm text-muted-foreground">{followUp.reason}</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
