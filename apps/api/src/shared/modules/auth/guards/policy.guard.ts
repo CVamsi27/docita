@@ -72,6 +72,10 @@ export class PolicyGuard implements CanActivate {
     // and bypass RLS. The interceptor emits EMERGENCY_ACCESS_GRANTED and sets
     // tenantStorage.bypassed. Missing patients still 404 from the resolver
     // (no existence disclosure) — BTG only bypasses the policy stage.
+    //
+    // Deliberate consequence: BTG also bypasses the tenant_mismatch → 404
+    // mapping below, so a cross-clinic BTG read returns 200. That is the
+    // point of BTG (it bypasses RLS too) — it is audited and reason-gated.
     const isEmergencyRequest =
       request.headers?.['x-break-the-glass'] === 'true';
     const isEmergencyEligible = this.reflector.getAllAndOverride<boolean>(

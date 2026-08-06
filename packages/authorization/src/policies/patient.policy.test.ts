@@ -170,7 +170,9 @@ type OracleRow = {
   name: string;
   sub: SubjectAttributes;
   res: ResourceAttributes;
-  // today's effective outcome on the live staff surface
+  // legacy PatientDoctorGuard intended outcome (rows with requiresAssignment:
+  // true encode the C1 phase-2 pinned surface; rows without it encode today's
+  // unpinned staff surface)
   legacyEffective: "allow" | "deny";
 };
 

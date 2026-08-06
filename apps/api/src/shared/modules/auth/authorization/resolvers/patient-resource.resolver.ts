@@ -10,6 +10,12 @@ import type { PolicyResourceResolver } from './policy-resource-resolver.interfac
  * existence disclosure). `requiresAssignment` is true on the staff surface
  * since C1 phase-2 (ADR-0013): unassigned DOCTORs are denied object-level
  * access; the patient-portal resolver flips the same flag for portal reads.
+ *
+ * DEPLOY-ORDER TRIPWIRE: flipping this to true is only safe AFTER
+ * `packages/db/scripts/backfill-patient-doctor.ts` has run against the
+ * target database (AGENTS §9.4). Without active PatientDoctor rows, every
+ * DOCTOR loses object-level access to every patient. Run the backfill, then
+ * deploy the flip.
  */
 @Injectable()
 export class PatientResourceResolver implements PolicyResourceResolver {
@@ -43,6 +49,7 @@ export class PatientResourceResolver implements PolicyResourceResolver {
       assignedPatientId: patient.id,
       classification: 'phi',
       consentState: null,
+      // SAFE ONLY AFTER backfill-patient-doctor.ts has run (see file doc).
       requiresAssignment: true,
     };
   }

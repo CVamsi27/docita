@@ -4,6 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { describe, expect, it, jest } from '@jest/globals';
 import { REQUIRE_POLICY_KEY } from '../decorators/require-policy.decorator';
+import { EMERGENCY_ACCESS_KEY } from '../decorators/emergency-access.decorator';
 import { AuthorizationService } from './authorization.service';
 import { PolicyGuard } from '../guards/policy.guard';
 import { PolicyResourceResolverRegistry } from './resolvers/policy-resource-resolver';
@@ -31,7 +32,7 @@ function makeContext(
     );
   }
   if (handlerMeta.emergencyAccess) {
-    Reflect.defineMetadata('emergency_access', true, handler);
+    Reflect.defineMetadata(EMERGENCY_ACCESS_KEY, true, handler);
   }
   const request = { user, params: { id: 'pat-1' }, headers };
   return {
