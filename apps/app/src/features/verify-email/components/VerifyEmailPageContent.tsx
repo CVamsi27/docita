@@ -23,6 +23,8 @@ function VerifyEmailInner() {
   const { refreshUser } = useAuth();
   const [state, setState] = useState<VerifyState>("loading");
   const [errorMessage, setErrorMessage] = useState("");
+  const invalidLinkMessage = t("invalidLink");
+  const networkErrorMessage = t("networkError");
 
   useEffect(() => {
     if (!token) {
@@ -77,7 +79,7 @@ function VerifyEmailInner() {
           typeof data.message === "string"
             ? data.message
             : undefined;
-        const safeMessage = sanitizeUserFacingMessage(apiMessage, t("invalidLink"));
+        const safeMessage = sanitizeUserFacingMessage(apiMessage, invalidLinkMessage);
         setErrorMessage(safeMessage);
         setState("error");
       } catch (err) {
@@ -85,7 +87,7 @@ function VerifyEmailInner() {
           return;
         }
         logger.error("Email verification request failed", { err });
-        setErrorMessage(t("networkError"));
+        setErrorMessage(networkErrorMessage);
         setState("error");
       }
     }
@@ -95,6 +97,10 @@ function VerifyEmailInner() {
     return () => {
       cancelled = true;
     };
+    // The resolved messages are stable per render; re-running the verify
+    // request on a language switch (their only change trigger) is worse
+    // than a stale copy.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshUser, navigate, token]);
 
   const handleRequestNewLink = () => {

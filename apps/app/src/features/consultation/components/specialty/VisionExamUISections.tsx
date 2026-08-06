@@ -29,7 +29,6 @@ export function VisionAcuityMobileCards({
   onFieldChange,
   readOnly,
 }: VisionAcuityViewProps) {
-  const { t } = useTranslation("Consultation.visionExam");
   return (
     <div className="space-y-4 md:hidden">
       {eyes.map((eye) => (
