@@ -3,9 +3,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthPageContainer } from "./AuthPageContainer";
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
+// No react-i18next mock here: the global mock (vitest.setup.ts) resolves
+// real English copy from en.json via the shared i18n mock.
 
 vi.mock("react-router", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router")>();

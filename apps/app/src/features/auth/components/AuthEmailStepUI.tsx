@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { ErrorBanner } from "@/components/errors/error-banner";
@@ -22,13 +23,17 @@ export function AuthEmailStepUI({
   onChangeEmail,
   onSubmit,
 }: EmailStepProps) {
+  const { t } = useTranslation("Auth");
+  const tSignIn = (key: string, options?: Record<string, unknown>) =>
+    t(`signIn.${key}`, options);
+
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-5">
       <FormField
         id="email"
         type="email"
-        label="Email address"
-        placeholder="Email"
+        label={tSignIn("emailLabel")}
+        placeholder={tSignIn("emailPlaceholder")}
         value={email}
         onChange={onChangeEmail}
         fieldErrors={fieldErrors}
@@ -49,10 +54,10 @@ export function AuthEmailStepUI({
         {loading ? (
           <>
             <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
-            Checking…
+            {tSignIn("continuePending")}
           </>
         ) : (
-          "Continue"
+          tSignIn("continueLabel")
         )}
       </Button>
     </form>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { BackButton, Input, Label } from "@workspace/ui/components";
 import { InlineFieldError } from "./auth-field-error";
 import { fieldClass } from "./auth-field-error-helpers";
@@ -18,12 +19,16 @@ export function BackEmailField({
   onBack,
   errorId,
 }: BackEmailFieldProps) {
+  const { t } = useTranslation("Auth");
+  const tSignIn = (key: string, options?: Record<string, unknown>) =>
+    t(`signIn.${key}`, options);
+  const goBackLabel = tSignIn("goBack");
   const hasEmailError = fieldErrors["email"];
   const emailError = fieldErrors["email"] ?? "";
   return (
     <div className="space-y-2">
       <Label htmlFor={id} className="text-sm font-medium text-muted-foreground">
-        Email Address
+        {tSignIn("emailLabelShort")}
       </Label>
       <div className="flex items-center gap-2">
         <BackButton
@@ -32,8 +37,8 @@ export function BackEmailField({
           variant="ghost"
           size="icon"
           className="size-12 shrink-0"
-          ariaLabel="Go back"
-          tooltipLabel="Go back"
+          ariaLabel={goBackLabel}
+          tooltipLabel={goBackLabel}
         />
         <div className="flex-1">
           <Input

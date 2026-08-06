@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Eye, EyeOff } from "lucide-react";
 import { Button, Input, Label, SymbolTooltip } from "@workspace/ui/components";
 import { hasFieldError, getFieldError } from "@/lib/utils/form-errors";
@@ -11,6 +12,7 @@ function renderPasswordInput({
   onChange,
   fieldName,
   placeholder,
+  showPasswordLabel,
   showPassword,
   onTogglePassword,
   fieldErrors,
@@ -20,6 +22,7 @@ function renderPasswordInput({
   onChange: (value: string) => void;
   fieldName: string;
   placeholder: string;
+  showPasswordLabel: string;
   showPassword: boolean;
   onTogglePassword: () => void;
   fieldErrors: FieldErrors;
@@ -40,17 +43,14 @@ function renderPasswordInput({
           hasFieldError(fieldErrors, fieldName) ? `${id}-error` : undefined
         }
       />
-      <SymbolTooltip
-        label={showPassword ? "Hide password" : "Show password"}
-        side="left"
-      >
+      <SymbolTooltip label={showPasswordLabel} side="left">
         <Button
           type="button"
           variant="ghost"
           size="icon"
           className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
           onClick={onTogglePassword}
-          aria-label={showPassword ? "Hide password" : "Show password"}
+          aria-label={showPasswordLabel}
         >
           {showPassword ? (
             <EyeOff className="h-4 w-4" />
@@ -80,11 +80,18 @@ export function AuthSignupPasswordFields({
   onChangeConfirmPassword: (value: string) => void;
   onTogglePassword: () => void;
 }) {
+  const { t } = useTranslation("Auth");
+  const tSignIn = (key: string, options?: Record<string, unknown>) =>
+    t(`signIn.${key}`, options);
+  const showPasswordLabel = showPassword
+    ? tSignIn("hidePassword")
+    : tSignIn("showPassword");
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <div className="space-y-2">
         <Label htmlFor="signup-password">
-          Password
+          {tSignIn("passwordLabel")}
           <span className="text-destructive ml-0.5">*</span>
         </Label>
         {renderPasswordInput({
@@ -92,7 +99,8 @@ export function AuthSignupPasswordFields({
           value: password,
           onChange: onChangePassword,
           fieldName: "password",
-          placeholder: "Password",
+          placeholder: tSignIn("passwordPlaceholder"),
+          showPasswordLabel,
           showPassword,
           onTogglePassword,
           fieldErrors,
@@ -106,15 +114,14 @@ export function AuthSignupPasswordFields({
         <PasswordStrengthIndicator password={password} />
         {!hasFieldError(fieldErrors, "password") ? (
           <p className="text-xs text-muted-foreground">
-            Must be 8+ characters with uppercase, lowercase, number, and special
-            character
+            {tSignIn("passwordRequirementsHint")}
           </p>
         ) : null}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="signup-confirm-password">
-          Confirm Password
+          {tSignIn("confirmPasswordLabel")}
           <span className="text-destructive ml-0.5">*</span>
         </Label>
         {renderPasswordInput({
@@ -122,7 +129,8 @@ export function AuthSignupPasswordFields({
           value: confirmPassword,
           onChange: onChangeConfirmPassword,
           fieldName: "confirmPassword",
-          placeholder: "Confirm password",
+          placeholder: tSignIn("confirmPasswordPlaceholder"),
+          showPasswordLabel,
           showPassword,
           onTogglePassword,
           fieldErrors,

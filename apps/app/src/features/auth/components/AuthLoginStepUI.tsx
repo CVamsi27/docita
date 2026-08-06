@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { ErrorBanner } from "@/components/errors/error-banner";
@@ -47,6 +48,13 @@ export function AuthLoginStepUI({
   onTurnstileToken,
   onTurnstileExpire,
 }: LoginStepProps) {
+  const { t } = useTranslation("Auth");
+  const tSignIn = (key: string, options?: Record<string, unknown>) =>
+    t(`signIn.${key}`, options);
+  const showPasswordLabel = showPassword
+    ? tSignIn("hidePassword")
+    : tSignIn("showPassword");
+
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-5">
       <BackEmailField
@@ -60,7 +68,7 @@ export function AuthLoginStepUI({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">
-            Password
+            {tSignIn("passwordLabel")}
             <span className="text-destructive ml-0.5">*</span>
           </Label>
           <Button
@@ -70,7 +78,7 @@ export function AuthLoginStepUI({
             type="button"
             onClick={onForgotPassword}
           >
-            Forgot password?
+            {tSignIn("forgotPassword")}
           </Button>
         </div>
         <div className="relative">
@@ -82,7 +90,7 @@ export function AuthLoginStepUI({
             autoComplete="current-password"
             required
             className={`pr-12 h-12 min-h-12 bg-background/50 ${fieldClass(fieldErrors, "password")}`}
-            placeholder="Password"
+            placeholder={tSignIn("passwordPlaceholder")}
             autoFocus
             aria-invalid={hasFieldError(fieldErrors, "password")}
             aria-describedby={
@@ -92,17 +100,14 @@ export function AuthLoginStepUI({
             }
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-1">
-            <SymbolTooltip
-              label={showPassword ? "Hide password" : "Show password"}
-              side="left"
-            >
+            <SymbolTooltip label={showPasswordLabel} side="left">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 className="size-12 text-muted-foreground hover:text-foreground"
                 onClick={onTogglePassword}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPasswordLabel}
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -123,10 +128,7 @@ export function AuthLoginStepUI({
 
       <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        <p>
-          Secure workspace sign-in with encrypted sessions and account lockout
-          protection
-        </p>
+        <p>{tSignIn("secureSignInNotice")}</p>
       </div>
 
       {siteKey && (
@@ -160,10 +162,10 @@ export function AuthLoginStepUI({
               decorative
               className="mr-2"
             />
-            Signing in…
+            {tSignIn("signingInPending")}
           </>
         ) : (
-          "Sign in"
+          tSignIn("signInLabel")
         )}
       </Button>
     </form>

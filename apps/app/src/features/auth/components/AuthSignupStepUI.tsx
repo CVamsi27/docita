@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { ErrorBanner } from "@/components/errors/error-banner";
 import { FormField } from "@/components/form-field";
@@ -57,6 +58,9 @@ export function AuthSignupStepUI({
   onTurnstileToken,
   onTurnstileExpire,
 }: SignupStepProps) {
+  const { t } = useTranslation("Auth");
+  const tSignIn = (key: string, options?: Record<string, unknown>) =>
+    t(`signIn.${key}`, options);
   const hasGlobalError = !Object.keys(fieldErrors).length && Boolean(error);
 
   return (
@@ -72,9 +76,9 @@ export function AuthSignupStepUI({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField
           id="firstName"
-          label="First name"
+          label={tSignIn("firstNameLabel")}
           type="text"
-          placeholder="First name"
+          placeholder={tSignIn("firstNamePlaceholder")}
           value={firstName}
           onChange={onChangeFirstName}
           fieldErrors={fieldErrors}
@@ -83,9 +87,9 @@ export function AuthSignupStepUI({
         />
         <FormField
           id="lastName"
-          label="Last name"
+          label={tSignIn("lastNameLabel")}
           type="text"
-          placeholder="Last name"
+          placeholder={tSignIn("lastNamePlaceholder")}
           value={lastName}
           onChange={onChangeLastName}
           fieldErrors={fieldErrors}
@@ -132,10 +136,10 @@ export function AuthSignupStepUI({
               decorative
               className="mr-2"
             />
-            Creating account…
+            {tSignIn("creatingAccountPending")}
           </>
         ) : (
-          "Create Account"
+          tSignIn("createAccountLabel")
         )}
       </Button>
     </form>

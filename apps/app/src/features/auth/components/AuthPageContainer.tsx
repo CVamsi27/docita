@@ -18,8 +18,8 @@ export function AuthPageContainer() {
 
   if (auth.isRedirecting) return (
       <PageTransitionLoader
-        title="Redirecting…"
-        description="Taking you to your workspace…"
+        title={t("signIn.redirectingTitle")}
+        description={t("signIn.redirectingDescription")}
       />
     );
 

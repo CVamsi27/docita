@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Badge, Label, RadioGroup, RadioGroupItem } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { hasFieldError, getFieldError } from "@/lib/utils/form-errors";
@@ -7,28 +8,33 @@ import { parseStringEnumMember } from "@workspace/utils";
 
 const SIGNUP_OWNER_ROLE_VALUES = ["ADMIN", "ADMIN_DOCTOR"] as const;
 
-const OWNER_ROLE_OPTIONS = [
-  {
-    value: "ADMIN_DOCTOR" as const,
-    roleLabel: "Admin Doctor",
-    title: "Yes, I'll also see patients",
-    description:
-      "Use consultations, prescriptions, notes, and facility management from the same owner account",
-    helper:
-      "This creates an Admin Doctor account with clinical and facility-management access",
-    badge: "Recommended" as const,
-  },
-  {
-    value: "ADMIN" as const,
-    roleLabel: "Admin",
-    title: "No, I'll only manage the facility",
-    description:
-      "Use billing, facility setup, team management, and operational tools without doctor workflows",
-    helper:
-      "This creates an Admin account focused on facility operations and staff management",
-    badge: undefined,
-  },
-] as const;
+function buildOwnerRoleOptions(tSignIn: (key: string) => string) {
+  const options: Array<{
+    value: "ADMIN" | "ADMIN_DOCTOR";
+    roleLabel: string;
+    title: string;
+    description: string;
+    helper: string;
+    badge?: string;
+  }> = [
+    {
+      value: "ADMIN_DOCTOR",
+      roleLabel: tSignIn("ownerRoleAdminDoctor"),
+      title: tSignIn("ownerRoleAdminDoctorTitle"),
+      description: tSignIn("ownerRoleAdminDoctorDescription"),
+      helper: tSignIn("ownerRoleAdminDoctorHelper"),
+      badge: tSignIn("recommendedBadge"),
+    },
+    {
+      value: "ADMIN",
+      roleLabel: tSignIn("ownerRoleAdmin"),
+      title: tSignIn("ownerRoleAdminTitle"),
+      description: tSignIn("ownerRoleAdminDescription"),
+      helper: tSignIn("ownerRoleAdminHelper"),
+    },
+  ];
+  return options;
+}
 
 export function AuthSignupOwnerRoleFields({
   ownerRole,
@@ -39,20 +45,22 @@ export function AuthSignupOwnerRoleFields({
   fieldErrors: FieldErrors;
   onChangeOwnerRole: (value: "ADMIN" | "ADMIN_DOCTOR") => void;
 }) {
+  const { t } = useTranslation("Auth");
+  const tSignIn = (key: string, options?: Record<string, unknown>) =>
+    t(`signIn.${key}`, options);
+  const ownerRoleOptions = buildOwnerRoleOptions(tSignIn);
   const selectedOwnerRole =
-    OWNER_ROLE_OPTIONS.find((option) => option.value === ownerRole) ?? null;
+    ownerRoleOptions.find((option) => option.value === ownerRole) ?? null;
   const ownerRoleError = getFieldError(fieldErrors, "ownerRole");
 
   return (
     <div className="space-y-3">
       <div className="space-y-1">
         <Label id="signup-owner-role-label">
-          Will you personally treat patients with this account?
+          {tSignIn("ownerRoleLabel")}
           <span className="text-destructive ml-0.5">*</span>
         </Label>
-        <p className="text-xs text-muted-foreground">
-          Choose the setup that matches how you will use Docita on day one
-        </p>
+        <p className="text-xs text-muted-foreground">{tSignIn("ownerRoleHint")}</p>
       </div>
 
       <RadioGroup
@@ -70,7 +78,7 @@ export function AuthSignupOwnerRoleFields({
         }}
         className="grid gap-2.5 xl:grid-cols-2"
       >
-        {OWNER_ROLE_OPTIONS.map((option) => {
+        {ownerRoleOptions.map((option) => {
           const inputId = `signup-owner-role-${option.value.toLowerCase()}`;
           const isSelected = ownerRole === option.value;
 
@@ -102,7 +110,9 @@ export function AuthSignupOwnerRoleFields({
                   </div>
 
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {option.roleLabel} account
+                    {tSignIn("ownerRoleAccountSuffix", {
+                      roleLabel: option.roleLabel,
+                    })}
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {option.description}
@@ -116,8 +126,8 @@ export function AuthSignupOwnerRoleFields({
 
       <p id="signup-owner-role-hint" className="text-xs text-muted-foreground">
         {selectedOwnerRole
-          ? `${selectedOwnerRole.helper} You can update permissions later in Settings`
-          : "Choose one answer to continue and you can change roles later in Settings"}
+          ? `${selectedOwnerRole.helper} ${tSignIn("ownerRoleHelperSuffix")}`
+          : tSignIn("ownerRoleNoneHint")}
       </p>
 
       {ownerRoleError ? (

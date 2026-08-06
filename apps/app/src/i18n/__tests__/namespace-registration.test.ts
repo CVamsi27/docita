@@ -4,25 +4,6 @@ import { buildResources } from "../index";
 import en from "@/messages/en.json";
 import hi from "@/messages/hi.json";
 
-// Settings feature namespaces referenced by components but absent from the
-// message corpus (src/messages/{en,hi}.json only ship account/clinic/clinical
-// under Settings). See the tracking note in POST_CUTOVER_GAPS.md.
-const DEAD_SETTINGS_NAMESPACES = new Set([
-  "Settings.Appearance",
-  "Settings.security",
-  "Settings.teamMemberForm",
-  "Settings.invite",
-  "Settings.doctorAvailability",
-  "Settings.timeAway",
-  "Settings.TeamManagement",
-  "Settings.manageMember",
-  "Settings.joinRequestReview",
-  "Settings.manageTeamMemberDoctorPanel",
-  "Settings.doctorProfile",
-  "Settings.queueHoursFields",
-  "Settings.applyLeaveDialog",
-]);
-
 /**
  * Every `useTranslation("<namespace>")` call in the app must resolve against
  * the resources registered by `buildResources`. This test walks the real
@@ -70,11 +51,6 @@ describe("i18n namespace registration", () => {
     }
     expect(namespaces.size).toBeGreaterThan(20);
     for (const ns of namespaces) {
-      // Dead Settings.* namespaces: the settings feature references sections
-      // that do not exist in the message corpus (only account/clinic/clinical
-      // shipped). Those components render raw keys today — a pre-existing
-      // port gap tracked as a follow-up, not part of this regression.
-      if (DEAD_SETTINGS_NAMESPACES.has(ns)) continue;
       expect(
         enResources[ns],
         `namespace "${ns}" missing from en resources`,

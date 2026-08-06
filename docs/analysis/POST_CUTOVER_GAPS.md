@@ -84,18 +84,19 @@ mock). The regression is locked by
 every `useTranslation("…")` call in source and requires it to resolve in
 both en and hi.
 
-**Remaining dead namespaces (pre-existing port gap, NOT fixed here)**: 13
-`Settings.*` namespaces referenced by the settings feature but absent from
-the message corpus (only `account`/`clinic`/`clinical` shipped):
-`Settings.{Appearance, security, teamMemberForm, invite, doctorAvailability,
-timeAway, TeamManagement, manageMember, joinRequestReview,
-manageTeamMemberDoctorPanel, doctorProfile, queueHoursFields,
-applyLeaveDialog}` — those components render raw keys today. Additionally the
-auth step UIs (`AuthEmailStepUI`/`AuthLoginStepUI`/`AuthSignupStepUI`)
-contain hardcoded English literals ("Email address", "Continue", "Sign in",
-"Create Account", "First name", …) instead of `t()` calls. Both are tracked
-as steady-state i18n debt; the test allowlists the 13 dead namespaces
-explicitly so the scan stays strict for everything else.
+**RESOLVED 2026-08-06 — all 13 dead `Settings.*` namespaces and the hardcoded
+auth literals are now translated.** The `Settings.{Appearance, security,
+teamMemberForm, invite, doctorAvailability, timeAway, TeamManagement,
+manageMember, joinRequestReview, manageTeamMemberDoctorPanel, doctorProfile,
+queueHoursFields, applyLeaveDialog}` message sections (169 keys) were added
+to en.json and hi.json (parity enforced, 2,292 = 2,292 leaves), and the auth
+step UIs (`AuthEmailStepUI`/`AuthLoginStepUI`/`AuthSignupStepUI` + shared
+fields: back-email, password-strength, owner-role, password-fields) were
+converted from hardcoded English to `useTranslation("Auth")` with 45 new
+`signIn.*` keys. The `Settings.Appearance` component and auth components now
+render translated copy in both locales; the namespace-registration test's
+dead-namespace allowlist was removed so every `useTranslation` namespace is
+strictly required to resolve.
 
 ---
 

@@ -1,11 +1,13 @@
-const PASSWORD_STRENGTH_LABELS = [
-  "Very weak",
-  "Weak",
-  "Fair",
-  "Good",
-  "Strong",
-  "Very strong",
-];
+import { useTranslation } from "react-i18next";
+
+const PASSWORD_STRENGTH_KEYS = [
+  "passwordStrengthVeryWeak",
+  "passwordStrengthWeak",
+  "passwordStrengthFair",
+  "passwordStrengthGood",
+  "passwordStrengthStrong",
+  "passwordStrengthVeryStrong",
+] as const;
 
 function getPasswordScore(password: string): number {
   let score = 0;
@@ -25,6 +27,9 @@ function getBarColor(score: number, index: number): string {
 }
 
 export function PasswordStrengthIndicator({ password }: { password: string }) {
+  const { t } = useTranslation("Auth");
+  const tSignIn = (key: string, options?: Record<string, unknown>) =>
+    t(`signIn.${key}`, options);
   if (!password) return null;
   const score = getPasswordScore(password);
   return (
@@ -38,7 +43,7 @@ export function PasswordStrengthIndicator({ password }: { password: string }) {
         ))}
       </div>
       <p className="text-xs text-muted-foreground">
-        {PASSWORD_STRENGTH_LABELS[score]}
+        {tSignIn(PASSWORD_STRENGTH_KEYS[score])}
       </p>
     </div>
   );
