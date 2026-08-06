@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  envAttributesSchema,
   type EnvAttributes,
-  resourceAttributesSchema,
+  envAttributesSchema,
   type ResourceAttributes,
-  subjectAttributesSchema,
+  resourceAttributesSchema,
   type SubjectAttributes,
+  subjectAttributesSchema,
 } from "@workspace/types/authorization";
 import { denyOverrides, evaluatePolicy } from "./evaluator.js";
 import type { AbacDecision, AbacPolicy } from "./types.js";
