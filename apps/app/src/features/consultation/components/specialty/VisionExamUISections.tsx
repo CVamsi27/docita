@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
 import { Input, Label } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
@@ -28,6 +29,7 @@ export function VisionAcuityMobileCards({
   onFieldChange,
   readOnly,
 }: VisionAcuityViewProps) {
+  const { t } = useTranslation("Consultation.visionExam");
   return (
     <div className="space-y-4 md:hidden">
       {eyes.map((eye) => (
@@ -61,12 +63,13 @@ export function VisionAcuityTable({
   onFieldChange,
   readOnly,
 }: VisionAcuityViewProps) {
+  const { t } = useTranslation("Consultation.visionExam");
   return (
     <div className="hidden overflow-x-auto overscroll-x-contain md:block">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">Eye</TableHead>
+            <TableHead className="w-[100px]">{t("eyeHeader")}</TableHead>
             {VISION_EXAM_FIELDS.map((field) => (
               <TableHead key={field.key}>{field.label}</TableHead>
             ))}
@@ -111,12 +114,13 @@ export function VisionPupillaryDistanceFields({
   onChange,
   readOnly,
 }: VisionMeasurementFieldsProps) {
+  const { t } = useTranslation("Consultation.visionExam");
   return (
     <div className="space-y-2">
-      <Label>PD (Pupillary Distance)</Label>
+      <Label>{t("pdLabel")}</Label>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Input
-          placeholder="Pupillary distance"
+          placeholder={t("pdPlaceholder")}
           value={value?.refraction?.pupillaryDistance?.toString() || ""}
           onChange={(e) =>
             onChange({
@@ -133,7 +137,7 @@ export function VisionPupillaryDistanceFields({
         />
         <Input
           value={value?.refraction?.notes || ""}
-          placeholder="Notes"
+          placeholder={t("notesPlaceholder")}
           onChange={(e) =>
             onChange({
               ...value,
@@ -162,6 +166,7 @@ function VisionIopField({
   onChange,
   readOnly,
 }: VisionIopFieldProps) {
+  const { t } = useTranslation("Consultation.visionExam");
   return (
     <div className="relative w-full">
       <span
@@ -171,7 +176,7 @@ function VisionIopField({
       </span>
       <Input
         className="pl-8"
-        placeholder="IOP"
+        placeholder={t("iopPlaceholder")}
         value={value?.iop?.[eyeKey]?.toString() || ""}
         onChange={(e) =>
           onChange({
@@ -194,9 +199,10 @@ export function VisionIntraocularPressureFields({
   onChange,
   readOnly,
 }: VisionMeasurementFieldsProps) {
+  const { t } = useTranslation("Consultation.visionExam");
   return (
     <div className="space-y-2">
-      <Label>IOP (Intraocular Pressure)</Label>
+      <Label>{t("iopLabel")}</Label>
       <div className="flex flex-col gap-2 sm:flex-row">
         <VisionIopField
           eyeKey="od"

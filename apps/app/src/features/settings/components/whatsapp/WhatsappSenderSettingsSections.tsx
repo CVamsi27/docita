@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";
 import { MessageCircle, RotateCcw, ShieldCheck } from "lucide-react";
 
@@ -6,18 +7,12 @@ type SenderMode = "SHARED" | "BYO" | "MANAGED";
 const UI_MODES = ["DOCITA_MANAGED", "BYO"] as const;
 type UiSenderMode = (typeof UI_MODES)[number];
 
-const UI_MODE_LABELS: Record<UiSenderMode, { title: string; description: string }> = {
-  DOCITA_MANAGED: {
-    title: "Docita-managed",
-    description:
-      "Use Docita's shared WhatsApp number. Messages include your clinic name. No setup required.",
-  },
-  BYO: {
-    title: "Your own number",
-    description:
-      "Connect a verified Meta WhatsApp Business number. Full brand ownership, requires Meta API credentials.",
-  },
-};
+function uiModeLabel(mode: UiSenderMode, t: (key: string) => string) {
+  return {
+    title: t(mode === "BYO" ? "byoTitle" : "managedTitle"),
+    description: t(mode === "BYO" ? "byoDescription" : "managedDescription"),
+  };
+}
 
 function backendToUi(mode: SenderMode): UiSenderMode {
   return mode === "BYO" ? "BYO" : "DOCITA_MANAGED";
@@ -36,6 +31,7 @@ export function ModeSelector({
   allowedModes: Set<string>;
   onChange: (mode: SenderMode) => void;
 }) {
+  const { t } = useTranslation("WhatsApp.senderSettingsSections");
   const uiMode = backendToUi(mode);
   const byoAllowed = allowedModes.has("BYO");
 
@@ -44,7 +40,7 @@ export function ModeSelector({
       {UI_MODES.map((key) => {
         const selected = uiMode === key;
         const disabled = key === "BYO" && !byoAllowed;
-        const info = UI_MODE_LABELS[key];
+        const info = uiModeLabel(key, t);
         return (
           <Button
             key={key}
@@ -58,7 +54,7 @@ export function ModeSelector({
                 : "border-border bg-background hover:bg-muted/40",
               disabled ? "cursor-not-allowed opacity-50" : "",
             ].join(" ")}
-            aria-label={`${info.title} mode`}
+            aria-label={t("modeAriaLabel", { mode: info.title })}
           >
             <div className="mb-2 flex items-center gap-2">
               {key === "DOCITA_MANAGED" ? (
@@ -69,14 +65,12 @@ export function ModeSelector({
               <span className="text-sm font-medium">{info.title}</span>
               {selected && (
                 <Badge variant="default" className="ml-auto text-xs">
-                  Active
+                  {t("activeBadge")}
                 </Badge>
               )}
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              {disabled
-                ? "Upgrade required for this option."
-                : info.description}
+              {disabled ? t("upgradeRequired") : info.description}
             </p>
           </Button>
         );
@@ -100,36 +94,37 @@ export function ByoFormFields({
   onWabaIdChange: (value: string) => void;
   onAccessTokenChange: (value: string) => void;
 }) {
+  const { t } = useTranslation("WhatsApp.senderSettingsSections");
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <div className="space-y-2">
         <Label htmlFor="whatsapp-phone-number-id">
-          Phone number ID
+          {t("phoneNumberIdLabel")}
         </Label>
         <Input
           id="whatsapp-phone-number-id"
           value={phoneNumberId}
           onChange={(event) => onPhoneNumberIdChange(event.target.value)}
-          placeholder="Enter phone number ID"
+          placeholder={t("phoneNumberIdPlaceholder")}
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="whatsapp-waba-id">WABA ID</Label>
+        <Label htmlFor="whatsapp-waba-id">{t("wabaIdLabel")}</Label>
         <Input
           id="whatsapp-waba-id"
           value={wabaId}
           onChange={(event) => onWabaIdChange(event.target.value)}
-          placeholder="Enter WABA ID"
+          placeholder={t("wabaIdPlaceholder")}
         />
       </div>
       <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="whatsapp-access-token">Access token</Label>
+        <Label htmlFor="whatsapp-access-token">{t("accessTokenLabel")}</Label>
         <Input
           id="whatsapp-access-token"
           type="password"
           value={accessToken}
           onChange={(event) => onAccessTokenChange(event.target.value)}
-          placeholder="Enter access token"
+          placeholder={t("accessTokenPlaceholder")}
         />
       </div>
     </div>
@@ -153,6 +148,7 @@ export function SenderActionButtons({
   onReset: () => void;
   isResetPending: boolean;
 }) {
+  const { t } = useTranslation("WhatsApp.senderSettingsSections");
   return (
     <div className="flex flex-wrap gap-2">
       <Button
@@ -160,7 +156,7 @@ export function SenderActionButtons({
         onClick={onSave}
         disabled={isSavePending}
       >
-        Save sender
+        {t("saveSender")}
       </Button>
       <Button
         type="button"
@@ -168,7 +164,7 @@ export function SenderActionButtons({
         onClick={onVerify}
         disabled={isVerifyDisabled || isVerifyPending}
       >
-        Verify
+        {t("verify")}
       </Button>
       <Button
         type="button"
@@ -177,7 +173,7 @@ export function SenderActionButtons({
         disabled={isResetPending}
       >
         <RotateCcw className="size-4" />
-        Reset
+        {t("reset")}
       </Button>
     </div>
   );
@@ -190,11 +186,12 @@ export function VerifiedSenderInfo({
   displayName?: string | null;
   lastVerifyError?: string | null;
 }) {
+  const { t } = useTranslation("WhatsApp.senderSettingsSections");
   return (
     <>
       {displayName ? (
         <p className="text-sm text-muted-foreground">
-          Verified sender: {displayName}
+          {t("verifiedSender", { name: displayName })}
         </p>
       ) : null}
       {lastVerifyError ? (
@@ -218,28 +215,29 @@ export function DeliverabilityCard({
     } | null;
   };
 }) {
+  const { t } = useTranslation("WhatsApp.senderSettingsSections");
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">
-          Deliverability (30 days)
+          {t("deliverabilityTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {stats.isLoading ? (
-          <p className="text-muted-foreground">Loading delivery metrics...</p>
+          <p className="text-muted-foreground">{t("deliveryLoading")}</p>
         ) : stats.data ? (
           <>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-muted-foreground">
-                Outbound messages
+                {t("outboundMessages")}
               </span>
               <span className="font-medium">
                 {stats.data.outboundLast30Days ?? 0}
               </span>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-muted-foreground">Delivery rate</span>
+              <span className="text-muted-foreground">{t("deliveryRate")}</span>
               <span className="font-medium">
                 {stats.data.deliveryRate === null ||
                 stats.data.deliveryRate === undefined
@@ -249,7 +247,7 @@ export function DeliverabilityCard({
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-muted-foreground">
-                Stale (no final status &gt;6h)
+                {t("staleLabel")}
               </span>
               <Badge
                 variant={
@@ -263,14 +261,13 @@ export function DeliverabilityCard({
             </div>
             {(stats.data.staleDeliveryCount ?? 0) > 0 ? (
               <p className="text-xs text-muted-foreground">
-                Some messages have not received a delivery webhook from
-                Meta. They remain queued for ops review.
+                {t("staleNote")}
               </p>
             ) : null}
           </>
         ) : (
           <p className="text-muted-foreground">
-            Delivery metrics are unavailable right now.
+            {t("deliveryUnavailable")}
           </p>
         )}
       </CardContent>

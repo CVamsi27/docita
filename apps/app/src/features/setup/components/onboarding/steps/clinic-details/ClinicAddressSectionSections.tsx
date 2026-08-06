@@ -2,6 +2,7 @@
 
 import type { UseFormReturn } from "react-hook-form";
 import { Check, MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button, Input, Label } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/setup/components/onboarding/types";
@@ -18,16 +19,17 @@ export function ClinicAddressHeader({
   onOpenMapPicker,
   mapsLocationError,
 }: ClinicAddressHeaderProps) {
+  const { t } = useTranslation("Onboarding.clinicAddress");
   return (
     <>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <Label className="text-base font-semibold" htmlFor="addressLine1">
-            Address
+            {t("addressLabel")}
             <span className="text-destructive ml-0.5">*</span>
           </Label>
           <p className="text-xs text-muted-foreground">
-            Use a structured address so it adapts cleanly across regions
+            {t("addressHint")}
           </p>
         </div>
         <Button
@@ -44,12 +46,12 @@ export function ClinicAddressHeader({
           {isPinned ? (
             <>
               <Check className="h-4 w-4" aria-hidden />
-              Location pinned
+              {t("locationPinned")}
             </>
           ) : (
             <>
               <MapPin className="h-4 w-4" aria-hidden />
-              Pin on map
+              {t("pinOnMap")}
             </>
           )}
         </Button>
@@ -62,8 +64,7 @@ export function ClinicAddressHeader({
           )}
           role={mapsLocationError ? "alert" : undefined}
         >
-          {mapsLocationError ??
-            "Required — pin the clinic on the map so patients can navigate to you."}
+          {mapsLocationError ?? t("pinRequiredHint")}
         </p>
       ) : null}
     </>
@@ -75,15 +76,16 @@ interface AddressLine1FieldProps {
 }
 
 export function AddressLine1Field({ clinicForm }: AddressLine1FieldProps) {
+  const { t } = useTranslation("Onboarding.clinicAddress");
   return (
     <div className="space-y-2">
       <Label htmlFor="addressLine1">
-        Address Line 1<span className="text-destructive ml-0.5">*</span>
+        {t("addressLine1Label")}<span className="text-destructive ml-0.5">*</span>
       </Label>
       <Input
         id="addressLine1"
         {...clinicForm.register("addressLine1")}
-        placeholder="Address line 1"
+        placeholder={t("addressLine1Placeholder")}
         aria-invalid={!!clinicForm.formState.errors.addressLine1}
         aria-describedby={
           clinicForm.formState.errors.addressLine1
@@ -108,13 +110,14 @@ interface AddressLine2FieldProps {
 }
 
 export function AddressLine2Field({ clinicForm }: AddressLine2FieldProps) {
+  const { t } = useTranslation("Onboarding.clinicAddress");
   return (
     <div className="space-y-2">
-      <Label htmlFor="addressLine2">Address Line 2</Label>
+      <Label htmlFor="addressLine2">{t("addressLine2Label")}</Label>
       <Input
         id="addressLine2"
         {...clinicForm.register("addressLine2")}
-        placeholder="Address line 2"
+        placeholder={t("addressLine2Placeholder")}
         aria-invalid={!!clinicForm.formState.errors.addressLine2}
         aria-describedby={
           clinicForm.formState.errors.addressLine2
@@ -139,16 +142,17 @@ interface CityStateFieldsProps {
 }
 
 export function CityStateFields({ clinicForm }: CityStateFieldsProps) {
+  const { t } = useTranslation("Onboarding.clinicAddress");
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div className="space-y-2">
         <Label htmlFor="city">
-          City<span className="text-destructive ml-0.5">*</span>
+          {t("cityLabel")}<span className="text-destructive ml-0.5">*</span>
         </Label>
         <Input
           id="city"
           {...clinicForm.register("city")}
-          placeholder="City"
+          placeholder={t("cityPlaceholder")}
           aria-invalid={!!clinicForm.formState.errors.city}
           aria-describedby={
             clinicForm.formState.errors.city
@@ -165,13 +169,13 @@ export function CityStateFields({ clinicForm }: CityStateFieldsProps) {
 
       <div className="space-y-2">
         <Label htmlFor="state">
-          State / Province
+          {t("stateLabel")}
           <span className="text-destructive ml-0.5">*</span>
         </Label>
         <Input
           id="state"
           {...clinicForm.register("state")}
-          placeholder="State"
+          placeholder={t("statePlaceholder")}
           aria-invalid={!!clinicForm.formState.errors.state}
           aria-describedby={
             clinicForm.formState.errors.state
@@ -198,10 +202,11 @@ export function CountryPostalFields({
   clinicForm,
   resolvedCountryCode,
 }: CountryPostalFieldsProps) {
+  const { t } = useTranslation("Onboarding.clinicAddress");
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div className="space-y-2">
-        <Label htmlFor="countryCode">Country</Label>
+        <Label htmlFor="countryCode">{t("countryLabel")}</Label>
         <Input
           id="countryCode"
           readOnly
@@ -213,16 +218,16 @@ export function CountryPostalFields({
           id="clinic-country-help"
           className="text-xs text-muted-foreground"
         >
-          Synced with the phone country selection
+          {t("countryHint")}
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="pincode">Postal Code / Pincode</Label>
+        <Label htmlFor="pincode">{t("postalLabel")}</Label>
         <Input
           id="pincode"
           {...clinicForm.register("pincode")}
-          placeholder="Postal code"
+          placeholder={t("postalPlaceholder")}
           aria-invalid={!!clinicForm.formState.errors.pincode}
           aria-describedby={
             clinicForm.formState.errors.pincode
@@ -248,13 +253,14 @@ interface AddressPreviewProps {
 }
 
 export function AddressPreview({ addressSummary }: AddressPreviewProps) {
+  const { t } = useTranslation("Onboarding.clinicAddress");
   return (
     <div className="rounded-lg border bg-background/70 px-4 py-3">
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Address preview
+        {t("addressPreviewLabel")}
       </p>
       <p className="mt-2 text-sm leading-6 text-foreground">
-        {addressSummary || "Your structured address will appear here"}
+        {addressSummary || t("addressPreviewEmpty")}
       </p>
     </div>
   );
@@ -265,10 +271,11 @@ interface GoogleMapsLinkFieldProps {
 }
 
 export function GoogleMapsLinkField({ clinicForm }: GoogleMapsLinkFieldProps) {
+  const { t } = useTranslation("Onboarding.clinicAddress");
   const registration = clinicForm.register("mapsLink");
   return (
     <div className="space-y-2">
-      <Label htmlFor="mapsLink">Google Maps link</Label>
+      <Label htmlFor="mapsLink">{t("mapsLinkLabel")}</Label>
       <Input
         id="mapsLink"
         type="url"
@@ -284,7 +291,7 @@ export function GoogleMapsLinkField({ clinicForm }: GoogleMapsLinkFieldProps) {
           registration.onBlur(event);
           applyMapsLinkLocation(clinicForm, event.target.value);
         }}
-        placeholder="https://maps.google.com/..."
+        placeholder={t("mapsLinkPlaceholder")}
         aria-invalid={!!clinicForm.formState.errors.mapsLink}
         aria-describedby={
           clinicForm.formState.errors.mapsLink
@@ -304,9 +311,7 @@ export function GoogleMapsLinkField({ clinicForm }: GoogleMapsLinkFieldProps) {
           id="clinic-maps-link-help"
           className="text-xs text-muted-foreground"
         >
-          Paste a Google Maps link — if it includes a location, we&apos;ll use
-          it to drop your map pin automatically. Patients also see this link in
-          appointment confirmations.
+          {t("mapsLinkHint")}
         </p>
       )}
     </div>

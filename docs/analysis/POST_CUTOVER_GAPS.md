@@ -71,6 +71,29 @@ leaves. The remaining literal debt (755 − target floor) is spread across the
 long-tail of feature files and tracked as steady-state i18n work, not a
 release blocker.
 
+**DONE 2026-08-06 (P5.7 extension, density 755 → 633, −239 vs baseline)**:
+second conversion batch — the next tiers below the top-10 cutoff. Converted
+`InventoryFilters` → `Inventory.filters`, `InvoiceHeader` + `InvoiceBillTo` +
+`InvoiceTotalsSection` → `Invoices.{header,billTo,totalsSection}`,
+`prescriptions-table-helpers` (t threaded through `getPrescriptionColumns`
+from the caller) → `Prescriptions.tableColumns`, `LeavePolicyEditor` →
+`Settings.leavePolicy`, `doctor-availability-day-row` →
+`Settings.doctorAvailability` (extended), `ClinicWeeklyHoursStepSections` +
+`ClinicAddressSectionSections` → `Onboarding.{weeklyHours,clinicAddress}`,
+`VerifyEmailPageContent` → `Onboarding.verifyEmail`,
+`time-slot-picker-sections` → `Appointments.slotPickerFields`,
+`BulkImportStepUpload` → `Import.stepUpload`,
+`DiagnosisAssistantTab` → `AiAssistant.diagnosisTabPane`,
+`BillingLineItemsEditor` → `Consultation.billingLineItems`,
+`compliance-patient-rights-card` → `Settings.patientRights`,
+`WhatsappSenderSettingsSections` (module-level `UI_MODE_LABELS` constant
+became a `uiModeLabel(mode, t)` t-prop helper) →
+`WhatsApp.senderSettingsSections`, `VisionExamUISections` →
+`Consultation.visionExam`. Parity 2,773 = 2,773 leaves. **Zero app-side
+files remain in the density listing** (≥3-literal cutoff) — the residual
+counts on already-converted files are the checker's arrow-body
+false-positive class, and the top-density files are all `apps/internal`.
+
 **DONE 2026-08-06 (P5.7 extension, density 755 → 689, −183 vs baseline)**:
 converted 12 more app-side files with real literals: the referral-partner
 cluster (`PartnerBankingForm`, `PartnerPayoutsView`, `PartnerReferralsView`,

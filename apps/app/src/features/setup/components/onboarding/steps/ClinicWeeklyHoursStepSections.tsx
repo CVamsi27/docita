@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { Label, Switch } from "@workspace/ui/components";
 import { DAY_OF_WEEK_LABELS, type DayOfWeek } from "@workspace/types";
@@ -14,6 +15,7 @@ interface DayRowCardProps {
 }
 
 export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
+  const { t } = useTranslation("Onboarding.weeklyHours");
   return (
     <div
       key={day}
@@ -45,7 +47,7 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
             htmlFor={`clinic-hours-${day}-start`}
             className="text-[length:var(--fs-xs)] text-muted-foreground"
           >
-            Opens
+            {t("opens")}
           </Label>
           <Input
             id={`clinic-hours-${day}-start`}
@@ -61,7 +63,7 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
             htmlFor={`clinic-hours-${day}-end`}
             className="text-[length:var(--fs-xs)] text-muted-foreground"
           >
-            Closes
+            {t("closes")}
           </Label>
           <Input
             id={`clinic-hours-${day}-end`}
@@ -78,7 +80,7 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
             htmlFor={`clinic-hours-${day}-slot`}
             className="text-[length:var(--fs-xs)] text-muted-foreground"
           >
-            Slot length
+            {t("slotLength")}
           </Label>
           <Select
             value={String(dayRow.slotDuration)}
@@ -94,7 +96,7 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
             <SelectContent>
               {SLOT_OPTIONS.map((n) => (
                 <SelectItem key={n} value={String(n)}>
-                  {n} minutes
+                  {t("minutes", { count: n })}
                 </SelectItem>
               ))}
             </SelectContent>

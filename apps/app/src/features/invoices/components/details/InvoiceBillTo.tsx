@@ -1,4 +1,5 @@
 import { getPatientFullName } from "@workspace/utils";
+import { useTranslation } from "react-i18next";
 import type { Invoice, Patient } from "@workspace/types";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
@@ -7,11 +8,12 @@ interface InvoiceBillToProps {
 }
 
 export function InvoiceBillTo({ invoice }: InvoiceBillToProps) {
+  const { t } = useTranslation("Invoices.billTo");
   return (
     <div className="grid md:grid-cols-2 gap-8 mb-8">
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          Bill To
+          {t("billToTitle")}
         </h3>
         {invoice.patient ? (
           <div className="text-sm space-y-1">
@@ -23,20 +25,20 @@ export function InvoiceBillTo({ invoice }: InvoiceBillToProps) {
             <p>{invoice.patient.phoneNumber}</p>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">Unknown patient</p>
+          <p className="text-sm text-muted-foreground">{t("unknownPatient")}</p>
         )}
       </div>
       <div className="md:text-right">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          Payment Details
+          {t("paymentDetailsTitle")}
         </h3>
         <div className="text-sm space-y-1">
           <p>
-            <span className="text-muted-foreground mr-2">Method:</span>
+            <span className="text-muted-foreground mr-2">{t("methodLabel")}</span>
             <span className="capitalize">{invoice.paymentMethod || "N/A"}</span>
           </p>
           <p>
-            <span className="text-muted-foreground mr-2">Status:</span>
+            <span className="text-muted-foreground mr-2">{t("statusLabel")}</span>
             <span className="capitalize font-medium">
               {humanizeUiLabel(invoice.status)}
             </span>

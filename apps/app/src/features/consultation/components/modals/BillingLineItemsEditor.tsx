@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Button, Input, SymbolTooltip } from "@workspace/ui/components";
 import { Plus, X } from "lucide-react";
 import type { LineItem } from "./billing-modal-types";
@@ -19,12 +20,13 @@ export function BillingLineItemsEditor({
   removeItem,
   addItem,
 }: BillingLineItemsEditorProps) {
+  const { t } = useTranslation("Consultation.billingLineItems");
   return (
     <div className="space-y-3 bg-muted/20 p-4 rounded-lg">
       <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-        <div className="col-span-5">Description</div>
-        <div className="col-span-2">Qty</div>
-        <div className="col-span-4">Unit Price</div>
+        <div className="col-span-5">{t("descriptionHeader")}</div>
+        <div className="col-span-2">{t("qtyHeader")}</div>
+        <div className="col-span-4">{t("unitPriceHeader")}</div>
         <div className="col-span-1"></div>
       </div>
 
@@ -35,7 +37,7 @@ export function BillingLineItemsEditor({
         >
           <div className="sm:col-span-5">
             <Input
-              placeholder="Item description"
+              placeholder={t("itemPlaceholder")}
               value={item.description}
               onChange={(e) => updateItem(index, "description", e.target.value)}
               className="h-9"
@@ -46,7 +48,7 @@ export function BillingLineItemsEditor({
               <Input
                 type="number"
                 min="1"
-                placeholder="Qty"
+                placeholder={t("qtyPlaceholder")}
                 value={item.quantity}
                 onChange={(e) =>
                   updateItem(index, "quantity", parseInt(e.target.value) || 1)
@@ -59,7 +61,7 @@ export function BillingLineItemsEditor({
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="Unit price"
+                placeholder={t("unitPricePlaceholder")}
                 value={item.price}
                 onChange={(e) =>
                   updateItem(index, "price", parseFloat(e.target.value) || 0)
@@ -69,13 +71,13 @@ export function BillingLineItemsEditor({
             </div>
             <div className="sm:col-span-1 flex items-center justify-center">
               {items.length > 1 && (
-                <SymbolTooltip label="Remove line item">
+                <SymbolTooltip label={t("removeTooltip")}>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-muted-foreground hover:text-destructive"
                     onClick={() => removeItem(index)}
-                    aria-label="Remove line item"
+                    aria-label={t("removeAriaLabel")}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -93,7 +95,7 @@ export function BillingLineItemsEditor({
         className="w-full border-dashed mt-2"
       >
         <Plus className="mr-2 h-3.5 w-3.5" />
-        Add Item
+        {t("addItem")}
       </Button>
     </div>
   );

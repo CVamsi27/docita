@@ -1,5 +1,6 @@
 import React from "react";
 import { Upload } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { DPDP_NOTICE_TEXT_BULK_OPERATOR, DPDP_NOTICE_TITLE } from "@workspace/types";
 import { Checkbox } from "@workspace/ui/components/form/checkbox";
 
@@ -18,6 +19,7 @@ export function BulkImportStepUpload({
   dpdpAttestationConfirmed = false,
   onDpdpAttestationChange,
 }: BulkImportStepUploadProps) {
+  const { t } = useTranslation("Import.stepUpload");
   const uploadDisabled =
     isImporting || (requireDpdpAttestation && !dpdpAttestationConfirmed);
   return (
@@ -26,9 +28,9 @@ export function BulkImportStepUpload({
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
           <Upload className="h-6 w-6" />
         </div>
-        <h3 className="font-semibold">Upload Data</h3>
+        <h3 className="font-semibold">{t("uploadTitle")}</h3>
         <p className="text-sm text-muted-foreground">
-          Upload your filled CSV file here.
+          {t("uploadDescription")}
         </p>
       </div>
 
@@ -55,8 +57,7 @@ export function BulkImportStepUpload({
               }
             />
             <span>
-              I attest that valid DPDP Act, 2023 consent has been obtained for
-              every patient in this file.
+              {t("dpdpAttestationLabel")}
             </span>
           </label>
         </div>
@@ -72,13 +73,12 @@ export function BulkImportStepUpload({
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
           <Upload className="h-10 w-10 text-muted-foreground mb-3" />
           <p className="mb-2 text-sm text-muted-foreground">
-            <span className="font-semibold">Click to upload</span> or drag and
-            drop
+            <span className="font-semibold">{t("clickToUpload")}</span> {t("dragDropHint")}
           </p>
-          <p className="text-xs text-muted-foreground">CSV files up to 50MB</p>
+          <p className="text-xs text-muted-foreground">{t("fileLimit")}</p>
           {requireDpdpAttestation && !dpdpAttestationConfirmed ? (
             <p className="mt-2 text-xs text-destructive">
-              Confirm the DPDP attestation above to enable upload.
+              {t("attestationRequired")}
             </p>
           ) : null}
         </div>

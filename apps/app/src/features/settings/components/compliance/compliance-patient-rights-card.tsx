@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components";
 import { Inbox } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { formatDate } from "@workspace/utils";
 import type {
   AppComplianceSummary,
@@ -36,6 +37,7 @@ export function PatientRightsCard({
   onUpdateStatus: (id: string, status: DataSubjectRequestStatus) => void;
   clinicId: string;
 }) {
+  const { t } = useTranslation("Settings.patientRights");
   return (
     <Card>
       <CardHeader>
@@ -43,33 +45,32 @@ export function PatientRightsCard({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Inbox className="h-5 w-5" />
-              Patient Rights Requests
+              {t("title")}
             </CardTitle>
             <CardDescription>
-              Track open access, export, withdrawal, and deletion requests that
-              require facility follow-up.
+              {t("description")}
             </CardDescription>
           </div>
           <Button size="sm" onClick={onLogRequest} disabled={!clinicId}>
-            Log request
+            {t("logRequest")}
           </Button>
         </div>
       </CardHeader>
       <CardContent className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border p-3">
-          <p className="text-xs text-muted-foreground">Exports open</p>
+          <p className="text-xs text-muted-foreground">{t("exportsOpen")}</p>
           <p className="text-2xl font-semibold">
             {compliance?.dataExportRequestsOpen ?? 0}
           </p>
         </div>
         <div className="rounded-lg border p-3">
-          <p className="text-xs text-muted-foreground">Withdrawals open</p>
+          <p className="text-xs text-muted-foreground">{t("withdrawalsOpen")}</p>
           <p className="text-2xl font-semibold">
             {compliance?.withdrawalRequestsOpen ?? 0}
           </p>
         </div>
         <div className="rounded-lg border p-3">
-          <p className="text-xs text-muted-foreground">Deletion reviews</p>
+          <p className="text-xs text-muted-foreground">{t("deletionReviews")}</p>
           <p className="text-2xl font-semibold">
             {compliance?.dataDeletionRequestsOpen ?? 0}
           </p>
@@ -88,17 +89,17 @@ export function PatientRightsCard({
                       {toDisplayText(request.requestType)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Due
+                      {t("dueLabel")}
                       <span className="ml-1">
                         {request.dueAt
                           ? formatDate(request.dueAt, "dd MMMM yyyy")
-                          : "not set"}
+                          : t("dueNotSet")}
                       </span>
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {isDsrOverdue(request, new Date()) ? (
-                      <Badge variant="destructive">Overdue</Badge>
+                      <Badge variant="destructive">{t("overdue")}</Badge>
                     ) : null}
                     <Badge variant="outline">
                       {toDisplayText(request.status)}
@@ -114,7 +115,7 @@ export function PatientRightsCard({
                             }
                             disabled={updateRequestMutation.isPending}
                           >
-                            Review
+                            {t("review")}
                           </Button>
                         ) : null}
                         <Button
@@ -125,7 +126,7 @@ export function PatientRightsCard({
                           }
                           disabled={updateRequestMutation.isPending}
                         >
-                          Fulfill
+                          {t("fulfill")}
                         </Button>
                         <Button
                           size="sm"
@@ -133,7 +134,7 @@ export function PatientRightsCard({
                           onClick={() => onUpdateStatus(request.id, "REJECTED")}
                           disabled={updateRequestMutation.isPending}
                         >
-                          Reject
+                          {t("reject")}
                         </Button>
                       </>
                     ) : null}

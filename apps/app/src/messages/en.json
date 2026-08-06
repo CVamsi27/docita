@@ -435,6 +435,19 @@
       "submittingLabel": "Submitting…",
       "submitButton": "Submit Request"
     },
+    "verifyEmail": {
+      "verifyingAriaLabel": "Verifying email",
+      "verifying": "Verifying your email…",
+      "verified": "Verified",
+      "failedTitle": "Verification failed",
+      "missingDescription": "No verification link was found. Please use the link from your email.",
+      "invalidLink": "The verification link is invalid or has expired",
+      "networkError": "We could not verify this email link. Please try again.",
+      "requestNewLink": "Request a new link",
+      "backToLogin": "Back to login",
+      "loadingAriaLabel": "Loading email verification",
+      "loading": "Loading verification…"
+    },
     "joinRequestPending": {
       "title": "Request Under Review",
       "subtitlePrefix": "You requested to join",
@@ -447,6 +460,36 @@
       "nextStepsBody2": "You will receive notifications via WhatsApp and email when your request is reviewed",
       "withdrawingLabel": "Withdrawing…",
       "withdrawButton": "Withdraw Request"
+    },
+    "weeklyHours": {
+      "opens": "Opens",
+      "closes": "Closes",
+      "slotLength": "Slot length",
+      "minutes": "{count} minutes"
+    },
+    "clinicAddress": {
+      "addressLabel": "Address",
+      "addressHint": "Use a structured address so it adapts cleanly across regions",
+      "locationPinned": "Location pinned",
+      "pinOnMap": "Pin on map",
+      "pinRequiredHint": "Required — pin the clinic on the map so patients can navigate to you.",
+      "addressLine1Label": "Address Line 1",
+      "addressLine1Placeholder": "Address line 1",
+      "addressLine2Label": "Address Line 2",
+      "addressLine2Placeholder": "Address line 2",
+      "cityLabel": "City",
+      "cityPlaceholder": "City",
+      "stateLabel": "State / Province",
+      "statePlaceholder": "State",
+      "countryLabel": "Country",
+      "countryHint": "Synced with the phone country selection",
+      "postalLabel": "Postal Code / Pincode",
+      "postalPlaceholder": "Postal code",
+      "addressPreviewLabel": "Address preview",
+      "addressPreviewEmpty": "Your structured address will appear here",
+      "mapsLinkLabel": "Google Maps link",
+      "mapsLinkPlaceholder": "https://maps.google.com/...",
+      "mapsLinkHint": "Paste a Google Maps link — if it includes a location, we'll use it to drop your map pin automatically. Patients also see this link in appointment confirmations."
     },
     "verifyEmailSent": {
       "verifiedTitle": "Email verified",
@@ -528,6 +571,17 @@
       "moreButton": "More",
       "moreOptionsAriaLabel": "More options",
       "patientRecordsLabel": "Patient records"
+    },
+    "billingLineItems": {
+      "descriptionHeader": "Description",
+      "qtyHeader": "Qty",
+      "unitPriceHeader": "Unit Price",
+      "itemPlaceholder": "Item description",
+      "qtyPlaceholder": "Qty",
+      "unitPricePlaceholder": "Unit price",
+      "removeAriaLabel": "Remove line item",
+      "removeTooltip": "Remove line item",
+      "addItem": "Add Item"
     },
     "billingSummary": {
       "taxVatLabel": "Tax / VAT",
@@ -619,6 +673,14 @@
       "surgicalHistoryLabel": "Surgical history",
       "familyHistoryLabel": "Family history",
       "fullStructuredHistoryLabel": "Full structured history"
+    },
+    "visionExam": {
+      "eyeHeader": "Eye",
+      "pdLabel": "PD (Pupillary Distance)",
+      "pdPlaceholder": "Pupillary distance",
+      "notesPlaceholder": "Notes",
+      "iopPlaceholder": "IOP",
+      "iopLabel": "IOP (Intraocular Pressure)"
     },
     "cardiologyExam": {
       "title": "Cardiology Exam",
@@ -777,7 +839,10 @@
       "scheduleEyebrow": "{name}’s weekly schedule",
       "scheduleHint": "Toggle each day to enable or disable consultation hours",
       "saveButton": "Save availability",
-      "savingButton": "Saving…"
+      "savingButton": "Saving…",
+      "startLabel": "Start",
+      "endLabel": "End",
+      "slotLabel": "Slot (min)"
     },
     "invite": {
       "cancel": "Cancel",
@@ -924,6 +989,37 @@
       "reasonPlaceholder": "Optional note for the leave record",
       "submitButton": "Submit leave request",
       "cancelButton": "Cancel"
+    },
+    "patientRights": {
+      "title": "Patient Rights Requests",
+      "description": "Track open access, export, withdrawal, and deletion requests that require facility follow-up.",
+      "logRequest": "Log request",
+      "exportsOpen": "Exports open",
+      "withdrawalsOpen": "Withdrawals open",
+      "deletionReviews": "Deletion reviews",
+      "dueLabel": "Due",
+      "dueNotSet": "not set",
+      "overdue": "Overdue",
+      "review": "Review",
+      "fulfill": "Fulfill",
+      "reject": "Reject"
+    },
+    "leavePolicy": {
+      "title": "Leave plans",
+      "configurePlan": "Configure plan",
+      "emptyDescription": "No leave plans configured. Create plans to set annual quotas.",
+      "daysPerYear": "{count} days/year",
+      "carryForward": "Carry forward: up to {count} days",
+      "active": "Active",
+      "inactive": "Inactive",
+      "dialogTitle": "Configure Leave Plan",
+      "leaveTypeLabel": "Leave Type",
+      "leaveTypePlaceholder": "Leave type",
+      "annualQuotaLabel": "Annual Quota (days)",
+      "cancel": "Cancel",
+      "savePlan": "Save Plan",
+      "savedToast": "Leave plan saved",
+      "saveError": "We could not save this leave plan. Please try again."
     },
     "timeAway": {
       "cardTitle": "Doctor time away",
@@ -1094,6 +1190,31 @@
       "notAvailable": "N/A",
       "viewDetailsTooltip": "View details",
       "printTooltip": "Print"
+    },
+    "header": {
+      "invoiceTitle": "Invoice",
+      "phoneLabel": "Phone:",
+      "emailLabel": "Email:",
+      "dateLabel": "Date:",
+      "dueDateLabel": "Due Date:",
+      "notAvailable": "N/A",
+      "logoAlt": "{facility} Logo",
+      "nameFallback": "{facility} Name"
+    },
+    "billTo": {
+      "billToTitle": "Bill To",
+      "paymentDetailsTitle": "Payment Details",
+      "methodLabel": "Method:",
+      "statusLabel": "Status:",
+      "unknownPatient": "Unknown patient"
+    },
+    "totalsSection": {
+      "authorizedSignature": "Authorized Signature",
+      "signatureAlt": "Authorized Signature",
+      "signaturePending": "Signature on file pending",
+      "forLabel": "For {name}",
+      "thankYou": "Thank you for your business!",
+      "generatedBy": "Generated by Docita billing workspace"
     },
     "formSections": {
       "invoiceDetailsTitle": "Invoice details",
@@ -1445,6 +1566,25 @@
     "insightsTab": "Insights",
     "smartTasksTab": "Smart tasks",
     "soonBadge": "Soon",
+    "diagnosisTabPane": {
+      "title": "Diagnosis Assistant",
+      "description": "AI-powered differential diagnosis suggestions based on clinical findings",
+      "chiefComplaintLabel": "Chief complaint",
+      "chiefComplaintPlaceholder": "Enter chief complaint",
+      "vitalSignsLabel": "Vital signs",
+      "vitalSignsPlaceholder": "Enter vital signs",
+      "examFindingsLabel": "Physical Examination Findings",
+      "examFindingsPlaceholder": "Enter examination findings",
+      "analyzing": "Analyzing…",
+      "getDiagnoses": "Get Differential Diagnoses",
+      "cdsLabel": "Clinical Decision Support:",
+      "cdsDisclaimer": "These suggestions are for reference only and do not replace clinical judgment.",
+      "resultsTitle": "Differential Diagnoses",
+      "resultsDescription": "Ranked by confidence based on provided information",
+      "selectPrimary": "Select primary",
+      "viewDetails": "View Details",
+      "emptyState": "Enter clinical findings to get AI-powered diagnosis suggestions"
+    },
     "smartTasksPane": {
       "comingSoonNotice": "The Smart Task Engine is in active development. The quick actions and automation history below are sample data and are not yet wired to live workflows.",
       "engineTitle": "Smart Task Engine",
@@ -1929,6 +2069,16 @@
     }
   },
   "Inventory": {
+    "filters": {
+      "searchPlaceholder": "Enter inventory",
+      "searchAriaLabel": "Search inventory",
+      "categoryPlaceholder": "Category",
+      "allCategories": "All categories",
+      "stockPlaceholder": "Stock Status",
+      "allStatus": "All status",
+      "lowCritical": "Low & Critical",
+      "inStock": "In stock"
+    },
     "itemDetails": {
       "skuLabel": "SKU: {sku}",
       "notAvailable": "N/A",
@@ -1996,6 +2146,14 @@
       "downloadPdfTooltip": "Download PDF",
       "printButton": "Print",
       "printTooltip": "Print prescription"
+    },
+    "tableColumns": {
+      "id": "Prescription ID",
+      "patient": "Patient",
+      "diagnosis": "Diagnosis",
+      "medications": "Medications",
+      "date": "Date",
+      "actions": "Actions"
     }
   },
   "Excel": {
@@ -2015,6 +2173,15 @@
     }
   },
   "Import": {
+    "stepUpload": {
+      "uploadTitle": "Upload Data",
+      "uploadDescription": "Upload your filled CSV file here.",
+      "dpdpAttestationLabel": "I attest that valid DPDP Act, 2023 consent has been obtained for every patient in this file.",
+      "clickToUpload": "Click to upload",
+      "dragDropHint": "or drag and drop",
+      "fileLimit": "CSV files up to 50MB",
+      "attestationRequired": "Confirm the DPDP attestation above to enable upload."
+    },
     "page": {
       "pageTitle": "Import data",
       "pageDescription": "Digitize your facility records by importing from Excel or scanning documents.",
@@ -2313,6 +2480,14 @@
       "legendAvailable": "Available",
       "legendUnavailable": "Unavailable"
     },
+    "slotPickerFields": {
+      "findingSlots": "Finding available slots…",
+      "selectSlotPlaceholder": "Select a time slot",
+      "slotLabel": "Appointment slot",
+      "noOpenSlots": "No open slots for this doctor on this day. Try another day or adjust availability.",
+      "startTimeLabel": "Start time",
+      "endTimeLabel": "End time (optional)"
+    },
     "followUpForm": {
       "typeLabel": "Type",
       "typePlaceholder": "Follow-up type",
@@ -2565,6 +2740,32 @@
     "pageTitle": "WhatsApp",
     "pageDescription": "Outbound messages, campaigns, templates, and delivery health.",
     "senderSettings": "Sender settings",
+    "senderSettingsSections": {
+      "managedTitle": "Docita-managed",
+      "managedDescription": "Use Docita's shared WhatsApp number. Messages include your clinic name. No setup required.",
+      "byoTitle": "Your own number",
+      "byoDescription": "Connect a verified Meta WhatsApp Business number. Full brand ownership, requires Meta API credentials.",
+      "modeAriaLabel": "{mode} mode",
+      "activeBadge": "Active",
+      "upgradeRequired": "Upgrade required for this option.",
+      "phoneNumberIdLabel": "Phone number ID",
+      "phoneNumberIdPlaceholder": "Enter phone number ID",
+      "wabaIdLabel": "WABA ID",
+      "wabaIdPlaceholder": "Enter WABA ID",
+      "accessTokenLabel": "Access token",
+      "accessTokenPlaceholder": "Enter access token",
+      "saveSender": "Save sender",
+      "verify": "Verify",
+      "reset": "Reset",
+      "verifiedSender": "Verified sender: {name}",
+      "deliverabilityTitle": "Deliverability (30 days)",
+      "deliveryLoading": "Loading delivery metrics...",
+      "outboundMessages": "Outbound messages",
+      "deliveryRate": "Delivery rate",
+      "staleLabel": "Stale (no final status >6h)",
+      "staleNote": "Some messages have not received a delivery webhook from Meta. They remain queued for ops review.",
+      "deliveryUnavailable": "Delivery metrics are unavailable right now."
+    },
     "tabs": {
       "sent": "Sent",
       "campaigns": "Campaigns",

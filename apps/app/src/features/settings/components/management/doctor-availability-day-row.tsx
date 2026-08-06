@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Input, Label, Switch } from "@workspace/ui/components";
 import type { DaySchedule } from "./doctor-availability-config";
 
@@ -53,6 +54,7 @@ export function DoctorAvailabilityDayRow({
   day: DaySchedule;
   onUpdate: (patch: Partial<Omit<DaySchedule, "dayOfWeek">>) => void;
 }) {
+  const { t } = useTranslation("Settings.doctorAvailability");
   return (
     <div className="flex flex-col sm:grid sm:grid-cols-[120px_1fr] gap-3 sm:gap-4 items-start rounded-lg border p-3">
       <div className="flex items-center gap-2 pt-1">
@@ -79,7 +81,7 @@ export function DoctorAvailabilityDayRow({
       >
         <AvailabilityField
           dayOfWeek={day.dayOfWeek}
-          label="Start"
+          label={t("startLabel")}
           field="start"
           isActive={day.isActive}
           value={day.startTime}
@@ -87,7 +89,7 @@ export function DoctorAvailabilityDayRow({
         />
         <AvailabilityField
           dayOfWeek={day.dayOfWeek}
-          label="End"
+          label={t("endLabel")}
           field="end"
           isActive={day.isActive}
           value={day.endTime}
@@ -95,7 +97,7 @@ export function DoctorAvailabilityDayRow({
         />
         <AvailabilityField
           dayOfWeek={day.dayOfWeek}
-          label="Slot (min)"
+          label={t("slotLabel")}
           field="slot-duration"
           type="number"
           isActive={day.isActive}

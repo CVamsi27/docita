@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +30,7 @@ const DEFAULT_VALUES: LeavePlanDialogFormValues = {
 };
 
 export function LeavePolicyEditor() {
+  const { t } = useTranslation("Settings.leavePolicy");
   const { data: plans = [] } = useLeavePlans();
   const createPlanMutation = useCreateLeavePlan();
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
@@ -47,13 +49,11 @@ export function LeavePolicyEditor() {
         maxCarryForward: 0,
         isActive: true,
       });
-      toast.success("Leave plan saved");
+      toast.success(t("savedToast"));
       setPlanDialogOpen(false);
       form.reset(DEFAULT_VALUES);
     } catch {
-      showUserFacingErrorToast(
-        "We could not save this leave plan. Please try again.",
-      );
+      showUserFacingErrorToast(t("saveError"));
     }
   });
 
@@ -61,7 +61,7 @@ export function LeavePolicyEditor() {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 pb-5">
-          <CardTitle>Leave plans</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <Button
             size="sm"
             onClick={() => {
@@ -70,13 +70,13 @@ export function LeavePolicyEditor() {
             }}
           >
             <Plus className="mr-1 h-4 w-4" />
-            Configure plan
+            {t("configurePlan")}
           </Button>
         </CardHeader>
         <CardContent>
           {plans.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No leave plans configured. Create plans to set annual quotas.
+              {t("emptyDescription")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -90,13 +90,13 @@ export function LeavePolicyEditor() {
                       {LEAVE_TYPE_LABELS[plan.leaveType]}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {plan.annualQuota} days/year
+                      {t("daysPerYear", { count: plan.annualQuota })}
                       {plan.carryForward &&
-                        ` • Carry forward: up to ${plan.maxCarryForward} days`}
+                        ` • ${t("carryForward", { count: plan.maxCarryForward })}`}
                     </p>
                   </div>
                   <Badge variant={plan.isActive ? "default" : "secondary"}>
-                    {plan.isActive ? "Active" : "Inactive"}
+                    {plan.isActive ? t("active") : t("inactive")}
                   </Badge>
                 </div>
               ))}
@@ -108,7 +108,7 @@ export function LeavePolicyEditor() {
       <Dialog open={planDialogOpen} onOpenChange={setPlanDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Configure Leave Plan</DialogTitle>
+            <DialogTitle>{t("dialogTitle")}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={submitLeavePlan} className="space-y-4 py-2">
@@ -117,11 +117,11 @@ export function LeavePolicyEditor() {
                 name="leaveType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Leave Type</FormLabel>
+                    <FormLabel>{t("leaveTypeLabel")}</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Leave type" />
+                          <SelectValue placeholder={t("leaveTypePlaceholder")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -141,7 +141,7 @@ export function LeavePolicyEditor() {
                 name="annualQuota"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Annual Quota (days)</FormLabel>
+                    <FormLabel>{t("annualQuotaLabel")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -168,7 +168,7 @@ export function LeavePolicyEditor() {
                   variant="outline"
                   onClick={() => setPlanDialogOpen(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button type="submit" disabled={createPlanMutation.isPending}>
                   {createPlanMutation.isPending && (
@@ -178,7 +178,7 @@ export function LeavePolicyEditor() {
                       className="mr-2"
                     />
                   )}
-                  Save Plan
+                  {t("savePlan")}
                 </Button>
               </DialogFooter>
             </form>

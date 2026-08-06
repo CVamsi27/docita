@@ -23,7 +23,7 @@ export function PrescriptionsTable({
   onDownloadPDF,
 }: PrescriptionsTableProps) {
   const { t } = useTranslation("Prescriptions");
-  const columns = getPrescriptionColumns(sortConfig, onSort, onDownloadPDF);
+  const columns = getPrescriptionColumns(sortConfig, onSort, onDownloadPDF, t);
 
   return (
     <Card className="border-border shadow-sm">

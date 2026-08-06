@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
@@ -34,13 +35,14 @@ function SlotSelectOptions({
   disabled,
   hasError,
 }: SlotSelectOptionsProps) {
+  const { t } = useTranslation("Appointments.slotPickerFields");
   return (
     <>
       <FormControl>
         <SelectTrigger aria-invalid={hasError}>
           <SelectValue
             placeholder={
-              disabled ? "Finding available slots…" : "Select a time slot"
+              disabled ? t("findingSlots") : t("selectSlotPlaceholder")
             }
           />
         </SelectTrigger>
@@ -70,6 +72,7 @@ export function ApiSlotPickerField({
   disabled,
   showEmptyMessage,
 }: ApiSlotPickerFieldProps) {
+  const { t } = useTranslation("Appointments.slotPickerFields");
   return (
     <div className="space-y-4">
       <FormField
@@ -79,7 +82,7 @@ export function ApiSlotPickerField({
           const valueStr = typeof field.value === "string" ? field.value : "";
           return (
             <FormItem className="flex flex-col">
-              <FormLabel>Appointment slot</FormLabel>
+              <FormLabel>{t("slotLabel")}</FormLabel>
               <Select
                 disabled={disabled}
                 value={valueStr || undefined}
@@ -106,8 +109,7 @@ export function ApiSlotPickerField({
       />
       {showEmptyMessage && (
         <p className="text-xs text-muted-foreground">
-          No open slots for this doctor on this day. Try another day or adjust
-          availability.
+          {t("noOpenSlots")}
         </p>
       )}
     </div>
@@ -130,6 +132,7 @@ export function ManualTimeRangeFields({
   todayStart,
   disabled,
 }: ManualTimeRangeFieldsProps) {
+  const { t } = useTranslation("Appointments.slotPickerFields");
   return (
     <div className="space-y-4">
       <FormField
@@ -137,7 +140,7 @@ export function ManualTimeRangeFields({
         name="startTime"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>Start time</FormLabel>
+            <FormLabel>{t("startTimeLabel")}</FormLabel>
             <FormControl>
               <DateTimePicker
                 value={toDateTimePickerValue(field.value)}
@@ -158,7 +161,7 @@ export function ManualTimeRangeFields({
         name="endTime"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>End time (optional)</FormLabel>
+            <FormLabel>{t("endTimeLabel")}</FormLabel>
             <FormControl>
               <DateTimePicker
                 value={toDateTimePickerValue(field.value)}

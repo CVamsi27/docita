@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Textarea } from "@workspace/ui/components";
 import { Brain, Shield, Sparkles, Stethoscope } from "lucide-react";
@@ -9,33 +10,34 @@ import type { DiagnosisAssistantTabProps } from "@workspace/types";
 export const DiagnosisAssistantTab = ({
   state,
   handlers,
-}: DiagnosisAssistantTabProps) => (
+}: DiagnosisAssistantTabProps) => {
+  const { t } = useTranslation("AiAssistant.diagnosisTabPane");
+  return (
   <div className="grid gap-6 lg:grid-cols-2">
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
-          Diagnosis Assistant
+          {t("title")}
         </CardTitle>
         <CardDescription>
-          AI-powered differential diagnosis suggestions based on clinical
-          findings
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Chief complaint</label>
+          <label className="text-sm font-medium">{t("chiefComplaintLabel")}</label>
           <Textarea
-            placeholder="Enter chief complaint"
+            placeholder={t("chiefComplaintPlaceholder")}
             value={state.chiefComplaint}
             onChange={(e) => handlers.setChiefComplaint(e.target.value)}
             rows={3}
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Vital signs</label>
+          <label className="text-sm font-medium">{t("vitalSignsLabel")}</label>
           <Textarea
-            placeholder="Enter vital signs"
+            placeholder={t("vitalSignsPlaceholder")}
             value={state.vitalSigns}
             onChange={(e) => handlers.setVitalSigns(e.target.value)}
             rows={2}
@@ -43,10 +45,10 @@ export const DiagnosisAssistantTab = ({
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            Physical Examination Findings
+            {t("examFindingsLabel")}
           </label>
           <Textarea
-            placeholder="Enter examination findings"
+            placeholder={t("examFindingsPlaceholder")}
             value={state.examFindings}
             onChange={(e) => handlers.setExamFindings(e.target.value)}
 // jscpd:ignore-start
@@ -61,12 +63,12 @@ export const DiagnosisAssistantTab = ({
           {state.isLoading ? (
             <>
               <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
-              Analyzing…
+              {t("analyzing")}
             </>
           ) : (
             <>
               <Sparkles className="h-4 w-4 mr-2" />
-              Get Differential Diagnoses
+              {t("getDiagnoses")}
 {/* jscpd:ignore-end */}
             </>
           )}
@@ -74,8 +76,7 @@ export const DiagnosisAssistantTab = ({
         <div className="flex items-start gap-2 p-3 rounded-lg surface-warning">
           <Shield className="h-4 w-4 text-warning mt-0.5" />
           <p className="text-xs text-warning">
-            <strong>Clinical Decision Support:</strong> These suggestions are
-            for reference only and do not replace clinical judgment.
+            <strong>{t("cdsLabel")}</strong> {t("cdsDisclaimer")}
           </p>
         </div>
       </CardContent>
@@ -85,10 +86,10 @@ export const DiagnosisAssistantTab = ({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <Stethoscope className="h-5 w-5" />
-          Differential Diagnoses
+          {t("resultsTitle")}
         </CardTitle>
         <CardDescription>
-          Ranked by confidence based on provided information
+          {t("resultsDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -138,10 +139,10 @@ export const DiagnosisAssistantTab = ({
                   </p>
                   <div className="mt-3 flex gap-2">
                     <Button size="sm" variant="outline">
-                      Select primary
+                      {t("selectPrimary")}
                     </Button>
                     <Button size="sm" variant="ghost">
-                      View Details
+                      {t("viewDetails")}
                     </Button>
                   </div>
                 </div>
@@ -151,10 +152,11 @@ export const DiagnosisAssistantTab = ({
         ) : (
           <EmptyState
             icon={Brain}
-            label="Enter clinical findings to get AI-powered diagnosis suggestions"
+            label={t("emptyState")}
           />
         )}
       </CardContent>
     </Card>
   </div>
-);
+  );
+};

@@ -3,6 +3,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
+import { useTranslation } from "react-i18next";
 import type { Clinic, Invoice } from "@workspace/types";
 import { useFacilityLabel } from "@/lib/formatters/facility-label";
 
@@ -17,8 +18,9 @@ export function InvoiceHeader({
   formatDate,
   clinic,
 }: InvoiceHeaderProps) {
+  const { t } = useTranslation("Invoices.header");
   const facilityLabel = useFacilityLabel();
-  const documentTitle = invoice.taxSummary?.documentTitle ?? "Invoice";
+  const documentTitle = invoice.taxSummary?.documentTitle ?? t("invoiceTitle");
   return (
     <CardHeader className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b pb-6">
       <div className="flex flex-col gap-1">
@@ -27,7 +29,7 @@ export function InvoiceHeader({
             <div className="relative h-12 w-12 rounded-lg overflow-hidden border">
               <img
                 src={clinic.logo}
-                alt={clinic.name || `${facilityLabel} Logo`}
+                alt={clinic.name || t("logoAlt", { facility: facilityLabel })}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -38,7 +40,7 @@ export function InvoiceHeader({
           )}
           <div>
             <CardTitle className="text-xl">
-              {clinic?.name || `${facilityLabel} Name`}
+              {clinic?.name || t("nameFallback", { facility: facilityLabel })}
             </CardTitle>
             {clinic?.website && (
               <a
@@ -58,12 +60,12 @@ export function InvoiceHeader({
           )}
           {clinic?.phone && (
             <p>
-              <span className="font-medium">Phone:</span> {clinic.phone}
+              <span className="font-medium">{t("phoneLabel")}</span> {clinic.phone}
             </p>
           )}
           {clinic?.email && (
             <p>
-              <span className="font-medium">Email:</span> {clinic.email}
+              <span className="font-medium">{t("emailLabel")}</span> {clinic.email}
             </p>
           )}
         </CardDescription>
@@ -76,15 +78,15 @@ export function InvoiceHeader({
           #{invoice.invoiceNumber ?? invoice.id}
         </p>
         <dl className="mt-4 inline-grid grid-cols-[auto_auto] gap-x-4 gap-y-1 text-left text-sm">
-          <dt className="text-muted-foreground">Date:</dt>
+          <dt className="text-muted-foreground">{t("dateLabel")}</dt>
           <dd className="font-medium">
             {invoice.issuedAt || invoice.createdAt
               ? formatDate(invoice.issuedAt ?? invoice.createdAt)
-              : "N/A"}
+              : t("notAvailable")}
           </dd>
-          <dt className="text-muted-foreground">Due Date:</dt>
+          <dt className="text-muted-foreground">{t("dueDateLabel")}</dt>
           <dd className="font-medium">
-            {invoice.dueDate ? formatDate(invoice.dueDate) : "N/A"}
+            {invoice.dueDate ? formatDate(invoice.dueDate) : t("notAvailable")}
           </dd>
         </dl>
       </div>

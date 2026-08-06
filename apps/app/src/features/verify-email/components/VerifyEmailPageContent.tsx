@@ -1,4 +1,5 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
+import { useTranslation } from "react-i18next";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -15,6 +16,7 @@ import { BackButton } from "@/components/navigation/back-button";
 type VerifyState = "loading" | "success" | "error" | "missing";
 
 function VerifyEmailInner() {
+  const { t } = useTranslation("Onboarding.verifyEmail");
   const [searchParams] = useSearchParams();
   const token = useMemo(() => searchParams.get("token"), [searchParams]);
   const navigate = useNavigate();
@@ -75,10 +77,7 @@ function VerifyEmailInner() {
           typeof data.message === "string"
             ? data.message
             : undefined;
-        const safeMessage = sanitizeUserFacingMessage(
-          apiMessage,
-          "The verification link is invalid or has expired",
-        );
+        const safeMessage = sanitizeUserFacingMessage(apiMessage, t("invalidLink"));
         setErrorMessage(safeMessage);
         setState("error");
       } catch (err) {
@@ -86,9 +85,7 @@ function VerifyEmailInner() {
           return;
         }
         logger.error("Email verification request failed", { err });
-        setErrorMessage(
-          "We could not verify this email link. Please try again.",
-        );
+        setErrorMessage(t("networkError"));
         setState("error");
       }
     }
@@ -116,14 +113,14 @@ function VerifyEmailInner() {
             className="flex flex-col items-center gap-4 py-4"
             role="status"
             aria-live="polite"
-            aria-label="Verifying email"
+            aria-label={t("verifyingAriaLabel")}
           >
             <DocitaLoadingIndicator
               variant="section"
               withStatusRole={false}
               iconClassName="h-10 w-10 text-primary"
             />
-            <p className="ui-page-subtitle">Verifying your email…</p>
+            <p className="ui-page-subtitle">{t("verifying")}</p>
           </div>
         )}
 
@@ -134,7 +131,7 @@ function VerifyEmailInner() {
             aria-live="polite"
           >
             <CheckCircle className="h-10 w-10 text-success" />
-            <p className="text-sm font-semibold text-foreground">Verified</p>
+            <p className="text-sm font-semibold text-foreground">{t("verified")}</p>
           </div>
         )}
 
@@ -150,11 +147,9 @@ function VerifyEmailInner() {
               </div>
             </div>
             <div className="text-center ui-copy-stack">
-              <h1 className="ui-page-title">Verification failed</h1>
+              <h1 className="ui-page-title">{t("failedTitle")}</h1>
               <p className="ui-page-subtitle">
-                {state === "missing"
-                  ? "No verification link was found. Please use the link from your email."
-                  : errorMessage}
+                {state === "missing" ? t("missingDescription") : errorMessage}
               </p>
             </div>
             <div className="space-y-3">
@@ -163,11 +158,11 @@ function VerifyEmailInner() {
                 className="w-full h-11"
                 onClick={handleRequestNewLink}
               >
-                Request a new link
+                {t("requestNewLink")}
               </Button>
               <BackButton
                 fallback="/login"
-                label="Back to login"
+                label={t("backToLogin")}
                 variant="ghost"
                 size="default"
                 className="w-full h-11"
@@ -181,6 +176,7 @@ function VerifyEmailInner() {
 }
 
 export default function VerifyEmailPageContent() {
+  const { t } = useTranslation("Onboarding.verifyEmail");
   return (
     <Suspense
       fallback={
@@ -194,14 +190,14 @@ export default function VerifyEmailPageContent() {
               className="flex flex-col items-center gap-4 py-4"
               role="status"
               aria-live="polite"
-              aria-label="Loading email verification"
+              aria-label={t("loadingAriaLabel")}
             >
               <DocitaLoadingIndicator
                 variant="section"
                 withStatusRole={false}
                 iconClassName="h-10 w-10 text-primary"
               />
-              <p className="ui-page-subtitle">Loading verification…</p>
+              <p className="ui-page-subtitle">{t("loading")}</p>
             </div>
           </div>
         </PreDashboardShell>
