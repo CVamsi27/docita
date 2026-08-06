@@ -110,6 +110,18 @@ en.json/hi.json (`Invoices` 70, `Prescriptions` 22, `Daybook` 14,
 scoped-helper pattern (the sections already existed); the audit now resolves
 them, and the full corpus is verified with **0 missing keys**.
 
+**t-prop trace (2026-08-06)**: the same test now also traces components that
+receive `t` as a prop/parameter without a `useTranslation` of their own
+(`SelectField`, `DocumentActions`, `DocumentMobileRow`,
+`buildDocumentsTableColumns`, `TeamMemberNameRoleFields`,
+`DoctorRegistrationFields`, plus in-file helpers). For each consumer it
+collects body-scoped literal keys + `labelKey`/`placeholderKey` const tables
+and resolves them at every call site against the caller's namespace (JSX
+`t={t}` and function-call passes). Verified **42 distinct keys across 11
+consumers, all resolving in en+hi** — closing the last static-coverage hole
+(keys passed as props, e.g. `placeholderKey="typePlaceholder"`, were
+previously invisible to every literal `t("…")` scan).
+
 ---
 
 ## 3. Web Vitals enforcement (P4.5 — **DONE 2026-08-06, P5.8**)
