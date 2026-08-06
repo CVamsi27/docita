@@ -98,6 +98,18 @@ render translated copy in both locales; the namespace-registration test's
 dead-namespace allowlist was removed so every `useTranslation` namespace is
 strictly required to resolve.
 
+**Key-level audit (2026-08-06)**: the namespace-registration test now also
+walks every `t("key")` call in source — per file, tracking the active
+`useTranslation("…")` namespace plus scoped-helper prefixes such as the
+consultation sections' `(key) => t(prefix + key)` pattern — and requires each
+key to resolve in both locales. The audit surfaced and fixed the same bug
+class at key granularity across six features: **109 missing keys added** to
+en.json/hi.json (`Invoices` 70, `Prescriptions` 22, `Daybook` 14,
+`Appointments` 2, `Help` 1) with parity enforced (2,401 = 2,401 leaves). The
+67 `Consultation.*` keys the initial scan flagged were false positives of the
+scoped-helper pattern (the sections already existed); the audit now resolves
+them, and the full corpus is verified with **0 missing keys**.
+
 ---
 
 ## 3. Web Vitals enforcement (P4.5 — **DONE 2026-08-06, P5.8**)

@@ -714,7 +714,87 @@
       "emptyDescription": "आपके द्वारा बनाए गए चालान यहाँ दिखाई देंगे।",
       "viewButton": "देखें",
       "viewAriaLabel": "इनवॉइस देखें",
-      "pdfButton": "पीडीएफ़"
+      "pdfButton": "पीडीएफ़",
+      "invoiceNumberHeader": "इनवॉइस",
+      "patientHeader": "रोगी",
+      "dateHeader": "तारीख",
+      "amountHeader": "राशि",
+      "statusHeader": "स्थिति",
+      "actionsHeader": "क्रियाएँ",
+      "notAvailable": "N/A",
+      "viewDetailsTooltip": "विवरण देखें",
+      "printTooltip": "प्रिंट करें"
+    },
+    "formSections": {
+      "invoiceDetailsTitle": "इनवॉइस विवरण",
+      "lineItemsTitle": "लाइन आइटम",
+      "addItemButton": "आइटम जोड़ें",
+      "statusLabel": "स्थिति",
+      "statusPlaceholder": "स्थिति चुनें",
+      "statusPending": "लंबित",
+      "statusPaid": "भुगतान किया गया",
+      "statusOverdue": "अतिदेय",
+      "statusCancelled": "रद्द किया गया",
+      "notesTitle": "नोट्स",
+      "notesDescription": "इनवॉइस पर दिखाए गए वैकल्पिक नोट्स",
+      "notesPlaceholder": "नोट्स दर्ज करें…"
+    },
+    "itemsTable": {
+      "colDescription": "विवरण",
+      "itemDescriptionPlaceholder": "आइटम विवरण दर्ज करें",
+      "colQty": "मात्रा",
+      "colUnitPrice": "इकाई मूल्य",
+      "colTax": "कर उपचार",
+      "taxHealthcareExempt": "स्वास्थ्य सेवा छूट",
+      "taxTaxable": "कर योग्य",
+      "taxExempt": "छूट",
+      "taxNonGst": "गैर-GST",
+      "colGstPercent": "GST %",
+      "colHsnSac": "HSN/SAC",
+      "hsnCodePlaceholder": "HSN/SAC कोड दर्ज करें",
+      "colTotal": "कुल",
+      "emptyMessage": "अभी तक कोई आइटम नहीं जोड़ा गया",
+      "removeLineItemTooltip": "आइटम हटाएं"
+    },
+    "itemsTableReadOnly": {
+      "colDescription": "विवरण",
+      "colQty": "मात्रा",
+      "colPrice": "इकाई मूल्य",
+      "colGst": "GST",
+      "colHsnSac": "HSN/SAC",
+      "colTotal": "कुल",
+      "mobileLineMeta": "{quantity} × {unit}{tax}{hsn}",
+      "gstValue": "{percent}%",
+      "gstPercentSuffix": "GST {percent}%",
+      "hsnSuffix": "HSN/SAC {code}"
+    },
+    "paymentActivity": {
+      "loadingLabel": "भुगतान गतिविधि लोड हो रही है…",
+      "emptyTitle": "अभी तक कोई भुगतान नहीं",
+      "emptyDescription": "इस इनवॉइस के भुगतान यहां दिखाई देंगे",
+      "colDate": "तारीख",
+      "colAmount": "राशि",
+      "colSource": "स्रोत",
+      "colStatus": "स्थिति",
+      "colReference": "संदर्भ",
+      "colNotes": "नोट्स",
+      "colLink": "लिंक",
+      "openPaymentLink": "भुगतान लिंक खोलें",
+      "openLinkButton": "खोलें",
+      "paidByLabel": "{channel} द्वारा भुगतान",
+      "refLabel": "संदर्भ: {reference}"
+    },
+    "totals": {
+      "amountInWordsLabel": "शब्दों में राशि",
+      "subtotalLabel": "उप-योग",
+      "discountLabel": "छूट",
+      "taxableValueLabel": "कर योग्य मूल्य",
+      "taxLabel": "कर",
+      "documentLabel": "दस्तावेज़",
+      "totalLabel": "कुल",
+      "amountPaidLabel": "भुगतान की गई राशि",
+      "balanceDueLabel": "शेष राशि",
+      "notesLabel": "नोट्स"
     },
     "pageTitle": "इनवॉइस",
     "pageDescription": "अपने क्लिनिक के इनवॉइस देखें और प्रबंधित करें।",
@@ -1496,6 +1576,34 @@
     }
   },
   "Prescriptions": {
+    "documentHeader": {
+      "facilityLogoAlt": "सुविधा लोगो",
+      "phoneLabel": "फ़ोन:",
+      "emailLabel": "ईमेल:",
+      "supportLabel": "सहायता:",
+      "doctorPrefix": "डॉ. {name}",
+      "regLabel": "पंजी. संख्या: {reg}",
+      "patientNameLabel": "रोगी का नाम",
+      "ageLabel": "आयु: {age}",
+      "genderLabel": "लिंग: {gender}",
+      "dateLabel": "तारीख"
+    },
+    "documentFooter": {
+      "signatureAlt": "डॉक्टर का हस्ताक्षर",
+      "doctorPrefix": "डॉ. {name}",
+      "regNumberLabel": "पंजी. संख्या: {reg}",
+      "digitalGeneratedLabel": "यह नुस्खा डिजिटल रूप से बनाया गया था",
+      "poweredByLabel": "Docita — हेल्थकेयर OS द्वारा संचालित",
+      "supportLabel": "सहायता: {email}",
+      "validityLabel": "मुद्रित विंडो के भीतर मुफ्त पुनः आगमन के लिए मान्य"
+    },
+    "medicationList": {
+      "medicationsTitle": "दवाएं",
+      "dosageLabel": "खुराक",
+      "frequencyLabel": "आवृत्ति",
+      "durationLabel": "अवधि",
+      "instructionsTitle": "निर्देश"
+    },
     "table": {
       "viewAriaLabel": "नुस्खा देखें",
       "viewButton": "देखें",
@@ -1783,6 +1891,8 @@
     }
   },
   "Appointments": {
+    "pageTitle": "अपॉइंटमेंट",
+    "pageDescription": "अपनी सुविधा में रोगी अपॉइंटमेंट शेड्यूल करें, प्रबंधित करें और ट्रैक करें",
     "timeSlotPicker": {
       "loadingAriaLabel": "समय स्लॉट लोड हो रहे हैं",
       "emptyMessage": "{date} के लिए कोई उपलब्ध समय स्लॉट नहीं",
@@ -1916,6 +2026,7 @@
     "searchPlaceholder": "विषय दर्ज करें",
     "searchAriaLabel": "सहायता लेख खोजें",
     "noTopicsMatch": "आपकी खोज से कोई सहायता विषय मेल नहीं खाता।",
+    "articlesCount": "{count} लेख",
     "gettingStarted": "शुरू करना",
     "patientManagement": "रोगी प्रबंधन",
     "appointments": "अपॉइंटमेंट",
@@ -2629,7 +2740,21 @@
     "previousDayAriaLabel": "पिछला दिन",
     "nextDayAriaLabel": "अगला दिन",
     "refreshButton": "रीफ़्रेश करें",
-    "error": "हम इस दिन का डेबुक लोड नहीं कर सके। कृपया पुनः प्रयास करें।"
+    "error": "हम इस दिन का डेबुक लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+    "collectedEyebrow": "आज एकत्रित",
+    "paidInvoiceCount": "{count} इनवॉइस भुगतान किए गए",
+    "pendingEyebrow": "लंबित",
+    "pendingHelper": "जारी किए गए लेकिन अभी तक भुगतान न किए गए इनवॉइस",
+    "cashOnHandEyebrow": "हाथ में नकद",
+    "cashOnHandHelper": "कैश-आउट के बाद प्राप्त नकद भुगतान",
+    "byMethodTitle": "विधि द्वारा एकत्रित",
+    "ledgerTitle": "लेज़र",
+    "emptyLedgerTitle": "अभी तक कोई लेज़र प्रविष्टियां नहीं",
+    "emptyLedgerDescription": "आज प्राप्त भुगतान यहां दिखाई देंगे",
+    "viewInvoicesAction": "इनवॉइस देखें",
+    "closeDayTitle": "दिन समाप्त करें",
+    "closeDayDescription": "अगले दिन पर जाने से पहले आज के संग्रह का मिलान करें और लॉक करें",
+    "closeDayButton": "दिन समाप्त करें"
   },
   "Billing": {
     "locked": {
