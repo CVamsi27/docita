@@ -1021,6 +1021,17 @@
       "savedToast": "Leave plan saved",
       "saveError": "We could not save this leave plan. Please try again."
     },
+    "leaveTypes": {
+      "casual": "Casual",
+      "sick": "Sick",
+      "earned": "Earned",
+      "compOff": "Comp Off",
+      "unpaid": "Unpaid",
+      "holiday": "Holiday",
+      "myBalance": "My leave balance",
+      "ofDays": "of {count} days",
+      "pending": "{count} pending"
+    },
     "timeAway": {
       "cardTitle": "Doctor time away",
       "cardDescription": "Block out periods when a doctor is unavailable for consultations",

@@ -5,9 +5,10 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita
 import { formatDate } from "@workspace/utils";
 import { useApproveLeave, useCancelLeave } from "@workspace/data-access";
 import type { StaffLeave } from "@workspace/types";
+import { useTranslation } from "react-i18next";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-import { LEAVE_TYPE_LABELS } from "./LeaveBalanceCard";
+import { leaveTypeLabel } from "./leave-type-helpers";
 
 const STATUS_VARIANT: Record<
   string,
@@ -32,6 +33,7 @@ export function LeaveRequestRow({
   onActionDone: () => void;
   onReject: (id: string) => void;
 }) {
+  const { t } = useTranslation("Settings");
   const leaveId = leave.id ?? "";
   const approveMutation = useApproveLeave(leaveId);
   const cancelMutation = useCancelLeave(leaveId);
@@ -71,7 +73,7 @@ export function LeaveRequestRow({
         )}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-medium">
-            {LEAVE_TYPE_LABELS[leave.leaveType]}
+            {leaveTypeLabel(leave.leaveType, t)}
           </span>
           <Badge variant={STATUS_VARIANT[leave.status] ?? "secondary"}>
             {humanizeUiLabel(leave.status)}
