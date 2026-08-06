@@ -2157,6 +2157,15 @@
   "Appointments": {
     "pageTitle": "अपॉइंटमेंट",
     "pageDescription": "अपनी सुविधा में रोगी अपॉइंटमेंट शेड्यूल करें, प्रबंधित करें और ट्रैक करें",
+    "patientResponse": {
+      "confirmed": "WhatsApp के माध्यम से पुष्टि",
+      "onTheWay": "रास्ते में (WhatsApp)",
+      "runningLate": "देर से आ रहे हैं (WhatsApp)",
+      "runningLateMinutes": "{count} मिनट देर से आ रहे हैं (WhatsApp)",
+      "askedToReschedule": "पुनर्निर्धारित करने को कहा (WhatsApp)",
+      "cancelled": "WhatsApp के माध्यम से रद्द",
+      "replied": "WhatsApp पर उत्तर दिया"
+    },
     "timeSlotPicker": {
       "loadingAriaLabel": "समय स्लॉट लोड हो रहे हैं",
       "emptyMessage": "{date} के लिए कोई उपलब्ध समय स्लॉट नहीं",

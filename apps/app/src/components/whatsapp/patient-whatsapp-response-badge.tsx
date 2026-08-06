@@ -1,23 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { Badge, SymbolTooltip } from "@workspace/ui/components";
 import { formatDate, DATE_FORMATS, formatDistanceToNow } from "@workspace/utils";
 import { MessageCircle } from "lucide-react";
-
-type PatientResponseType =
-  | "CONFIRM"
-  | "ON_THE_WAY"
-  | "DELAY"
-  | "RESCHEDULE"
-  | "CANCEL"
-  | "UNKNOWN";
-
-const RESPONSE_LABELS = {
-  CONFIRM: "Confirmed via WhatsApp",
-  ON_THE_WAY: "On the way (WhatsApp)",
-  DELAY: "Running late (WhatsApp)",
-  RESCHEDULE: "Asked to reschedule (WhatsApp)",
-  CANCEL: "Cancelled via WhatsApp",
-  UNKNOWN: "Replied on WhatsApp",
-} satisfies Record<PatientResponseType, string>;
+import {
+  patientResponseLabel,
+  type PatientResponseType,
+} from "./patient-response-label";
 
 const RESPONSE_VARIANT: Record<
   PatientResponseType,
@@ -31,6 +19,15 @@ const RESPONSE_VARIANT: Record<
   UNKNOWN: "secondary",
 };
 
+const RESPONSE_TYPES: readonly PatientResponseType[] = [
+  "CONFIRM",
+  "ON_THE_WAY",
+  "DELAY",
+  "RESCHEDULE",
+  "CANCEL",
+  "UNKNOWN",
+];
+
 interface PatientWhatsAppResponseBadgeProps {
   responseType: string;
   responseTime?: string | Date | null;
@@ -39,7 +36,7 @@ interface PatientWhatsAppResponseBadgeProps {
 }
 
 function isPatientResponseType(value: string): value is PatientResponseType {
-  return Object.prototype.hasOwnProperty.call(RESPONSE_LABELS, value);
+  return (RESPONSE_TYPES as readonly string[]).includes(value);
 }
 
 export function PatientWhatsAppResponseBadge({
@@ -48,11 +45,9 @@ export function PatientWhatsAppResponseBadge({
   delayMinutes,
   className,
 }: PatientWhatsAppResponseBadgeProps) {
+  const { t } = useTranslation("Appointments");
   const type = isPatientResponseType(responseType) ? responseType : "UNKNOWN";
-  const label =
-    type === "DELAY" && delayMinutes != null
-      ? `Running ${delayMinutes} min late (WhatsApp)`
-      : RESPONSE_LABELS[type];
+  const label = patientResponseLabel(type, delayMinutes, t);
   const variant = RESPONSE_VARIANT[type];
 
   const tooltip = responseTime

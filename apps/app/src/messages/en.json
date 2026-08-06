@@ -2507,6 +2507,15 @@
   "Appointments": {
     "pageTitle": "Appointments",
     "pageDescription": "Schedule, manage, and track patient appointments across your facility",
+    "patientResponse": {
+      "confirmed": "Confirmed via WhatsApp",
+      "onTheWay": "On the way (WhatsApp)",
+      "runningLate": "Running late (WhatsApp)",
+      "runningLateMinutes": "Running {count} min late (WhatsApp)",
+      "askedToReschedule": "Asked to reschedule (WhatsApp)",
+      "cancelled": "Cancelled via WhatsApp",
+      "replied": "Replied on WhatsApp"
+    },
     "timeSlotPicker": {
       "loadingAriaLabel": "Loading time slots",
       "emptyMessage": "No available time slots for {date}",
