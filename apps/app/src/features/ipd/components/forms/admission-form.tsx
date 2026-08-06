@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -36,22 +37,6 @@ export interface AdmissionFormProps {
   isSubmitting?: boolean;
 }
 
-const WARD_OPTIONS = [
-  { value: "general", label: "General Ward" },
-  { value: "icu", label: "ICU" },
-  { value: "private", label: "Private Room" },
-];
-
-const BED_OPTIONS = [
-  { value: "bed-1", label: "Bed 101" },
-  { value: "bed-2", label: "Bed 102" },
-  { value: "bed-3", label: "Bed 103" },
-];
-
-const DOCTOR_OPTIONS = [
-  { value: "dr1", label: "Dr. Vamsi Krishna" },
-  { value: "dr2", label: "Dr. Priya Sharma" },
-];
 
 interface AdmissionSelectFieldOption {
   value: string;
@@ -101,11 +86,28 @@ const AdmissionSelectField: FC<AdmissionSelectFieldProps> = ({
   />
 );
 
+function wardOptions(t: (key: string) => string): AdmissionSelectFieldOption[] {
+  return [
+    { value: "general", label: t("optionGeneralWard") },
+    { value: "icu", label: t("optionIcu") },
+    { value: "private", label: t("optionPrivateRoom") },
+  ];
+}
+
+function bedOptions(t: (key: string) => string): AdmissionSelectFieldOption[] {
+  return [
+    { value: "bed-1", label: t("optionBed101") },
+    { value: "bed-2", label: t("optionBed102") },
+    { value: "bed-3", label: t("optionBed103") },
+  ];
+}
+
 export const AdmissionForm: FC<AdmissionFormProps> = ({
   defaultValues,
   onSubmit,
   isSubmitting,
 }) => {
+  const { t } = useTranslation("Ipd.admissionForm");
   const form = useForm<IpdAdmissionFormValues>({
     resolver: zodResolver(ipdAdmissionFormSchema),
     defaultValues: {
@@ -126,8 +128,8 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
   return (
     <Card className="border-none shadow-lg">
       <CardHeader>
-        <CardTitle>New Admission</CardTitle>
-        <CardDescription>Admit a patient to a ward</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -137,10 +139,10 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               name="patientId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Patient ID / MRN</FormLabel>
+                  <FormLabel>{t("patientIdLabel")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter patient ID or search..."
+                      placeholder={t("patientIdPlaceholder")}
                       {...field}
                     />
                   </FormControl>
@@ -153,29 +155,32 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               <AdmissionSelectField
                 control={form.control}
                 name="wardId"
-                label="Ward"
-                ariaLabel="Select ward"
-                placeholder="Select ward"
-                options={WARD_OPTIONS}
+                label={t("wardLabel")}
+                ariaLabel={t("selectWard")}
+                placeholder={t("selectWard")}
+                options={wardOptions(t)}
               />
 
               <AdmissionSelectField
                 control={form.control}
                 name="bedId"
-                label="Bed"
-                ariaLabel="Select bed"
-                placeholder="Select bed"
-                options={BED_OPTIONS}
+                label={t("bedLabel")}
+                ariaLabel={t("selectBed")}
+                placeholder={t("selectBed")}
+                options={bedOptions(t)}
               />
             </div>
 
             <AdmissionSelectField
               control={form.control}
               name="attendingDoctorId"
-              label="Attending Doctor"
-              ariaLabel="Select doctor"
-              placeholder="Select doctor"
-              options={DOCTOR_OPTIONS}
+              label={t("attendingDoctorLabel")}
+              ariaLabel={t("selectDoctor")}
+              placeholder={t("selectDoctor")}
+              options={[
+                { value: "dr1", label: "Dr. Vamsi Krishna" },
+                { value: "dr2", label: "Dr. Priya Sharma" },
+              ]}
             />
 
             <FormField
@@ -183,10 +188,10 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               name="diagnosis"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Diagnosis / Reason</FormLabel>
+                  <FormLabel>{t("diagnosisLabel")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter diagnosis or reason for admission"
+                      placeholder={t("diagnosisPlaceholder")}
                       className="min-h-20"
                       {...field}
                     />
@@ -201,10 +206,10 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>{t("notesLabel")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Additional notes (optional)"
+                      placeholder={t("notesPlaceholder")}
                       className="min-h-[60px]"
                       {...field}
                     />
@@ -220,8 +225,8 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               disabled={isSubmitting || form.formState.isSubmitting}
             >
               {isSubmitting || form.formState.isSubmitting
-                ? "Admitting..."
-                : "Admit Patient"}
+                ? t("admitting")
+                : t("admitPatient")}
             </Button>
           </form>
         </Form>

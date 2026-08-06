@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";
+import { useTranslation } from "react-i18next";
 
 import type { GrowthChartData, GrowthMeasurement } from "@workspace/types";
 
@@ -16,6 +17,7 @@ function defaultMeasurement(): GrowthMeasurement {
 }
 
 export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
+  const { t } = useTranslation("Consultation.growthChart");
   const activeMeasurement = value.measurements?.[0] || {};
 
   const handleChange = (field: keyof GrowthMeasurement, val: string) => {
@@ -59,45 +61,43 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Growth Parameters</CardTitle>
-        <CardDescription>
-          Enter anthropometric data to track growth.
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <Label>Height / Length (cm)</Label>
+            <Label>{t("heightLabel")}</Label>
             <Input
               type="number"
               value={activeMeasurement.height ?? ""}
               onChange={(e) => handleChange("height", e.target.value)}
               disabled={readOnly}
-              placeholder="Enter height"
+              placeholder={t("heightPlaceholder")}
             />
             {activeMeasurement.height ? (
               <p className="text-xs text-muted-foreground">
-                Percentile: {calculatePercentile(activeMeasurement.height)}
+                {t("percentile", { value: String(calculatePercentile(activeMeasurement.height)) })}
               </p>
             ) : null}
           </div>
           <div className="space-y-2">
-            <Label>Weight (kg)</Label>
+            <Label>{t("weightLabel")}</Label>
             <Input
               type="number"
               value={activeMeasurement.weight ?? ""}
               onChange={(e) => handleChange("weight", e.target.value)}
               disabled={readOnly}
-              placeholder="Enter weight"
+              placeholder={t("weightPlaceholder")}
             />
             {activeMeasurement.weight ? (
               <p className="text-xs text-muted-foreground">
-                Percentile: {calculatePercentile(activeMeasurement.weight)}
+                {t("percentile", { value: String(calculatePercentile(activeMeasurement.weight)) })}
               </p>
             ) : null}
           </div>
           <div className="space-y-2">
-            <Label>Head Circumference (cm)</Label>
+            <Label>{t("headCircumferenceLabel")}</Label>
             <Input
               type="number"
               value={activeMeasurement.headCircumference ?? ""}
@@ -105,12 +105,11 @@ export function GrowthChartUI({ value, onChange, readOnly }: GrowthChartProps) {
                 handleChange("headCircumference", e.target.value)
               }
               disabled={readOnly}
-              placeholder="Enter head circumference"
+              placeholder={t("headCircumferencePlaceholder")}
             />
             {activeMeasurement.headCircumference ? (
               <p className="text-xs text-muted-foreground">
-                Percentile:{" "}
-                {calculatePercentile(activeMeasurement.headCircumference)}
+                {t("percentile", { value: String(calculatePercentile(activeMeasurement.headCircumference)) })}
               </p>
             ) : null}
           </div>

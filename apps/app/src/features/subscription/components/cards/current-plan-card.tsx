@@ -1,4 +1,5 @@
 import { Crown, CreditCard, Receipt, Sparkles, TrendingUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { type CurrentPlanCardProps, TIER_COLOR_MAP } from "./current-plan-card-types";
@@ -28,6 +29,7 @@ export function CurrentPlanCard({
   statusNotice,
   showWhatsAppUsageMeter = true,
 }: CurrentPlanCardProps) {
+  const { t } = useTranslation("Subscription.currentPlanCard");
   const colors = TIER_COLOR_MAP[tierInfo.color] ?? TIER_COLOR_MAP.gray;
 
   return (
@@ -39,11 +41,11 @@ export function CurrentPlanCard({
               <Crown className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-xl">{tierInfo.name} Plan</CardTitle>
+              <CardTitle className="text-xl">{t("planTitle", { tier: tierInfo.name })}</CardTitle>
               <CardDescription className="mt-1 max-w-2xl">{tierInfo.description}</CardDescription>
             </div>
           </div>
-          <Badge variant="secondary" className={cn("text-sm px-3 py-1", colors.badge)}>Current Plan</Badge>
+          <Badge variant="secondary" className={cn("text-sm px-3 py-1", colors.badge)}>{t("currentPlanBadge")}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -53,19 +55,19 @@ export function CurrentPlanCard({
               <Button onClick={onRenewNow} disabled={isRenewProcessing} size="lg"
                 className={cn("h-11 gap-2", emphasizeRenew && "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90")}>
                 <CreditCard className="h-4 w-4" />
-                {isRenewProcessing ? "Opening checkout\u2026" : (renewActionLabel ?? "Pay for next cycle")}
+                {isRenewProcessing ? t("openingCheckout") : (renewActionLabel ?? t("payForNextCycle"))}
               </Button>
             ) : null}
             <Button variant={onRenewNow ? "outline" : "default"} onClick={onChangePlan} size="lg" className="h-11 gap-2">
               <TrendingUp className="h-4 w-4" />
-              {onRenewNow ? "Change plan" : "Choose a plan"}
+              {onRenewNow ? t("changePlan") : t("choosePlan")}
             </Button>
             <Button variant="outline" size="lg" className="h-11" onClick={onViewBillingHistory}>
-              <Receipt className="mr-2 h-4 w-4" />Billing History
+              <Receipt className="mr-2 h-4 w-4" />{t("billingHistory")}
             </Button>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">Contact your facility administrator to change plans.</p>
+          <p className="text-sm text-muted-foreground">{t("contactAdminToChange")}</p>
         )}
 
         <CurrentPlanCardMeta
@@ -82,7 +84,7 @@ export function CurrentPlanCard({
         {hasIntelligence ? (
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="h-4 w-4" />
-            <span className="text-sm font-medium">AI features active</span>
+            <span className="text-sm font-medium">{t("aiFeaturesActive")}</span>
           </div>
         ) : null}
       </CardContent>

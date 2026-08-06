@@ -1,5 +1,6 @@
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
 import type { CreateAppointmentInput } from "@workspace/types";
 import { PAYMENT_CHANNEL_OPTIONS } from "@workspace/types";
@@ -14,6 +15,7 @@ export function AppointmentFormFields({
   form,
   appointmentTypeOptions,
 }: AppointmentFormFieldsProps) {
+  const { t } = useTranslation("Appointments.formFields");
   return (
     <div className="space-y-4">
       <FormField
@@ -21,11 +23,11 @@ export function AppointmentFormFields({
         name="type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Type</FormLabel>
+            <FormLabel>{t("typeLabel")}</FormLabel>
             <Select onValueChange={field.onChange} value={field.value ?? ""}>
               <FormControl>
                 <SelectTrigger className="min-h-11 w-full">
-                  <SelectValue placeholder="Appointment type" />
+                  <SelectValue placeholder={t("typePlaceholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -46,10 +48,10 @@ export function AppointmentFormFields({
         name="notes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Notes (optional)</FormLabel>
+            <FormLabel>{t("notesLabel")}</FormLabel>
             <FormControl>
               <Textarea
-                placeholder="Visit notes"
+                placeholder={t("notesPlaceholder")}
                 className="min-h-24 resize-none"
                 {...field}
               />
@@ -65,7 +67,7 @@ export function AppointmentFormFields({
           name="advanceAmount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Advance payment (optional)</FormLabel>
+              <FormLabel>{t("advanceLabel")}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -92,7 +94,7 @@ export function AppointmentFormFields({
           name="advancePaymentMethod"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Paid by</FormLabel>
+              <FormLabel>{t("paidByLabel")}</FormLabel>
               <Select
                 onValueChange={field.onChange}
                 value={field.value ?? ""}
@@ -100,7 +102,7 @@ export function AppointmentFormFields({
               >
                 <FormControl>
                   <SelectTrigger className="min-h-11 w-full">
-                    <SelectValue placeholder="Payment method" />
+                    <SelectValue placeholder={t("paymentMethodPlaceholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

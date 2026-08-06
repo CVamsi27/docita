@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "@workspace/ui/components/form/form-primitives";
 import { Label } from "@workspace/ui/components";
 import { useDoctors } from "@workspace/data-access";
@@ -23,6 +24,7 @@ export function AdmissionFormFields({
   wardId, bedId, admittingDoctorId, diagnosis, notes, wards, errors,
   onWardChange, onBedChange, onDoctorChange, onDiagnosisChange, onNotesChange,
 }: AdmissionFormFieldsProps) {
+  const { t } = useTranslation("Ipd.admissionFormFields");
   const { data: doctors = [] } = useDoctors();
 
   const availableBeds = useMemo(() => {
@@ -33,20 +35,24 @@ export function AdmissionFormFields({
           .filter((bed) => bed.status === "AVAILABLE")
           .map((bed) => ({
             id: bed.id,
-            label: `${ward.name} / Room ${room.roomNumber} / Bed ${bed.bedNumber}`,
+            label: t("bedLabelTemplate", {
+              ward: ward.name,
+              room: room.roomNumber,
+              bed: bed.bedNumber,
+            }),
           })),
       ) ?? []
     );
-  }, [wardId, wards]);
+  }, [wardId, wards, t]);
 
   return (
     <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="ipd-ward">Ward</Label>
+          <Label htmlFor="ipd-ward">{t("wardLabel")}</Label>
           <Select value={wardId} onValueChange={onWardChange}>
             <SelectTrigger id="ipd-ward">
-              <SelectValue placeholder="Select ward" />
+              <SelectValue placeholder={t("selectWard")} />
             </SelectTrigger>
             <SelectContent>
               {wards.map((ward) => (
@@ -56,10 +62,10 @@ export function AdmissionFormFields({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="ipd-bed">Bed</Label>
+          <Label htmlFor="ipd-bed">{t("bedLabel")}</Label>
           <Select value={bedId} onValueChange={onBedChange} disabled={!wardId}>
             <SelectTrigger id="ipd-bed" aria-invalid={!!errors.bedId}>
-              <SelectValue placeholder="Select bed" />
+              <SelectValue placeholder={t("selectBed")} />
             </SelectTrigger>
             <SelectContent>
               {availableBeds.map((bed) => (
@@ -72,10 +78,10 @@ export function AdmissionFormFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="ipd-doctor">Attending Doctor</Label>
+        <Label htmlFor="ipd-doctor">{t("attendingDoctorLabel")}</Label>
         <Select value={admittingDoctorId} onValueChange={onDoctorChange}>
           <SelectTrigger id="ipd-doctor" aria-invalid={!!errors.admittingDoctorId}>
-            <SelectValue placeholder="Select doctor" />
+            <SelectValue placeholder={t("selectDoctor")} />
           </SelectTrigger>
           <SelectContent>
             {doctors.map((doc) => (
@@ -87,13 +93,13 @@ export function AdmissionFormFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="ipd-diagnosis">Diagnosis</Label>
+        <Label htmlFor="ipd-diagnosis">{t("diagnosisLabel")}</Label>
         <Textarea id="ipd-diagnosis" className="min-h-20" value={diagnosis} onChange={(e) => onDiagnosisChange(e.target.value)} aria-invalid={!!errors.diagnosis} />
         {errors.diagnosis && <p className="text-xs text-destructive">{errors.diagnosis}</p>}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="ipd-notes">Notes</Label>
+        <Label htmlFor="ipd-notes">{t("notesLabel")}</Label>
         <Textarea id="ipd-notes" className="min-h-16" value={notes} onChange={(e) => onNotesChange(e.target.value)} />
       </div>
     </>

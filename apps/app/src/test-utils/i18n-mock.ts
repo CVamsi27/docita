@@ -6,13 +6,15 @@ const resources: MessageTree = isMessageTree(en) ? en : {};
 
 /**
  * Resolve an i18next key (relative to `namespace` when given, otherwise a
- * fully-qualified path) against the real en.json resources. Falls back to the
- * raw key so missing translations render visibly instead of throwing.
+ * fully-qualified path) against the real en.json resources. Namespaces may
+ * be dotted (e.g. `useTranslation("Patients.addPatientDialog")`). Falls
+ * back to the raw key so missing translations render visibly instead of
+ * throwing.
  */
 function lookup(namespace: string | undefined, key: string): string {
-  let node: unknown = namespace ? resources[namespace] : resources;
-  if (node === undefined) node = resources;
-  for (const part of key.split(".")) {
+  const path = namespace ? [...namespace.split("."), ...key.split(".")] : key.split(".");
+  let node: unknown = resources;
+  for (const part of path) {
     if (!isMessageTree(node)) return key;
     node = node[part];
     if (node === undefined) return key;

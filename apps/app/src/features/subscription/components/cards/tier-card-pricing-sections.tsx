@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "../../lib/billing-display-messages";
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
@@ -17,13 +18,14 @@ function TierCardPriceAmount({
   billingCycle: "MONTHLY" | "YEARLY";
   currencySymbol?: string;
 }) {
+  const { t } = useTranslation("Subscription.usageMeter");
   if (billingCycle === "YEARLY" && typeof pricing.monthly === "number" && typeof pricing.yearly === "number" && tier < 4) {
     const discount = pricing.monthly * 12 - pricing.yearly;
     return (
       <span>
-        {currencySymbol ?? ""}{formatAmountLocale(pricing.yearly)}/yr
+        {currencySymbol ?? ""}{formatAmountLocale(pricing.yearly)}{t("yearSuffix")}
         <span className="ml-2 shrink-0 rounded-full border border-success/40 bg-success/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold tabular-nums text-success">
-          Save {currencySymbol ?? ""}{formatAmountLocale(discount)}
+          {t("saveBadge", { amount: `${currencySymbol ?? ""}${formatAmountLocale(discount)}` })}
         </span>
       </span>
     );
@@ -51,9 +53,10 @@ export function TierCardSummaryPricing({
 }
 
 export function TierCardKeyHighlights({ highlights, isSummary }: { highlights: string[]; isSummary: boolean }) {
+  const { t } = useTranslation("Subscription.usageMeter");
   if (!highlights.length) return null;
   return (
-    <ul className={cn("space-y-2 border-t border-border/60", isSummary ? "mt-5 pt-4" : "mt-3 pt-3")} aria-label="Plan highlights">
+    <ul className={cn("space-y-2 border-t border-border/60", isSummary ? "mt-5 pt-4" : "mt-3 pt-3")} aria-label={t("planHighlightsAriaLabel")}>
       {highlights.slice(0, isSummary ? 4 : 5).map((line) => (
         <li key={line} className="flex gap-2 text-[var(--fs-xs)] leading-snug text-foreground">
           <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
@@ -70,6 +73,7 @@ export function TierCardFullPricing({
   tier: number; pricing: TierPricing; billingCycle: "MONTHLY" | "YEARLY"; currencySymbol?: string;
   overageHint?: string; overageItems?: string[]; limitHighlights?: string[]; usageHints?: TierCardProps["usageHints"];
 }) {
+  const { t } = useTranslation("Subscription.usageMeter");
   return (
     <div className="mt-5 space-y-4">
       <div className="rounded-lg border border-border/70 bg-background/80 p-4 shadow-sm">
@@ -83,7 +87,7 @@ export function TierCardFullPricing({
         ) : null}
         {overageItems?.length || overageHint ? (
           <div className="mt-3 border-t border-border/70 pt-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Additional usage</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("additionalUsageLabel")}</p>
             {overageItems?.length ? (
               <ul className="mt-2 flex flex-wrap gap-1.5">
                 {overageItems.map((item) => (
@@ -102,6 +106,7 @@ export function TierCardFullPricing({
 }
 
 export function TierCardSummaryOverage({ overageHint, overageItems }: { overageHint?: string; overageItems?: string[] }) {
+  const { t } = useTranslation("Subscription.usageMeter");
   if (!overageItems?.length && !overageHint) return null;
   return (
     <div className="mt-4 rounded-md border border-border/60 bg-muted/30 px-3 py-2.5">
@@ -109,7 +114,7 @@ export function TierCardSummaryOverage({ overageHint, overageItems }: { overageH
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground/80" aria-hidden>
           <path d="M12 2v20" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
-        Beyond included usage
+        {t("beyondIncludedUsage")}
       </div>
       {overageItems?.length ? (
         <ul className="mt-2 flex flex-wrap gap-1.5" role="list">
@@ -142,21 +147,25 @@ function TierCardLimitHighlights({ limitHighlights }: { limitHighlights: string[
 }
 
 function TierCardUsageHints({ usageHints }: { usageHints: NonNullable<TierCardProps["usageHints"]> }) {
+  const { t } = useTranslation("Subscription.usageMeter");
   return (
     <ul className="grid grid-cols-1 gap-2 text-sm text-foreground">
       {usageHints.patients !== undefined ? (
         <li className="flex min-h-12 items-center gap-2 rounded-md border border-border/70 bg-background/70 px-3 py-2 leading-tight">
-          <Users className="h-4 w-4 shrink-0 text-muted-foreground" /><span>{usageHints.patients >= 999999 ? "Unlimited patients" : `${formatCountLocale(usageHints.patients)} patients`}</span>
+          <Users className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span>{usageHints.patients >= 999999 ? t("unlimitedPatients") : t("patientsCount", { value: formatCountLocale(usageHints.patients) })}</span>
         </li>
       ) : null}
       {usageHints.users !== undefined ? (
         <li className="flex min-h-12 items-center gap-2 rounded-md border border-border/70 bg-background/70 px-3 py-2 leading-tight">
-          <Stethoscope className="h-4 w-4 shrink-0 text-muted-foreground" /><span>{usageHints.users >= 999 ? "Unlimited users" : `Up to ${usageHints.users} users`}</span>
+          <Stethoscope className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span>{usageHints.users >= 999 ? t("unlimitedUsers") : t("usersCount", { count: usageHints.users })}</span>
         </li>
       ) : null}
       {usageHints.whatsappMsgs !== undefined ? (
         <li className="flex min-h-12 items-center gap-2 rounded-md border border-border/70 bg-background/70 px-3 py-2 leading-tight">
-          <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" /><span>{usageHints.whatsappMsgs >= 999999 ? "Unlimited WA msgs" : `${formatCountLocale(usageHints.whatsappMsgs)} WA msgs / month`}</span>
+          <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span>{usageHints.whatsappMsgs >= 999999 ? t("unlimitedWaMsgs") : t("waMsgsCount", { value: formatCountLocale(usageHints.whatsappMsgs) })}</span>
         </li>
       ) : null}
     </ul>

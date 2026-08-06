@@ -1,6 +1,7 @@
 "use client";
 
 import type { FC, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription, AlertTitle, Badge, Button, SymbolTooltip } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
@@ -22,14 +23,16 @@ interface LoadingStateProps {
 
 export const PlanSelectionLoading: FC<LoadingStateProps> = ({
   stepHeader,
-}) => (
+}) => {
+  const { t } = useTranslation("Onboarding.planSelection");
+  return (
   <OnboardingStepCard>
     {stepHeader}
     <OnboardingStepBody
       className="flex flex-col items-center justify-center gap-3 py-12 sm:flex-row"
       role="status"
       aria-live="polite"
-      aria-label="Loading pricing"
+      aria-label={t("loadingAriaLabel")}
     >
       <DocitaLoadingIndicator
         variant="section"
@@ -37,11 +40,12 @@ export const PlanSelectionLoading: FC<LoadingStateProps> = ({
         iconClassName="h-8 w-8 text-muted-foreground"
       />
       <span className="text-sm text-muted-foreground">
-        Loading pricing…
+        {t("loading")}
       </span>
     </OnboardingStepBody>
   </OnboardingStepCard>
-);
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Error state
@@ -51,16 +55,19 @@ interface ErrorStateProps {
   stepHeader: ReactNode;
 }
 
-export const PlanSelectionError: FC<ErrorStateProps> = ({ stepHeader }) => (
+export const PlanSelectionError: FC<ErrorStateProps> = ({ stepHeader }) => {
+  const { t } = useTranslation("Onboarding.planSelection");
+  return (
   <OnboardingStepCard>
     {stepHeader}
     <OnboardingStepBody className="py-8 text-center">
       <p className="text-muted-foreground">
-        We could not load pricing right now. Please try again shortly.
+        {t("loadError")}
       </p>
     </OnboardingStepBody>
   </OnboardingStepCard>
-);
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Team recommendation alert
@@ -79,23 +86,27 @@ interface TeamRecommendationAlertProps {
 export const TeamRecommendationAlert: FC<TeamRecommendationAlertProps> = ({
   teamRecommendation,
 }) => {
+  const { t } = useTranslation("Onboarding.planSelection");
   if (!teamRecommendation) return null;
   return (
     <Alert>
-      <AlertTitle>Recommended for your team</AlertTitle>
+      <AlertTitle>{t("teamRecommendationTitle")}</AlertTitle>
       <AlertDescription>
-        You are setting up{" "}
-        <span className="font-medium text-foreground">
-          {teamRecommendation.totalUsers}{" "}
-          {teamRecommendation.totalUsers === 1 ? "user" : "users"}
-        </span>{" "}
-        (including you).{" "}
+        {t("teamRecommendationIntro", {
+          count: teamRecommendation.totalUsers,
+          users: t(
+            teamRecommendation.totalUsers === 1 ? "user" : "users",
+          ),
+        })}{" "}
         <span className="font-medium text-foreground">
           {getTierInfo(getTierValue(teamRecommendation.tier)).name}
         </span>{" "}
-        includes up to {teamRecommendation.includedUsers}{" "}
-        {teamRecommendation.includedUsers === 1 ? "user" : "users"} and is the
-        smallest plan that covers your team.
+        {t("teamRecommendationCovers", {
+          count: teamRecommendation.includedUsers,
+          users: t(
+            teamRecommendation.includedUsers === 1 ? "user" : "users",
+          ),
+        })}
       </AlertDescription>
     </Alert>
   );
@@ -117,13 +128,15 @@ export const PlanModeBar: FC<PlanModeBarProps> = ({
   billingCycle,
   onModeChange,
   onBillingCycleChange,
-}) => (
+}) => {
+  const { t } = useTranslation("Onboarding.planSelection");
+  return (
   <>
     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div
         className="inline-flex shrink-0 items-center gap-1 rounded-full border bg-muted/40 p-1"
         role="tablist"
-        aria-label="Plan mode"
+        aria-label={t("planModeAriaLabel")}
       >
         {PLAN_MODES.map((mode) => {
           const modeInfo = PLAN_MODE_INFO[mode];
@@ -152,7 +165,8 @@ export const PlanModeBar: FC<PlanModeBarProps> = ({
       {PLAN_MODE_INFO[selectedMode].helpText}
     </p>
   </>
-);
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Tier card grid
@@ -187,7 +201,9 @@ export const TierCardGrid: FC<TierCardGridProps> = ({
   teamRecommendation,
   isSubmitting,
   onSelectCard,
-}) => (
+}) => {
+  const { t } = useTranslation("Onboarding.planSelection");
+  return (
   <div className="grid auto-rows-fr items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {featuresByTier.map(({ tierName, tier, info, features }: FeaturesByTierEntry) => {
       const { cardPricing, currencySymbol, overageHint, buttonLabel } =
@@ -216,7 +232,7 @@ export const TierCardGrid: FC<TierCardGridProps> = ({
         <div key={tier} className="relative flex flex-col">
           {tierName === "ESSENTIAL" ? (
             <Badge className="absolute -top-2 left-4 z-10 bg-success text-success-foreground">
-              Popular
+              {t("popularBadge")}
             </Badge>
           ) : null}
           <TierCard
@@ -238,7 +254,7 @@ export const TierCardGrid: FC<TierCardGridProps> = ({
             currencySymbol={currencySymbol}
             overageHint={overageHint}
             buttonLabel={
-              modeMismatched ? "Only available on Full" : buttonLabel
+              modeMismatched ? t("onlyOnFull") : buttonLabel
             }
             maxDisplay={5}
             usageHints={
@@ -259,4 +275,5 @@ export const TierCardGrid: FC<TierCardGridProps> = ({
       );
     })}
   </div>
-);
+  );
+};

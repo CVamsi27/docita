@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getUserFacingErrorMessage } from "@workspace/utils";
 import { usePartnerPayoutDetails } from "@workspace/data-access";
 import { usePartnerAuth } from "@/features/referral-partner/hooks/use-partner-auth";
@@ -29,6 +30,7 @@ const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 const UPI_REGEX = /^[a-zA-Z0-9._-]{2,256}@[a-zA-Z]{2,64}$/;
 
 export function PartnerBankingForm() {
+  const { t } = useTranslation("ReferralPartner.banking");
   const auth = usePartnerAuth();
   const ctx = auth.buildContext();
   const me = usePartnerMe(ctx.accessToken, ctx.baseUrl);
@@ -45,22 +47,22 @@ export function PartnerBankingForm() {
 
     const ifsc = form.ifsc.trim().toUpperCase();
     if (!IFSC_REGEX.test(ifsc)) {
-      setError("IFSC must look like AAAA0XXXXXX (11 chars).");
+      setError(t("errorIfsc"));
       return;
     }
     const accountNumber = form.accountNumber.replace(/\D/g, "");
     if (accountNumber.length < 9 || accountNumber.length > 18) {
-      setError("Account number must be 9-18 digits.");
+      setError(t("errorAccountNumber"));
       return;
     }
     const upiId = form.upiId.trim();
     if (upiId && !UPI_REGEX.test(upiId)) {
-      setError("UPI ID looks invalid (expected user@bank).");
+      setError(t("errorUpi"));
       return;
     }
     const pan = form.pan.trim().toUpperCase();
     if (pan && !PAN_REGEX.test(pan)) {
-      setError("PAN must look like AAAAA9999A.");
+      setError(t("errorPan"));
       return;
     }
 
@@ -73,12 +75,12 @@ export function PartnerBankingForm() {
         ...(upiId ? { upiId } : {}),
         ...(pan ? { pan } : {}),
       });
-      setSuccess("Bank details saved. We'll review and verify before the next payout.");
+      setSuccess(t("successSaved"));
       setForm(EMPTY);
     } catch (err) {
       setError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not save your details. Try again.",
+          fallback: t("errorSaveFallback"),
           context: "save",
         }),
       );
@@ -88,38 +90,36 @@ export function PartnerBankingForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Banking details</h1>
-        <p className="text-sm text-muted-foreground">
-          We pay you via bank transfer (NEFT / RTGS / UPI). The account holder name must match the name on your PAN.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       {me.data?.payoutDetails ? (
         <Card>
           <CardHeader>
-            <CardTitle>Current details</CardTitle>
+            <CardTitle>{t("currentDetailsTitle")}</CardTitle>
             <CardDescription>
               {me.data.payoutDetails.verified
-                ? "Verified. Editing will require a fresh review."
-                : "Submitted but not yet verified. You can still edit until we approve."}
+                ? t("verifiedDescription")
+                : t("unverifiedDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <dl className="grid gap-2 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-muted-foreground">Account holder</dt>
+                <dt className="text-muted-foreground">{t("accountHolder")}</dt>
                 <dd>{me.data.payoutDetails.accountHolder}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Account (last 4)</dt>
+                <dt className="text-muted-foreground">{t("accountLast4")}</dt>
                 <dd className="font-mono">**** {me.data.payoutDetails.accountNumberLast4}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">IFSC</dt>
+                <dt className="text-muted-foreground">{t("ifsc")}</dt>
                 <dd className="font-mono">{me.data.payoutDetails.ifsc}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Bank</dt>
+                <dt className="text-muted-foreground">{t("bank")}</dt>
                 <dd>{me.data.payoutDetails.bankName}</dd>
               </div>
             </dl>
@@ -130,11 +130,9 @@ export function PartnerBankingForm() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {me.data?.payoutDetails ? "Update details" : "Add bank details"}
+            {me.data?.payoutDetails ? t("updateTitle") : t("addTitle")}
           </CardTitle>
-          <CardDescription>
-            Saved values are encrypted at rest. We display only the last 4 digits of the account number.
-          </CardDescription>
+          <CardDescription>{t("formDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           {error ? (
@@ -150,7 +148,7 @@ export function PartnerBankingForm() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="bank-accountHolder">Account holder name</Label>
+                <Label htmlFor="bank-accountHolder">{t("accountHolderNameLabel")}</Label>
                 <Input
                   id="bank-accountHolder"
                   value={form.accountHolder}
@@ -159,7 +157,7 @@ export function PartnerBankingForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bank-accountNumber">Account number</Label>
+                <Label htmlFor="bank-accountNumber">{t("accountNumberLabel")}</Label>
                 <Input
                   id="bank-accountNumber"
                   inputMode="numeric"
@@ -169,7 +167,7 @@ export function PartnerBankingForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bank-ifsc">IFSC</Label>
+                <Label htmlFor="bank-ifsc">{t("ifsc")}</Label>
                 <Input
                   id="bank-ifsc"
                   value={form.ifsc}
@@ -178,7 +176,7 @@ export function PartnerBankingForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bank-bankName">Bank name</Label>
+                <Label htmlFor="bank-bankName">{t("bankNameLabel")}</Label>
                 <Input
                   id="bank-bankName"
                   value={form.bankName}
@@ -187,7 +185,7 @@ export function PartnerBankingForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bank-upi">UPI ID (optional)</Label>
+                <Label htmlFor="bank-upi">{t("upiLabel")}</Label>
                 <Input
                   id="bank-upi"
                   value={form.upiId}
@@ -195,7 +193,7 @@ export function PartnerBankingForm() {
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="bank-pan">PAN (optional, for TDS purposes)</Label>
+                <Label htmlFor="bank-pan">{t("panLabel")}</Label>
                 <Input
                   id="bank-pan"
                   value={form.pan}
@@ -204,7 +202,7 @@ export function PartnerBankingForm() {
               </div>
             </div>
             <Button type="submit" disabled={upsert.isPending}>
-              {upsert.isPending ? "Saving..." : "Save details"}
+              {upsert.isPending ? t("saving") : t("saveDetails")}
             </Button>
           </form>
         </CardContent>

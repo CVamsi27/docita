@@ -1,6 +1,7 @@
 // jscpd:ignore-start
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { Activity } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { DiseaseTrend } from "@/features/analytics/hooks/use-analytics-logic";
 import { EmptyState, LoadingSpinner } from "./chart-helpers";
@@ -12,11 +13,13 @@ interface TrendsChartProps {
   loading: boolean;
 }
 
-export const TrendsBarChart = ({ data, loading }: TrendsChartProps) => (
+export const TrendsBarChart = ({ data, loading }: TrendsChartProps) => {
+  const { t } = useTranslation("Analytics.trendsCharts");
+  return (
   <Card>
     <CardHeader>
-      <CardTitle>Top Diagnoses by ICD Code</CardTitle>
-      <CardDescription>Most common diagnoses in your facility</CardDescription>
+      <CardTitle>{t("barTitle")}</CardTitle>
+      <CardDescription>{t("barDescription")}</CardDescription>
     </CardHeader>
     <CardContent className="h-[400px]">
       {loading ? (
@@ -37,26 +40,29 @@ export const TrendsBarChart = ({ data, loading }: TrendsChartProps) => (
             <Bar
               dataKey="count"
               fill="var(--color-chart-1)"
-              name="Patient count"
+              name={t("patientCount")}
             />
           </BarChart>
         </ResponsiveContainer>
       ) : (
         <EmptyState
           icon={Activity}
-          label="No disease trend data available"
-          sublabel="Start coding diagnoses to see trends"
+          label={t("barEmptyTitle")}
+          sublabel={t("barEmptySubtitle")}
         />
       )}
     </CardContent>
   </Card>
-);
+  );
+};
 
-export const TrendsPieChart = ({ data, loading }: TrendsChartProps) => (
+export const TrendsPieChart = ({ data, loading }: TrendsChartProps) => {
+  const { t } = useTranslation("Analytics.trendsCharts");
+  return (
   <Card>
     <CardHeader>
-      <CardTitle>Disease distribution</CardTitle>
-      <CardDescription>Percentage breakdown of diagnoses</CardDescription>
+      <CardTitle>{t("pieTitle")}</CardTitle>
+      <CardDescription>{t("pieDescription")}</CardDescription>
     </CardHeader>
     <CardContent className="h-[400px]">
       {loading ? (
@@ -90,8 +96,9 @@ export const TrendsPieChart = ({ data, loading }: TrendsChartProps) => (
           </PieChart>
         </ResponsiveContainer>
       ) : (
-        <EmptyState icon={Activity} label="No distribution data available" />
+        <EmptyState icon={Activity} label={t("pieEmptyTitle")} />
       )}
     </CardContent>
   </Card>
-);
+  );
+};

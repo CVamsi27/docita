@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { usePartnerAuth } from "@/features/referral-partner/hooks/use-partner-auth";
 import { usePartnerMe, usePartnerShareMessage } from "@workspace/data-access";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 
 export function PartnerShareCard() {
+  const { t } = useTranslation("ReferralPartner.share");
   const auth = usePartnerAuth();
   const ctx = auth.buildContext();
   const me = usePartnerMe(ctx.accessToken, ctx.baseUrl);
@@ -21,10 +23,10 @@ export function PartnerShareCard() {
   };
 
   if (me.isLoading || share.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading share kit...</div>;
+    return <div className="text-sm text-muted-foreground">{t("loading")}</div>;
   }
   if (!me.data || !share.data) {
-    return <div className="text-sm text-muted-foreground">Share kit not available yet.</div>;
+    return <div className="text-sm text-muted-foreground">{t("unavailable")}</div>;
   }
   // Destructure so the closures below can read narrowed values without
   // re-checking or non-null asserting.
@@ -34,18 +36,14 @@ export function PartnerShareCard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Share kit</h1>
-        <p className="text-sm text-muted-foreground">
-          Copy a message, download the showcase PDF, or send a doctor your signup link.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Your signup link</CardTitle>
-          <CardDescription>
-            Send this to any doctor or clinic owner. The link applies your referral code automatically.
-          </CardDescription>
+          <CardTitle>{t("signupLinkTitle")}</CardTitle>
+          <CardDescription>{t("signupLinkDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">
@@ -56,17 +54,15 @@ export function PartnerShareCard() {
             onClick={() => void copy(meData.signupUrl, "signup")}
             variant="outline"
           >
-            {copied === "signup" ? "Copied" : "Copy link"}
+            {copied === "signup" ? t("copied") : t("copyLink")}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Suggested WhatsApp message</CardTitle>
-          <CardDescription>
-            Pre-filled with your name and code. Copy and paste into a chat.
-          </CardDescription>
+          <CardTitle>{t("whatsappTitle")}</CardTitle>
+          <CardDescription>{t("whatsappDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm">
@@ -77,22 +73,20 @@ export function PartnerShareCard() {
             onClick={() => void copy(shareData.message, "message")}
             variant="outline"
           >
-            {copied === "message" ? "Copied" : "Copy message"}
+            {copied === "message" ? t("copied") : t("copyMessage")}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Showcase PDF</CardTitle>
-          <CardDescription>
-            A one-page PDF explaining Docita to a doctor. Hand it out or attach it to your message.
-          </CardDescription>
+          <CardTitle>{t("pdfTitle")}</CardTitle>
+          <CardDescription>{t("pdfDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild>
             <a href={meData.showcasePdfUrl} target="_blank" rel="noreferrer">
-              Download showcase PDF
+              {t("downloadPdf")}
             </a>
           </Button>
         </CardContent>

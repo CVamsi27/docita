@@ -1,14 +1,15 @@
+import { useTranslation } from "react-i18next";
 import { usePartnerAuth } from "@/features/referral-partner/hooks/use-partner-auth";
 import { usePartnerReferrals } from "@workspace/data-access";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: "Invited",
-  SIGNED_UP: "Signed up",
-  CONVERTED: "Active (paying)",
-  REJECTED: "Rejected",
-  EXPIRED: "Expired",
+const STATUS_LABEL_KEY: Record<string, string> = {
+  PENDING: "statusPending",
+  SIGNED_UP: "statusSignedUp",
+  CONVERTED: "statusConverted",
+  REJECTED: "statusRejected",
+  EXPIRED: "statusExpired",
 };
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
@@ -20,6 +21,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function PartnerReferralsView() {
+  const { t } = useTranslation("ReferralPartner.referrals");
   const auth = usePartnerAuth();
   const ctx = auth.buildContext();
   const referrals = usePartnerReferrals(ctx.accessToken, ctx.baseUrl);
@@ -27,29 +29,27 @@ export function PartnerReferralsView() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Referrals</h1>
-        <p className="text-sm text-muted-foreground">
-          Clinics that signed up using your code. &apos;Active (paying)&apos; means their first paid invoice cleared.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       {referrals.isLoading ? (
-        <div className="text-sm text-muted-foreground">Loading referrals...</div>
+        <div className="text-sm text-muted-foreground">{t("loading")}</div>
       ) : referrals.isError ? (
         <Card>
           <CardHeader>
-            <CardTitle>Could not load referrals</CardTitle>
+            <CardTitle>{t("loadErrorTitle")}</CardTitle>
             <CardDescription>
               {referrals.error instanceof Error
                 ? referrals.error.message
-                : "Try again in a moment."}
+                : t("loadErrorDescription")}
             </CardDescription>
           </CardHeader>
         </Card>
       ) : !referrals.data || referrals.data.items.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            No referrals yet. Share your code from the Share kit page to get started.
+            {t("empty")}
           </CardContent>
         </Card>
       ) : (
@@ -57,9 +57,9 @@ export function PartnerReferralsView() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-3 py-2 text-left font-medium">Clinic</th>
-                <th className="px-3 py-2 text-left font-medium">Signed up</th>
-                <th className="px-3 py-2 text-left font-medium">Status</th>
+                <th className="px-3 py-2 text-left font-medium">{t("columnClinic")}</th>
+                <th className="px-3 py-2 text-left font-medium">{t("columnSignedUp")}</th>
+                <th className="px-3 py-2 text-left font-medium">{t("columnStatus")}</th>
               </tr>
             </thead>
             <tbody>
@@ -67,7 +67,7 @@ export function PartnerReferralsView() {
                 <tr key={row.id} className="border-t">
                   <td className="px-3 py-2">
                     {row.referredClinicName ?? (
-                      <span className="text-muted-foreground">(not yet on Docita)</span>
+                      <span className="text-muted-foreground">{t("notYetOnDocita")}</span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-xs text-muted-foreground">
@@ -75,7 +75,7 @@ export function PartnerReferralsView() {
                   </td>
                   <td className="px-3 py-2">
                     <Badge variant={STATUS_VARIANT[row.status] ?? "outline"}>
-                      {STATUS_LABEL[row.status] ?? row.status}
+                      {t(STATUS_LABEL_KEY[row.status] ?? row.status)}
                     </Badge>
                   </td>
                 </tr>

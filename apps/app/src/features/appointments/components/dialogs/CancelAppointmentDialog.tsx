@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { AlertCircle } from "lucide-react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Textarea } from "@workspace/ui/components";
@@ -9,11 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/form/select";
-
-const cancelReasonSchema = z
-  .string()
-  .min(1, "Select a cancellation reason")
-  .max(500, "Reason is too long");
 
 const OTHER_VALUE = "other";
 
@@ -30,15 +26,24 @@ export function CancelAppointmentDialog({
   isLoading = false,
   onConfirm,
 }: CancelAppointmentDialogProps) {
+  const { t } = useTranslation("Appointments.cancelDialog");
+  const cancelReasonSchema = useMemo(
+    () =>
+      z
+        .string()
+        .min(1, t("errorRequired"))
+        .max(500, t("errorTooLong")),
+    [t],
+  );
   const reasonOptions = useMemo(
     () => [
-      { value: "patient-requested", label: "Patient requested" },
-      { value: "doctor-unavailable", label: "Doctor unavailable" },
-      { value: "clinic-closed", label: "Clinic closed" },
-      { value: "duplicate", label: "Duplicate booking" },
-      { value: OTHER_VALUE, label: "Other / Custom" },
+      { value: "patient-requested", label: t("reasonPatientRequested") },
+      { value: "doctor-unavailable", label: t("reasonDoctorUnavailable") },
+      { value: "clinic-closed", label: t("reasonClinicClosed") },
+      { value: "duplicate", label: t("reasonDuplicate") },
+      { value: OTHER_VALUE, label: t("reasonOther") },
     ],
-    [],
+    [t],
   );
 
   const [selectedReason, setSelectedReason] = useState<string>("");
@@ -66,9 +71,7 @@ export function CancelAppointmentDialog({
     const rawReason = isOther ? otherReason.trim() : selectedReason;
     const parsed = cancelReasonSchema.safeParse(rawReason);
     if (!parsed.success) {
-      setError(
-        parsed.error.issues[0]?.message ?? "Enter a cancellation reason.",
-      );
+      setError(parsed.error.issues[0]?.message ?? t("errorFallback"));
       return;
     }
 
@@ -83,9 +86,9 @@ export function CancelAppointmentDialog({
           <div className="flex items-start gap-4">
             <AlertCircle className="h-5 w-5 mt-1 text-destructive" />
             <div className="flex-1">
-              <DialogTitle>Cancel appointment</DialogTitle>
+              <DialogTitle>{t("title")}</DialogTitle>
               <DialogDescription className="mt-2">
-                Choose a reason so the schedule stays auditable
+                {t("description")}
               </DialogDescription>
             </div>
           </div>
@@ -93,10 +96,10 @@ export function CancelAppointmentDialog({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Reason</Label>
+            <Label>{t("reasonLabel")}</Label>
             <Select value={selectedReason} onValueChange={setSelectedReason}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Reason" />
+                <SelectValue placeholder={t("reasonLabel")} />
               </SelectTrigger>
               <SelectContent>
                 {reasonOptions.map((opt) => (
@@ -110,11 +113,11 @@ export function CancelAppointmentDialog({
 
           {isOther && (
             <div className="space-y-2">
-              <Label>Other reason</Label>
+              <Label>{t("otherReasonLabel")}</Label>
               <Textarea
                 value={otherReason}
                 onChange={(e) => setOtherReason(e.target.value)}
-                placeholder="Cancellation reason"
+                placeholder={t("reasonLabel")}
                 className="min-h-[90px]"
               />
             </div>
@@ -130,7 +133,7 @@ export function CancelAppointmentDialog({
             onClick={() => handleOpenChange(false)}
             disabled={isLoading}
           >
-            Keep Appointment
+            {t("keepButton")}
           </Button>
           <Button
             type="button"
@@ -142,7 +145,7 @@ export function CancelAppointmentDialog({
             {isLoading && (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             )}
-            Cancel Appointment
+            {t("cancelButton")}
           </Button>
         </DialogFooter>
       </DialogContent>

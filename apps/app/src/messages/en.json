@@ -406,6 +406,19 @@
     }
   },
   "Onboarding": {
+    "planSelection": {
+      "loading": "Loading pricing…",
+      "loadingAriaLabel": "Loading pricing",
+      "loadError": "We could not load pricing right now. Please try again shortly.",
+      "teamRecommendationTitle": "Recommended for your team",
+      "teamRecommendationIntro": "You are setting up {count} {users} (including you).",
+      "teamRecommendationCovers": "includes up to {count} {users} and is the smallest plan that covers your team.",
+      "user": "user",
+      "users": "users",
+      "planModeAriaLabel": "Plan mode",
+      "popularBadge": "Popular",
+      "onlyOnFull": "Only available on Full"
+    },
     "joinClinicRequest": {
       "title": "Request to Join {name}",
       "roleLabel": "Your Role",
@@ -653,6 +666,17 @@
       "followUpPlaceholder": "When to return and what to watch for…",
       "allergySevereTitle": "Severe allergies",
       "allergyAllergiesTitle": "Allergies"
+    },
+    "growthChart": {
+      "title": "Growth Parameters",
+      "description": "Enter anthropometric data to track growth.",
+      "heightLabel": "Height / Length (cm)",
+      "heightPlaceholder": "Enter height",
+      "weightLabel": "Weight (kg)",
+      "weightPlaceholder": "Enter weight",
+      "headCircumferenceLabel": "Head Circumference (cm)",
+      "headCircumferencePlaceholder": "Enter head circumference",
+      "percentile": "Percentile: {value}"
     }
   },
   "Settings": {
@@ -993,6 +1017,47 @@
           "price": "Contact sales"
         }
       }
+    },
+    "usageMeter": {
+      "currentUsageTitle": "Current usage",
+      "overageActive": "Overage active",
+      "loading": "Loading usage…",
+      "unavailable": "Usage meters are temporarily unavailable.",
+      "empty": "Usage appears here after your clinic starts using plan meters.",
+      "planHighlightsAriaLabel": "Plan highlights",
+      "additionalUsageLabel": "Additional usage",
+      "beyondIncludedUsage": "Beyond included usage",
+      "unlimitedPatients": "Unlimited patients",
+      "patientsCount": "{value} patients",
+      "unlimitedUsers": "Unlimited users",
+      "usersCount": "Up to {count} users",
+      "unlimitedWaMsgs": "Unlimited WA msgs",
+      "waMsgsCount": "{value} WA msgs / month",
+      "saveBadge": "Save {amount}",
+      "yearSuffix": "/yr"
+    },
+    "billingPlans": {
+      "choosePlan": "Choose a plan",
+      "planModeAriaLabel": "Plan mode",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "saveBadge": "Save {amount}",
+      "recommendedBadge": "Recommended",
+      "fitsUsageBest": "{tier} fits your usage best",
+      "reviewTier": "Review {tier}",
+      "contactSales": "Contact Sales",
+      "onlyOnFull": "Only available on Full"
+    },
+    "currentPlanCard": {
+      "planTitle": "{tier} Plan",
+      "currentPlanBadge": "Current Plan",
+      "openingCheckout": "Opening checkout…",
+      "payForNextCycle": "Pay for next cycle",
+      "changePlan": "Change plan",
+      "choosePlan": "Choose a plan",
+      "billingHistory": "Billing History",
+      "contactAdminToChange": "Contact your facility administrator to change plans.",
+      "aiFeaturesActive": "AI features active"
     }
   },
   "Invoices": {
@@ -1470,6 +1535,16 @@
       "doctorColAvgPerAppt": "Avg / Appt",
       "doctorEmptyTitle": "No doctor performance data",
       "doctorEmptySubtitle": "Doctor metrics will appear once appointments are recorded and billed"
+    },
+    "trendsCharts": {
+      "barTitle": "Top Diagnoses by ICD Code",
+      "barDescription": "Most common diagnoses in your facility",
+      "patientCount": "Patient count",
+      "barEmptyTitle": "No disease trend data available",
+      "barEmptySubtitle": "Start coding diagnoses to see trends",
+      "pieTitle": "Disease distribution",
+      "pieDescription": "Percentage breakdown of diagnoses",
+      "pieEmptyTitle": "No distribution data available"
     }
   },
   "Patients": {
@@ -2011,6 +2086,49 @@
       "floor": "Floor {floor}",
       "occupancy": "{occupied}/{total} occupied",
       "occupied": "Occupied"
+    },
+    "admissionModal": {
+      "title": "Admit Patient",
+      "description": "Fill in the details to admit a patient to a ward.",
+      "errorPatientId": "Patient ID is required",
+      "errorBed": "Bed is required",
+      "errorDoctor": "Doctor is required",
+      "errorDiagnosis": "Diagnosis is required"
+    },
+    "admissionFormFields": {
+      "wardLabel": "Ward",
+      "selectWard": "Select ward",
+      "bedLabel": "Bed",
+      "selectBed": "Select bed",
+      "attendingDoctorLabel": "Attending Doctor",
+      "selectDoctor": "Select doctor",
+      "diagnosisLabel": "Diagnosis",
+      "notesLabel": "Notes",
+      "bedLabelTemplate": "{ward} / Room {room} / Bed {bed}"
+    },
+    "admissionForm": {
+      "title": "New Admission",
+      "description": "Admit a patient to a ward",
+      "patientIdLabel": "Patient ID / MRN",
+      "patientIdPlaceholder": "Enter patient ID or search...",
+      "wardLabel": "Ward",
+      "selectWard": "Select ward",
+      "bedLabel": "Bed",
+      "selectBed": "Select bed",
+      "attendingDoctorLabel": "Attending Doctor",
+      "selectDoctor": "Select doctor",
+      "diagnosisLabel": "Diagnosis / Reason",
+      "diagnosisPlaceholder": "Enter diagnosis or reason for admission",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Additional notes (optional)",
+      "admitting": "Admitting...",
+      "admitPatient": "Admit Patient",
+      "optionGeneralWard": "General Ward",
+      "optionIcu": "ICU",
+      "optionPrivateRoom": "Private Room",
+      "optionBed101": "Bed 101",
+      "optionBed102": "Bed 102",
+      "optionBed103": "Bed 103"
     }
   },
   "Desk": {
@@ -2248,7 +2366,32 @@
     "newAppointmentAriaLabel": "Create new appointment",
     "newAppointmentButton": "New appointment",
     "searchPlaceholder": "Enter patient name or phone",
-    "searchAriaLabel": "Search appointments"
+    "searchAriaLabel": "Search appointments",
+    "cancelDialog": {
+      "title": "Cancel appointment",
+      "description": "Choose a reason so the schedule stays auditable",
+      "reasonLabel": "Reason",
+      "otherReasonLabel": "Other reason",
+      "keepButton": "Keep Appointment",
+      "cancelButton": "Cancel Appointment",
+      "errorRequired": "Select a cancellation reason",
+      "errorTooLong": "Reason is too long",
+      "errorFallback": "Enter a cancellation reason.",
+      "reasonPatientRequested": "Patient requested",
+      "reasonDoctorUnavailable": "Doctor unavailable",
+      "reasonClinicClosed": "Clinic closed",
+      "reasonDuplicate": "Duplicate booking",
+      "reasonOther": "Other / Custom"
+    },
+    "formFields": {
+      "typeLabel": "Type",
+      "typePlaceholder": "Appointment type",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Visit notes",
+      "advanceLabel": "Advance payment (optional)",
+      "paidByLabel": "Paid by",
+      "paymentMethodPlaceholder": "Payment method"
+    }
   },
   "ClinicSettings": {
     "general": {
@@ -2540,6 +2683,83 @@
       "bankLabel": "Bank",
       "addBankDetails": "Add bank details",
       "updateBankDetails": "Update bank details"
+    },
+    "banking": {
+      "title": "Banking details",
+      "description": "We pay you via bank transfer (NEFT / RTGS / UPI). The account holder name must match the name on your PAN.",
+      "currentDetailsTitle": "Current details",
+      "verifiedDescription": "Verified. Editing will require a fresh review.",
+      "unverifiedDescription": "Submitted but not yet verified. You can still edit until we approve.",
+      "accountHolder": "Account holder",
+      "accountLast4": "Account (last 4)",
+      "ifsc": "IFSC",
+      "bank": "Bank",
+      "updateTitle": "Update details",
+      "addTitle": "Add bank details",
+      "formDescription": "Saved values are encrypted at rest. We display only the last 4 digits of the account number.",
+      "accountHolderNameLabel": "Account holder name",
+      "accountNumberLabel": "Account number",
+      "bankNameLabel": "Bank name",
+      "upiLabel": "UPI ID (optional)",
+      "panLabel": "PAN (optional, for TDS purposes)",
+      "saving": "Saving...",
+      "saveDetails": "Save details",
+      "errorIfsc": "IFSC must look like AAAA0XXXXXX (11 chars).",
+      "errorAccountNumber": "Account number must be 9-18 digits.",
+      "errorUpi": "UPI ID looks invalid (expected user@bank).",
+      "errorPan": "PAN must look like AAAAA9999A.",
+      "successSaved": "Bank details saved. We'll review and verify before the next payout.",
+      "errorSaveFallback": "We could not save your details. Try again."
+    },
+    "payouts": {
+      "title": "Payouts",
+      "description": "Revenue-share payouts from your referred clinics' first-year billing. Manual disbursement via bank transfer.",
+      "loading": "Loading payouts...",
+      "loadErrorTitle": "Could not load payouts",
+      "loadErrorDescription": "Try again in a moment.",
+      "empty": "No payouts yet. They'll appear here once your referred clinics start paying.",
+      "columnPeriod": "Period",
+      "columnBase": "Base",
+      "columnRate": "Rate",
+      "columnAmount": "Amount",
+      "columnStatus": "Status",
+      "statusPending": "Pending",
+      "statusApproved": "Approved",
+      "statusPaid": "Paid",
+      "statusVoid": "Void"
+    },
+    "referrals": {
+      "title": "Referrals",
+      "description": "Clinics that signed up using your code. 'Active (paying)' means their first paid invoice cleared.",
+      "loading": "Loading referrals...",
+      "loadErrorTitle": "Could not load referrals",
+      "loadErrorDescription": "Try again in a moment.",
+      "empty": "No referrals yet. Share your code from the Share kit page to get started.",
+      "columnClinic": "Clinic",
+      "columnSignedUp": "Signed up",
+      "columnStatus": "Status",
+      "notYetOnDocita": "(not yet on Docita)",
+      "statusPending": "Invited",
+      "statusSignedUp": "Signed up",
+      "statusConverted": "Active (paying)",
+      "statusRejected": "Rejected",
+      "statusExpired": "Expired"
+    },
+    "share": {
+      "loading": "Loading share kit...",
+      "unavailable": "Share kit not available yet.",
+      "title": "Share kit",
+      "description": "Copy a message, download the showcase PDF, or send a doctor your signup link.",
+      "signupLinkTitle": "Your signup link",
+      "signupLinkDescription": "Send this to any doctor or clinic owner. The link applies your referral code automatically.",
+      "copied": "Copied",
+      "copyLink": "Copy link",
+      "whatsappTitle": "Suggested WhatsApp message",
+      "whatsappDescription": "Pre-filled with your name and code. Copy and paste into a chat.",
+      "copyMessage": "Copy message",
+      "pdfTitle": "Showcase PDF",
+      "pdfDescription": "A one-page PDF explaining Docita to a doctor. Hand it out or attach it to your message.",
+      "downloadPdf": "Download showcase PDF"
     }
   },
   "Documents": {
@@ -2585,6 +2805,22 @@
       "errorMessage": "We could not run this search. Please try again.",
       "tryAgain": "Try again",
       "noResults": "No results found for “{query}”"
+    }
+  },
+  "Setup": {
+    "clinicSelection": {
+      "pageTitle": "Select Clinic",
+      "backButton": "Back",
+      "title": "Choose your clinic",
+      "description": "Pick the clinic you want to work from, or create a new one",
+      "searchPlaceholder": "Search clinics…",
+      "loading": "Loading clinics…",
+      "loadErrorTitle": "Could not load clinics",
+      "loadErrorDescription": "Something went wrong while fetching your clinics. Please try again.",
+      "noSearchResults": "No clinics match your search",
+      "noClinics": "No clinics yet — create your first one",
+      "selectAriaLabel": "Open clinic {name}",
+      "createNewClinic": "Create new clinic"
     }
   },
   "Profile": {

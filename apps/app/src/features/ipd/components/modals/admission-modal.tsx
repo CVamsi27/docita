@@ -1,4 +1,5 @@
 import React, { FC, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,7 @@ export const AdmissionModal: FC<ModalProps> = ({
   isSubmitting = false,
   onSubmit,
 }) => {
+  const { t } = useTranslation("Ipd.admissionModal");
   const [data, setData] = useState({
     patientId: "",
     wardId: "",
@@ -46,10 +48,10 @@ export const AdmissionModal: FC<ModalProps> = ({
 
   const validate = () => {
     const nextErrors: AdmissionFormErrors = {};
-    if (!data.patientId.trim()) nextErrors.patientId = "Patient ID is required";
-    if (!data.bedId) nextErrors.bedId = "Bed is required";
-    if (!data.admittingDoctorId) nextErrors.admittingDoctorId = "Doctor is required";
-    if (!data.diagnosis.trim()) nextErrors.diagnosis = "Diagnosis is required";
+    if (!data.patientId.trim()) nextErrors.patientId = t("errorPatientId");
+    if (!data.bedId) nextErrors.bedId = t("errorBed");
+    if (!data.admittingDoctorId) nextErrors.admittingDoctorId = t("errorDoctor");
+    if (!data.diagnosis.trim()) nextErrors.diagnosis = t("errorDiagnosis");
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -70,10 +72,8 @@ export const AdmissionModal: FC<ModalProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="md:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Admit Patient</DialogTitle>
-          <DialogDescription>
-            Fill in the details to admit a patient to a ward.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">

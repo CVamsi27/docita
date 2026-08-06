@@ -71,6 +71,30 @@ leaves. The remaining literal debt (755 − target floor) is spread across the
 long-tail of feature files and tracked as steady-state i18n work, not a
 release blocker.
 
+**DONE 2026-08-06 (P5.7 extension, density 755 → 689, −183 vs baseline)**:
+converted 12 more app-side files with real literals: the referral-partner
+cluster (`PartnerBankingForm`, `PartnerPayoutsView`, `PartnerReferralsView`,
+`PartnerShareCard` → `ReferralPartner.{banking,payouts,referrals,share}`,
+37 literals), the IPD admission cluster (`admission-modal`,
+`AdmissionFormFields`, `admission-form` → `Ipd.{admissionModal,
+admissionFormFields,admissionForm}` incl. the data-driven ward/bed option
+lists via new `wardOptions(t)`/`bedOptions(t)` t-prop helpers, 19 literals),
+`CancelAppointmentDialog` → `Appointments.cancelDialog`,
+`current-plan-card-usage` + `tier-card-pricing-sections` →
+`Subscription.{usageMeter,billingPlans}`, `clinic-selection-page` →
+`Setup.clinicSelection`, `TrendsCharts` → `Analytics.trendsCharts`,
+`GrowthChartUI` → `Consultation.growthChart`, and `AppointmentFormFields` →
+`Appointments.formFields`, plus the adjacent plan surfaces that share the
+same strings (`current-plan-card` → `Subscription.currentPlanCard`,
+`plan-selection-step-sections` → `Onboarding.planSelection`). Parity
+2,605 = 2,605 leaves. The remaining literals on the app side are either
+deliberate brand/legal strings or the checker's arrow-body false-positive
+class; the top-density files now all belong to `apps/internal` (the legacy
+Next.js app staged for deletion, which has no i18next). This round also
+fixed the shared test i18n mock (`src/test-utils/i18n-mock.ts`) to walk
+dotted namespaces so components using
+`useTranslation("Section.subsection")` render real English in specs.
+
 ### 2a. Dead i18n namespaces (found 2026-08-06 during the locale-switcher fix)
 
 The EN/हिंदी toggle was switching the i18next language but not the UI: the

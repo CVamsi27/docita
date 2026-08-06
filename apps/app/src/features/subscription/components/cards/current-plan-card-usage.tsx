@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Badge, Progress } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { formatUsageMeterCaption, usageMeterHasNoIncludedQuota, usageProgressPercentForBar } from "../../lib/usage-meter-display";
@@ -9,20 +10,21 @@ export function CurrentPlanCardUsage({
   hasUsageError,
   showWhatsAppUsageMeter = true,
 }: Pick<CurrentPlanCardProps, "usage" | "isUsageLoading" | "hasUsageError" | "showWhatsAppUsageMeter">) {
+  const { t } = useTranslation("Subscription.usageMeter");
   return (
     <div className="rounded-lg border border-border/70 bg-background/70 p-4">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div><p className="text-sm font-semibold text-foreground">Current usage</p></div>
-        {usage && usage.total > 0 ? <Badge variant="destructive" className="self-start sm:self-auto">Overage active</Badge> : null}
+        <div><p className="text-sm font-semibold text-foreground">{t("currentUsageTitle")}</p></div>
+        {usage && usage.total > 0 ? <Badge variant="destructive" className="self-start sm:self-auto">{t("overageActive")}</Badge> : null}
       </div>
 
       {isUsageLoading ? (
         <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-          Loading usage\u2026
+          {t("loading")}
         </div>
       ) : hasUsageError ? (
-        <p className="mt-4 text-sm text-muted-foreground">Usage meters are temporarily unavailable.</p>
+        <p className="mt-4 text-sm text-muted-foreground">{t("unavailable")}</p>
       ) : usage ? (
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
           {(showWhatsAppUsageMeter ? USAGE_ITEMS : USAGE_ITEMS.filter((row) => row.key !== "whatsappMessages")).map(({ key, label, unit }) => {
@@ -42,7 +44,7 @@ export function CurrentPlanCardUsage({
           })}
         </div>
       ) : (
-        <p className="mt-4 text-sm text-muted-foreground">Usage appears here after your clinic starts using plan meters.</p>
+        <p className="mt-4 text-sm text-muted-foreground">{t("empty")}</p>
       )}
     </div>
   );
