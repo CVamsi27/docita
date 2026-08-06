@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateClinicMember, useDeleteClinicMember, useReverifyDoctorRegistration, useUpdateClinicMember } from "@workspace/data-access";
@@ -8,7 +9,8 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useFacilityLabel } from "@/lib/formatters/facility-label";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useConfirm } from "@/hooks/use-confirm";
-import { INVITE_SUCCESS_LABELS, inviteTeamMemberFormSchema, memberManagementFormSchema, type InviteFormValues, type MemberFormValues } from "@/features/settings/components/management/member-management-schemas";
+import { memberRoleLabel } from "@/features/settings/components/management/member-role-label";
+import { inviteTeamMemberFormSchema, memberManagementFormSchema, type InviteFormValues, type MemberFormValues } from "@/features/settings/components/management/member-management-schemas";
 import { buildCreateMemberPayload, buildUpdateMemberPayload, computeCanChangeSelectedMemberRole, computeMemberDialogDescription, computeUserCanChangeRoles, computeIsSelectedMemberDoctor, createToastCallbacks, getEmptyMemberFormDefaultValues, getInviteFormDefaultValues, getInviteGuardError, getMemberFormDefaultValues } from "./member-management-logic";
 
 export function useMemberManagement({
@@ -21,6 +23,7 @@ export function useMemberManagement({
   clinicReferralCode?: string | null;
 }) {
   const { confirm } = useConfirm();
+  const { t } = useTranslation("Settings");
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<User | null>(null);
   const facilityLabel = useFacilityLabel();
@@ -117,7 +120,7 @@ export function useMemberManagement({
     }
     createMember(
       buildCreateMemberPayload(data),
-      createToastCallbacks(`${INVITE_SUCCESS_LABELS[data.role]} invited successfully`, "We could not send this invitation. Please try again.", "save", () => {
+      createToastCallbacks(t("roles.inviteSuccess", { role: memberRoleLabel(data.role, t) }), "We could not send this invitation. Please try again.", "save", () => {
         setIsInviteOpen(false);
         form.reset();
       }),

@@ -17,13 +17,13 @@ export function ManageMemberLabField({
 interface ManageMemberInfoCardProps {
   member: User;
   selectedMemberRole: MemberRole;
-  roleLabels: Record<MemberRole, string>;
+  roleLabel: (role: MemberRole) => string;
 }
 
 export function ManageMemberInfoCard({
   member,
   selectedMemberRole,
-  roleLabels,
+  roleLabel,
 }: ManageMemberInfoCardProps) {
   const { t } = useTranslation("Settings.manageMember");
   return (
@@ -32,7 +32,7 @@ export function ManageMemberInfoCard({
         {member.name || t("unknownMember")}
       </p>
       <p className="text-sm text-muted-foreground">
-        {roleLabels[selectedMemberRole]}
+        {roleLabel(selectedMemberRole)}
       </p>
     </div>
   );
@@ -42,14 +42,14 @@ interface ManageMemberNameRoleFieldsProps {
   memberForm: UseFormReturn<MemberFormValues>;
   canChangeSelectedMemberRole: boolean;
   selectedMemberRole: MemberRole;
-  roleLabels: Record<MemberRole, string>;
+  roleLabel: (role: MemberRole) => string;
 }
 
 export function ManageMemberNameRoleFields({
   memberForm,
   canChangeSelectedMemberRole,
   selectedMemberRole,
-  roleLabels,
+  roleLabel,
 }: ManageMemberNameRoleFieldsProps) {
   const { t } = useTranslation("Settings.manageMember");
   return (
@@ -63,7 +63,7 @@ export function ManageMemberNameRoleFields({
       readOnly={!canChangeSelectedMemberRole}
       // Read-only: the form role is immutable and initialized from the
       // member, so the `selectedMemberRole` prop matches `field.value`.
-      readOnlyValue={roleLabels[selectedMemberRole]}
+      readOnlyValue={roleLabel(selectedMemberRole)}
     />
   );
 }

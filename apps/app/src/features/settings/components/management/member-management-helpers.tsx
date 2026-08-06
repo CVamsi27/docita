@@ -12,7 +12,7 @@ import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { Copy, UserPlus } from "lucide-react";
 import { User } from "@workspace/types";
 import { isDoctor } from "@/lib/auth/permissions";
-import { memberRoleDisplayLabel } from "@/features/settings/components/management/member-management-schemas";
+import { MemberRoleBadge } from "@/features/settings/components/management/member-role-badge";
 import {
   getVerificationBadgeLabel,
   getVerificationBadgeVariant,
@@ -84,9 +84,7 @@ export function MemberListRow({ member, onManage }: MemberListRowProps) {
           <p className="font-medium">{member.name || t("unknownLabel")}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>{member.email}</span>
-            <Badge variant="outline">
-              {memberRoleDisplayLabel(member.role)}
-            </Badge>
+            <MemberRoleBadge role={member.role} />
             {isDoctorUser && (
               <>
                 <Badge

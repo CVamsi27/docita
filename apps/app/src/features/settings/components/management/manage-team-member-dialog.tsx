@@ -1,8 +1,10 @@
 import type { UseFormReturn } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Form } from "@workspace/ui/components";
 import { User } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { MEMBER_ROLE_LABELS, type MemberFormValues, type MemberRole } from "@/features/settings/components/management/member-management-schemas";
+import { type MemberFormValues, type MemberRole } from "@/features/settings/components/management/member-management-schemas";
+import { memberRoleLabel } from "@/features/settings/components/management/member-role-label";
 import { ManageTeamMemberDoctorPanel } from "./manage-team-member-doctor-panel";
 import { ManageMemberInfoCard, ManageMemberNameRoleFields, ManageMemberContactFields, ManageMemberLabField, ManageMemberCreatedDate, ManageMemberFooter } from "./manage-team-member-dialog-sections";
 import type {
@@ -49,6 +51,7 @@ export function ManageTeamMemberDialog({
   getVerificationBadgeLabel,
   formatDate,
 }: ManageTeamMemberDialogProps) {
+  const { t } = useTranslation("Settings");
   return (
     <Dialog open={!!member} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[640px]">
@@ -73,13 +76,13 @@ export function ManageTeamMemberDialog({
                 <ManageMemberInfoCard
                   member={member}
                   selectedMemberRole={selectedMemberRole}
-                  roleLabels={MEMBER_ROLE_LABELS}
+                  roleLabel={(role) => memberRoleLabel(role, t)}
                 />
                 <ManageMemberNameRoleFields
                   memberForm={memberForm}
                   canChangeSelectedMemberRole={canChangeSelectedMemberRole}
                   selectedMemberRole={selectedMemberRole}
-                  roleLabels={MEMBER_ROLE_LABELS}
+                  roleLabel={(role) => memberRoleLabel(role, t)}
                 />
               </div>
 

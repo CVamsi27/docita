@@ -1032,6 +1032,17 @@
       "ofDays": "of {count} days",
       "pending": "{count} pending"
     },
+    "roles": {
+      "doctor": "Doctor",
+      "nurse": "Nurse",
+      "receptionist": "Receptionist",
+      "admin": "Admin",
+      "adminDoctor": "Admin Doctor",
+      "lab": "Lab Technician",
+      "internal": "Internal",
+      "staff": "Staff",
+      "inviteSuccess": "{role} invited successfully"
+    },
     "timeAway": {
       "cardTitle": "Doctor time away",
       "cardDescription": "Block out periods when a doctor is unavailable for consultations",

@@ -1,15 +1,8 @@
 import { Avatar, AvatarFallback, Badge } from "@workspace/ui/components";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/auth/auth-context";
+import { memberRoleLabel } from "@/features/settings/components/management/member-role-label";
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
-
-const ROLE_LABELS: Record<string, string> = {
-  ADMIN_DOCTOR: "Admin Doctor",
-  DOCTOR: "Doctor",
-  NURSE: "Nurse",
-  ADMIN: "Admin",
-  RECEPTIONIST: "Receptionist",
-  INTERNAL: "Internal",
-};
 
 function getInitials(name: string): string {
   return name
@@ -24,10 +17,11 @@ function getInitials(name: string): string {
 /** Signed-in user strip for the settings page header (beside title on large screens). */
 export function SettingsPageHeaderUserMeta() {
   const { user } = useAuth();
+  const { t } = useTranslation("Settings");
 
   if (!user) return null;
 
-  const roleLabel = user.role ? (ROLE_LABELS[user.role] ?? user.role) : null;
+  const roleLabel = user.role ? memberRoleLabel(user.role, t) : null;
   const displayName = user.name ?? "Unknown";
   const initials = displayName ? getInitials(displayName) : "?";
 
