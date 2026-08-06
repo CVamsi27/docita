@@ -49,6 +49,12 @@ export const resourceAttributesSchema = z.object({
   assignedPatientId: z.string().nullish(),
   classification: resourceClassificationSchema,
   consentState: consentStateSchema.nullish(),
+  /**
+   * Resource state attribute (e.g. appointment status) for future
+   * state-based conditions (C2 write-lock decision — currently DEFERRED,
+   * see ADR-0013). Null when the resource carries no state.
+   */
+  status: z.string().nullish(),
   requiresAssignment: z.boolean().default(false),
 });
 export type ResourceAttributes = z.infer<typeof resourceAttributesSchema>;
