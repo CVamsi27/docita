@@ -44,7 +44,9 @@ The new policy stage runs **after** the roles/tier/feature baseline and **before
 
 | Policy (id) | Rules | Resolver | Decorator | Surface |
 |-------------|-------|----------|-----------|---------|
-| `patient` | tenant discipline; PATIENT own-row (`ownerId === subject.userId`); doctor assignment-pinning behind `resource.requiresAssignment` (off on the staff surface today, deferred to C1 phase 2); clinical staff same-clinic; INTERNAL bypass; default-deny | [`PatientResourceResolver`](../apps/api/src/shared/modules/auth/authorization/resolvers/patient-resource.resolver.ts) (Prisma lookup → `ResourceAttributes`) | `@RequirePolicy('patient', 'read'|'update')` on `GET/PATCH /patients/:id` | Staff patients surface (`GET/PATCH /patients/:id`) |
+| `patient` | tenant discipline; PATIENT own-row (`ownerId === subject.userId`); doctor assignment-pinning **on since C1 phase-2 (2026-08-06)** — plain `DOCTOR` must have an active `PatientDoctor` row; `ADMIN_DOCTOR`/`NURSE`/`RECEPTIONIST`/`ADMIN`/`INTERNAL` bypass (mirrors legacy `PatientDoctorGuard`); clinical staff same-clinic; default-deny | [`PatientResourceResolver`](../apps/api/src/shared/modules/auth/authorization/resolvers/patient-resource.resolver.ts) (Prisma lookup → `ResourceAttributes`; `requiresAssignment: true`) | `@RequirePolicy('patient', 'read'|'update')` + `@EmergencyAccess()` on `GET /patients/:id` | Staff patients surface (`GET/PATCH /patients/:id`) |
+
+EmergencyAccess obligation: `GET /patients/:id` is `@EmergencyAccess()`-eligible; `PolicyGuard` honors `x-break-the-glass` before the policy stage and `BreakTheGlassInterceptor` audits `EMERGENCY_ACCESS_GRANTED` + sets the RLS bypass. Read-only escape hatch (updates are not BTG-eligible). Backfill prerequisite: `packages/db/scripts/backfill-patient-doctor.ts` must run before the `requiresAssignment: true` flag ships (AGENTS §9.4).
 
 Every `@RequirePolicy(resource, …)` usage must have a registered resolver — enforced statically by [`check:policy-resolver-coverage`](../../scripts/checks/check-policy-resolver-coverage.mjs) in `verify:standard` (fail-closed: a declared policy with no resolver 403s at runtime).
 
