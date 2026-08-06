@@ -97,7 +97,7 @@ arrow-body false-positive class, and the top-density files are all
 
 **DONE 2026-08-06 (data-map labels)**: converted all app-local English
 data-driven label maps to i18n t-prop helpers/key-maps with en/hi parity
-(2,859 = 2,859 leaves) and added an 8th audit test that fails the build on
+(2,863 = 2,863 leaves) and added an 8th audit test that fails the build on
 any new local `*_LABELS`/`*_LABEL_KEYS` const carrying English display
 values (allowlist is empty). Maps converted: `LEAVE_TYPE_LABELS` →
 `Settings.leaveTypes`, `FOLLOW_UP_STATUS_LABELS` → `FollowUps.statusLabels`,
@@ -109,9 +109,18 @@ values (allowlist is empty). Maps converted: `LEAVE_TYPE_LABELS` →
 `RESPONSE_LABELS` → `Appointments.patientResponse`,
 `CATEGORY_LABELS` → `WhatsApp.templateCategories`,
 `INTERNAL_CATEGORY_LABELS`/`SUBSCRIPTION_GST_INCLUSIVE_NOTICE`/`BILLING_HISTORY_TABLE_CAPTION` →
-`Subscription.billingDisplay`, and `PLAN_ONBOARDING_KEY_HIGHLIGHTS` →
-`Subscription.planHighlights` (key-maps). New `createEnMessageResolver()`
-test-utils helper backs the pure-helper unit tests.
+`Subscription.billingDisplay`, `PLAN_ONBOARDING_KEY_HIGHLIGHTS` →
+`Subscription.planHighlights` (key-maps), and (review-follow-up)
+`VIEW_OPTIONS` → `FollowUps.viewOptions` (`followUpViewLabel` literal-key
+helper). New `createEnMessageResolver()` test-utils helper backs the
+pure-helper unit tests. Review-follow-up hardening in the same batch: the
+guard's display-value detection now flags any value that is not a
+lowercase-dotted i18n key (catches all-caps tokens like `"UPI"`), the
+t-prop trace covers single-arg `(t)` consumers (surfaced and fixed a
+`Subscription.usageMeter` misbinding in `tier-card-pricing-sections`),
+and a dead `?? []` fallback in `plan-selection-step-sections` was dropped.
+`check:jsx-literal-density` now **632** (−240 vs baseline); committed at
+`b1498181c`.
 
 **DONE 2026-08-06 (P5.7 extension, density 755 → 689, −183 vs baseline)**:
 converted 12 more app-side files with real literals: the referral-partner
