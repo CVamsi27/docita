@@ -1,47 +1,5 @@
-export const SUBSCRIPTION_GST_INCLUSIVE_NOTICE =
-  "Prices and invoice totals are inclusive of GST where applicable.";
-
-export const BILLING_HISTORY_TABLE_CAPTION = `${SUBSCRIPTION_GST_INCLUSIVE_NOTICE} After payment, use Receipt to download the PDF invoice. Pending rows stay unpaid until checkout completes.`;
-
-const INTERNAL_DESCRIPTION_PREFIX = /^\[INTERNAL:([A-Z0-9_]+)\]\s*/;
-
-const INTERNAL_CATEGORY_LABELS: Record<string, string> = {
-  GUIDED_SETUP: "Guided setup",
-  DATA_MIGRATION: "Data migration",
-  CUSTOM_TRAINING: "Custom training",
-  INTEGRATION: "Integration",
-  COMMERCIAL_DISCOUNT: "Commercial discount",
-  OTHER: "Other service",
-};
-
-function humanizeInternalCategory(key: string): string {
-  const mapped = INTERNAL_CATEGORY_LABELS[key];
-  if (mapped) return mapped;
-  return key
-    .toLowerCase()
-    .split(/_+/g)
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
-export function formatInvoiceDescriptionForDisplay(
-  raw: string | null | undefined,
-): { label: string; detail?: string } {
-  const trimmed = (raw ?? "").trim();
-  if (!trimmed) {
-    return { label: "Subscription payment" };
-  }
-
-  const match = INTERNAL_DESCRIPTION_PREFIX.exec(trimmed);
-  if (!match) {
-    return { label: trimmed };
-  }
-
-  const categoryKey = match[1] ?? "";
-  const remainder = trimmed.slice(match[0].length).trim();
-  return {
-    label: humanizeInternalCategory(categoryKey),
-    detail: remainder.length > 0 ? remainder : undefined,
-  };
-}
+export {
+  formatInvoiceDescriptionForDisplay,
+  subscriptionGstNotice,
+  subscriptionBillingCaption,
+} from "./billing-display-format";

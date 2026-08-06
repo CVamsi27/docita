@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "../../lib/billing-display-messages";
+import { subscriptionGstNotice } from "../../lib/billing-display-messages";
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
 import { CalendarDays, Check, Stethoscope, Users } from "lucide-react";
@@ -38,6 +38,7 @@ export function TierCardSummaryPricing({
 }: {
   tier: number; pricing: TierPricing; billingCycle: "MONTHLY" | "YEARLY"; currencySymbol?: string; isCurrentTier: boolean;
 }) {
+  const { t } = useTranslation("Subscription");
   return (
     <div className="mt-5 space-y-1">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -46,7 +47,7 @@ export function TierCardSummaryPricing({
         </p>
       </div>
       {pricing.monthly !== 0 && pricing.monthly !== "custom" ? (
-        <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">{SUBSCRIPTION_GST_INCLUSIVE_NOTICE}</p>
+        <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">{subscriptionGstNotice(t)}</p>
       ) : null}
     </div>
   );
@@ -73,6 +74,7 @@ export function TierCardFullPricing({
   tier: number; pricing: TierPricing; billingCycle: "MONTHLY" | "YEARLY"; currencySymbol?: string;
   overageHint?: string; overageItems?: string[]; limitHighlights?: string[]; usageHints?: TierCardProps["usageHints"];
 }) {
+  const { t: tSub } = useTranslation("Subscription");
   const { t } = useTranslation("Subscription.usageMeter");
   return (
     <div className="mt-5 space-y-4">
@@ -83,7 +85,7 @@ export function TierCardFullPricing({
           </p>
         </div>
         {pricing.monthly !== 0 && pricing.monthly !== "custom" ? (
-          <p className="mt-1 text-[var(--fs-2xs)] leading-snug text-muted-foreground">{SUBSCRIPTION_GST_INCLUSIVE_NOTICE}</p>
+          <p className="mt-1 text-[var(--fs-2xs)] leading-snug text-muted-foreground">{subscriptionGstNotice(tSub)}</p>
         ) : null}
         {overageItems?.length || overageHint ? (
           <div className="mt-3 border-t border-border/70 pt-3">

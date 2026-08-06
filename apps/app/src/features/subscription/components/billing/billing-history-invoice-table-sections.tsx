@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Download } from "lucide-react";
 import { Badge, Button, ListRow, TableCell, TableRow, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
@@ -9,7 +10,10 @@ import { formatDate, formatDateTime } from "@/lib/formatters";
 import { formatInvoiceDescriptionForDisplay } from "@/features/subscription/lib/billing-display-messages";
 import { badgeClassForStatus, formatMoney, isBillingRowPaid, isFailedLike, isTerminalClosed, normalizeStatus, readBillingHistoryActions, resolveBillingAmountCents } from "./billing-history-table-helpers";
 
-function getInvoiceRowData(invoice: BillingHistoryItem) {
+function getInvoiceRowData(
+  invoice: BillingHistoryItem,
+  t: (key: string) => string,
+) {
   const withActions = readBillingHistoryActions(invoice);
   const status = normalizeStatus(invoice.status);
   const isPaid = isBillingRowPaid(invoice);
@@ -23,6 +27,7 @@ function getInvoiceRowData(invoice: BillingHistoryItem) {
     !isPaid && !terminalClosed && !(isFailedLike(status) && !payUrl);
   const { label, detail } = formatInvoiceDescriptionForDisplay(
     invoice.description,
+    t,
   );
   return { withActions, status, isPaid, receiptUrl, payUrl, terminalClosed, showPayNow, label, detail };
 }
@@ -41,7 +46,8 @@ export function BillingInvoiceMobileRow({
   resumePaymentPending: boolean;
   onResumePayment: (invoice: BillingHistoryItem, payUrl?: string) => Promise<void>;
 }) {
-  const { receiptUrl, showPayNow, label, detail, status, payUrl } = getInvoiceRowData(invoice);
+  const { t } = useTranslation("Subscription");
+  const { receiptUrl, showPayNow, label, detail, status, payUrl } = getInvoiceRowData(invoice, t);
 // jscpd:ignore-end
 
   return (
@@ -104,7 +110,8 @@ export function BillingInvoiceDesktopRow({
   resumePaymentPending: boolean;
   onResumePayment: (invoice: BillingHistoryItem, payUrl?: string) => Promise<void>;
 }) {
-  const { status, isPaid: _isPaid, receiptUrl, payUrl, showPayNow, label, detail } = getInvoiceRowData(invoice);
+  const { t } = useTranslation("Subscription");
+  const { status, isPaid: _isPaid, receiptUrl, payUrl, showPayNow, label, detail } = getInvoiceRowData(invoice, t);
 // jscpd:ignore-end
 
   const dateCell = <span>{formatDate(invoice.createdAt)}</span>;

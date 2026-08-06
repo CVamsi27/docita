@@ -1,7 +1,8 @@
+import { useTranslation } from "react-i18next";
 import { Activity, CalendarClock, CreditCard, Layers, LockKeyhole, Sparkles } from "lucide-react";
 import { Badge, Button } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
-import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "../../lib/billing-display-messages";
+import { subscriptionGstNotice } from "../../lib/billing-display-messages";
 import { formatCurrency } from "@workspace/utils";
 import type { CurrentPlanCardProps } from "./current-plan-card-types";
 
@@ -22,6 +23,7 @@ export function CurrentPlanCardMeta({
   planDetailsFootnote,
   statusNotice,
 }: Pick<CurrentPlanCardProps, "scheduledChange" | "accountCreditCents" | "accountCreditCurrency" | "planDetails" | "planDetailsFootnote" | "statusNotice">) {
+  const { t } = useTranslation("Subscription");
   const statusNoticeClassName =
     statusNotice?.variant === "destructive"
       ? "border-destructive/50 bg-destructive/10 text-destructive"
@@ -87,7 +89,7 @@ export function CurrentPlanCardMeta({
         <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">{planDetailsFootnote}</p>
       ) : null}
 
-      <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">{SUBSCRIPTION_GST_INCLUSIVE_NOTICE}</p>
+      <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">{subscriptionGstNotice(t)}</p>
 
       {statusNotice ? (
         <div className={cn("rounded-lg border p-3", statusNoticeClassName)}>

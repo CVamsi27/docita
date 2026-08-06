@@ -1092,6 +1092,19 @@
     }
   },
   "Subscription": {
+    "billingDisplay": {
+      "gstInclusiveNotice": "Prices and invoice totals are inclusive of GST where applicable.",
+      "tableCaption": "After payment, use Receipt to download the PDF invoice. Pending rows stay unpaid until checkout completes.",
+      "subscriptionPayment": "Subscription payment",
+      "internalCategories": {
+        "guidedSetup": "Guided setup",
+        "dataMigration": "Data migration",
+        "customTraining": "Custom training",
+        "integration": "Integration",
+        "commercialDiscount": "Commercial discount",
+        "other": "Other service"
+      }
+    },
     "estimatorInputs": {
       "planLabel": "Plan",
       "billingCycleLabel": "Billing cycle",

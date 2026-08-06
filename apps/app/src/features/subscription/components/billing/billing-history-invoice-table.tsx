@@ -1,10 +1,11 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
 import { ListRowGroup, TableFooter } from "@workspace/ui/components";
 import type { BillingHistoryItem } from "@workspace/data-access";
 import {
-  BILLING_HISTORY_TABLE_CAPTION,
+  subscriptionBillingCaption,
 } from "@/features/subscription/lib/billing-display-messages";
 import {
   formatMoney,
@@ -33,6 +34,7 @@ export function BillingHistoryInvoiceTable({
     payUrl?: string,
   ) => Promise<void>;
 }) {
+  const { t } = useTranslation("Subscription");
   return (
     <div className="rounded-lg border">
       <div className="md:hidden">
@@ -60,7 +62,7 @@ export function BillingHistoryInvoiceTable({
       <div className="hidden overflow-x-auto md:block">
         <Table className="min-w-[min(100%,36rem)] table-auto">
           <caption className="caption-bottom px-3 pb-3 pt-2 text-left text-[var(--fs-2xs)] leading-snug text-muted-foreground">
-            {BILLING_HISTORY_TABLE_CAPTION}
+            {subscriptionBillingCaption(t)}
           </caption>
           <TableHeader>
             <TableRow>

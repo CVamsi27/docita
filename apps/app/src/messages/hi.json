@@ -742,6 +742,19 @@
     }
   },
   "Subscription": {
+    "billingDisplay": {
+      "gstInclusiveNotice": "कीमतें और इनवॉइस राशियाँ जहाँ लागू हो, वहाँ GST सहित हैं।",
+      "tableCaption": "भुगतान के बाद PDF इनवॉइस डाउनलोड करने के लिए रसीद का उपयोग करें। लंबित पंक्तियाँ चेकआउट पूर्ण होने तक अवैतनिक रहती हैं।",
+      "subscriptionPayment": "सदस्यता भुगतान",
+      "internalCategories": {
+        "guidedSetup": "निर्देशित सेटअप",
+        "dataMigration": "डेटा माइग्रेशन",
+        "customTraining": "कस्टम प्रशिक्षण",
+        "integration": "एकीकरण",
+        "commercialDiscount": "वाणिज्यिक छूट",
+        "other": "अन्य सेवा"
+      }
+    },
     "estimatorInputs": {
       "planLabel": "प्लान",
       "billingCycleLabel": "बिलिंग चक्र",

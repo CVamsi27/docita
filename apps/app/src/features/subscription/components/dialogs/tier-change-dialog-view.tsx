@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 // jscpd:ignore-start
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components";
@@ -12,7 +13,7 @@ import {
   Building2,
   CheckCircle,
 } from "lucide-react";
-import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+import { subscriptionGstNotice } from "@/features/subscription/lib/billing-display-messages";
 import { type TierChangeDialogProps } from "./tier-change-dialog-types";
 import { FeatureDeltaGrid, DowngradeTimingChooser, ProrationPreview } from "./tier-change-dialog-sections";
 import { TierChangeDialogPlanCompare } from "./tier-change-dialog-plan-compare";
@@ -114,6 +115,7 @@ function TierChangeConfirmationContent({
   props,
   dialog,
 }: TierChangeDialogViewProps) {
+  const { t } = useTranslation("Subscription");
   const { selectedTier, billingCycle, onSchedule } = props;
   if (!selectedTier) return null;
   return (
@@ -140,7 +142,7 @@ function TierChangeConfirmationContent({
       <TierChangeDowngradeTiming dialog={dialog} onSchedule={onSchedule} />
       <TierChangeProration props={props} dialog={dialog} />
       <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
-        {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
+        {subscriptionGstNotice(t)}
       </p>
       <TierChangeAlerts props={props} dialog={dialog} />
       <TierChangeFooter props={props} dialog={dialog} />
