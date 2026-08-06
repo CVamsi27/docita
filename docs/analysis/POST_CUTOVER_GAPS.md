@@ -87,12 +87,13 @@ from the caller) → `Prescriptions.tableColumns`, `LeavePolicyEditor` →
 `BillingLineItemsEditor` → `Consultation.billingLineItems`,
 `compliance-patient-rights-card` → `Settings.patientRights`,
 `WhatsappSenderSettingsSections` (module-level `UI_MODE_LABELS` constant
-became a `uiModeLabel(mode, t)` t-prop helper) →
-`WhatsApp.senderSettingsSections`, `VisionExamUISections` →
-`Consultation.visionExam`. Parity 2,773 = 2,773 leaves. **Zero app-side
-files remain in the density listing** (≥3-literal cutoff) — the residual
-counts on already-converted files are the checker's arrow-body
-false-positive class, and the top-density files are all `apps/internal`.
+became a `uiModeLabel(mode, t)` t-prop helper, plus the ModeSelector
+aria-label suffix via `modeAriaLabel`) → `WhatsApp.senderSettingsSections`,
+`VisionExamUISections` → `Consultation.visionExam`. Parity 2,774 = 2,774
+leaves. **Zero app-side files remain in the density listing** (≥3-literal
+cutoff) — the residual counts on already-converted files are the checker's
+arrow-body false-positive class, and the top-density files are all
+`apps/internal`.
 
 **DONE 2026-08-06 (P5.7 extension, density 755 → 689, −183 vs baseline)**:
 converted 12 more app-side files with real literals: the referral-partner
