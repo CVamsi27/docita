@@ -11,7 +11,10 @@ import { AbacPolicyRegistry } from './abac-policy.registry';
 import { PatientResourceResolver } from './resolvers/patient-resource.resolver';
 import { AppointmentResourceResolver } from './resolvers/appointment-resource.resolver';
 import { PolicyResourceResolverRegistry } from './resolvers/policy-resource-resolver';
-import { AppointmentAbacPolicy, PatientAbacPolicy } from '@workspace/authorization';
+import {
+  AppointmentAbacPolicy,
+  PatientAbacPolicy,
+} from '@workspace/authorization';
 
 @Module({
   imports: [AuthModule],

@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { AppointmentAbacPolicy, PatientAbacPolicy } from '@workspace/authorization';
+import {
+  AppointmentAbacPolicy,
+  PatientAbacPolicy,
+} from '@workspace/authorization';
 import type { AbacPolicy } from '@workspace/authorization';
 
 /**
@@ -10,10 +13,7 @@ import type { AbacPolicy } from '@workspace/authorization';
 export class AbacPolicyRegistry {
   private readonly policies: ReadonlyMap<string, AbacPolicy>;
 
-  constructor(
-    patient: PatientAbacPolicy,
-    appointment: AppointmentAbacPolicy,
-  ) {
+  constructor(patient: PatientAbacPolicy, appointment: AppointmentAbacPolicy) {
     this.policies = new Map<string, AbacPolicy>([
       ['patient', patient],
       ['appointment', appointment],

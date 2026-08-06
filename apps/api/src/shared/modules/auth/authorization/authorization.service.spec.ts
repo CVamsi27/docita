@@ -1,6 +1,9 @@
 import { ClinicTier, Role, SubscriptionStatus } from '@workspace/db';
 import { Feature } from '@workspace/types';
-import { AppointmentAbacPolicy, PatientAbacPolicy } from '@workspace/authorization';
+import {
+  AppointmentAbacPolicy,
+  PatientAbacPolicy,
+} from '@workspace/authorization';
 import { subjectAttributesSchema } from '@workspace/types';
 import { AuthorizationService } from './authorization.service';
 import { AbacPolicyRegistry } from './abac-policy.registry';
