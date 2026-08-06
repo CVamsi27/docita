@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   envAttributesSchema,
-  resourceAttributesSchema,
-  subjectAttributesSchema,
   type EnvAttributes,
+  resourceAttributesSchema,
   type ResourceAttributes,
+  subjectAttributesSchema,
   type SubjectAttributes,
 } from "@workspace/types/authorization";
 import { denyOverrides, evaluatePolicy } from "./evaluator.js";
