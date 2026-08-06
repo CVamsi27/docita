@@ -189,6 +189,26 @@ export const factories = {
     });
   },
 
+  patientDoctor: async (
+    patientId: string,
+    doctorId: string,
+    clinicId: string,
+    overrides = {},
+  ) => {
+    const now = new Date();
+    return prisma.patientDoctor.create({
+      data: {
+        patientId,
+        doctorId,
+        clinicId,
+        isActive: true,
+        firstSeenAt: now,
+        lastSeenAt: now,
+        ...overrides,
+      },
+    });
+  },
+
   appointmentReminder: async (
     appointmentId: string,
     _clinicId: string,

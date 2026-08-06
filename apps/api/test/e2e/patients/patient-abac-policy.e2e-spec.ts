@@ -95,8 +95,9 @@ describe('Patient ABAC policy (e2e)', () => {
 
   it('staff DOCTOR of the owning clinic reads the patient (200)', async () => {
     const clinicA = await factories.clinic();
-    const { token } = await signDoctor(clinicA.id);
+    const { user, token } = await signDoctor(clinicA.id);
     const patient = await factories.patient(clinicA.id);
+    await factories.patientDoctor(patient.id, user.id, clinicA.id);
 
     await request(app.getHttpServer())
       .get(`/patients/${patient.id}`)
@@ -138,8 +139,9 @@ describe('Patient ABAC policy (e2e)', () => {
 
   it('staff DOCTOR of the owning clinic updates the patient (200)', async () => {
     const clinicA = await factories.clinic();
-    const { token } = await signDoctor(clinicA.id);
+    const { user, token } = await signDoctor(clinicA.id);
     const patient = await factories.patient(clinicA.id);
+    await factories.patientDoctor(patient.id, user.id, clinicA.id);
 
     await request(app.getHttpServer())
       .patch(`/patients/${patient.id}`)

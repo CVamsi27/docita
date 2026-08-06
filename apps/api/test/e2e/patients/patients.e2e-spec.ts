@@ -189,6 +189,9 @@ describe('Patients (e2e)', () => {
   describe('GET /patients/:id', () => {
     it('should get patient details', async () => {
       const patient = await factories.patient(clinicId);
+      // Assignment-pinning is on (C1 phase-2): the acting DOCTOR must have an
+      // active PatientDoctor row to read the patient.
+      await factories.patientDoctor(patient.id, doctorId, clinicId);
 
       const response = await request(app.getHttpServer())
         .get(`/patients/${patient.id}`)
@@ -211,6 +214,9 @@ describe('Patients (e2e)', () => {
   describe('PATCH /patients/:id', () => {
     it('should update patient', async () => {
       const patient = await factories.patient(clinicId);
+      // Assignment-pinning is on (C1 phase-2): the acting DOCTOR must have an
+      // active PatientDoctor row to update the patient.
+      await factories.patientDoctor(patient.id, doctorId, clinicId);
 
       await request(app.getHttpServer())
         .patch(`/patients/${patient.id}`)
