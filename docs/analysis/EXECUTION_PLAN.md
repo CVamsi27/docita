@@ -404,12 +404,16 @@ Items that require their own ADR and dedicated workstream; not a ratchet and not
 
 | Item     | Title                                                          | Owner       | ADR / plan                                                       |
 | -------- | -------------------------------------------------------------- | ----------- | ---------------------------------------------------------------- |
-| **P6.1** | ABAC layered on RBAC + tenant + tier (attribute-based access)  | Backend     | [`ABAC_MIGRATION_PLAN.md`](ABAC_MIGRATION_PLAN.md) (2026-08-04)  |
+| **P6.1** | ABAC layered on RBAC + tenant + tier (attribute-based access)  | Backend     | [`ABAC_MIGRATION_PLAN.md`](ABAC_MIGRATION_PLAN.md) (2026-08-04); first slice done 2026-08-06 — see [NOTE below](#note-2026-08-06-abac-first-slice) |
 | **P6.2** | React Router 8 data-router migration (loader/action ergonomics) | Frontend   | ADR pending; deferred until a feature needs loader/action flows  |
 | **P6.3** | TypeScript 7.0 (deferred until NestJS supports the native compiler API) | Release eng | [`DEPENDENCY_UPGRADE_TRACKER.md`](../operations/DEPENDENCY_UPGRADE_TRACKER.md) |
 | **P6.4** | NestJS 12 (coordinated API/worker upgrade + e2e pass)            | Backend     | `DEPENDENCY_UPGRADE_TRACKER.md` (Planned)                        |
 
 P6 items are not on the release gate. They are tracked in the dependency upgrade tracker and the ABAC plan; both are consulted before the next major-version bump.
+
+### NOTE 2026-08-06 — ABAC first slice
+
+P6.1 first slice shipped 2026-08-06 per [`docs/superpowers/plans/2026-08-06-abac-first-slice.md`](../superpowers/plans/2026-08-06-abac-first-slice.md): attribute schemas in `packages/types/src/authorization/`, a pure `@workspace/authorization` policy engine, the global `PolicyGuard` + `@RequirePolicy` decorator, and the `patient` resource enforced (with differential + e2e proof) on `GET/PATCH /patients/:id`. The A2 posture gate (`check:policy-resolver-coverage`) is wired into `verify:standard`; the decision is recorded in [ADR-0013](../architecture/decisions/0013-abac.md). Doctor **assignment-pinning** on the staff surface is explicitly deferred to C1 phase 2 (ADR-0013) — it is implemented behind `resource.requiresAssignment` but off by default to stay differential-equivalent to today. Remaining slices (C2 appointments, C3 prescriptions, C4 lab/payments, C5 audit logs, C6 cross-tenant referral, C7 frontend snapshot, Phase D retirement ledger, Phase E parity-gate cutover) are separate plans.
 
 ---
 

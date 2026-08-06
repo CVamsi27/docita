@@ -38,6 +38,16 @@ For each `APP_ACCESS_TARGET` in `APP_ACCESS_MATRIX`:
 - **Notification settings:** WhatsApp toggle is shown only when `Feature.WHATSAPP_MESSAGING` is allowed; otherwise a billing upgrade hint is shown and WhatsApp fields are omitted from saves.
 - **Tier string mapping:** `mapClinicTierDbStringToAccessTier` unifies legacy Prisma tier strings for the permission store and `useTierAccess`.
 
+## ABAC policy index (layered ABAC-on-RBAC, 2026-08-06)
+
+The new policy stage runs **after** the roles/tier/feature baseline and **before** RLS. It is additive: it never weakens the guards above it. See [ADR-0013](../architecture/decisions/0013-abac.md) and the [first-slice plan](../superpowers/plans/2026-08-06-abac-first-slice.md).
+
+| Policy (id) | Rules | Resolver | Decorator | Surface |
+|-------------|-------|----------|-----------|---------|
+| `patient` | tenant discipline; PATIENT own-row (`ownerId === subject.userId`); doctor assignment-pinning behind `resource.requiresAssignment` (off on the staff surface today, deferred to C1 phase 2); clinical staff same-clinic; INTERNAL bypass; default-deny | [`PatientResourceResolver`](../apps/api/src/shared/modules/auth/authorization/resolvers/patient-resource.resolver.ts) (Prisma lookup → `ResourceAttributes`) | `@RequirePolicy('patient', 'read'|'update')` on `GET/PATCH /patients/:id` | Staff patients surface (`GET/PATCH /patients/:id`) |
+
+Every `@RequirePolicy(resource, …)` usage must have a registered resolver — enforced statically by [`check:policy-resolver-coverage`](../../scripts/checks/check-policy-resolver-coverage.mjs) in `verify:standard` (fail-closed: a declared policy with no resolver 403s at runtime).
+
 ## Traceability appendix (high-risk rows)
 
 Keep this table aligned with `APP_ACCESS_TARGETS` and real call paths. When you add a route or hook, add or update a row and extend automated tests where practical.
