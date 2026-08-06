@@ -303,4 +303,56 @@ describe("i18n namespace registration", () => {
 
     expect(missing, `missing t-prop keys:\n${missing.join("\n")}`).toEqual([]);
   });
+
+  it("no t-prop signature escapes the consumer trace", async () => {
+    // The t-prop trace can only follow consumers typed `t: (key: string) =>
+    // string` and call sites that pass a plain variable (`t={t}` / `name(…, t)`).
+    // A different signature — optional `t?:`, `TFunction`, a parameter not
+    // named `key`, or a non-`string` return type — would silently drop that
+    // consumer's keys from the audit, so this counter-assertion fails the
+    // build when one appears. New entries belong in the allowlist only with a
+    // documented rationale; extending the trace is preferred.
+    const allowlist: Array<{ file: string; reason: string }> = [];
+    const files: string[] = [];
+    for await (const file of glob("src/**/*.{ts,tsx}")) {
+      if (
+        file.includes("test-utils") ||
+        file.includes("__tests__") ||
+        /\.(test|spec)\.tsx?$/.test(file)
+      ) {
+        continue;
+      }
+      files.push(file);
+    }
+
+    const offenders: string[] = [];
+    const tPropRe =
+      /\bt(\??):\s*\(([A-Za-z0-9_]+)[^)]*\)\s*=>\s*string(?:\s*[|&].*)?/g;
+    for (const file of files) {
+      const text = await readFile(file, "utf8");
+      for (const match of text.matchAll(tPropRe)) {
+        const isOptional = match[1] === "?";
+        const paramName = match[2];
+        const hasExtendedReturn = /=>\s*string\s*[|&]/.test(match[0]);
+        const traceable =
+          !isOptional && paramName === "key" && !hasExtendedReturn;
+        if (!traceable) {
+          offenders.push(`${file}: ${match[0].trim()}`);
+        }
+      }
+      for (const match of text.matchAll(/\bt\??:\s*TFunction\b/g)) {
+        offenders.push(`${file}: ${match[0].trim()} (TFunction)`);
+      }
+    }
+
+    const allowed = new Set(allowlist.map((a) => a.file));
+    const unallowed = offenders.filter((o) => {
+      const file = o.split(":")[0];
+      return !allowed.has(file);
+    });
+    expect(
+      unallowed,
+      `untraceable t-prop signatures (extend the trace or allowlist with rationale):\n${unallowed.join("\n")}`,
+    ).toEqual([]);
+  });
 });

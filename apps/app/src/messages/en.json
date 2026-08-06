@@ -830,6 +830,7 @@
       "registrationNumberPlaceholder": "State medical council registration number"
     },
     "manageTeamMemberDoctorPanel": {
+      "unverifiedLabel": "Unverified",
       "signatureLabel": "Signature:",
       "signatureReady": "Uploaded",
       "signatureMissing": "Missing",
@@ -852,6 +853,7 @@
       "cardSubtitle": "Staff accounts for {facilityLabel}",
       "loadingAriaLabel": "Loading team members",
       "unknownLabel": "Unknown member",
+      "unverifiedLabel": "Unverified",
       "manageButton": "Manage",
       "codeLabel": "{facilityLabel} invite code",
       "codeUnavailable": "Unavailable",

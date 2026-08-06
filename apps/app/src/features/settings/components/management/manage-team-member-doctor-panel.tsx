@@ -9,6 +9,10 @@ import { useTranslation } from "react-i18next";
 import { getDoctorVerificationPublicNote } from "@workspace/utils";
 import { DoctorRegistrationFields } from "@/features/settings/components/management/team-member-form-fields";
 import type { MemberFormValues } from "@/features/settings/components/management/member-management-schemas";
+import type {
+  VerificationBadgeLabelFn,
+  VerificationBadgeVariantFn,
+} from "@/features/settings/components/management/member-verification-badge";
 
 export function ManageTeamMemberDoctorPanel({
   member,
@@ -25,10 +29,8 @@ export function ManageTeamMemberDoctorPanel({
   isManaging: boolean;
   isReverifyingDoctor: boolean;
   onReverifyDoctor: (doctorId: string) => void;
-  getVerificationBadgeVariant: (
-    status?: User["verificationStatus"],
-  ) => "default" | "secondary" | "destructive" | "outline";
-  getVerificationBadgeLabel: (status?: User["verificationStatus"]) => string;
+  getVerificationBadgeVariant: VerificationBadgeVariantFn;
+  getVerificationBadgeLabel: VerificationBadgeLabelFn;
   formatDate: (value?: string | Date) => string;
 }) {
   const { t } = useTranslation("Settings.manageTeamMemberDoctorPanel");
@@ -52,7 +54,7 @@ export function ManageTeamMemberDoctorPanel({
               ) : (
                 <ShieldX className="mr-1 h-3.5 w-3.5" />
               )}
-              {getVerificationBadgeLabel(member.verificationStatus)}
+              {getVerificationBadgeLabel(member.verificationStatus, t)}
             </Badge>
             <Badge variant={member.signatureUploadedAt ? "default" : "outline"}>
               {t("signatureLabel")} {member.signatureUploadedAt ? t("signatureReady") : t("signatureMissing")}

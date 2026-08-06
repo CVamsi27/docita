@@ -5,6 +5,10 @@ import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { MEMBER_ROLE_LABELS, type MemberFormValues, type MemberRole } from "@/features/settings/components/management/member-management-schemas";
 import { ManageTeamMemberDoctorPanel } from "./manage-team-member-doctor-panel";
 import { ManageMemberInfoCard, ManageMemberNameRoleFields, ManageMemberContactFields, ManageMemberLabField, ManageMemberCreatedDate, ManageMemberFooter } from "./manage-team-member-dialog-sections";
+import type {
+  VerificationBadgeLabelFn,
+  VerificationBadgeVariantFn,
+} from "./member-verification-badge";
 
 interface ManageTeamMemberDialogProps {
   member: User | null;
@@ -21,10 +25,8 @@ interface ManageTeamMemberDialogProps {
   onSave: (data: MemberFormValues) => void;
   onRemoveClick: () => void;
   onReverifyDoctor: (doctorId: string) => void;
-  getVerificationBadgeVariant: (
-    status?: User["verificationStatus"],
-  ) => "default" | "secondary" | "destructive" | "outline";
-  getVerificationBadgeLabel: (status?: User["verificationStatus"]) => string;
+  getVerificationBadgeVariant: VerificationBadgeVariantFn;
+  getVerificationBadgeLabel: VerificationBadgeLabelFn;
   formatDate: (value?: string | Date) => string;
 }
 

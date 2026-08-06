@@ -2617,6 +2617,7 @@
       "registrationNumberPlaceholder": "राज्य चिकित्सा परिषद पंजीकरण संख्या"
     },
     "manageTeamMemberDoctorPanel": {
+      "unverifiedLabel": "असत्यापित",
       "signatureLabel": "हस्ताक्षर:",
       "signatureReady": "अपलोड किया गया",
       "signatureMissing": "अनुपलब्ध",
@@ -2639,6 +2640,7 @@
       "cardSubtitle": "{facilityLabel} के लिए स्टाफ खाते",
       "loadingAriaLabel": "टीम सदस्य लोड हो रहे हैं",
       "unknownLabel": "अज्ञात सदस्य",
+      "unverifiedLabel": "असत्यापित",
       "manageButton": "प्रबंधित करें",
       "codeLabel": "{facilityLabel} निमंत्रण कोड",
       "codeUnavailable": "अनुपलब्ध",

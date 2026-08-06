@@ -120,7 +120,17 @@ and resolves them at every call site against the caller's namespace (JSX
 `t={t}` and function-call passes). Verified **42 distinct keys across 11
 consumers, all resolving in en+hi** — closing the last static-coverage hole
 (keys passed as props, e.g. `placeholderKey="typePlaceholder"`, were
-previously invisible to every literal `t("…")` scan).
+previously invisible to every literal `t("…")` scan). A counter-assertion
+(`no t-prop signature escapes the consumer trace`) fails the build on any
+t-prop signature the trace cannot follow — optional `t?:`, `TFunction`, a
+parameter not named `key`, or non-`string` returns. It immediately caught a
+live bug: `getVerificationBadgeLabel` had an optional `t` with a hardcoded
+`"Unverified"` fallback that one caller exercised. Fixed by making `t`
+required (`VerificationBadgeLabelFn` type shared by the dialog + doctor
+panel, also breaking the jscpd clone the expansion created), passing `t` at
+the dropping call site, and adding `unverifiedLabel` to en/hi under
+`Settings.TeamManagement` + `Settings.manageTeamMemberDoctorPanel`
+(parity 2,403 = 2,403).
 
 ---
 
