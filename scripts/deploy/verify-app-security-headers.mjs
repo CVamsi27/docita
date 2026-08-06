@@ -29,8 +29,8 @@ const checks = [
 // header source for the Vite SPA apps (their /api/* + /socket.io/*
 // traffic is proxied by the Hono Worker, which sets its own headers).
 const headerFileChecks = [
-  { label: "App (app-vite)", path: "apps/app-vite/public/_headers" },
-  { label: "Internal (internal-vite)", path: "apps/internal-vite/public/_headers" },
+  { label: "App (app)", path: "apps/app/public/_headers" },
+  { label: "Internal (internal)", path: "apps/internal/public/_headers" },
 ];
 
 const failures = [];

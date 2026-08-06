@@ -12,7 +12,7 @@ const NATIVE_DISCLOSURE_TAGS = new Set(["details", "summary"]);
 // `window.confirm(...)` property accesses and as bare global calls.
 const NATIVE_DIALOG_CALLS = new Set(["confirm", "alert", "prompt"]);
 
-const files = gitLsSourceFiles(["apps/app-vite", "apps/internal-vite"], {
+const files = gitLsSourceFiles(["apps/app", "apps/internal"], {
   extensions: [".tsx", ".jsx", ".ts", ".js"],
   exclude: [/\.(spec|test)\.[tj]sx?$/, /\/e2e\//],
 });

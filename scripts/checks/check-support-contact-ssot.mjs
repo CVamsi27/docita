@@ -9,7 +9,7 @@ import {
 const SUPPORT_EMAIL = "support@docita.work";
 const allowedFiles = new Set([
   "packages/types/src/shared/support-contact.ts",
-  "apps/app-vite/src/lib/constants/support-contact.ts",
+  "apps/app/src/lib/constants/support-contact.ts",
   "apps/api/src/shared/common/constants/support-contact.constants.ts",
   "scripts/checks/check-support-contact-ssot.mjs",
 ]);

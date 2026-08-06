@@ -85,7 +85,7 @@ export function usePatients(params?: PatientSearchParams) {
 ```
 
 ```tsx
-// app-vite feature consumer
+// app feature consumer
 import { usePatients } from "@workspace/data-access/hooks/use-patients";
 const { data, isLoading, error } = usePatients({ clinicId });
 ```
@@ -211,7 +211,7 @@ const form = useForm<z.infer<typeof patientSchema>>({
 ## 6. Frontend feature structure (mandatory)
 
 ```
-apps/app-vite/src/features/<feature>/
+apps/app/src/features/<feature>/
 ├── components/        ← presentational, props in / events out
 │   ├── <feature>-page.tsx
 │   ├── <feature>-page-sections.tsx     ← sections file
@@ -293,7 +293,7 @@ feature components — let the boundary catch.
 ## 9. Telemetry — same-origin only
 
 ```ts
-// app-vite/src/lib/monitoring/web-vitals.ts
+// app/src/lib/monitoring/web-vitals.ts
 const ENDPOINT = "/api/internal/telemetry/web-vitals";  // same-origin proxy
 ```
 

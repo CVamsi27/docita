@@ -436,7 +436,7 @@ export type { NotificationUnreadCountResponse } from "./hooks/use-whatsapp";
 export { useUploadFile } from "./hooks/use-file-upload";
 export type { UploadFileResult } from "./hooks/use-file-upload";
 
-// Web Vitals RUM (shared reporter for app-vite + internal-vite; P4.5/P5.4e)
+// Web Vitals RUM (shared reporter for app + internal; P4.5/P5.4e)
 export {
   installWebVitalsReporter,
   postWebVitalsRum,

@@ -19,8 +19,8 @@ const REPO_ROOT = process.env.DOCITA_CHECK_ROOT ?? join(__dirname, "..", "..");
 const ENV_FILES = [
   ".env.example",
   "apps/api/.env.example",
-  "apps/app-vite/.env.example",
-  "apps/internal-vite/.env.example",
+  "apps/app/.env.example",
+  "apps/internal/.env.example",
   "apps/landing/.env.example",
   "apps/worker/.env.example",
 ];

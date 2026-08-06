@@ -22,8 +22,8 @@ const UPSTREAM_API_HOSTS = new Set([
 
 /**
  * Decide whether the browser should use the same-origin `/api/v1` proxy instead
- * of a configured absolute upstream API URL. Shared by app-vite and
- * internal-vite so the Cloudflare same-origin cookie rule lives in one place.
+ * of a configured absolute upstream API URL. Shared by app and
+ * internal so the Cloudflare same-origin cookie rule lives in one place.
  *
  * When a build accidentally inlines `VITE_API_URL` as the upstream Fly origin,
  * browser fetches become cross-origin and fail CORS + cookie auth; prefer the

@@ -13,7 +13,7 @@
  * per route (the full shared core + the route's own chunks). The absolute caps
  * below are a bloat alarm; route regressions are caught by the per-route delta
  * check (`perf:budget:enforce`) against `logs/performance/baseline.json`.
- * Routes use the React Router paths of `apps/app-vite/src/App.tsx` (`:id`
+ * Routes use the React Router paths of `apps/app/src/App.tsx` (`:id`
  * param syntax).
  *
  * Update when a route's budget intentionally changes; treat unintended

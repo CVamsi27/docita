@@ -33,7 +33,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
 
     // The internal app is an admin tool without a service worker; keep this
-    // aligned with the app-vite config so cross-app E2E behaviour stays
+    // aligned with the app config so cross-app E2E behaviour stays
     // identical (cached index.html can never serve stale markup).
     serviceWorkers: "block",
 
@@ -55,7 +55,7 @@ export default defineConfig({
           timeout: 180_000,
         },
         {
-          command: "pnpm --filter @docita/internal-vite run dev",
+          command: "pnpm --filter @docita/internal run dev",
           url: APP_URL,
           reuseExistingServer: true,
           env: {

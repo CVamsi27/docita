@@ -10,13 +10,13 @@ const allowedPatterns = [
   /^packages\/utils\/src\/http\/upstream-api-proxy\.ts$/,
   // Cloudflare proxy Worker entry (server-side runtime, not browser code): the
   // `fetch` here forwards /api/* and /socket.io/* to the upstream API host.
-  /^apps\/(app-vite|internal-vite)\/api\//,
-  /^apps\/(app-vite|internal-vite)\/src\/lib\/api\//,
-  /^apps\/(app-vite|internal-vite)\/src\/lib\/auth\//,
-  /^apps\/(app-vite|internal-vite)\/src\/features\/[^/]+\/api\/[^/]+\.api\.ts$/,
+  /^apps\/(app|internal)\/api\//,
+  /^apps\/(app|internal)\/src\/lib\/api\//,
+  /^apps\/(app|internal)\/src\/lib\/auth\//,
+  /^apps\/(app|internal)\/src\/features\/[^/]+\/api\/[^/]+\.api\.ts$/,
 ];
 
-const files = gitLsSourceFiles(["apps/app-vite", "apps/internal-vite"], {
+const files = gitLsSourceFiles(["apps/app", "apps/internal"], {
   extensions: [".ts", ".tsx"],
   exclude: [/\.(test|spec)\.[tj]sx?$/, ...allowedPatterns],
 });

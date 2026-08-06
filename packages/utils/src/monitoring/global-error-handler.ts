@@ -15,7 +15,7 @@ let errorHandlerInstalled = false;
 
 /**
  * Install global `unhandledrejection` / `window.onerror` handlers that forward
- * to the app's Sentry capture. Both `apps/app-vite` and `apps/internal-vite`
+ * to the app's Sentry capture. Both `apps/app` and `apps/internal`
  * call this once at bootstrap with their own `captureException` (the PHI-safe
  * capture from `sentry.client.config.ts`).
  *

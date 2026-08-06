@@ -32,7 +32,7 @@ import path from "node:path";
 import process from "node:process";
 
 const REPO_ROOT = process.cwd();
-const APPS = ["apps/app-vite/src", "apps/internal-vite/src"];
+const APPS = ["apps/app/src", "apps/internal/src"];
 const TYPES_DIR = path.join(REPO_ROOT, "packages/types/src");
 const ALLOWLIST_PATH = path.join(
   REPO_ROOT,

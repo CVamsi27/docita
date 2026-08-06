@@ -12,7 +12,7 @@ export interface LazySentryClientLoaderOptions<TSentryModule> {
 
 /**
  * Builds a lazily-loaded, memoized handle to the Sentry client SDK shared by
- * `apps/app-vite` and `apps/internal-vite`. Both apps defer importing
+ * `apps/app` and `apps/internal`. Both apps defer importing
  * `@sentry/react` until it's actually needed (and only when enabled — DSN
  * present, browser, not dev), then cache the loaded module/in-flight promise
  * so repeated `captureException`/`captureMessage`/init calls don't re-trigger
@@ -84,8 +84,8 @@ export function createLazySentryClientLoader<TSentryModule>({
 
 /**
  * Wires a single `unhandledrejection` listener that forwards the rejection to
- * Sentry as a captured exception. Identical across `apps/app-vite` and
- * `apps/internal-vite` client bootstraps, so it lives here once.
+ * Sentry as a captured exception. Identical across `apps/app` and
+ * `apps/internal` client bootstraps, so it lives here once.
  */
 export function wireUnhandledRejectionCapture<
   TSentryModule extends SentryExceptionCapturer,
@@ -118,7 +118,7 @@ export interface SentryClientBootstrapOptions<TSentryModule, TContext> {
  * (optionally) signals readiness — all guarded by a best-effort try/catch so
  * monitoring setup can never block app boot.
  *
- * `apps/app-vite` and `apps/internal-vite` differ only in *what* context they
+ * `apps/app` and `apps/internal` differ only in *what* context they
  * read and *which* tags they set, both of which are supplied via `getContext`
  * / `applyContext`.
  */

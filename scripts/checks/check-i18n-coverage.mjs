@@ -14,7 +14,7 @@
  * built-in en/hi language selector in `ConsentNoticeModal` and are
  * deliberately not routed through react-i18next.
  *
- * Scope: app-vite only. internal-vite is a documented English-only admin
+ * Scope: app only. internal is a documented English-only admin
  * portal with no en/hi message bundle (PORTING_PLAN_APP_VITE.md).
  *
  * Usage:
@@ -26,10 +26,10 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-// app-vite only: internal-vite is a documented English-only admin portal
-// (PORTING_PLAN_APP_VITE.md — "internal-vite i18n: none"), so it has no
+// app only: internal is a documented English-only admin portal
+// (PORTING_PLAN_APP_VITE.md — "internal i18n: none"), so it has no
 // en/hi message bundle and is intentionally excluded.
-const APPS = ["apps/app-vite/src/features"];
+const APPS = ["apps/app/src/features"];
 const ALLOWLIST_PATH = path.join(
   process.cwd(),
   "scripts/checks/allowlists/i18n-coverage.json",

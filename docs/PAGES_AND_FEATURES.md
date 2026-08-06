@@ -1,6 +1,6 @@
 # Docita Application — Pages & Features (Vite apps)
 
-> **Generated: 2026-08-02** · Scope: `apps/app-vite` (clinician app) + `apps/internal-vite` (admin/staff portal)
+> **Generated: 2026-08-02** · Scope: `apps/app` (clinician app) + `apps/internal` (admin/staff portal)
 > This regenerated inventory supersedes the 2026-06-19 Next.js version (see the archive note at the bottom).
 > The **authoritative port status** (per-feature COMPLETE/SHELL/MISSING, phases, gates) lives in
 > [`PORTING_PLAN_APP_VITE.md`](PORTING_PLAN_APP_VITE.md); this document is the route/feature map.
@@ -9,15 +9,15 @@
 
 | App | Routes | Feature dirs | Unit tests | E2E spec files | Production build |
 |---|---|---|---|---|---|
-| `apps/app-vite` | 95 (incl. settings/portal sub-routes) | 44 | 653 passing (122 files) | 45 spec files (~1,048 tests) | green (`build` + `build:cloudflare`) |
-| `apps/internal-vite` | 19 | 17 | 52 passing | 3 spec files (44 tests) | green (`build` + `build:cloudflare`) |
+| `apps/app` | 95 (incl. settings/portal sub-routes) | 44 | 653 passing (122 files) | 45 spec files (~1,048 tests) | green (`build` + `build:cloudflare`) |
+| `apps/internal` | 19 | 17 | 52 passing | 3 spec files (44 tests) | green (`build` + `build:cloudflare`) |
 
 Feature port state (2026-08-02, from the porting plan): **38/46 COMPLETE, 8 SHELL, 3 MISSING**. The remaining
 long tail is tracked phase-by-phase in [`PORTING_PLAN_APP_VITE.md`](PORTING_PLAN_APP_VITE.md) §Phases 6/9.
 
 ---
 
-## Part 1 — apps/app-vite (Clinician App)
+## Part 1 — apps/app (Clinician App)
 
 ### 1.1 Auth & account
 
@@ -163,7 +163,7 @@ long tail is tracked phase-by-phase in [`PORTING_PLAN_APP_VITE.md`](PORTING_PLAN
 
 ---
 
-## Part 2 — apps/internal-vite (Admin / Staff Dashboard)
+## Part 2 — apps/internal (Admin / Staff Dashboard)
 
 | Route | Page / feature |
 |---|---|
@@ -197,7 +197,7 @@ Feature directories (17): `admins` `analytics` `audits` `billing` `broadcasts` `
 
 - **Authoritative per-feature status** (COMPLETE / SHELL / MISSING by phase): [`PORTING_PLAN_APP_VITE.md`](PORTING_PLAN_APP_VITE.md) — 2026-08-02 state is **38/46 COMPLETE, 8 SHELL, 3 MISSING**.
 - **Thin surfaces in the live tree** (1–2 production files; not necessarily shells — e.g. `today` is a thin page composing fully-ported dashboard sections): `billing-locked`, `errors` (not-found pages), `pharmacy`, `profile`, `referrals`, `templates`, `tools` (intentional dev-tools shell), `upgrade`.
-- **Dropped at port-or-drop review (2026-08-02)**: `imports/excel`, `imports/ocr`, `feedback` (as a client feature; internal-vite keeps an admin feedback page), `guided-tour`. Their placeholder routes were removed.
+- **Dropped at port-or-drop review (2026-08-02)**: `imports/excel`, `imports/ocr`, `feedback` (as a client feature; internal keeps an admin feedback page), `guided-tour`. Their placeholder routes were removed.
 - **Dead code removed**: the Next-era apps are staged for deletion on this branch; build-blocking migration residue in `packages/data-access` (speculative blob-download hooks) was removed 2026-08-02 (REPO_GAPS §J item 11).
 
 ---
@@ -209,11 +209,11 @@ Feature directories (17): `admins` `analytics` `audits` `billing` `broadcasts` `
 | `pnpm verify:standard` (full ~90-check gate) | exit 0 |
 | `pnpm check:circular:enforce` | 0 cycles |
 | `pnpm knip` | exit 0 |
-| app-vite unit tests | 653/653 (122 files) |
-| internal-vite unit tests | 52/52 |
+| app unit tests | 653/653 (122 files) |
+| internal unit tests | 52/52 |
 | `pnpm check:i18next-parity` | en 1,885 = hi 1,885 leaves (exact parity) |
 | Production builds (`build` + `build:cloudflare`) | both apps green |
-| E2E (Playwright) | app-vite 45 spec files / ~1,048 tests; internal-vite 3 spec files / 44 tests — needs a CI run with Postgres to close checklist item 3 |
+| E2E (Playwright) | app 45 spec files / ~1,048 tests; internal 3 spec files / 44 tests — needs a CI run with Postgres to close checklist item 3 |
 
 ---
 

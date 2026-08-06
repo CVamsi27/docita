@@ -2,7 +2,7 @@
 /**
  * Synthetic Web Vitals enforcement (LCP / INP / CLS).
  *
- * Measures Core Web Vitals in a real Chromium against the app-vite dev server
+ * Measures Core Web Vitals in a real Chromium against the app dev server
  * and compares against the absolute per-route targets in
  * `scripts/perf/route-budgets.config.mjs` (ROUTE_WEB_VITALS).
  *
@@ -138,7 +138,7 @@ async function preflightServer() {
 async function main() {
   if (!(await preflightServer())) {
     process.stderr.write(
-      `[web-vitals] app not reachable at ${APP_URL}. Start it with \`pnpm --filter @docita/app-vite run dev\` (or set APP_URL).\n`,
+      `[web-vitals] app not reachable at ${APP_URL}. Start it with \`pnpm --filter @docita/app run dev\` (or set APP_URL).\n`,
     );
     process.exit(2);
   }

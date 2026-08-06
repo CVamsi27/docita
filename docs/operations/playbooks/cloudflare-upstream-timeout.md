@@ -2,7 +2,7 @@
 
 ## Detection signals
 
-- `apps/app-vite` and `apps/internal-vite` show 502/504 in response to
+- `apps/app` and `apps/internal` show 502/504 in response to
   `/api/v1/*` calls.
 - Cloudflare dashboard shows worker errors of type `upstream timeout`.
 - API itself is healthy on direct Fly.io hostname; only the proxy path
@@ -39,7 +39,7 @@
 ## Validation
 
 - Both direct and proxied health endpoints return 200 < 500 ms.
-- Critical pages (`/dashboard`, `/patients`) load in apps/app-vite without
+- Critical pages (`/dashboard`, `/patients`) load in apps/app without
   client-side fallback toasts.
 
 ## Rollback criteria

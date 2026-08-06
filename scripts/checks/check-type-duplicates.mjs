@@ -9,8 +9,8 @@ const repoRoot = process.cwd();
 const enforce = process.argv.includes("--enforce");
 
 const appRoots = [
-  "apps/app-vite/src/features",
-  "apps/internal-vite/src/features",
+  "apps/app/src/features",
+  "apps/internal/src/features",
 ].filter((root) => fs.existsSync(path.join(repoRoot, root)));
 
 const packageTypeFiles = execSync("git ls-files packages/types/src", {

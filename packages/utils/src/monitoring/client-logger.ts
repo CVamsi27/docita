@@ -51,8 +51,8 @@ function toRecord(context: unknown): Record<string, unknown> | undefined {
 }
 
 /**
- * Builds the shared client logger used by `apps/app-vite` and
- * `apps/internal-vite`. Records breadcrumbs for every level and captures
+ * Builds the shared client logger used by `apps/app` and
+ * `apps/internal`. Records breadcrumbs for every level and captures
  * warn/error messages through the lazily-loaded Sentry SDK; every call is
  * best-effort and never throws into callers.
  *

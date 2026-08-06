@@ -12,6 +12,11 @@ export function createEnvToParse(source: NodeJS.ProcessEnv) {
   envToParse.META_BUSINESS_ACCOUNT_ID ??=
     envToParse.WHATSAPP_BUSINESS_ACCOUNT_ID;
 
+  // Compatibility-safe alias resolution: canonical names win, legacy
+  // NEXT_PUBLIC_* aliases keep working until the rollout is complete.
+  envToParse.FRONTEND_URL ??= envToParse.NEXT_PUBLIC_APP_URL;
+  envToParse.API_PUBLIC_URL ??= envToParse.NEXT_PUBLIC_API_URL;
+
   if (envToParse.NODE_ENV !== 'test') return envToParse;
 
   envToParse.DATABASE_URL ??=
@@ -20,8 +25,8 @@ export function createEnvToParse(source: NodeJS.ProcessEnv) {
   envToParse.ENCRYPTION_KEY ??=
     '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
   envToParse.APP_URL ??= 'http://localhost:3001';
-  envToParse.NEXT_PUBLIC_APP_URL ??= 'http://localhost:3000';
-  envToParse.NEXT_PUBLIC_API_URL ??= 'http://localhost:3001/api';
+  envToParse.FRONTEND_URL ??= 'http://localhost:3000';
+  envToParse.API_PUBLIC_URL ??= 'http://localhost:3001/api';
   envToParse.CORS_ORIGINS ??= 'http://localhost:3000';
   envToParse.ENABLE_SCHEDULERS ??= 'true';
   envToParse.QUEUE_BACKEND ??= 'memory';
@@ -39,8 +44,8 @@ export function assertDocitaOnlyPublicOrigins(
 
   assertDocitaCorsOrigins(config.CORS_ORIGINS);
   assertDocitaUrl('APP_URL', config.APP_URL);
-  assertDocitaUrl('NEXT_PUBLIC_APP_URL', config.NEXT_PUBLIC_APP_URL);
-  assertDocitaUrl('NEXT_PUBLIC_API_URL', config.NEXT_PUBLIC_API_URL);
+  assertDocitaUrl('FRONTEND_URL', config.FRONTEND_URL);
+  assertDocitaUrl('API_PUBLIC_URL', config.API_PUBLIC_URL);
 }
 
 export function writeSchemaValidationFailure(

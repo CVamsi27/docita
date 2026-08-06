@@ -7,8 +7,8 @@ import {
 export function getSharedCookieDomainFromConfig(config: EnvConfig) {
   if (config.NODE_ENV !== 'production') return undefined;
 
-  const frontendHostname = parseHostname(config.NEXT_PUBLIC_APP_URL);
-  const apiHostname = parseHostname(config.NEXT_PUBLIC_API_URL);
+  const frontendHostname = parseHostname(config.FRONTEND_URL);
+  const apiHostname = parseHostname(config.API_PUBLIC_URL);
   const appHostname = parseHostname(config.APP_URL);
   const frontendApiDomain = resolveSharedCookieDomain(
     [frontendHostname, apiHostname].filter((hostname): hostname is string =>

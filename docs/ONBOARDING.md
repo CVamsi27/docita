@@ -27,8 +27,8 @@ pnpm dev
 Start with root `.env.example`, then app-specific examples:
 
 - `apps/api/.env.example`
-- `apps/app-vite/.env.example`
-- `apps/internal-vite/.env.example`
+- `apps/app/.env.example`
+- `apps/internal/.env.example`
 - `apps/landing/.env.example`
 
 Critical variables:
@@ -37,7 +37,7 @@ Critical variables:
 - `JWT_SECRET`
 - `ENCRYPTION_KEY`
 - `VITE_API_URL` (frontend apps; build-time inlined from each app's `.env.example`)
-- `NEXT_PUBLIC_API_URL` (API process only — a historical key name on the backend, unrelated to the frontend `VITE_*` rename; the frontend no longer reads it)
+- `FRONTEND_URL` / `API_PUBLIC_URL` (API process only — the backend's own public URLs, previously named `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_API_URL`; the legacy aliases still work during the compatibility rollout and the frontend no longer reads them)
 
 ## Verification
 

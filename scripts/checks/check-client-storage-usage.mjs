@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Allowlists localStorage / sessionStorage usage in the Vite apps
-// (apps/app-vite, apps/internal-vite).
+// (apps/app, apps/internal).
 // New usage outside the allowlist is blocked because:
 //   - PHI must not land in browser storage (DPDP risk).
 //   - Cross-tab leakage and stale-state bugs are common.
@@ -12,7 +12,7 @@ import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import process from "node:process";
 
-const ROOTS = ["apps/app-vite", "apps/internal-vite"];
+const ROOTS = ["apps/app", "apps/internal"];
 const PATTERN = /\b(?:window\.)?(?:localStorage|sessionStorage)\b/g;
 
 // Files that are allowed to use client storage today. Each entry must be
@@ -20,8 +20,8 @@ const PATTERN = /\b(?:window\.)?(?:localStorage|sessionStorage)\b/g;
 // Note: apps/app and apps/internal have been replaced by Vite equivalents.
 // Vite app allowlist entries will be added as storage usage is confirmed.
 const ALLOWLIST = new Set([
-  // apps/internal-vite — theme, auth context, navigation history
-  "apps/internal-vite/src/lib/monitoring/sentry.client.config.ts",
+  // apps/internal — theme, auth context, navigation history
+  "apps/internal/src/lib/monitoring/sentry.client.config.ts",
   // Port-verified storage usage (2026-08-03, committed with the Vite cutover
   // 5352a9612). Reviewed as one batch at PR time (privacy-reviewer sign-off per
   // the policy above): none stores PHI — auth tokens/session markers, onboarding
@@ -29,35 +29,35 @@ const ALLOWLIST = new Set([
   // and Playwright e2e session seeding. Cookie session migration remains the
   // tracked target (SYSTEM_DESIGN_AND_PATTERNS.md §28.2 item 10, resolved item
   // 1). New storage usage outside this list is still blocked.
-  "apps/app-vite/e2e/utils/patient-helpers.ts",
-  "apps/app-vite/e2e/utils/portal-helpers.ts",
-  "apps/app-vite/e2e/utils/session.ts",
-  "apps/app-vite/src/components/i18n/locale-switcher.tsx",
-  "apps/app-vite/src/features/auth/lib/auth-landing-path.ts",
-  "apps/app-vite/src/features/consultation/components/ConsultationTimerContainer.tsx",
-  "apps/app-vite/src/features/consultation/state/useConsultationAutosave.ts",
-  "apps/app-vite/src/features/consultation/state/useConsultationHydrate.ts",
-  "apps/app-vite/src/features/patient-portal/hooks/use-portal-otp-auth.ts",
-  "apps/app-vite/src/features/referral-partner/hooks/use-partner-auth.ts",
-  "apps/app-vite/src/features/referral-partner/lib/partner-session.ts",
-  "apps/app-vite/src/features/setup/components/onboarding/forms/clinic-registration-form-sections.tsx",
-  "apps/app-vite/src/features/setup/components/onboarding/forms/use-onboarding-draft.ts",
-  "apps/app-vite/src/features/setup/hooks/onboarding-session-storage.ts",
-  "apps/app-vite/src/features/verify-email/components/VerifyEmailPageContent.tsx",
-  "apps/app-vite/src/features/verify-email/components/VerifyEmailSentPageContent.tsx",
-  "apps/app-vite/src/hooks/phone-signature-qr-flow-helpers.ts",
-  "apps/app-vite/src/hooks/use-can-go-back.ts",
-  "apps/app-vite/src/hooks/use-repeat-prescription.ts",
-  "apps/app-vite/src/i18n/index.ts",
-  "apps/app-vite/src/i18n/locale-utils.ts", // locale pref (docita_locale) read/write helpers, no PHI
-  "apps/app-vite/src/lib/auth/auth-context-helpers.ts",
-  "apps/app-vite/src/lib/auth/e2e-session-token.ts",
-  "apps/app-vite/src/lib/auth/login-lockout-storage.ts",
-  "apps/app-vite/src/lib/auth/safe-return-path.ts",
-  "apps/app-vite/src/lib/contexts/clinic-context.tsx",
-  "apps/app-vite/src/lib/monitoring/sentry.client.config.ts",
-  "apps/internal-vite/src/lib/auth/auth.tsx",
-  "apps/internal-vite/src/lib/auth/use-auth-session.ts",
+  "apps/app/e2e/utils/patient-helpers.ts",
+  "apps/app/e2e/utils/portal-helpers.ts",
+  "apps/app/e2e/utils/session.ts",
+  "apps/app/src/components/i18n/locale-switcher.tsx",
+  "apps/app/src/features/auth/lib/auth-landing-path.ts",
+  "apps/app/src/features/consultation/components/ConsultationTimerContainer.tsx",
+  "apps/app/src/features/consultation/state/useConsultationAutosave.ts",
+  "apps/app/src/features/consultation/state/useConsultationHydrate.ts",
+  "apps/app/src/features/patient-portal/hooks/use-portal-otp-auth.ts",
+  "apps/app/src/features/referral-partner/hooks/use-partner-auth.ts",
+  "apps/app/src/features/referral-partner/lib/partner-session.ts",
+  "apps/app/src/features/setup/components/onboarding/forms/clinic-registration-form-sections.tsx",
+  "apps/app/src/features/setup/components/onboarding/forms/use-onboarding-draft.ts",
+  "apps/app/src/features/setup/hooks/onboarding-session-storage.ts",
+  "apps/app/src/features/verify-email/components/VerifyEmailPageContent.tsx",
+  "apps/app/src/features/verify-email/components/VerifyEmailSentPageContent.tsx",
+  "apps/app/src/hooks/phone-signature-qr-flow-helpers.ts",
+  "apps/app/src/hooks/use-can-go-back.ts",
+  "apps/app/src/hooks/use-repeat-prescription.ts",
+  "apps/app/src/i18n/index.ts",
+  "apps/app/src/i18n/locale-utils.ts", // locale pref (docita_locale) read/write helpers, no PHI
+  "apps/app/src/lib/auth/auth-context-helpers.ts",
+  "apps/app/src/lib/auth/e2e-session-token.ts",
+  "apps/app/src/lib/auth/login-lockout-storage.ts",
+  "apps/app/src/lib/auth/safe-return-path.ts",
+  "apps/app/src/lib/contexts/clinic-context.tsx",
+  "apps/app/src/lib/monitoring/sentry.client.config.ts",
+  "apps/internal/src/lib/auth/auth.tsx",
+  "apps/internal/src/lib/auth/use-auth-session.ts",
 ]);
 
 const TEST_FILE_RE = /\.(?:spec|test)\.[jt]sx?$/;

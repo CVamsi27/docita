@@ -7,9 +7,9 @@ Point-in-time: **2026-08-02**. AGENTS.md codifies ~150 rules; 97 scripts automat
 | Area | % | Notes |
 |---|---|---|
 | Lint compliance | **100%** | 0 errors (84 warnings — react-refresh) |
-| Type check compliance | **100%** | 0 errors (app-vite + api) |
+| Type check compliance | **100%** | 0 errors (app + api) |
 | Knip (unused code) | **0%** | 278 exports + 287 types remain (low priority) |
-| Test coverage (files) | **41%** | 113/275 app-vite tests ported |
+| Test coverage (files) | **41%** | 113/275 app tests ported |
 | E2E coverage | **90%** | 45/50 app specs ported |
 | Check scripts | **100%** | 97 scripts operational |
 | CI workflows | **100%** | 8 workflows operational |
@@ -43,13 +43,13 @@ Point-in-time: **2026-08-02**. AGENTS.md codifies ~150 rules; 97 scripts automat
 | apps/api/src (unit/integration) | 381 | Jest |
 | apps/api/test (E2E) | 18 e2e-specs + 15 helpers (33 files) | Jest (api-e2e workflow) |
 | packages/* | 79 (ui 27, utils 23, types 19, data-access 8, auth 1, hooks 1) | Vitest/Jest |
-| apps/app-vite/src | 122 | Vitest + Testing Library |
-| apps/internal-vite/src | 8 | Vitest |
+| apps/app/src | 122 | Vitest + Testing Library |
+| apps/internal/src | 8 | Vitest |
 | E2E (Playwright) | 45 app + 3 internal specs of 50 Next + 2 internal | Playwright 1.48.2 |
 
 **Test density** (tests per 1,000 source lines):
 - API: **1.9** per 1K lines (381 tests / 200,492 lines)
-- app-vite: **1.0** per 1K lines (122 tests / 121,222 lines)
+- app: **1.0** per 1K lines (122 tests / 121,222 lines)
 
 **API domain test coverage** (test files / source files):
 
@@ -106,11 +106,11 @@ Cost/scope discipline (§11.2): heavy jobs (verify:standard, E2E, build) run on 
 
 | Check | Result |
 |---|---|
-| `pnpm lint` | 0 errors, 84 warnings (82 `react-refresh/only-export-components` in app-vite, 2 in internal-vite) |
-| `pnpm --filter @docita/app-vite run check-types` | PASS (0 errors) |
+| `pnpm lint` | 0 errors, 84 warnings (82 `react-refresh/only-export-components` in app, 2 in internal) |
+| `pnpm --filter @docita/app run check-types` | PASS (0 errors) |
 | `pnpm --filter @docita/api run check-types` | PASS (0 errors) |
 | `pnpm knip` | 278 unused exports, 287 unused types |
-| Inline `fetch()` in features | 1 violation (`use-download-opd-slip.ts:20`); `check:frontend-fetch` is git-based and misses untracked `apps/app-vite/src` — fix will surface once src is committed or check becomes fs-based |
+| Inline `fetch()` in features | 1 violation (`use-download-opd-slip.ts:20`); `check:frontend-fetch` is git-based and misses untracked `apps/app/src` — fix will surface once src is committed or check becomes fs-based |
 | Raw `<button>` in production code | **0** (all 50 instances are in test files only) |
 | Missing `aria-label` on interactive elements | 108 instances (0 raw `<button>`, ~31 `<a>` tags, ~77 `<Link>` tags — multiline-aware re-scan 2026-08-02) |
 | Features without i18n | **1** of 45 (`legal` — intentional, allowlisted in `check:i18n-coverage`) |

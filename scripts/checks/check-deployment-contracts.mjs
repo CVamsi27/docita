@@ -78,7 +78,7 @@ try {
   const ciWorkflowSource = read(".github/workflows/ci.yml");
   const apiE2eWorkflowSource = read(".github/workflows/api-e2e.yml");
   const frontendCriticalE2eWorkflowSource = read(".github/workflows/frontend-critical-e2e.yml");
-  // Next.js apps (apps/app, apps/internal) have been replaced by Vite apps (app-vite, internal-vite).
+  // Next.js apps (apps/app, apps/internal) have been replaced by Vite apps (app, internal).
   // Middleware/layout checks are no longer needed — Vite apps use wrangler.toml static assets.
 
   for (const requiredPath of [
@@ -142,8 +142,8 @@ try {
   );
 
   for (const requiredCiBuild of [
-    "pnpm --filter @docita/app-vite run build:cloudflare",
-    "pnpm --filter @docita/internal-vite run build:cloudflare",
+    "pnpm --filter @docita/app run build:cloudflare",
+    "pnpm --filter @docita/internal run build:cloudflare",
   ]) {
     assertIncludes(
       ciWorkflowSource,

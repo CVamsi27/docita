@@ -103,7 +103,7 @@ try {
     // No raw worker artifact either (the Vite SPA worker only exists as a
     // wrangler build). Nothing to measure; report and exit cleanly. Exiting 0
     // here is intentional — the check is advisory (root `check:worker-size`
-    // also wraps app-vite in `|| true`) and a transient wrangler failure
+    // also wraps app in `|| true`) and a transient wrangler failure
     // should not fail a build; the wrangler dry-run path is the primary gate.
     console.warn(
       `${labelArg} no raw worker artifact at ${workerPathArg}; skipping worker-size measurement.`,

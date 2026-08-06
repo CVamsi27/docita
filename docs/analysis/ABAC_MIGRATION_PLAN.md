@@ -41,7 +41,7 @@ Operating rules (from `AGENTS.md` §5, §16, and the EXECUTION_PLAN):
 | **Predicate atoms** (already attribute-shaped) | `PatientDoctorGuard` (`@DoctorPatientScoped`) — patient-owns-own-record, DOCTOR must have an active `PatientDoctor` relation; `EmergencyAccess` metadata | `apps/api/src/shared/modules/auth/guards/patient-doctor.guard.ts`, `apps/api/src/shared/modules/auth/decorators/emergency-access.decorator.ts` |
 | **ABAC precursor** | `AuthorizationService.can()` composes subscription → role → feature → per-resource policy; `ResourcePolicyRegistry` with bespoke `appointment`/`patient`/`prescription`/`invoice` policies + `generic` tenant fallback (`report`/`staff`/`clinic`/`broadcast`) | `apps/api/src/shared/modules/auth/authorization/{authorization.service.ts,types.ts,policies/*}` |
 | **RLS (data plane)** | `tenant_isolation` policies + `SET LOCAL` GUC handshake + `rls-routing` Prisma extension; `RLS_ENABLED=true` in production; `docita_app` non-owner role | `docs/compliance/RLS_ROLLOUT.md`, migration `20260502143500_add_rls_policies` |
-| **Frontend gating** | `canAccessTarget` engine re-derives `APP_ACCESS_MATRIX` client-side; `FeatureGate`, nav gating, `ProtectedLayout`/`PublicRoute`/`PortalAuthGuard`/`LabAuthGuard`/`PatientAuthGuard` | `apps/app-vite/src/lib/access-control/access-policy.ts`, `apps/app-vite/src/App.tsx`, `apps/app-vite/src/components/auth/` |
+| **Frontend gating** | `canAccessTarget` engine re-derives `APP_ACCESS_MATRIX` client-side; `FeatureGate`, nav gating, `ProtectedLayout`/`PublicRoute`/`PortalAuthGuard`/`LabAuthGuard`/`PatientAuthGuard` | `apps/app/src/lib/access-control/access-policy.ts`, `apps/app/src/App.tsx`, `apps/app/src/components/auth/` |
 | **Mechanical gates** | `check:controller-rbac`, `check:auth-tenant-safety`, `check:rls-rollout-readiness`, `check:tier-comparisons`, `check:workspace-profile-gating`; e2e `rbac-high-risk-matrix`, `rbac-403-verification` | `scripts/checks/`, `apps/api/test/e2e/auth/` |
 
 ### 1.2 The ABAC precursor today
@@ -159,7 +159,7 @@ Each phase is a PR series with an explicit, verifiable exit criterion.
 
 Work:
 
-1. **A1 — Decision-point census.** Enumerate every enforcement site: all `@Roles`/`@RequireFeature`/`TierGuard`/`@ClinicScoped` controllers, every `assertClinicHasFeatureOrThrow` call, every `canAccessTarget`/`page`-gate hit in `apps/app-vite` + `apps/internal-vite`, `PatientDoctorGuard` and `EmergencyAccess` usages, and worker/webhook entrypoints. Emit a table: `resource × action × current gate × owner × intended policy`.
+1. **A1 — Decision-point census.** Enumerate every enforcement site: all `@Roles`/`@RequireFeature`/`TierGuard`/`@ClinicScoped` controllers, every `assertClinicHasFeatureOrThrow` call, every `canAccessTarget`/`page`-gate hit in `apps/app` + `apps/internal`, `PatientDoctorGuard` and `EmergencyAccess` usages, and worker/webhook entrypoints. Emit a table: `resource × action × current gate × owner × intended policy`.
 2. **A2 — Add the attribute schemas** (§3.1) to `packages/types` with unit tests (parse/reject, no permissive defaults), plus a `check` that new `@Controller` routes must declare a `resource`+`action` posture (fail-closed) or an explicit `@Public`.
 3. **A3 — Data provisioning plan.** Identify Prisma fields/relations needed for subject attributes (`department`, `careTeam`, `PatientDoctor` already exists, `shifts`), resource classification (derive initially from route/domain constants, not a new column). Prefer derived/resolved attributes over new columns in Phase A; add columns only where a real query needs them (recorded as a `packages/db` migration item).
 4. **A4 — ADR.** Write `docs/architecture/decisions/0013-abac.md` recording: layered ABAC-on-RBAC, deny-overrides, typed-policy engine + declarative shorthand, no XACML, UI via permission snapshot, RLS preserved as backstop.
@@ -188,7 +188,7 @@ Ordered by risk/impact. Each row is one PR: pilot policy → e2e high-risk cases
 4. **C4 — Lab orders & payment verification.** Fulfilment roles + lab-order assignment + front-desk payment attribute (mirrors existing matrix write roles, adds the object-level conditions the matrix cannot express).
 5. **C5 — Audit logs.** `VIEW_PROFILE` read obligations; tenant-scoped admin `read`; no existence disclosure.
 6. **C6 — Referral-partner program.** Cross-tenant `accessScope` support (program partner accounts) — the first resource that genuinely needs attributes beyond one `clinicId`; ties into the BLOCKED referral-partner inventory in `EXECUTION_PLAN.md`.
-7. **C7 — Frontend permission snapshot.** `GET /auth/effective-permissions`, `canAccessTarget` backfilled from it (non-authoritative, offline fallback documented); `internal-vite` consumes the same snapshot for its admin surfaces.
+7. **C7 — Frontend permission snapshot.** `GET /auth/effective-permissions`, `canAccessTarget` backfilled from it (non-authoritative, offline fallback documented); `internal` consumes the same snapshot for its admin surfaces.
 
 Exit: C1–C6 each have a policy + e2e + differential entry; C7 snapshot deployed with no UI regression; `check:controller-rbac` unchanged (guards kept), `check:a11y-budget`/app a11y audit re-run for any gated-control change.
 

@@ -1,4 +1,4 @@
-# @docita/app-vite
+# @docita/app
 
 Main clinician application — Vite + React Router v7 SPA (replaces the Next.js `apps/app`; see [`docs/PORTING_PLAN_APP_VITE.md`](../../docs/PORTING_PLAN_APP_VITE.md) for the migration plan and feature status).
 
@@ -13,28 +13,28 @@ Main clinician application — Vite + React Router v7 SPA (replaces the Next.js 
 
 ```bash
 pnpm --filter @docita/api run start:dev   # API on :3001 (see apps/api)
-pnpm --filter @docita/app-vite run dev    # SPA on http://localhost:3000
+pnpm --filter @docita/app run dev    # SPA on http://localhost:3000
 ```
 
 `vite.config.ts` proxies `/api/*` and `/socket.io/*` to `VITE_API_TARGET` (default `http://localhost:3001`), mirroring the Hono proxy Worker used in production.
 
 ### Environment variables
 
-Copy `apps/app-vite/.env.example` to `.env.local` in this directory. Variables use the `VITE_` prefix; legacy `NEXT_PUBLIC_*` names are still accepted as aliases.
+Copy `apps/app/.env.example` to `.env.local` in this directory. Variables use the `VITE_` prefix; legacy `NEXT_PUBLIC_*` names are still accepted as aliases.
 
 ## Scripts
 
 | Script | Purpose |
 | --- | --- |
-| `pnpm --filter @docita/app-vite run dev` | Dev server on :3000 |
-| `pnpm --filter @docita/app-vite run test` | Vitest (unit) |
-| `pnpm --filter @docita/app-vite run lint` / `check-types` | ESLint / `tsc --noEmit` |
-| `pnpm --filter @docita/app-vite run build` | Production build |
-| `pnpm --filter @docita/app-vite run preview:cloudflare` | Local `wrangler dev` (static assets + proxy Worker) |
-| `pnpm --filter @docita/app-vite run deploy:cloudflare:staging` | Deploy `docita-app-vite-staging` (staging-app.docita.work) |
-| `pnpm --filter @docita/app-vite run deploy:cloudflare:production` | Deploy `docita-app` (app.docita.work) |
+| `pnpm --filter @docita/app run dev` | Dev server on :3000 |
+| `pnpm --filter @docita/app run test` | Vitest (unit) |
+| `pnpm --filter @docita/app run lint` / `check-types` | ESLint / `tsc --noEmit` |
+| `pnpm --filter @docita/app run build` | Production build |
+| `pnpm --filter @docita/app run preview:cloudflare` | Local `wrangler dev` (static assets + proxy Worker) |
+| `pnpm --filter @docita/app run deploy:cloudflare:staging` | Deploy `docita-app-vite-staging` (staging-app.docita.work) |
+| `pnpm --filter @docita/app run deploy:cloudflare:production` | Deploy `docita-app` (app.docita.work) |
 
-Wrangler config lives in `apps/app-vite/wrangler.toml` (`main = "api/index.ts"` Hono proxy Worker, `assets = "./dist"`, SPA not-found handling).
+Wrangler config lives in `apps/app/wrangler.toml` (`main = "api/index.ts"` Hono proxy Worker, `assets = "./dist"`, SPA not-found handling).
 
 ## Project layout
 

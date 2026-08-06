@@ -175,7 +175,7 @@ export type InternalClinicAdminListResponse = z.infer<
 
 /**
  * Cross-clinic internal console list shapes (P5.11). Both are plain arrays
- * (matching the internal-vite pages and the internal e2e critical-flows
+ * (matching the internal pages and the internal e2e critical-flows
  * contract) composed from the canonical `userSchema` so role/verification
  * fields stay derived from the single source of truth.
  */

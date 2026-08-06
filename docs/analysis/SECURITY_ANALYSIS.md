@@ -7,7 +7,7 @@ Point-in-time: **2026-08-02**. Sources: `apps/api/src/shared/modules/auth/` (30+
 | Area | % | Notes |
 |---|---|---|
 | Raw `<button>` compliance | **100%** | 0 violations in production code |
-| Inline `fetch()` compliance | **~0%** | 1 violation remains (`use-download-opd-slip.ts:20`); `check:frontend-fetch` is git-based and misses untracked `apps/app-vite/src` |
+| Inline `fetch()` compliance | **~0%** | 1 violation remains (`use-download-opd-slip.ts:20`); `check:frontend-fetch` is git-based and misses untracked `apps/app/src` |
 | Aria-label compliance | **28%** | 108/150 still missing (re-verified 2026-08-02) |
 | Error boundary coverage | **100%** | 5/5 functional layouts covered |
 | Auth architecture | **100%** | 10-guard pipeline, CSRF, MFA, lockout — all live |
@@ -138,8 +138,8 @@ Custom composite decorators (27 controllers) all include `UseGuards` + `Roles` a
 
 | File | Line | Justified? |
 |---|---|---|
-| `apps/app-vite/src/features/appointments/hooks/use-download-opd-slip.ts` | 17 | Partially — binary PDF blob download (React Query can't handle blob responses); uses `getAuthHeaders()` |
-| `apps/app-vite/src/features/medical-documents/components/use-medical-document-list.ts` | 52 | **No** — raw `fetch("/api/upload")` without auth headers |
+| `apps/app/src/features/appointments/hooks/use-download-opd-slip.ts` | 17 | Partially — binary PDF blob download (React Query can't handle blob responses); uses `getAuthHeaders()` |
+| `apps/app/src/features/medical-documents/components/use-medical-document-list.ts` | 52 | **No** — raw `fetch("/api/upload")` without auth headers |
 
 ### Raw `<button>` — 0 in production code (§4.3 rule)
 
@@ -155,7 +155,7 @@ All 50 raw `<button>` instances are in **test files only** (`.test.tsx`), where 
 
 ## 5. Secrets hygiene
 
-- **Tracked files — one live credential**: `apps/app-vite/wrangler.toml:25` `VITE_RAZORPAY_KEY_ID = "rzp_live_SPNm7w8Ig24OSX"` (key ID only — cannot charge without the secret, but identifies the live account; REPO_GAPS §H item 8: move to CF secrets). The second occurrence (deploy.yml) was deleted 2026-08-01.
+- **Tracked files — one live credential**: `apps/app/wrangler.toml:25` `VITE_RAZORPAY_KEY_ID = "rzp_live_SPNm7w8Ig24OSX"` (key ID only — cannot charge without the secret, but identifies the live account; REPO_GAPS §H item 8: move to CF secrets). The second occurrence (deploy.yml) was deleted 2026-08-01.
 - Sentry DSNs committed in both wrangler files — client-public by design, low risk.
 - Workflows: all secrets via `${{ secrets.* }}`; no `sk_live_`/`AKIA` in tracked files (scanned 2026-08-01).
 - Gitignored local files with real secrets (`.env.production` ×2, `.env.git`) — confirmed ignored, never in history.
@@ -167,7 +167,7 @@ All 50 raw `<button>` instances are in **test files only** (`.test.tsx`), where 
 
 | Severity | Package | Issue | Fix |
 |---|---|---|---|
-| high | react-router (prod, app-vite 7.18.2) | RSC-mode CSRF bypass (GHSA-qwww-vcr4-c8h2) | **8.3.0+** (major — verify v7→v8 compat for 96-route tree) |
+| high | react-router (prod, app 7.18.2) | RSC-mode CSRF bypass (GHSA-qwww-vcr4-c8h2) | **8.3.0+** (major — verify v7→v8 compat for 96-route tree) |
 | high | playwright 1.48.2 (dev) | browser downloads without SSL cert verification (GHSA-7mvr-c777-76hp) | **1.55.1+** |
 | high | brace-expansion (dev toolchain) | DoS OOM (GHSA-mh99-v99m-4gvg) | bump owning tool |
 

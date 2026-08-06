@@ -48,15 +48,15 @@ const projects = [
     tsconfig: "apps/worker/tsconfig.json",
   },
   {
-    label: "apps/app-vite",
-    entry: "apps/app-vite",
-    tsconfig: "apps/app-vite/tsconfig.json",
+    label: "apps/app",
+    entry: "apps/app",
+    tsconfig: "apps/app/tsconfig.json",
     exclude: "^(build|dist|public)/",
   },
   {
-    label: "apps/internal-vite",
-    entry: "apps/internal-vite",
-    tsconfig: "apps/internal-vite/tsconfig.json",
+    label: "apps/internal",
+    entry: "apps/internal",
+    tsconfig: "apps/internal/tsconfig.json",
     exclude: "^(build|dist|public)/",
   },
   {

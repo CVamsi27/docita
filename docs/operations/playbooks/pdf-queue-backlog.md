@@ -31,7 +31,7 @@
 - **If workers are crashing**: capture logs, restart machines, check
   R2 connectivity (R2 upload is the most common PDF failure point).
 - **If a single template is failing**: disable it via feature flag
-  (`apps/internal-vite` → Templates → Disable) and retry once fixed.
+  (`apps/internal` → Templates → Disable) and retry once fixed.
 - **DLQ**: failed PDF jobs go to the DLQ. If Stream M auto-replay is
   enabled, transient errors retry automatically; otherwise replay
   manually via the DLQ controller endpoint.

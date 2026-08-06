@@ -17,7 +17,7 @@ interface AddAppointmentDialogContainerProps {
   mode?: "standard" | "walk-in";
 }
 
-/** app-config options are an untyped `Record<string, unknown>` in app-vite; narrow the appointment-type list at the boundary. */
+/** app-config options are an untyped `Record<string, unknown>` in app; narrow the appointment-type list at the boundary. */
 function toSelectOptions(value: unknown): SelectOption[] {
   if (!Array.isArray(value)) return [];
   return value.filter(

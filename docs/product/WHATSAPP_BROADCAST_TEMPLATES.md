@@ -8,7 +8,7 @@ This document covers **every WhatsApp template Docita sends through Meta**, spli
 
 > **Internal-app path note (2026-08-02):** the `BROADCAST_PRESETS` map referenced
 > below lived in the Next.js app at `apps/internal/features/broadcasts/broadcast-presets.ts`.
-> The Vite internal app (`apps/internal-vite`) has a `/broadcasts` shell page but the
+> The Vite internal app (`apps/internal`) has a `/broadcasts` shell page but the
 > presets map is **not yet ported** — update the `metaTemplateName` references to the
 > Vite location when the map lands.
 
@@ -18,7 +18,7 @@ The canonical source for **utility template content** is [`packages/types/src/wh
 
 All Marketing templates use English (`en`) with a single body variable for the recipient name.
 
-The strings below are the exact copy to paste into the Meta template editor. The internal `BROADCAST_PRESETS` map points at these template names, so changing a `metaTemplateName` here requires the same change in [apps/internal-vite/src/features/broadcasts/broadcast-presets.ts](../apps/internal-vite/src/features/broadcasts/broadcast-presets.ts).
+The strings below are the exact copy to paste into the Meta template editor. The internal `BROADCAST_PRESETS` map points at these template names, so changing a `metaTemplateName` here requires the same change in [apps/internal/src/features/broadcasts/broadcast-presets.ts](../apps/internal/src/features/broadcasts/broadcast-presets.ts).
 
 ## How button replies are handled
 
@@ -91,7 +91,7 @@ Shared variable builders: [`patient-whatsapp-template-variables.ts`](../../apps/
 
 # Part A — Marketing templates (broadcasts)
 
-The internal `BROADCAST_PRESETS` map points at these template names, so changing a `metaTemplateName` here requires the same change in [apps/internal-vite/src/features/broadcasts/broadcast-presets.ts](../apps/internal-vite/src/features/broadcasts/broadcast-presets.ts).
+The internal `BROADCAST_PRESETS` map points at these template names, so changing a `metaTemplateName` here requires the same change in [apps/internal/src/features/broadcasts/broadcast-presets.ts](../apps/internal/src/features/broadcasts/broadcast-presets.ts).
 
 ---
 
@@ -421,7 +421,7 @@ Track new template ideas here before they go to Meta. Move into the numbered lis
 | `docita_winback_v2` | Churned customers | Win-back with new features shipped since they left | Idea |
 | `docita_festival_offer_v1` | All prospects | Seasonal pricing offer (Diwali / New Year) — utility/marketing split TBD | Idea |
 
-When promoting an entry: copy the section structure from templates 1–10, pick a versioned `snake_case` name, and add the matching `metaTemplateName` to [`apps/internal-vite/src/features/broadcasts/broadcast-presets.ts`](../apps/internal-vite/src/features/broadcasts/broadcast-presets.ts).
+When promoting an entry: copy the section structure from templates 1–10, pick a versioned `snake_case` name, and add the matching `metaTemplateName` to [`apps/internal/src/features/broadcasts/broadcast-presets.ts`](../apps/internal/src/features/broadcasts/broadcast-presets.ts).
 
 ---
 
@@ -1009,7 +1009,7 @@ Follow these steps for **each** template above. Allow ~15 minutes per template t
 
 - Get the **final body copy** signed off — Meta does not allow edits after approval; you can only create a new version (`_v2`).
 - Re-confirm any pricing or fee amounts (₹499, ₹4,999, ₹1,000 referral, 5% share, etc.) with finance.
-- Make sure the matching entry in [`apps/internal-vite/src/features/broadcasts/broadcast-presets.ts`](../apps/internal-vite/src/features/broadcasts/broadcast-presets.ts) uses the **exact** `metaTemplateName` you're about to submit.
+- Make sure the matching entry in [`apps/internal/src/features/broadcasts/broadcast-presets.ts`](../apps/internal/src/features/broadcasts/broadcast-presets.ts) uses the **exact** `metaTemplateName` you're about to submit.
 
 ### 1. Open the template editor
 

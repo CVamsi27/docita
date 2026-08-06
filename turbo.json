@@ -19,6 +19,8 @@
     "PUBLIC_APP_URL",
     "PUBLIC_ANALYTICS_URL",
     "PUBLIC_ENABLE_LIVE_LANDING_DATA",
+    "FRONTEND_URL",
+    "API_PUBLIC_URL",
     "NEXT_PUBLIC_API_URL",
     "NEXT_PUBLIC_APP_URL",
     "ENABLE_SCHEDULERS",
@@ -83,7 +85,7 @@
         "SKIP_SERVER"
       ]
     },
-    "@docita/app-vite#build": {
+    "@docita/app#build": {
       "dependsOn": ["^build", "^check-types"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**"],
@@ -98,12 +100,12 @@
         "CI"
       ]
     },
-    "@docita/app-vite#dev": {
+    "@docita/app#dev": {
       "cache": false,
       "persistent": true,
       "dependsOn": ["^build"]
     },
-    "@docita/internal-vite#build": {
+    "@docita/internal#build": {
       "dependsOn": ["^build", "^check-types"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**"],
@@ -116,7 +118,7 @@
         "CI"
       ]
     },
-    "@docita/internal-vite#dev": {
+    "@docita/internal#dev": {
       "cache": false,
       "persistent": true,
       "dependsOn": ["^build"]

@@ -52,7 +52,7 @@ test("facility type SSOT accepts canonical schema and rejects duplicate literals
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/settings/bad.ts": `export const facility = z.enum(["CLINIC", "HOSPITAL"]);`,
+        "apps/app/src/features/settings/bad.ts": `export const facility = z.enum(["CLINIC", "HOSPITAL"]);`,
       }),
       "check-facility-type-ssot.mjs",
     ),
@@ -60,7 +60,7 @@ test("facility type SSOT accepts canonical schema and rejects duplicate literals
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/settings/good.ts": `import { facilityTypeSchema } from "@workspace/types"; export const facility = facilityTypeSchema;`,
+        "apps/app/src/features/settings/good.ts": `import { facilityTypeSchema } from "@workspace/types"; export const facility = facilityTypeSchema;`,
       }),
       "check-facility-type-ssot.mjs",
     ),
@@ -90,7 +90,7 @@ test("frontend fetch boundary blocks feature fetches but allows API adapters", (
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/patients/components/bad.tsx": `export async function load() { return fetch("/api/patients"); }`,
+        "apps/app/src/features/patients/components/bad.tsx": `export async function load() { return fetch("/api/patients"); }`,
       }),
       "check-frontend-fetch.mjs",
       ["--enforce"],
@@ -99,7 +99,7 @@ test("frontend fetch boundary blocks feature fetches but allows API adapters", (
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/patients/api/patients.api.ts": `export async function load() { return fetch("/api/patients"); }`,
+        "apps/app/src/features/patients/api/patients.api.ts": `export async function load() { return fetch("/api/patients"); }`,
       }),
       "check-frontend-fetch.mjs",
       ["--enforce"],
@@ -111,7 +111,7 @@ test("feature-boundary check blocks feature internals and permits public roots",
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/dashboard/panel.ts": `import { x } from "@/features/follow-ups/lib/private"; export { x };`,
+        "apps/app/src/features/dashboard/panel.ts": `import { x } from "@/features/follow-ups/lib/private"; export { x };`,
       }),
       "check-feature-boundaries.mjs",
       ["--enforce"],
@@ -120,7 +120,7 @@ test("feature-boundary check blocks feature internals and permits public roots",
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/dashboard/panel.ts": `import { x } from "@/features/follow-ups"; export { x };`,
+        "apps/app/src/features/dashboard/panel.ts": `import { x } from "@/features/follow-ups"; export { x };`,
       }),
       "check-feature-boundaries.mjs",
       ["--enforce"],
@@ -263,9 +263,9 @@ test("standard gate wiring check requires all mandatory standards checks", () =>
 test("jsx literal density ratchet: baseline write, growth fails --enforce, refresh passes", () => {
   // Build a tiny fixture repo with two .tsx files containing one literal each.
   const root = makeGitFixture({
-    "apps/app-vite/src/features/x/Page.tsx":
+    "apps/app/src/features/x/Page.tsx":
       "export function Page() { return <div>Hello world</div>; }\n",
-    "apps/internal-vite/src/features/y/Panel.tsx":
+    "apps/internal/src/features/y/Panel.tsx":
       "export function Panel() { return <p>One literal</p>; }\n",
   });
   // Initialise the baseline.
@@ -277,7 +277,7 @@ test("jsx literal density ratchet: baseline write, growth fails --enforce, refre
   // Adding a literal must fail under --enforce.
   write(
     root,
-    "apps/app-vite/src/features/x/Page.tsx",
+    "apps/app/src/features/x/Page.tsx",
     "export function Page() { return <div><span>Hello world</span><span>Extra</span></div>; }\n",
   );
   execFileSync("git", ["add", "."], { cwd: root });
@@ -299,7 +299,7 @@ test("i18n translation-key check skips when no next-intl apps are registered", (
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/x/Comp.tsx":
+        "apps/app/src/features/x/Comp.tsx":
           `import { useTranslation } from "react-i18next";\nexport function Comp() { const { t } = useTranslation(); return t("X.missing"); }\n`,
       }),
       "check-i18n-translation-keys.mjs",
@@ -312,7 +312,7 @@ test("button-primitive check blocks raw <button> in Vite features", () => {
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/demo/components/raw.tsx":
+        "apps/app/src/features/demo/components/raw.tsx":
           `export function Raw() { return <button onClick={() => {}}>Save</button>; }\n`,
       }),
       "check-button-primitive.mjs",
@@ -322,7 +322,7 @@ test("button-primitive check blocks raw <button> in Vite features", () => {
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/demo/components/good.tsx":
+        "apps/app/src/features/demo/components/good.tsx":
           `import { Button } from "@workspace/ui/components/form/button";\nexport function Good() { return <Button onClick={() => {}}>Save</Button>; }\n`,
       }),
       "check-button-primitive.mjs",
@@ -335,9 +335,9 @@ test("i18next-parity check fails on missing hi keys or dead hi-only keys", () =>
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/messages/en.json":
+        "apps/app/src/messages/en.json":
           `{\n  "Demo": {\n    "title": "Title",\n    "subtitle": "Subtitle"\n  }\n}\n`,
-        "apps/app-vite/src/messages/hi.json":
+        "apps/app/src/messages/hi.json":
           `{\n  "Demo": {\n    "title": "शीर्षक"\n  }\n}\n`,
       }),
       "check-i18next-parity.mjs",
@@ -347,9 +347,9 @@ test("i18next-parity check fails on missing hi keys or dead hi-only keys", () =>
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/messages/en.json":
+        "apps/app/src/messages/en.json":
           `{\n  "Demo": {\n    "title": "Title"\n  }\n}\n`,
-        "apps/app-vite/src/messages/hi.json":
+        "apps/app/src/messages/hi.json":
           `{\n  "Demo": {\n    "title": "शीर्षक",\n    "deadKey": "मृत कुंजी"\n  }\n}\n`,
       }),
       "check-i18next-parity.mjs",
@@ -359,9 +359,9 @@ test("i18next-parity check fails on missing hi keys or dead hi-only keys", () =>
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/messages/en.json":
+        "apps/app/src/messages/en.json":
           `{\n  "Demo": {\n    "title": "Title",\n    "subtitle": "Subtitle"\n  }\n}\n`,
-        "apps/app-vite/src/messages/hi.json":
+        "apps/app/src/messages/hi.json":
           `{\n  "Demo": {\n    "title": "शीर्षक",\n    "subtitle": "उपशीर्षक"\n  }\n}\n`,
       }),
       "check-i18next-parity.mjs",
@@ -374,7 +374,7 @@ test("i18n-coverage check requires useTranslation in every Vite feature", () => 
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/demo/index.ts":
+        "apps/app/src/features/demo/index.ts":
           `export const label = "Hardcoded";\n`,
       }),
       "check-i18n-coverage.mjs",
@@ -384,7 +384,7 @@ test("i18n-coverage check requires useTranslation in every Vite feature", () => 
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/demo/index.ts":
+        "apps/app/src/features/demo/index.ts":
           `import { useTranslation } from "react-i18next";\nexport function Demo() { const { t } = useTranslation("Demo"); return t("title"); }\n`,
       }),
       "check-i18n-coverage.mjs",
@@ -397,7 +397,7 @@ test("error-boundary-coverage check requires ErrorBoundary in functional layouts
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/components/layout/demo-layout.tsx":
+        "apps/app/src/components/layout/demo-layout.tsx":
           `export function DemoLayout() { return <div>content</div>; }\n`,
       }),
       "check-error-boundary-coverage.mjs",
@@ -407,7 +407,7 @@ test("error-boundary-coverage check requires ErrorBoundary in functional layouts
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/components/layout/demo-layout.tsx":
+        "apps/app/src/components/layout/demo-layout.tsx":
           `import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary";\nexport function DemoLayout() { return <ErrorBoundary><div>content</div></ErrorBoundary>; }\n`,
       }),
       "check-error-boundary-coverage.mjs",
@@ -422,7 +422,7 @@ test("zod-interface-parity check flags interface colliding with packages/types s
       makeGitFixture({
         "packages/types/src/demo/widget.ts":
           `import { z } from "zod";\nexport const widgetSchema = z.object({ name: z.string() });\n`,
-        "apps/app-vite/src/features/demo/types.ts":
+        "apps/app/src/features/demo/types.ts":
           `export interface Widget { name: string }\n`,
       }),
       "check-zod-interface-parity.mjs",
@@ -434,7 +434,7 @@ test("zod-interface-parity check flags interface colliding with packages/types s
       makeGitFixture({
         "packages/types/src/demo/widget.ts":
           `import { z } from "zod";\nexport const widgetSchema = z.object({ name: z.string() });\n`,
-        "apps/app-vite/src/features/demo/types.ts":
+        "apps/app/src/features/demo/types.ts":
           `export interface WidgetRow { name: string }\n`,
       }),
       "check-zod-interface-parity.mjs",
@@ -447,7 +447,7 @@ test("native-ui-affordances check blocks browser dialogs and allows shadowed con
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/demo/components/dialogs.ts":
+        "apps/app/src/features/demo/components/dialogs.ts":
           `export function confirmDelete() {\n  return window.confirm("Delete?");\n}\nexport function warn() {\n  return alert("Heads up");\n}\nexport function ask() {\n  return prompt("Name");\n}\n`,
       }),
       "check-native-ui-affordances.mjs",
@@ -456,7 +456,7 @@ test("native-ui-affordances check blocks browser dialogs and allows shadowed con
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/demo/components/hook.tsx":
+        "apps/app/src/features/demo/components/hook.tsx":
           `import { useConfirm } from "@/hooks/use-confirm";\nexport function UseConfirmDemo() {\n  const { confirm } = useConfirm();\n  return <button onClick={() => confirm({ title: "Remove?" })}>Remove</button>;\n}\n`,
       }),
       "check-native-ui-affordances.mjs",
@@ -468,7 +468,7 @@ test("accessible-name check flags icon-only links and allows text-labeled ones",
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/demo/components/icon-only.tsx":
+        "apps/app/src/features/demo/components/icon-only.tsx":
           `import { Link } from "react-router";\nexport function IconOnly() {\n  return <Link to="/x"><Icon aria-hidden /></Link>;\n}\n`,
       }),
       "check-accessible-name.mjs",
@@ -478,7 +478,7 @@ test("accessible-name check flags icon-only links and allows text-labeled ones",
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/demo/components/good.tsx":
+        "apps/app/src/features/demo/components/good.tsx":
           `import { Link } from "react-router";\nexport function Good() {\n  return <Link to="/x" aria-label="Open settings"><Icon aria-hidden /></Link>;\n}\n`,
       }),
       "check-accessible-name.mjs",
@@ -488,7 +488,7 @@ test("accessible-name check flags icon-only links and allows text-labeled ones",
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app-vite/src/features/demo/components/text.tsx":
+        "apps/app/src/features/demo/components/text.tsx":
           `import { Link } from "react-router";\nexport function Text() {\n  return <Link to="/x">View all</Link>;\n}\n`,
       }),
       "check-accessible-name.mjs",

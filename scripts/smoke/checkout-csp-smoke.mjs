@@ -69,7 +69,7 @@ try {
   await page.goto(`${APP_URL}/login`, { waitUntil: "networkidle", timeout: 30000 });
   await page.waitForTimeout(500);
 
-  // Load the SDK exactly like `useRazorpay` (`apps/app-vite/src/hooks/use-razorpay.ts`).
+  // Load the SDK exactly like `useRazorpay` (`apps/app/src/hooks/use-razorpay.ts`).
   const sdkLoaded = await page.evaluate(
     () =>
       new Promise((resolve) => {

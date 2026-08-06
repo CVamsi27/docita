@@ -7,7 +7,7 @@
  * `<button>` styled with Tailwind classes — so variants, focus rings, and
  * disabled states stay consistent."
  *
- * The rule applies to the Vite SPA apps (`apps/app-vite`, `apps/internal-vite`)
+ * The rule applies to the Vite SPA apps (`apps/app`, `apps/internal`)
  * in `src/features` and `src/components`. The primitive's own definition lives
  * in `packages/ui` and is out of scope. Test files and E2E specs may use raw
  * `<button>` (native HTML is acceptable for test mocks per EXECUTION_PLAN
@@ -22,7 +22,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-const APPS = ["apps/app-vite/src", "apps/internal-vite/src"];
+const APPS = ["apps/app/src", "apps/internal/src"];
 const RAW_BUTTON_RE = /<button\b/g;
 const TEST_OR_E2E_RE = /(\.(spec|test)\.(ts|tsx)$|\/e2e\/)/;
 

@@ -28,7 +28,7 @@ M11 and [`analysis/EXECUTION_PLAN.md`](analysis/EXECUTION_PLAN.md).
 | --------------------- | --------------------------- | --------------------------- | ---------------------- | ----------------------------------------------------------------------------------------- |
 | **Feature port**      | 38 COMPLETE                 | 46 features                 | **83%**                | 8 SHELL + 3 MISSING remain                                                                |
 | **File port**         | 1,404                       | 1,967 TS/TSX                | **71%**                |                                                                                           |
-| **Test port**         | 132 app-vite unit files     | 275 historical source files | **48% audit snapshot** | 7 formerly zero-test features now have smokes                                             |
+| **Test port**         | 132 app unit files     | 275 historical source files | **48% audit snapshot** | 7 formerly zero-test features now have smokes                                             |
 | **E2E port**          | 45                          | 50 specs                    | **90%**                | 5 visual specs dropped                                                                    |
 | **Error boundaries**  | 5/5                         | 5 functional layouts        | **100%**               | ✅ Complete                                                                               |
 | **Raw `<button>`**    | 0 violations                | production code             | **100%**               | ✅ Complete (50 in test files only)                                                       |
@@ -73,7 +73,7 @@ M11 and [`analysis/EXECUTION_PLAN.md`](analysis/EXECUTION_PLAN.md).
 | **Dead code signals**      | 118 files with no imports, 46 unused barrel `index.ts` files                                                                                                                                           |
 | **Zod usage**              | **840** exported schemas (`export const XSchema =` in `packages/types/src`; 630 single-line `z.*`, 445 `z.object`), **59** DTO files (**346** `createZodDto()` call sites), Zod-first compliance 10/10 |
 | **State management**       | 1 zustand store (consultation draft), **12** React Context providers, **25** React Query hooks                                                                                                         |
-| **Test density**           | API: 1.9 tests/1K lines, app-vite: 1.0 tests/1K lines                                                                                                                                                  |
+| **Test density**           | API: 1.9 tests/1K lines, app: 1.0 tests/1K lines                                                                                                                                                  |
 | **E2E critical flows**     | 17 flows covered: auth, consultation, billing, subscription, portal, booking, today, appointments, patients, invoices, whatsapp, settings, lab, prescriptions                                          |
 
 ---
@@ -82,18 +82,18 @@ M11 and [`analysis/EXECUTION_PLAN.md`](analysis/EXECUTION_PLAN.md).
 
 | Metric                                | Value                                                         | Target                                                                        |
 | ------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| app-vite TS/TSX files                 | **1,404** / 1,967                                             | 1,967 (100%)                                                                  |
-| app-vite test files                   | **132 unit files** / 275 audit snapshot                       | all critical paths tested; no unreviewed zero-test feature                    |
-| app-vite E2E specs                    | **45** / 50                                                   | all retained critical flows live-run; 5 visual fixtures intentionally dropped |
-| app-vite source lines                 | **121,121**                                                   | —                                                                             |
-| app-vite React components             | **802** TSX files                                             | —                                                                             |
-| app-vite custom hooks                 | **194**                                                       | —                                                                             |
-| app-vite features with tests          | **38** / 45                                                   | 45/45                                                                         |
-| app-vite features with hooks          | **27** / 45                                                   | 45/45                                                                         |
-| app-vite features with helpers        | **20** / 45                                                   | 45/45                                                                         |
-| internal-vite TS/TSX files            | **63** / 314                                                  | 314 (100%)                                                                    |
-| internal-vite test files              | **8** / 39                                                    | 39 (100%)                                                                     |
-| internal-vite E2E specs               | **3** / 2                                                     | 2 (complete)                                                                  |
+| app TS/TSX files                 | **1,404** / 1,967                                             | 1,967 (100%)                                                                  |
+| app test files                   | **132 unit files** / 275 audit snapshot                       | all critical paths tested; no unreviewed zero-test feature                    |
+| app E2E specs                    | **45** / 50                                                   | all retained critical flows live-run; 5 visual fixtures intentionally dropped |
+| app source lines                 | **121,121**                                                   | —                                                                             |
+| app React components             | **802** TSX files                                             | —                                                                             |
+| app custom hooks                 | **194**                                                       | —                                                                             |
+| app features with tests          | **38** / 45                                                   | 45/45                                                                         |
+| app features with hooks          | **27** / 45                                                   | 45/45                                                                         |
+| app features with helpers        | **20** / 45                                                   | 45/45                                                                         |
+| internal TS/TSX files            | **63** / 314                                                  | 314 (100%)                                                                    |
+| internal test files              | **8** / 39                                                    | 39 (100%)                                                                     |
+| internal E2E specs               | **3** / 2                                                     | 2 (complete)                                                                  |
 | Features COMPLETE                     | **38** / 46                                                   | 46                                                                            |
 | Features SHELL                        | **8**                                                         | 0                                                                             |
 | Features MISSING                      | **3**                                                         | 0                                                                             |
@@ -133,7 +133,7 @@ M11 and [`analysis/EXECUTION_PLAN.md`](analysis/EXECUTION_PLAN.md).
 
 ## Phase 9 — Cutover (BLOCKED: needs all prior work)
 
-**Goal**: delete Next.js apps, make Vite the only frontend, rename `app-vite` → `app`.
+**Goal**: delete Next.js apps, make Vite the only frontend, rename `app` → `app`.
 
 ### 9.1 Pre-cutover checklist (must be green before committing)
 
@@ -163,7 +163,7 @@ M11 and [`analysis/EXECUTION_PLAN.md`](analysis/EXECUTION_PLAN.md).
 | 7   | Re-arm git-based checks against the tracked Vite tree              | **READY** — re-run now and regenerate path-sensitive baselines after rename |
 | 8   | Smoke `deploy:cloudflare:production` for both apps                 | **PENDING**                                                                 |
 | 9   | Delete `apps/app` + `apps/internal`                                | **PENDING**                                                                 |
-| 10  | Rename `app-vite` → `app`, `internal-vite` → `internal`            | **PENDING**                                                                 |
+| 10  | Rename `app` → `app`, `internal` → `internal`            | **PENDING**                                                                 |
 | 11  | Sweep all references (package.json, turbo.json, CI, scripts, docs) | **PENDING**                                                                 |
 
 ---
@@ -260,7 +260,7 @@ Features with i18n: ai-assistant, analytics, appointments, auth, consultation, d
 | F.7  | `form-field.tsx` (overlap with `form-field-group`)                    | `components/form-field.tsx`                     | Delete, use `@workspace/ui`                          |
 | F.8  | Empty dirs: `guards/`, `monitoring/`                                  | `components/guards/`, `components/monitoring/`  | Delete                                               |
 | F.9  | `inventoryApi` (carryover, UI uses data-access directly)              | `features/inventory/`                           | Delete or wire                                       |
-| F.10 | Knip: 278 unused exports + 287 unused types                           | app-vite                                        | Batch cleanup                                        |
+| F.10 | Knip: 278 unused exports + 287 unused types                           | app                                        | Batch cleanup                                        |
 | F.11 | `PaymentMethod.WALLET`/`.NET_BANKING` unused enum members             | `packages/types`                                | Verify, delete if unused                             |
 
 ### G. Dependency Decisions
@@ -279,7 +279,7 @@ Features with i18n: ai-assistant, analytics, appointments, auth, consultation, d
 | H.1 | Make `NEXT_PUBLIC_*` optional aliases in API env schema    | `apps/api/src/shared/modules/config/env-schema.ts` |
 | H.2 | Migrate Fly secrets from `NEXT_PUBLIC_*` to `VITE_*` names | Fly dashboard                                      |
 | H.3 | Update `docs/ONBOARDING.md` §4 env var list                | `docs/ONBOARDING.md`                               |
-| H.4 | Move Razorpay key ID from `wrangler.toml` to CF secrets    | `apps/app-vite/wrangler.toml`                      |
+| H.4 | Move Razorpay key ID from `wrangler.toml` to CF secrets    | `apps/app/wrangler.toml`                      |
 | H.5 | Move Sentry DSNs from `wrangler.toml` to CF secrets        | Both `wrangler.toml` files                         |
 
 ### I. Coding Standards Enforcement
@@ -321,7 +321,7 @@ PHASE E: Cutover (after A-D complete)
   ├─ E.4: Re-arm git-based checks
   ├─ E.5: Smoke test Cloudflare deploys
   ├─ E.6: Delete apps/app + apps/internal
-  ├─ E.7: Rename app-vite → app, internal-vite → internal
+  ├─ E.7: Rename app → app, internal → internal
   ├─ E.8: Sweep all references
   ├─ E.9: NEXT_PUBLIC_* env cleanup
   ├─ E.10: Move credentials to CF secrets
@@ -344,7 +344,7 @@ After any phase:
 ```bash
 # Core gates
 pnpm lint                              # 0 errors
-pnpm --filter @docita/app-vite run check-types  # 0 errors
+pnpm --filter @docita/app run check-types  # 0 errors
 pnpm --filter @docita/api run check-types       # 0 errors
 pnpm knip                              # trending toward 0
 pnpm audit --audit-level=high          # clean
@@ -375,13 +375,13 @@ pnpm check:browser-telemetry-same-origin
 pnpm check:sentry-scrubber-parity
 pnpm perf:budget:enforce
 pnpm perf:route-budgets:enforce
-pnpm build:app-vite:cloudflare
-pnpm build:internal-vite:cloudflare
+pnpm build:app:cloudflare
+pnpm build:internal:cloudflare
 pnpm test:api-startup
 
 # Runtime release evidence (requires staging fixtures and credentials)
-pnpm --filter @docita/app-vite exec playwright test --config=playwright.config.ts
-pnpm --filter @docita/internal-vite exec playwright test --config=playwright.config.ts
+pnpm --filter @docita/app exec playwright test --config=playwright.config.ts
+pnpm --filter @docita/internal exec playwright test --config=playwright.config.ts
 pnpm audit:app                         # authenticated run, not public-only
 pnpm audit:internal
 
@@ -426,7 +426,7 @@ Exit: no skipped critical flow is counted as green, no external prerequisite is 
 **Deep analysis highlights**:
 
 - **Bundle**: 816KB gzip across 171 assets, 96 lazy route boundaries grouped in route modules; shell/layout code remains eager
-- **Test density**: API 1.9/1K lines, app-vite 1.0/1K lines; analytics domain leads at 45%
+- **Test density**: API 1.9/1K lines, app 1.0/1K lines; analytics domain leads at 45%
 - **Code quality**: 0 deep relative imports, avg 101 lines/file, 2 files >400 lines
 - **API complexity**: 10 controllers >200 lines, 3 services >400 lines; clinics domain has most routes (52)
 - **Package health**: utils best-tested (23% density), ui solid (19%); data-access needs more tests (6%)

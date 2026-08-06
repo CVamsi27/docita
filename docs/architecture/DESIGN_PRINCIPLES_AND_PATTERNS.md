@@ -49,7 +49,7 @@ export class AppointmentQueryService {
 **Frontend — hook vs presentational.** Before: a component fetches data, manages state, AND renders JSX. After: `usePatientMetricsUI` is a custom hook that owns state and data fetching; `MetricsTrackingCard` receives props and only renders.
 
 ```ts
-// apps/app-vite/src/features/patients/components/details/use-patient-metrics-ui.ts
+// apps/app/src/features/patients/components/details/use-patient-metrics-ui.ts
 export function usePatientMetricsUI(patientId: string, categoryKey?: string) {
   const { data: categories, isLoading } = usePatientMetricCategories(patientId);
   const { data: history } = usePatientMetricHistory(patientId);
@@ -63,7 +63,7 @@ export function usePatientMetricsUI(patientId: string, categoryKey?: string) {
 ```
 
 ```tsx
-// apps/app-vite/src/features/patients/components/details/metrics/MetricsTrackingCard.tsx
+// apps/app/src/features/patients/components/details/metrics/MetricsTrackingCard.tsx
 interface MetricsTrackingCardProps {
   loading: boolean;
   categories: MetricCategoryResponse[];
@@ -194,7 +194,7 @@ export interface IAppointmentWriteRepository {
 **Frontend** — components receive only the props they render. Before: a component receives the full `user` + `subscription` object. After: `<FeatureGate feature={Feature.X}>` receives only a `Feature` enum value.
 
 ```tsx
-// apps/app-vite/src/components/auth/feature-gate.tsx
+// apps/app/src/components/auth/feature-gate.tsx
 interface FeatureGateProps {
   feature: Feature;        // ← only what this component needs
   children: React.ReactNode;
@@ -277,7 +277,7 @@ export function DataState({ status, children, loadingMessage, errorMessage, onRe
 
 Usage at page level:
 ```tsx
-// apps/app-vite/src/features/consultation/components/ConsultationDashboardUI.tsx
+// apps/app/src/features/consultation/components/ConsultationDashboardUI.tsx
 <AppPageScaffold>
   <PageHeader title="Consultation Dashboard" />
   <DataState status={status} loadingMessage="Loading dashboard…" onRetry={refetch}>
@@ -348,7 +348,7 @@ const form = useForm<z.infer<typeof patientSchema>>({ resolver: zodResolver(pati
 ```
 
 **Enforced by:** `pnpm check:type-duplicates`, `pnpm check:contracts-strict`.
-**Avoid:** `interface Patient { firstName: string; lastName: string; }` in both `apps/api/` and `apps/app-vite/` — define once in `packages/types`.
+**Avoid:** `interface Patient { firstName: string; lastName: string; }` in both `apps/api/` and `apps/app/` — define once in `packages/types`.
 
 ### 3.2 Fetch once: data-access hooks
 
@@ -636,7 +636,7 @@ function MetricsTrackingCard({ loading, categories, onToggleTracked }: MetricsTr
 **Share state across the component tree without prop drilling.**
 
 ```tsx
-// apps/app-vite/src/providers/react-query-provider.tsx
+// apps/app/src/providers/react-query-provider.tsx
 export function DataAccessBridge({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
   const client = useMemo(() => createApiClient(session), [session]);
@@ -683,7 +683,7 @@ export function useDebounce<T>(value: T, delay: number): T {
 </AppPageScaffold>
 ```
 
-**Also seen in:** Every route under `apps/app-vite/src/`.
+**Also seen in:** Every route under `apps/app/src/`.
 **Avoid:** Missing `AppPageScaffold` or `DataState` — reviewers should block merges that skip these.
 
 ### 4.15 Compound Component (Frontend)
@@ -715,7 +715,7 @@ export function FormFieldGroup({ label, error, children }: FormFieldGroupProps) 
 **Persist unsaved form data to localStorage with a TTL so users don't lose progress.**
 
 ```ts
-// apps/app-vite/src/features/setup/components/onboarding/forms/use-onboarding-draft.ts
+// apps/app/src/features/setup/components/onboarding/forms/use-onboarding-draft.ts
 const DRAFT_KEY_PREFIX = 'onboarding_draft_';
 const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -744,14 +744,14 @@ export function useOnboardingDraft(onboardingId: string) {
 **Conditionally render children based on feature access or role.** `FeatureGate` wraps a feature-tied region.
 
 ```tsx
-// apps/app-vite/src/components/auth/feature-gate.tsx
+// apps/app/src/components/auth/feature-gate.tsx
 <FeatureGate feature={Feature.WHATSAPP_MESSAGING}>
   <WhatsappSenderSettings />
 </FeatureGate>
 ```
 
 ```tsx
-// apps/app-vite/src/components/auth/feature-gate.tsx + apps/app-vite/src/hooks/use-permissions.ts
+// apps/app/src/components/auth/feature-gate.tsx + apps/app/src/hooks/use-permissions.ts
 <FeatureGate feature={Feature.X}>…</FeatureGate>
 {/* role checks via usePermissions().canAccess(Feature.X) / route-tree guards */}
 ```

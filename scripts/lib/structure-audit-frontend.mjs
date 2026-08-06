@@ -8,15 +8,15 @@ import {
 import { hasImportFrom } from "./structure-audit-imports.mjs";
 
 const frontendTargets = [
-  ["apps/app-vite/src/features/", "apps/app-vite/features/<feature>"],
-  ["apps/app-vite/src/components/", "apps/app-vite components"],
-  ["apps/app-vite/src/hooks/", "apps/app-vite hooks"],
-  ["apps/app-vite/src/lib/", "apps/app-vite lib"],
-  ["apps/app-vite/src/providers/", "apps/app-vite providers"],
-  ["apps/internal-vite/src/features/", "apps/internal-vite/features/<feature>"],
-  ["apps/internal-vite/src/components/", "apps/internal-vite components"],
-  ["apps/internal-vite/src/lib/", "apps/internal-vite lib"],
-  ["apps/internal-vite/src/hooks/", "apps/internal-vite hooks"],
+  ["apps/app/src/features/", "apps/app/features/<feature>"],
+  ["apps/app/src/components/", "apps/app components"],
+  ["apps/app/src/hooks/", "apps/app hooks"],
+  ["apps/app/src/lib/", "apps/app lib"],
+  ["apps/app/src/providers/", "apps/app providers"],
+  ["apps/internal/src/features/", "apps/internal/features/<feature>"],
+  ["apps/internal/src/components/", "apps/internal components"],
+  ["apps/internal/src/lib/", "apps/internal lib"],
+  ["apps/internal/src/hooks/", "apps/internal hooks"],
   ["apps/landing/src/pages/", "apps/landing/src/pages"],
   ["apps/landing/src/components/", "apps/landing/src/components"],
   ["apps/landing/src/layouts/", "apps/landing/src/layouts"],
@@ -31,7 +31,7 @@ function frontendTarget(file, type) {
 }
 
 function routeThinnessIssue(file, record) {
-  if (!/^apps\/app-vite\/src\/Routes\.tsx$/.test(file) || record.lines <= 180) return [];
+  if (!/^apps\/app\/src\/Routes\.tsx$/.test(file) || record.lines <= 180) return [];
   return [{
     file,
     severity: "split",
@@ -40,7 +40,7 @@ function routeThinnessIssue(file, record) {
 }
 
 function appLevelComponentIssue(file) {
-  if (!/^apps\/(app-vite|internal-vite)\/src\/components\//.test(file)) return [];
+  if (!/^apps\/(app|internal)\/src\/components\//.test(file)) return [];
   return [{
     file,
     severity: "move",
@@ -49,7 +49,7 @@ function appLevelComponentIssue(file) {
 }
 
 function featureFetchIssue(file, record) {
-  if (!/^apps\/app-vite\/src\/features\/[^/]+\/.*\.(ts|tsx)$/.test(file) || !/\bfetch\s*\(/.test(record.content)) return [];
+  if (!/^apps\/app\/src\/features\/[^/]+\/.*\.(ts|tsx)$/.test(file) || !/\bfetch\s*\(/.test(record.content)) return [];
   return [{
     file,
     severity: "review",
@@ -58,7 +58,7 @@ function featureFetchIssue(file, record) {
 }
 
 function largeFeatureComponentIssue(file, record) {
-  if (record.type !== "component" || !/^apps\/app-vite\/src\/features\//.test(file) || record.lines <= 400) return [];
+  if (record.type !== "component" || !/^apps\/app\/src\/features\//.test(file) || record.lines <= 400) return [];
   return [{
     file,
     severity: "split",
@@ -85,7 +85,7 @@ const frontendRules = [
 
 export function collectFrontendAudit() {
   const files = listTrackedFiles().filter((file) =>
-    /^(apps\/app-vite|apps\/internal-vite|apps\/landing)\//.test(file),
+    /^(apps\/app|apps\/internal|apps\/landing)\//.test(file),
   );
   const records = [];
   const issues = [];

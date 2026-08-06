@@ -4,7 +4,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { FormSelectField } from "./form-select-field";
 
 // Radix Select measures its portal content with ResizeObserver, which jsdom
-// does not implement. Provide a no-op global (same approach as the app-vite
+// does not implement. Provide a no-op global (same approach as the app
 // test setup; a leaked no-op observer is harmless in the test environment).
 class ResizeObserverMock {
   observe() {}

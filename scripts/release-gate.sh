@@ -70,8 +70,8 @@ fi
 # ---- Tests ----
 section "Unit tests"
 run "pnpm --filter @docita/api test" pnpm --filter @docita/api test
-run "pnpm --filter @docita/app-vite test" pnpm --filter @docita/app-vite test
-run "pnpm --filter @docita/internal-vite test" pnpm --filter @docita/internal-vite test
+run "pnpm --filter @docita/app test" pnpm --filter @docita/app test
+run "pnpm --filter @docita/internal test" pnpm --filter @docita/internal test
 ok "unit suites"
 
 # ---- API e2e ----
@@ -117,10 +117,10 @@ ok "ledger printed (no ratchet failures yet — see SUPPRESSION_LEDGER.md for ta
 if [ "$BUILD" = 1 ]; then
   section "Builds (root + per-app)"
   run "pnpm build" pnpm build
-  run "pnpm --filter @docita/app-vite run build:cloudflare:production" \
-    pnpm --filter @docita/app-vite run build:cloudflare:production
-  run "pnpm --filter @docita/internal-vite run build:cloudflare:production" \
-    pnpm --filter @docita/internal-vite run build:cloudflare:production
+  run "pnpm --filter @docita/app run build:cloudflare:production" \
+    pnpm --filter @docita/app run build:cloudflare:production
+  run "pnpm --filter @docita/internal run build:cloudflare:production" \
+    pnpm --filter @docita/internal run build:cloudflare:production
   run "pnpm --filter @docita/landing run build:cloudflare:production" \
     pnpm --filter @docita/landing run build:cloudflare:production
   ok "builds (4)"
@@ -139,8 +139,8 @@ fi
 
 # ---- Worker size + headers ----
 section "Worker size + headers"
-run "pnpm check:worker-size:app-vite" pnpm check:worker-size:app-vite
-run "pnpm check:worker-size:internal-vite" pnpm check:worker-size:internal-vite
+run "pnpm check:worker-size:app" pnpm check:worker-size:app
+run "pnpm check:worker-size:internal" pnpm check:worker-size:internal
 run "pnpm verify:app-security-headers" pnpm verify:app-security-headers
 ok "worker + headers"
 

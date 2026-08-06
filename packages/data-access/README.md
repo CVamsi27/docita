@@ -13,7 +13,7 @@ Single API client and React Query surface for web apps.
 
 ## staleTime / gcTime policy
 
-Global defaults live in `apps/app-vite/src/providers/react-query-provider.tsx` (`staleTime: 30 s`, `gcTime: 5 min`). Per-query stale times are inferred from the shared key-prefix registry in `src/core/stale-time.ts`.
+Global defaults live in `apps/app/src/providers/react-query-provider.tsx` (`staleTime: 30 s`, `gcTime: 5 min`). Per-query stale times are inferred from the shared key-prefix registry in `src/core/stale-time.ts`.
 
 | Data category | staleTime | gcTime |
 |---|---:|---:|

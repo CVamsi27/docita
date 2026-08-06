@@ -81,9 +81,9 @@ the runtime reporter is not yet wired and the budget is not enforced.
 
 **Current state**:
 
-- `apps/app-vite/src/lib/monitoring/web-vitals.ts` (modified in dirty tree) and
-  `apps/internal-vite/src/lib/monitoring/web-vitals.ts` exist.
-- `apps/app-vite/src/lib/monitoring/web-vitals-payload.ts` (new, uncommitted)
+- `apps/app/src/lib/monitoring/web-vitals.ts` (modified in dirty tree) and
+  `apps/internal/src/lib/monitoring/web-vitals.ts` exist.
+- `apps/app/src/lib/monitoring/web-vitals-payload.ts` (new, uncommitted)
   defines the report payload shape.
 - `scripts/perf/check-web-vitals.mjs` (new, uncommitted) validates the
   payload format.
@@ -172,7 +172,7 @@ gate wiring pending live green run.
 
 ## 6. Internal-vite admin/users endpoint gaps (10 OPEN API gaps)
 
-**Source**: REPO_GAPS row 40; the 2026-08-04 internal-vite route-parity sweep
+**Source**: REPO_GAPS row 40; the 2026-08-04 internal route-parity sweep
 found 10 pages calling non-existent internal endpoints. Pricing, dashboard,
 feedback, support, billing reminder, payment-processing, system-monitoring,
 performance, doctors, referrals are all fixed. Two pages still surface an
@@ -280,7 +280,7 @@ explicit owners and windows.
 | Web Vitals reporter + budget enforcement                                 | EXECUTION P4.5     | P5.8 **DONE 2026-08-06** |
 | API latency SLOs + budget gate                                           | EXECUTION P4.5     | P5.9 — **DONE 2026-08-06** |
 | CSP checkout smoke (Razorpay iframe)                                    | EXECUTION P4.4     | P5.10 (above) — **PARTIAL; live run BLOCKED** |
-| internal-vite admins/users endpoints                                     | REPO_GAPS row 40   | P5.11 — **DONE 2026-08-06** |
+| internal admins/users endpoints                                     | REPO_GAPS row 40   | P5.11 — **DONE 2026-08-06** |
 | CSRF webhook regression test                                             | EXECUTION P4.3     | P5.12 (above) — **DONE 2026-08-06** |
 | `as-cast-density` dirty tree fix                                         | Working tree 2026-08-05 | Done 2026-08-05 |
 | `check:client-storage-usage` allowlist (`web-vitals.ts` session-dedupe)  | Working tree 2026-08-05 | Done 2026-08-05 |
@@ -315,13 +315,13 @@ infrastructure to the auth surface.
   `AuthRegistrationController.register` (not on `check-email`); rate limiter
   (`IpRateLimitGuard` + `@Throttle`) and lockout are **unchanged**.
 - `TurnstileWidget` promoted to `@workspace/ui/components/form/turnstile-widget`
-  (public-booking re-imports it; the app-vite global `turnstile.d.ts` moved
+  (public-booking re-imports it; the app global `turnstile.d.ts` moved
   into the package) and mounted on the login + signup steps; submit is gated
   with an inline error when `VITE_TURNSTILE_SITE_KEY` is set but the token is
   missing.
 
 **Activation**: set `TURNSTILE_SECRET_KEY` (API) + `VITE_TURNSTILE_SITE_KEY`
-(app-vite) in production to start enforcing; until then both surfaces behave
+(app) in production to start enforcing; until then both surfaces behave
 as before.
 
 ---

@@ -418,7 +418,7 @@ People who sell X-ray machines, ECG machines, dental chairs, autoclaves, etc. vi
 **Files to create:**
 - Extend `packages/types/src/shared/referrals.ts` for acquisition-channel and payout status schemas
 - Add API referral services/controllers around the existing Prisma `Referral` and `ReferralCredit` models
-- `apps/app-vite/src/features/referrals/` — referral dashboard UI
+- `apps/app/src/features/referrals/` — referral dashboard UI
 
 #### 5.9 WhatsApp number display on patient pages
 

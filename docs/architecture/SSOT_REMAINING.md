@@ -50,7 +50,7 @@ re-run the same searches and record the reduction.
 ## Count Commands
 
 ```sh
-rg -n '₹|toLocaleString\(' apps/app-vite/src/features --glob '*.{ts,tsx}'
+rg -n '₹|toLocaleString\(' apps/app/src/features --glob '*.{ts,tsx}'
 ```
 
 ---

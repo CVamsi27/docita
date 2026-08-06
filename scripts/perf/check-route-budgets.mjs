@@ -15,7 +15,7 @@ const SHOULD_FAIL = BUDGET_MODE === "fail";
 
 async function main() {
   const repoRoot = process.cwd();
-  const appDir = path.join(repoRoot, "apps/app-vite");
+  const appDir = path.join(repoRoot, "apps/app");
   const current = await collectAppRouteBundleSizes(appDir);
   if (!current.routeSizes) {
     console.warn(

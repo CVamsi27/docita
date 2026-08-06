@@ -17,7 +17,7 @@ The single inventory for removing unwanted stuff from the repo: dead files, dead
 | G. Keep — verified in use          | **100%**                | All items verified                                                                                    |
 | **Overall cleanup**                | **not a release score** | Use the execution plan's phase gates and evidence, not a weighted percentage                          |
 
-**Last inventory refresh: 2026-08-03** (Vite trees are tracked on the migration branch; `apps/app` and `apps/internal` are absent from the branch tip; app-vite remains at the 1,404-file audit snapshot / 802 TSX components / 121,121 lines, with post-P0–P2 evidence recorded in `EXECUTION_PLAN.md`).
+**Last inventory refresh: 2026-08-03** (Vite trees are tracked on the migration branch; `apps/app` and `apps/internal` are absent from the branch tip; app remains at the 1,404-file audit snapshot / 802 TSX components / 121,121 lines, with post-P0–P2 evidence recorded in `EXECUTION_PLAN.md`).
 
 **Context**: full measurements behind these decisions are in the [`analysis/`](analysis/README.md) series (features, UI/UX, database, standards, security, performance, cost, trash); product prioritization is in [`FUTURE_FEATURE_REQUIREMENTS.md`](FUTURE_FEATURE_REQUIREMENTS.md).
 
@@ -55,7 +55,7 @@ Reference: REPO_GAPS sections B + H. Key deletions:
 - `packages/typescript-config/dist/` (1.7 MB stray build), `apps/api/dist/` (19 MB), `apps/worker/dist/` (9.8 MB) — untracked `dist/` junk (hygiene check now flags the class).
 - `scripts/deploy/cloudflare-stubs/`, `packages/eslint-config/next.js` + `@next/eslint-plugin-next` devDep.
 - `knip.json` blocks for `apps/app` / `apps/internal`.
-- 30 stale `"use client"` directives stripped from `apps/app-vite/src` (7 `.ts` + 23 `.tsx`).
+- 30 stale `"use client"` directives stripped from `apps/app/src` (7 `.ts` + 23 `.tsx`).
 - `NEXT_PUBLIC_*` → `VITE_*` env rename across `wrangler.toml`/`.env.example`/`turbo.json` (fixes a live prod config bug).
 - Logger pair deduped into `packages/utils/src/monitoring/client-logger.ts`; Sentry configs consolidated; `PatientFormFields` extracted; `invalidateIpdQueries` extracted.
 - Both Hono workers adopted `proxyUpstreamApiRequest` (the "adopt" path — `upstream-api-proxy` no longer has zero consumers).
@@ -79,16 +79,16 @@ Also removed the orphaned `app:` / `internal:` output declarations from the `cha
 
 ### B.2 Knip findings: 278 unused exports + 287 unused exported types
 
-`pnpm knip` exits 0 (no unused files, no unused deps), but ~565 unused exports/types remain, concentrated in app-vite. Regenerate the exhaustive list with `pnpm knip`. Pre-batch-1 distribution (approximate; live numbers in [`analysis/TRASH_ANALYSIS.md`](analysis/TRASH_ANALYSIS.md) §1):
+`pnpm knip` exits 0 (no unused files, no unused deps), but ~565 unused exports/types remain, concentrated in app. Regenerate the exhaustive list with `pnpm knip`. Pre-batch-1 distribution (approximate; live numbers in [`analysis/TRASH_ANALYSIS.md`](analysis/TRASH_ANALYSIS.md) §1):
 
 | Area                             | Count | Notes                                                                                                                                                                       |
 | -------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/features/` (app-vite)       | 210   | Largest: consultation (63), invoices (24), subscription (18), dashboard (16), documents (15), appointments (13), public-booking (12), legal (10), lab-tests (10), desk (10) |
-| `src/lib/` (app-vite)            | 85    | Porting-debt exports: shells/types nothing consumes yet                                                                                                                     |
-| `src/components/` (app-vite)     | 33    | e.g. `useTier`/`useIsFeatureLocked`/`useRequiredTier` in `feature-gate.tsx`, locale-switcher helpers                                                                        |
+| `src/features/` (app)       | 210   | Largest: consultation (63), invoices (24), subscription (18), dashboard (16), documents (15), appointments (13), public-booking (12), legal (10), lab-tests (10), desk (10) |
+| `src/lib/` (app)            | 85    | Porting-debt exports: shells/types nothing consumes yet                                                                                                                     |
+| `src/components/` (app)     | 33    | e.g. `useTier`/`useIsFeatureLocked`/`useRequiredTier` in `feature-gate.tsx`, locale-switcher helpers                                                                        |
 | `src/hooks/` + `src/test-utils/` | 9     | e.g. `use-razorpay` result types                                                                                                                                            |
-| `e2e/` (app-vite)                | ~10   | `patient-helpers.ts` exports the 3 ported specs do not import (e.g. `API_URL`, `TEST_PASSWORD`, `setupAuthUser`, `fetchPatientByApi`)                                       |
-| `src/` (internal-vite)           | 4     | `user-facing-errors.ts` context type                                                                                                                                        |
+| `e2e/` (app)                | ~10   | `patient-helpers.ts` exports the 3 ported specs do not import (e.g. `API_URL`, `TEST_PASSWORD`, `setupAuthUser`, `fetchPatientByApi`)                                       |
+| `src/` (internal)           | 4     | `user-facing-errors.ts` context type                                                                                                                                        |
 
 ### Deep analysis: dead code signals
 
@@ -103,20 +103,20 @@ Also removed the orphaned `app:` / `internal:` output declarations from the `cha
 
 **Batch 1 done 2026-08-01** (verified dead in both the Vite tree and the git-HEAD Next tree before deleting):
 
-- `useTier`, `useIsFeatureLocked`, `useRequiredTier` + the `LockedFeatureIndicator` re-export in `apps/app-vite/src/components/auth/feature-gate.tsx`; `LockedFeatureIndicator` in `feature-gate-sections.tsx` (had zero consumers in Next too); dropped the now-unused `Lock`/`Tooltip` imports.
-- `export type { UserFacingErrorContext }` re-export removed from `apps/{app-vite,internal-vite}/src/lib/errors/user-facing-errors.ts` (type still used locally; zero external importers).
+- `useTier`, `useIsFeatureLocked`, `useRequiredTier` + the `LockedFeatureIndicator` re-export in `apps/app/src/components/auth/feature-gate.tsx`; `LockedFeatureIndicator` in `feature-gate-sections.tsx` (had zero consumers in Next too); dropped the now-unused `Lock`/`Tooltip` imports.
+- `export type { UserFacingErrorContext }` re-export removed from `apps/{app,internal}/src/lib/errors/user-facing-errors.ts` (type still used locally; zero external importers).
 - Converted unused prop-type exports (`FeatureGateProps`, `TierGateProps`, `FeatureTierBadgeProps`, `TierBadgeProps`, `LockedFeatureCardProps`) to local types (zero consumers in both trees; `FeatureGateProps`/`TierGateProps` remain as local annotations).
-- Result: knip findings 203→**198** exports, 212→**209** types (pre-Batch-1 counts); current measured: **278 exports, 287 types** (more thorough scan after feature ports landed); app-vite `check-types` green (only the pre-existing `MemberManagementUI` settings error remains — mid-port).
+- Result: knip findings 203→**198** exports, 212→**209** types (pre-Batch-1 counts); current measured: **278 exports, 287 types** (more thorough scan after feature ports landed); app `check-types` green (only the pre-existing `MemberManagementUI` settings error remains — mid-port).
 
 **Deletion rules for this bucket** (per porting standards):
 
-- Only delete exports with zero consumers in **both** Vite trees, route metadata, dynamic imports, and the ported E2E specs. The Next apps are absent from the current branch tip, so use the recorded migration inventory or historical Git revisions only when a legacy consumer question remains. Example: `getSafeUserMessage` (internal-vite) stays when its current consumers or documented parity contract require it.
+- Only delete exports with zero consumers in **both** Vite trees, route metadata, dynamic imports, and the ported E2E specs. The Next apps are absent from the current branch tip, so use the recorded migration inventory or historical Git revisions only when a legacy consumer question remains. Example: `getSafeUserMessage` (internal) stays when its current consumers or documented parity contract require it.
 - **Keep, do not delete**: `locale-switcher` helpers (`LOCALES`, `DEFAULT_LOCALE`, `isLocale`, `readStoredLocale`, `persistLocale`) — required by Phase 1 locale-switcher UI; `browserRequest` (used by login/upload flows); any symbol the porting plan names as "parity carryover" until its port lands.
-- Re-run `pnpm knip` after each batch; the goal is 0 findings for app-vite `src/`.
+- Re-run `pnpm knip` after each batch; the goal is 0 findings for app `src/`.
 
 ### B.3 Intentionally-unused i18n key — DONE 2026-08-01
 
-`table.medsCount` in `apps/app-vite/src/messages/{en,hi}.json` (was line 1726) — the porting plan records it as intentionally unused (plain i18next renders the count). **Deleted from both locales 2026-08-01**; `check:i18n-translation-keys --enforce` passes.
+`table.medsCount` in `apps/app/src/messages/{en,hi}.json` (was line 1726) — the porting plan records it as intentionally unused (plain i18next renders the count). **Deleted from both locales 2026-08-01**; `check:i18n-translation-keys --enforce` passes.
 
 ### B.4 Unused `PaymentMethod` enum members
 
@@ -144,7 +144,7 @@ Exit: `pnpm check:tools-route-gate`, `pnpm check:e2e-nav-routes`, route inventor
 ## D. Cutover-gated (Phase 9 — delete in the cutover change set)
 
 1. **Delete `apps/app` + `apps/internal`** — **DONE at the current branch tip**; keep only intentional historical references in audit/migration records.
-2. **Lift the jscpd exclusion** in `.jscpd.json` (`apps/app-vite/`, `apps/internal-vite/`) and fix the real clones it hides: the byte-identical `api/index.ts` Hono routing shell pair (dedupe into a shared worker or document the per-app split). Gate: `pnpm check:duplication` (0 clones) without the exclusion.
+2. **Lift the jscpd exclusion** in `.jscpd.json` (`apps/app/`, `apps/internal/`) and fix the real clones it hides: the byte-identical `api/index.ts` Hono routing shell pair (dedupe into a shared worker or document the per-app split). Gate: `pnpm check:duplication` (0 clones) without the exclusion.
 3. **Regenerate the JSX-literal-density baseline** — `scripts/checks/baselines/jsx-literal-density.json` still keys on deleted `apps/app` paths (743 literals, 2026-07-20): `node scripts/checks/check-jsx-literal-density.mjs --baseline`.
 4. **Re-arm the git-based checks** — the Vite apps are now tracked, so re-run `check:native-ui-affordances`, `check:responsive-data-tables`, `check:feature-boundaries`, and `check:jsx-literal-density` against the current tree; regenerate path-sensitive baselines before closing the cutover.
 5. **Flip or archive the historical Next-referencing docs** (Phase 9 step 3 list): `SYSTEM_DESIGN_AND_PATTERNS` (61 refs), `DESIGN_PRINCIPLES_AND_PATTERNS` (10), `SINGLE_SOURCE_OF_TRUTH` (1), `AUTH_HARDENING` (3), `WHATSAPP_FIRST_CLINIC_OS`, `CUSTOM_PACKAGES`, `abdm-milestone-plan`, `DESIGN_SYSTEM` (3), `UI_UX_CONTRACT` (1), `PAGE_STANDARDIZATION_CHECKLIST` (1). Then the zero-reference grep: `grep -rn "apps/app\b\|apps/internal\b" . --include="*.md" --include="*.yml" --include="*.ts" --include="*.mjs"` must hit only intentional history/audit notes.
@@ -155,13 +155,13 @@ Exit: `pnpm check:tools-route-gate`, `pnpm check:e2e-nav-routes`, route inventor
 
 1. **`NEXT_PUBLIC_*` API env cleanup** — `apps/api/src/shared/modules/config/env-schema.ts:42-43` still requires `NEXT_PUBLIC_APP_URL`/`NEXT_PUBLIC_API_URL`; the Vite apps only set `VITE_*`. Make them optional aliases defaulting from `APP_URL`/`VITE_API_URL`, update `docs/operations/DEPLOYMENT.md` + AGENTS.md §6, then migrate Fly secrets (REPO_GAPS §D).
 2. **`docs/ONBOARDING.md` §4** still lists `NEXT_PUBLIC_API_URL` as a required API var — fold into the same cleanup.
-3. **Rename `app-vite`/`internal-vite` → `app`/`internal`** (Phase 9 step 8) and sweep all references — this is where the bulk of "remove the `-vite` suffix" work lands.
+3. **Rename `app`/`internal` → `app`/`internal`** (Phase 9 step 8) and sweep all references — this is where the bulk of "remove the `-vite` suffix" work lands.
 
 ## F. Dependency decisions
 
 | Dependency                                         | Issue                                                 | Decision needed                                                               |
 | -------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `react-router` 7.18.2 (`apps/app-vite`)            | RSC-mode CSRF bypass; patched only in v8.3.0+ (major) | Verify v7→v8 API compatibility for the 89-route tree, then bump. REPO_GAPS §G |
+| `react-router` 7.18.2 (`apps/app`)            | RSC-mode CSRF bypass; patched only in v8.3.0+ (major) | Verify v7→v8 API compatibility for the 89-route tree, then bump. REPO_GAPS §G |
 | `brace-expansion` ≤5.0.7 (transitive, dev tooling) | DoS; patch at 5.0.8                                   | Bump the owning dev tool (or add an override) when next touching dev deps     |
 
 No other dependency removals are pending: `pnpm knip` reports zero unused deps, and `pnpm audit --audit-level=high` shows only the two pre-existing advisories above.
@@ -170,7 +170,7 @@ No other dependency removals are pending: `pnpm knip` reports zero unused deps, 
 
 - `dist/` dirs in packages/apps that legitimately build: `packages/{auth,types,utils,hooks,data-access,ui}`, `apps/*-vite`, `apps/landing` (REPO_GAPS §B).
 - `VITE_*` env names in `wrangler.toml`/`turbo.json`/`.env.example` — the config-sync rule (§16.2) requires them; `NEXT_PUBLIC_API_URL`/`NEXT_PUBLIC_APP_URL` stay in turbo because the API server config + landing consume them (until §E.1).
-- Hardcoded Sentry DSNs in `apps/app-vite/wrangler.toml` + `apps/internal-vite/wrangler.toml` — flagged (REPO_GAPS §H item 8) to move to Cloudflare Worker Secrets; **keep until secrets exist** (a build that references an unset DSN would disable Sentry).
+- Hardcoded Sentry DSNs in `apps/app/wrangler.toml` + `apps/internal/wrangler.toml` — flagged (REPO_GAPS §H item 8) to move to Cloudflare Worker Secrets; **keep until secrets exist** (a build that references an unset DSN would disable Sentry).
 - `PaymentMethod` enum itself — consumed via `paymentMethodSchema` (`z.nativeEnum`); only the unused members in B.4 are candidates.
 - Legacy symbols named in AGENTS.md §15.8 (removed `FRONT_DESK*` tiers, `workspaceProfile`, 9-state invoice model, 1-value `DiscountType`) — enforced by checks; do not reintroduce, nothing to delete.
 

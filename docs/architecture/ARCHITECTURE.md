@@ -9,7 +9,7 @@ Docita is a Turborepo monorepo for a healthcare SaaS product handling PHI
 Cloudflare (Vite SPA apps with static assets + a tiny Hono proxy Worker).
 
 > **Migration in progress:** the Next.js apps (`apps/app`, `apps/internal`) are
-> being replaced by `apps/app-vite` / `apps/internal-vite` (Vite + React Router
+> being replaced by `apps/app` / `apps/internal` (Vite + React Router
 > v7). Until cutover, the old apps are still the deployment source. See
 > [`PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md).
 
@@ -19,7 +19,7 @@ Cloudflare (Vite SPA apps with static assets + a tiny Hono proxy Worker).
 
 ```mermaid
 flowchart LR
-  Browser --> App["apps/app-vite\nVite SPA"] & Internal["apps/internal-vite\nVite SPA"] & Landing["apps/landing\nAstro"]
+  Browser --> App["apps/app\nVite SPA"] & Internal["apps/internal\nVite SPA"] & Landing["apps/landing\nAstro"]
   App & Internal --> DA["packages/data-access"] --> API["apps/api\nNestJS"]
   App & Internal --> Proxy["Hono proxy Worker\n/api/* + /socket.io/*"]
   Proxy --> API
@@ -41,8 +41,8 @@ flowchart LR
 | App | Framework | Port | Purpose |
 |-----|-----------|------|---------|
 | `apps/api` | NestJS 11 | 3001 | REST API, WebSockets, scheduled jobs, queue |
-| `apps/app-vite` | Vite 6 + React Router 7 | 3000 | Clinic staff portal (patients, appointments, billing) |
-| `apps/internal-vite` | Vite 6 + React Router 7 | 3002 | Internal super-admin tooling |
+| `apps/app` | Vite 6 + React Router 7 | 3000 | Clinic staff portal (patients, appointments, billing) |
+| `apps/internal` | Vite 6 + React Router 7 | 3002 | Internal super-admin tooling |
 | `apps/landing` | Astro | 3003 | Public marketing site |
 | `apps/worker` | NestJS context | — | Queue consumer; shares `apps/api/src/` via tsconfig alias |
 

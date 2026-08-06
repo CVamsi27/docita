@@ -28,7 +28,7 @@ Defined per surface. Violations trigger the alert → runbook chain in §3.
 | API — availability             | `/health` 200s                  | 99.9% / 30-day     | 99.9%              | Backend      |
 | Worker — queue drain           | scheduled job latency           | ≤ 60s p99          | 99.0%              | Backend      |
 | Worker — PDF generation        | end-to-end document            | ≤ 30s p95          | 99.0%              | Backend      |
-| App — initial load (LCP)       | `apps/app-vite`, `apps/internal-vite` | ≤ 2.5s p75      | 99.0%              | Frontend     |
+| App — initial load (LCP)       | `apps/app`, `apps/internal` | ≤ 2.5s p75      | 99.0%              | Frontend     |
 | App — INP                      | any interactive flow            | ≤ 200ms p75         | 99.0%              | Frontend     |
 | App — CLS                      | any page                        | ≤ 0.1 p75           | 99.0%              | Frontend     |
 | App — TTFB                     | first byte from Worker proxy    | ≤ 800ms p75         | 99.0%              | Frontend     |
@@ -108,7 +108,7 @@ current `main` HEAD:
    (lint, types, tests, contracts, security, accessibility, performance
    budgets, hygiene).
 2. **Unit tests** — `pnpm --filter @docita/api test` (3000+), `pnpm --filter
-   @docita/app-vite test` (697+), `pnpm --filter @docita/internal-vite
+   @docita/app test` (697+), `pnpm --filter @docita/internal
    test` (48+).
 3. **E2E** — `pnpm --filter @docita/api run test:e2e` (23 suites, 143+ tests).
 4. **Cloudflare build** — `pnpm build:cloudflare:production` for the touched

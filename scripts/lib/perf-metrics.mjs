@@ -8,7 +8,7 @@ import { gzipSync } from "node:zlib";
  * chunks (named after their source module) add on top.
  *
  * MAINTENANCE: this list is a snapshot of the current `manualChunks` rules and
- * lazy-import names in `apps/app-vite`. When a manualChunks rule or a lazy
+ * lazy-import names in `apps/app`. When a manualChunks rule or a lazy
  * route module is renamed/added, update BOTH this list and `TRACKED_ROUTES` in
  * the same change, or the classification silently drifts. Unclassified chunks
  * are surfaced by `perf:baseline` as a warning so drift stays observable.
@@ -31,7 +31,7 @@ const SHARED_CHUNK_PATTERNS = [
 ];
 
 /**
- * Tracked routes keyed by the app-vite React Router path. Each entry lists the
+ * Tracked routes keyed by the app React Router path. Each entry lists the
  * chunk-name prefixes (Vite names lazy chunks after their source module
  * basename, before the content hash) that represent the route's own JS cost.
  * A route with no matching chunk is measured as shared-core only, which is

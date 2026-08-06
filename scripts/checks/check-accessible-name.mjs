@@ -27,7 +27,7 @@ import {
  * InsuranceClaimDetailsUISections.tsx) and are only catchable at runtime.
  */
 
-const files = gitLsSourceFiles(["apps/app-vite/src", "apps/internal-vite/src"], {
+const files = gitLsSourceFiles(["apps/app/src", "apps/internal/src"], {
   extensions: [".tsx", ".jsx"],
   exclude: [/\/(e2e|test-utils)\//, /\.(test|spec)\.[tj]sx?$/],
 });

@@ -375,7 +375,7 @@ importers:
         specifier: ^7.0.0
         version: 7.0.0
 
-  apps/app-vite:
+  apps/app:
     dependencies:
       '@hookform/resolvers':
         specifier: ^5.2.2
@@ -511,7 +511,7 @@ importers:
         specifier: ^4.90.0
         version: 4.95.0(@types/node@25.9.3)
 
-  apps/internal-vite:
+  apps/internal:
     dependencies:
       '@sentry/react':
         specifier: ^10.47.0

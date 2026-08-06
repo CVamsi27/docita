@@ -32,12 +32,12 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 
 ### Frontend E2E Tests (Playwright)
 
-**Location**: `apps/app-vite/e2e/` (45 spec files, ~1,048 tests) — configuration: `apps/app-vite/playwright.config.ts`; `apps/internal-vite/e2e/` (3 spec files, 44 tests) — configuration: `apps/internal-vite/playwright.config.ts`
+**Location**: `apps/app/e2e/` (45 spec files, ~1,048 tests) — configuration: `apps/app/playwright.config.ts`; `apps/internal/e2e/` (3 spec files, 44 tests) — configuration: `apps/internal/playwright.config.ts`
 
 > **Status (2026-08-02):** the Playwright suite is **ported** to the Vite apps.
-> app-vite runs on port 5173 via `vite preview` against a local API; the CI
-> workflow `.github/workflows/frontend-critical-e2e.yml` runs the app-vite
-> suite, and the internal-vite suite (health, accessibility, critical-flows)
+> app runs on port 5173 via `vite preview` against a local API; the CI
+> workflow `.github/workflows/frontend-critical-e2e.yml` runs the app
+> suite, and the internal suite (health, accessibility, critical-flows)
 > runs in its own job. 5 visual spec files were dropped at port-or-drop
 > (2026-08-02) because the Next dev-tools fixtures they snapshotted are not
 > ported (tools is an intentional shell). See
@@ -52,9 +52,9 @@ Use this split so expectations stay maintainable (full per-widget coverage is no
 | **E2E smoke** | Authenticated route renders, no hard failure; guards redirect correctly | `health.spec.ts`, `nav-routes-smoke.spec.ts` (parameterized top-level nav), selected single-page checks |
 | **E2E journeys** | Minimal-click critical workflows (patient, appointment, consultation, billing, WhatsApp) | `critical-flows.spec.ts`, `appointments.spec.ts`, `consultation.spec.ts`, `smart-auth.spec.ts`, `whatsapp.spec.ts`, `upgrade.spec.ts` |
 | **Accessibility (axe)** | Catch regressions against WCAG-oriented rules | `accessibility.spec.ts` (public + authenticated audits where stable) |
-| **Vitest** | Component logic, rules, hooks — not every static label | `apps/app-vite/src/**/*.test.ts(x)` (run `pnpm --filter @docita/app-vite test`) |
+| **Vitest** | Component logic, rules, hooks — not every static label | `apps/app/src/**/*.test.ts(x)` (run `pnpm --filter @docita/app test`) |
 
-**Command palette (doctor app):** press **⌘K** / **Ctrl+K**, or **/** when focus is not in a text field, to jump to nav destinations and quick actions (`apps/app-vite/src/components/navigation/command-palette.tsx`).
+**Command palette (doctor app):** press **⌘K** / **Ctrl+K**, or **/** when focus is not in a text field, to jump to nav destinations and quick actions (`apps/app/src/components/navigation/command-palette.tsx`).
 
 CI runs a **subset** of Playwright on `main` (see below). Run the full suite locally before merging broad UI changes.
 
@@ -126,7 +126,7 @@ Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` /
 
 Runs **not** included there by default: `nav-routes-smoke.spec.ts`, `accessibility.spec.ts`, and other feature suites (`appointments.spec.ts`, `consultation.spec.ts`, …). Run those locally with `pnpm --filter @docita/app test:e2e`, or add a separate workflow job when you need broader regression coverage.
 
-### Mobile regression checklist (`apps/app-vite`)
+### Mobile regression checklist (`apps/app`)
 
 Before merging UI that touches layout, tables, tabs, or the protected shell:
 
@@ -234,10 +234,10 @@ pnpm db:deploy
 pnpm --filter @docita/api run dev
 
 # Terminal 2 — App
-pnpm --filter @docita/app-vite run dev
+pnpm --filter @docita/app run dev
 
 # Terminal 3 — focused Playwright run
-cd apps/app-vite && pnpm exec playwright test e2e/upgrade.spec.ts --project=chromium
+cd apps/app && pnpm exec playwright test e2e/upgrade.spec.ts --project=chromium
 ```
 
 ### Run All Tests
@@ -424,7 +424,7 @@ NODE_ENV=test
 ### Frontend (.env.test)
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+API_PUBLIC_URL=http://localhost:3001/api
 API_URL=http://localhost:3001/api
 NODE_ENV=test
 ```
@@ -448,7 +448,7 @@ Tests run automatically on:
 2. **Frontend Playwright Smoke (`.github/workflows/test.yml`)**
    - Install dependencies
    - Install Playwright browsers
-   - Execute Playwright smoke test (pending port to `apps/app-vite/e2e/health.spec.ts`)
+   - Execute Playwright smoke test (pending port to `apps/app/e2e/health.spec.ts`)
    - Upload test report
 
 3. **Local Full-Stack E2E**

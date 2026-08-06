@@ -6,7 +6,7 @@ The visual reference is the Origin web app (April 2026), captured in `artifacts/
 
 ## 0. Going forward (authoritative source)
 
-- This document is the authoritative UI/UX source for `apps/app-vite`, `apps/internal-vite`, and `apps/landing` going forward. Where it conflicts with [`docs/ui/DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) or [`docs/ui/UI_UX_CONTRACT.md`](UI_UX_CONTRACT.md), this file wins; those files remain for historical and detailed reference.
+- This document is the authoritative UI/UX source for `apps/app`, `apps/internal`, and `apps/landing` going forward. Where it conflicts with [`docs/ui/DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) or [`docs/ui/UI_UX_CONTRACT.md`](UI_UX_CONTRACT.md), this file wins; those files remain for historical and detailed reference.
 - Every new page or feature MUST start from the primitives in §3, the AI surface contract in §4, the motion/density rules in §5, and the per-page test contract in §7. The per-feature checklist in §9 must be ticked before merge.
 - Deviations are allowed only when the PR description includes an explicit dated note explaining the trade-off and, when relevant, a follow-up issue link.
 - SOLID, KISS, DRY, comments policy, logging policy, and the broader engineering conventions are governed by [`AGENTS.md`](../AGENTS.md) §7 (Logging/Comments/Hygiene) and §12 (Design Principles). Read those alongside this standard; the rules compose, they do not replace each other.
@@ -172,7 +172,7 @@ Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind b
 
 ## 7. Test contract (per page)
 
-Every page in `apps/app-vite` must have a Playwright spec under `apps/app-vite/e2e/` (pending the E2E port — see [`PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md)) that asserts at minimum:
+Every page in `apps/app` must have a Playwright spec under `apps/app/e2e/` (pending the E2E port — see [`PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md)) that asserts at minimum:
 
 1. `PageHeader` title is visible.
 2. Primary action is reachable by keyboard (`Tab` to focus, `Enter` to activate).

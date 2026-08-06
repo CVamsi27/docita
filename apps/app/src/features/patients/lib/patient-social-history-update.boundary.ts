@@ -8,7 +8,7 @@ import type {
 // infers `string`, not `string | undefined`), while an unset column flows as
 // `undefined` through the optional input at runtime. The assertion documents
 // that runtime contract; a cast-free literal would fail `string | undefined`
-// vs `string` on every transformed field (verified via app-vite check-types).
+// vs `string` on every transformed field (verified via app check-types).
 export function buildSocialHistoryUpsertPayload(
   socialHistory: PatientSocialHistory | null | undefined,
   field: keyof PatientSocialHistory,

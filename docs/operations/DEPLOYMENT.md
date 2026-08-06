@@ -3,8 +3,8 @@
 ## Current Production Stack
 
 - Frontend
-  - `apps/app-vite`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
-  - `apps/internal-vite`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
+  - `apps/app`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
+  - `apps/internal`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
   - `apps/landing`: Cloudflare Workers (Astro)
 - Backend
   - `apps/api`: Fly.io (Singapore — `sin` region since 2026-07-29; was `bom` Mumbai), 2 GB RAM, shared CPU
@@ -25,9 +25,9 @@ Backend infrastructure is co-located in Singapore (`sin` region) for low-latency
 - Use `DATABASE_URL` from AWS RDS for API runtime (set via `fly secrets set DATABASE_URL=...`).
 - Runtime baseline is Node `22.12.x` for local, CI, and Docker builds.
 - Keep API health checks on `GET /api/health/live`.
-- Keep frontend `VITE_API_URL` (or the `NEXT_PUBLIC_API_URL` legacy alias in `wrangler.toml` env vars) pointed to the Fly.io app URL. In production the proxy Worker uses `API_PROXY_TARGET` to forward `/api/*` and `/socket.io/*` to the backend.
+- Keep frontend `VITE_API_URL` pointed to the Fly.io app URL. In production the proxy Worker uses `API_PROXY_TARGET` to forward `/api/*` and `/socket.io/*` to the backend. The API process reads its own public URLs from `FRONTEND_URL` / `API_PUBLIC_URL` (legacy `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_API_URL` aliases still accepted during the compatibility rollout).
 - Keep `ENABLE_SCHEDULERS=false` on the API and `ENABLE_SCHEDULERS=true` on the worker once the split is live.
-- Keep each Worker entry bundle within the deployed Cloudflare plan limit: 3 MB gzip on Workers Free and 10 MB gzip on Workers Paid. The Vite SPA apps serve static assets from Cloudflare edge and only ship the tiny Hono proxy Worker (`apps/app-vite/api/index.ts`, `apps/internal-vite/api/index.ts`) — no OpenNext runtime. Use `node scripts/checks/check-worker-size.mjs` after builds.
+- Keep each Worker entry bundle within the deployed Cloudflare plan limit: 3 MB gzip on Workers Free and 10 MB gzip on Workers Paid. The Vite SPA apps serve static assets from Cloudflare edge and only ship the tiny Hono proxy Worker (`apps/app/api/index.ts`, `apps/internal/api/index.ts`) — no OpenNext runtime. Use `node scripts/checks/check-worker-size.mjs` after builds.
 - Deploy order: run DB migrations first, then deploy API and worker, then deploy frontends.
 - Keep `wrangler.toml` (static assets dir, `main = "api/index.ts"`) and `vite.config.ts` in sync for the Vite frontend apps.
 - Keep `astro.config.mjs` and `wrangler.toml` in sync for `apps/landing`.
@@ -156,8 +156,8 @@ SELECT "clinicId", "phoneNumber"
 
 ## Frontend Quick Guide
 
-- Build `apps/app-vite` with `pnpm build:app-vite:cloudflare`.
-- Build `apps/internal-vite` with `pnpm build:internal-vite:cloudflare`.
+- Build `apps/app` with `pnpm build:app:cloudflare`.
+- Build `apps/internal` with `pnpm build:internal:cloudflare`.
 - Build `apps/landing` with `pnpm build:landing:cloudflare`.
 - Preview each Worker locally with the matching `preview:*:cloudflare` script.
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.

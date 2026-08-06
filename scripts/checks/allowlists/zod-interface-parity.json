@@ -1,22 +1,22 @@
 [
   {
-    "id": "apps/app-vite/src/features/consultation/components/structured/prescription-input.types.ts:Medication",
+    "id": "apps/app/src/features/consultation/components/structured/prescription-input.types.ts:Medication",
     "reason": "Phase 9 documented form-local divergence: structured Rx input item shape."
   },
   {
-    "id": "apps/app-vite/src/features/appointments/hooks/auto-pick-start-time-helpers.ts:DoctorSchedule",
+    "id": "apps/app/src/features/appointments/hooks/auto-pick-start-time-helpers.ts:DoctorSchedule",
     "reason": "Phase 9 documented form-local divergence: availability schedule picker shape."
   },
   {
-    "id": "apps/app-vite/src/features/invoices/components/forms/InvoiceItemsTableSections.tsx:InvoiceItem",
+    "id": "apps/app/src/features/invoices/components/forms/InvoiceItemsTableSections.tsx:InvoiceItem",
     "reason": "Phase 9 documented form-local divergence: invoice line-item row shape."
   },
   {
-    "id": "apps/app-vite/src/features/setup/components/onboarding/types.ts:TeamMember",
+    "id": "apps/app/src/features/setup/components/onboarding/types.ts:TeamMember",
     "reason": "Phase 9 documented form-local divergence: onboarding team-member draft shape."
   },
   {
-    "id": "apps/internal-vite/src/features/dashboard/types.ts:DashboardStats",
+    "id": "apps/internal/src/features/dashboard/types.ts:DashboardStats",
     "reason": "Name collision only — internal admin dashboard stats shape is unrelated to admin dashboardStatsSchema."
   }
 ]

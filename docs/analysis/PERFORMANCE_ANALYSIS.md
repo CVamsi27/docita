@@ -1,8 +1,8 @@
 # Performance Analysis — Bundles, Budgets, Probes, Hot Paths
 
-Point-in-time: **2026-08-01**. Sources: `scripts/perf/`, `scripts/checks/check-n-plus-1.mjs`, `apps/app-vite/wrangler.toml`, manual `dist` measurements.
+Point-in-time: **2026-08-01**. Sources: `scripts/perf/`, `scripts/checks/check-n-plus-1.mjs`, `apps/app/wrangler.toml`, manual `dist` measurements.
 
-## 1. Frontend bundle (app-vite `dist/`, measured 2026-08-02)
+## 1. Frontend bundle (app `dist/`, measured 2026-08-02)
 
 | Asset | Raw | Gzip |
 |---|---|---|
@@ -47,7 +47,7 @@ Point-in-time: **2026-08-01**. Sources: `scripts/perf/`, `scripts/checks/check-n
 | React Query hook files | **25** |
 | Feature directories | **47** |
 | Source files (TS + TSX) | **1,404** |
-| Total source lines (app-vite) | **121,121** |
+| Total source lines (app) | **121,121** |
 | Total source lines (api) | **200,492** |
 | Files >200 lines | **96** (2 >400: App.tsx 478, test 544) |
 | Avg file size | **~101 lines** |

@@ -21,22 +21,22 @@ External credentials, seeded databases, or deployment access are explicit **BLOC
 | -------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | [FEATURES_ANALYSIS.md](FEATURES_ANALYSIS.md)       | What the product does: frontend features, API domains, shared modules, gating model | 46 app features (38 COMPLETE, 8 SHELL), 29 API domains, 56 feature flags         |
 | [TRASH_ANALYSIS.md](TRASH_ANALYSIS.md)             | Dead code, dead deps, dead docs, orphaned exports                                   | 278 unused exports + 287 unused types; 11 dead DB enums; 0-usage `@ClinicScoped` |
-| [UI_UX_ANALYSIS.md](UI_UX_ANALYSIS.md)             | Design system, components, themes, i18n, a11y                                       | 133 `@workspace/ui` files, 802 app-vite TSX components, dark mode wired          |
+| [UI_UX_ANALYSIS.md](UI_UX_ANALYSIS.md)             | Design system, components, themes, i18n, a11y                                       | 133 `@workspace/ui` files, 802 app TSX components, dark mode wired          |
 | [DATABASE_ANALYSIS.md](DATABASE_ANALYSIS.md)       | Prisma schema, RLS, retention, index health, growth                                 | 147 models, 112 enums, 488 indexes, 159 migrations, 469 timestamptz, RLS live    |
 | [STANDARDS_ANALYSIS.md](STANDARDS_ANALYSIS.md)     | AGENTS.md rules vs automation, tests, CI, docs                                      | 97 check scripts, 646 test files, 8 workflows                                    |
 | [SECURITY_ANALYSIS.md](SECURITY_ANALYSIS.md)       | Auth, guards, PHI, secrets, advisories                                              | 10-guard pipeline, AES-256-GCM on 13 patient fields, 0 high / 2 low advisories   |
 | [ABAC_MIGRATION_PLAN.md](ABAC_MIGRATION_PLAN.md)   | Attribute-based access control: attribute model, policy engine, phased rollout     | RBAC baseline + `AuthorizationService` precursor; 4 resource policies today      |
-| [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) | Bundles, routes, API hot paths, query health                                        | app-vite 755 KB gzip total, per-route budgets, scale-to-zero                     |
+| [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) | Bundles, routes, API hot paths, query health                                        | app 755 KB gzip total, per-route budgets, scale-to-zero                     |
 | [COST_ANALYSIS.md](COST_ANALYSIS.md)               | Infra footprint and monthly run-rate                                                | Fly 2 GB API + 512 MB worker, RDS t4g.micro, 3 Cloudflare Workers                |
 | **[SUPPRESSION_LEDGER.md](SUPPRESSION_LEDGER.md) (NEW 2026-08-05)** | Every static-analysis suppression: allow-file, jscpd ignore, eslint-disable, allowlist | **166 measurable suppressions**, all owned + ratcheted; 79 as-cast + 7 NNA + 45 jscpd + 15 zod-parity + 1 i18n + 6 eslint-disable |
-| **[POST_CUTOVER_GAPS.md](POST_CUTOVER_GAPS.md) (NEW 2026-08-05)** | P5 ratchets: 22 jscpd pairs, 129 JSX-literal growth, Web Vitals, API latency, CSP, internal-vite admin/users, CSRF webhook regression | 9 ratchets, 4 blocked on credentials, 0 currently-failing |
+| **[POST_CUTOVER_GAPS.md](POST_CUTOVER_GAPS.md) (NEW 2026-08-05)** | P5 ratchets: 22 jscpd pairs, 129 JSX-literal growth, Web Vitals, API latency, CSP, internal admin/users, CSRF webhook regression | 9 ratchets, 4 blocked on credentials, 0 currently-failing |
 | **[../architecture/PATTERNS_QUICK_REFERENCE.md](../architecture/PATTERNS_QUICK_REFERENCE.md) (NEW 2026-08-05)** | One-page lookup: "I need X" → pattern + copy-paste snippet | 11 problem→pattern mappings + 12 gotchas |
 | **[../operations/STABILITY_RUNBOOK.md](../operations/STABILITY_RUNBOOK.md) (NEW 2026-08-05)** | SLOs, error budgets, alerts, rollback, capacity, common failure patterns | 15 SLOs, 14 alert→runbook mappings, 8 failure patterns |
 | **[../operations/SECURITY_HARDENING_CHECKLIST.md](../operations/SECURITY_HARDENING_CHECKLIST.md) (NEW 2026-08-05)** | Defense-in-depth matrix, threat model, pre-deploy security gates, compliance mapping | 35 protections, 32 ✅ + 3 🟡, 13+ static security checks |
 
 **Companion documents** (these docs defer to them and do not duplicate):
 
-- [`../PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md) — the migration execution plan and per-feature parity matrix (71% by file-count audit snapshot, 48% by current app-vite unit-file snapshot).
+- [`../PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md) — the migration execution plan and per-feature parity matrix (71% by file-count audit snapshot, 48% by current app unit-file snapshot).
 - [`../REPO_GAPS_AND_IMPROVEMENTS.md`](../REPO_GAPS_AND_IMPROVEMENTS.md) — non-frontend audit trail (checks, deps, docs mismatches).
 - [`../CODEBASE_CLEANUP_PLAN.md`](../CODEBASE_CLEANUP_PLAN.md) — the removal inventory (trash docs feed into it).
 - [`../FUTURE_FEATURE_REQUIREMENTS.md`](../FUTURE_FEATURE_REQUIREMENTS.md) — prioritized product/engineering requirements backlog.
@@ -67,9 +67,9 @@ Before a release PR, refresh the owning analysis doc, update the consolidated ro
 
 ```bash
 pnpm knip                                                              # unused exports/types/deps
-find apps/app-vite/src -name "*.ts" -o -name "*.tsx" | wc -l            # feature port %
+find apps/app/src -name "*.ts" -o -name "*.tsx" | wc -l            # feature port %
 pnpm audit --audit-level=high                                          # advisories
-cat apps/app-vite/dist/assets/*.js | gzip -c | wc -c                   # total bundle gzip
+cat apps/app/dist/assets/*.js | gzip -c | wc -c                   # total bundle gzip
 grep -c "^model \|^enum " packages/db/prisma/schema.prisma            # DB shape
 node -e "console.log(require('./.jscpd.json').ignore.length)"          # suppression ratchet (P5.4)
 grep -rE "check-as-cast-density: allow-file" apps packages --include="*.{ts,tsx}" 2>/dev/null \

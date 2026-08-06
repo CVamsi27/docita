@@ -8,7 +8,7 @@ import { type ComponentType, useEffect } from "react";
  * `SentryInitializer` that was byte-identical apart from which app-local
  * `initializeSentryClient` it wired up — this factory captures that "run a
  * side effect on mount, render nothing" shape once. The Vite apps
- * (`apps/app-vite`, `apps/internal-vite`) call `initializeSentryClient()`
+ * (`apps/app`, `apps/internal`) call `initializeSentryClient()`
  * directly from `main.tsx` instead of via a mount component, so this factory
  * is currently unused by both trees (see REPO_GAPS knip-debt notes).
  */

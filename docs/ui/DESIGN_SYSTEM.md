@@ -57,7 +57,7 @@ Exports from `@workspace/ui/components`:
 
 ## Keyboard map
 
-Scoped to authenticated `apps/app-vite` shell.
+Scoped to authenticated `apps/app` shell.
 
 | Shortcut     | Action               |
 | ------------ | -------------------- |
@@ -75,14 +75,14 @@ Scoped to authenticated `apps/app-vite` shell.
 | `n a`        | New appointment      |
 | `n i`        | New invoice          |
 
-Consultation route adds its own scoped shortcuts (documented in [apps/app-vite/src/features/consultation/workspace/ConsultationShell.tsx](../apps/app-vite/src/features/consultation/workspace/ConsultationShell.tsx)).
+Consultation route adds its own scoped shortcuts (documented in [apps/app/src/features/consultation/workspace/ConsultationShell.tsx](../apps/app/src/features/consultation/workspace/ConsultationShell.tsx)).
 
 ## Accessibility baseline
 
 - Every icon-only control ships with `aria-label`.
 - Forms use `<Form>` + `FormField` + `FieldRow`, never bare inputs without `<Label htmlFor>`.
 - Loading/empty/error states use the shared primitives so screen readers see consistent text.
-- Color contrast is verified by `apps/app-vite/e2e/accessibility.spec.ts` (axe).
+- Color contrast is verified by `apps/app/e2e/accessibility.spec.ts` (axe).
 
 ## Responsiveness
 

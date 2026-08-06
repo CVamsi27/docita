@@ -12,7 +12,7 @@ Point-in-time: **2026-08-02**. This doc maps the product surface: the frontend f
 | E2E port | **90%** | 45/50 app + 3/3 internal |
 | i18n coverage | **98%** | 44/45 features with `useTranslation` (`legal` intentional + allowlisted) |
 
-## 1. Frontend (apps/app-vite) — 46 features (47 feature dirs: `today` + `dashboard` count as one feature; `imports`/`upload-signature` are the dir names for import/signature-upload)
+## 1. Frontend (apps/app) — 46 features (47 feature dirs: `today` + `dashboard` count as one feature; `imports`/`upload-signature` are the dir names for import/signature-upload)
 
 | Status | Count | Features |
 |---|---|---|
@@ -149,7 +149,7 @@ Shared capability modules (`apps/api/src/shared/modules/`): ai, ai-core, audit, 
 | DTO files in API | 59 (346 `createZodDto()` call sites) |
 | Zod-first compliance (10-controller sample) | 10/10 — all use `createZodDto()` wrapping `@workspace/types` schemas |
 | Source lines (apps/api/src) | 200,492 |
-| Source lines (apps/app-vite/src) | 121,121 |
+| Source lines (apps/app/src) | 121,121 |
 | Controllers with `@Roles` | 74 (56% of 132) |
 | Controllers with `@Public` | 31 |
 | Controllers without explicit auth decorator | 32 (protected by global 9-guard pipeline) |
@@ -174,7 +174,7 @@ Top API domains by route count:
 | billing | 5 | 18 | Invoices, settlements, daybook |
 | analytics | 2 | 18 | Reports, metrics, dashboards |
 
-## 3. Internal portal (apps/internal-vite) — 17 features
+## 3. Internal portal (apps/internal) — 17 features
 
 dashboard (complete), users, admins, billing, analytics, payment-processing, enterprise-contracts, support, system-monitoring, broadcasts, feedback, pricing, doctors, logs, referrals, performance, audits — currently 55 files total; most features are 1-file shells pending Phase 7 of the porting plan (target 314+ files).
 

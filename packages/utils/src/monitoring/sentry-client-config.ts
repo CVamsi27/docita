@@ -58,8 +58,8 @@ export interface SentryClientConfigOptions<
 }
 
 /**
- * Builds the shared client-side Sentry setup used by `apps/app-vite` and
- * `apps/internal-vite`: one lazy loader, the common `Sentry.init` options
+ * Builds the shared client-side Sentry setup used by `apps/app` and
+ * `apps/internal`: one lazy loader, the common `Sentry.init` options
  * (tracing + replay + PHI scrubbing), `initializeSentryClient`,
  * `captureException`, `captureMessage`, and the breadcrumb logger.
  *

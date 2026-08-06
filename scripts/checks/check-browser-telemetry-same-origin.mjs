@@ -4,12 +4,12 @@ import { readFileSync } from "node:fs";
 import process from "node:process";
 
 const TELEMETRY_FILES = [
-  "apps/app-vite/src/lib/monitoring/web-vitals.ts",
-  "apps/app-vite/src/lib/monitoring/client-error-reporter.ts",
-  "apps/app-vite/src/lib/monitoring/sentry.client.config.ts",
-  "apps/internal-vite/src/lib/monitoring/web-vitals.ts",
-  "apps/internal-vite/src/lib/monitoring/client-error-reporter.ts",
-  "apps/internal-vite/src/lib/monitoring/sentry.client.config.ts",
+  "apps/app/src/lib/monitoring/web-vitals.ts",
+  "apps/app/src/lib/monitoring/client-error-reporter.ts",
+  "apps/app/src/lib/monitoring/sentry.client.config.ts",
+  "apps/internal/src/lib/monitoring/web-vitals.ts",
+  "apps/internal/src/lib/monitoring/client-error-reporter.ts",
+  "apps/internal/src/lib/monitoring/sentry.client.config.ts",
 ];
 
 const API_ORIGIN_RE = /https:\/\/(?:staging-)?api\.docita\.work/i;

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * T1 (ratchet): JSX text-literal density in the two Vite apps (app-vite, internal-vite).
+ * T1 (ratchet): JSX text-literal density in the two Vite apps (app, internal).
  *
  * Porting wraps user-facing text in t() calls via i18next. To keep the
  * migration a one-way ratchet (we never add new un-translated literals),
@@ -39,8 +39,8 @@ import process from "node:process";
 const REPO_ROOT = process.cwd();
 
 const SCAN_ROOTS = [
-  "apps/app-vite/src/features",
-  "apps/internal-vite/src/features",
+  "apps/app/src/features",
+  "apps/internal/src/features",
 ];
 
 const EXCLUDE_PATTERNS = [

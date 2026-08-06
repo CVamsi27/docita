@@ -20,7 +20,7 @@ criterion.
 | --------------------------- | ------------------------------------------------- | ----------------------------------------------------------------- | ------------- | ------ |
 | **Network — DNS**           | DNSSEC, CAA records, no wildcard                  | Registrar config (Cloudflare)                                     | Release eng   | ✅     |
 | **Network — TLS**           | TLS 1.3 only, HSTS preload                        | `verify:app-security-headers`                                     | Release eng   | ✅     |
-| **Network — CSP**           | Per-app CSP, Razorpay iframe allowlisted          | `apps/{app-vite,internal-vite}/public/_headers`; checkout smoke    | Release eng   | 🟡 OPEN (P5.10) |
+| **Network — CSP**           | Per-app CSP, Razorpay iframe allowlisted          | `apps/{app,internal}/public/_headers`; checkout smoke    | Release eng   | 🟡 OPEN (P5.10) |
 | **Network — rate limit**    | Per-IP, per-user, per-tenant                      | [`RATE_LIMITS.md`](RATE_LIMITS.md); API controller `ThrottlerGuard` | Backend       | ✅     |
 | **Auth — login**            | bcrypt (cost 12), CSRF, MFA-ready                 | `auth.controller.ts`; `check:auth-tenant-safety`                   | Backend       | ✅     |
 | **Auth — session**          | httpOnly refresh cookie, hashed in DB, family revocation | `RefreshToken.tokenFamily`; `check:sensitive-logging`         | Backend       | ✅     |

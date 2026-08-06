@@ -8,7 +8,7 @@
  *    field/regex rules. Centralizing keeps the rule set consistent.
  *  - Pure-functional, no Sentry SDK dependency — safe to import from any
  *    runtime (Cloudflare Workers, Node, browser, jsdom tests).
- *  - The Vite apps (`apps/app-vite`, `apps/internal-vite`) consume the rule
+ *  - The Vite apps (`apps/app`, `apps/internal`) consume the rule
  *    set through `sentry-event-scrub.ts`'s `scrubSentryEventRecord` in their
  *    `sentry.client.config.ts` `beforeSend` hooks; no per-app redactor copies
  *    remain.

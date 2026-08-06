@@ -8,8 +8,8 @@ const root = process.cwd();
 
 const requiredPaths = [
   'apps',
-  'apps/app-vite',
-  'apps/internal-vite',
+  'apps/app',
+  'apps/internal',
   'apps/landing',
   'apps/api',
   'apps/worker',

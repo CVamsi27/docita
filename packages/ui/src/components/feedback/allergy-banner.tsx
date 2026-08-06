@@ -24,8 +24,8 @@ export interface AllergyBannerProps {
   className?: string;
   /**
    * Optional pre-localized title override. When provided, replaces the
-   * default English banner heading. Consumers in apps/app-vite and
-   * apps/internal-vite pass a string from their `useTranslation` namespace
+   * default English banner heading. Consumers in apps/app and
+   * apps/internal pass a string from their `useTranslation` namespace
    * so the banner stays a presentational primitive without depending on
    * react-i18next.
    */

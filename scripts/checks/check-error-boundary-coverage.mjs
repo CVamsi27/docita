@@ -3,7 +3,7 @@
 /**
  * Phase 15 check:error-boundary-coverage.
  *
- * Enforces that every functional layout in `apps/app-vite` wraps its content
+ * Enforces that every functional layout in `apps/app` wraps its content
  * in an error boundary (`ErrorBoundaryWrapper` or the `@workspace/ui`
  * `ErrorBoundary`). Only `*-layout.tsx` files are checked — helpers in the
  * layout directory (page-meta, providers, top-bar-actions, skeletons, ...)
@@ -20,7 +20,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-const LAYOUT_DIR = path.join(process.cwd(), "apps/app-vite/src/components/layout");
+const LAYOUT_DIR = path.join(process.cwd(), "apps/app/src/components/layout");
 const ERROR_BOUNDARY_RE = /ErrorBoundary/;
 // Layouts that render only <Helmet> + <Outlet /> — nothing to boundary-wrap
 // (EXECUTION_PLAN Phase 13).

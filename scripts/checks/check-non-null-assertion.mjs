@@ -16,8 +16,8 @@ const NN_RE = /(?<!!)(?<![!=<>])!(?=\.[\w$]|[,;\)\]])/g;
 
 const roots = [
   "apps/api/src",
-  "apps/app-vite/src",
-  "apps/internal-vite/src",
+  "apps/app/src",
+  "apps/internal/src",
   "packages/data-access/src",
   "packages/hooks/src",
   "packages/utils/src",

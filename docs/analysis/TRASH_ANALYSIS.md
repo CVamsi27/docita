@@ -18,7 +18,7 @@ Point-in-time: **2026-08-02**. Everything here is removable; the *when* and *who
 
 ## 1. Unused exports & types — `pnpm knip`
 
-**278 unused exports + 287 unused exported types** (565 items, app-vite-dominant; API/worker fully clean, 1 entry in `packages/ui`). No unused files, no unused dependencies (knip exits 0 structurally). Distribution (per knip report, 2026-08-02; app-vite unless noted):
+**278 unused exports + 287 unused exported types** (565 items, app-dominant; API/worker fully clean, 1 entry in `packages/ui`). No unused files, no unused dependencies (knip exits 0 structurally). Distribution (per knip report, 2026-08-02; app unless noted):
 
 | Area | Items | Dominant content |
 |---|---|---|
@@ -27,7 +27,7 @@ Point-in-time: **2026-08-02**. Everything here is removable; the *when* and *who
 | `src/components/` | 21 | feature-gate prop types, locale-switcher helpers (KEEP — Phase 1 needs them) |
 | `e2e/` | 15 | patient-helpers exports the 3 ported specs don't import yet (KEEP — 47 specs still to port) |
 | `src/hooks/` + `src/test-utils/` | 9 | razorpay result types, render helpers |
-| internal-vite | 3 | `getSafeUserMessage` (KEEP — Next-tree consumers exist) |
+| internal | 3 | `getSafeUserMessage` (KEEP — Next-tree consumers exist) |
 | packages/ui | 1 | — |
 
 Batch 1 (2026-08-01) removed 7 symbols: `useTier`/`useIsFeatureLocked`/`useRequiredTier`/`LockedFeatureIndicator` (feature-gate), `UserFacingErrorContext` re-exports ×2, prop-type exports converted to local. Rule that governs each batch: a symbol stays if it has consumers in the git-HEAD Next tree (`git ls-tree HEAD apps/app --name-only` + grep) because not-yet-ported files may import it.
@@ -68,12 +68,12 @@ Caveat: some enum *values* are written as string literals (e.g. `status: 'PROCES
 | `HospitalRole` / `Specialization` enums | soft-deprecated per MIGRATION_NOTES (2026-05-15); write DTOs restricted to empty `SUPPORTED_HOSPITAL_ROLES` | Delete or document as frozen |
 | `packages/ui/src/design-tokens.ts` | ~~claims to mirror `globals.css`~~ **Deleted 2026-08-01** — tailwind.config.ts now reads CSS variables directly | ✅ DONE |
 | `packages/ui` `next-themes` dep + `theme-toggle.tsx` using it | ~~no `next-themes` provider exists in any app~~ **Removed 2026-08-01** — ThemeToggle rewired to accept props | ✅ DONE |
-| `layout/theme-provider.tsx` (app-vite) | ~~never imported/mounted anywhere~~ **Wired 2026-08-01** — reads zustand store, mounted in main.tsx | ✅ DONE |
+| `layout/theme-provider.tsx` (app) | ~~never imported/mounted anywhere~~ **Wired 2026-08-01** — reads zustand store, mounted in main.tsx | ✅ DONE |
 | `dialogs/AlertDialog.tsx` + `ConfirmDialog`/`PromptDialog` | near-identical to `@workspace/ui` `confirmation-dialog`/`crud-dialog` | Dedupe per sourcing order |
 | `loaders/page-skeleton.tsx` embedded `ErrorBoundary` | duplicates `@workspace/ui` `error-boundary`; raw `<button>`; `animate-pulse` | Replace with the primitive (mounted app-wide via main.tsx) |
-| internal-vite `loaders/error-boundary.tsx` | standalone re-implementation of the same primitive | Same |
-| `components/guards/`, `components/monitoring/` (app-vite) | **empty directories** (tombstones) | Delete |
-| `errors/error-banner.tsx`, `form-field.tsx` (app-vite) | overlap `feedback/alert.tsx` + `form/form-field-group.tsx` | Merge or delete |
+| internal `loaders/error-boundary.tsx` | standalone re-implementation of the same primitive | Same |
+| `components/guards/`, `components/monitoring/` (app) | **empty directories** (tombstones) | Delete |
+| `errors/error-banner.tsx`, `form-field.tsx` (app) | overlap `feedback/alert.tsx` + `form/form-field-group.tsx` | Merge or delete |
 
 ## 4. Dead / stale configuration & CI
 
@@ -102,8 +102,8 @@ Caveat: some enum *values* are written as string literals (e.g. `status: 'PROCES
 | apps/api/src | ✅ no TODO/FIXME/HACK, no console.log (checks enforce) | 26 unused enums, dead decorator |
 | apps/worker/src | ✅ 2 files (main + spec) | shares API infra |
 | packages/* | ✅ knip-clean deps | ~~`design-tokens.ts` stale; `next-themes` boundary violation~~ ✅ Both fixed |
-| app-vite | ⚠️ 278/287 unused exports; 2 empty dirs; 0 raw buttons in production; 150 missing aria-labels | biggest source of trash |
-| internal-vite | ⚠️ shells only (Phase 7) | will shrink as ports land |
+| app | ⚠️ 278/287 unused exports; 2 empty dirs; 0 raw buttons in production; 150 missing aria-labels | biggest source of trash |
+| internal | ⚠️ shells only (Phase 7) | will shrink as ports land |
 | scripts/ | ⚠️ 6 scripts reference deleted paths | cutover batch |
 | docs/ | ⚠️ 10 Next-era docs + 2 stale ops claims | cutover batch + 1 immediate fix |
 
@@ -113,7 +113,7 @@ Caveat: some enum *values* are written as string literals (e.g. `status: 'PROCES
 
 | Signal | Count | Details |
 |---|---|---|
-| Files with zero imports | **118** | app-vite `src/` — files that exist but nothing imports |
+| Files with zero imports | **118** | app `src/` — files that exist but nothing imports |
 | Unused barrel `index.ts` files | **46** | barrel re-exports not consumed by any other file |
 | Features without tests | **7** | billing-locked, errors, follow-ups, today, tools, upgrade, verify-email |
 | Features without hooks | **18** | dialogs, errors, follow-ups, help, inbox, lab-portal, legal, medical-coding, medical-documents, pharmacy, profile, referrals, templates, today, tools, upgrade, verify-email, billing-locked |

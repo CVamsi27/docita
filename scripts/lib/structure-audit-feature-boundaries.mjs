@@ -5,7 +5,7 @@ import {
 
 export function collectFeatureBoundaryFindings() {
   const files = listTrackedFiles().filter((file) =>
-    /^apps\/(app-vite|internal-vite)\/src\/features\/[^/]+\/.*\.(ts|tsx)$/.test(
+    /^apps\/(app|internal)\/src\/features\/[^/]+\/.*\.(ts|tsx)$/.test(
       file,
     ),
   );
@@ -15,7 +15,7 @@ export function collectFeatureBoundaryFindings() {
   for (const file of files) {
     const content = readText(file);
     const match = file.match(
-      /^apps\/(app-vite|internal-vite)\/src\/features\/([^/]+)\//,
+      /^apps\/(app|internal)\/src\/features\/([^/]+)\//,
     );
     const currentFeature = match?.[2];
     if (!currentFeature) continue;

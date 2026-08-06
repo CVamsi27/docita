@@ -8,7 +8,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-const FEATURES_DIR = path.join(process.cwd(), "apps/app-vite/src/features");
+const FEATURES_DIR = path.join(process.cwd(), "apps/app/src/features");
 const ALLOWLIST_PATH = path.join(
   process.cwd(),
   "scripts/checks/allowlists/feature-test-density-zero.json",
@@ -39,7 +39,7 @@ for (const entry of readdirSync(FEATURES_DIR, { withFileTypes: true })) {
   const hasTest = walkForTests(featureDir);
   if (!hasTest) {
     findings.push(
-      `apps/app-vite/src/features/${entry.name}: no .test/.spec files (add tests or remove allowlist entry)`,
+      `apps/app/src/features/${entry.name}: no .test/.spec files (add tests or remove allowlist entry)`,
     );
   }
 }

@@ -11,8 +11,8 @@ This repo keeps a `staging` branch that mirrors `main` for pre-production valida
 ## Recommended Staging Topology
 
 - API: Render web service deployed from the `staging` branch
-- App: Cloudflare staging environment via [`apps/app-vite/wrangler.toml`](../apps/app-vite/wrangler.toml) using `--env staging`
-- Internal: Cloudflare staging environment via [`apps/internal-vite/wrangler.toml`](../apps/internal-vite/wrangler.toml) using `--env staging`
+- App: Cloudflare staging environment via [`apps/app/wrangler.toml`](../apps/app/wrangler.toml) using `--env staging`
+- Internal: Cloudflare staging environment via [`apps/internal/wrangler.toml`](../apps/internal/wrangler.toml) using `--env staging`
 - Database: Neon PostgreSQL
 
 ## API Environment
@@ -23,8 +23,9 @@ Use these values for the staging API service:
 NODE_ENV=staging
 DATABASE_URL=<your Neon connection string>
 APP_URL=https://staging-app.docita.work
-NEXT_PUBLIC_APP_URL=https://staging-app.docita.work
-NEXT_PUBLIC_API_URL=https://staging-api.docita.work/api/v1
+FRONTEND_URL=https://staging-app.docita.work
+API_PUBLIC_URL=https://staging-api.docita.work/api/v1
+# Legacy aliases (deprecated): NEXT_PUBLIC_APP_URL / NEXT_PUBLIC_API_URL
 CORS_ORIGINS=https://staging-app.docita.work
 STORAGE_PROVIDER=local
 ```
@@ -60,7 +61,7 @@ VITE_AI_ENABLED=false
 `VITE_*` vars are build-time inlined into the SPA and mirrored as runtime vars
 for the proxy Worker in `wrangler.toml` (`[env.production.vars]` /
 `[env.staging.vars]`); local dev uses the same names from
-`apps/app-vite/.env.example`. `VITE_RAZORPAY_KEY_ID` is intentionally empty —
+`apps/app/.env.example`. `VITE_RAZORPAY_KEY_ID` is intentionally empty —
 the browser receives `razorpayKeyId` from the checkout API response, so no key
 id is configured at build time.
 
@@ -68,7 +69,7 @@ id is configured at build time.
 
 1. Merge work into `main` via PR; automation fast-forwards `staging` to the merged commit.
 2. Render automatically redeploys the staging API from the connected `staging` branch.
-3. Cloudflare staging deployments use `apps/app-vite/wrangler.toml` / `apps/internal-vite/wrangler.toml` with `--env staging` for the app(s).
+3. Cloudflare staging deployments use `apps/app/wrangler.toml` / `apps/internal/wrangler.toml` with `--env staging` for the app(s).
 4. Run the staging database migration workflow before validating data-dependent flows.
 5. Feature/hotfix work never touches `staging` directly — open a PR into `main` (branch cap: at most two open feature PRs, see AGENTS.md §11.3).
 

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * O1: top-level feature directories in apps/app-vite/src/features use kebab-case.
+ * O1: top-level feature directories in apps/app/src/features use kebab-case.
  */
 
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-const FEATURES_DIR = path.join(process.cwd(), "apps/app-vite/src/features");
+const FEATURES_DIR = path.join(process.cwd(), "apps/app/src/features");
 const KEBAB_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 if (!existsSync(FEATURES_DIR)) {
@@ -24,7 +24,7 @@ for (const entry of readdirSync(FEATURES_DIR, { withFileTypes: true })) {
   }
   if (!KEBAB_RE.test(entry.name)) {
     findings.push(
-      `apps/app-vite/src/features/${entry.name}: feature folder must be kebab-case`,
+      `apps/app/src/features/${entry.name}: feature folder must be kebab-case`,
     );
   }
 }

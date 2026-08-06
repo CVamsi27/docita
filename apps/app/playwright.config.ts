@@ -51,7 +51,7 @@ export default defineConfig({
     : publicOnlyAudit
       ? [
           {
-            command: "pnpm --filter @docita/app-vite run dev",
+            command: "pnpm --filter @docita/app run dev",
             url: APP_URL,
             reuseExistingServer: true,
             timeout: 180_000,
@@ -65,7 +65,7 @@ export default defineConfig({
             timeout: 180_000,
           },
           {
-            command: "pnpm --filter @docita/app-vite run dev",
+            command: "pnpm --filter @docita/app run dev",
             url: APP_URL,
             reuseExistingServer: true,
             env: {

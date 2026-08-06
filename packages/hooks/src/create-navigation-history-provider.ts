@@ -16,7 +16,7 @@ export interface NavigationHistoryProviderFactoryResult {
 /**
  * Builds a complete navigation-history provider — component and
  * `readInAppNavCount` reader together — from a storage-key pair and the host
- * app's own pathname hook. `apps/app-vite` and `apps/internal-vite` each have
+ * app's own pathname hook. `apps/app` and `apps/internal` each have
  * a `NavigationHistoryProvider` that is identical apart from its storage-key
  * prefix and which pathname hook it calls (`useLocation().pathname` in the
  * Vite apps, via a small adapter); accepting the hook as a parameter keeps

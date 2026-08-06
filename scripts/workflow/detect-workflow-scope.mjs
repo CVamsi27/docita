@@ -51,8 +51,8 @@ const outputs =
     ? {
         dependencies: changedFiles.some(isDependenciesChange),
         api: changedFiles.some(isApiChange),
-        "app-vite": changedFiles.some(isAppViteChange),
-        "internal-vite": changedFiles.some(isInternalViteChange),
+        "app": changedFiles.some(isAppChange),
+        "internal": changedFiles.some(isInternalChange),
         landing: changedFiles.some(isLandingChange),
         worker: changedFiles.some(isWorkerChange),
         db: changedFiles.some(isDbChange),
@@ -62,8 +62,8 @@ const outputs =
         api: changedFiles.some(isDeployApiChange),
         worker: changedFiles.some(isDeployWorkerChange),
         db: changedFiles.some(isDbMigrationChange),
-        "app-vite": changedFiles.some(isAppViteChange),
-        "internal-vite": changedFiles.some(isInternalViteChange),
+        "app": changedFiles.some(isAppChange),
+        "internal": changedFiles.some(isInternalChange),
         landing: changedFiles.some(isLandingChange),
       };
 
@@ -74,13 +74,13 @@ appendFileSync(
     .join("\n")}\n`,
 );
 
-function isAppViteChange(file) {
+function isAppChange(file) {
   return (
     file === "package.json" ||
     file === "pnpm-lock.yaml" ||
     file === "pnpm-workspace.yaml" ||
     file === "turbo.json" ||
-    file.startsWith("apps/app-vite/") ||
+    file.startsWith("apps/app/") ||
     file.startsWith("packages/data-access/") ||
     file.startsWith("packages/hooks/") ||
     file.startsWith("packages/types/") ||
@@ -90,13 +90,13 @@ function isAppViteChange(file) {
   );
 }
 
-function isInternalViteChange(file) {
+function isInternalChange(file) {
   return (
     file === "package.json" ||
     file === "pnpm-lock.yaml" ||
     file === "pnpm-workspace.yaml" ||
     file === "turbo.json" ||
-    file.startsWith("apps/internal-vite/") ||
+    file.startsWith("apps/internal/") ||
     file.startsWith("packages/data-access/") ||
     file.startsWith("packages/types/") ||
     file.startsWith("packages/ui/") ||

@@ -29,7 +29,7 @@ const enforce = process.argv.includes("--enforce");
 const USE_TRANSLATIONS = /useTranslations\(\s*["']([^"']+)["']/g;
 
 // Apps that ship a next-intl messages bundle. The Vite apps
-// (app-vite, internal-vite) use i18next/react-i18next, not next-intl, so they
+// (app, internal) use i18next/react-i18next, not next-intl, so they
 // are not registered here. Keep the array empty to pass cleanly; add entries
 // only if a next-intl app returns.
 const APP_TO_MESSAGES = [];

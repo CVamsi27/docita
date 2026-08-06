@@ -20,7 +20,7 @@ closed deliberately (section 5).
 
 ## 2. Tests and audits
 
-- App unit tests: counts / pass (app-vite, internal-vite)
+- App unit tests: counts / pass (app, internal)
 - API tests: count / pass (`pnpm --filter @docita/api run test:ci`)
 - E2E: link to Playwright report artifact (critical flows)
 - Accessibility: `pnpm audit:app` output / baseline link
@@ -29,7 +29,7 @@ closed deliberately (section 5).
 ## 3. Deployment
 
 - Schema migration: migration name; `db:migrate:dry-run` / `db:migrate:safe` evidence
-- Deploy IDs: Fly release IDs (`fly releases` for `docita-api`, `docita-worker`); Cloudflare deployment IDs (`wrangler deployments list` for app-vite / internal-vite / landing); Render staging deploy ID
+- Deploy IDs: Fly release IDs (`fly releases` for `docita-api`, `docita-worker`); Cloudflare deployment IDs (`wrangler deployments list` for app / internal / landing); Render staging deploy ID
 - Env/secrets changed: list the variable **names** (never values) and the prior value needed to roll back
 
 ## 4. Post-release health (within 1 hour)

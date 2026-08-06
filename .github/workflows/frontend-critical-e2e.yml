@@ -77,25 +77,25 @@ jobs:
         run: pnpm db:deploy
 
       - name: Install Playwright browsers
-        run: pnpm --filter @docita/app-vite exec playwright install --with-deps
+        run: pnpm --filter @docita/app exec playwright install --with-deps
 
       - name: Prepare API workspace packages
         run: pnpm --filter @docita/api run predev
 
-      - name: Build app-vite workspace deps
+      - name: Build app workspace deps
         run: pnpm run build:web-workspace-deps
 
-      - name: Build app-vite
-        run: pnpm --filter @docita/app-vite run build
+      - name: Build app
+        run: pnpm --filter @docita/app run build
 
       - name: Start API server
         run: |
           pnpm --filter @docita/api run dev > /tmp/docita-api.log 2>&1 &
           echo $! > /tmp/docita-api.pid
 
-      - name: Start app-vite server (preview)
+      - name: Start app server (preview)
         run: |
-          pnpm --filter @docita/app-vite exec vite preview --port 5173 > /tmp/docita-app.log 2>&1 &
+          pnpm --filter @docita/app exec vite preview --port 5173 > /tmp/docita-app.log 2>&1 &
           echo $! > /tmp/docita-app.pid
 
       - name: Wait for API and App
@@ -127,7 +127,7 @@ jobs:
       - name: Run critical E2E suites
         run: |
           unset NO_COLOR
-          pnpm --filter @docita/app-vite exec playwright test --config=playwright.config.ts
+          pnpm --filter @docita/app exec playwright test --config=playwright.config.ts
 
       - name: Dump server logs on failure
         if: failure()
@@ -142,7 +142,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report-critical-flows
-          path: apps/app-vite/playwright-report/
+          path: apps/app/playwright-report/
           if-no-files-found: ignore
           retention-days: 30
 
@@ -151,6 +151,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-test-results-critical-flows
-          path: apps/app-vite/test-results/
+          path: apps/app/test-results/
           if-no-files-found: ignore
           retention-days: 30

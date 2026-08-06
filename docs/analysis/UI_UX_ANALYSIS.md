@@ -28,11 +28,11 @@ Point-in-time: **2026-08-02**. The Origin-inspired standard in [`../ui/UI_UX_STA
 
 Root-level: `index.ts` (barrel), `print-sheet.tsx`, `theme-toggle.tsx`. 27 test files (button, data-state, empty-state, wizard-dialog, page-header, micro-label, prompt-input…). Some parts are intentionally internal-only (data-table internals, error-boundary, form-primitives, hooks).
 
-## 2. App-local components — 66 files in app-vite, 5 in internal-vite
+## 2. App-local components — 66 files in app, 5 in internal
 
 `src/components/` subfolders: layout (19), navigation (11), patient-history (9), dialogs (5), loaders (4), auth (3), whatsapp (3), ask-ai (2), errors (2), + consultation, feedback, i18n, pwa, signature, support-contact (1 each), + 2 root-level files. **2 empty tombstone dirs**: `guards/`, `monitoring/`.
 
-**Duplicates of `@workspace/ui` primitives found (sourcing-order violations)**: `dialogs/AlertDialog.tsx` ≈ `confirmation-dialog`; `ConfirmDialog`/`PromptDialog` partially overlap `crud-dialog`; `errors/error-banner.tsx` ≈ `alert`/`error-state`; `form-field.tsx` ≈ `form-field-group`; `loaders/page-skeleton.tsx` embeds a local `ErrorBoundary` class (raw `<button>` in tests only, `animate-pulse` — motion policy violation) while `@workspace/ui` `error-boundary` exists; internal-vite `loaders/error-boundary.tsx` re-implements the same primitive. → all in the trash inventory.
+**Duplicates of `@workspace/ui` primitives found (sourcing-order violations)**: `dialogs/AlertDialog.tsx` ≈ `confirmation-dialog`; `ConfirmDialog`/`PromptDialog` partially overlap `crud-dialog`; `errors/error-banner.tsx` ≈ `alert`/`error-state`; `form-field.tsx` ≈ `form-field-group`; `loaders/page-skeleton.tsx` embeds a local `ErrorBoundary` class (raw `<button>` in tests only, `animate-pulse` — motion policy violation) while `@workspace/ui` `error-boundary` exists; internal `loaders/error-boundary.tsx` re-implements the same primitive. → all in the trash inventory.
 
 ## 3. Design tokens — one source, one stale mirror
 
@@ -43,7 +43,7 @@ Root-level: `index.ts` (barrel), `print-sheet.tsx`, `theme-toggle.tsx`. 27 test 
 
 | Piece | State |
 |---|---|
-| `components/layout/theme-provider.tsx` (app-vite) | **Wired** — reads zustand `appearance-store`, toggles `.dark` class on `<html>`, listens to `matchMedia` for system theme |
+| `components/layout/theme-provider.tsx` (app) | **Wired** — reads zustand `appearance-store`, toggles `.dark` class on `<html>`, listens to `matchMedia` for system theme |
 | `@workspace/ui` `theme-toggle.tsx` | **Rewired** — accepts `resolvedTheme` + `onToggle` props (no more `next-themes` dependency) |
 | `ThemeToggleWithAppearanceSync` | **Wired** — syncs `useAppearanceStore` with `ThemeToggle` |
 | `AppearanceSettings` | **Wired** — reads/writes zustand store directly, ThemeProvider applies changes |

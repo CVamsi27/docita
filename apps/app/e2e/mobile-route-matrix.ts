@@ -1,5 +1,5 @@
 /**
- * Canonical list of mobile smoke routes for apps/app-vite Playwright specs.
+ * Canonical list of mobile smoke routes for apps/app Playwright specs.
  * Grouped by shell; used to document coverage and drive parameterized tests.
  */
 

@@ -48,7 +48,7 @@ These are the only three features with zero ported surface; everything else is p
 
 | Item | Requirement |
 |---|---|
-| **Dark mode** | Wire one store-driven provider in app-vite; rewire `ThemeToggleWithAppearanceSync`; drop `next-themes` from `packages/ui`; delete 2 dead files. Tokens are ready — this is an afternoon, not a project |
+| **Dark mode** | Wire one store-driven provider in app; rewire `ThemeToggleWithAppearanceSync`; drop `next-themes` from `packages/ui`; delete 2 dead files. Tokens are ready — this is an afternoon, not a project |
 | i18n expansion | 47 namespaces × 2 locales (en/hi) fully synced; next locales need the same parity gate |
 | Command palette parity | Must track sidebar IA in lockstep (STANDARD §1.1) |
 

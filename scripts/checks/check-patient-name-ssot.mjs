@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import process from "node:process";
 
-const ROOTS = ["apps/app-vite/src", "apps/api"];
+const ROOTS = ["apps/app/src", "apps/api"];
 const files = execFileSync(
   "git",
   ["ls-files", "--cached", "--others", "--exclude-standard", "--", ...ROOTS],

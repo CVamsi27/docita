@@ -3,7 +3,7 @@
 /**
  * check:i18next-parity.
  *
- * Enforces exact en/hi leaf-key parity for the app-vite i18next message
+ * Enforces exact en/hi leaf-key parity for the app i18next message
  * bundle (AGENTS.md §3.1 / EXECUTION_PLAN Phase 11):
  *   - every en.json leaf must exist in hi.json — no untranslated UI strings;
  *   - hi.json must not contain leaves that en.json lacks — no dead
@@ -14,7 +14,7 @@
  * parity (en 1,885 = hi 1,885). This check locks that state in so the next
  * en.json edit cannot silently regress Hindi coverage.
  *
- * Scope: apps/app-vite only. internal-vite is a documented English-only
+ * Scope: apps/app only. internal is a documented English-only
  * admin portal with no en/hi bundle (PORTING_PLAN_APP_VITE.md).
  *
  * Usage:
@@ -25,7 +25,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const MESSAGES_DIR = join(process.cwd(), "apps/app-vite/src/messages");
+const MESSAGES_DIR = join(process.cwd(), "apps/app/src/messages");
 const EN_PATH = join(MESSAGES_DIR, "en.json");
 const HI_PATH = join(MESSAGES_DIR, "hi.json");
 
@@ -73,7 +73,7 @@ if (missingFromHi.length > 0 || hiOnly.length > 0) {
     console.error(`  … and ${hiOnly.length - 25} more dead keys`);
   }
   console.error(
-    "Keep apps/app-vite/src/messages/en.json and hi.json leaf sets identical — add translations for new keys, remove dead keys when English keys are dropped.",
+    "Keep apps/app/src/messages/en.json and hi.json leaf sets identical — add translations for new keys, remove dead keys when English keys are dropped.",
   );
   process.exit(enforce ? 1 : 0);
 }
