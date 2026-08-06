@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components";
 import { FileText, Check, X } from "lucide-react";
-import { MEDICAL_DOCUMENT_STATUS_COLORS, medicalDocumentTypeLabel } from "./medical-document-list-config";
+import { MEDICAL_DOCUMENT_STATUS_COLORS } from "./medical-document-list-config";
+import { medicalDocumentTypeLabel } from "@/features/medical-documents/lib/medical-document-type-label";
 
 const BADGE_VARIANTS = [
   "default",
@@ -26,7 +27,7 @@ export function MedicalDocumentCard({
             <FileText className="h-4 w-4 text-muted-foreground" />
             <div>
               <CardTitle className="text-sm">{doc.title}</CardTitle>
-              <p className="text-xs text-muted-foreground">{medicalDocumentTypeLabel(doc.type)}</p>
+              <p className="text-xs text-muted-foreground">{medicalDocumentTypeLabel(doc.type, t)}</p>
             </div>
           </div>
           <Badge

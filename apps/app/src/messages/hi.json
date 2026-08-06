@@ -2303,6 +2303,14 @@
       "viewUploadedFile": "अपलोड की गई फ़ाइल देखें",
       "signButton": "हस्ताक्षर करें",
       "revokeButton": "हस्ताक्षर वापस लें"
+    },
+    "documentTypes": {
+      "medicalCertificate": "मेडिकल प्रमाणपत्र",
+      "fitnessCertificate": "फिटनेस प्रमाणपत्र",
+      "dischargeSummary": "डिस्चार्ज सारांश",
+      "referralLetter": "रेफरल पत्र",
+      "sickNote": "बीमारी नोट",
+      "other": "अन्य / कस्टम"
     }
   },
   "Help": {

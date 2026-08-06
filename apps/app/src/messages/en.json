@@ -2675,6 +2675,14 @@
       "viewUploadedFile": "View uploaded file",
       "signButton": "Sign",
       "revokeButton": "Revoke"
+    },
+    "documentTypes": {
+      "medicalCertificate": "Medical Certificate",
+      "fitnessCertificate": "Fitness Certificate",
+      "dischargeSummary": "Discharge Summary",
+      "referralLetter": "Referral Letter",
+      "sickNote": "Sick Note",
+      "other": "Others / custom"
     }
   },
   "Help": {

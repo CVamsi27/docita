@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@workspace/ui/components";
-import { MEDICAL_DOCUMENT_TYPE_LABELS, MEDICAL_DOCUMENT_TYPE_OPTIONS } from "./medical-document-list-config";
+import { MEDICAL_DOCUMENT_TYPE_OPTIONS } from "./medical-document-list-config";
+import { medicalDocumentTypeLabel } from "@/features/medical-documents/lib/medical-document-type-label";
 
 export function MedicalDocumentCreateDialog({
   open, onOpenChange, newType, setNewType, newTitle, setNewTitle, newFile, showQr, setShowQr, qrUrl, creating, onCreate, onFileChange, onMobileUpload,
@@ -21,7 +22,7 @@ export function MedicalDocumentCreateDialog({
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {MEDICAL_DOCUMENT_TYPE_OPTIONS.map((value) => (
-                  <SelectItem key={value} value={value}>{MEDICAL_DOCUMENT_TYPE_LABELS[value]}</SelectItem>
+                  <SelectItem key={value} value={value}>{medicalDocumentTypeLabel(value, t)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
