@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { clinicSchema } from "../shared/clinics";
+import { userSchema } from "../shared/users/doctor-profile";
 
 export const internalClinicAdminTypeSchema = z.enum(["admin", "admin_doctor"]);
 export type InternalClinicAdminType = z.infer<
@@ -171,3 +172,19 @@ export const internalClinicAdminListResponseSchema = z.object({
 export type InternalClinicAdminListResponse = z.infer<
   typeof internalClinicAdminListResponseSchema
 >;
+
+/**
+ * Cross-clinic internal console list shapes (P5.11). Both are plain arrays
+ * (matching the internal-vite pages and the internal e2e critical-flows
+ * contract) composed from the canonical `userSchema` so role/verification
+ * fields stay derived from the single source of truth.
+ */
+export const internalAdminListEntrySchema = userSchema.extend({
+  appLoginDisabled: z.boolean(),
+});
+export type InternalAdminListEntry = z.infer<typeof internalAdminListEntrySchema>;
+
+export const internalUserListEntrySchema = userSchema.extend({
+  clinicName: z.string().optional(),
+});
+export type InternalUserListEntry = z.infer<typeof internalUserListEntrySchema>;

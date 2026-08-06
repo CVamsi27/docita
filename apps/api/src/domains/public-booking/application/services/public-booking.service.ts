@@ -22,7 +22,7 @@ import {
   type IWhatsAppClient,
 } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 import { PublicBookingTokenService } from '@/domains/public-booking/application/services/public-booking-token.service';
-import { TurnstileVerifyService } from '@/domains/public-booking/application/services/turnstile-verify.service';
+import { TurnstileVerifyService } from '@/shared/modules/turnstile/turnstile-verify.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { PublicBookingSlotsService } from './public-booking-slots.service';
 import { PublicBookingCreationService } from './public-booking-creation.service';

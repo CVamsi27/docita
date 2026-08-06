@@ -26,8 +26,21 @@ export function AdminViewDialog({ open, onOpenChange, admin, getRoleLabel, getRo
   );
 }
 
-interface CreateForm { name: string; email: string; password: string; phoneNumber: string; adminType: string; }
+interface CreateForm { clinicId: string; name: string; email: string; password: string; phoneNumber: string; adminType: string; }
 interface EditForm { name: string; email: string; phoneNumber: string; adminType: string; }
+
+function ClinicSelectField({ form, onFormChange, clinics }: { form: CreateForm; onFormChange: (f: CreateForm) => void; clinics: { id: string; name: string }[] }) {
+  return (
+    <div className="space-y-2"><Label>Clinic *</Label>
+      <Select value={form.clinicId || undefined} onValueChange={(v) => { onFormChange({ ...form, clinicId: v }); }}>
+        <SelectTrigger><SelectValue placeholder="Select clinic" /></SelectTrigger>
+        <SelectContent>{clinics.map((clinic) => (
+          <SelectItem key={clinic.id} value={clinic.id}>{clinic.name}</SelectItem>
+        ))}</SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 function AdminFormFields<T extends CreateForm | EditForm>({ form, onFormChange, showPassword }: { form: T; onFormChange: (f: T) => void; showPassword?: boolean }) {
   return (
@@ -49,15 +62,16 @@ function AdminFormFields<T extends CreateForm | EditForm>({ form, onFormChange, 
   );
 }
 
-export function AdminCreateDialog({ open, onOpenChange, form, onFormChange, onCreate, saving }:
-  { open: boolean; onOpenChange: (o: boolean) => void; form: CreateForm; onFormChange: (f: CreateForm) => void; onCreate: () => void; saving: boolean }) {
+export function AdminCreateDialog({ open, onOpenChange, form, onFormChange, clinics, onCreate, saving }:
+  { open: boolean; onOpenChange: (o: boolean) => void; form: CreateForm; onFormChange: (f: CreateForm) => void; clinics: { id: string; name: string }[]; onCreate: () => void; saving: boolean }) {
   const handleClose = () => { onOpenChange(false); };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle className="flex items-center gap-2"><Plus className="h-5 w-5" /> Create New Admin</DialogTitle>
-          <DialogDescription>Add a new administrator to the selected clinic</DialogDescription></DialogHeader>
+          <DialogDescription>Add a new administrator to a clinic</DialogDescription></DialogHeader>
         <div className="space-y-4">
+          <ClinicSelectField form={form} onFormChange={onFormChange} clinics={clinics} />
           <AdminFormFields form={form} onFormChange={onFormChange} showPassword />
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={handleClose}>Cancel</Button>

@@ -30,6 +30,9 @@
  *                             browser. CI images usually have the bundled
  *                             browser, so set CHANNEL=chromium there.
  */
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
 import { chromium } from "@playwright/test";
 import { ROUTE_WEB_VITALS } from "./route-budgets.config.mjs";
 
@@ -38,6 +41,18 @@ const BROWSER_CHANNEL = process.env["PERF_WEB_VITALS_CHANNEL"] || "chrome";
 const MODE = (process.env["PERF_WEB_VITALS_MODE"] ?? "warn").toLowerCase();
 const SHOULD_FAIL = MODE === "fail";
 const SAMPLES = Number(process.env["PERF_WEB_VITALS_SAMPLES"] ?? 3);
+
+// `--write-baseline` persists the measured medians so the hermetic
+// `check:web-vitals:enforce` ratchet (see check-web-vitals-budget.mjs) can
+// validate them without a live server. Default path is the committed
+// artifacts file consumed by that gate.
+const WRITE_BASELINE = process.argv.includes("--write-baseline");
+const baselineArgIndex = process.argv.indexOf("--baseline");
+const BASELINE_ARG =
+  baselineArgIndex !== -1 && process.argv[baselineArgIndex + 1]
+    ? process.argv[baselineArgIndex + 1]
+    : path.join(process.cwd(), "artifacts", "web-vitals-baseline.json");
+const BASELINE_PATH = WRITE_BASELINE ? BASELINE_ARG : null;
 
 /** Public routes measurable without DB fixtures (must not 404 without auth). */
 const MEASURED_ROUTES = {
@@ -90,10 +105,13 @@ async function measurePage(page, url) {
       if (!entry.hadRecentInput) cls += entry.value;
     }
 
+    const ttfb = nav ? nav.responseStart : 0;
+
     return {
       LCP: lcp || (nav ? nav.loadEventEnd : 0),
       INP: inp,
       CLS: cls,
+      TTFB: ttfb,
     };
   });
 
@@ -130,6 +148,7 @@ async function main() {
   });
   const failures = [];
   const summary = [];
+  const results = {};
 
   try {
     for (const [route, url] of Object.entries(MEASURED_ROUTES)) {
@@ -168,10 +187,13 @@ async function main() {
         LCP: median(samples.map((s) => s.LCP)),
         INP: median(samples.map((s) => s.INP)),
         CLS: median(samples.map((s) => s.CLS)),
+        TTFB: median(samples.map((s) => s.TTFB)),
       };
 
+      results[route] = measured;
+
       const over = [];
-      for (const metric of ["LCP", "INP", "CLS"]) {
+      for (const metric of ["LCP", "INP", "CLS", "TTFB"]) {
         const target = budget[metric];
         if (typeof target !== "number") continue;
         const actual = measured[metric];
@@ -187,7 +209,7 @@ async function main() {
         failures.push({ route, detail: over.join(", ") });
       }
       summary.push(
-        `${route}: LCP=${measured.LCP.toFixed(0)}ms INP=${measured.INP.toFixed(0)}ms CLS=${measured.CLS.toFixed(3)} (targets LCP=${budget.LCP} INP=${budget.INP} CLS=${budget.CLS})`,
+        `${route}: LCP=${measured.LCP.toFixed(0)}ms INP=${measured.INP.toFixed(0)}ms CLS=${measured.CLS.toFixed(3)} TTFB=${measured.TTFB.toFixed(0)}ms (targets LCP=${budget.LCP} INP=${budget.INP} CLS=${budget.CLS} TTFB=${budget.TTFB})`,
       );
     }
   } finally {
@@ -196,6 +218,25 @@ async function main() {
 
   for (const line of summary) {
     process.stdout.write(`[web-vitals] ${line}\n`);
+  }
+
+  if (WRITE_BASELINE) {
+    fs.writeFileSync(
+      BASELINE_PATH,
+      `${JSON.stringify(
+        {
+          generatedAt: new Date().toISOString(),
+          channel: BROWSER_CHANNEL,
+          samplesPerRoute: SAMPLES,
+          routes: results,
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    process.stdout.write(
+      `[web-vitals] baseline written to ${BASELINE_PATH}\n`,
+    );
   }
 
   if (failures.length === 0) {

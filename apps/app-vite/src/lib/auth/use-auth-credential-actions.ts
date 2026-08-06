@@ -53,8 +53,16 @@ export function useAuthCredentialActions(options: {
     registerMutation,
   } = options;
 
-  const login = async (email: string, password: string) => {
-    const payload = loginSchema.parse({ email, password });
+  const login = async (
+    email: string,
+    password: string,
+    turnstileToken?: string,
+  ) => {
+    const payload = loginSchema.parse({
+      email,
+      password,
+      ...(turnstileToken ? { turnstileToken } : {}),
+    });
     if (loginLockoutUntil && loginLockoutUntil > Date.now()) throw new Error(formatLoginLockoutMessage(loginLockoutUntil));
 
     try {
@@ -126,6 +134,7 @@ export function useAuthCredentialActions(options: {
     lastName: string,
     role: "ADMIN" | "ADMIN_DOCTOR" = "ADMIN",
     clinicName?: string,
+    turnstileToken?: string,
   ) => {
     const payload = registerSchema.parse({
       email,
@@ -134,6 +143,7 @@ export function useAuthCredentialActions(options: {
       lastName,
       role,
       clinicName,
+      ...(turnstileToken ? { turnstileToken } : {}),
     });
     const authPayload = extractAuthPayload(
       await registerMutation.mutateAsync(payload),

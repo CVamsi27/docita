@@ -20,6 +20,10 @@ describe("AuthLoginStepUI", () => {
         onTogglePassword={() => {}}
         onSubmit={() => {}}
         onForgotPassword={() => {}}
+        siteKey=""
+        turnstileError={null}
+        onTurnstileToken={() => {}}
+        onTurnstileExpire={() => {}}
       />,
     );
 
@@ -29,5 +33,35 @@ describe("AuthLoginStepUI", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sign in" })).toBeDisabled();
+  });
+
+  it("renders the Turnstile widget and its error when a site key is configured", () => {
+    render(
+      <AuthLoginStepUI
+        email="doctor@example.com"
+        password="password123"
+        showPassword={false}
+        fieldErrors={{}}
+        loading={false}
+        error=""
+        isLocked={false}
+        lockoutMessage=""
+        onBack={() => {}}
+        onChangePassword={() => {}}
+        onTogglePassword={() => {}}
+        onSubmit={() => {}}
+        onForgotPassword={() => {}}
+        siteKey="test-site-key"
+        turnstileError="Please complete the security verification before signing in."
+        onTurnstileToken={() => {}}
+        onTurnstileExpire={() => {}}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "Please complete the security verification before signing in.",
+      ),
+    ).toBeInTheDocument();
   });
 });

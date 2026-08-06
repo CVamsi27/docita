@@ -23,6 +23,8 @@ import {
   InternalClinicListResponseDto,
   InternalUserListResponseDto,
   InternalUserResponseDto,
+  InternalAdminListResponseDto,
+  InternalUserListWithClinicResponseDto,
   SuccessResponseDto,
 } from './dto/internal.dto';
 import { ClinicResponseDto } from '@/domains/clinics/application/dto/clinics.dto';
@@ -97,6 +99,27 @@ export class InternalClinicsController {
   @ZodSerializerDto(InternalUserListResponseDto)
   async getClinicAdmins(@Param('id') id: string) {
     return this.clinicService.getClinicAdmins(id);
+  }
+
+  /** P5.11 — cross-clinic admin list for the internal console. */
+  @Get('admins')
+  @ZodSerializerDto(InternalAdminListResponseDto)
+  async getAllAdmins() {
+    return this.clinicService.getAllAdmins();
+  }
+
+  /** P5.11 — cross-clinic users list (with clinic name) for the internal console. */
+  @Get('users')
+  @ZodSerializerDto(InternalUserListWithClinicResponseDto)
+  async getAllUsers() {
+    return this.clinicService.getAllUsers();
+  }
+
+  /** P5.11 — cross-clinic admin create for the internal console. */
+  @Post('admins')
+  @ZodSerializerDto(InternalUserResponseDto)
+  async createCrossClinicAdmin(@Body() data: CreateAdminDto) {
+    return this.clinicService.createAdmin(data.clinicId, data);
   }
 
   @Post('clinics/:id/admins')

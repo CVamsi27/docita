@@ -7,6 +7,24 @@ import { cn } from "@workspace/ui/lib/utils";
 const TURNSTILE_SCRIPT =
   "https://challenges.cloudflare.com/turnstile/v0/api.js";
 
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        container: HTMLElement | string,
+        options: {
+          sitekey: string;
+          callback: (token: string) => void;
+          "expired-callback"?: () => void;
+          "error-callback"?: () => void;
+        },
+      ) => string;
+      reset?: (widgetId: string) => void;
+      remove?: (widgetId: string) => void;
+    };
+  }
+}
+
 interface TurnstileWidgetProps {
   siteKey: string | undefined;
   onToken: (token: string) => void;
@@ -14,6 +32,11 @@ interface TurnstileWidgetProps {
   className?: string;
 }
 
+/**
+ * Cloudflare Turnstile widget. Renders nothing when `siteKey` is undefined
+ * (e.g. local dev without VITE_TURNSTILE_SITE_KEY), so surfaces that mount it
+ * keep working unchanged when enforcement is not configured.
+ */
 export function TurnstileWidget({
   siteKey,
   onToken,

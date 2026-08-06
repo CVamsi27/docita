@@ -28,6 +28,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { DefaultPasswordPolicy } from './policies/password.policy';
+import { TurnstileModule } from '@/shared/modules/turnstile/turnstile.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 import { ConsentGuard } from '@/shared/modules/auth/guards/consent.guard';
 import { PatientDoctorGuard } from '@/shared/modules/auth/guards/patient-doctor.guard';
@@ -54,6 +55,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
     UsersModule,
     forwardRef(() => ClinicsModule),
     EmailModule,
+    TurnstileModule,
     JwtModule.registerAsync({
       imports: [AppConfigModule],
       inject: [AppConfigService],

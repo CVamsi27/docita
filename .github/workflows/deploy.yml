@@ -223,8 +223,8 @@ jobs:
           echo "app_name=$app_name" >> "$GITHUB_OUTPUT"
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
-      - name: Deploy Worker to Fly.io
-        run: bash scripts/deploy/fly-deploy-in-primary-region.sh apps/worker/fly.toml "${{ steps.fly-config.outputs.app_name }}" --strategy rolling --ha=false
+      - name: Canary-deploy Worker to Fly.io (verify + promote)
+        run: bash scripts/deploy/worker-canary-deploy.sh apps/worker/fly.toml "${{ steps.fly-config.outputs.app_name }}" 90
 
   gate:
     name: Check Cloudflare deploy credentials

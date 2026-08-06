@@ -33,6 +33,30 @@ disabled (`ENABLE_SCHEDULERS=false`), only that cleanup is skipped for the
 process; apply migrations so the tables exist before traffic hits idempotent
 routes.
 
+### Code-health ratchet gates (P5.13 / P5.14)
+
+Two static gates keep the API free of cache anti-patterns that would otherwise
+surface as memory-growth incidents or staleness bugs in production:
+
+- `pnpm check:repo-on-module-init-cache` (P5.13) — fails if an infrastructure
+  repository under `apps/api/src/domains/*/infrastructure/` implements
+  `OnModuleInit` to prewarm an in-memory cache. The sole allowlisted
+  exception is `prisma-medical-coding.repository.ts` (documented in audit
+  AO4). Fix: use a lazy cache or move the warm-up into a scheduler.
+- `pnpm check:ad-hoc-service-cache` (P5.14) — fails if an application service
+  under `apps/api/src/domains/*/application/services/` holds an instance-level
+  `Map` as an ad-hoc cache. The sole allowlisted exception is
+  `onboarding-data.service.ts` (in-memory session store until replaced with
+  `CacheService` / Redis). Fix: route caching through `CacheService` with an
+  explicit TTL + invalidation strategy.
+
+Both run in `verify:standard` with `--enforce` and must stay at 0 findings
+outside the documented allowlists. If either gate goes red on a deploy, treat
+it as a release blocker: the pattern it catches can degrade production memory
+or serve stale clinical data. See [`SUPPRESSION_LEDGER.md`](../analysis/SUPPRESSION_LEDGER.md)
+for the ledger and [`STABILITY_RUNBOOK.md`](./STABILITY_RUNBOOK.md) for the
+memory/staleness incident response.
+
 ---
 
 ## RB-01: API rollback
@@ -437,6 +461,46 @@ drift before it becomes an outage.
 4. Verify the DLQ replay path against a synthetic dead letter (RB-03).
 5. File a tracking issue with the timing for each step and any
    regressions discovered.
+
+---
+
+## RB-11: Worker canary rollout (automated)
+
+**Purpose** Every production worker deploy (`.github/workflows/deploy.yml`
+`deploy-worker` job) now goes through a canary gate before promotion, per
+P5.16. The worker has no HTTP health endpoint, so the canary is verified at
+machine level: deployed as a single canary machine, must reach `started` and
+stay started for a 90 s settle window, then is promoted with a rolling deploy.
+
+**Automation**
+
+```bash
+# Runs in CI; locally needs FLY_API_TOKEN + flyctl + jq.
+bash scripts/deploy/worker-canary-deploy.sh apps/worker/fly.toml docita-worker 90
+```
+
+Flow:
+
+1. `flyctl deploy --canary` — one machine with the new image.
+2. Identify the canary (newest machine by `created_at`) and poll its state
+   until `started`, then hold `started` for the settle window.
+3. Abort (exit 1, no promote) if the canary leaves `started`, is `stopped`/
+   `destroyed`, or never stabilises — the deploy job fails and the previous
+   image keeps serving the queue.
+4. `flyctl deploy --strategy rolling --ha=false` — promote the image to the
+   remaining machines.
+
+**When to use manually** Abort a stuck rollout with `fly machines stop
+<canary-id> --app docita-worker`; the promote step never runs on failure, so
+this is a cleanup, not a rollback. Roll back a promoted-but-bad image as in
+RB-01 against `--app docita-worker --config apps/worker/fly.toml`.
+
+**Verification after promote**
+
+- `worker_jobs_total{status="completed"}` continues climbing.
+- Scheduler heartbeat (cron) still fires — a scheduler regression only
+  surfaces post-promote, so watch it in the first 30 minutes after deploy.
+- `fly status --app docita-worker` shows all machines `started`.
 
 ---
 

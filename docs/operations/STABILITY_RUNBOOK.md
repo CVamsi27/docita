@@ -212,9 +212,13 @@ deploy uses the same probe; production adopts it in P5.16.
 interceptor (in apps/api) requires both the cookie and the header; if a new
 proxy strips the header, every request breaks.
 
-**Fix**: `check:webhook-csrf-exemption` (P5.12) and the e2e test added in
-P4.3 closing batch. The interceptor exemption for `/webhooks/*` POST is
-locked behind a comment + a static check.
+**Fix**: `check:webhook-csrf-exemption` (P5.12, live 2026-08-06) and the e2e
+spec `csrf-webhook-exemption.e2e-spec.ts`. The interceptor exemption for
+`/webhooks/*` POST is locked behind a comment + a `failAlways` static gate
+that rejects any widening (unanchored path, non-POST method, or movement
+into the auth-bootstrap path), plus a 4-case e2e spec proving signature
+checks fire before CSRF and the negative control (non-webhook mutation)
+still 403s.
 
 **Owner**: Backend. **Detection**: a/b test or staging smoke.
 

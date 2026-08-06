@@ -20,7 +20,7 @@ import { PatientService } from '@/domains/patients/application/services/patient.
 import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 import { AppointmentRequestService } from '@/domains/appointments/application/services/appointment-request.service';
 import { PublicBookingTokenService } from '@/domains/public-booking/application/services/public-booking-token.service';
-import { TurnstileVerifyService } from '@/domains/public-booking/application/services/turnstile-verify.service';
+import { TurnstileVerifyService } from '@/shared/modules/turnstile/turnstile-verify.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   extractBearerToken,

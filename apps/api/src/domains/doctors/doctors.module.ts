@@ -21,6 +21,7 @@ import { SignatureUploadController } from './presentation/controllers/signature-
 import { ClinicSignatureController } from '@/domains/clinics/presentation/controllers/clinic-signature.controller';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { DocumentsModule } from '@/domains/documents/documents.module';
+import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import {
   DOCTOR_SCHEDULE_CORE_REPOSITORY_TOKEN,
   DOCTOR_SCHEDULE_REPOSITORY_TOKEN,
@@ -47,7 +48,7 @@ import { PrismaDoctorRepository } from './infrastructure/repositories/prisma-doc
 import { DoctorVerificationHttpClient } from './infrastructure/external/doctor-verification-http.client';
 
 @Module({
-  imports: [PrismaModule, DocumentsModule],
+  imports: [PrismaModule, DocumentsModule, AuditModule],
   controllers: [
     DoctorsOptionsController,
     DoctorsProfileController,

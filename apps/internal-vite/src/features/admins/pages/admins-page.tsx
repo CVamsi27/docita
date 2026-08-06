@@ -5,8 +5,11 @@ import { Button } from "@workspace/ui/components/form/button";
 import { AdminsTable } from "../components/admins-table";
 import { AdminCreateDialog, AdminEditDialog, AdminViewDialog } from "../components/admins-dialogs";
 import { apiGet, apiPost, apiPatch } from "@/lib/api/api-client";
+import { isRecord } from "@workspace/utils";
 
 interface Admin { id: string; name: string; email: string; phoneNumber?: string; role: string; appLoginDisabled: boolean; createdAt: string; }
+
+interface ClinicOption { id: string; name: string; }
 
 const LABELS: Record<string, string> = { admin: "Clinic Admin", admin_doctor: "Admin Doctor", ADMIN: "Clinic Admin", ADMIN_DOCTOR: "Admin Doctor" };
 const BADGE: Record<string, "default" | "outline"> = { admin: "outline", admin_doctor: "default", ADMIN: "outline", ADMIN_DOCTOR: "default" };
@@ -23,13 +26,11 @@ export function AdminsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deactivatingAdmin, setDeactivatingAdmin] = useState<Admin | null>(null);
-  const [createForm, setCreateForm] = useState({ name: "", email: "", password: "", phoneNumber: "", adminType: "admin" });
+  const [clinics, setClinics] = useState<ClinicOption[]>([]);
+  const [createForm, setCreateForm] = useState({ clinicId: "", name: "", email: "", password: "", phoneNumber: "", adminType: "admin" });
   const [editForm, setEditForm] = useState({ name: "", email: "", phoneNumber: "", adminType: "admin" });
   const [saving, setSaving] = useState(false);
 
-  // The API exposes only clinic-scoped admin routes (clinics/:id/admins)
-  // and admins/:id mutations, not an all-admins list; surface an explicit
-  // error state instead of a silently empty table.
   const fetchAdmins = async () => {
     setLoading(true);
     setHasError(false);
@@ -40,18 +41,32 @@ export function AdminsPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { void fetchAdmins(); }, []);
+  const fetchClinics = async () => {
+    try {
+      const data = await apiGet<unknown>("/api/internal/clinics");
+      // Normalize the paginated response defensively: the endpoint may return
+      // a plain array, { data: [...] }, or { items: [...] } depending on the
+      // serializer contract; the dropdown only needs id + name either way.
+      const list = Array.isArray(data) ? data : isRecord(data) && Array.isArray(data.data) ? data.data : isRecord(data) && Array.isArray(data.items) ? data.items : [];
+      setClinics(
+        list.filter((c): c is ClinicOption => isRecord(c) && typeof c.id === "string" && typeof c.name === "string")
+      );
+    } catch { /* dropdown is optional; create requires a clinicId to be picked */ }
+  };
+
+  useEffect(() => { void fetchAdmins(); void fetchClinics(); }, []);
 
   const filteredAdmins = useMemo(() =>
     admins.filter((a) => a.name.toLowerCase().includes(search.toLowerCase()) || a.email.toLowerCase().includes(search.toLowerCase())),
     [admins, search]);
 
   const handleCreate = async () => {
+    if (!createForm.clinicId) return;
     setSaving(true);
     try {
-      await apiPost("/api/internal/clinics/admins", createForm);
+      await apiPost("/api/internal/admins", createForm);
       setIsCreateOpen(false);
-      setCreateForm({ name: "", email: "", password: "", phoneNumber: "", adminType: "admin" });
+      setCreateForm({ clinicId: "", name: "", email: "", password: "", phoneNumber: "", adminType: "admin" });
       await fetchAdmins();
     } catch { /* ignore */ }
     finally { setSaving(false); }
@@ -84,7 +99,7 @@ export function AdminsPage() {
   return (
     <AppPageScaffold header={<PageHeader title="Admins" description="Manage clinic administrators and admin doctors" size="compact" />}>
       <DataState status={loading ? "loading" : hasError ? "error" : "success"} loadingMessage="Loading admins\u2026"
-        errorMessage="We could not load admin records. The internal admins list endpoint is not available yet."
+        errorMessage="We could not load admin records. Please refresh and try again."
         onRetry={() => { void fetchAdmins(); }}>
         <div className="mb-4 flex items-center gap-4">
           <Input className="max-w-sm" placeholder="Enter name or email" value={search} onChange={(e) => { setSearch(e.target.value); }} />
@@ -99,7 +114,7 @@ export function AdminsPage() {
         confirmText="Deactivate" cancelText="Cancel" type="danger"
         onConfirm={() => { const id = deactivatingAdmin?.id; setDeactivatingAdmin(null); if (id) { void handleDeactivate(id); } }} />
       <AdminViewDialog open={isViewOpen} onOpenChange={setIsViewOpen} admin={selectedAdmin} getRoleLabel={getRoleLabel} getRoleBadgeVariant={getRoleBadgeV} />
-      <AdminCreateDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} form={createForm} onFormChange={setCreateForm}          onCreate={() => { void handleCreate(); }} saving={saving} />
+      <AdminCreateDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} form={createForm} onFormChange={setCreateForm} clinics={clinics} onCreate={() => { void handleCreate(); }} saving={saving} />
       <AdminEditDialog open={isEditOpen} onOpenChange={setIsEditOpen} form={editForm} onFormChange={setEditForm} onSave={() => { void handleSave(); }} saving={saving} />
     </AppPageScaffold>
   );

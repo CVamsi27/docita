@@ -3,7 +3,7 @@
 import { Lock } from "lucide-react";
 import { Alert, AlertDescription, Card, CardContent, CardHeader, MicroLabel } from "@workspace/ui/components";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
-import { TurnstileWidget } from "@/features/public-booking/components/turnstile-widget";
+import { TurnstileWidget } from "@workspace/ui/components/form/turnstile-widget";
 import { BookingSectionHeader } from "@/features/public-booking/public-booking-components";
 import { bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "@/features/public-booking/atoms/booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";

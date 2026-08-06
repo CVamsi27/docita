@@ -223,6 +223,56 @@ export class ClinicManagementService {
     });
   }
 
+  /**
+   * P5.11 — cross-clinic admin list for the internal console. Gated by the
+   * controller-level `@InternalApiAccess()` (Role.INTERNAL); the query itself
+   * is deliberately NOT clinic-scoped because the internal portal manages all
+   * facilities. Only admin roles are returned (the users list covers the rest).
+   */
+  async getAllAdmins() {
+    return this.prisma.user.findMany({
+      where: { role: { in: CLINIC_ADMIN_ROLES } },
+      select: CLINIC_ADMIN_SELECT,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * P5.11 — cross-clinic users list for the internal console. Returns clinic
+   * staff (all non-INTERNAL roles) with the owning clinic name attached for
+   * the "across facilities" table. Same Role.INTERNAL gate as getAllAdmins.
+   */
+  // Cross-clinic list for the INTERNAL console (low-traffic, admin-only).
+  // Unbounded by design: the contract is a plain array (matches the internal
+  // e2e spec) and the audience is a handful of platform ops — pagination is a
+  // follow-up if the user base grows past console comfort.
+  async getAllUsers() {
+    const users = await this.prisma.user.findMany({
+      where: { role: { not: Role.INTERNAL } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phoneNumber: true,
+        specialization: true,
+        qualification: true,
+        registrationNumber: true,
+        yearsOfExperience: true,
+        bio: true,
+        clinicId: true,
+        createdAt: true,
+        updatedAt: true,
+        clinic: { select: { name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return users.map((user) => ({
+      ...user,
+      clinicName: user.clinic?.name,
+    }));
+  }
+
   async createAdmin(clinicId: string, data: CreateAdminDto) {
     const clinic = await this.prisma.clinic.findUnique({
       where: { id: clinicId },

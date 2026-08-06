@@ -496,3 +496,150 @@ test("accessible-name check flags icon-only links and allows text-labeled ones",
     ),
   );
 });
+
+test("webhook CSRF exemption check accepts the canonical scoped exemption and rejects widening", () => {
+  const canonicalInterceptor = `import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from "@nestjs/common";
+import { Observable } from "rxjs";
+import { Response, Request } from "express";
+
+@Injectable()
+export class CsrfInterceptor implements NestInterceptor {
+  private isSafeMethod(method: string): boolean {
+    return ["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
+  }
+
+  /** Public browser RUM beacons do not carry CSRF headers. */
+  private isPublicWebVitalsPost(request: Request): boolean {
+    if (request.method?.toUpperCase() !== "POST") {
+      return false;
+    }
+    return /^\\/api\\/v\\d+\\/monitoring\\/web-vitals$/i.test(request.url ?? "");
+  }
+
+  /** Unauthenticated online booking (may be cross-site; no session CSRF cookie). */
+  private isPublicBookingWrite(request: Request): boolean {
+    const method = request.method?.toUpperCase() ?? "";
+    if (method !== "POST") return false;
+    return /^\\/api(?:\\/v\\d+)?\\/public\\/booking\\/clinics\\//i.test(request.url ?? "");
+  }
+
+  private isWebhookIngress(request: Request): boolean {
+    const method = request.method?.toUpperCase() ?? "";
+    if (method !== "POST") return false;
+    const path = (request.url ?? "").split("?")[0];
+    return /^\\/(?:api(?:\\/v\\d+)?\\/)?webhooks\\//i.test(path);
+  }
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const request = context.switchToHttp().getRequest<Request>();
+    const response = context.switchToHttp().getResponse<Response>();
+    if (!this.isSafeMethod(request.method)) {
+      if (
+        this.isPublicWebVitalsPost(request) ||
+        this.isPublicBookingWrite(request) ||
+        this.isWebhookIngress(request)
+      ) {
+        return next.handle();
+      }
+      throw new Error("INVALID_CSRF_TOKEN");
+    }
+    return next.handle();
+  }
+}
+`;
+
+  // Widened exemption: bare /webhooks match (no anchor, no api-prefix group).
+  const widenedInterceptor = canonicalInterceptor.replace(
+    '/^\\/(?:api(?:\\/v\\d+)?\\/)?webhooks\\//i',
+    '/webhooks/i',
+  );
+
+  // Dropped exemption: the isWebhookIngress call is removed from the branch.
+  const droppedInterceptor = canonicalInterceptor.replace(
+    /\|\|\s*this\.isWebhookIngress\(request\)/,
+    "",
+  );
+
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/shared/common/interceptors/csrf.interceptor.ts":
+          canonicalInterceptor,
+      }),
+      "check-webhook-csrf-exemption.mjs",
+    ),
+  );
+
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/shared/common/interceptors/csrf.interceptor.ts":
+          widenedInterceptor,
+      }),
+      "check-webhook-csrf-exemption.mjs",
+    ),
+  );
+
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/shared/common/interceptors/csrf.interceptor.ts":
+          droppedInterceptor,
+      }),
+      "check-webhook-csrf-exemption.mjs",
+    ),
+  );
+});
+
+test("API latency budget accepts a compliant baseline and fails an over-tolerance p95", () => {
+  const compliantBaseline = {
+    "artifacts/api-latency-baseline.json": JSON.stringify({
+      generatedAt: "2026-08-06T00:00:00.000Z",
+      endpoints: {
+        auth: { p95: 120 },
+        crud: { p95: 180, p99: 410 },
+        search: { p95: 220 },
+        reports: { p95: 900 },
+        webhooks: { p95: 40 },
+      },
+    }),
+  };
+
+  expectPass(
+    runCheck(
+      makeGitFixture(compliantBaseline),
+      "check-api-latency-budget.mjs",
+      ["--enforce"],
+    ),
+  );
+
+  const violatingBaseline = {
+    "artifacts/api-latency-baseline.json": JSON.stringify({
+      generatedAt: "2026-08-06T00:00:00.000Z",
+      endpoints: {
+        auth: { p95: 500 },
+        crud: { p95: 180, p99: 410 },
+        search: { p95: 220 },
+        reports: { p95: 900 },
+        webhooks: { p95: 40 },
+      },
+    }),
+  };
+
+  expectFail(
+    runCheck(
+      makeGitFixture(violatingBaseline),
+      "check-api-latency-budget.mjs",
+      ["--enforce"],
+    ),
+  );
+
+  // Without --enforce the same violation reports but exits 0 (ratchet
+  // semantics: fail closed only in the merge gate).
+  expectPass(
+    runCheck(
+      makeGitFixture(violatingBaseline),
+      "check-api-latency-budget.mjs",
+    ),
+  );
+});

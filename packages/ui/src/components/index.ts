@@ -17,6 +17,7 @@ export * from "./navigation/sidebar-rail-action";
 export * from "./navigation/sidebar-rail-tooltip";
 export * from "./indicators/badge";
 export * from "./form/button";
+export * from "./form/turnstile-widget";
 export * from "./form/calendar";
 export * from "./indicators/card";
 export * from "./form/checkbox";

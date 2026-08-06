@@ -17,7 +17,7 @@ interface UseAuthFormSubmissionsParams {
   setLoading: Dispatch<SetStateAction<boolean>>;
   setStep: Dispatch<SetStateAction<"email" | "login" | "signup">>;
   checkEmail: (email: string) => Promise<boolean>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, turnstileToken?: string) => Promise<void>;
   register: (
     email: string,
     password: string,
@@ -25,7 +25,12 @@ interface UseAuthFormSubmissionsParams {
     lastName: string,
     role?: "ADMIN" | "ADMIN_DOCTOR",
     clinicName?: string,
+    turnstileToken?: string,
   ) => Promise<void>;
+  siteKey: string;
+  turnstileToken: string | null;
+  setTurnstileToken: (token: string | null) => void;
+  setTurnstileError: (message: string | null) => void;
 }
 
 type FieldErrors = Record<string, string>;
@@ -59,7 +64,12 @@ export function useAuthFormSubmissions({
   checkEmail,
   login,
   register,
+  siteKey,
+  turnstileToken,
+  setTurnstileToken,
+  setTurnstileError,
 }: UseAuthFormSubmissionsParams) {
+  const requireTurnstile = Boolean(siteKey && !turnstileToken);
   const handleEmailSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -107,10 +117,23 @@ export function useAuthFormSubmissions({
       e.preventDefault();
       setError("");
       setFieldErrors({});
+      if (requireTurnstile) {
+        setTurnstileError(
+          "Please complete the security verification before signing in.",
+        );
+        return;
+      }
       setLoading(true);
       try {
-        await login(email, password);
+        await login(email, password, turnstileToken ?? undefined);
       } catch (err) {
+        // A failed attempt consumed the Turnstile token (the backend verifies
+        // it before validating credentials), so force a fresh challenge on
+        // retry instead of replaying an already-used token.
+        if (turnstileToken) {
+          setTurnstileToken(null);
+          setTurnstileError(null);
+        }
         handleCatchError(
           err,
           "We could not sign you in right now. Please try again.",
@@ -121,7 +144,18 @@ export function useAuthFormSubmissions({
         setLoading(false);
       }
     },
-    [email, password, setError, setFieldErrors, setLoading, login],
+    [
+      email,
+      password,
+      turnstileToken,
+      requireTurnstile,
+      setTurnstileToken,
+      setTurnstileError,
+      setError,
+      setFieldErrors,
+      setLoading,
+      login,
+    ],
   );
   const handleSignupSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -137,6 +171,12 @@ export function useAuthFormSubmissions({
         setFieldErrors(nextFieldErrors);
         return;
       }
+      if (requireTurnstile) {
+        setTurnstileError(
+          "Please complete the security verification before creating your account.",
+        );
+        return;
+      }
       setLoading(true);
       try {
         await register(
@@ -146,8 +186,14 @@ export function useAuthFormSubmissions({
           lastName,
           ownerRole ?? undefined,
           undefined,
+          turnstileToken ?? undefined,
         );
       } catch (err) {
+        // Same single-use token semantics as login: force a fresh challenge.
+        if (turnstileToken) {
+          setTurnstileToken(null);
+          setTurnstileError(null);
+        }
         handleCatchError(
           err,
           "We could not finish creating your account. Please try again.",
@@ -165,6 +211,10 @@ export function useAuthFormSubmissions({
       firstName,
       lastName,
       ownerRole,
+      turnstileToken,
+      requireTurnstile,
+      setTurnstileToken,
+      setTurnstileError,
       setError,
       setFieldErrors,
       setLoading,

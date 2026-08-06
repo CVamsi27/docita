@@ -21,6 +21,10 @@ const baseProps = {
   onChangeConfirmPassword: () => {},
   onTogglePassword: () => {},
   onSubmit: () => {},
+  siteKey: "",
+  turnstileError: null,
+  onTurnstileToken: () => {},
+  onTurnstileExpire: () => {},
 };
 
 describe("AuthSignupStepUI", () => {
@@ -63,5 +67,22 @@ describe("AuthSignupStepUI", () => {
     );
 
     expect(onChangeOwnerRole).toHaveBeenCalledWith("ADMIN_DOCTOR");
+  });
+
+  it("renders the Turnstile verification error when a site key is configured", () => {
+    render(
+      <AuthSignupStepUI
+        {...baseProps}
+        siteKey="test-site-key"
+        turnstileError="Please complete the security verification before creating your account."
+        onChangeOwnerRole={() => {}}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "Please complete the security verification before creating your account.",
+      ),
+    ).toBeInTheDocument();
   });
 });

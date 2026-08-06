@@ -47,13 +47,13 @@ export const ROUTE_BUNDLE_KB = {
 
 /** Web Vitals targets per route bucket. */
 export const ROUTE_WEB_VITALS = {
-  "/login":            { LCP: 1500, INP: 200, CLS: 0.05 },
-  "/dashboard":        { LCP: 1800, INP: 200, CLS: 0.05 },
-  "/patients":         { LCP: 2000, INP: 200, CLS: 0.05 },
-  "/patients/:id":     { LCP: 2200, INP: 250, CLS: 0.05 },
-  "/consultation/:id": { LCP: 2200, INP: 250, CLS: 0.05 },
-  "/book/:referralCode": { LCP: 1800, INP: 200, CLS: 0.05 },
-  "/mobile-upload/:id": { LCP: 1800, INP: 200, CLS: 0.05 },
+  "/login":            { LCP: 1500, INP: 200, CLS: 0.05, TTFB: 800 },
+  "/dashboard":        { LCP: 1800, INP: 200, CLS: 0.05, TTFB: 800 },
+  "/patients":         { LCP: 2000, INP: 200, CLS: 0.05, TTFB: 800 },
+  "/patients/:id":     { LCP: 2200, INP: 250, CLS: 0.05, TTFB: 800 },
+  "/consultation/:id": { LCP: 2200, INP: 250, CLS: 0.05, TTFB: 800 },
+  "/book/:referralCode": { LCP: 1800, INP: 200, CLS: 0.05, TTFB: 800 },
+  "/mobile-upload/:id": { LCP: 1800, INP: 200, CLS: 0.05, TTFB: 800 },
 };
 
 /**

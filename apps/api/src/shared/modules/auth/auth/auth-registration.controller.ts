@@ -1,5 +1,13 @@
 import { getPatientFullName } from '@workspace/utils';
-import { Controller, Post, Body, Res, UseGuards, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  UseGuards,
+  Logger,
+  Request,
+} from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -15,6 +23,8 @@ import {
 } from './dto/auth.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { Request as ExpressRequest } from 'express';
+import { TurnstileVerifyService } from '@/shared/modules/turnstile/turnstile-verify.service';
 import {
   setAuthCookies,
   stripRefreshTokenFromBody,
@@ -28,6 +38,7 @@ export class AuthRegistrationController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: AppConfigService,
+    private readonly turnstile: TurnstileVerifyService,
   ) {}
 
   @Public()
@@ -52,8 +63,11 @@ export class AuthRegistrationController {
   async register(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
+    @Request() req: ExpressRequest,
   ) {
     try {
+      // P5.17: fail-closed human check when TURNSTILE_SECRET_KEY is configured.
+      await this.turnstile.assertValidToken(dto.turnstileToken, req.ip);
       const tokens = await this.authService.register({
         email: dto.email,
         password: dto.password,

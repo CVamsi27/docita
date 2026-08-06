@@ -3,6 +3,7 @@ import { ErrorBanner } from "@/components/errors/error-banner";
 import { FormField } from "@/components/form-field";
 import { Button } from "@workspace/ui/components/form/button";
 import { BackEmailField } from "./AuthSharedFields";
+import { AuthTurnstileVerification } from "./AuthTurnstileVerification";
 import type { FieldErrors } from "../types/auth";
 import { AuthSignupPasswordFields } from "./auth-signup-password-fields";
 import { AuthSignupOwnerRoleFields } from "./auth-signup-owner-role-fields";
@@ -26,6 +27,10 @@ interface SignupStepProps {
   onChangeOwnerRole: (value: "ADMIN" | "ADMIN_DOCTOR") => void;
   onTogglePassword: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
+  siteKey: string;
+  turnstileError: string | null;
+  onTurnstileToken: (token: string) => void;
+  onTurnstileExpire: () => void;
 }
 
 export function AuthSignupStepUI({
@@ -47,6 +52,10 @@ export function AuthSignupStepUI({
   onChangeOwnerRole,
   onTogglePassword,
   onSubmit,
+  siteKey,
+  turnstileError,
+  onTurnstileToken,
+  onTurnstileExpire,
 }: SignupStepProps) {
   const hasGlobalError = !Object.keys(fieldErrors).length && Boolean(error);
 
@@ -99,6 +108,15 @@ export function AuthSignupStepUI({
         fieldErrors={fieldErrors}
         onChangeOwnerRole={onChangeOwnerRole}
       />
+
+      {siteKey && (
+        <AuthTurnstileVerification
+          siteKey={siteKey}
+          turnstileError={turnstileError}
+          onToken={onTurnstileToken}
+          onExpire={onTurnstileExpire}
+        />
+      )}
 
       {hasGlobalError ? <ErrorBanner message={error} /> : null}
 

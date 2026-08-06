@@ -59,8 +59,10 @@ out
 # Local upload artifacts
 /uploads
 apps/api/uploads
-/artifacts
+/artifacts/*
 !artifacts/a11y-baseline.json
+!artifacts/web-vitals-baseline.json
+!artifacts/api-latency-baseline.json
 
 # Turbo cache
 .turbo

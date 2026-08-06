@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { BadRequestException } from '@nestjs/common';
 import { TurnstileVerifyService } from './turnstile-verify.service';
 import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import type { TurnstileSiteverifyClient } from '@/domains/public-booking/infrastructure/clients/turnstile-siteverify.client';
+import type { TurnstileSiteverifyClient } from './turnstile-siteverify.client';
 
 describe('TurnstileVerifyService', () => {
   let service: TurnstileVerifyService;
@@ -51,5 +52,44 @@ describe('TurnstileVerifyService', () => {
   it('returns false when Cloudflare rejects the token', async () => {
     verifySiteToken.mockResolvedValue(false);
     await expect(service.verifyToken('bad-token')).resolves.toBe(false);
+  });
+
+  describe('assertValidToken (auth surface guard, P5.17)', () => {
+    it('is a no-op when no secret is configured', async () => {
+      secret = undefined;
+      await expect(
+        service.assertValidToken(undefined),
+      ).resolves.toBeUndefined();
+      expect(verifySiteToken).not.toHaveBeenCalled();
+    });
+
+    it('throws 400 when the token is missing and enforcement is on', async () => {
+      await expect(service.assertValidToken(undefined)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.assertValidToken('  ')).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(verifySiteToken).not.toHaveBeenCalled();
+    });
+
+    it('throws 400 when Cloudflare rejects the token', async () => {
+      verifySiteToken.mockResolvedValue(false);
+      await expect(service.assertValidToken('bad-token')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('resolves when the token passes siteverify', async () => {
+      verifySiteToken.mockResolvedValue(true);
+      await expect(
+        service.assertValidToken('  good-token  ', '203.0.113.5'),
+      ).resolves.toBeUndefined();
+      expect(verifySiteToken).toHaveBeenCalledWith(
+        'turnstile-secret',
+        'good-token',
+        '203.0.113.5',
+      );
+    });
   });
 });

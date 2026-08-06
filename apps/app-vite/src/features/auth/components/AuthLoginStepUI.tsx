@@ -4,6 +4,7 @@ import { ErrorBanner } from "@/components/errors/error-banner";
 import { Button, Input, Label, SymbolTooltip } from "@workspace/ui/components";
 import { hasFieldError, getFieldError } from "@/lib/utils/form-errors";
 import { BackEmailField, InlineFieldError } from "./AuthSharedFields";
+import { AuthTurnstileVerification } from "./AuthTurnstileVerification";
 import { fieldClass } from "./auth-field-error-helpers";
 import type { FieldErrors } from "../types/auth";
 
@@ -21,6 +22,10 @@ interface LoginStepProps {
   onTogglePassword: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
   onForgotPassword: () => void;
+  siteKey: string;
+  turnstileError: string | null;
+  onTurnstileToken: (token: string) => void;
+  onTurnstileExpire: () => void;
 }
 
 export function AuthLoginStepUI({
@@ -37,6 +42,10 @@ export function AuthLoginStepUI({
   onTogglePassword,
   onSubmit,
   onForgotPassword,
+  siteKey,
+  turnstileError,
+  onTurnstileToken,
+  onTurnstileExpire,
 }: LoginStepProps) {
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-5">
@@ -119,6 +128,15 @@ export function AuthLoginStepUI({
           protection
         </p>
       </div>
+
+      {siteKey && (
+        <AuthTurnstileVerification
+          siteKey={siteKey}
+          turnstileError={turnstileError}
+          onToken={onTurnstileToken}
+          onExpire={onTurnstileExpire}
+        />
+      )}
 
       {isLocked && lockoutMessage && (
         <div className="surface-warning rounded-lg px-3 py-2 text-sm">

@@ -68,6 +68,10 @@ export function AuthPageContainer() {
               onTogglePassword={() => auth.setShowPassword((prev) => !prev)}
               onSubmit={auth.handleLoginSubmit}
               onForgotPassword={auth.handleForgotPassword}
+              siteKey={auth.siteKey}
+              turnstileError={auth.turnstileError}
+              onTurnstileToken={auth.setTurnstileToken}
+              onTurnstileExpire={() => auth.setTurnstileToken(null)}
             />
           )}
 
@@ -91,6 +95,10 @@ export function AuthPageContainer() {
               onChangeOwnerRole={auth.handleOwnerRoleChange}
               onTogglePassword={() => auth.setShowPassword((prev) => !prev)}
               onSubmit={auth.handleSignupSubmit}
+              siteKey={auth.siteKey}
+              turnstileError={auth.turnstileError}
+              onTurnstileToken={auth.setTurnstileToken}
+              onTurnstileExpire={() => auth.setTurnstileToken(null)}
             />
           )}
         </div>

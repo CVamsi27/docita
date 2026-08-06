@@ -12,7 +12,7 @@ export interface AuthContextType {
   isLoginLocked: boolean;
   loginLockoutUntil: number | null;
   refreshUser: () => Promise<User | null>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, turnstileToken?: string) => Promise<void>;
   register: (
     email: string,
     password: string,
@@ -20,6 +20,7 @@ export interface AuthContextType {
     lastName: string,
     role?: "ADMIN" | "ADMIN_DOCTOR",
     clinicName?: string,
+    turnstileToken?: string,
   ) => Promise<void>;
   checkEmail: (email: string) => Promise<boolean>;
 // jscpd:ignore-end

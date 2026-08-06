@@ -38,7 +38,7 @@ criterion.
 | **Data — DPDP retention**   | 7-year clinical, 90-day upload expiry              | [`DPDP_READINESS.md`](../compliance/DPDP_READINESS.md)             | Compliance    | ✅     |
 | **Data — sub-processors**   | Documented, contract-bound                         | [`DPDP_SUBPROCESSORS.md`](../compliance/DPDP_SUBPROCESSORS.md)     | Compliance    | ✅     |
 | **Audit — access**          | Every PHI read emits `VIEW_*` audit event         | `check:phi-read-audit`; e2e `patient-phi-read-audit.e2e-spec.ts`  | Backend       | ✅     |
-| **Audit — write**           | Create/update/delete audited; old/missing blocked  | `check:audit-coverage`                                            | Backend       | 🟡 BASELINE MISSING (P5.15) |
+| **Audit — write**           | Create/update/delete audited; old/missing blocked  | `check:audit-coverage` (ledger `docs/audits/evidence/2026-05-audit-coverage.md`) | Backend | ✅ (P5.15 closed 2026-08-06) |
 | **Audit — log shape**       | Single `auditLogSchema` across API + clients      | `check:zod-interface-parity`; e2e `zod-response-contracts`         | Backend       | ✅     |
 | **Audit — redaction**       | PHI never logged in plaintext                     | `check:sensitive-logging`; `check:no-console-runtime`             | Backend       | ✅     |
 | **Audit — export**          | Role-gated, tenant-scoped, 401/403/404             | [`AUDIT_EXPORT.md`](../compliance/AUDIT_EXPORT.md); `/audit-logs`  | Backend       | ✅     |
@@ -135,7 +135,7 @@ minimum for any release touching auth, data, or webhooks.
 | Stolen session cookie                 | httpOnly, SameSite=Lax, CSRF double-submit                                | Lost device → forced re-login (refresh revocation) |
 | Stolen refresh token                  | Hashed in DB, family revocation on reuse                                  | Single-use refresh window                          |
 | Brute force login                     | bcrypt cost 12, rate limit `RATE_LIMITS.md`, account lockout              | Distributed attacks mitigated at edge              |
-| Credential stuffing                   | Same as above + reCAPTCHA on the auth surface (planned P5.x)              | Currently no reCAPTCHA — tracked                   |
+| Credential stuffing                   | Same as above + Cloudflare Turnstile on login + register (P5.17 — wired 2026-08-06; enforced when `TURNSTILE_SECRET_KEY` is set) | Distributed attacks mitigated at edge; enforcement needs the Turnstile keys provisioned in prod |
 | Token replay (JWT)                    | 5-min TTL access tokens, refresh rotation, jti claim                      | 5-min replay window                                |
 | PHI exfiltration via Sentry           | Sentry scrubber list + same-origin telemetry + allowlist parity check     | Scrubber list must stay in sync with new PHI fields |
 | Cross-tenant data leak                | tenant guard, RLS, e2e multi-tenant fixture, `check:auth-tenant-safety`    | RLS bypass must be annotated                       |
@@ -147,7 +147,7 @@ minimum for any release touching auth, data, or webhooks.
 | Supply chain (npm)                    | `pnpm audit` + OSV scanner; `pnpm.overrides`; `--frozen-lockfile`         | 0 known high (2026-08-05)                          |
 | Insider threat (employee with prod)   | Audit log + role-gated access; JIT elevation                              | PHI export requires break-glass + audit             |
 | Patient portal abuse                  | OTP rate limit, phone verification                                        | SMS pump cost                                      |
-| Doctor verification bypass            | `@RequireFeature(DOCTOR_VERIFICATION)` guard                              | Manual override possible (intentional for support) |
+| Doctor verification bypass            | `@RequireFeature(DOCTOR_VERIFICATION)` guard + P5.18 override audit (support `ticketId` required + `DOCTOR_VERIFICATION_OVERRIDDEN` audit row written before the mutation) | INTERNAL-role override remains possible by design (support path), now fully traceable |
 | Razorpay payment forgery              | HMAC verify + event ID dedupe + idempotent handler                        | Provider compromise                                 |
 | OpenAI PHI leakage                    | `check:sensitive-logging` + LLM call redaction layer                      | New PHI surface not yet covered                    |
 | Cloudflare secret leak                | Secret rotation policy + `_headers` review                                | Compounded if not rotated in time                  |
@@ -171,8 +171,8 @@ These are the open security work consolidated from `EXECUTION_PLAN.md`,
 | `.jscpd.json` ignore count ratchet (≤ 25)              | SUPPRESSION_LEDGER §4         | P5.4    |
 | `zod-interface-parity.json` ratchet (≤ 8)              | SUPPRESSION_LEDGER §5         | P5.5    |
 | `eslint-disable*` ratchet (≤ 0 in production)         | SUPPRESSION_LEDGER §6         | P5.6    |
-| reCAPTCHA on auth surface (P5.x, planned)             | Threat model                  | P5.17   |
-| Doctor verification override audit trail              | Threat model                  | P5.18   |
+| reCAPTCHA on auth surface (P5.x, planned)             | Threat model                  | P5.17 — **DONE 2026-08-06** (Turnstile wired on login + register; see POST_CUTOVER_GAPS §10) |
+| Doctor verification override audit trail              | Threat model                  | P5.18 — **DONE 2026-08-06** (ticketId + audit row + e2e regression) |
 
 ---
 

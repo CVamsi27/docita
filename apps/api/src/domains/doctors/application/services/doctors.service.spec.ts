@@ -13,6 +13,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Role, Specialization } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { clockPortTestProvider } from '@/test-utils';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import {
   DOCTOR_REPOSITORY_TOKEN,
   IDoctorRepository,
@@ -221,6 +222,10 @@ describe('DoctorsService', () => {
         {
           provide: DOCTOR_REPOSITORY_TOKEN,
           useValue: mockDoctorRepository,
+        },
+        {
+          provide: AuditService,
+          useValue: { logAction: jest.fn(async () => undefined) },
         },
         clockPortTestProvider(),
       ],
