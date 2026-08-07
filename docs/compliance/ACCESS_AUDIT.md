@@ -40,7 +40,9 @@ For each `APP_ACCESS_TARGET` in `APP_ACCESS_MATRIX`:
 
 ## ABAC policy index (layered ABAC-on-RBAC, 2026-08-07)
 
-The new policy stage runs **after** the roles/tier/feature baseline and **before** RLS. It is additive: it never weakens the guards above it. See [ADR-0013](../architecture/decisions/0013-abac.md), the [first-slice plan](../superpowers/plans/2026-08-06-abac-first-slice.md), the [C2 appointments plan](../superpowers/plans/2026-08-07-c2-appointments.md), the [C3 prescriptions plan](../superpowers/plans/2026-08-07-c3-prescriptions.md), and the [C4 invoices/lab-orders plan](../superpowers/plans/2026-08-07-c4-lab-payments.md), and the [C5 audit-logs plan](../superpowers/plans/2026-08-07-c5-audit-logs.md).
+The new policy stage runs **after** the roles/tier/feature baseline and **before** RLS. It is additive: it never weakens the guards above it. See [ADR-0013](../architecture/decisions/0013-abac.md), the [first-slice plan](../superpowers/plans/2026-08-06-abac-first-slice.md), the [C2 appointments plan](../superpowers/plans/2026-08-07-c2-appointments.md), the [C3 prescriptions plan](../superpowers/plans/2026-08-07-c3-prescriptions.md), and the [C4 invoices/lab-orders plan](../superpowers/plans/2026-08-07-c4-lab-payments.md), and the [C5 audit-logs plan](../superpowers/plans/2026-08-07-c5-audit-logs.md), and the [C7 permission-snapshot plan](../superpowers/plans/2026-08-07-c7-permission-snapshot.md).
+
+**Permission snapshot (C7, 2026-08-07):** `GET /auth/effective-permissions` is NON-authoritative by contract — the server remains the enforcement point (non-negotiable 2); the UI consumes it only to preview decisions and falls back to the local matrix offline. `canAccessTarget` prefers the snapshot entry when present; the snapshot computation is a pure mirror (`computeEffectivePermissions` in `@workspace/utils`) of the client matrix with `TIER_SENTINEL_FEATURES` shared from `packages/types`.
 
 | Policy (id) | Rules | Resolver | Decorator | Surface |
 |-------------|-------|----------|-----------|---------|
