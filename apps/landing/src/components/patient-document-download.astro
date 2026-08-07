@@ -173,7 +173,7 @@ const accentClass =
 
   .pdd-title {
     font-family: var(--font-display), Georgia, "Times New Roman", serif;
-    font-size: clamp(1.6rem, 1rem + 2.4vw, 2.1rem);
+    font-size: clamp(1.375rem, 1rem + 2.4vw, 2.1rem);
     line-height: 1.08;
     letter-spacing: -0.022em;
     font-weight: 600;
@@ -283,9 +283,12 @@ const accentClass =
   }
 
   .pdd-tear-tab-label {
+    flex: 1;
+    min-width: 0;
     font-size: var(--fs-base);
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.35;
+    text-wrap: pretty;
   }
 
   .pdd-tear-tab-icon {
@@ -321,5 +324,38 @@ const accentClass =
 
   .pdd-powered-name {
     font-weight: 600;
+  }
+
+  /*
+   * Tiny phones (< 400px): tighten the chrome so the slip still reads as a
+   * paper card rather than a margin-strip. Everything else inherits from
+   * the base sizes above.
+   */
+  @media (max-width: 400px) {
+    .pdd-main {
+      padding: 2.5rem 1rem 3rem;
+      gap: 1.25rem;
+    }
+
+    .pdd-slip {
+      padding: 1.5rem 1.25rem 1.25rem;
+    }
+
+    .pdd-tear-tab {
+      padding: 0.8rem 0.9rem;
+    }
+
+    .pdd-title {
+      font-size: clamp(1.375rem, 1rem + 2.4vw, 1.75rem);
+    }
+  }
+
+  /* Landscape phones / short viewports: keep the slip inside the fold. */
+  @media (max-height: 480px) and (orientation: landscape) {
+    .pdd-main {
+      min-height: auto;
+      padding-block: 2rem;
+      justify-content: flex-start;
+    }
   }
 </style>
