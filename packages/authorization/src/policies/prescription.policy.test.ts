@@ -205,6 +205,20 @@ const ORACLE_ROWS: OracleRow[] = [
     intended: "allow",
   },
   {
+    name: "author DOCTOR delete own prescription (same branch as update)",
+    sub: subject({ roles: ["DOCTOR"], doctorId: "d1" }),
+    res: resource({ assignedDoctorIds: ["d1"] }),
+    action: "delete",
+    intended: "allow",
+  },
+  {
+    name: "non-author DOCTOR delete (same branch as update)",
+    sub: subject({ roles: ["DOCTOR"], doctorId: "d9" }),
+    res: resource({ assignedDoctorIds: ["d1"] }),
+    action: "delete",
+    intended: "deny",
+  },
+  {
     name: "ADMIN update any clinic prescription",
     sub: subject({ roles: ["ADMIN"], doctorId: null }),
     res: resource({}),
