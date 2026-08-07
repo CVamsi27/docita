@@ -293,21 +293,6 @@ test("jsx literal density ratchet: baseline write, growth fails --enforce, refre
   );
 });
 
-test("i18n translation-key check skips when no next-intl apps are registered", () => {
-  // Vite apps use i18next/react-i18next, not next-intl, and APP_TO_MESSAGES
-  // is now empty. The check should pass with no findings.
-  expectPass(
-    runCheck(
-      makeGitFixture({
-        "apps/app/src/features/x/Comp.tsx":
-          `import { useTranslation } from "react-i18next";\nexport function Comp() { const { t } = useTranslation(); return t("X.missing"); }\n`,
-      }),
-      "check-i18n-translation-keys.mjs",
-      ["--enforce"],
-    ),
-  );
-});
-
 test("button-primitive check blocks raw <button> in Vite features", () => {
   expectFail(
     runCheck(

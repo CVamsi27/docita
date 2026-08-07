@@ -913,7 +913,7 @@ Anti-pattern (avoid): wrapping everything in `useMemo` without measuring. Profil
 
 - All clinician routes default to client components (`'use client'`) because they need session, React Query, and interactivity.
 - Server components are used in `apps/app/src/layout.tsx` and the root-level shells.
-- Lazy-loading via `next/dynamic` for heavy panels (PDF viewer, charts, settings sub-pages). Dynamic-import budgets are checked by [`check-dynamic-import-budget.mjs`](../../scripts/checks/check-dynamic-import-budget.mjs).
+- Lazy-load heavy panels (PDF viewer, charts, settings sub-pages) with `React.lazy` + `Suspense` in the Vite apps; the chunk graph is bounded by [`check-file-size-budget.mjs`](../../scripts/checks/check-file-size-budget.mjs) and the perf budget gates (`perf:budget:enforce` / `perf:route-budgets:enforce`).
 - Suspense + error boundary pairs are enforced by [`check-suspense-error-boundary-pair.mjs`](../../scripts/checks/check-suspense-error-boundary-pair.mjs) — any Suspense boundary must have a sibling error boundary so the page never gets stuck.
 
 ### 6.7 Forms
@@ -1425,7 +1425,6 @@ Failure mode: vitals telemetry must be non-blocking and must not produce console
 
 ### 10.5 Bundle and code-splitting controls
 
-- [`check-dynamic-import-budget.mjs`](../../scripts/checks/check-dynamic-import-budget.mjs) — limits the number of dynamic imports per route to keep the chunk graph predictable.
 - [`check-file-size-budget.mjs`](../../scripts/checks/check-file-size-budget.mjs) — 400-line cap on API service files and feature components (backstop, not a quality measure; see AGENTS.md §15.5).
 - `pnpm knip` — unused exports/deps. Scope-aware in CI ([`scripts/workflow/detect-workflow-scope.mjs`](../../scripts/workflow/detect-workflow-scope.mjs)).
 
@@ -1463,7 +1462,7 @@ CI enforces invariants; reviewers enforce judgment. The checks below are the mec
 | Audit / PHI | `check-audit-logging.mjs`, `check-audit-coverage.mjs`, `check-phi-read-audit.mjs`, `check-phi-encryption-coverage.mjs`, `check-phi-boundary-parity.mjs`, `check-sensitive-logging.mjs` |
 | Webhooks | `check-webhook-signatures.mjs`, `check-webhook-replay-protection.mjs` |
 | Idempotency | `check-job-idempotency.mjs` |
-| Errors | `check-user-facing-errors.mjs`, `check-empty-catches.mjs`, `check-error-tsx-coverage.mjs` |
+| Errors | `check-user-facing-errors.mjs`, `check-empty-catches.mjs` |
 | Migrations | `check-migration-prefix-collision.mjs`, `check-migration-reversibility.mjs`, `check-multi-write-transaction.mjs` |
 | Externals | `check-external-sdk-in-application.mjs`, `check-external-http-timeouts.mjs`, `check-razorpay-adapters.mjs` |
 | Sentry / monitoring | `check-sentry-scrubbing.mjs`, `check-no-console-runtime.mjs` |
@@ -1473,8 +1472,8 @@ CI enforces invariants; reviewers enforce judgment. The checks below are the mec
 | Workers | `check-worker-size.mjs`, `check-detached-promises.mjs`, `check-cron-schedules.mjs`, `check-promise-all-in-schedulers.mjs` |
 | Hygiene | `check-hygiene` (= `scripts/workflow/check-repo-hygiene.mjs`), `check-filename-case.mjs`, `check-process-env.mjs`, `check-native-button-types.mjs` |
 | Pipelines | `check-pdf-pipeline.mjs`, `check-upload-validation.mjs`, `check-deployment-contracts.mjs`, `check-browser-telemetry-same-origin.mjs`, `check-suspense-error-boundary-pair.mjs` |
-| Size / structure (advisory) | `check-file-size-budget.mjs`, `check-dynamic-import-budget.mjs`, `check-module-scope-config.mjs`, `check-repo-on-module-init-cache.mjs` |
-| Tests | `check-domain-rules-tests.mjs`, `check-feature-test-density.mjs`, `check-e2e-nav-routes.mjs` |
+| Size / structure (advisory) | `check-file-size-budget.mjs`, `check-module-scope-config.mjs`, `check-repo-on-module-init-cache.mjs` |
+| Tests | `check-domain-rules-tests.mjs`, `check-feature-test-density.mjs` |
 
 ### 11.1 Extended catalogue (all `scripts/checks/` scripts)
 
@@ -1484,17 +1483,17 @@ CI enforces invariants; reviewers enforce judgment. The checks below are the mec
 | --- | --- |
 | Layering / DDD | `check-prisma-boundary.js`, `check-api-domain-layout.mjs`, `check-cross-domain-application-imports.mjs`, `check-cross-domain-infrastructure-imports.mjs`, `check-backend-structure.mjs`, `check-frontend-structure.mjs`, `check-feature-boundaries.mjs`, `check-package-boundaries.mjs`, `check-module-scope-config.mjs`, `check-external-sdk-in-application.mjs` |
 | Repository / CQS / facade | `check-controller-cqs.mjs`, `check-route-thinness.mjs`, `check-facade-delegation.mjs`, `check-repo-on-module-init-cache.mjs`, `check-use-case-loc.mjs`, `check-repository-di-tokens.mjs` |
-| Auth / tenant / RBAC / RLS | `check-controller-rbac.mjs`, `check-auth-tenant-safety.mjs`, `check-rls-rollout-readiness.mjs`, `check-rls-bypass-annotation.mjs`, `check-workspace-profile-gating.mjs`, `check-tier-comparisons.mjs`, `check-tier-ladder-drift.mjs`, `check-require-feature-guard.mjs` |
+| Auth / tenant / RBAC / RLS | `check-controller-rbac.mjs`, `check-auth-tenant-safety.mjs`, `check-rls-rollout-readiness.mjs`, `check-rls-bypass-annotation.mjs`, `check-workspace-profile-gating.mjs`, `check-tier-comparisons.mjs`, `check-require-feature-guard.mjs` |
 | Contracts / Zod | `check-contract-strictness.mjs`, `check-type-duplicates.mjs`, `check-json-column-zod.mjs`, `check-json-parse-guarded.mjs`, `check-form-schema-extends.mjs` |
 | PHI / audit | `check-phi-encryption-coverage.mjs`, `check-phi-boundary-parity.mjs`, `check-phi-read-audit.mjs`, `check-audit-logging.mjs`, `check-audit-coverage.mjs`, `check-sensitive-logging.mjs`, `check-user-facing-errors.mjs` |
-| Frontend / UI / data-access | `check-frontend-fetch.mjs`, `check-legacy-app-api-hooks.mjs`, `check-patient-name-ssot.mjs`, `check-error-tsx-coverage.mjs`, `check-suspense-error-boundary-pair.mjs`, `check-no-duplicate-shared-paths.mjs`, `check-native-button-types.mjs`, `check-filename-case.mjs`, `check-query-key-factory.mjs`, `check-client-storage-usage.mjs`, `check-route-meta-coverage.mjs`, `check-tools-route-gate.mjs`, `check-globals-css-imports.mjs` |
+| Frontend / UI / data-access | `check-frontend-fetch.mjs`, `check-legacy-app-api-hooks.mjs`, `check-patient-name-ssot.mjs`, `check-suspense-error-boundary-pair.mjs`, `check-no-duplicate-shared-paths.mjs`, `check-native-button-types.mjs`, `check-filename-case.mjs`, `check-query-key-factory.mjs`, `check-client-storage-usage.mjs`, `check-globals-css-imports.mjs` |
 | Web / external IO | `check-external-http-timeouts.mjs`, `check-webhook-signatures.mjs`, `check-webhook-replay-protection.mjs`, `check-upload-validation.mjs`, `check-razorpay-adapters.mjs` |
 | Cache / queue / jobs | `check-ad-hoc-service-cache.mjs`, `check-cache-redis-required.mjs`, `check-job-idempotency.mjs`, `check-cron-schedules.mjs`, `check-promise-all-in-schedulers.mjs`, `check-detached-promises.mjs`, `check-multi-write-transaction.mjs`, `check-cron-heartbeat-coverage.mjs`, `check-event-emit-via-outbox.mjs`, `check-worker-size.mjs` |
 | Hygiene / typing | `check-empty-catches.mjs`, `check-as-cast-density.mjs`, `check-non-null-assertion.mjs`, `check-deep-optional-chain.mjs`, `check-new-date-in-domain-infrastructure.mjs`, `check-no-console-runtime.mjs`, `check-process-env.mjs`, `check-application-event-constants.mjs`, `check-env-vs-globalenv.mjs` |
 | PDF / pipeline | `check-pdf-pipeline.mjs`, `check-pdf-bearer-cap.mjs` |
 | Migrations | `check-migration-prefix-collision.mjs`, `check-migration-reversibility.mjs` |
-| Performance / structure | `check-n-plus-1.mjs`, `check-file-size-budget.mjs`, `check-dynamic-import-budget.mjs`, `check-circular-deps.mjs` (also `pnpm check:circular`) |
-| Deploy / nav / E2E | `check-deployment-contracts.mjs`, `check-e2e-nav-routes.mjs`, `check-api-dead-routes.mjs` (advisory / deferred) |
+| Performance / structure | `check-n-plus-1.mjs`, `check-file-size-budget.mjs`, `check-circular-deps.mjs` (also `pnpm check:circular`) |
+| Deploy / nav / E2E | `check-deployment-contracts.mjs` |
 | Sentry / telemetry | `check-sentry-scrubbing.mjs`, `check-sentry-scrubber-parity.mjs`, `check-browser-telemetry-same-origin.mjs` |
 | Tests | `check-domain-rules-tests.mjs`, `check-feature-test-density.mjs` |
 

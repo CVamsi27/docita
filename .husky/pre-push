@@ -8,10 +8,9 @@
 # The full `pnpm verify:standard` is still the project merge gate.
 # To bypass locally (e.g. for a hotfix), use `git push --no-verify`.
 #
-# Runtime budget: the four Phase 15 checks below are grep-based and add
-# ~1-2 s combined on a warm cache.
+# Runtime budget: the checks below are grep-based and add ~1-2 s combined
+# on a warm cache.
 pnpm lint \
-  && pnpm check:i18n-translation-keys --enforce \
   && pnpm check:duplication \
   && pnpm check:standard-gate-wiring \
   && pnpm check:button-primitive --enforce \

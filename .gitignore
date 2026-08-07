@@ -8,6 +8,9 @@ node_modules
 # jscpd duplication report output
 .jscpd-report
 
+# Freebuff desktop tooling (local conversation DB, run docs, preview logs)
+.freebuff/
+
 # pnpm store (massive)
 .pnpm-store
 .pnpm

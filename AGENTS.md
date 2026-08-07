@@ -457,9 +457,8 @@ The repo uses [husky 9](https://typicode.github.io/husky/) for local git hooks. 
 
 - **`pre-commit`** — runs `pnpm lint` (≈ 70 ms with turbo cache). Catches lint regressions on staged files. Fast by design.
 - **`pre-push`** — runs the cheap subset of `verify:standard` that catches the regression classes we have already hit (jscpd clones, missing i18n namespaces, broken gate wiring) without paying the full ~6 min cost:
-  - `pnpm lint`
-  - `pnpm check:i18n-translation-keys --enforce`
-  - `pnpm check:duplication` (jscpd)
+- `pnpm lint`
+- `pnpm check:duplication` (jscpd)
   - `pnpm check:standard-gate-wiring`
   - `pnpm test:standards-checks`
   - Total ≈ 30–40 s on a warm cache.
@@ -548,7 +547,6 @@ pnpm check:prisma-boundary
 pnpm check:colors
 pnpm check:i18next-parity
 pnpm check:query-key-factory
-pnpm check:tools-route-gate
 pnpm check:standard-gate-wiring
 pnpm check:button-primitive        # raw <button> in features/components of Vite apps (Phase 15)
 pnpm check:i18n-coverage           # every Vite feature uses useTranslation (Phase 11/15)

@@ -1,4 +1,4 @@
-name = "docita-internal-vite"
+name = "docita-internal"
 compatibility_date = "2026-07-29"
 main = "api/index.ts"
 compatibility_flags = ["nodejs_compat"]
@@ -23,7 +23,7 @@ API_PROXY_TARGET = "https://api.docita.work"
 VITE_SENTRY_DSN = "https://f22671b3cd9222c1c1f8d7ad3b508ea9@o4511121149198336.ingest.de.sentry.io/4511121158242384"
 
 [env.staging]
-name = "docita-internal-vite-staging"
+name = "docita-internal-staging"
 
 [[env.staging.routes]]
 pattern = "staging-internal.docita.work"

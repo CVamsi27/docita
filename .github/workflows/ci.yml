@@ -171,6 +171,9 @@ jobs:
       - name: Build app for Cloudflare
         run: pnpm --filter @docita/app run build:cloudflare
 
+      - name: Bundle budgets (app)
+        run: pnpm perf:route-budgets:enforce
+
   internal-quality:
     name: Internal Vite Unit Checks
     needs: changes
