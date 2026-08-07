@@ -87,7 +87,8 @@ for (const file of files) {
     const inForbiddenLayer =
       isApi &&
       (file.includes('/application/') ||
-        file.includes('/presentation/')) &&
+        file.includes('/presentation/') ||
+        file.includes('/websockets/')) &&
       !file.includes('/infrastructure/');
     if (inForbiddenLayer) {
       prismaServiceLeaks.push(file);

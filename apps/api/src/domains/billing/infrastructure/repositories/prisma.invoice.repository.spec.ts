@@ -38,6 +38,37 @@ describe('PrismaInvoiceRepository tenant guards', () => {
     repository = new PrismaInvoiceRepository(prismaService);
   });
 
+  it('belongsToClinic returns true when the invoice exists in the clinic', async () => {
+    readClient.invoice.findFirst.mockResolvedValueOnce({ id: 'inv-1' });
+
+    const result = await repository.belongsToClinic('inv-1', 'clinic-a');
+
+    expect(result).toBe(true);
+    expect(readClient.invoice.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          id: 'inv-1',
+          OR: expect.arrayContaining([
+            expect.objectContaining({ clinicId: 'clinic-a' }),
+            expect.objectContaining({
+              clinicId: null,
+              patient: { clinicId: 'clinic-a' },
+            }),
+          ]),
+        }),
+        select: { id: true },
+      }),
+    );
+  });
+
+  it('belongsToClinic returns false when the invoice is not in the clinic', async () => {
+    readClient.invoice.findFirst.mockResolvedValueOnce(null);
+
+    const result = await repository.belongsToClinic('inv-1', 'other-clinic');
+
+    expect(result).toBe(false);
+  });
+
   it('findById uses an OR clause covering both direct clinicId and patient.clinicId fallback', async () => {
     readClient.invoice.findFirst.mockResolvedValueOnce(null);
 
