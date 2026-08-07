@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppointmentAbacPolicy,
+  InvoiceAbacPolicy,
+  LabOrderAbacPolicy,
   PatientAbacPolicy,
   PrescriptionAbacPolicy,
 } from '@workspace/authorization';
@@ -18,11 +20,15 @@ export class AbacPolicyRegistry {
     patient: PatientAbacPolicy,
     appointment: AppointmentAbacPolicy,
     prescription: PrescriptionAbacPolicy,
+    invoice: InvoiceAbacPolicy,
+    labOrder: LabOrderAbacPolicy,
   ) {
     this.policies = new Map<string, AbacPolicy>([
       ['patient', patient],
       ['appointment', appointment],
       ['prescription', prescription],
+      ['invoice', invoice],
+      ['lab-order', labOrder],
     ]);
   }
 

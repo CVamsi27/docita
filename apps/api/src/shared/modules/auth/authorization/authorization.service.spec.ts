@@ -2,6 +2,8 @@ import { ClinicTier, Role, SubscriptionStatus } from '@workspace/db';
 import { Feature } from '@workspace/types';
 import {
   AppointmentAbacPolicy,
+  InvoiceAbacPolicy,
+  LabOrderAbacPolicy,
   PatientAbacPolicy,
   PrescriptionAbacPolicy,
 } from '@workspace/authorization';
@@ -48,6 +50,8 @@ function makeService(overrides: Partial<typeof baseAuth> = {}) {
     new PatientAbacPolicy(),
     new AppointmentAbacPolicy(),
     new PrescriptionAbacPolicy(),
+    new InvoiceAbacPolicy(),
+    new LabOrderAbacPolicy(),
   );
   return new AuthorizationService(
     cache as ClinicAuthCacheService,
@@ -212,11 +216,11 @@ describe('AuthorizationService', () => {
     it('denies with policy_not_found for an unregistered resource', async () => {
       const svc = makeService();
       const result = await svc.evaluateAbac(abacSubject(), 'read', {
-        type: 'invoice',
+        type: 'audit-log',
         clinicId: 'clinic-a',
         ownerId: 'x',
         assignedDoctorIds: [],
-        classification: 'billing',
+        classification: 'phi',
         requiresAssignment: false,
       });
       expect(result.allowed).toBe(false);
@@ -283,6 +287,37 @@ describe('AuthorizationService', () => {
       expect(result.allowed).toBe(false);
       if (!result.allowed) {
         expect(result.reason).toBe('ownership_denied');
+      }
+    });
+
+    it('allows any clinical staff on a same-clinic invoice (no author pin, C4.3)', async () => {
+      const svc = makeService();
+      const result = await svc.evaluateAbac(abacSubject(), 'read', {
+        type: 'invoice',
+        clinicId: 'clinic-a',
+        ownerId: null,
+        assignedDoctorIds: [],
+        assignedPatientId: 'pat-1',
+        classification: 'billing',
+        requiresAssignment: false,
+      });
+      expect(result.allowed).toBe(true);
+    });
+
+    it('denies cross-clinic lab-order access', async () => {
+      const svc = makeService();
+      const result = await svc.evaluateAbac(abacSubject(), 'read', {
+        type: 'lab-order',
+        clinicId: 'clinic-b',
+        ownerId: 'u1',
+        assignedDoctorIds: [],
+        assignedPatientId: 'pat-1',
+        classification: 'phi',
+        requiresAssignment: false,
+      });
+      expect(result.allowed).toBe(false);
+      if (!result.allowed) {
+        expect(result.reason).toBe('tenant_mismatch');
       }
     });
   });

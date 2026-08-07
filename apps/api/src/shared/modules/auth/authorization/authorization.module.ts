@@ -11,9 +11,13 @@ import { AbacPolicyRegistry } from './abac-policy.registry';
 import { PatientResourceResolver } from './resolvers/patient-resource.resolver';
 import { AppointmentResourceResolver } from './resolvers/appointment-resource.resolver';
 import { PrescriptionResourceResolver } from './resolvers/prescription-resource.resolver';
+import { InvoiceResourceResolver } from './resolvers/invoice-resource.resolver';
+import { LabOrderResourceResolver } from './resolvers/lab-order-resource.resolver';
 import { PolicyResourceResolverRegistry } from './resolvers/policy-resource-resolver';
 import {
   AppointmentAbacPolicy,
+  InvoiceAbacPolicy,
+  LabOrderAbacPolicy,
   PatientAbacPolicy,
   PrescriptionAbacPolicy,
 } from '@workspace/authorization';
@@ -32,9 +36,13 @@ import {
     PatientAbacPolicy,
     AppointmentAbacPolicy,
     PrescriptionAbacPolicy,
+    InvoiceAbacPolicy,
+    LabOrderAbacPolicy,
     PatientResourceResolver,
     AppointmentResourceResolver,
     PrescriptionResourceResolver,
+    InvoiceResourceResolver,
+    LabOrderResourceResolver,
     PolicyResourceResolverRegistry,
   ],
   exports: [
