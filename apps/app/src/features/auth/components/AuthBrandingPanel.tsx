@@ -18,16 +18,6 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
   );
   const { t } = useTranslation("Auth");
 
-  const heroKicker = isEmailFirst
-    ? t("branding.heroKicker.emailFirst")
-    : isLogin
-      ? t("branding.heroKicker.welcomeBack")
-      : t("branding.heroKicker.gettingStarted");
-  const heroTitle = isEmailFirst
-    ? t("branding.heroTitle.emailFirst")
-    : isLogin
-      ? t("branding.heroTitle.welcomeBack")
-      : t("branding.heroTitle.gettingStarted");
   const heroDescription = isEmailFirst
     ? t("branding.heroDescription.emailFirst")
     : isLogin
@@ -75,11 +65,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
       </div>
 
       <div className="relative z-10 px-8 xl:px-10">
-        <AuthBrandingHero
-          kicker={heroKicker}
-          title={heroTitle}
-          description={heroDescription}
-        />
+        <AuthBrandingHero description={heroDescription} />
         <AuthBrandingContentCard
           currentStep={currentStep}
           isEmailFirst={isEmailFirst}
