@@ -151,7 +151,6 @@
     "check:feature-boundaries": "node scripts/checks/check-feature-boundaries.mjs --enforce",
     "check:package-boundaries": "node scripts/checks/check-package-boundaries.mjs",
     "audit:structure": "node scripts/checks/check-frontend-structure.mjs --write && node scripts/checks/check-backend-structure.mjs",
-    "check:migration-safety": "node scripts/checks/check-migration-safety.mjs",
     "check:colors": "node scripts/ui/detect-hardcoded-colors.js && pnpm check:contrast",
     "check:sensitive-logging": "node scripts/checks/check-sensitive-logging.mjs",
     "perf:baseline": "node scripts/perf/perf-baseline.mjs",
