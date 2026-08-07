@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { DocitaIcon } from "@workspace/ui/components/indicators/docita-logo";
 import type { AuthBrandingStep } from "../types/auth";
 import { AuthBrandingHero, AuthBrandingContentCard, AuthBrandingFooter } from "./AuthBrandingPanelSections";
@@ -15,22 +16,23 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
   const isLogin = ["login", "forgot-password", "reset-password"].includes(
     currentStep,
   );
+  const { t } = useTranslation("Auth");
 
   const heroKicker = isEmailFirst
-    ? "Welcome to Docita"
+    ? t("branding.heroKicker.emailFirst")
     : isLogin
-      ? "Welcome back"
-      : "Getting started";
+      ? t("branding.heroKicker.welcomeBack")
+      : t("branding.heroKicker.gettingStarted");
   const heroTitle = isEmailFirst
-    ? "Your practice workspace starts here"
+    ? t("branding.heroTitle.emailFirst")
     : isLogin
-      ? "Pick up where you left off"
-      : "Everything in one guided path to your facility";
+      ? t("branding.heroTitle.welcomeBack")
+      : t("branding.heroTitle.gettingStarted");
   const heroDescription = isEmailFirst
-    ? "Run appointments, clinical notes, prescriptions, and billing in one secure workspace built for healthcare teams."
+    ? t("branding.heroDescription.emailFirst")
     : isLogin
-      ? "Sign in to manage appointments, patients, billing, and clinical workflows"
-      : "Account setup, email verification, onboarding — each step unlocks the next. You only do this once.";
+      ? t("branding.heroDescription.welcomeBack")
+      : t("branding.heroDescription.gettingStarted");
 
   const progressPct =
     activeStepIndex >= 0
@@ -40,7 +42,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
   return (
     <aside
       className="relative hidden h-full min-h-0 overflow-hidden border-r border-border/60 bg-card lg:flex lg:flex-col lg:justify-between"
-      aria-label="Docita setup overview"
+      aria-label={t("branding.ariaLabel")}
     >
       <div
         aria-hidden
@@ -68,7 +70,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
           </span>
         </div>
         <span className="rounded-full border border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs font-semibold tracking-wide text-primary">
-          Facility workspace
+          {t("branding.facilityWorkspace")}
         </span>
       </div>
 

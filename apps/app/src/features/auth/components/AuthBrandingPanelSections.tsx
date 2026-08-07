@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Check } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AuthBrandingStep } from "../types/auth";
@@ -38,16 +39,16 @@ export function AuthBrandingContentCard({
   activeStepIndex: number;
   progressPct: number;
 }) {
+  const { t } = useTranslation("Auth");
   return (
     <div className="mt-8 max-w-lg rounded-[var(--radius)] border border-border/70 bg-background/85 p-4 shadow-sm backdrop-blur">
       {isEmailFirst ? (
         <div className="space-y-1">
           <p className="text-sm font-semibold text-foreground">
-            Sign in or get started
+            {t("branding.card.emailFirstTitle")}
           </p>
           <p className="pb-2 text-xs text-muted-foreground">
-            Enter your work email on the right. We will take you to sign in
-            or account creation, then guide you through setup.
+            {t("branding.card.emailFirstBody")}
           </p>
           <LoginDailyThought />
         </div>
@@ -56,26 +57,24 @@ export function AuthBrandingContentCard({
           <div className="flex items-center justify-between border-b pb-3">
             <div>
               <p className="text-sm font-semibold text-foreground">
-                Sign in
+                {t("branding.card.signInTitle")}
               </p>
               <p className="text-xs text-muted-foreground">
-                Use your email and password to continue
+                {t("branding.card.signInBody")}
               </p>
             </div>
             <span className="badge-info rounded-full border px-2.5 py-1 text-xs font-medium">
-              Existing account
+              {t("branding.card.existingAccount")}
             </span>
           </div>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
               <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-              Access your dashboard, appointments, billing, and clinical
-              workflows
+              {t("branding.card.signInPoint1")}
             </li>
             <li className="flex items-start gap-2">
               <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-              If you forgot your password, choose &ldquo;Forgot password&rdquo; to reset
-              it
+              {t("branding.card.signInPoint2")}
             </li>
           </ul>
         </div>
@@ -84,16 +83,21 @@ export function AuthBrandingContentCard({
           <div className="mb-3 flex items-center justify-between border-b pb-3">
             <div>
               <p className="text-sm font-semibold text-foreground">
-                Your setup journey
+                {t("branding.card.journeyTitle")}
               </p>
               <p className="text-xs text-muted-foreground">
                 {activeStepIndex >= 0
-                  ? `Step ${activeStepIndex + 1} of ${setupSteps.length} — keep going`
-                  : "Ready to begin"}
+                  ? t("branding.card.stepOf", {
+                      current: activeStepIndex + 1,
+                      total: setupSteps.length,
+                    })
+                  : t("branding.card.readyToBegin")}
               </p>
             </div>
             <span className="badge-info rounded-full border px-2.5 py-1 text-xs font-semibold">
-              {activeStepIndex >= 0 ? `${progressPct}% there` : "Start"}
+              {activeStepIndex >= 0
+                ? t("branding.card.percentThere", { pct: progressPct })
+                : t("branding.card.start")}
             </span>
           </div>
 
@@ -108,7 +112,7 @@ export function AuthBrandingContentCard({
 
               return (
                 <li
-                  key={step.title}
+                  key={step.titleKey}
                   aria-current={isActive ? "step" : undefined}
                   className={cn(
                     "flex gap-3 rounded-lg border px-3 py-2.5 transition-colors duration-300",
@@ -146,22 +150,22 @@ export function AuthBrandingContentCard({
                             : "text-foreground",
                         )}
                       >
-                        {step.title}
+                        {t(step.titleKey)}
                       </p>
                       {isActive && (
                         <p className="mt-0.5 text-xs leading-4 text-muted-foreground">
-                          {step.description}
+                          {t(step.descriptionKey)}
                         </p>
                       )}
                     </div>
                     {isActive && (
                       <span className="badge-info shrink-0 rounded-full border px-2 py-0.5 text-[var(--fs-2xs)] font-semibold">
-                        Now
+                        {t("branding.card.now")}
                       </span>
                     )}
                     {isComplete && (
                       <span className="shrink-0 text-[var(--fs-2xs)] font-medium text-success">
-                        Done
+                        {t("branding.card.done")}
                       </span>
                     )}
                   </div>
@@ -176,16 +180,17 @@ export function AuthBrandingContentCard({
 }
 
 export function AuthBrandingFooter() {
+  const { t } = useTranslation("Auth");
   return (
     <div className="relative z-10 flex flex-wrap gap-4 p-8 text-xs text-muted-foreground xl:p-10">
       {AUTH_ASSURANCE_ITEMS.map((item) => {
         const Icon = item.icon;
 
         return (
-          <div key={item.label} className="flex items-center gap-2">
+          <div key={item.labelKey} className="flex items-center gap-2">
             <Icon className="h-4 w-4 text-success" aria-hidden="true" />
             <p className="font-medium leading-5 text-foreground">
-              {item.label}
+              {t(item.labelKey)}
             </p>
           </div>
         );

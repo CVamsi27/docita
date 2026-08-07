@@ -4,6 +4,7 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 
 import { FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";
 import {
   Alert,
@@ -14,6 +15,7 @@ import { ArrowLeft, Phone, ShieldCheck } from "lucide-react";
 import { usePortalOtpAuth } from "@/features/patient-portal/hooks/use-portal-otp-auth";
 
 export function PortalOtpLoginUI() {
+  const { t } = useTranslation("PatientPortal");
   const {
     phoneNumber,
     setPhoneNumber,
@@ -50,12 +52,12 @@ export function PortalOtpLoginUI() {
             )}
           </div>
           <CardTitle className="ui-page-title text-[var(--fs-3xl)]">
-            {step === "phone" ? "Patient Portal" : "Enter Verification Code"}
+            {step === "phone" ? t("login.phoneTitle") : t("login.otpTitle")}
           </CardTitle>
           <CardDescription className="ui-page-subtitle">
             {step === "phone"
-              ? "Enter your registered mobile number to receive a verification code"
-              : `We sent a 6-digit verification code to ${phoneNumber}`}
+              ? t("login.phoneDescription")
+              : t("login.otpDescription", { phone: phoneNumber })}
           </CardDescription>
         </CardHeader>
 
@@ -69,11 +71,11 @@ export function PortalOtpLoginUI() {
           {step === "phone" ? (
             <form onSubmit={handlePhoneSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">Mobile Number</Label>
+                <Label htmlFor="phone">{t("login.mobileNumberLabel")}</Label>
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Enter mobile number"
+                  placeholder={t("login.mobileNumberPlaceholder")}
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   disabled={isLoading}
@@ -94,10 +96,10 @@ export function PortalOtpLoginUI() {
                       decorative
                       className="mr-2"
                     />
-                    Sending code…
+                    {t("login.sendingCode")}
                   </>
                 ) : (
-                  "Send Code"
+                  t("login.sendCode")
                 )}
               </Button>
               {/* jscpd:ignore-end */}
@@ -105,14 +107,14 @@ export function PortalOtpLoginUI() {
           ) : (
             <form onSubmit={handleOtpSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="otp">Verification code</Label>
+                <Label htmlFor="otp">{t("login.otpLabel")}</Label>
                 <Input
                   id="otp"
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
                   maxLength={6}
-                  placeholder="Enter verification code"
+                  placeholder={t("login.otpPlaceholder")}
                   value={otp}
                   onChange={(e) =>
                     setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
@@ -135,10 +137,10 @@ export function PortalOtpLoginUI() {
                       decorative
                       className="mr-2"
                     />
-                    Verifying…
+                    {t("login.verifying")}
                   </>
                 ) : (
-                  "Verify Code"
+                  t("login.verifyCode")
                 )}
               </Button>
               {/* jscpd:ignore-end */}
@@ -152,7 +154,7 @@ export function PortalOtpLoginUI() {
                   className="gap-1"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Change number
+                  {t("login.changeNumber")}
                 </Button>
                 <Button
                   type="button"
@@ -161,14 +163,14 @@ export function PortalOtpLoginUI() {
                   onClick={resendOtp}
                   disabled={isLoading}
                 >
-                  Resend Code
+                  {t("login.resendCode")}
                 </Button>
               </div>
             </form>
           )}
 
           <p className="text-center text-xs text-muted-foreground">
-            By continuing, you agree to our Terms of Service and Privacy Policy.
+            {t("login.termsNotice")}
           </p>
         </CardContent>
       </Card>

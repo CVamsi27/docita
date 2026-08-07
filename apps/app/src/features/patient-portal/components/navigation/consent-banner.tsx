@@ -2,6 +2,7 @@
 
 // jscpd:ignore-start
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, Checkbox, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label } from "@workspace/ui/components";
 import { Bell, Shield } from "lucide-react";
 import {
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 
 export function ConsentBanner() {
+  const { t } = useTranslation("PatientPortal");
   const [dismissed, setDismissed] = useState(false);
   const [whatsappConsent, setWhatsappConsent] = useState(false);
   const [dataStorageConsent, setDataStorageConsent] = useState(false);
@@ -33,13 +35,11 @@ export function ConsentBanner() {
         dataStorageConsent,
       });
 
-      toast.success("Your privacy preferences have been updated");
+      toast.success(t("consentBanner.savedToast"));
 
       setDismissed(true);
     } catch (_error) {
-      showUserFacingErrorToast(
-        "We could not save your consent preferences. Please try again.",
-      );
+      showUserFacingErrorToast(t("consentBanner.saveError"));
     }
   };
 
@@ -57,12 +57,9 @@ export function ConsentBanner() {
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <DialogTitle>Privacy &amp; consent</DialogTitle>
+            <DialogTitle>{t("consentBanner.title")}</DialogTitle>
           </div>
-          <DialogDescription>
-            Welcome to the Patient Portal! Please review and accept our privacy
-            preferences.
-          </DialogDescription>
+          <DialogDescription>{t("consentBanner.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -74,10 +71,10 @@ export function ConsentBanner() {
             />
             <div className="flex-1 space-y-1">
               <Label htmlFor="whatsapp" className="font-medium">
-                WhatsApp notifications
+                {t("consentBanner.whatsappLabel")}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Receive appointment reminders and health updates via WhatsApp
+                {t("consentBanner.whatsappHelper")}
               </p>
             </div>
             <Bell className="mt-1 h-4 w-4 text-muted-foreground" />
@@ -91,18 +88,17 @@ export function ConsentBanner() {
             />
             <div className="flex-1 space-y-1">
               <Label htmlFor="storage" className="font-medium">
-                Data storage consent
+                {t("consentBanner.storageLabel")}
               </Label>
               <p className="text-sm text-muted-foreground">
-                I consent to storing my health data securely for medical
-                purposes
+                {t("profile.dataStorageConsentBody")}
               </p>
             </div>
             <Shield className="mt-1 h-4 w-4 text-muted-foreground" />
           </div>
 
           <p className="text-xs text-muted-foreground">
-            You can change these preferences anytime in your profile settings.
+            {t("consentBanner.helperNote")}
           </p>
         </div>
 
@@ -112,14 +108,14 @@ export function ConsentBanner() {
             onClick={() => setDismissed(true)}
             className="flex-1"
           >
-            Skip for now
+            {t("consentBanner.skip")}
           </Button>
           <Button
             onClick={handleSaveConsent}
             disabled={updateConsent.isPending}
             className="flex-1"
           >
-            {updateConsent.isPending ? "Saving…" : "Save preferences"}
+            {updateConsent.isPending ? t("consentBanner.saving") : t("consentBanner.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

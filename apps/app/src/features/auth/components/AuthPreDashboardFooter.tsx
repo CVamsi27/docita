@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Mail, Phone } from "lucide-react";
 import { Button, MicroLabel } from "@workspace/ui/components";
 import { WhatsAppButton } from "@/components/whatsapp/whatsapp-button";
@@ -22,12 +23,13 @@ export function AuthPreDashboardFooter({
   const supportPhoneDigits = getPhoneDigits(supportPhone);
   const supportPhoneDisplay = getSupportPhoneDisplay();
   const hasPhoneSupport = supportPhoneDigits.length > 0;
+  const { t } = useTranslation("Auth");
 
   return (
     <footer
       data-testid={dataTestId}
       className={cn("w-full", className)}
-      aria-label="Security and support"
+      aria-label={t("footer.ariaLabel")}
     >
       <div className="rounded-[var(--radius)] border border-border/60 bg-muted/20 px-4 py-4 sm:px-5">
         <div
@@ -35,13 +37,13 @@ export function AuthPreDashboardFooter({
             "flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-b border-border/50 pb-4 text-[length:var(--fs-xs)] text-muted-foreground",
             trustRowClassName,
           )}
-          aria-label="Security and privacy"
+          aria-label={t("footer.ariaPrivacy")}
         >
           {AUTH_ASSURANCE_ITEMS.map((item) => {
             const Icon = item.icon;
             return (
               <span
-                key={item.label}
+                key={item.labelKey}
                 className="inline-flex items-center gap-1.5"
               >
                 <Icon
@@ -49,7 +51,7 @@ export function AuthPreDashboardFooter({
                   aria-hidden
                 />
                 <span className="font-medium text-foreground/90">
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </span>
             );
@@ -63,7 +65,7 @@ export function AuthPreDashboardFooter({
           )}
         >
           <MicroLabel as="p" className="text-[length:var(--fs-2xs)]">
-            Need help
+            {t("footer.needHelp")}
           </MicroLabel>
           <div className="flex w-full max-w-sm flex-wrap items-center justify-center gap-2">
             <Button
@@ -74,7 +76,7 @@ export function AuthPreDashboardFooter({
             >
               <a href={`mailto:${SUPPORT_EMAIL}`}>
                 <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                Email
+                {t("footer.email")}
                 <span className="sr-only">{` ${SUPPORT_EMAIL}`}</span>
               </a>
             </Button>
@@ -88,14 +90,14 @@ export function AuthPreDashboardFooter({
                 >
                   <a href={`tel:+${supportPhoneDigits}`}>
                     <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    Call
+                    {t("footer.call")}
                     <span className="sr-only">{` ${supportPhoneDisplay}`}</span>
                   </a>
                 </Button>
                 <WhatsAppButton
                   phoneNumber={supportPhone}
                   message={whatsappMessage}
-                  label="WhatsApp"
+                  label={t("footer.whatsapp")}
                   variant="outline"
                   size="sm"
                   className="h-8 shrink-0 gap-1.5 rounded-full px-3 text-[length:var(--fs-xs)] [&_svg]:h-3.5 [&_svg]:w-3.5"

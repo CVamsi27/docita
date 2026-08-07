@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocation } from "react-router";
+import { useTranslation } from "react-i18next";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { ConsentBanner } from "@/features/patient-portal/components/navigation/consent-banner";
 import { PatientAuthGuard } from "@/features/patient-portal/components/auth/patient-auth-guard";
@@ -16,6 +17,7 @@ export function PortalLayoutShell({ children }: { children: React.ReactNode }) {
 }
 
 function PortalLayoutFrame({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation("PatientPortal");
   const { pathname } = useLocation();
 
   if (pathname === "/portal/login") {
@@ -31,7 +33,7 @@ function PortalLayoutFrame({ children }: { children: React.ReactNode }) {
           {children}
         </main>
         <footer className="mx-auto flex w-full max-w-7xl items-center justify-center gap-1.5 border-t border-border/50 px-4 py-4 text-[length:var(--fs-2xs)] text-muted-foreground md:px-6 lg:px-8">
-          <span>Powered by</span>
+          <span>{t("shell.poweredBy")}</span>
           <a
             href="https://docita.work"
             target="_blank"

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
 import { dailyThoughtResponseSchema } from "@workspace/types";
 import type { DailyThoughtResponse } from "@workspace/types";
@@ -6,6 +7,7 @@ import { browserJson } from "@/lib/auth/browser-request";
 import { logger } from "@/lib/monitoring/logger";
 
 export function LoginDailyThought() {
+  const { t } = useTranslation("Auth");
   const [data, setData] = useState<DailyThoughtResponse | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -41,7 +43,7 @@ export function LoginDailyThought() {
         id="login-daily-thought-heading"
         className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
       >
-        Thought for today
+        {t("branding.dailyThought.heading")}
       </h3>
       {loading ? (
         <div
@@ -49,7 +51,7 @@ export function LoginDailyThought() {
           aria-busy="true"
           role="status"
           aria-live="polite"
-          aria-label="Loading daily thought"
+          aria-label={t("branding.dailyThought.loading")}
         >
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-full max-w-md" />

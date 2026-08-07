@@ -1,4 +1,5 @@
 import { FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Phone, ShieldCheck } from "lucide-react";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@workspace/ui/components";
 import { Alert, AlertDescription } from "@workspace/ui/components/feedback/alert";
@@ -7,6 +8,7 @@ import type { usePartnerAuth } from "@/features/referral-partner/hooks/use-partn
 type PartnerAuthApi = ReturnType<typeof usePartnerAuth>;
 
 export function PartnerAuthScreen({ auth }: { auth: PartnerAuthApi }) {
+  const { t } = useTranslation("ReferralPartner");
 
   const handlePhoneSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -29,12 +31,12 @@ export function PartnerAuthScreen({ auth }: { auth: PartnerAuthApi }) {
             )}
           </div>
           <CardTitle className="text-xl">
-            {auth.step === "phone" ? "Sign in to partner portal" : "Enter verification code"}
+            {auth.step === "phone" ? t("login.phoneTitle") : t("login.otpTitle")}
           </CardTitle>
           <CardDescription>
             {auth.step === "phone"
-              ? "We will send a 6-digit code to your phone on WhatsApp."
-              : `Code sent to ${auth.phone}. Enter it to continue.`}
+              ? t("login.phoneDescription")
+              : t("login.otpDescription", { phone: auth.phone })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -47,7 +49,7 @@ export function PartnerAuthScreen({ auth }: { auth: PartnerAuthApi }) {
           {auth.step === "phone" ? (
             <form onSubmit={handlePhoneSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="partner-phone">Phone number</Label>
+                <Label htmlFor="partner-phone">{t("login.phoneLabel")}</Label>
                 <Input
                   id="partner-phone"
                   type="tel"
@@ -64,13 +66,13 @@ export function PartnerAuthScreen({ auth }: { auth: PartnerAuthApi }) {
                 className="w-full"
                 disabled={auth.isRequesting}
               >
-                {auth.isRequesting ? "Sending code..." : "Send code"}
+                {auth.isRequesting ? t("login.sendingCode") : t("login.sendCode")}
               </Button>
             </form>
           ) : (
             <form onSubmit={handleOtpSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="partner-otp">Verification code</Label>
+                <Label htmlFor="partner-otp">{t("login.otpLabel")}</Label>
                 <Input
                   id="partner-otp"
                   type="text"
@@ -84,7 +86,7 @@ export function PartnerAuthScreen({ auth }: { auth: PartnerAuthApi }) {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={auth.isVerifying}>
-                {auth.isVerifying ? "Verifying..." : "Verify"}
+                {auth.isVerifying ? t("login.verifying") : t("login.verify")}
               </Button>
               <div className="flex items-center justify-between text-sm">
                 <Button
@@ -93,7 +95,7 @@ export function PartnerAuthScreen({ auth }: { auth: PartnerAuthApi }) {
                   className="inline-flex items-center text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="mr-1 h-3 w-3" />
-                  Change number
+                  {t("login.changeNumber")}
                 </Button>
                 <Button
                   variant="link"
@@ -101,7 +103,7 @@ export function PartnerAuthScreen({ auth }: { auth: PartnerAuthApi }) {
                   className="text-primary hover:underline"
                   disabled={auth.isRequesting}
                 >
-                  Resend code
+                  {t("login.resendCode")}
                 </Button>
               </div>
             </form>

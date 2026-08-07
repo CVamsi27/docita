@@ -7,20 +7,20 @@ import {
 
 type AuthAssuranceItem = {
   icon: LucideIcon;
-  label: string;
+  labelKey: string;
 };
 
 export const AUTH_ASSURANCE_ITEMS: readonly AuthAssuranceItem[] = [
   {
     icon: ShieldCheck,
-    label: "Encrypted sessions",
+    labelKey: "footer.assurance.encryptedSessions",
   },
   {
     icon: FileCheck2,
-    label: "Audit-ready activity",
+    labelKey: "footer.assurance.auditReadyActivity",
   },
   {
     icon: Stethoscope,
-    label: "Facility-aware access",
+    labelKey: "footer.assurance.facilityAwareAccess",
   },
 ] as const;

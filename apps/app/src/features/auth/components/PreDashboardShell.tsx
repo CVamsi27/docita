@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { LogOut } from "lucide-react";
 import { Button } from "@workspace/ui/components/form/button";
@@ -12,19 +13,22 @@ import { AuthPreDashboardFooter } from "./AuthPreDashboardFooter";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { AuthBrandingStep } from "../types/auth";
 
-const STEP_META: Record<AuthBrandingStep, { index: number; label: string }> = {
-  email: { index: 0, label: "Account setup" },
-  login: { index: 0, label: "Account setup" },
-  signup: { index: 0, label: "Account setup" },
-  "forgot-password": { index: 0, label: "Account setup" },
-  "reset-password": { index: 0, label: "Account setup" },
-  "verify-email-sent": { index: 1, label: "Email verification" },
-  "verify-email": { index: 1, label: "Email verification" },
-  "choose-path": { index: 2, label: "Choose your path" },
-  onboarding: { index: 3, label: "Facility setup" },
-  "join-clinic": { index: 3, label: "Facility setup" },
-  "join-request-status": { index: 3, label: "Facility setup" },
-  "verify-doctor": { index: 3, label: "Profile verification" },
+const STEP_META: Record<
+  AuthBrandingStep,
+  { index: number; labelKey: string }
+> = {
+  email: { index: 0, labelKey: "shell.stepAccountSetup" },
+  login: { index: 0, labelKey: "shell.stepAccountSetup" },
+  signup: { index: 0, labelKey: "shell.stepAccountSetup" },
+  "forgot-password": { index: 0, labelKey: "shell.stepAccountSetup" },
+  "reset-password": { index: 0, labelKey: "shell.stepAccountSetup" },
+  "verify-email-sent": { index: 1, labelKey: "shell.stepEmailVerification" },
+  "verify-email": { index: 1, labelKey: "shell.stepEmailVerification" },
+  "choose-path": { index: 2, labelKey: "shell.stepChoosePath" },
+  onboarding: { index: 3, labelKey: "shell.stepFacilitySetup" },
+  "join-clinic": { index: 3, labelKey: "shell.stepFacilitySetup" },
+  "join-request-status": { index: 3, labelKey: "shell.stepFacilitySetup" },
+  "verify-doctor": { index: 3, labelKey: "shell.stepProfileVerification" },
 };
 
 const TOTAL_STEPS = 4;
@@ -59,6 +63,7 @@ export function PreDashboardShell({
 }: PreDashboardShellProps) {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
+  const { t } = useTranslation("Auth");
   const meta = STEP_META[currentStep];
   const stepNumber = meta.index + 1;
   const footerWhatsappMessage =
@@ -111,7 +116,7 @@ export function PreDashboardShell({
                 className="text-muted-foreground hover:text-foreground"
               >
                 <LogOut className="h-4 w-4 mr-1.5" />
-                Sign out
+                {t("shell.signOut")}
               </Button>
             )}
             <LocaleSwitcher />
@@ -132,7 +137,7 @@ export function PreDashboardShell({
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <p className="text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                      {meta.label}
+                      {t(meta.labelKey)}
                     </p>
                     <p className="text-[var(--fs-2xs)] font-medium text-muted-foreground">
                       <span className="text-foreground">{stepNumber}</span> /{" "}

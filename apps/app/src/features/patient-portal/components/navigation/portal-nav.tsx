@@ -2,6 +2,7 @@
 
 import { Link, useLocation } from "react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@workspace/ui/lib/utils";
 import { Activity, Calendar, FileText, LogOut, MoreHorizontal, Pill, Receipt, Shield, TrendingUp, User } from "lucide-react";
 import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@workspace/ui/components";
@@ -10,15 +11,15 @@ import { usePatientConsentSettings } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
 
 const navigation = [
-  { name: "Dashboard", href: "/portal", icon: User },
-  { name: "Appointments", href: "/portal/appointments", icon: Calendar },
-  { name: "Prescriptions", href: "/portal/prescriptions", icon: FileText },
-  { name: "Medications", href: "/portal/medications", icon: Pill },
-  { name: "Medical History", href: "/portal/history", icon: Activity },
-  { name: "My Metrics", href: "/portal/metrics", icon: TrendingUp },
-  { name: "Billing", href: "/portal/billing", icon: Receipt },
-  { name: "Consent", href: "/portal/profile/consent-form", icon: Shield },
-  { name: "Profile", href: "/portal/profile", icon: User },
+  { nameKey: "nav.dashboard", href: "/portal", icon: User },
+  { nameKey: "nav.appointments", href: "/portal/appointments", icon: Calendar },
+  { nameKey: "nav.prescriptions", href: "/portal/prescriptions", icon: FileText },
+  { nameKey: "nav.medications", href: "/portal/medications", icon: Pill },
+  { nameKey: "nav.medicalHistory", href: "/portal/history", icon: Activity },
+  { nameKey: "nav.myMetrics", href: "/portal/metrics", icon: TrendingUp },
+  { nameKey: "nav.billing", href: "/portal/billing", icon: Receipt },
+  { nameKey: "nav.consent", href: "/portal/profile/consent-form", icon: Shield },
+  { nameKey: "nav.profile", href: "/portal/profile", icon: User },
 ];
 
 const primaryMobileNav = navigation.slice(0, 4);
@@ -35,6 +36,7 @@ function NavLink({
   compact?: boolean;
   onNavigate?: () => void;
 }) {
+  const { t } = useTranslation("PatientPortal");
   const Icon = item.icon;
   return (
     <Link
@@ -49,12 +51,13 @@ function NavLink({
       )}
     >
       <Icon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
-      {item.name}
+      {t(item.nameKey)}
     </Link>
   );
 }
 
 export function PortalNav() {
+  const { t } = useTranslation("PatientPortal");
   const { pathname } = useLocation();
   const { user, logout } = useAuth();
   const { data: consentSettings } = usePatientConsentSettings();
@@ -81,12 +84,12 @@ export function PortalNav() {
             to="/portal"
             className="shrink-0 text-lg font-bold text-primary md:text-xl"
           >
-            Patient Portal
+            {t("nav.portalBrand")}
           </Link>
           <div className="hidden md:flex md:flex-1 md:items-center md:justify-center md:space-x-4">
             {navigation.map((item) => (
               <NavLink
-                key={item.name}
+                key={item.nameKey}
                 item={item}
                 isActive={isItemActive(item.href)}
               />
@@ -96,12 +99,16 @@ export function PortalNav() {
             <div className="hidden text-right md:block">
               <p className="text-sm text-muted-foreground">{user?.name}</p>
               <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
-                <span>Consent updated: {consentUpdatedOn || "Not yet"}</span>
+                <span>
+                  {t("nav.consentUpdated", {
+                    date: consentUpdatedOn ?? t("nav.notYet"),
+                  })}
+                </span>
                 <Link
                   to="/portal/profile/consent-form"
                   className="text-primary underline-offset-2 hover:underline"
                 >
-                  View
+                  {t("nav.view")}
                 </Link>
               </div>
             </div>
@@ -113,7 +120,7 @@ export function PortalNav() {
               size="icon"
               className="touch-manipulation"
               onClick={() => logout()}
-              aria-label="Log out"
+              aria-label={t("nav.logOut")}
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -122,13 +129,13 @@ export function PortalNav() {
 
         {consentUpdatedOn ? (
           <p className="pb-2 text-xs text-muted-foreground md:hidden">
-            Consent updated {consentUpdatedOn}
+            {t("nav.consentUpdatedShort", { date: consentUpdatedOn })}
             {" · "}
             <Link
               to="/portal/profile/consent-form"
               className="text-primary underline-offset-2 hover:underline"
             >
-              View
+              {t("nav.view")}
             </Link>
           </p>
         ) : null}
@@ -137,7 +144,7 @@ export function PortalNav() {
           <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:thin]">
             {primaryMobileNav.map((item) => (
               <NavLink
-                key={`mobile-primary-${item.name}`}
+                key={`mobile-primary-${item.nameKey}`}
                 item={item}
                 isActive={isItemActive(item.href)}
                 compact
@@ -151,20 +158,20 @@ export function PortalNav() {
                 variant={secondaryActive ? "default" : "outline"}
                 size="sm"
                 className="shrink-0 touch-manipulation"
-                aria-label="More portal sections"
+                aria-label={t("nav.moreSectionsLabel")}
               >
                 <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More</span>
+                <span className="sr-only">{t("nav.more")}</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="bottom" className="max-h-[70dvh]">
               <SheetHeader>
-                <SheetTitle>More sections</SheetTitle>
+                <SheetTitle>{t("nav.moreSections")}</SheetTitle>
               </SheetHeader>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 {secondaryMobileNav.map((item) => (
                   <NavLink
-                    key={`mobile-secondary-${item.name}`}
+                    key={`mobile-secondary-${item.nameKey}`}
                     item={item}
                     isActive={isItemActive(item.href)}
                     onNavigate={() => setMoreOpen(false)}

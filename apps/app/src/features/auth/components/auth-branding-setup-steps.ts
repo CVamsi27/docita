@@ -3,16 +3,16 @@ import type { AuthBrandingStep } from "../types/auth";
 
 interface SetupStep {
   icon: LucideIcon;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   authSteps: readonly AuthBrandingStep[];
 }
 
 export const setupSteps: readonly SetupStep[] = [
   {
     icon: FileCheck2,
-    title: "Set up your account",
-    description: "Enter your details or sign in to continue",
+    titleKey: "setupSteps.account.title",
+    descriptionKey: "setupSteps.account.description",
     authSteps: [
       "email",
       "login",
@@ -23,20 +23,20 @@ export const setupSteps: readonly SetupStep[] = [
   },
   {
     icon: KeyRound,
-    title: "Verify access",
-    description: "Confirm your email before moving ahead",
+    titleKey: "setupSteps.verify.title",
+    descriptionKey: "setupSteps.verify.description",
     authSteps: ["verify-email", "verify-email-sent"],
   },
   {
     icon: Building2,
-    title: "Choose your path",
-    description: "Create a new facility or join an existing one",
+    titleKey: "setupSteps.path.title",
+    descriptionKey: "setupSteps.path.description",
     authSteps: ["choose-path"],
   },
   {
     icon: UserCheck,
-    title: "Complete setup",
-    description: "Finish onboarding, team setup, and profile verification",
+    titleKey: "setupSteps.setup.title",
+    descriptionKey: "setupSteps.setup.description",
     authSteps: [
       "onboarding",
       "join-clinic",
