@@ -3,6 +3,7 @@ import { Feature } from '@workspace/types';
 import {
   AppointmentAbacPolicy,
   PatientAbacPolicy,
+  PrescriptionAbacPolicy,
 } from '@workspace/authorization';
 import { subjectAttributesSchema } from '@workspace/types';
 import { AuthorizationService } from './authorization.service';
@@ -46,6 +47,7 @@ function makeService(overrides: Partial<typeof baseAuth> = {}) {
   const abacRegistry = new AbacPolicyRegistry(
     new PatientAbacPolicy(),
     new AppointmentAbacPolicy(),
+    new PrescriptionAbacPolicy(),
   );
   return new AuthorizationService(
     cache as ClinicAuthCacheService,
@@ -250,6 +252,37 @@ describe('AuthorizationService', () => {
       expect(result.allowed).toBe(false);
       if (!result.allowed) {
         expect(result.reason).toBe('tenant_mismatch');
+      }
+    });
+
+    it('allows the author DOCTOR to update their own prescription', async () => {
+      const svc = makeService();
+      const result = await svc.evaluateAbac(abacSubject(), 'update', {
+        type: 'prescription',
+        clinicId: 'clinic-a',
+        ownerId: null,
+        assignedDoctorIds: ['d1'],
+        assignedPatientId: 'pat-1',
+        classification: 'phi',
+        requiresAssignment: false,
+      });
+      expect(result.allowed).toBe(true);
+    });
+
+    it('denies a non-author DOCTOR from updating a prescription (author-of-record)', async () => {
+      const svc = makeService();
+      const result = await svc.evaluateAbac(abacSubject(), 'update', {
+        type: 'prescription',
+        clinicId: 'clinic-a',
+        ownerId: null,
+        assignedDoctorIds: ['d99'],
+        assignedPatientId: 'pat-1',
+        classification: 'phi',
+        requiresAssignment: false,
+      });
+      expect(result.allowed).toBe(false);
+      if (!result.allowed) {
+        expect(result.reason).toBe('ownership_denied');
       }
     });
   });

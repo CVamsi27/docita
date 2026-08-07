@@ -10,10 +10,12 @@ import { GenericTenantPolicy } from './policies/generic.policy';
 import { AbacPolicyRegistry } from './abac-policy.registry';
 import { PatientResourceResolver } from './resolvers/patient-resource.resolver';
 import { AppointmentResourceResolver } from './resolvers/appointment-resource.resolver';
+import { PrescriptionResourceResolver } from './resolvers/prescription-resource.resolver';
 import { PolicyResourceResolverRegistry } from './resolvers/policy-resource-resolver';
 import {
   AppointmentAbacPolicy,
   PatientAbacPolicy,
+  PrescriptionAbacPolicy,
 } from '@workspace/authorization';
 
 @Module({
@@ -29,8 +31,10 @@ import {
     AbacPolicyRegistry,
     PatientAbacPolicy,
     AppointmentAbacPolicy,
+    PrescriptionAbacPolicy,
     PatientResourceResolver,
     AppointmentResourceResolver,
+    PrescriptionResourceResolver,
     PolicyResourceResolverRegistry,
   ],
   exports: [
