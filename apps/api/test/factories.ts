@@ -189,6 +189,25 @@ export const factories = {
     });
   },
 
+  labTestOrder: async (patientId: string, clinicId: string, overrides = {}) => {
+    const labTest = await prisma.labTest.create({
+      data: {
+        clinicId,
+        name: `Lab Test ${Date.now()}`,
+        category: 'BLOOD',
+      },
+    });
+    return prisma.labTestOrder.create({
+      data: {
+        clinicId,
+        patientId,
+        labTestId: labTest.id,
+        orderedBy: 'system',
+        ...overrides,
+      },
+    });
+  },
+
   patientDoctor: async (
     patientId: string,
     doctorId: string,
