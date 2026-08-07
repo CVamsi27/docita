@@ -2,6 +2,7 @@ import { ClinicTier, Role, SubscriptionStatus } from '@workspace/db';
 import { Feature } from '@workspace/types';
 import {
   AppointmentAbacPolicy,
+  AuditLogAbacPolicy,
   InvoiceAbacPolicy,
   LabOrderAbacPolicy,
   PatientAbacPolicy,
@@ -52,6 +53,7 @@ function makeService(overrides: Partial<typeof baseAuth> = {}) {
     new PrescriptionAbacPolicy(),
     new InvoiceAbacPolicy(),
     new LabOrderAbacPolicy(),
+    new AuditLogAbacPolicy(),
   );
   return new AuthorizationService(
     cache as ClinicAuthCacheService,
@@ -216,7 +218,7 @@ describe('AuthorizationService', () => {
     it('denies with policy_not_found for an unregistered resource', async () => {
       const svc = makeService();
       const result = await svc.evaluateAbac(abacSubject(), 'read', {
-        type: 'audit-log',
+        type: 'referral',
         clinicId: 'clinic-a',
         ownerId: 'x',
         assignedDoctorIds: [],
@@ -318,6 +320,75 @@ describe('AuthorizationService', () => {
       expect(result.allowed).toBe(false);
       if (!result.allowed) {
         expect(result.reason).toBe('tenant_mismatch');
+      }
+    });
+
+    it('allows INTERNAL to read cross-clinic audit logs', async () => {
+      const svc = makeService();
+      const result = await svc.evaluateAbac(
+        {
+          userId: 'u-internal',
+          roles: ['INTERNAL'],
+          clinicId: 'internal-bypass',
+          doctorId: null,
+        },
+        'read',
+        {
+          type: 'audit-log',
+          clinicId: 'clinic-b',
+          ownerId: null,
+          assignedDoctorIds: [],
+          classification: 'phi',
+          requiresAssignment: false,
+        },
+      );
+      expect(result.allowed).toBe(true);
+    });
+
+    it('allows ADMIN to read same-clinic audit logs', async () => {
+      const svc = makeService();
+      const result = await svc.evaluateAbac(
+        {
+          userId: 'u-admin',
+          roles: ['ADMIN'],
+          clinicId: 'clinic-a',
+          doctorId: null,
+        },
+        'read',
+        {
+          type: 'audit-log',
+          clinicId: 'clinic-a',
+          ownerId: null,
+          assignedDoctorIds: [],
+          classification: 'phi',
+          requiresAssignment: false,
+        },
+      );
+      expect(result.allowed).toBe(true);
+    });
+
+    it('denies NURSE audit-log read (outside the audit-reader matrix)', async () => {
+      const svc = makeService();
+      const result = await svc.evaluateAbac(
+        {
+          userId: 'u-nurse',
+          roles: ['NURSE'],
+          clinicId: 'clinic-a',
+          doctorId: null,
+        },
+        'read',
+        {
+          type: 'audit-log',
+          clinicId: 'clinic-a',
+          ownerId: null,
+          assignedDoctorIds: [],
+          classification: 'phi',
+          requiresAssignment: false,
+        },
+      );
+      expect(result.allowed).toBe(false);
+      if (!result.allowed) {
+        expect(result.reason).toBe('role_denied');
       }
     });
   });

@@ -13,6 +13,7 @@ import { AppointmentResourceResolver } from './resolvers/appointment-resource.re
 import { PrescriptionResourceResolver } from './resolvers/prescription-resource.resolver';
 import { InvoiceResourceResolver } from './resolvers/invoice-resource.resolver';
 import { LabOrderResourceResolver } from './resolvers/lab-order-resource.resolver';
+import { AuditLogResourceResolver } from './resolvers/audit-log-resource.resolver';
 import { PolicyResourceResolverRegistry } from './resolvers/policy-resource-resolver';
 import {
   AppointmentAbacPolicy,
@@ -43,6 +44,7 @@ import {
     PrescriptionResourceResolver,
     InvoiceResourceResolver,
     LabOrderResourceResolver,
+    AuditLogResourceResolver,
     PolicyResourceResolverRegistry,
   ],
   exports: [
