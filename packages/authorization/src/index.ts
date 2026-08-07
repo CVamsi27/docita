@@ -4,3 +4,4 @@ export * from "./policies/patient.policy.js";
 export * from "./policies/appointment.policy.js";
 export * from "./policies/prescription.policy.js";
 export * from "./policies/invoice.policy.js";
+export * from "./policies/lab-order.policy.js";
