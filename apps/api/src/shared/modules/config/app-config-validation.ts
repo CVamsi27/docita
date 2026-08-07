@@ -84,6 +84,38 @@ export function assertRuntimeSecretRequirements(
   assertJwtSecret(config, runningAsWorker);
   assertRazorpaySecrets(config, runningAsWorker);
   assertDurableWorkerQueue(config, runningAsWorker);
+  assertTurnstileSecret(config, runningAsWorker);
+}
+
+/**
+ * Fail-closed bot-check (security-review VULN-002): TurnstileVerifyService
+ * no-ops when TURNSTILE_SECRET_KEY is unset. On an internet-facing API that
+ * would silently disable the login/register bot-check (P5.17) while the UI
+ * still renders the widget — the rate limiter + lockout are the only
+ * remaining layer. The worker serves no HTTP auth surface, so it is exempt.
+ */
+function assertTurnstileSecret(
+  config: z.infer<typeof EnvSchema>,
+  runningAsWorker: boolean,
+) {
+  const requiresTurnstile =
+    !runningAsWorker &&
+    (config.NODE_ENV === 'production' || config.NODE_ENV === 'staging');
+  if (!requiresTurnstile) {
+    return;
+  }
+  if (config.TURNSTILE_SECRET_KEY) {
+    return;
+  }
+
+  process.stderr.write('\nAPI environment validation failed.\n');
+  process.stderr.write('Please fix the following environment variables:\n');
+  process.stderr.write(
+    '  - TURNSTILE_SECRET_KEY: Required in staging/production (without it the\n' +
+      '    login/register bot-check silently disables)\n',
+  );
+  process.stderr.write('\n');
+  process.exit(1);
 }
 
 function assertDocitaCorsOrigins(corsOriginsValue: string) {

@@ -98,10 +98,13 @@ describe('Appointment ABAC policy (e2e, C2)', () => {
       .expect(200);
   });
 
-  it('unassigned DOCTOR cannot read another doctor\'s appointment (403)', async () => {
+  it("unassigned DOCTOR cannot read another doctor's appointment (403)", async () => {
     const clinicA = await factories.clinic();
     const { token } = await signStaff(clinicA.id, Role.DOCTOR);
-    const { user: otherDoctor } = await factories.user({ clinicId: clinicA.id, role: Role.DOCTOR });
+    const { user: otherDoctor } = await factories.user({
+      clinicId: clinicA.id,
+      role: Role.DOCTOR,
+    });
     const patient = await factories.patient(clinicA.id);
     const appointment = await factories.appointment(
       patient.id,
@@ -118,9 +121,16 @@ describe('Appointment ABAC policy (e2e, C2)', () => {
   it('NURSE reads any appointment in the clinic (200)', async () => {
     const clinicA = await factories.clinic();
     const { token } = await signStaff(clinicA.id, Role.NURSE);
-    const { user: doctor } = await factories.user({ clinicId: clinicA.id, role: Role.DOCTOR });
+    const { user: doctor } = await factories.user({
+      clinicId: clinicA.id,
+      role: Role.DOCTOR,
+    });
     const patient = await factories.patient(clinicA.id);
-    const appointment = await factories.appointment(patient.id, doctor.id, clinicA.id);
+    const appointment = await factories.appointment(
+      patient.id,
+      doctor.id,
+      clinicA.id,
+    );
 
     await request(app.getHttpServer())
       .get(`/appointments/${appointment.id}`)
@@ -131,9 +141,16 @@ describe('Appointment ABAC policy (e2e, C2)', () => {
   it('ADMIN reads any appointment in the clinic (200)', async () => {
     const clinicA = await factories.clinic();
     const { token } = await signStaff(clinicA.id, Role.ADMIN);
-    const { user: doctor } = await factories.user({ clinicId: clinicA.id, role: Role.DOCTOR });
+    const { user: doctor } = await factories.user({
+      clinicId: clinicA.id,
+      role: Role.DOCTOR,
+    });
     const patient = await factories.patient(clinicA.id);
-    const appointment = await factories.appointment(patient.id, doctor.id, clinicA.id);
+    const appointment = await factories.appointment(
+      patient.id,
+      doctor.id,
+      clinicA.id,
+    );
 
     await request(app.getHttpServer())
       .get(`/appointments/${appointment.id}`)
@@ -145,7 +162,10 @@ describe('Appointment ABAC policy (e2e, C2)', () => {
     const clinicA = await factories.clinic();
     const clinicB = await factories.clinic();
     const { token: tokenA } = await signStaff(clinicA.id, Role.DOCTOR);
-    const { user: doctorB } = await factories.user({ clinicId: clinicB.id, role: Role.DOCTOR });
+    const { user: doctorB } = await factories.user({
+      clinicId: clinicB.id,
+      role: Role.DOCTOR,
+    });
     const patientB = await factories.patient(clinicB.id);
     const appointmentB = await factories.appointment(
       patientB.id,
@@ -171,9 +191,16 @@ describe('Appointment ABAC policy (e2e, C2)', () => {
 
   it('unauthenticated request is rejected (401)', async () => {
     const clinicA = await factories.clinic();
-    const { user: doctor } = await factories.user({ clinicId: clinicA.id, role: Role.DOCTOR });
+    const { user: doctor } = await factories.user({
+      clinicId: clinicA.id,
+      role: Role.DOCTOR,
+    });
     const patient = await factories.patient(clinicA.id);
-    const appointment = await factories.appointment(patient.id, doctor.id, clinicA.id);
+    const appointment = await factories.appointment(
+      patient.id,
+      doctor.id,
+      clinicA.id,
+    );
 
     await request(app.getHttpServer())
       .get(`/appointments/${appointment.id}`)
@@ -197,10 +224,13 @@ describe('Appointment ABAC policy (e2e, C2)', () => {
       .expect(200);
   });
 
-  it('unassigned DOCTOR cannot update another doctor\'s appointment (403)', async () => {
+  it("unassigned DOCTOR cannot update another doctor's appointment (403)", async () => {
     const clinicA = await factories.clinic();
     const { token } = await signStaff(clinicA.id, Role.DOCTOR);
-    const { user: otherDoctor } = await factories.user({ clinicId: clinicA.id, role: Role.DOCTOR });
+    const { user: otherDoctor } = await factories.user({
+      clinicId: clinicA.id,
+      role: Role.DOCTOR,
+    });
     const patient = await factories.patient(clinicA.id);
     const appointment = await factories.appointment(
       patient.id,
@@ -218,9 +248,16 @@ describe('Appointment ABAC policy (e2e, C2)', () => {
   it('NURSE cancels an appointment (200)', async () => {
     const clinicA = await factories.clinic();
     const { token } = await signStaff(clinicA.id, Role.NURSE);
-    const { user: doctor } = await factories.user({ clinicId: clinicA.id, role: Role.DOCTOR });
+    const { user: doctor } = await factories.user({
+      clinicId: clinicA.id,
+      role: Role.DOCTOR,
+    });
     const patient = await factories.patient(clinicA.id);
-    const appointment = await factories.appointment(patient.id, doctor.id, clinicA.id);
+    const appointment = await factories.appointment(
+      patient.id,
+      doctor.id,
+      clinicA.id,
+    );
 
     await request(app.getHttpServer())
       .patch(`/appointments/${appointment.id}/cancel`)
@@ -232,11 +269,19 @@ describe('Appointment ABAC policy (e2e, C2)', () => {
   it('NURSE updates a COMPLETED appointment (200 — write-lock baseline, DEFERRED C2.1)', async () => {
     const clinicA = await factories.clinic();
     const { token } = await signStaff(clinicA.id, Role.NURSE);
-    const { user: doctor } = await factories.user({ clinicId: clinicA.id, role: Role.DOCTOR });
-    const patient = await factories.patient(clinicA.id);
-    const appointment = await factories.appointment(patient.id, doctor.id, clinicA.id, {
-      status: AppointmentStatus.COMPLETED,
+    const { user: doctor } = await factories.user({
+      clinicId: clinicA.id,
+      role: Role.DOCTOR,
     });
+    const patient = await factories.patient(clinicA.id);
+    const appointment = await factories.appointment(
+      patient.id,
+      doctor.id,
+      clinicA.id,
+      {
+        status: AppointmentStatus.COMPLETED,
+      },
+    );
 
     await request(app.getHttpServer())
       .patch(`/appointments/${appointment.id}`)

@@ -157,4 +157,32 @@ describe('Patient ABAC assignment-pinning (e2e, C1 phase-2)', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(403);
   });
+
+  it('cross-clinic x-break-the-glass read still 404s at the tenant-scoped service layer and the attempt is audited', async () => {
+    // BTG skips the policy stage + RLS, but NOT the service's tenant scope:
+    // the controller passes the requester's own clinicId, so a clinic-A
+    // doctor BTG-reading a clinic-B patient gets 404 (no existence
+    // disclosure), and the interceptor still records the audited grant.
+    const clinicA = await factories.clinic();
+    const clinicB = await factories.clinic();
+    const { user, token } = await signStaff(clinicA.id, Role.DOCTOR);
+    const patientB = await factories.patient(clinicB.id);
+
+    await request(app.getHttpServer())
+      .get(`/patients/${patientB.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('x-break-the-glass', 'true')
+      .set('x-btg-reason', 'e2e cross-clinic attempt')
+      .expect(404);
+
+    const auditRow = await prisma.auditLog.findFirst({
+      where: {
+        userId: user.id,
+        action: 'EMERGENCY_ACCESS_GRANTED',
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(auditRow).toBeDefined();
+    expect(auditRow?.entityId).toBe('BREAK_THE_GLASS');
+  });
 });

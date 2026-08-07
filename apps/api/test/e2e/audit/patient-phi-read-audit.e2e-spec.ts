@@ -219,9 +219,7 @@ describe('Audit events (e2e)', () => {
       expect(adminARows.length).toBeGreaterThan(0);
       expect(adminARows.every((row) => row.clinicId === clinicA.id)).toBe(true);
 
-      const clinicALeak = adminBRows.some(
-        (row) => row.clinicId === clinicA.id,
-      );
+      const clinicALeak = adminBRows.some((row) => row.clinicId === clinicA.id);
       expect(clinicALeak).toBe(false);
     });
   });

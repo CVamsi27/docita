@@ -23,6 +23,8 @@ describe('app-config validateEnv', () => {
       RAZORPAY_KEY_ID: 'rzp_test_release_validation',
       RAZORPAY_KEY_SECRET: 'test-razorpay-secret',
       RAZORPAY_WEBHOOK_SECRET: 'test-razorpay-webhook-secret',
+      // Required in staging/production since VULN-002 (fail-closed bot-check).
+      TURNSTILE_SECRET_KEY: '0x4AA00000000000000000000000000000',
       ...overrides,
     };
   }

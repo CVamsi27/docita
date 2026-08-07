@@ -27,17 +27,26 @@ export function getSharedCookieDomainFromConfig(config: EnvConfig) {
 }
 
 export function shouldBypassGuardForE2eConfig({
-  isProduction,
+  nodeEnv,
   apiE2eEnabled,
   e2eHeaderValue,
 }: {
-  isProduction: boolean;
+  nodeEnv: string;
   apiE2eEnabled: boolean;
   e2eHeaderValue: string | undefined;
 }) {
-  if (isProduction) return false;
+  // Production and staging are internet-facing: never honor an attacker-set
+  // header, and never allow the DOCITA_API_E2E switch to open a full bypass
+  // (security-review VULN-001 — the header alone must not disable the auth
+  // rate limiters / email-verified gate on a deployed environment).
+  if (nodeEnv === 'production' || nodeEnv === 'staging') return false;
+  // DOCITA_API_E2E=true is the explicit operator switch; the e2e suites set
+  // it in test/setup-e2e-env.ts. Local dev can opt in deliberately.
   if (apiE2eEnabled) return true;
-  return e2eHeaderValue === 'true';
+  // The x-docita-e2e header is honored ONLY under `test`, where the API
+  // e2e suite runs (api-e2e.yml sets NODE_ENV=test).
+  if (nodeEnv === 'test') return e2eHeaderValue === 'true';
+  return false;
 }
 
 export function getEmailSenderDomainFromEmail(from: string) {

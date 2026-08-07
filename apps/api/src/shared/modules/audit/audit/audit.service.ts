@@ -176,9 +176,7 @@ export class AuditService {
         // auditLogSchema.details is z.record — only pass through JSON objects
         // so a scalar/array newValue cannot break the response serializer.
         details:
-          log.newValue && isRecord(log.newValue)
-            ? log.newValue
-            : undefined,
+          log.newValue && isRecord(log.newValue) ? log.newValue : undefined,
         ipAddress: log.ipAddress ?? undefined,
         userAgent: log.userAgent ?? undefined,
         status: log.status,

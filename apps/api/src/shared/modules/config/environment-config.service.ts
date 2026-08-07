@@ -20,18 +20,15 @@ export class EnvironmentConfigService {
     return this.getEnvironment() === 'test';
   }
 
-  isApiE2eEnabled(): boolean {
-    return getEnv().DOCITA_API_E2E === 'true';
-  }
-
   shouldAllowTestEmailAutoVerify(): boolean {
     return getEnv().ALLOW_TEST_EMAIL_AUTOVERIFY;
   }
 
   shouldBypassGuardForE2e(e2eHeaderValue: string | undefined): boolean {
+    const env = getEnv();
     return shouldBypassGuardForE2eConfig({
-      isProduction: this.isProduction(),
-      apiE2eEnabled: this.isApiE2eEnabled(),
+      nodeEnv: env.NODE_ENV,
+      apiE2eEnabled: env.DOCITA_API_E2E === 'true',
       e2eHeaderValue,
     });
   }
