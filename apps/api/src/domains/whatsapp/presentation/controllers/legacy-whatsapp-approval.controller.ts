@@ -38,8 +38,13 @@ export class LegacyWhatsappApprovalController {
     );
   }
 
+  // C4.3 (resolves C3.1): unlike approve-prescription (author-pinned in C3),
+  // approve-invoice stays clinic-wide — the legacy InvoicePolicy has no
+  // doctor author-of-record branch, so any clinic DOCTOR/ADMIN/ADMIN_DOCTOR
+  // may approve any clinic invoice. The policy adds tenant discipline only.
   @Post('approve-invoice/:id')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
+  @RequirePolicy('invoice', 'update')
   @ZodSerializerDto(SuccessResponseDto)
   async approveInvoice(@Req() req: RequestWithUser, @Param('id') id: string) {
     const userId = getAuthenticatedUserId(req.user);
