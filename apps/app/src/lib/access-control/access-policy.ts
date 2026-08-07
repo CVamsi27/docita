@@ -1,12 +1,14 @@
 import {
   APP_ACCESS_MATRIX,
   type AppAccessTarget,
+  type EffectivePermissionsResponse,
   Feature,
   getAccessFeature,
   getAccessRequirement,
   getAccessTier,
   isAccessComingSoon,
   shouldDenyAccessForFrontDeskMode,
+  TIER_SENTINEL_FEATURES,
   Tier,
   type PlanMode,
   type UserRole,
@@ -21,14 +23,14 @@ interface AccessContext {
   currentTier?: Tier;
   currentMode?: PlanMode;
   hasIntelligence?: boolean;
+  /**
+   * C7 (ADR-0013): server-derived snapshot (non-authoritative, offline
+   * fallback). When a target is present in the snapshot it wins; otherwise the
+   * local matrix evaluation below applies (identical inputs produce identical
+   * outcomes — the snapshot mirrors this logic).
+   */
+  snapshot?: EffectivePermissionsResponse["targets"];
 }
-
-const TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {
-  [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,
-  [Tier.ESSENTIAL]: Feature.INVOICING,
-  [Tier.PROFESSIONAL]: Feature.WHATSAPP_OWN_NUMBER,
-  [Tier.HOSPITAL]: Feature.WHATSAPP_MANAGED_NUMBER,
-};
 
 function hasRequiredTier(requiredTier: Tier, context: AccessContext): boolean {
   if (requiredTier === Tier.INTELLIGENCE) return context.hasIntelligence === true;
@@ -54,6 +56,9 @@ export function canAccessTarget(
   context: AccessContext,
   mode: "read" | "write" = "read",
 ): boolean {
+  const snapshotEntry = context.snapshot?.[target];
+  if (snapshotEntry !== undefined) return snapshotEntry[mode];
+
   const policy = APP_ACCESS_MATRIX[target];
   if (!policy) return false;
   if (isAccessComingSoon(target)) return false;

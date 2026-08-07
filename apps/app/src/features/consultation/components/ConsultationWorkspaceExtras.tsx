@@ -4,6 +4,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
+import { useEffectivePermissions } from "@/lib/access-control/use-effective-permissions";
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
 import { PrimaryActionButtons, ViewActionsInline, ViewActionsOverflow } from "./ConsultationWorkspaceExtrasSections";
 
@@ -18,6 +19,7 @@ export function ConsultationAfterVisitStrip({
 }: ConsultationAfterVisitStripProps) {
   const { user } = useAuth();
   const { canAccess, currentTier, hasIntelligence } = usePermissionStore();
+  const snapshot = useEffectivePermissions()?.targets;
   const { canViewInvoices, canViewPrescriptions, canCreatePrescription } =
     usePermissions();
 
@@ -32,6 +34,7 @@ export function ConsultationAfterVisitStrip({
       canAccessFeature: canAccess,
       currentTier,
       hasIntelligence,
+      snapshot,
     },
     "read",
   );

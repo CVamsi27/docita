@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { Bell, CalendarClock, Stethoscope, UserPlus, type LucideIcon } from "lucide-react";
 import { AppPageScaffold, DataState, PageHeader, PageTabs, type PageTabItem } from "@workspace/ui/components";
-import { APP_ACCESS_TARGETS, type AppAccessTarget, type Feature, Tier, type UserRole } from "@workspace/types";
+import { APP_ACCESS_TARGETS, type AppAccessTarget, type EffectivePermissionsResponse, type Feature, Tier, type UserRole } from "@workspace/types";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
+import { useEffectivePermissions } from "@/lib/access-control/use-effective-permissions";
 import { parseUserRole } from "@/lib/access-control/parse-user-role";
 import { useAuth } from "@/lib/auth/auth-context";
 import { hasPermission, type Permission } from "@/lib/auth/permissions";
@@ -69,6 +70,7 @@ function isInboxTabVisible(
   canAccessFeature: (feature: Feature) => boolean,
   currentTier: Tier,
   hasIntelligence: boolean,
+  snapshot?: EffectivePermissionsResponse["targets"],
 ): boolean {
   if (tab.requiredPermission) {
     if (!role || !hasPermission(role, tab.requiredPermission)) {
@@ -86,6 +88,7 @@ function isInboxTabVisible(
         canAccessFeature,
         currentTier,
         hasIntelligence,
+        snapshot,
       },
       "read",
     );
@@ -101,6 +104,7 @@ function InboxContent() {
   const canAccessFeature = usePermissionStore((s) => s.canAccess);
   const currentTier = usePermissionStore((s) => s.currentTier);
   const hasIntelligence = usePermissionStore((s) => s.hasIntelligence);
+  const snapshot = useEffectivePermissions()?.targets;
   const allInboxTabs = useInboxTabs();
   const visibleTabs = useMemo(
     () =>
@@ -111,9 +115,17 @@ function InboxContent() {
           canAccessFeature,
           currentTier,
           hasIntelligence,
+          snapshot,
         ),
       ),
-    [allInboxTabs, user?.role, canAccessFeature, currentTier, hasIntelligence],
+    [
+      allInboxTabs,
+      user?.role,
+      canAccessFeature,
+      currentTier,
+      hasIntelligence,
+      snapshot,
+    ],
   );
 
   const defaultTab = visibleTabs[0]?.value ?? "notifications";
