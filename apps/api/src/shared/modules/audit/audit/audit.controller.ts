@@ -13,6 +13,7 @@ import {
 } from '@/shared/modules/audit/audit/audit.controller.access';
 import { AuditLogFilterDto, AuditLogListResponseDto } from './dto/audit.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
 
 @Controller('audit-logs')
 @AuditLogsApiAccess()
@@ -20,6 +21,7 @@ export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
+  @RequirePolicy('audit-log', 'read')
   @ZodSerializerDto(AuditLogListResponseDto)
   async getAuditLogs(
     @Req()
@@ -44,6 +46,7 @@ export class AuditSummaryController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get('recent')
+  @RequirePolicy('audit-log', 'read')
   async getRecentAuditLogs(
     @Req() req: ExpressRequest & { user?: { clinicId?: string } },
     @Query('limit') limit?: string,

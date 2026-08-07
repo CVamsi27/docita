@@ -84,17 +84,28 @@ describe('Audit events (e2e)', () => {
     };
   };
 
-  const createDoctorWithAccess = async (clinicId: string) => {
+  // C1 phase-2 (ADR-0013): plain DOCTOR reads are assignment-pinned — an
+  // active PatientDoctor row is required before GET /patients/:id resolves.
+  const createDoctorWithAccess = async (
+    clinicId: string,
+    patientId?: string,
+  ) => {
     const { user, token } = await signToken(Role.DOCTOR, clinicId);
     await factories.doctorClinic(user.id, clinicId);
+    if (patientId) {
+      await factories.patientDoctor(patientId, user.id, clinicId);
+    }
     return { user, token };
   };
 
   describe('PHI read auditing', () => {
     it('emits a VIEW_PROFILE AuditLog row when a doctor reads a patient profile', async () => {
       const clinic = await factories.clinic();
-      const { user, token } = await createDoctorWithAccess(clinic.id);
       const patient = await factories.patient(clinic.id);
+      const { user, token } = await createDoctorWithAccess(
+        clinic.id,
+        patient.id,
+      );
 
       await request(app.getHttpServer())
         .get(`/patients/${patient.id}`)
@@ -181,9 +192,13 @@ describe('Audit events (e2e)', () => {
       );
       const { token: tokenB } = await signToken(Role.ADMIN, clinicB.id);
 
-      // Generate a PHI-read audit row in clinic A only.
-      const { token: doctorA } = await createDoctorWithAccess(clinicA.id);
+      // Generate a PHI-read audit row in clinic A only (C1 phase-2:
+      // assignment-pinned doctor read).
       const patientA = await factories.patient(clinicA.id);
+      const { token: doctorA } = await createDoctorWithAccess(
+        clinicA.id,
+        patientA.id,
+      );
       await request(app.getHttpServer())
         .get(`/patients/${patientA.id}`)
         .set('Authorization', `Bearer ${doctorA}`)

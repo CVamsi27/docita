@@ -17,6 +17,7 @@ import { AuditLogResourceResolver } from './resolvers/audit-log-resource.resolve
 import { PolicyResourceResolverRegistry } from './resolvers/policy-resource-resolver';
 import {
   AppointmentAbacPolicy,
+  AuditLogAbacPolicy,
   InvoiceAbacPolicy,
   LabOrderAbacPolicy,
   PatientAbacPolicy,
@@ -39,6 +40,7 @@ import {
     PrescriptionAbacPolicy,
     InvoiceAbacPolicy,
     LabOrderAbacPolicy,
+    AuditLogAbacPolicy,
     PatientResourceResolver,
     AppointmentResourceResolver,
     PrescriptionResourceResolver,
