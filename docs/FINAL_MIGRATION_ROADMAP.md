@@ -421,7 +421,7 @@ Exit: no skipped critical flow is counted as green, no external prerequisite is 
 | Post-cutover polish     | 5 items                                                                         | Small (~1 hour)            |
 | **Total estimated**     |                                                                                 | **~5-8 hours**             |
 
-**Key improvement since last pass**: i18n coverage remains **98%** (44/45 features — only `legal` is intentional + allowlisted), error-boundary coverage is complete, accessible-name and frontend-fetch gates are now meaningful and green, seven zero-test features received smokes, and 24 confirmed orphan files were removed. The route registry is now grouped into dedicated lazy route modules without direct feature imports in `App.tsx`. The remaining work is authenticated runtime validation, guard-parity decisions, dependency/security closure, Cloudflare deployment evidence, and the canonical rename.
+**Key improvement since last pass**: i18n coverage remains **98%** (44/45 features — only `legal` is intentional + allowlisted), error-boundary coverage is complete, accessible-name and frontend-fetch gates are now meaningful and green, seven zero-test features received smokes, and 24 confirmed orphan files were removed. The route registry is now grouped into dedicated lazy route modules without direct feature imports in `App.tsx`. The remaining work (refreshed 2026-08-07) is the external-evidence slice only — authenticated runtime validation, the guard-parity product decision, and Cloudflare deployment evidence. Dependency/security closure and the canonical rename are **DONE** (P4.4/P4.5; P3.3 steps 4/6/7/9 committed `37d750b88`, 2026-08-06).
 
 **Deep analysis highlights**:
 

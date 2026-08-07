@@ -48,8 +48,9 @@ the ported components.
    date/number format?
 2. Brand strings (`SUPPORT_EMAIL`, `BRAND_NAME`, app constants) → import from
    `@workspace/types` or `lib/constants`.
-3. UI copy → en.json/hi.json + `useTranslation()`. Both locales must grow
-   together (`check:i18next-parity` enforces equality).
+3. UI copy → `apps/app/src/messages/{en,hi}/<Namespace>.json` + `useTranslation()`.
+   Both locales must grow together (`check:i18next-parity` enforces equality;
+   the corpus is per-namespace pairs since 2026-08-07).
 4. Date/number formats → `Intl.DateTimeFormat` / `Intl.NumberFormat` (no new
    literal).
 5. Test fixtures → `*.test.tsx` files (excluded from the gate already).
@@ -306,32 +307,34 @@ gate wiring pending live green run.
 
 ---
 
-## 6. Internal-vite admin/users endpoint gaps (10 OPEN API gaps)
+## 6. Internal-vite admin/users endpoint gaps (**DONE 2026-08-06, P5.11**)
 
 **Source**: REPO_GAPS row 40; the 2026-08-04 internal route-parity sweep
 found 10 pages calling non-existent internal endpoints. Pricing, dashboard,
 feedback, support, billing reminder, payment-processing, system-monitoring,
-performance, doctors, referrals are all fixed. Two pages still surface an
-explicit error state because the backing endpoint does not exist:
+performance, doctors, referrals were fixed to real routes; the 3 endpoint gaps
+below were the last of the 10 and are now closed:
 
-| Page                          | Path                                  | Missing endpoint                              | Status   |
-| ----------------------------- | ------------------------------------- | --------------------------------------------- | -------- |
-| `admins` all-list             | `/internal/admins`                    | `GET /api/internal/admins`                    | **DONE 2026-08-06** |
-| `admins` create               | `/internal/admins/new`                | `POST /api/internal/admins`                   | **DONE 2026-08-06** |
+| Page                          | Path                                  | Endpoint                                  | Status   |
+| ----------------------------- | ------------------------------------- | ------------------------------------------- | -------- |
+| `admins` all-list             | `/internal/admins`                    | `GET /api/internal/admins`                  | **DONE 2026-08-06** |
+| `admins` create               | `/internal/admins/new`                | `POST /api/internal/admins`                 | **DONE 2026-08-06** |
 | `users` all-list              | `/internal/users`                     | `GET /api/internal/users` (across all clinics) | **DONE 2026-08-06** |
 
-**Plan (P5.11)**:
+**DONE 2026-08-06 (P5.11)** — all 3 endpoints live:
 
-1. Decide product surface: tenant-scoped `admins` vs cross-clinic `users`.
-2. If tenant-scoped: reuse the existing `clinic-scoped admin` query; add
-   `GET /api/internal/admins?clinicId=…` to the existing controller.
-3. If cross-clinic: add a new `InternalAdminService` with explicit tenant
-   guard; the cross-clinic surface is a P5.x privacy decision (requires ABAC
-   attribute).
-4. Wire both pages to the new endpoints + remove the error state.
+- `GET /api/internal/admins` — all clinics, `@InternalApiAccess()`
+  (Role.INTERNAL) gate.
+- `POST /api/internal/admins` — create with a cross-clinic `clinicId`
+  selector in the create dialog.
+- `GET /api/internal/users` — all clinics.
 
-**Exit**: all 3 endpoints live, both pages render, RBAC/tenant tests pass,
-`pnpm verify:standard` 0.
+Zod schemas in `packages/types` (`internalAdminListEntrySchema` /
+`internalUserListEntrySchema`) wired into API DTOs; plain-array responses
+match the internal pages; `ClinicManagementService.getAllAdmins` /
+`getAllUsers` select-only queries; 6/6 service unit tests; both pages wired
+to real routes (error states removed). **Exit met**: API + internal
+check-types 0, `pnpm verify:standard` 0.
 
 ---
 
@@ -420,7 +423,7 @@ explicit owners and windows.
 | CSRF webhook regression test                                             | EXECUTION P4.3     | P5.12 (above) — **DONE 2026-08-06** |
 | `as-cast-density` dirty tree fix                                         | Working tree 2026-08-05 | Done 2026-08-05 |
 | `check:client-storage-usage` allowlist (`web-vitals.ts` session-dedupe)  | Working tree 2026-08-05 | Done 2026-08-05 |
-| Route-budget absolute overage (4 routes 1-5 KB over 2026-08-04 budget)   | Working tree 2026-08-05 | P5.19 (NEW)    |
+| Route-budget absolute overage (4 routes 1-5 KB over 2026-08-04 budget)   | Working tree 2026-08-05 | P5.19 — **DONE 2026-08-05** (budgets re-baselined +~10% headroom; 11/11 routes within absolute budgets) |
 | `check:repo-on-module-init-cache` ratchet                                | EXECUTION P4.1     | P5.13 — **DONE 2026-08-06** (gate passes; documented in `RUNBOOKS.md`) |
 | `check:ad-hoc-service-cache` ratchet                                     | EXECUTION P4.1     | P5.14 — **DONE 2026-08-06** (gate passes; documented in `RUNBOOKS.md`) |
 | `check:audit-coverage` baseline (audit events by service file)            | EXECUTION P4.4     | P5.15 — **DONE 2026-08-06** (baseline file populated; gate measurable) |
@@ -459,6 +462,19 @@ infrastructure to the auth surface.
 **Activation**: set `TURNSTILE_SECRET_KEY` (API) + `VITE_TURNSTILE_SITE_KEY`
 (app) in production to start enforcing; until then both surfaces behave
 as before.
+
+**HARDENED 2026-08-07 (security-review VULN-002 — fail-closed in
+staging/production)**: `assertRuntimeSecretRequirements` now fails boot
+(`process.exit(1)`) when an internet-facing API (`NODE_ENV` staging or
+production, non-worker) runs without `TURNSTILE_SECRET_KEY`, so the
+service-level fail-open "no-op when unset" path can only ever run in
+development/test. **Deploy-order**: set `TURNSTILE_SECRET_KEY` in the
+Render staging env + Fly prod secrets in the same release as this commit,
+or the API will refuse to boot. The same pass hardened the e2e bypass
+(VULN-001): `x-docita-e2e` is honored only under `NODE_ENV=test`;
+production/staging never bypass the auth rate limiters / email-verified
+/ throttler guards (`shouldBypassGuardForE2eConfig` is the single source
+of truth, shared by `E2EThrottlerGuard`).
 
 ---
 

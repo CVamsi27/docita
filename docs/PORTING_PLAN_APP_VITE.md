@@ -4,7 +4,7 @@ Point-in-time: **2026-08-03**. This document owns feature parity and port-or-dro
 
 ## Overview
 
-Port the retained features from the historical Next.js apps into `apps/app` and `apps/internal` (Vite + React Router). The Next.js apps are deleted from the current branch tip and the Vite trees are tracked; the canonical directory rename and production cutover are still pending. **The cutover is NOT safe yet** — feature parity decisions are recorded, but authenticated runtime validation, guard-parity decisions, deployment smokes, and cutover gates remain.
+Port the retained features from the historical Next.js apps into `apps/app` and `apps/internal` (Vite + React Router). The Next.js apps are deleted from the current branch tip, the Vite trees are tracked, and the canonical directory rename is **complete** (`37d750b88`, 2026-08-06 — see the EXECUTION_PLAN note). **Cutover status (refreshed 2026-08-07)**: the migration, rename, and cutover gates are done and `pnpm verify:standard` exits 0; the remaining pre-release items are external-evidence only — authenticated runtime validation (P3.6), the guard-parity product decision (P3.5), Cloudflare deploy smokes, and the authenticated a11y baseline.
 
 ## % Completed
 
