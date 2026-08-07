@@ -1,5 +1,16 @@
 # ABAC Migration Plan — Attribute-Based Access Control for Docita
 
+> **CLOSED 2026-08-07.** Phases A–E are complete (A1–A4, B1–B5 shipped as the
+> `@workspace/authorization` engine + `PolicyGuard` + `@RequirePolicy`;
+> C1–C5 shipped, C6 recorded as a DEFERRED/BLOCKED decision, C7 shipped;
+> Phase D retirement ledger + Phase E parity gates recorded). Remaining open
+> threads are tracked in ADR-0013's follow-up list and the
+> [`ABAC_RETIREMENT_LEDGER.md`](ABAC_RETIREMENT_LEDGER.md): C2.1 write-lock
+> product decision, C2.2 remaining controllers, the B5/D2 policy-emitted
+> obligation adapter, D3 emergency-access time-boxing, and worker-side
+> consumption of `@workspace/authorization`. This document remains the
+> roadmap record, not a backlog.
+
 Point-in-time: **2026-08-04** (inventory verified against the live tree).
 
 **Goal**: move authorization from a coarse, statically-fixed Role-Based Access Control (RBAC) model to an Attribute-Based Access Control (ABAC) model — while keeping every existing guard, tenant boundary, tier/feature gate, and RLS policy strictly intact. The migration is a *layered extension*, not a replacement sweep: RBAC (role + tenant + tier/feature) remains the baseline first-pass denial layer, and ABAC policies add **object-level, context-aware** decisions on top.
