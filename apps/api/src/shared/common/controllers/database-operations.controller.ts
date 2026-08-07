@@ -27,7 +27,7 @@ import { tenantScopeDiagnosticsSchema } from '@workspace/types';
 
 @ApiTags('Database Operations')
 @ApiBearerAuth()
-@Controller('api/v1/operations/database')
+@Controller('operations/database')
 @UseGuards(RolesGuard)
 @Roles(Role.INTERNAL)
 export class DatabaseOperationsController {

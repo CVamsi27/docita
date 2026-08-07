@@ -2,6 +2,8 @@ import {
   BadRequestException,
   Body,
   Controller,
+  HttpCode,
+  HttpStatus,
   Post,
   Req,
   UsePipes,
@@ -32,6 +34,7 @@ import { requireClinicActor } from '@/domains/whatsapp/presentation/controllers/
 export class LegacyWhatsappSendController {
   constructor(private readonly whatsappService: WhatsappService) {}
 
+  @HttpCode(HttpStatus.OK)
   @Post('send')
   @ZodSerializerDto(WhatsappMessageResponseDto)
   @UsePipes(new ZodValidationPipe(sendTemplateSchema))
@@ -41,6 +44,7 @@ export class LegacyWhatsappSendController {
   }
 
   @UsePipes(new ZodValidationPipe(sendWhatsAppCustomMessageRequestSchema))
+  @HttpCode(HttpStatus.OK)
   @Post('send-custom')
   @ZodSerializerDto(SendWhatsappCustomMessageResponseDto)
   async sendCustomMessage(
@@ -52,6 +56,7 @@ export class LegacyWhatsappSendController {
   }
 
   @UsePipes(new ZodValidationPipe(createMedicineReminderRequestSchema))
+  @HttpCode(HttpStatus.OK)
   @Post('medicine-reminder')
   async createMedicineReminder(
     @Req() req: Request,
@@ -72,6 +77,7 @@ export class LegacyWhatsappSendController {
   }
 
   @UsePipes(new ZodValidationPipe(createWhatsAppBroadcastRequestSchema))
+  @HttpCode(HttpStatus.OK)
   @Post('broadcast')
   async createBroadcast(
     @Req() req: Request,

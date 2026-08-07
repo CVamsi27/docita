@@ -5,6 +5,8 @@ import {
   Body,
   UseGuards,
   Request,
+  HttpCode,
+  HttpStatus,
   BadRequestException as _BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
@@ -42,6 +44,7 @@ export class WhatsAppController {
     return this.queryService.listTemplates(requireClinicIdFromRequest(req));
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('messages/send')
   @ZodSerializerDto(SendWhatsAppMessageResponseDto)
   async sendMessage(
