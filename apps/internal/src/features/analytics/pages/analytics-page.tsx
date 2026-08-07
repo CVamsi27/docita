@@ -133,7 +133,7 @@ export function AnalyticsPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Analytics" description="View clinic performance metrics" size="compact" />}>
-      <DataState status={pageStatus} loadingMessage="Loading analytics\u2026" errorMessage={error} onRetry={() => { void fetchData(); }}>
+      <DataState status={pageStatus} loadingMessage="Loading analytics…" errorMessage={error} onRetry={() => { void fetchData(); }}>
         <div className="space-y-6 md:space-y-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-wrap gap-2">

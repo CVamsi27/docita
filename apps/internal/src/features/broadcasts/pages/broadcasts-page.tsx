@@ -79,7 +79,7 @@ export function BroadcastsPage() {
                 </div>
                 {!useTemplate && (
                   <Textarea value={messageOverride} onChange={(e) => { setMessageOverride(e.target.value); }}
-                    placeholder="Enter custom message\u2026" rows={4} />
+                    placeholder="Enter custom message…" rows={4} />
                 )}
               </div>
 
@@ -104,7 +104,7 @@ export function BroadcastsPage() {
           <CardHeader><CardTitle>Broadcast History</CardTitle></CardHeader>
           <CardContent>
             <DataState status={loading ? "loading" : jobs.length === 0 ? "empty" : "success"}
-              loadingMessage="Loading broadcasts\u2026" emptyTitle="No broadcasts yet" emptyDescription="Your broadcast history will appear here." emptyIcon={Megaphone}>
+              loadingMessage="Loading broadcasts…" emptyTitle="No broadcasts yet" emptyDescription="Your broadcast history will appear here." emptyIcon={Megaphone}>
               <ul className="space-y-3">
                 {jobs.map((job) => (
                   <li key={job.id} className="rounded-lg border bg-background p-3">

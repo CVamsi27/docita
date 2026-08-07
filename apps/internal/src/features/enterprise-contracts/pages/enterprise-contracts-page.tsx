@@ -28,7 +28,7 @@ export function EnterpriseContractsPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Enterprise Contracts" description="Manage custom enterprise agreements, custom pricing, and contract lifecycle" size="compact" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading contracts\u2026">
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading contracts…">
         <div className="grid gap-4 md:grid-cols-3 mb-6">
           <Card><CardHeader><CardTitle className="text-sm font-medium">Total Contracts</CardTitle></CardHeader><CardContent><p className="text-2xl font-semibold tabular-nums">{contracts.length}</p></CardContent></Card>
           <Card><CardHeader><CardTitle className="text-sm font-medium">Active Contracts</CardTitle></CardHeader><CardContent><p className="text-2xl font-semibold tabular-nums">{activeContracts.length}</p></CardContent></Card>

@@ -109,7 +109,7 @@ export function SupportPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 p-5">
                   <DataState status={loading ? "loading" : messages.length === 0 ? "empty" : "success"}
-                    loadingMessage="Loading messages\u2026" emptyTitle="No messages yet"
+                    loadingMessage="Loading messages…" emptyTitle="No messages yet"
                     emptyDescription="Messages will appear when the conversation starts." emptyIcon={MessageSquare}>
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {messages.map((msg) => (
@@ -124,7 +124,7 @@ export function SupportPage() {
                   </DataState>
                   <div className="flex gap-2 pt-4 border-t">
                     <Textarea value={replyMessage} onChange={(e) => { setReplyMessage(e.target.value); }}
-                      placeholder="Type your reply\u2026" rows={2} className="flex-1" />
+                      placeholder="Type your reply…" rows={2} className="flex-1" />
                     <Button onClick={() => { handleSendReply(); }} disabled={!replyMessage.trim()}>
                       <Send className="h-4 w-4" />
                     </Button>

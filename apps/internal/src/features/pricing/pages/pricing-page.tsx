@@ -55,7 +55,7 @@ export function PricingPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Pricing Management" description="Configure tier pricing, limits, and overage rates" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading pricing\u2026">
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading pricing…">
         <Tabs defaultValue="tiers" className="space-y-4">
           <TabsList><TabsTrigger value="tiers"><Sparkles className="mr-2 h-4 w-4" /> Tier Pricing</TabsTrigger>
             <TabsTrigger value="offers">Facility Offers</TabsTrigger></TabsList>

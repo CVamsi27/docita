@@ -27,7 +27,7 @@ export function AuditsPage() {
     <AppPageScaffold header={<PageHeader title="Audit Logs" description="Track administrative actions and system events"
       actions={<Button variant="outline" size="sm" onClick={() => { void fetchLogs(); }} disabled={loading}><RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
       <DataState status={loading ? "loading" : logs.length === 0 ? "empty" : "success"}
-        loadingMessage="Loading audit logs\u2026" emptyTitle="No audit logs found" emptyDescription="Log entries will appear as admin actions are performed.">
+        loadingMessage="Loading audit logs…" emptyTitle="No audit logs found" emptyDescription="Log entries will appear as admin actions are performed.">
         <div className="rounded-md border">
           <Table><TableHeader><TableRow>
             <TableHead>Time</TableHead><TableHead>Action</TableHead><TableHead>Resource</TableHead><TableHead>Clinic</TableHead><TableHead>User</TableHead><TableHead>Status</TableHead>

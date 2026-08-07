@@ -75,7 +75,7 @@ export function AdminCreateDialog({ open, onOpenChange, form, onFormChange, clin
           <AdminFormFields form={form} onFormChange={onFormChange} showPassword />
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={handleClose}>Cancel</Button>
-            <Button onClick={onCreate} disabled={saving}>{saving ? "Creating\u2026" : "Create Admin"}</Button>
+            <Button onClick={onCreate} disabled={saving}>{saving ? "Creating…" : "Create Admin"}</Button>
           </div>
         </div>
       </DialogContent>
@@ -95,7 +95,7 @@ export function AdminEditDialog({ open, onOpenChange, form, onFormChange, onSave
           <AdminFormFields form={form} onFormChange={onFormChange} />
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={handleClose}>Cancel</Button>
-            <Button onClick={onSave} disabled={saving}>{saving ? "Saving\u2026" : "Save Changes"}</Button>
+            <Button onClick={onSave} disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
           </div>
         </div>
       </DialogContent>

@@ -50,7 +50,7 @@ export function LogsPage() {
     <AppPageScaffold header={<PageHeader title="System Logs" description="View and filter application logs across all modules" size="compact"
       actions={<Button variant="outline" size="sm" onClick={() => { handleRefresh(); }} disabled={refreshing}>
         <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />Refresh</Button>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading logs\u2026">
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading logs…">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-4 mb-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Severity</label>
@@ -77,7 +77,7 @@ export function LogsPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Search</label>
-            <Input value={searchText} onChange={(e) => { setSearchText(e.target.value); setOffset(0); }} placeholder="Search messages\u2026" />
+            <Input value={searchText} onChange={(e) => { setSearchText(e.target.value); setOffset(0); }} placeholder="Search messages…" />
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Page Size</label>
@@ -102,7 +102,7 @@ export function LogsPage() {
             </TableRow></TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={4} className="h-24 text-center text-muted-foreground">Loading logs\u2026</TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="h-24 text-center text-muted-foreground">Loading logs…</TableCell></TableRow>
               ) : logs.length === 0 ? (
                 <TableRow><TableCell colSpan={4} className="h-24 text-center text-muted-foreground">No matching logs found</TableCell></TableRow>
               ) : logs.map((log) => (

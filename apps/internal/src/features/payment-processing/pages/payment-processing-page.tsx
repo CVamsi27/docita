@@ -50,7 +50,7 @@ export function PaymentProcessingPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Payment Processing" description="Record subscription payments and tier changes" size="compact" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading payment processing\u2026">
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading payment processing…">
         <Card className="mb-6">
           <CardHeader><CardTitle>Process Payment</CardTitle><CardDescription>Record a payment and optionally change tier</CardDescription></CardHeader>
           <CardContent className="space-y-4">
@@ -80,7 +80,7 @@ export function PaymentProcessingPage() {
               </div>
             )}
             <Button onClick={() => { void handleProcessPayment(); }} disabled={!selectedClinic || !amount || processing}>
-              <DollarSign className="h-4 w-4 mr-2" /> {processing ? "Processing\u2026" : "Record Payment"}
+              <DollarSign className="h-4 w-4 mr-2" /> {processing ? "Processing…" : "Record Payment"}
             </Button>
           </CardContent>
         </Card>

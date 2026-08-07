@@ -41,9 +41,9 @@ export function DoctorsPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Doctors" description="Monitor doctor profiles, specializations, and credentials" size="compact" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading doctors\u2026">
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading doctors…">
         <div className="mb-4 flex items-center gap-4">
-          <Input placeholder="Search doctors by name or email\u2026" value={search} onChange={(e) => { setSearch(e.target.value); }} className="max-w-sm" />
+          <Input placeholder="Search doctors by name or email…" value={search} onChange={(e) => { setSearch(e.target.value); }} className="max-w-sm" />
         </div>
 
         <Card><CardHeader><CardTitle className="flex items-center gap-2"><Stethoscope className="h-5 w-5" /> Doctors ({filteredDoctors.length})</CardTitle></CardHeader>

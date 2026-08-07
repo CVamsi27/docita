@@ -13,7 +13,7 @@ export function CreateClinicDialog({ onClinicCreated }: { onClinicCreated: () =>
       <Button onClick={handleOpen}><Plus className="mr-2 h-4 w-4" /> Add Facility</Button>
       <CRUDDialog open={open} onOpenChange={setOpen} title="Add New Facility"
         description="Create a new facility and its admin account" isLoading={loading}
-        onSubmit={handleSubmit} submitLabel={loading ? "Creating\u2026" : "Create Facility"}>
+        onSubmit={handleSubmit} submitLabel={loading ? "Creating…" : "Create Facility"}>
         <div className="space-y-6">
           <FacilityDetailsSection formData={formData} fieldErrors={fieldErrors} onFieldChange={updateField} />
           <AdminAccountSection formData={formData} fieldErrors={fieldErrors} showPassword={showPassword}

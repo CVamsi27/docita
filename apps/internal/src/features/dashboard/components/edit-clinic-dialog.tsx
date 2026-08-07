@@ -74,7 +74,7 @@ export function EditClinicDialog({ clinic, onClinicUpdated }: { clinic: Clinic; 
       </SymbolTooltip>
       <CRUDDialog open={open} onOpenChange={setOpen} title="Edit Facility"
         description="Update facility details and status" isLoading={loading}
-        onSubmit={handleSubmit} submitLabel={loading ? "Updating\u2026" : "Update Facility"}>
+        onSubmit={handleSubmit} submitLabel={loading ? "Updating…" : "Update Facility"}>
         <div className="space-y-6">
           <EditClinicDetailsSection formData={formData} fieldErrors={fieldErrors} onFieldChange={(f, v) => { setFormData((p) => ({ ...p, [f]: v })); }} />
         </div>

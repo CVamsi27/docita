@@ -98,7 +98,7 @@ export function AdminsPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Admins" description="Manage clinic administrators and admin doctors" size="compact" />}>
-      <DataState status={loading ? "loading" : hasError ? "error" : "success"} loadingMessage="Loading admins\u2026"
+      <DataState status={loading ? "loading" : hasError ? "error" : "success"} loadingMessage="Loading admins…"
         errorMessage="We could not load admin records. Please refresh and try again."
         onRetry={() => { void fetchAdmins(); }}>
         <div className="mb-4 flex items-center gap-4">

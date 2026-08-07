@@ -69,7 +69,7 @@ export function UsersPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Team Members" description="View and manage all users across facilities" size="compact" />}>
-      <DataState status={loading ? "loading" : hasError ? "error" : "success"} loadingMessage="Loading team members\u2026"
+      <DataState status={loading ? "loading" : hasError ? "error" : "success"} loadingMessage="Loading team members…"
         errorMessage="We could not load team members. Please refresh and try again."
         onRetry={() => { void fetchUsers(); }}
         emptyTitle="No team members found" emptyDescription="Team members will appear here once facilities add users." emptyIcon={Users}>
@@ -88,7 +88,7 @@ export function UsersPage() {
         <div className="flex items-center gap-4 mb-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search by name, email\u2026" value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); }} className="pl-10" />
+            <Input placeholder="Search by name, email…" value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); }} className="pl-10" />
           </div>
         </div>
 

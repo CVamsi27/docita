@@ -48,7 +48,7 @@ export function BedManagementUI({
   searchQuery,
   setSearchQuery,
 }: BedManagementUIProps) {
-  if (isLoading) return <LoadingState message="Loading bed status\u2026" className="min-h-[40vh]" />;
+  if (isLoading) return <LoadingState message="Loading bed status…" className="min-h-[40vh]" />;
 
   if (isError) {
     return (

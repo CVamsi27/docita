@@ -52,7 +52,7 @@ export function BillingPage() {
   return (
     <AppPageScaffold header={<PageHeader title="Billing Dashboard" description="Monitor subscriptions, revenue, and payment activity" size="compact"
       actions={<Button onClick={() => { void fetchBilling(); }} disabled={loading} variant="outline"><RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading billing dashboard\u2026">
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading billing dashboard…">
         {metrics && (
           <div className="grid gap-4 md:grid-cols-3 mb-6">
             <Card density="compact"><CardHeader className="border-b"><div className="flex items-center justify-between gap-3">

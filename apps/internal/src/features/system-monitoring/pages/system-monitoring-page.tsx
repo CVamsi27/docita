@@ -93,7 +93,7 @@ export function SystemMonitoringPage() {
         <Button variant="outline" size="sm" onClick={() => { void handleRefresh(); }} disabled={refreshing}>
           <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} /> Refresh</Button>
       </div>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading system monitoring\u2026">
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading system monitoring…">
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); }} className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>

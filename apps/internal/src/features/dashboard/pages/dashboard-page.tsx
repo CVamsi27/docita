@@ -46,7 +46,7 @@ export function DashboardPage() {
     <AppPageScaffold header={<PageHeader title="Dashboard" description="Monitor all facilities and platform metrics" size="compact"
       actions={<CreateClinicDialog onClinicCreated={() => { void fetchData(); }} />} />}>
       <DataState status={loading ? "loading" : hasError ? "error" : "success"}
-        loadingMessage="Loading dashboard\u2026" errorMessage="We could not load this dashboard. Please refresh and try again."
+        loadingMessage="Loading dashboard…" errorMessage="We could not load this dashboard. Please refresh and try again."
         onRetry={() => { void fetchData(); }}>
         <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Facilities</CardTitle><Building2 className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums">{stats.clinics}</div>{renderTrend(trends.clinicsThisMonth)}</CardContent></Card>
@@ -58,7 +58,7 @@ export function DashboardPage() {
 
         <Card><CardHeader><div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div><CardTitle>Facilities</CardTitle><CardDescription>All registered facilities and their status</CardDescription></div>
-          <div className="relative w-full md:w-64"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input placeholder="Search facilities\u2026" className="pl-8" /></div>
+          <div className="relative w-full md:w-64"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input placeholder="Search facilities…" className="pl-8" /></div>
         </div></CardHeader><CardContent><ClinicList clinics={clinics} loading={false} onUpdate={() => { void fetchData(); }} /></CardContent></Card>
       </DataState>
     </AppPageScaffold>

@@ -41,7 +41,7 @@ export function PerformancePage() {
     <AppPageScaffold header={<PageHeader title="Performance" description="Application performance metrics and benchmarks"
       actions={<Button variant="outline" size="sm" onClick={() => { void fetchMetrics(); }} disabled={loading}>
         <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading performance metrics\u2026">
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading performance metrics…">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {metrics.length === 0 ? (
             <>
