@@ -405,9 +405,10 @@ Templates typically take 24-48 hours to be approved for production accounts. For
 # Expose local server
 ngrok http 3001
 
-# Set webhook URL in Meta App Dashboard (preferred):
+# Set webhook URL in Meta App Dashboard:
 # https://<ngrok-url>/api/webhooks/whatsapp
-# Legacy fail-open path (deprecated): https://<ngrok-url>/api/whatsapp/webhook
+# (Strict verification + replay protection; the legacy /api/whatsapp/webhook
+# route was removed 2026-08-07 after the Meta callback URL moved here.)
 # Subscribe to: messages, message_deliveries, message_reads
 ```
 

@@ -5,5 +5,4 @@ export { LegacyWhatsappResendController } from './legacy-whatsapp-resend.control
 export { LegacyWhatsappLogsController } from './legacy-whatsapp-logs.controller';
 export { LegacyWhatsappApprovalController } from './legacy-whatsapp-approval.controller';
 export { LegacyWhatsappNotificationsController } from './legacy-whatsapp-notifications.controller';
-export { LegacyWhatsappWebhookController } from './legacy-whatsapp-webhook.controller';
 export { StaffNotificationController } from './staff-notification.controller';

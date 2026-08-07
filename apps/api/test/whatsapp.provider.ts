@@ -14,8 +14,6 @@ export const mockWhatsappService = {
     success: true,
     messageId: 'wamid.HBgLMTIzNDU2Nzg5MFUGAhEJAgQ=',
   }),
-  validateWebhookSignature: jest.fn().mockReturnValue(true),
-  getVerifyToken: jest.fn().mockReturnValue('test_verify_token'),
 };
 
 export const WhatsappServiceProvider: Provider = {

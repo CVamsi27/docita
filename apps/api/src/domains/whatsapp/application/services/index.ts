@@ -5,7 +5,6 @@ export { SystemEventsService } from './system-events.service';
 export { ApprovalService } from './approval.service';
 export { MessagingService } from './messaging.service';
 export { TemplateMessageService } from './template-message.service';
-export { WhatsappWebhookService } from './whatsapp-webhook.service';
 export { ResponseHandlerService } from './response-handler.service';
 export { WhatsAppWebhookIngressService } from './whatsapp-webhook-ingress.service';
 export { StaffNotificationService } from './staff-notification.service';

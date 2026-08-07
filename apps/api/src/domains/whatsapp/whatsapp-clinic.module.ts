@@ -7,7 +7,6 @@ import {
   ApprovalService,
   MessagingService,
   TemplateMessageService,
-  WhatsappWebhookService,
   ResponseHandlerService,
   WhatsAppWebhookIngressService,
   PatientAppointmentResolverService,
@@ -32,7 +31,6 @@ import {
   LegacyWhatsappLogsController,
   LegacyWhatsappApprovalController,
   LegacyWhatsappNotificationsController,
-  LegacyWhatsappWebhookController,
   StaffNotificationController,
 } from '@/domains/whatsapp/presentation/controllers';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -58,7 +56,6 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     LegacyWhatsappApprovalController,
     LegacyWhatsappNotificationsController,
     StaffNotificationController,
-    LegacyWhatsappWebhookController,
   ],
   providers: [
     { provide: WHATSAPP_PERSISTENCE_PORT, useExisting: PrismaService },
@@ -78,7 +75,6 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
       provide: WHATSAPP_CLIENT_TOKEN,
       useExisting: WhatsappClientAdapter,
     },
-    WhatsappWebhookService,
     HandleWebhookUseCase,
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
@@ -105,7 +101,6 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
       provide: WHATSAPP_CLIENT_TOKEN,
       useExisting: WhatsappClientAdapter,
     },
-    WhatsappWebhookService,
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
     PatientAppointmentResolverService,
