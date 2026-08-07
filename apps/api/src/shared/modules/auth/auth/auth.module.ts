@@ -9,6 +9,7 @@ import { AuthMfaOrchestratorService } from './auth-mfa-orchestrator.service';
 import { AuthRegistrationController } from './auth-registration.controller';
 import { AuthLoginController } from './auth-login.controller';
 import { AuthPasswordController } from './auth-password.controller';
+import { AuthEffectivePermissionsController } from './auth-effective-permissions.controller';
 import { AuthSessionController } from './auth-session.controller';
 import { AuthMfaController } from './auth-mfa.controller';
 import { AuthVerificationController } from './auth-verification.controller';
@@ -104,6 +105,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
     AuthRegistrationController,
     AuthLoginController,
     AuthPasswordController,
+    AuthEffectivePermissionsController,
     AuthSessionController,
     AuthMfaController,
     AuthVerificationController,
