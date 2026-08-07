@@ -132,6 +132,16 @@ describe('Audit log ABAC policy (e2e, C5)', () => {
       .expect(403);
   });
 
+  it('ADMIN reads the recent audit summary (200)', async () => {
+    const clinicA = await makeClinic();
+    const { token } = await signStaff(clinicA.id, Role.ADMIN);
+
+    await request(app.getHttpServer())
+      .get('/audit/recent')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+  });
+
   it('ADMIN_DOCTOR reads the recent audit summary (200)', async () => {
     const clinicA = await makeClinic();
     const { token } = await signStaff(clinicA.id, Role.ADMIN_DOCTOR);

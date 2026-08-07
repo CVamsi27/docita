@@ -217,8 +217,11 @@ describe('AuthorizationService', () => {
   describe('evaluateAbac', () => {
     it('denies with policy_not_found for an unregistered resource', async () => {
       const svc = makeService();
+      // Deliberately off-map so this test never needs repointing when a new
+      // resource (e.g. C6 'referral') ships — prior resource names (invoice,
+      // audit-log) were repointed twice already.
       const result = await svc.evaluateAbac(abacSubject(), 'read', {
-        type: 'referral',
+        type: 'not-a-resource',
         clinicId: 'clinic-a',
         ownerId: 'x',
         assignedDoctorIds: [],
