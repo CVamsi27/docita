@@ -691,6 +691,7 @@ Each pattern below points at a canonical example to copy from when introducing a
 | Template method | [`apps/api/src/shared/modules/document-generation/pdf/pdf-generator.service.ts`](apps/api/src/shared/modules/document-generation/pdf/pdf-generator.service.ts) |
 | Anti-corruption layer | [`apps/api/src/shared/common/repositories/base.repository.ts`](apps/api/src/shared/common/repositories/base.repository.ts) (Prisma error translation) |
 | Outbox (proposed) | See ADR [`docs/architecture/decisions/0010-transactional-outbox.md`](docs/architecture/decisions/0010-transactional-outbox.md) |
+| Resource policy (ABAC) | Pure per-resource policies in [`packages/authorization`](packages/authorization) (`AbacPolicy` implementations, e.g. `patient`, `appointment`, `prescription`, `invoice`, `lab-order`, `audit-log`) evaluated by the global `PolicyGuard` via `@RequirePolicy(resource, action)` + per-resource resolvers (`apps/api/src/shared/modules/auth/authorization/resolvers/`). Layered on top of RBAC/tier/tenant (never a replacement — see ADR-0013 + the retirement ledger). |
 
 ### 15.7 Frontend Component Architecture
 

@@ -44,6 +44,8 @@ The new policy stage runs **after** the roles/tier/feature baseline and **before
 
 **Permission snapshot (C7, 2026-08-07):** `GET /auth/effective-permissions` is NON-authoritative by contract — the server remains the enforcement point (non-negotiable 2); the UI consumes it only to preview decisions and falls back to the local matrix offline. `canAccessTarget` prefers the snapshot entry when present; the snapshot computation is a pure mirror (`computeEffectivePermissions` in `@workspace/utils`) of the client matrix with `TIER_SENTINEL_FEATURES` shared from `packages/types`.
 
+**Legacy-guard decisions (Phase D4):** every guard touched by a policy, with its differential-pass evidence and keep/remove decision, is recorded in the [`ABAC_RETIREMENT_LEDGER.md`](../analysis/ABAC_RETIREMENT_LEDGER.md). Nothing was removed — the ABAC layer is additive after the RBAC/tier/tenant baseline.
+
 | Policy (id) | Rules | Resolver | Decorator | Surface |
 |-------------|-------|----------|-----------|---------|
 | `patient` | tenant discipline; PATIENT own-row (`ownerId === subject.userId`); doctor assignment-pinning **on since C1 phase-2 (2026-08-06)** — plain `DOCTOR` must have an active `PatientDoctor` row; `ADMIN_DOCTOR`/`NURSE`/`RECEPTIONIST`/`ADMIN`/`INTERNAL` bypass (mirrors legacy `PatientDoctorGuard`); clinical staff same-clinic; default-deny | [`PatientResourceResolver`](../apps/api/src/shared/modules/auth/authorization/resolvers/patient-resource.resolver.ts) (Prisma lookup → `ResourceAttributes`; `requiresAssignment: true`) | `@RequirePolicy('patient', 'read'|'update')` + `@EmergencyAccess()` on `GET /patients/:id` | Staff patients surface (`GET/PATCH /patients/:id`) |
