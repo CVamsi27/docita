@@ -1,3 +1,7 @@
+// jscpd:ignore-start — intentional mirror of policy-resource-resolver.ts
+// (ABAC, ADR-0013): the policy registry and the resolver registry share the
+// constructor+map scaffold by design — both MUST stay in lockstep with the
+// same resource keys. See docs/analysis/SUPPRESSION_LEDGER.md.
 import { Injectable } from '@nestjs/common';
 import {
   AppointmentAbacPolicy,
@@ -39,3 +43,4 @@ export class AbacPolicyRegistry {
     return this.policies.get(resource);
   }
 }
+// jscpd:ignore-end

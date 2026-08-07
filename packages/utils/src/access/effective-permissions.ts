@@ -1,5 +1,6 @@
 import {
   APP_ACCESS_MATRIX,
+  APP_ACCESS_TARGETS,
   APP_PERMISSIONS_BY_ROLE,
   TIER_SENTINEL_FEATURES,
   getAccessFeature,
@@ -45,9 +46,8 @@ export function computeEffectivePermissions(
   const overrides = input.featureOverrides ?? {};
 
   if (input.role === "INTERNAL") {
-    const targets = Object.keys(APP_ACCESS_MATRIX);
     return Object.fromEntries(
-      targets.map((target) => [
+      Object.values(APP_ACCESS_TARGETS).map((target) => [
         target,
         { read: true, write: true },
       ]),
@@ -127,7 +127,7 @@ export function computeEffectivePermissions(
   };
 
   return Object.fromEntries(
-    (Object.keys(APP_ACCESS_MATRIX) as AppAccessTarget[]).map((target) => [
+    Object.values(APP_ACCESS_TARGETS).map((target) => [
       target,
       { read: canForTarget(target, "read"), write: canForTarget(target, "write") },
     ]),
