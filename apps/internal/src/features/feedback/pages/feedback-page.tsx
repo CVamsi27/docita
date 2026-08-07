@@ -9,7 +9,7 @@ interface FeedbackStats { total: number; averageRating: number; recentFeedback: 
 
 function RatingStars({ rating }: { rating: number }) {
   return <div className="flex gap-0.5">{[1, 2, 3, 4, 5].map((star) => (
-    <Star key={star} className={`h-4 w-4 ${rating >= star ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground"}`} />
+    <Star key={star} className={`h-4 w-4 ${rating >= star ? "text-warning fill-warning" : "text-muted-foreground"}`} />
   ))}</div>;
 }
 
@@ -42,10 +42,10 @@ export function FeedbackPage() {
         {stats && (
           <div className="grid gap-4 md:grid-cols-5 mb-6">
             <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total</CardTitle><MessageSquare className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums">{stats.total}</div><p className="text-xs text-muted-foreground">{stats.recentFeedback} recent</p></CardContent></Card>
-            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Avg Rating</CardTitle><Star className="h-4 w-4 text-yellow-500" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums">{stats.averageRating.toFixed(1)}</div><RatingStars rating={Math.round(stats.averageRating)} /></CardContent></Card>
-            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">New</CardTitle><AlertCircle className="h-4 w-4 text-blue-500" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums text-blue-500">{stats.byStatus.NEW || 0}</div></CardContent></Card>
+            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Avg Rating</CardTitle><Star className="h-4 w-4 text-warning" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums">{stats.averageRating.toFixed(1)}</div><RatingStars rating={Math.round(stats.averageRating)} /></CardContent></Card>
+            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">New</CardTitle><AlertCircle className="h-4 w-4 text-info" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums text-info">{stats.byStatus.NEW || 0}</div></CardContent></Card>
             <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">In Progress</CardTitle><Clock className="h-4 w-4 text-primary" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums text-primary">{stats.byStatus.IN_PROGRESS || 0}</div></CardContent></Card>
-            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Resolved</CardTitle><CheckCircle className="h-4 w-4 text-green-500" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums text-green-500">{stats.byStatus.RESOLVED || 0}</div></CardContent></Card>
+            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Resolved</CardTitle><CheckCircle className="h-4 w-4 text-success" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums text-success">{stats.byStatus.RESOLVED || 0}</div></CardContent></Card>
           </div>
         )}
 

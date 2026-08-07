@@ -51,8 +51,8 @@ export function HospitalBedsPage() {
               <div className="flex items-center justify-between mb-2">
                 <p className="font-medium">{bed.bedNumber}</p>
                 <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                  bed.status === "AVAILABLE" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-                  bed.status === "OCCUPIED" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
+                  bed.status === "AVAILABLE" ? "badge-success" :
+                  bed.status === "OCCUPIED" ? "badge-info" :
                   "bg-muted text-muted-foreground"
                 }`}>
                   {bed.status}

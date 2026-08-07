@@ -53,11 +53,11 @@ export function PerformancePage() {
             <Card key={idx}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
-                {metric.change > 0 ? <ArrowUp className="h-4 w-4 text-green-500" /> : metric.change < 0 ? <ArrowDown className="h-4 w-4 text-red-500" /> : <Minus className="h-4 w-4 text-muted-foreground" />}
+                {metric.change > 0 ? <ArrowUp className="h-4 w-4 text-success" /> : metric.change < 0 ? <ArrowDown className="h-4 w-4 text-destructive" /> : <Minus className="h-4 w-4 text-muted-foreground" />}
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-semibold tabular-nums">{metric.value} {metric.unit}</div>
-                <p className={`text-xs mt-1 ${metric.change > 0 ? "text-green-500" : metric.change < 0 ? "text-red-500" : "text-muted-foreground"}`}>
+                <p className={`text-xs mt-1 ${metric.change > 0 ? "text-success" : metric.change < 0 ? "text-destructive" : "text-muted-foreground"}`}>
                   {metric.change > 0 ? "+" : ""}{String(metric.change)}% from baseline
                 </p>
               </CardContent>

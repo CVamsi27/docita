@@ -106,7 +106,7 @@ export function PricingPage() {
                   <TableBody>{offers.map((offer) => (
                     <TableRow key={offer.id}>
                       <TableCell className="font-medium">{offer.title}</TableCell>
-                      <TableCell><Badge variant="outline" className="text-green-600">{offer.percentOff}% off</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className="text-success">{offer.percentOff}% off</Badge></TableCell>
                       <TableCell>{offer.durationMonths}mo</TableCell>
                       <TableCell>{offer.validUntil ? new Date(offer.validUntil).toLocaleDateString() : "-"}</TableCell>
                     </TableRow>

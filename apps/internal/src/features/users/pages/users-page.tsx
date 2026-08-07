@@ -25,7 +25,14 @@ const ROLE_CONFIG: Record<RoleFilter, { label: string; icon: React.ComponentType
 };
 
 function getRoleBadgeColor(role: string): string {
-  const colors: Record<string, string> = { ADMIN: "text-blue-600 bg-blue-100", ADMIN_DOCTOR: "text-purple-600 bg-purple-100", DOCTOR: "text-green-600 bg-green-100", RECEPTIONIST: "text-orange-600 bg-orange-100" };
+  const colors: Record<string, string> = {
+    ADMIN: "badge-info",
+    // Purple has no semantic token; ADMIN_DOCTOR reads as the neutral "combined" role.
+    ADMIN_DOCTOR: "badge-muted",
+    DOCTOR: "badge-success",
+    // badge-warning (amber) is the sanctioned stand-in for the legacy orange.
+    RECEPTIONIST: "badge-warning",
+  };
   return colors[role] ?? "";
 }
 

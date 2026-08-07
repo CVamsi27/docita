@@ -105,7 +105,7 @@ export function SystemMonitoringPage() {
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Status</CardTitle><Server className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                <CardContent><div className="flex items-center gap-2"><div className={`h-3 w-3 rounded-full ${health?.status === "healthy" ? "bg-green-500" : "bg-red-500"}`} />
+                <CardContent><div className="flex items-center gap-2"><div className={`h-3 w-3 rounded-full ${health?.status === "healthy" ? "bg-success" : "bg-destructive"}`} />
                   <span className="text-2xl font-semibold capitalize">{health?.status || "Unknown"}</span></div></CardContent></Card>
               <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Heap Usage</CardTitle><Cpu className="h-4 w-4 text-muted-foreground" /></CardHeader>
                 <CardContent><div className="text-2xl font-semibold tabular-nums">{heapPercent}%</div></CardContent></Card>
@@ -122,12 +122,12 @@ export function SystemMonitoringPage() {
                     {Object.entries(health.checks).map(([name, check]) => (
                       <div key={name} className="flex items-center justify-between p-2 rounded-md bg-muted/30">
                         <div className="flex items-center gap-2">
-                          {check.status === "healthy" ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <AlertTriangle className="h-4 w-4 text-red-500" />}
+                          {check.status === "healthy" ? <CheckCircle2 className="h-4 w-4 text-success" /> : <AlertTriangle className="h-4 w-4 text-destructive" />}
                           <span className="font-medium">{name}</span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span>Latency: {check.latency ? `${String(check.latency)}ms` : "-"}</span>
-                          {check.error && <span className="text-red-500">{check.error}</span>}
+                          {check.error && <span className="text-destructive">{check.error}</span>}
                         </div>
                       </div>
                     ))}
@@ -152,7 +152,7 @@ export function SystemMonitoringPage() {
                     <TableRow key={`${ep.path}-${String(idx)}`}>
                       <TableCell className="font-mono text-xs">{ep.path}</TableCell>
                       <TableCell><Badge variant="outline">{ep.method}</Badge></TableCell>
-                      <TableCell><span className={ep.avgLatency > 1000 ? "text-red-500 font-medium" : ""}>{String(ep.avgLatency)}ms</span></TableCell>
+                      <TableCell><span className={ep.avgLatency > 1000 ? "text-destructive font-medium" : ""}>{String(ep.avgLatency)}ms</span></TableCell>
                       <TableCell>{ep.count}</TableCell>
                     </TableRow>
                   ))}</TableBody></Table>
