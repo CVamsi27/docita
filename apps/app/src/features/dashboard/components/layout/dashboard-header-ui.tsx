@@ -40,7 +40,7 @@ export function DashboardHeaderUI({
             <p className="ui-helper-text">
               {formatDate(new Date(), "EEEE, MMMM d")}
             </p>
-            <h1 className="ui-page-title">
+            <h1 className="ui-page-title font-serif">
               {greeting}, {userName}!
             </h1>
             {summary ? (
