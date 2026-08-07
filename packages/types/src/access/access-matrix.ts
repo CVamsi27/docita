@@ -222,6 +222,18 @@ export const APP_ACCESS_TARGETS = {
 export type AppAccessTarget =
   (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
 
+/**
+ * Canonical tier→feature sentinels used to evaluate matrix tier requirements
+ * via `hasFeatureAccess` (single source — shared by the client `canAccessTarget`
+ * fallback and the server `computeEffectivePermissions` snapshot mirror).
+ */
+export const TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {
+  [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,
+  [Tier.ESSENTIAL]: Feature.INVOICING,
+  [Tier.PROFESSIONAL]: Feature.WHATSAPP_OWN_NUMBER,
+  [Tier.HOSPITAL]: Feature.WHATSAPP_MANAGED_NUMBER,
+};
+
 const DASHBOARD_ROLES: UserRole[] = [
   "ADMIN",
   "ADMIN_DOCTOR",
