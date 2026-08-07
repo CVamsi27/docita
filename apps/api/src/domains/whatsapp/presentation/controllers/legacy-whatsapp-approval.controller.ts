@@ -10,6 +10,7 @@ import type { RequestWithUser } from '@/shared/common/types/common.types';
 import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
 import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
 import { SuccessResponseDto } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
@@ -22,6 +23,7 @@ export class LegacyWhatsappApprovalController {
 
   @Post('approve-prescription/:id')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
+  @RequirePolicy('prescription', 'update')
   @ZodSerializerDto(SuccessResponseDto)
   async approvePrescription(
     @Req() req: RequestWithUser,
