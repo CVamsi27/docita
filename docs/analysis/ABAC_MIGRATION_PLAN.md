@@ -16,7 +16,7 @@ Point-in-time: **2026-08-04** (inventory verified against the live tree).
 **Goal**: move authorization from a coarse, statically-fixed Role-Based Access Control (RBAC) model to an Attribute-Based Access Control (ABAC) model — while keeping every existing guard, tenant boundary, tier/feature gate, and RLS policy strictly intact. The migration is a *layered extension*, not a replacement sweep: RBAC (role + tenant + tier/feature) remains the baseline first-pass denial layer, and ABAC policies add **object-level, context-aware** decisions on top.
 
 This is the execution companion for the existing authorization work in
-[`apps/api/src/shared/modules/auth/authorization/`](../../apps/api/src/shared/modules/auth/authorization/) (the current
+[`apps/api/src/shared/modules/authorization/`](../../apps/api/src/shared/modules/authorization/) (the current
 ABAC-precursor), [`docs/compliance/ACCESS_AUDIT.md`](../compliance/ACCESS_AUDIT.md), and
 [`docs/compliance/RLS_ROLLOUT.md`](../compliance/RLS_ROLLOUT.md). It extends
 [`docs/analysis/EXECUTION_PLAN.md`](EXECUTION_PLAN.md) rather than replacing it.
@@ -50,12 +50,21 @@ Operating rules (from `AGENTS.md` §5, §16, and the EXECUTION_PLAN):
 | **Tier / feature** | 56 `Feature` values → `FEATURE_TIER_MAP`; plan modes (`FULL`/`FRONT_DESK`/`CORE`) block via `MODE_BLOCKED_FEATURES`; per-clinic overrides; `hasFeatureAccess` + `assertClinicHasFeatureOrThrow` | `packages/types/src/billing/tier.ts` |
 | **API guard stack** | JWT → `TenantGuard`/`TenantContextInterceptor` (ALS + RLS tx routing) → `SubscriptionStatusGuard` → role guards (`@Roles`) → `FeatureGuard` (`@RequireFeature`) → `TierGuard` → object guards | `apps/api/src/shared/modules/auth/guards/`, `apps/api/src/shared/modules/auth/decorators/` |
 | **Predicate atoms** (already attribute-shaped) | `PatientDoctorGuard` (`@DoctorPatientScoped`) — patient-owns-own-record, DOCTOR must have an active `PatientDoctor` relation; `EmergencyAccess` metadata | `apps/api/src/shared/modules/auth/guards/patient-doctor.guard.ts`, `apps/api/src/shared/modules/auth/decorators/emergency-access.decorator.ts` |
-| **ABAC precursor** | `AuthorizationService.can()` composes subscription → role → feature → per-resource policy; `ResourcePolicyRegistry` with bespoke `appointment`/`patient`/`prescription`/`invoice` policies + `generic` tenant fallback (`report`/`staff`/`clinic`/`broadcast`) | `apps/api/src/shared/modules/auth/authorization/{authorization.service.ts,types.ts,policies/*}` |
+| **ABAC precursor (superseded 2026-08-07 — legacy programmatic engine removed; see §1.2 note)** | `AuthorizationService.can()` composed subscription → role → feature → per-resource policy; `ResourcePolicyRegistry` with bespoke `appointment`/`patient`/`prescription`/`invoice` policies + `generic` tenant fallback (`report`/`staff`/`clinic`/`broadcast`) | was `apps/api/src/shared/modules/auth/authorization/{authorization.service.ts,types.ts,policies/*}` → now `apps/api/src/shared/modules/authorization/` (single-engine `evaluateAbac` + `AbacPolicyRegistry`; pure policies in `packages/authorization`) |
 | **RLS (data plane)** | `tenant_isolation` policies + `SET LOCAL` GUC handshake + `rls-routing` Prisma extension; `RLS_ENABLED=true` in production; `docita_app` non-owner role | `docs/compliance/RLS_ROLLOUT.md`, migration `20260502143500_add_rls_policies` |
 | **Frontend gating** | `canAccessTarget` engine re-derives `APP_ACCESS_MATRIX` client-side; `FeatureGate`, nav gating, `ProtectedLayout`/`PublicRoute`/`PortalAuthGuard`/`LabAuthGuard`/`PatientAuthGuard` | `apps/app/src/lib/access-control/access-policy.ts`, `apps/app/src/App.tsx`, `apps/app/src/components/auth/` |
 | **Mechanical gates** | `check:controller-rbac`, `check:auth-tenant-safety`, `check:rls-rollout-readiness`, `check:tier-comparisons`, `check:workspace-profile-gating`; e2e `rbac-high-risk-matrix`, `rbac-403-verification` | `scripts/checks/`, `apps/api/test/e2e/auth/` |
 
 ### 1.2 The ABAC precursor today
+
+> **Superseded 2026-08-07 (Candidate A):** the programmatic legacy engine below —
+> `AuthorizationService.can()`/`check()`, `ResourcePolicyRegistry`, and the
+> `policies/*` implementations — was **unwired (zero production callers) and removed**;
+> see `ABAC_RETIREMENT_LEDGER.md` + ADR-0013 Phase D note. The current design is the
+> single-engine `AuthorizationService.evaluateAbac()` + `AbacPolicyRegistry` in
+> `apps/api/src/shared/modules/authorization/`, evaluated by the global `PolicyGuard`,
+> with pure policies in `packages/authorization/src/policies/`. The description below is
+> retained as the historical planning-time inventory.
 
 `AuthorizationService.can()` already implements the intended decision pipeline
 (`authorization.service.ts:37-113`): `no_user` → INTERNAL bypass → `no_clinic` →
@@ -152,7 +161,7 @@ The new `PolicyGuard` + `@RequirePolicy(resource, action)` decorator:
 | Layer | Owns | Not responsible for |
 | --- | --- | --- |
 | Decorators/guards (`@Roles`, `@RequireFeature`, tenant, subscription) | Baseline denial | Object-level nuance |
-| `ResourcePolicyRegistry` + policies | Object/context-level conditions | Tier math, tenant plumbing |
+| `AuthorizationModule` (`AbacPolicyRegistry` + resolvers + pure policies in `packages/authorization`) | Object/context-level conditions | Tier math, tenant plumbing |
 | RLS | Data-plane row enforcement (defense in depth) | Business policy |
 | Frontend `canAccessTarget` | UX preview only | Enforcement |
 

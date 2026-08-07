@@ -7,13 +7,26 @@ the keep/remove decision. Rule: **never weaken a guard** — the RBAC/tier/
 tenant/RLS baseline stays in force; a policy may only supplement or (after a
 differential pass) supersede. When in doubt, keep.
 
+> **Supersede note (2026-08-07, Phase D completion):** the legacy
+> *programmatic* policy engine inside `AuthorizationService` —
+> `ResourcePolicyRegistry` + the five `ResourcePolicy` implementations
+> (`policies/`) + the `can()`/`check()` methods — was **REMOVED**. Evidence:
+> zero production callers (the only consumer, `PolicyGuard`, calls
+> `evaluateAbac` only; ADR-0013's own context records the legacy engine as
+> "unwired — no guard invokes it"). The rows below that read "KEEP the
+> service-layer check" are superseded: that keep was premised on the check
+> being a live enforcement path, which it never was. **No guard was weakened**
+> — no route, guard, or service invoked `can()`/`check()`. The pure
+> `@workspace/authorization` engine, its differential oracles, and the ABAC
+> e2e suites are the surviving semantic reference.
+
 ## Decision table
 
 | Legacy guard / check | Policy (resource) | Differential evidence | Decision |
 | --- | --- | --- | --- |
 | `PatientDoctorGuard` (`@DoctorPatientScoped`) | `patient` (C1) — assignment-pinning on the staff surface (`requiresAssignment: true`) | C1 oracle + `patient-abac.e2e` (assigned 200 / unassigned 403 / ADMIN_DOCTOR·NURSE·RECEPTIONIST·ADMIN·INTERNAL bypass / BTG + audit) | **KEEP** the guard as defense-in-depth (cheap, low-drift); the policy now also covers the guard's bypass semantics at the guard stage. `PatientDoctor` backfill script + deploy-order tripwire required before the flip ships (AGENTS §9.4 existing-user protection). |
-| Legacy `AppointmentPolicy` (service-layer `AuthorizationService.can`) | `appointment` (C2) — assignment-based doctor scoping + cross-clinic 404 | C2 oracle (12 rows) + `appointment-abac.e2e` (11 cases): wire outcomes unchanged vs the service-layer access context | **KEEP** the service-layer check; the policy is mirror-only (status write-locks DEFERRED as C2.1 pending a product decision). |
-| Legacy `PrescriptionPolicy` | `prescription` (C3) — read retains matrix roles; DOCTOR author-of-record on update/delete | C3 oracle (incl. delete branch) + `prescription-abac.e2e` (11 cases) + existing `prescriptions.e2e` 8/8 unchanged | **KEEP** the legacy policy for read parity; the approve route (`POST /whatsapp/approve-prescription/:id`) is a **recorded tightening** (C3.1, ADR-0013): was roles-only, now author-of-record for plain DOCTOR (403 otherwise); ADMIN/ADMIN_DOCTOR clinic-wide. |
+| Legacy `AppointmentPolicy` (service-layer `AuthorizationService.can`) | `appointment` (C2) — assignment-based doctor scoping + cross-clinic 404 | C2 oracle (12 rows) + `appointment-abac.e2e` (11 cases): wire outcomes unchanged vs the service-layer access context | **REMOVED 2026-08-07** — the programmatic engine was unwired (zero production callers); the pure policy + C2 oracle + e2e are the surviving reference (see supersede note above). Status write-locks remain DEFERRED as C2.1 pending a product decision. |
+| Legacy `PrescriptionPolicy` | `prescription` (C3) — read retains matrix roles; DOCTOR author-of-record on update/delete | C3 oracle (incl. delete branch) + `prescription-abac.e2e` (11 cases) + existing `prescriptions.e2e` 8/8 unchanged | **REMOVED 2026-08-07** — the programmatic engine was unwired (zero production callers); read/author parity is pinned by the pure policy oracle + both e2e suites (see supersede note above). The approve route (`POST /whatsapp/approve-prescription/:id`) remains a **recorded tightening** (C3.1, ADR-0013): was roles-only, now author-of-record for plain DOCTOR (403 otherwise); ADMIN/ADMIN_DOCTOR clinic-wide. |
 | Legacy `InvoicePolicy` | `invoice` (C4) — PATIENT own-row + clinical staff clinic-wide | C4 oracle + `invoice-abac.e2e` (9 cases) + existing `invoices.e2e` 25/25 unchanged | **KEEP**; mirror-only, no author pin. `approve-invoice` stays clinic-wide (C4.3 — resolves the C3.1 question; the legacy policy has no author branch, unlike prescriptions). |
 | Lab-order object checks (clinic-scoped `getOrderById` + matrix roles) | `lab-order` (C4) — clinical staff clinic-wide incl. LAB | C4 oracle + `lab-order-abac.e2e` (9 cases) | **KEEP**; mirror-only. Assignment pinning (LAB → `labId`) and payment-state conditions DEFERRED (C4.1) — no service-layer guard exists today to mirror. |
 | Audit controller tenant-forcing (`filter.clinicId = userClinicId`) + `TenantGuard` clinic-scope rejection | `audit-log` (C5) — tenant-scoped admin read, no existence disclosure | C5 oracle + `audit-log-abac.e2e` (11 cases) + existing `patient-phi-read-audit` 6/6 | **KEEP** both; the policy's tenant discipline is structural (list routes resolve the requester's own clinic); `TenantGuard` rejects cross-clinic `?clinicId=` with 403 before the controller. |

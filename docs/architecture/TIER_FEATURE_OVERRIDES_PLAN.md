@@ -94,8 +94,7 @@ These are the ⚠️ rows in the audit. None are blocking Part A, but they pay o
 - **Edit:** [apps/api/src/shared/modules/auth/utils/clinic-feature-access.util.ts](apps/api/src/shared/modules/auth/utils/clinic-feature-access.util.ts) — Zod-parse overrides
 - **Edit:** [apps/app/src/features/subscription/hooks/use-pricing.ts](apps/app/src/features/subscription/hooks/use-pricing.ts) — add preset toggle on tier cards
 - **Edit:** [apps/app/src/lib/stores/permission-store.ts](apps/app/src/lib/stores/permission-store.ts) — surface overrides + presets to the frontend
-- **New:** `apps/api/src/shared/modules/auth/authorization.service.ts` (Part B)
-- **New:** `apps/api/src/shared/modules/auth/policies/*.policy.ts` (Part B)
+- **New:** `apps/api/src/shared/modules/authorization/` ABAC wiring (Part B; policies themselves live in `packages/authorization/src/policies/`)
 - **New:** `apps/app/src/components/auth/feature-gate.tsx` + `apps/app/src/hooks/use-permissions.ts` (Part B)
 
 ## Why this beats adding a new tier

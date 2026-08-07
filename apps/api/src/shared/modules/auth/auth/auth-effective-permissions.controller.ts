@@ -11,7 +11,7 @@ import { computeEffectivePermissions } from '@workspace/utils';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { createZodDto } from 'nestjs-zod';
 import type { RequestWithUser } from '@/shared/common/types/common.types';
-import { dbRoleToUserRole } from '@/shared/modules/auth/authorization/role-bridge';
+import { dbRoleToUserRole } from '@/shared/modules/authorization/role-bridge';
 import { ClinicAuthCacheService } from './clinic-auth-cache.service';
 import { EffectivePermissionsApiAccess } from './auth.controller.access';
 

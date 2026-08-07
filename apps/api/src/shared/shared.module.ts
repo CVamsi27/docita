@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { OutboxModule } from './modules/outbox/outbox.module';
 import { AuthModule } from './modules/auth/auth/auth.module';
-import { AuthorizationModule } from './modules/auth/authorization/authorization.module';
+import { AuthorizationModule } from './modules/authorization/authorization.module';
 import { ImportsModule } from './modules/imports/imports.module';
 import { InternalModule } from './modules/internal/internal.module';
 import { AppConfigModule } from './modules/config/config.module';

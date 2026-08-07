@@ -26,9 +26,9 @@ const CLINICAL_STAFF_ROLES = new Set([
 
 /**
  * Patient object-level policy. Order matters:
- *   1. INTERNAL bypass (mirrors AuthorizationService.can())
+ *   1. INTERNAL bypass (mirrors the legacy AuthorizationService guard semantics)
  *   2. not-applicable for non-patient resources
- *   3. tenant discipline (mirrors BaseResourcePolicy.checkTenantAccess)
+ *   3. tenant discipline (cross-clinic → deny, no existence disclosure)
  *   4. PATIENT own-row (Patient.userId === subject.userId — PatientDoctorGuard semantics)
  *   5. doctor assignment-pinning, only when resource.requiresAssignment is set
  *      AND the subject is a plain DOCTOR (ADMIN_DOCTOR/NURSE/RECEPTIONIST/ADMIN

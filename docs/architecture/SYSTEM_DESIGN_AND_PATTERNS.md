@@ -526,7 +526,7 @@ When behavior varies by `(entityType, mode)` or by import file type, the codebas
 | --- | --- | --- |
 | Search | `(SearchEntityType, SearchMode)` | [`search-strategy.registry.ts`](../../apps/api/src/shared/modules/search/search-strategy.registry.ts) |
 | Bulk import | `ImportKind` | [`bulk-import-strategy.registry.ts`](../../apps/api/src/shared/modules/imports/bulk-import-strategy.registry.ts) |
-| Authorization policies | `ResourceType` | [`authorization/policies/registry.ts`](../../apps/api/src/shared/modules/auth/authorization/policies/registry.ts) |
+| Authorization policies | resource string → `AbacPolicy` | [`abac-policy.registry.ts`](../../apps/api/src/shared/modules/authorization/abac-policy.registry.ts) |
 | PDF processors | `PdfDocumentType` | [`pdf-processor-registration.ts`](../../apps/api/src/shared/modules/queue/pdf-processor-registration.ts) |
 
 **Contract:**
@@ -539,11 +539,12 @@ Adding a new searchable entity means: implement `ISearchStrategy`, register in t
 
 ### 3.16 Chain of Responsibility (authorization policies)
 
-Backend authorization for fine-grained resources (patient record, invoice, appointment) uses a **policy chain**, not ad-hoc `if (role === …)` in controllers.
+Backend authorization for fine-grained resources (patient record, invoice, appointment) uses an **ABAC policy chain** (ADR-0013), not ad-hoc `if (role === …)` in controllers.
 
-- Policies live under [`apps/api/src/shared/modules/auth/authorization/policies/`](../../apps/api/src/shared/modules/auth/authorization/policies/) (`patient.policy.ts`, `invoice.policy.ts`, …).
-- [`authorization.service.ts`](../../apps/api/src/shared/modules/auth/authorization/authorization.service.ts) is the policy decision point. It composes subscription, role, feature, and resource-policy checks, then throws `ForbiddenException` on denial.
-- Controllers call `policyEngine.assertCan(...)` or use guards that delegate to the engine.
+- Pure, framework-agnostic policies live in [`packages/authorization/src/policies/`](../../packages/authorization/src/policies/) (`patient.policy.ts`, `invoice.policy.ts`, …) and are registered in [`AbacPolicyRegistry`](../../apps/api/src/shared/modules/authorization/abac-policy.registry.ts).
+- Resolvers map DB rows to resource attributes in [`apps/api/src/shared/modules/authorization/resolvers/`](../../apps/api/src/shared/modules/authorization/resolvers/).
+- [`AuthorizationService.evaluateAbac`](../../apps/api/src/shared/modules/authorization/authorization.service.ts) is the decision point; the global `PolicyGuard` (`APP_GUARD`, last stage) enforces it — 403 on deny, 404 on `tenant_mismatch` (no existence disclosure).
+- Controllers declare `@RequirePolicy(resource, action)`; the static `check:policy-resolver-coverage` gate fails the build if a declared resource has no registered resolver (fail-closed).
 
 The **frontend mirror** is [`apps/app/src/lib/access-control/access-policy.ts`](../../apps/app/src/lib/access-control/access-policy.ts). UI hides nav entries and blocks routes; the API is still authoritative. Never gate sensitive writes on the client alone.
 

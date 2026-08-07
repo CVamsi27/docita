@@ -3,12 +3,12 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { describe, expect, it, jest } from '@jest/globals';
-import { REQUIRE_POLICY_KEY } from '../decorators/require-policy.decorator';
-import { EMERGENCY_ACCESS_KEY } from '../decorators/emergency-access.decorator';
-import { AuthorizationService } from './authorization.service';
-import { PolicyGuard } from '../guards/policy.guard';
-import { PolicyResourceResolverRegistry } from './resolvers/policy-resource-resolver';
-import type { PolicyResourceResolver } from './resolvers/policy-resource-resolver.interface';
+import { REQUIRE_POLICY_KEY } from '@/shared/modules/auth/decorators/require-policy.decorator';
+import { EMERGENCY_ACCESS_KEY } from '@/shared/modules/auth/decorators/emergency-access.decorator';
+import { AuthorizationService } from '@/shared/modules/authorization/authorization.service';
+import { PolicyGuard } from '@/shared/modules/auth/guards/policy.guard';
+import { PolicyResourceResolverRegistry } from '@/shared/modules/authorization/resolvers/policy-resource-resolver';
+import type { PolicyResourceResolver } from '@/shared/modules/authorization/resolvers/policy-resource-resolver.interface';
 import type { ResourceAttributes } from '@workspace/types';
 
 function makeContext(
@@ -44,9 +44,9 @@ function makeContext(
   } as unknown as ExecutionContext;
 }
 
-function makeResolver(): PolicyResourceResolver {
-  const resource: ResourceAttributes = {
-    type: 'patient',
+function makeResolver(resource: string): PolicyResourceResolver {
+  const attributes: ResourceAttributes = {
+    type: resource,
     clinicId: 'clinic-a',
     ownerId: 'pat-user-1',
     assignedDoctorIds: [],
@@ -54,9 +54,21 @@ function makeResolver(): PolicyResourceResolver {
     requiresAssignment: false,
   };
   return {
-    resource: 'patient',
-    resolve: jest.fn(async () => resource),
+    resource,
+    resolve: jest.fn(async () => attributes),
   };
+}
+
+function makeResolverRegistry() {
+  // Mirrors the DI-registered resolver set (lockstep with the ABAC registry).
+  return new PolicyResourceResolverRegistry(
+    makeResolver('patient'),
+    makeResolver('appointment'),
+    makeResolver('prescription'),
+    makeResolver('invoice'),
+    makeResolver('lab-order'),
+    makeResolver('audit-log'),
+  );
 }
 
 function makeGuard(options: { allow?: boolean } = {}) {
@@ -68,10 +80,7 @@ function makeGuard(options: { allow?: boolean } = {}) {
         : { allowed: true },
     ),
   } as unknown as AuthorizationService;
-  const registry = new PolicyResourceResolverRegistry(
-    makeResolver(),
-    makeResolver(),
-  );
+  const registry = makeResolverRegistry();
   return {
     guard: new PolicyGuard(reflector, authorization, registry),
     authorization,
@@ -159,14 +168,15 @@ describe('PolicyGuard', () => {
     const authorization = {
       evaluateAbac: jest.fn(async () => ({ allowed: true })),
     } as unknown as AuthorizationService;
-    // Only 'patient'/'appointment' have resolvers; declaring any other
+    // Only the six registered resources have resolvers; declaring any other
     // resource must deny (fail-closed on misconfiguration).
-    const registry = new PolicyResourceResolverRegistry(
-      makeResolver(),
-      makeResolver(),
-    );
+    const registry = makeResolverRegistry();
     const guard = new PolicyGuard(reflector, authorization, registry);
-    const meta = { requirePolicy: { resource: 'invoice', action: 'read' } };
+    // Deliberately off-map — every registered resource now has a resolver;
+    // declaring an unknown resource must deny (fail-closed).
+    const meta = {
+      requirePolicy: { resource: 'not-a-resource', action: 'read' },
+    };
     await expect(
       guard.canActivate(
         makeContext(meta, {

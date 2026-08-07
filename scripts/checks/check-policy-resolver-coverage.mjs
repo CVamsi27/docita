@@ -30,14 +30,14 @@ for (const file of controllerFiles) {
 }
 
 const registryFile =
-  "apps/api/src/shared/modules/auth/authorization/resolvers/policy-resource-resolver.ts";
+  "apps/api/src/shared/modules/authorization/resolvers/policy-resource-resolver.ts";
 const registryText = fs.existsSync(registryFile)
   ? fs.readFileSync(registryFile, "utf8")
   : "";
 
 const violations = [];
 for (const [resource, sites] of usage.entries()) {
-  const resolverFile = `apps/api/src/shared/modules/auth/authorization/resolvers/${resource}-resource.resolver.ts`;
+  const resolverFile = `apps/api/src/shared/modules/authorization/resolvers/${resource}-resource.resolver.ts`;
   const hasFile = fs.existsSync(resolverFile);
   const hasRegistration = new RegExp(`\\['${resource}',`).test(registryText);
   if (!hasFile || !hasRegistration) {

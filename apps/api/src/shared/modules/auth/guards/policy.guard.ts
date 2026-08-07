@@ -10,14 +10,14 @@ import { Role } from '@workspace/db';
 import type { SubjectAttributes } from '@workspace/types';
 import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import type { RequestWithUser } from '@/shared/common/types/common.types';
-import { AuthorizationService } from '@/shared/modules/auth/authorization/authorization.service';
-import { PolicyResourceResolverRegistry } from '@/shared/modules/auth/authorization/resolvers/policy-resource-resolver';
+import { AuthorizationService } from '@/shared/modules/authorization/authorization.service';
+import { PolicyResourceResolverRegistry } from '@/shared/modules/authorization/resolvers/policy-resource-resolver';
 import {
   REQUIRE_POLICY_KEY,
   type RequirePolicyMetadata,
 } from '@/shared/modules/auth/decorators/require-policy.decorator';
 import { EMERGENCY_ACCESS_KEY } from '@/shared/modules/auth/decorators/emergency-access.decorator';
-import { dbRoleToUserRole } from '@/shared/modules/auth/authorization/role-bridge';
+import { dbRoleToUserRole } from '@/shared/modules/authorization/role-bridge';
 
 /**
  * Global ABAC enforcement stage. No-op when the route declares no
@@ -73,9 +73,13 @@ export class PolicyGuard implements CanActivate {
     // tenantStorage.bypassed. Missing patients still 404 from the resolver
     // (no existence disclosure) — BTG only bypasses the policy stage.
     //
-    // Deliberate consequence: BTG also bypasses the tenant_mismatch → 404
-    // mapping below, so a cross-clinic BTG read returns 200. That is the
-    // point of BTG (it bypasses RLS too) — it is audited and reason-gated.
+    // Scope of the bypass: BTG skips the policy stage (including the
+    // tenant_mismatch → 404 mapping below) AND RLS, but NOT the tenant-scoped
+    // service/repository layer. On today's only eligible route (GET
+    // /patients/:id) the controller passes the requester's own clinicId to
+    // the service, so a cross-clinic BTG read still 404s there (pinned in
+    // patient-abac-pinning e2e) — BTG grants unassigned-doctors access to
+    // their own clinic's data, audited + reason-gated, never cross-tenant.
     const isEmergencyRequest =
       request.headers?.['x-break-the-glass'] === 'true';
     const isEmergencyEligible = this.reflector.getAllAndOverride<boolean>(
