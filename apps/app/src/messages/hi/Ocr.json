@@ -1,0 +1,79 @@
+{
+  "invoiceDraft": {
+    "subtotalLabel": "उप-योग",
+    "subtotalPlaceholder": "उप-योग दर्ज करें",
+    "taxLabel": "कर",
+    "taxPlaceholder": "कर दर्ज करें",
+    "grandTotalLabel": "कुल योग",
+    "grandTotalPlaceholder": "कुल योग दर्ज करें",
+    "lineDescriptionPlaceholder": "विवरण दर्ज करें",
+    "lineQuantityPlaceholder": "मात्रा दर्ज करें",
+    "lineUnitPricePlaceholder": "इकाई मूल्य दर्ज करें",
+    "lineTotalPlaceholder": "पंक्ति योग दर्ज करें",
+    "removeButton": "हटाएँ",
+    "lineItemsLabel": "पंक्ति आइटम",
+    "addLineItemButton": "पंक्ति आइटम जोड़ें"
+  },
+  "patientInfo": {
+    "sectionTitle": "मरीज़ जानकारी",
+    "lowConfidenceBadge": "जाँचें",
+    "firstNameLabel": "पहला नाम",
+    "lastNameLabel": "अंतिम नाम",
+    "suggestionLabel": "सुझाव:",
+    "ageLabel": "आयु",
+    "phoneLabel": "फ़ोन",
+    "emailLabel": "ईमेल",
+    "bloodTypeLabel": "रक्त प्रकार",
+    "bloodTypePlaceholder": "रक्त प्रकार"
+  },
+  "vitals": {
+    "sectionTitle": "जीवन-चिह्न",
+    "bpLabel": "रक्तचाप",
+    "bpPlaceholder": "रक्तचाप",
+    "tempLabel": "तापमान (°F)",
+    "tempPlaceholder": "तापमान",
+    "pulseLabel": "नाड़ी",
+    "pulsePlaceholder": "नाड़ी",
+    "respiratoryRateLabel": "श्वसन दर",
+    "respiratoryRatePlaceholder": "श्वसन दर",
+    "spO2Label": "SpO2 (%)",
+    "spO2Placeholder": "SpO2",
+    "glucoseLabel": "ग्लूकोज़",
+    "glucosePlaceholder": "ग्लूकोज़"
+  },
+  "labValues": {
+    "sectionTitle": "लैब मान",
+    "glucoseLabel": "ग्लूकोज़ (mg/dL)",
+    "glucosePlaceholder": "ग्लूकोज़",
+    "hemoglobinLabel": "हीमोग्लोबिन (g/dL)",
+    "hemoglobinPlaceholder": "हीमोग्लोबिन",
+    "creatinineLabel": "क्रिएटिनिन (mg/dL)",
+    "creatininePlaceholder": "क्रिएटिनिन"
+  },
+  "uploadSection": {
+    "stepTitle": "1. दस्तावेज़ अपलोड करें",
+    "stepDescription": "फोटो लें या छवि अपलोड करें",
+    "previewAlt": "पूर्वावलोकन",
+    "dropzonePrompt": "अपलोड करने के लिए क्लिक करें या ड्रैग और ड्रॉप करें",
+    "uploadFromMobileButton": "मोबाइल से अपलोड करें",
+    "scanningLabel": "स्कैन हो रहा है…",
+    "rescanButton": "पुनः स्कैन करें",
+    "scanDocumentButton": "दस्तावेज़ स्कैन करें",
+    "chooseFileFirstTooltip": "पहले अपलोड क्षेत्र में एक फ़ाइल चुनें",
+    "selectedFileLabel": "चयनित फ़ाइल: {name}",
+    "tipsTitle": "सर्वोत्तम परिणामों के लिए सुझाव:",
+    "tipsTip1": "अच्छी रोशनी और स्पष्ट हस्तलिपि सुनिश्चित करें",
+    "tipsTip2": "हेडर सहित पूरा पृष्ठ कैप्चर करें",
+    "tipsTip3": "छाया और धुंध से बचें"
+  },
+  "header": {
+    "staffPanelTitle": "2. स्टाफ सुधार पैनल",
+    "staffPanelSubtitle": "निकाली गई जानकारी की पुष्टि करें और सुधारें",
+    "manualEntryTitle": "मैन्युअल डेटा एंट्री आवश्यक",
+    "manualEntryBody": "यह बेसिक OCR मोड छवि फ़ाइल स्वीकार करता है। स्वचालित टेक्स्ट निष्कर्षण और फ़ील्ड पॉपुलेशन के लिए, AI-संचालित निष्कर्षण सुविधा सक्षम करें।",
+    "lowConfidenceTitle": "कम विश्वास वाले फ़ील्ड पाए गए",
+    "lowConfidenceBody": "कृपया हाइलाइट किए गए फ़ील्ड की समीक्षा करें और सुधारें",
+    "aiSuggestionsTitle": "AI सुझाव उपलब्ध",
+    "aiSuggestionsBody": "प्रत्येक फ़ील्ड के ऊपर सुझाए गए सुधार देखें"
+  }
+}

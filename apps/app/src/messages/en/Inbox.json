@@ -1,0 +1,19 @@
+{
+  "pageTitle": "Inbox",
+  "pageDescriptionDefault": "Notifications and shortcuts to workspaces you can access.",
+  "emptyTitle": "No inbox shortcuts for your role",
+  "emptyDescription": "Your plan or role does not include the workspaces that normally appear here.",
+  "loading": "Loading inbox...",
+  "tabEmptyTitle": "{label} live in their dedicated workspace",
+  "openWorkspace": "Open {label}",
+  "tabs": {
+    "notifications": "Notifications",
+    "notificationsDescription": "Alerts and activity across your clinic.",
+    "followUps": "Follow-ups",
+    "followUpsDescription": "Patients to contact based on visit history.",
+    "joinRequests": "Join requests",
+    "joinRequestsDescription": "Pending team invitations awaiting approval.",
+    "codingQueue": "Coding queue",
+    "codingQueueDescription": "Visits awaiting medical coding sign-off."
+  }
+}

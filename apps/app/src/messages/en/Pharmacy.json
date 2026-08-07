@@ -1,0 +1,14 @@
+{
+  "page": {
+    "pageTitle": "Pharmacy",
+    "pageDescription": "Dispense queue, stock visibility, and reorder list — keep the pharmacy moving.",
+    "waitingLabel": "Waiting to dispense",
+    "awaitingBackendLabel": "Awaiting backend",
+    "belowParLabel": "Below par",
+    "outOfStockLabel": "Out of stock",
+    "dispenseQueueTitle": "Dispense queue",
+    "emptyTitle": "Pharmacy workflow pending backend",
+    "emptyDescription": "The dispense queue derives from prescriptions awaiting in-house fulfillment. Once the pharmacy domain (or inventory extension) is wired with useDispenseQueue hooks, this view will show pending prescriptions, hand-off to WhatsApp, and stock par-level alerts.",
+    "emptyAction": "Open inventory"
+  }
+}

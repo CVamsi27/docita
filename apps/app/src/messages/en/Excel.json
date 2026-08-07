@@ -1,0 +1,16 @@
+{
+  "resultsStep": {
+    "totalRowsLabel": "Total rows",
+    "importedLabel": "Imported",
+    "duplicatesLabel": "Duplicates",
+    "failedLabel": "Failed",
+    "importDetailsTitle": "Import details",
+    "duplicatesSkippedTitle": "Duplicates skipped",
+    "colRow": "Row",
+    "colReason": "Reason",
+    "colExistingPatient": "Existing patient",
+    "errorsTitle": "Errors",
+    "viewPatientsButton": "View Patients",
+    "importMoreButton": "Import More"
+  }
+}

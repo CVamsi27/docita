@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { glob, readFile } from "node:fs/promises";
 import { buildResources } from "../index";
-import en from "@/messages/en.json";
-import hi from "@/messages/hi.json";
+import { enMessages, hiMessages } from "@/messages";
 
 /**
  * Resolve a dotted key inside a namespace subtree the same way i18next does:
@@ -61,8 +60,8 @@ function functionDefs(source: string): Array<{ name: string; index: number }> {
  * namespace made every section lookup fall back to the key).
  */
 describe("i18n namespace registration", () => {
-  const enResources = buildResources(en);
-  const hiResources = buildResources(hi);
+  const enResources = buildResources(enMessages);
+  const hiResources = buildResources(hiMessages);
 
   it("registers top-level sections and nested section subtrees as namespaces", () => {
     // Auth.signIn is a nested section used via useTranslation("Auth.signIn")

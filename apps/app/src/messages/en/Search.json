@@ -1,0 +1,14 @@
+{
+  "ariaLabel": "Search patients, appointments, and prescriptions",
+  "triggerLabel": "Search patients…",
+  "srLabel": "Global search",
+  "inputPlaceholder": "Enter patient, appointment, or prescription",
+  "inputAriaLabel": "Global search",
+  "clearSearch": "Clear search",
+  "results": {
+    "searching": "Searching…",
+    "errorMessage": "We could not run this search. Please try again.",
+    "tryAgain": "Try again",
+    "noResults": "No results found for “{query}”"
+  }
+}

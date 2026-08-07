@@ -1,0 +1,11 @@
+{
+  "validating": "Validating upload link…",
+  "expiredTitle": "Upload Link Expired",
+  "expiredDescription": "This link may have expired or been used. Please request a new upload link from the Docita app.",
+  "successTitle": "Upload successful",
+  "successDescription": "Your signature has been uploaded successfully.",
+  "signatureUploadedFor": "Signature uploaded for {name}",
+  "successFooter": "You can now close this page. Your signature will appear on all prescriptions and medical documents.",
+  "uploadTitle": "Upload Your Signature",
+  "uploadDescription": "Draw or upload a clear image of your signature for Dr. {doctorName}"
+}

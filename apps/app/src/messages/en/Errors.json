@@ -1,0 +1,7 @@
+{
+  "notFound": {
+    "title": "Page Not Found",
+    "message": "The page you are looking for does not exist or has moved.",
+    "goToToday": "Go to today's schedule"
+  }
+}

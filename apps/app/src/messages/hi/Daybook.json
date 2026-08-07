@@ -1,0 +1,22 @@
+{
+  "pageTitle": "डेबुक",
+  "pageDescription": "दिन के अंत की नकद मिलान — संग्रह, भुगतान-विधि विवरण और दिन का लेज़र।",
+  "previousDayAriaLabel": "पिछला दिन",
+  "nextDayAriaLabel": "अगला दिन",
+  "refreshButton": "रीफ़्रेश करें",
+  "error": "हम इस दिन का डेबुक लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+  "collectedEyebrow": "आज एकत्रित",
+  "paidInvoiceCount": "{count} इनवॉइस भुगतान किए गए",
+  "pendingEyebrow": "लंबित",
+  "pendingHelper": "जारी किए गए लेकिन अभी तक भुगतान न किए गए इनवॉइस",
+  "cashOnHandEyebrow": "हाथ में नकद",
+  "cashOnHandHelper": "कैश-आउट के बाद प्राप्त नकद भुगतान",
+  "byMethodTitle": "विधि द्वारा एकत्रित",
+  "ledgerTitle": "लेज़र",
+  "emptyLedgerTitle": "अभी तक कोई लेज़र प्रविष्टियां नहीं",
+  "emptyLedgerDescription": "आज प्राप्त भुगतान यहां दिखाई देंगे",
+  "viewInvoicesAction": "इनवॉइस देखें",
+  "closeDayTitle": "दिन समाप्त करें",
+  "closeDayDescription": "अगले दिन पर जाने से पहले आज के संग्रह का मिलान करें और लॉक करें",
+  "closeDayButton": "दिन समाप्त करें"
+}

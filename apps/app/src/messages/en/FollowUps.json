@@ -1,0 +1,34 @@
+{
+  "pageTitle": "Follow-ups",
+  "pageDescription": "Close the loop on planned patient callbacks and review visits",
+  "appointmentsButton": "Appointments",
+  "worklistTitle": "Worklist",
+  "viewSelectorAriaLabel": "Follow-up worklist view",
+  "loading": "Loading follow-ups...",
+  "error": "We could not load follow-ups. Please try again.",
+  "emptyTitle": "No open follow-ups",
+  "emptyDescription": "Open follow-ups for the selected view will appear here",
+  "completeError": "We could not complete this follow-up. Please try again.",
+  "cancelError": "We could not cancel this follow-up. Please try again.",
+  "card": {
+    "dueDate": "Due {date}",
+    "doctor": "Doctor: {name}",
+    "unassigned": "Unassigned",
+    "completeButton": "Complete",
+    "cancelButton": "Cancel"
+  },
+  "statusLabels": {
+    "pending": "Pending",
+    "reminderSent": "Reminder sent",
+    "booked": "Booked",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "expired": "Expired"
+  },
+  "viewOptions": {
+    "overdue": "Overdue",
+    "today": "Today",
+    "upcoming": "Upcoming",
+    "all": "All open"
+  }
+}

@@ -335,10 +335,10 @@ test("i18next-parity check fails on missing hi keys or dead hi-only keys", () =>
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app/src/messages/en.json":
-          `{\n  "Demo": {\n    "title": "Title",\n    "subtitle": "Subtitle"\n  }\n}\n`,
-        "apps/app/src/messages/hi.json":
-          `{\n  "Demo": {\n    "title": "शीर्षक"\n  }\n}\n`,
+        "apps/app/src/messages/en/Demo.json":
+          `{\n  "title": "Title",\n  "subtitle": "Subtitle"\n}\n`,
+        "apps/app/src/messages/hi/Demo.json":
+          `{\n  "title": "शीर्षक"\n}\n`,
       }),
       "check-i18next-parity.mjs",
       ["--enforce"],
@@ -347,10 +347,10 @@ test("i18next-parity check fails on missing hi keys or dead hi-only keys", () =>
   expectFail(
     runCheck(
       makeGitFixture({
-        "apps/app/src/messages/en.json":
-          `{\n  "Demo": {\n    "title": "Title"\n  }\n}\n`,
-        "apps/app/src/messages/hi.json":
-          `{\n  "Demo": {\n    "title": "शीर्षक",\n    "deadKey": "मृत कुंजी"\n  }\n}\n`,
+        "apps/app/src/messages/en/Demo.json":
+          `{\n  "title": "Title"\n}\n`,
+        "apps/app/src/messages/hi/Demo.json":
+          `{\n  "title": "शीर्षक",\n  "deadKey": "मृत कुंजी"\n}\n`,
       }),
       "check-i18next-parity.mjs",
       ["--enforce"],
@@ -359,10 +359,10 @@ test("i18next-parity check fails on missing hi keys or dead hi-only keys", () =>
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/app/src/messages/en.json":
-          `{\n  "Demo": {\n    "title": "Title",\n    "subtitle": "Subtitle"\n  }\n}\n`,
-        "apps/app/src/messages/hi.json":
-          `{\n  "Demo": {\n    "title": "शीर्षक",\n    "subtitle": "उपशीर्षक"\n  }\n}\n`,
+        "apps/app/src/messages/en/Demo.json":
+          `{\n  "title": "Title",\n  "subtitle": "Subtitle"\n}\n`,
+        "apps/app/src/messages/hi/Demo.json":
+          `{\n  "title": "शीर्षक",\n  "subtitle": "उपशीर्षक"\n}\n`,
       }),
       "check-i18next-parity.mjs",
       ["--enforce"],

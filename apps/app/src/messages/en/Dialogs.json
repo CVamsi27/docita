@@ -1,0 +1,29 @@
+{
+  "inventoryAddItem": {
+    "title": "Add Inventory Item",
+    "description": "Add a new item to your inventory",
+    "submitLabel": "Add item",
+    "success": "Item added successfully",
+    "error": "We could not add this item. Please try again.",
+    "itemName": "Item name",
+    "category": "Category",
+    "quantity": "Quantity",
+    "minStock": "Minimum Stock Level",
+    "expiryDate": "Expiry Date",
+    "expiryDatePlaceholder": "Expiry date"
+  },
+  "contactSales": {
+    "title": "Contact Sales",
+    "description": "Get in touch with our sales team to discuss your facility’s needs",
+    "successTitle": "Message Sent!",
+    "successBody": "Thank you for reaching out. Our sales team will contact you within 24 hours.",
+    "name": "Name",
+    "email": "Email",
+    "facilityName": "Facility name",
+    "message": "Message",
+    "messagePlaceholder": "Enter message",
+    "cancel": "Cancel",
+    "sending": "Sending…",
+    "sendInquiry": "Send Inquiry"
+  }
+}

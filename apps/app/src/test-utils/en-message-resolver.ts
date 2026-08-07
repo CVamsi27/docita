@@ -1,4 +1,4 @@
-import en from "@/messages/en.json";
+import { enMessages } from "@/messages";
 import { isMessageTree } from "@/i18n/locale-utils";
 
 /**
@@ -10,7 +10,7 @@ import { isMessageTree } from "@/i18n/locale-utils";
  */
 export function createEnMessageResolver(ns: string) {
   return (key: string): string => {
-    let node: unknown = en;
+    let node: unknown = enMessages;
     for (const part of [ns, ...key.split(".")]) {
       if (!isMessageTree(node)) return key;
       node = node[part];

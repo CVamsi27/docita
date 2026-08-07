@@ -1,0 +1,132 @@
+{
+  "billingDisplay": {
+    "gstInclusiveNotice": "कीमतें और इनवॉइस राशियाँ जहाँ लागू हो, वहाँ GST सहित हैं।",
+    "tableCaption": "भुगतान के बाद PDF इनवॉइस डाउनलोड करने के लिए रसीद का उपयोग करें। लंबित पंक्तियाँ चेकआउट पूर्ण होने तक अवैतनिक रहती हैं।",
+    "subscriptionPayment": "सदस्यता भुगतान",
+    "internalCategories": {
+      "guidedSetup": "निर्देशित सेटअप",
+      "dataMigration": "डेटा माइग्रेशन",
+      "customTraining": "कस्टम प्रशिक्षण",
+      "integration": "एकीकरण",
+      "commercialDiscount": "वाणिज्यिक छूट",
+      "other": "अन्य सेवा"
+    }
+  },
+  "planHighlights": {
+    "starter": {
+      "patients": "मरीज़, विज़िट और प्रिस्क्रिप्शन एक ही वर्कस्पेस में",
+      "excel": "एक्सेल इम्पोर्ट, एक्सपोर्ट और पेपर-अनुकूल अपलोड",
+      "singleDoctor": "फ्री टियर पर एक डॉक्टर सीट",
+      "upgrade": "सीमाएँ पार होने पर कभी भी अपग्रेड करें"
+    },
+    "essential": {
+      "whatsapp": "WhatsApp फ़्लो 500 संदेश/माह सहित",
+      "invoicing": "इनवॉइसिंग और GST-तैयार राशियाँ",
+      "queue": "व्यस्त OPD के लिए अनुकूलित क्यू और कैलेंडर",
+      "trial": "{days}-दिन का ट्रायल जहाँ चेकआउट पात्र है"
+    },
+    "professional": {
+      "doctors": "भूमिका-जागरूक पहुँच वाले 5 डॉक्टर तक",
+      "bundles": "उच्च परामर्श और WhatsApp बंडल",
+      "analytics": "रोडमैप पर मल्टी-ब्रांच एनालिटिक्स",
+      "support": "बढ़ते क्लिनिकों के लिए प्राथमिकता सहायता"
+    },
+    "hospital": {
+      "doctors": "25 डॉक्टर और 5 शाखाओं तक",
+      "whatsapp": "शाखाओं में पूल किया गया WhatsApp (6,000 संदेश/माह)",
+      "analytics": "मल्टी-लोकेशन एनालिटिक्स और डैशबोर्ड",
+      "csm": "समर्पित कस्टमर सक्सेस मैनेजर"
+    },
+    "enterprise": {
+      "scale": "उपयोगकर्ताओं, शाखाओं और मरीज़ों के लिए असीमित स्केल",
+      "contracts": "कस्टम अनुबंध, SLA और एकीकरण",
+      "rollout": "समर्पित रोलआउट और अकाउंट टीम",
+      "pricing": "आपके सटीक दायरे के लिए सेल्स-आधारित मूल्य निर्धारण"
+    }
+  },
+  "estimatorInputs": {
+    "planLabel": "प्लान",
+    "billingCycleLabel": "बिलिंग चक्र",
+    "cycleMonthly": "मासिक",
+    "cycleYearly": "वार्षिक (2 महीने मुफ़्त)",
+    "currencyLabel": "मुद्रा",
+    "consultationsLabel": "परामर्श / माह",
+    "teamMembersLabel": "टीम के सदस्य",
+    "whatsAppLabel": "WhatsApp संदेश / माह",
+    "billableMetersNote": "यह अनुमानक केवल लाइव अनुबंध के बिल करने योग्य मीटर का उपयोग करता है: परामर्श, टीम उपयोगकर्ता और WhatsApp संदेश।"
+  },
+  "billingFilters": {
+    "statusLabel": "स्थिति",
+    "statusAll": "सभी",
+    "statusPaid": "भुगतान हो चुका",
+    "statusPending": "लंबित / अभुगतान",
+    "statusFailed": "विफल / अस्वीकृत",
+    "statusRefunded": "रिफंड / रद्द",
+    "fromLabel": "से",
+    "toLabel": "तक",
+    "anyDatePlaceholder": "कोई भी",
+    "clearFiltersButton": "फ़िल्टर साफ़ करें"
+  },
+  "upgrade": {
+    "title": "अपना प्लान अपग्रेड करें",
+    "description": "अपने क्लिनिक के लिए अधिक क्षमता और उन्नत सुविधाएँ अनलॉक करें।",
+    "perMonth": "/ माह",
+    "current": "वर्तमान प्लान",
+    "upgradeButton": "अपग्रेड करें",
+    "plans": {
+      "Starter": {
+        "name": "स्टार्टर",
+        "price": "₹0"
+      },
+      "Professional": {
+        "name": "प्रोफेशनल",
+        "price": "₹2,499"
+      },
+      "Enterprise": {
+        "name": "एंटरप्राइज़",
+        "price": "सेल्स से संपर्क करें"
+      }
+    }
+  },
+  "usageMeter": {
+    "currentUsageTitle": "वर्तमान उपयोग",
+    "overageActive": "ओवरेज सक्रिय",
+    "loading": "उपयोग लोड हो रहा है…",
+    "unavailable": "उपयोग मीटर अस्थायी रूप से अनुपलब्ध हैं।",
+    "empty": "क्लिनिक प्लान मीटर का उपयोग शुरू करने के बाद उपयोग यहाँ दिखाई देगा।",
+    "planHighlightsAriaLabel": "प्लान की मुख्य विशेषताएँ",
+    "additionalUsageLabel": "अतिरिक्त उपयोग",
+    "beyondIncludedUsage": "शामिल उपयोग से अधिक",
+    "unlimitedPatients": "असीमित मरीज़",
+    "patientsCount": "{value} मरीज़",
+    "unlimitedUsers": "असीमित उपयोगकर्ता",
+    "usersCount": "{count} तक उपयोगकर्ता",
+    "unlimitedWaMsgs": "असीमित WA संदेश",
+    "waMsgsCount": "{value} WA संदेश / माह",
+    "saveBadge": "{amount} बचाएँ",
+    "yearSuffix": "/वर्ष"
+  },
+  "billingPlans": {
+    "choosePlan": "प्लान चुनें",
+    "planModeAriaLabel": "प्लान मोड",
+    "monthly": "मासिक",
+    "yearly": "वार्षिक",
+    "saveBadge": "{amount} बचाएँ",
+    "recommendedBadge": "अनुशंसित",
+    "fitsUsageBest": "{tier} आपके उपयोग के लिए सबसे उपयुक्त है",
+    "reviewTier": "{tier} देखें",
+    "contactSales": "सेल्स से संपर्क करें",
+    "onlyOnFull": "केवल फुल प्लान पर उपलब्ध"
+  },
+  "currentPlanCard": {
+    "planTitle": "{tier} प्लान",
+    "currentPlanBadge": "वर्तमान प्लान",
+    "openingCheckout": "चेकआउट खुल रहा है…",
+    "payForNextCycle": "अगले चक्र के लिए भुगतान करें",
+    "changePlan": "प्लान बदलें",
+    "choosePlan": "प्लान चुनें",
+    "billingHistory": "बिलिंग इतिहास",
+    "contactAdminToChange": "प्लान बदलने के लिए अपने संस्थान के प्रशासक से संपर्क करें।",
+    "aiFeaturesActive": "AI सुविधाएँ सक्रिय"
+  }
+}

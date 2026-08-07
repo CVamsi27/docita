@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import en from "@/messages/en.json";
+import { enMessages } from "@/messages";
 import { isMessageTree, type MessageTree } from "@/i18n/locale-utils";
 
-const resources: MessageTree = isMessageTree(en) ? en : {};
+const resources: MessageTree = isMessageTree(enMessages) ? enMessages : {};
 
 /**
  * Resolve an i18next key (relative to `namespace` when given, otherwise a

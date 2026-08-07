@@ -1,0 +1,16 @@
+{
+  "clinicSelection": {
+    "pageTitle": "क्लिनिक चुनें",
+    "backButton": "वापस",
+    "title": "अपना क्लिनिक चुनें",
+    "description": "वह क्लिनिक चुनें जिसमें आप काम करना चाहते हैं, या नया बनाएँ",
+    "searchPlaceholder": "क्लिनिक खोजें…",
+    "loading": "क्लिनिक लोड हो रहे हैं…",
+    "loadErrorTitle": "क्लिनिक लोड नहीं हो सके",
+    "loadErrorDescription": "आपके क्लिनिक लाने में कुछ गड़बड़ हुई। कृपया पुनः प्रयास करें।",
+    "noSearchResults": "आपकी खोज से कोई क्लिनिक नहीं मिला",
+    "noClinics": "अभी कोई क्लिनिक नहीं — अपना पहला बनाएँ",
+    "selectAriaLabel": "क्लिनिक {name} खोलें",
+    "createNewClinic": "नया क्लिनिक बनाएँ"
+  }
+}

@@ -1,7 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import en from "../messages/en.json";
-import hi from "../messages/hi.json";
+import { enMessages, hiMessages } from "../messages";
 import {
   DEFAULT_LOCALE,
   isLocale,
@@ -45,8 +44,8 @@ function resolveInitialLocale(): string {
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: buildResources(en),
-    hi: buildResources(hi),
+    en: buildResources(enMessages),
+    hi: buildResources(hiMessages),
   },
   lng: resolveInitialLocale(),
   fallbackLng: "en",

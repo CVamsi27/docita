@@ -4,9 +4,11 @@
  * check:i18next-parity.
  *
  * Enforces exact en/hi leaf-key parity for the app i18next message
- * bundle (AGENTS.md §3.1 / EXECUTION_PLAN Phase 11):
- *   - every en.json leaf must exist in hi.json — no untranslated UI strings;
- *   - hi.json must not contain leaves that en.json lacks — no dead
+ * bundle (AGENTS.md §3.1 / EXECUTION_PLAN Phase 11). The corpus lives as
+ * per-namespace pairs under apps/app/src/messages/{en,hi}/ (file name = top-level
+ * namespace, e.g. en/Auth.json); the leaves are compared across locales:
+ *   - every en/ leaf must exist in hi/ — no untranslated UI strings;
+ *   - hi/ must not contain leaves that en/ lacks — no dead
  *     translations left behind when English keys are dropped.
  *
  * Background: the 2026-08-02 i18n completion pass trimmed 494 hi-only dead
@@ -22,12 +24,26 @@
  *   node scripts/checks/check-i18next-parity.mjs --enforce # fail on findings
  */
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const MESSAGES_DIR = join(process.cwd(), "apps/app/src/messages");
-const EN_PATH = join(MESSAGES_DIR, "en.json");
-const HI_PATH = join(MESSAGES_DIR, "hi.json");
+
+/** Load the per-namespace message files in a locale dir back into one tree. */
+function loadTree(localeDir) {
+  const dir = join(MESSAGES_DIR, localeDir);
+  const tree = {};
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith(".json")) continue;
+    tree[file.replace(/\.json$/, "")] = JSON.parse(
+      readFileSync(join(dir, file), "utf8"),
+    );
+  }
+  return tree;
+}
+
+const en = loadTree("en");
+const hi = loadTree("hi");
 
 /** Collect dotted leaf paths (e.g. "Dashboard.today.pageTitle"). */
 function collectLeaves(obj, prefix = "", acc = []) {
@@ -41,9 +57,6 @@ function collectLeaves(obj, prefix = "", acc = []) {
   }
   return acc;
 }
-
-const en = JSON.parse(readFileSync(EN_PATH, "utf8"));
-const hi = JSON.parse(readFileSync(HI_PATH, "utf8"));
 
 const enLeaves = collectLeaves(en);
 const hiLeaves = collectLeaves(hi);
@@ -61,19 +74,19 @@ if (missingFromHi.length > 0 || hiOnly.length > 0) {
       : "i18next parity check report:",
   );
   for (const key of missingFromHi.slice(0, 25)) {
-    console.error(`- missing from hi.json: ${key}`);
+    console.error(`- missing from hi/: ${key}`);
   }
   if (missingFromHi.length > 25) {
     console.error(`  … and ${missingFromHi.length - 25} more missing keys`);
   }
   for (const key of hiOnly.slice(0, 25)) {
-    console.error(`- dead key in hi.json (absent from en.json): ${key}`);
+    console.error(`- dead key in hi/ (absent from en/): ${key}`);
   }
   if (hiOnly.length > 25) {
     console.error(`  … and ${hiOnly.length - 25} more dead keys`);
   }
   console.error(
-    "Keep apps/app/src/messages/en.json and hi.json leaf sets identical — add translations for new keys, remove dead keys when English keys are dropped.",
+    "Keep the apps/app/src/messages/en/ and hi/ leaf sets identical — add translations for new keys, remove dead keys when English keys are dropped.",
   );
   process.exit(enforce ? 1 : 0);
 }
