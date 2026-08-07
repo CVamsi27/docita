@@ -111,15 +111,27 @@ describe("LabOrderAbacPolicy", () => {
     expect(result.effect).toBe("allow");
   });
 
-  it.each([
-    "sample collection",
-    "result upload",
-    "payment verification",
-    "release",
-  ] as const)("LAB may %s any clinic order (C4.1 baseline pin)", () => {
+  // LAB is clinic-wide on the object routes it can reach (sample/result/
+  // release). Payment verification is a front-desk action (matrix-scoped to
+  // ADMIN/ADMIN_DOCTOR/RECEPTIONIST) and is exercised via the RECEPTIONIST
+  // row below — the policy stage never sees LAB on that route.
+  it.each(["sample collection", "result upload", "release"] as const)(
+    "LAB may %s any clinic order (C4.1 baseline pin)",
+    () => {
+      const result = policy.can(
+        "update",
+        subject({ roles: ["LAB"], doctorId: null }),
+        resource({}),
+        env,
+      );
+      expect(result.effect).toBe("allow");
+    },
+  );
+
+  it("RECEPTIONIST verifies payment on any clinic order (front-desk payment attribute)", () => {
     const result = policy.can(
       "update",
-      subject({ roles: ["LAB"], doctorId: null }),
+      subject({ roles: ["RECEPTIONIST"], doctorId: null }),
       resource({}),
       env,
     );
@@ -166,6 +178,13 @@ const ORACLE_ROWS: OracleRow[] = [
   {
     name: "NURSE same-clinic update",
     sub: subject({ roles: ["NURSE"], doctorId: null }),
+    res: resource({}),
+    action: "update",
+    intended: "allow",
+  },
+  {
+    name: "RECEPTIONIST payment verification (front-desk payment attribute)",
+    sub: subject({ roles: ["RECEPTIONIST"], doctorId: null }),
     res: resource({}),
     action: "update",
     intended: "allow",
