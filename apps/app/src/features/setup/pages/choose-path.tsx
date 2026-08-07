@@ -108,7 +108,7 @@ export function ChoosePathPage() {
     >
       <div className="ui-copy-stack text-center lg:text-left">
         <p className="ui-eyebrow">Choose your path</p>
-        <h1 className="ui-page-title">
+        <h1 className="ui-page-title font-serif">
           {firstName ? `Welcome, ${firstName}!` : "Welcome to Docita!"}
         </h1>
         <p className="ui-page-subtitle">
