@@ -11,6 +11,14 @@ import { fetchEffectivePermissions } from "@/lib/api/effective-permissions.api";
  */
 let cachedSnapshot: EffectivePermissionsResponse | null | undefined;
 
+/**
+ * Clears the once-per-session snapshot cache. Must be called on logout so a
+ * second user in the same tab never inherits the previous user's snapshot.
+ */
+export function clearEffectivePermissionsCache(): void {
+  cachedSnapshot = undefined;
+}
+
 export function useEffectivePermissions():
   | EffectivePermissionsResponse
   | null {

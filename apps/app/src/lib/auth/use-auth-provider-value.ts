@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { logger } from "@/lib/monitoring/logger";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { clearEffectivePermissionsCache } from "@/lib/access-control/use-effective-permissions";
 import {
   clearLegacyUserStorage,
   clearSensitiveClientStorageOnLogout,
@@ -82,6 +83,9 @@ export function useAuthProviderValue(): AuthContextType {
     persistToken(null);
     appSession.clearSession();
     queryClient.removeQueries();
+    // C7: never let a second user in the same tab inherit the previous
+    // user's permission snapshot.
+    clearEffectivePermissionsCache();
     clearLegacyUserStorage();
     clearSensitiveClientStorageOnLogout();
     setUserRole("");

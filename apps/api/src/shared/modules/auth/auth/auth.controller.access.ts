@@ -33,6 +33,9 @@ const EFFECTIVE_PERMISSIONS_ROLES = [
   Role.ADMIN,
   Role.ADMIN_DOCTOR,
   Role.INTERNAL,
+  // LAB is a staff role with matrix targets (API_LAB_WORKSPACE / API_LABS /
+  // API_LAB_PAYMENT_VERIFICATION) — its surfaces consume the same snapshot.
+  Role.LAB,
 ] as const;
 
 export function EffectivePermissionsApiAccess() {

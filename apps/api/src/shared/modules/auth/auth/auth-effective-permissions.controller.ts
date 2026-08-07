@@ -1,4 +1,4 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Controller, Get, Req, UnauthorizedException } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
 import {
@@ -41,22 +41,9 @@ export class AuthEffectivePermissionsController {
   async effectivePermissions(@Req() req: RequestWithUser) {
     const user = req.user;
     if (!user) {
-      // Unreachable behind JwtAuthGuard (global); defensive per the repo's
-      // RequestWithUser optional-user typing.
-      return {
-        role: 'ADMIN',
-        tier: 'STARTER',
-        planMode: 'FULL',
-        hasIntelligence: false,
-        permissions: [],
-        targets: Object.fromEntries(
-          Object.keys(APP_ACCESS_MATRIX).map((target) => [
-            target,
-            { read: false, write: false },
-          ]),
-        ),
-        generatedAt: new Date().toISOString(),
-      };
+      // Unreachable behind JwtAuthGuard (global); fail closed rather than
+      // serving a silent all-false snapshot for a misconfigured route.
+      throw new UnauthorizedException('Authentication required');
     }
 
     if (user.role === Role.INTERNAL) {
