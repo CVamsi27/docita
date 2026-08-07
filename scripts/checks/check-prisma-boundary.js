@@ -88,11 +88,6 @@ const KNOWN_LEGACY_PRISMA_SERVICE_LEAKS = new Set([
   // Appointments — scheduling rules query conflicts/time-off; migrate
   // behind appointment-read/queue repository interfaces.
   'apps/api/src/domains/appointments/core/domain-services/appointment-scheduling-rules.service.ts',
-  // Billing — usage tracking aggregates/writes; migrate behind a usage
-  // repository seam.
-  'apps/api/src/domains/billing/core/services/usage-aggregation.service.ts',
-  'apps/api/src/domains/billing/core/services/usage-tracking-command.service.ts',
-  'apps/api/src/domains/billing/core/services/usage-tracking-query.service.ts',
   // Billing — pricing strategy reads discount; migrate behind
   // tier-pricing.repository.ts.
   'apps/api/src/domains/billing/strategies/default-pricing-calculator.strategy.ts',

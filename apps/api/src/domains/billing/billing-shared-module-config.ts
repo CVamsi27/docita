@@ -26,9 +26,11 @@ import { InvoicePdfProcessor } from './application/services/invoice-pdf.processo
 import {
   PrismaInvoiceRepository,
   PrismaPaymentSessionRepository,
+  PrismaUsageRepository,
 } from './infrastructure/repositories';
 import { INVOICE_REPOSITORY_TOKEN } from './core/repositories/invoice.repository';
 import { PAYMENT_SESSION_REPOSITORY_TOKEN } from './core/repositories/payment-session.repository';
+import { USAGE_REPOSITORY_TOKEN } from './core/repositories/usage.repository';
 import {
   CLINIC_PRICING_QUERY_TOKEN,
   CLINIC_USAGE_PORT_TOKEN,
@@ -73,6 +75,10 @@ export const BILLING_SHARED_PROVIDERS = [
   {
     provide: PAYMENT_SESSION_REPOSITORY_TOKEN,
     useClass: PrismaPaymentSessionRepository,
+  },
+  {
+    provide: USAGE_REPOSITORY_TOKEN,
+    useClass: PrismaUsageRepository,
   },
   {
     provide: CLINIC_PRICING_QUERY_TOKEN,
