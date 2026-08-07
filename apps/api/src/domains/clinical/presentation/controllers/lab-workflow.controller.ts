@@ -42,6 +42,7 @@ import {
   getDbRolesForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
@@ -83,6 +84,7 @@ export class LabWorkflowController {
   }
 
   @Put('orders/:id/sample')
+  @RequirePolicy('lab-order', 'update')
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_LAB_WORKSPACE))
   async recordSampleCollection(
     @Param('id') id: string,
@@ -99,6 +101,7 @@ export class LabWorkflowController {
   }
 
   @Post('orders/:id/result')
+  @RequirePolicy('lab-order', 'update')
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_LAB_WORKSPACE))
   @UseInterceptors(
     FileInterceptor('file', {
@@ -135,6 +138,7 @@ export class LabWorkflowController {
   }
 
   @Post('orders/:id/payment')
+  @RequirePolicy('lab-order', 'update')
   @Roles(
     ...getDbRolesForTarget(APP_ACCESS_TARGETS.API_LAB_PAYMENT_VERIFICATION),
   )
@@ -153,6 +157,7 @@ export class LabWorkflowController {
   }
 
   @Post('orders/:id/release')
+  @RequirePolicy('lab-order', 'update')
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_LAB_WORKSPACE))
   async releaseResult(
     @Param('id') id: string,
