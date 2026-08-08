@@ -57,6 +57,10 @@ const prismaServiceImportPattern =
 const coveredLayerPatterns = [
   // Domain application/presentation/websockets (pre-existing coverage).
   /^apps\/api\/src\/domains\/[^/]+\/(application|presentation|websockets)\//,
+  // Legacy top-level websockets/ gateways (survey 2026-08-08): the four
+  // gateway files predate the domains/ layout; cover them so a future
+  // PrismaService import here fails CI like any other covered layer.
+  /^apps\/api\/src\/websockets\//,
   // Domain core/ — services, factories, domain-services (survey 2026-08-07).
   /^apps\/api\/src\/domains\/[^/]+\/core\//,
   // Domain strategy classes (survey 2026-08-07).
