@@ -36,7 +36,7 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
  * only handles the post-onboarding / late-apply case.
  */
 @ApiTags('clinic-referral')
-@Controller('clinic/referral')
+@Controller('clinics/referral')
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
 @UsePipes(ZodValidationPipe)
 export class ClinicReferralController {

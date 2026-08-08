@@ -12,12 +12,12 @@ export interface OpdSlipSettings {
 export const useOpdSlipSettings = () =>
   useAPIQuery<OpdSlipSettings>(
     queryKeys.clinic.opdSlipSettings(),
-    "/clinic/opd-slip-settings",
+    "/clinics/opd-slip-settings",
   );
 
 export const useUpdateOpdSlipSettings = () =>
   useAPIMutation<{ success: boolean }, Partial<OpdSlipSettings>>(
-    "/clinic/opd-slip-settings",
+    "/clinics/opd-slip-settings",
     "PUT",
     {
       invalidateKeys: [queryKeys.clinic.opdSlipSettings()],

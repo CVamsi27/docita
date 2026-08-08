@@ -154,6 +154,14 @@ import { getClientIp } from '@/shared/common/http/client-ip';
     CustomFieldsModule,
     AnalyticsModule,
     RemindersModule,
+    // The clinician-facing /clinics/settings, /clinics/members and
+    // /clinics/search-for-join literals live in ClinicsModule's controllers
+    // array BEFORE ClinicsController (see clinics.module.ts) so they win over
+    // its /clinics/:id routes. Cross-module import order does NOT control
+    // Express registration here: the AuthModule forwardRef cycle pulls
+    // ClinicsModule into the Nest container before ClinicsSettingsModule is
+    // scanned, so reordering this array cannot fix shadowing. Keep the
+    // literal controllers in the same module as the :id controller.
     ClinicsModule,
     ClinicsOnboardingModule,
     ClinicsSettingsModule,

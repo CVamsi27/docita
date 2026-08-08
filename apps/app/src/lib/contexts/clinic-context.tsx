@@ -56,7 +56,7 @@ function storeClinicId(clinicId: string): void {
 }
 
 /**
- * Fetches the authoritative clinic record from `/clinic/settings`, caches it,
+ * Fetches the authoritative clinic record from `/clinics/settings`, caches it,
  * and keeps the permission store in sync (tier, plan mode, addons, feature
  * overrides, facility type). Mounted once per workspace session via
  * `ProvidersWrapper`.
