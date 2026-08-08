@@ -628,3 +628,614 @@ test("API latency budget accepts a compliant baseline and fails an over-toleranc
     ),
   );
 });
+test("route shadowing check flags literal routes registered after a matching :param route", () => {
+  const paramController = `import { Controller, Get } from '@nestjs/common';
+
+@Controller('clinics')
+export class ParamController {
+  @Get(':id')
+  getClinic() {
+    return {};
+  }
+}
+`;
+  const literalController = `import { Controller, Get } from '@nestjs/common';
+
+@Controller('clinics/referral')
+export class LiteralController {
+  @Get()
+  getStatus() {
+    return {};
+  }
+}
+`;
+  const moduleWithHazard = `import { Module } from '@nestjs/common';
+import { ParamController } from './presentation/controllers/param.controller';
+import { LiteralController } from './presentation/controllers/literal.controller';
+
+@Module({
+  controllers: [ParamController, LiteralController],
+})
+export class DemoModule {}
+`;
+  const moduleOrdered = moduleWithHazard.replace(
+    "controllers: [ParamController, LiteralController]",
+    "controllers: [LiteralController, ParamController]",
+  );
+
+  // Param route registered first -> literal /clinics/referral is shadowed.
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/domains/demo/demo.module.ts": moduleWithHazard,
+        "apps/api/src/domains/demo/presentation/controllers/param.controller.ts": paramController,
+        "apps/api/src/domains/demo/presentation/controllers/literal.controller.ts": literalController,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // Literal registered first -> no shadowing.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/domains/demo/demo.module.ts": moduleOrdered,
+        "apps/api/src/domains/demo/presentation/controllers/param.controller.ts": paramController,
+        "apps/api/src/domains/demo/presentation/controllers/literal.controller.ts": literalController,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+});
+
+test("route shadowing check flags within-controller literal handlers declared after a matching :param", () => {
+  const sameController = `import { Controller, Get } from '@nestjs/common';
+
+@Controller('clinics')
+export class ClinicsController {
+  @Get(':id')
+  getClinic() {
+    return {};
+  }
+
+  @Get('referral')
+  getReferral() {
+    return {};
+  }
+}
+`;
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/domains/demo/demo.module.ts": `import { Module } from '@nestjs/common';
+import { ClinicsController } from './presentation/controllers/clinics.controller';
+
+@Module({
+  controllers: [ClinicsController],
+})
+export class DemoModule {}
+`,
+        "apps/api/src/domains/demo/presentation/controllers/clinics.controller.ts": sameController,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // Reordered: literal handler declared before the :param handler passes.
+  const reordered = `import { Controller, Get } from '@nestjs/common';
+
+@Controller('clinics')
+export class ClinicsController {
+  @Get('referral')
+  getReferral() {
+    return {};
+  }
+
+  @Get(':id')
+  getClinic() {
+    return {};
+  }
+}
+`;
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/domains/demo/demo.module.ts": `import { Module } from '@nestjs/common';
+import { ClinicsController } from './presentation/controllers/clinics.controller';
+
+@Module({
+  controllers: [ClinicsController],
+})
+export class DemoModule {}
+`,
+        "apps/api/src/domains/demo/presentation/controllers/clinics.controller.ts": reordered,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+});
+
+test("route shadowing check flags cross-module literal-after-param via import-graph order", () => {
+  const paramController = `import { Controller, Get } from '@nestjs/common';
+
+@Controller('clinics')
+export class ParamController {
+  @Get(':id')
+  getClinic() {
+    return {};
+  }
+}
+`;
+  const literalController = `import { Controller, Get } from '@nestjs/common';
+
+@Controller('clinics/referral')
+export class LiteralController {
+  @Get()
+  getStatus() {
+    return {};
+  }
+}
+`;
+  const appModule = (order) => `import { Module } from '@nestjs/common';
+import { SharedModule } from './shared/shared.module';
+import { LiteralModule } from './domains/literal/literal.module';
+
+@Module({
+  imports: [${order}],
+})
+export class AppModule {}
+`;
+  const sharedModule = `import { Module } from '@nestjs/common';
+import { ParamModule } from '../domains/param/param.module';
+
+@Module({
+  imports: [ParamModule],
+})
+export class SharedModule {}
+`;
+  const paramModule = `import { Module } from '@nestjs/common';
+import { ParamController } from './presentation/controllers/param.controller';
+
+@Module({
+  controllers: [ParamController],
+})
+export class ParamModule {}
+`;
+  const literalModule = `import { Module } from '@nestjs/common';
+import { LiteralController } from './presentation/controllers/literal.controller';
+
+@Module({
+  controllers: [LiteralController],
+})
+export class LiteralModule {}
+`;
+
+  const baseFiles = {
+    "apps/api/src/shared/shared.module.ts": sharedModule,
+    "apps/api/src/domains/param/param.module.ts": paramModule,
+    "apps/api/src/domains/param/presentation/controllers/param.controller.ts": paramController,
+    "apps/api/src/domains/literal/literal.module.ts": literalModule,
+    "apps/api/src/domains/literal/presentation/controllers/literal.controller.ts": literalController,
+  };
+
+  // SharedModule (which pulls ParamModule into the container) is listed
+  // before LiteralModule in app.module imports, so the /clinics/:id route
+  // registers before /clinics/referral even though LiteralModule is a direct
+  // top-level import — only the import-graph DFS walk can see this.
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        ...baseFiles,
+        "apps/api/src/app.module.ts": appModule("SharedModule, LiteralModule"),
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // LiteralModule listed first in the DFS order: no shadowing.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        ...baseFiles,
+        "apps/api/src/app.module.ts": appModule("LiteralModule, SharedModule"),
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+});
+
+test("route shadowing check parses multi-line controllers/imports arrays (bracket-aware)", () => {
+  // Regression lock for the gatherBracketBlock fix: real modules format
+  // `controllers: [` / `imports: [` across multiple lines (16 modules plus
+  // app.module.ts), which the original paren-only gatherer silently dropped.
+  // The multi-line forms below must be fully parsed — the hazard must fail
+  // and the reordered pass must pass.
+  const paramController = `import { Controller, Get } from '@nestjs/common';
+
+@Controller('clinics')
+export class ParamController {
+  @Get(':id')
+  getClinic() {
+    return {};
+  }
+}
+`;
+  const literalController = `import { Controller, Get } from '@nestjs/common';
+
+@Controller('clinics/referral')
+export class LiteralController {
+  @Get()
+  getStatus() {
+    return {};
+  }
+}
+`;
+  const paramModule = `import { Module } from '@nestjs/common';
+import { ParamController } from './presentation/controllers/param.controller';
+
+@Module({
+  // multi-line controllers array with a comment and trailing comma
+  controllers: [
+    // first controller, then the :id shadow
+    ParamController,
+  ],
+})
+export class ParamModule {}
+`;
+  const literalModule = `import { Module } from '@nestjs/common';
+import { LiteralController } from './presentation/controllers/literal.controller';
+
+@Module({
+  controllers: [
+    LiteralController,
+  ],
+})
+export class LiteralModule {}
+`;
+  const appModule = `import { Module } from '@nestjs/common';
+import { ParamModule } from './domains/param/param.module';
+import { LiteralModule } from './domains/literal/literal.module';
+
+@Module({
+  // multi-line imports array mirroring app.module.ts (nested brackets too)
+  imports: [
+    ConfigModule.forRoot({ envFilePath: ['.env'] }),
+    ParamModule,
+    LiteralModule,
+  ],
+})
+export class AppModule {}
+`;
+  const fixture = {
+    "apps/api/src/app.module.ts": appModule,
+    "apps/api/src/domains/param/param.module.ts": paramModule,
+    "apps/api/src/domains/param/presentation/controllers/param.controller.ts": paramController,
+    "apps/api/src/domains/literal/literal.module.ts": literalModule,
+    "apps/api/src/domains/literal/presentation/controllers/literal.controller.ts": literalController,
+  };
+
+  // Multi-line ParamModule before LiteralModule: literal is shadowed.
+  expectFail(
+    runCheck(makeGitFixture(fixture), "check-route-shadowing.mjs"),
+  );
+
+  // Same multi-line arrays, LiteralModule first: no shadowing.
+  const reordered = {
+    ...fixture,
+    "apps/api/src/app.module.ts": appModule.replace(
+      "ParamModule,\n    LiteralModule,",
+      "LiteralModule,\n    ParamModule,",
+    ),
+  };
+  expectPass(
+    runCheck(makeGitFixture(reordered), "check-route-shadowing.mjs"),
+  );
+});
+
+test("route shadowing check scans worker Nest controllers (multi-root coverage)", () => {
+  // The worker boots via createApplicationContext (no HTTP adapter) and has
+  // zero controllers today, but the check scans apps/worker/src so a future
+  // controller addition is covered — a literal-after-:param in a worker
+  // module must fail just like in the API.
+  const workerModule = `import { Module } from '@nestjs/common';
+import { WorkerParamController } from './presentation/controllers/param.controller';
+import { WorkerLiteralController } from './presentation/controllers/literal.controller';
+
+@Module({
+  controllers: [WorkerParamController, WorkerLiteralController],
+})
+export class WorkerThingModule {}
+`;
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/worker/src/domains/thing/worker-thing.module.ts": workerModule,
+        "apps/worker/src/domains/thing/presentation/controllers/param.controller.ts": `import { Controller, Get } from '@nestjs/common';
+
+@Controller('jobs')
+export class WorkerParamController {
+  @Get(':id')
+  getJob() {
+    return {};
+  }
+}
+`,
+        "apps/worker/src/domains/thing/presentation/controllers/literal.controller.ts": `import { Controller, Get } from '@nestjs/common';
+
+@Controller('jobs/running')
+export class WorkerLiteralController {
+  @Get()
+  listRunning() {
+    return [];
+  }
+}
+`,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // Literal first: no shadowing, even in the worker tree.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/worker/src/domains/thing/worker-thing.module.ts": workerModule.replace(
+          "controllers: [WorkerParamController, WorkerLiteralController]",
+          "controllers: [WorkerLiteralController, WorkerParamController]",
+        ),
+        "apps/worker/src/domains/thing/presentation/controllers/param.controller.ts": `import { Controller, Get } from '@nestjs/common';
+
+@Controller('jobs')
+export class WorkerParamController {
+  @Get(':id')
+  getJob() {
+    return {};
+  }
+}
+`,
+        "apps/worker/src/domains/thing/presentation/controllers/literal.controller.ts": `import { Controller, Get } from '@nestjs/common';
+
+@Controller('jobs/running')
+export class WorkerLiteralController {
+  @Get()
+  listRunning() {
+    return [];
+  }
+}
+`,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+});
+
+test("route shadowing check flags Hono literal-after-wildcard and exact duplicates", () => {
+  // Hono matches by REGISTRATION ORDER, not specificity (verified against
+  // hono@4.13.0: SmartRouter caches RegExpRouter or falls back to
+  // TrieRouter, and both are first-match-in-registration-order; a `*` spans
+  // segment boundaries). A literal registered AFTER a wildcard that matches
+  // it is unreachable — the same hazard class as Express/Nest.
+  const literalAfterWildcard = `import { Hono } from "hono";
+const app = new Hono();
+app.get("/api/v1/*", async (c) => c.text("fallback"));
+app.get("/api/v1/health", async (c) => c.json({ ok: true }));
+export default app;
+`;
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": literalAfterWildcard,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // The safe pattern: the literal registers BEFORE the wildcard it must win.
+  const literalBeforeWildcard = `import { Hono } from "hono";
+const app = new Hono();
+app.get("/api/v1/health", async (c) => c.json({ ok: true }));
+app.get("/api/v1/*", async (c) => c.text("fallback"));
+export default app;
+`;
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": literalBeforeWildcard,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // A narrower wildcard after a broader one is equally swallowed: /api/v1/*
+  // registered after /api/* is unreachable for every v1 request.
+  const narrowerAfterBroader = `import { Hono } from "hono";
+const app = new Hono();
+app.all("/api/*", async (c) => c.text("broad"));
+app.all("/api/v1/*", async (c) => c.text("v1"));
+export default app;
+`;
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": narrowerAfterBroader,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // But a narrower wildcard after a :param at the same depth is NOT fully
+  // shadowed (/api/v1/* still serves /api/v1/a/b), so it must not be flagged.
+  const paramThenNarrowerWildcard = `import { Hono } from "hono";
+const app = new Hono();
+app.get("/api/v1/:id", async (c) => c.text("param"));
+app.all("/api/v1/*", async (c) => c.text("wildcard"));
+export default app;
+`;
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": paramThenNarrowerWildcard,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // Same method + identical path registered twice: first registration wins,
+  // the later one is unreachable.
+  const duplicateHono = `import { Hono } from "hono";
+const app = new Hono();
+app.all("/api/v1/*", async (c) => c.text("v1"));
+app.all("/api/v1/*", async (c) => c.text("unreachable"));
+export default app;
+`;
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": duplicateHono,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+});
+
+test("route shadowing check covers multi-line registrations and route() mounts", () => {
+  // Multi-line registrations: the path sits on the line after the opener.
+  // Two of them registering the same method+path is a duplicate the old
+  // single-line-only regex could not see.
+  const multiLineDuplicate = `import { Hono } from "hono";
+const app = new Hono();
+app.all(
+  "/api/v1/*",
+  async (c) => c.text("v1"),
+);
+app.all(
+  "/api/v1/*",
+  async (c) => c.text("unreachable"),
+);
+export default app;
+`;
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": multiLineDuplicate,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // A single-line registration duplicated by a multi-line one is equally
+  // flagged (mixed forms resolve to the same effective table).
+  const mixedDuplicate = `import { Hono } from "hono";
+const app = new Hono();
+app.get("/api/v1/health", async (c) => c.json({ ok: true }));
+app.get(
+  "/api/v1/health",
+  async (c) => c.json({ ok: true }),
+);
+export default app;
+`;
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": mixedDuplicate,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // A route() mount that duplicates a direct registration is unreachable:
+  // sub's GET /v1/health mounts at /api and collides with app's own.
+  const routeMountDuplicate = `import { Hono } from "hono";
+const app = new Hono();
+const sub = new Hono();
+app.get("/api/v1/health", async (c) => c.json({ ok: true }));
+sub.get("/v1/health", async (c) => c.json({ ok: true }));
+app.route("/api", sub);
+export default app;
+`;
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": routeMountDuplicate,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // A clean route() mount — unique path, nothing shadowed — passes.
+  const cleanRouteMount = `import { Hono } from "hono";
+const app = new Hono();
+const sub = new Hono();
+sub.get("/v1/status", async (c) => c.text("ok"));
+app.route("/api", sub);
+export default app;
+`;
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": cleanRouteMount,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // Shadowing across forms: a multi-line literal after a wildcard is dead.
+  const multiLineLiteralAfterWildcard = `import { Hono } from "hono";
+const app = new Hono();
+app.all("/api/*", async (c) => c.text("fallback"));
+app.get(
+  "/api/v1/health",
+  async (c) => c.json({ ok: true }),
+);
+export default app;
+`;
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": multiLineLiteralAfterWildcard,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // A mounted literal under an earlier wildcard is equally shadowed once the
+  // mount is expanded into the effective table.
+  const mountShadowedByWildcard = `import { Hono } from "hono";
+const app = new Hono();
+const sub = new Hono();
+app.all("/api/*", async (c) => c.text("fallback"));
+sub.get("/v1/health", async (c) => c.json({ ok: true }));
+app.route("/api", sub);
+export default app;
+`;
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": mountShadowedByWildcard,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+
+  // The mirror image: a mount BEFORE a later wildcard registers the literal
+  // first, so it WINS and must not be flagged. Mount expansion preserves
+  // source order (Hono copies sub routes into the parent at the route() call
+  // site), so this ordering is safe.
+  const mountBeforeWildcard = `import { Hono } from "hono";
+const app = new Hono();
+const sub = new Hono();
+sub.get("/v1/health", async (c) => c.json({ ok: true }));
+app.route("/api", sub);
+app.all("/api/*", async (c) => c.text("fallback"));
+export default app;
+`;
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/app/api/index.ts": mountBeforeWildcard,
+      }),
+      "check-route-shadowing.mjs",
+    ),
+  );
+});
+

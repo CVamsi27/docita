@@ -31,21 +31,32 @@
  *      the root-module array order alone cannot be trusted — this check walks
  *      the graph the same way Nest's scanner does.
  *   3. Hono proxy Workers (apps/<app>/api/index.ts) — Hono matches by
- *      SPECIFICITY (static > param > wildcard), NOT registration order, so
- *      the literal-after-:param hazard does not exist there. The only
- *      ordering-sensitive class is exact duplicates (same method + same path
- *      at identical specificity — one of the two is unreachable).
- *      Known limitation: the Hono pass only sees single-line
- *      `app.<method>("path", ...)` registrations (the proxies' style) —
- *      multi-line registrations and `app.route("/prefix", subApp)` mounts
- *      are not scanned.
+ *      REGISTRATION ORDER, not specificity. Verified empirically against
+ *      hono@4.13.0 (the version both proxies install): SmartRouter replays
+ *      registrations into RegExpRouter and caches it when it succeeds
+ *      (falling back to TrieRouter on UnsupportedPathError), and both
+ *      routers are first-match-in-registration-order — RegExpRouter's regex
+ *      alternation is emitted in registration order, TrieRouter walks its
+ *      trie in insertion order. A Hono `*` spans segment boundaries
+ *      (/api/* matches /api/v1/me), so the literal-after-:param hazard
+ *      applies to the proxies exactly as it does to Express: a literal or
+ *      narrower wildcard registered AFTER a matching wildcard or :param is
+ *      unreachable. The proxies are correctly ordered today (/api/v1/*
+ *      before /api/* before /socket.io/*).
+ *      Known limitation: the Hono pass parses single-line and multi-line
+ *      `app.<method>(...)` registrations plus named `app.route("/prefix",
+ *      sub)` mounts (sub-apps declared as `const sub = new Hono()`).
+ *      Anonymous inline mounts (`app.route("/api", new Hono())`) and
+ *      multi-line route() calls are not scanned (covered at runtime by
+ *      apps/app/api/proxy-routing.guard.spec.ts, which reads Hono's real
+ *      `app.routes` table).
  *
  * Framework semantics matrix:
  *   | Surface            | Framework | Matching          | Hazard class flagged |
  *   |--------------------|-----------|-------------------|----------------------|
  *   | apps/api/src       | Nest+Express | registration order | literal-after-:param |
  *   | apps/worker/src    | Nest (no HTTP adapter; createApplicationContext) | n/a (0 controllers today, scanned for future) | same as api if controllers appear |
- *   | apps/<app>/api/index.ts | Hono | specificity    | exact duplicates     |
+ *   | apps/<app>/api/index.ts | Hono | registration order (SmartRouter -> RegExpRouter/TrieRouter, first-registered wins) | literal/narrower wildcard after wildcard or :param + exact duplicates |
  *   | apps/landing       | Astro     | file-based (static beats [dynamic] by design) | none — not scanned |
  *
  * The allowlist tracks pre-existing hazards found by the initial audit
@@ -301,13 +312,19 @@ const moduleFiles = gitLsSourceFiles(NEST_APP_ROOTS, {
 });
 
 /**
- * Hono proxy Workers (Cloudflare) — apps/<app>/api/index.ts. Hono's production
- * router (SmartRouter -> RegExpRouter) matches by SPECIFICITY, not
- * registration order: static segments beat :params beat wildcards regardless
- * of declaration order. So the Express literal-after-:param hazard does not
- * apply and must NOT be flagged here. The one ordering-sensitive class in
- * Hono is EXACT duplicates — two registrations with the same method + same
- * path have identical specificity and the later one is unreachable.
+ * Hono proxy Workers (Cloudflare) — apps/<app>/api/index.ts. Hono matches by
+ * REGISTRATION ORDER, not specificity (verified empirically against
+ * hono@4.13.0). SmartRouter caches the first router that succeeds —
+ * RegExpRouter, or TrieRouter when RegExpRouter throws UnsupportedPathError
+ * (e.g. a :param and a static at the same depth) — and both are
+ * first-match-in-registration-order. A `*` spans segment boundaries
+ * (/api/* matches /api/v1/me). So the same shadowing classes as Express
+ * apply here:
+ *   - exact duplicates (same method + same path): later registration
+ *     unreachable;
+ *   - a wildcard or :param registered BEFORE a literal (or a narrower
+ *     wildcard) that matches it: the later registration is unreachable.
+ * Register more-specific literals/wildcards BEFORE broader ones.
  */
 const HONO_PROXY_GLOBS = ["apps/*/api/index.ts"];  const sourceCache = new Map();
 function readSource(file) {
@@ -473,35 +490,192 @@ if (moduleOrder.length > 0) {
   }
 }
 
-// ── Pass 3: Hono proxy Workers (specificity-based; exact duplicates only) ──
-// Hono's RegExpRouter sorts by specificity (static > param > wildcard), so a
-// literal registered AFTER a :param or wildcard route is still matched first
-// — the Express-style hazard does NOT apply. What DOES apply: two
-// registrations with the same method and identical path have identical
-// specificity, so the later one is unreachable (Hono keeps the first match at
-// equal specificity). Flag that class only.
+// ── Pass 3: Hono proxy Workers (registration order; literal/narrower after wildcard/:param) ──
+// Hono matches by REGISTRATION ORDER (verified empirically against
+// hono@4.13.0; see the header matrix). Both routers SmartRouter can select
+// are first-match-in-registration-order, and a `*` spans segment boundaries,
+// so a literal (or a narrower wildcard) registered AFTER a matching wildcard
+// or :param route is unreachable — the same hazard class as Express. Also
+// flag exact duplicates (same method + identical path): first registration
+// wins.
+//
+// Unlike the Express passes, the Hono pass parses a mini route table: a
+// registration's path may live on the line after the `app.<method>(` opener,
+// and sub-apps are mounted with `app.route("/prefix", sub)` — the effective
+// route table of the default-exported app is what dispatches, so detection
+// runs over that expanded list (own registrations + recursively mounted
+// sub-app routes with the mount prefix prepended).
 
 const honoFiles = gitLsSourceFiles(HONO_PROXY_GLOBS);
-const honoRouteDecorator =
-  /^\s*app\.(all|get|post|put|patch|delete|options|head)\(\s*['"]([^'"]+)['"]/;
+
+const HONO_NEW_INSTANCE = /^const\s+(\w+)\s*=\s*new\s+Hono\s*\(/;
+const HONO_DEFAULT_EXPORT =
+  /^export\s+default\s+(\w+)\s*;?\s*(?:\/\/.*)?$/;
+const HONO_SINGLE_LINE_ROUTE =
+  /^(\w+)\.(all|get|post|put|patch|delete|options|head)\(\s*['"]([^'"]+)['"]/;
+const HONO_MULTI_LINE_ROUTE_START =
+  /^(\w+)\.(all|get|post|put|patch|delete|options|head)\(\s*$/;
+const HONO_ROUTE_MOUNT =
+  /^(\w+)\.route\(\s*['"]([^'"]+)['"]\s*,\s*(\w+)\s*\)/;
+
+/**
+ * Parse one proxy file into per-instance events, then expand the
+ * default-exported app into its effective route table.
+ *
+ * Pass 2 records, per instance, an ordered event list in SOURCE order: a
+ * `route` event (single-line or multi-line registration) or a `mount` event
+ * (`app.route("/prefix", sub)`). Expansion walks events in that order and
+ * folds mounted sub-app routes (recursively, prefix prepended) at the mount's
+ * position — matching Hono, whose `route()` copies the sub's routes into the
+ * parent at the call site. Returns [{ method, path, line }] in dispatch order
+ * ([] when the file has no default-exported Hono app).
+ */
+function parseHonoEffectiveRoutes(source) {
+  const lines = source.split(/\r?\n/);
+  const instances = new Map(); // name -> [{ type: "route"|"mount", ... }]
+  let root = null;
+
+  // Pass 1: instance declarations and the default export (child instances
+  // may be declared after the mount line, so collect names up front).
+  for (const line of lines) {
+    const m = HONO_NEW_INSTANCE.exec(line);
+    if (m) instances.set(m[1], []);
+    const e = HONO_DEFAULT_EXPORT.exec(line);
+    if (e) root = e[1];
+  }
+  if (!root) return [];
+
+  // Pass 2: registrations (single-line and multi-line) and named mounts.
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    let m = HONO_SINGLE_LINE_ROUTE.exec(line);
+    if (m) {
+      if (instances.has(m[1])) {
+        instances.get(m[1]).push({
+          type: "route",
+          method: m[2].toUpperCase(),
+          path: m[3],
+          line: i + 1,
+        });
+      }
+      continue;
+    }
+    m = HONO_MULTI_LINE_ROUTE_START.exec(line);
+    if (m && instances.has(m[1])) {
+      // The path is the first quoted string on the next content line (blank
+      // and comment lines tolerated). Bail if it is not a string literal —
+      // scanning further could swallow a string from the handler body.
+      for (let j = i + 1; j < lines.length; j++) {
+        const next = lines[j];
+        if (/^\s*$/.test(next) || /^\s*\/\//.test(next)) continue;
+        const pm = /^\s*['"]([^'"]+)['"]/.exec(next);
+        if (pm) {
+          instances.get(m[1]).push({
+            type: "route",
+            method: m[2].toUpperCase(),
+            path: pm[1],
+            line: i + 1,
+          });
+        }
+        break;
+      }
+      continue;
+    }
+    m = HONO_ROUTE_MOUNT.exec(line);
+    if (m && instances.has(m[1]) && instances.has(m[3])) {
+      instances.get(m[1]).push({
+        type: "mount",
+        prefix: m[2],
+        child: m[3],
+      });
+    }
+  }
+
+  // Expand: walk each instance's events in source order, folding mounted
+  // sub-app routes at the mount's position so dispatch order is preserved.
+  const memo = new Map();
+  function expand(name, stack) {
+    if (memo.has(name)) return memo.get(name);
+    if (stack.has(name)) return []; // cycle guard (unreachable in practice)
+    stack.add(name);
+    const result = [];
+    for (const ev of instances.get(name) ?? []) {
+      if (ev.type === "route") {
+        result.push({ method: ev.method, path: ev.path, line: ev.line });
+      } else {
+        const prefix = ev.prefix.endsWith("/")
+          ? ev.prefix.slice(0, -1)
+          : ev.prefix;
+        for (const r of expand(ev.child, stack)) {
+          result.push({
+            ...r,
+            path: r.path.startsWith("/")
+              ? `${prefix}${r.path}`
+              : `${prefix}/${r.path}`,
+          });
+        }
+      }
+    }
+    stack.delete(name);
+    memo.set(name, result);
+    return result;
+  }
+  return expand(root, new Set());
+}
+
+function honoPathSegments(path) {
+  return path.split("/").filter(Boolean);
+}
+
+function isHonoLiteral(path) {
+  return !path.includes(":") && !path.includes("*");
+}
+
+// True when the earlier Hono path would match a request to the later path.
+// A trailing `*` spans segment boundaries (/api/* matches /api/v1/me).
+function honoShadowedBy(earlierPath, laterPath) {
+  if (earlierPath.endsWith("*")) {
+    return laterPath.startsWith(earlierPath.slice(0, -1));
+  }
+  const e = honoPathSegments(earlierPath);
+  const l = honoPathSegments(laterPath);
+  if (e.length !== l.length) return false;
+  let hasParam = false;
+  for (let i = 0; i < e.length; i++) {
+    if (e[i].startsWith(":")) hasParam = true;
+    else if (e[i] !== l[i]) return false;
+  }
+  return hasParam;
+}
 
 for (const honoFile of honoFiles) {
   const source = readSource(honoFile);
   if (!source) continue;
-  const lines = source.split(/\r?\n/);
-  const seenRoutes = new Map(); // `${method}:${path}` -> first line
-  for (let i = 0; i < lines.length; i++) {
-    const m = honoRouteDecorator.exec(lines[i]);
-    if (!m) continue;
-    const method = m[1].toUpperCase();
-    const path = m[2];
-    const key = `${method}:${path}`;
-    if (seenRoutes.has(key)) {
-      findings.push(
-        `[route-shadowing] ${honoFile}:${i + 1} ${method} ${path} duplicates the registration at line ${seenRoutes.get(key)} — identical specificity in Hono means one of the two registrations is unreachable (remove or distinguish the duplicate)`,
-      );
-    } else {
-      seenRoutes.set(key, i + 1);
+  const registrations = parseHonoEffectiveRoutes(source);
+  for (let j = 0; j < registrations.length; j++) {
+    const later = registrations[j];
+    for (let k = 0; k < j; k++) {
+      const earlier = registrations[k];
+      if (!methodsCompatible(earlier.method, later.method)) continue;
+      if (earlier.path === later.path) {
+        findings.push(
+          `[route-shadowing] ${honoFile}:${later.line} ${later.method} ${later.path} duplicates the registration at line ${earlier.line} — Hono matches by registration order, so the first registration wins and this one is unreachable (remove or distinguish the duplicate)`,
+        );
+        continue;
+      }
+      // A later literal, or a later narrower wildcard, is fully shadowed by
+      // an earlier wildcard whose prefix covers it (the trailing-* branch of
+      // honoShadowedBy already requires that prefix relation). The :param
+      // branch stays literal-gated: /api/v1/* after /api/v1/:id is NOT fully
+      // shadowed (it still serves /api/v1/a/b).
+      if (
+        honoShadowedBy(earlier.path, later.path) &&
+        (isHonoLiteral(later.path) || earlier.path.endsWith("*"))
+      ) {
+        findings.push(
+          `[route-shadowing] ${honoFile}:${later.line} ${later.method} ${later.path} is registered after ${earlier.method} ${earlier.path} (line ${earlier.line}) which matches it — Hono matches by registration order, so the earlier handler wins and this literal is unreachable (register literals before wildcards/:params)`,
+        );
+      }
     }
   }
 }
