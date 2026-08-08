@@ -1,15 +1,17 @@
 import { describe, expect, it } from '@jest/globals';
-import { fromZonedTime } from 'date-fns-tz';
 import {
   DEFAULT_TIMEZONE,
   formatClinicTodayPickerIso,
   formatUtcInstantAsClinicPickerIso,
+  fromLocalISOString,
 } from '@workspace/utils';
 import { dateOffset, withTime } from './seed-date-helpers';
 
 function fromZonedNoon(timezone: string): Date {
   const todayPicker = formatClinicTodayPickerIso(timezone);
-  return fromZonedTime(`${todayPicker}T12:00`, timezone);
+  const noon = fromLocalISOString(`${todayPicker}T12:00`, { timezone });
+  if (!noon) throw new Error('Invalid noon anchor in seed-date-helpers spec');
+  return noon;
 }
 
 describe('seed date helpers', () => {

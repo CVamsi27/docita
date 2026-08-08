@@ -1,5 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import {
+  RAJESH_APPOINTMENT_ID,
+  RAJESH_INVOICE_ID,
+  RAJESH_PRESCRIPTION_ID,
   SEED_PATIENT_PHONE_NUMBER_E164,
   seedPatientPhone,
 } from './seed-constants';
@@ -32,5 +35,18 @@ describe('seed patient phone constants', () => {
     expect(SEED_PATIENT_PHONE_NUMBER_E164.replace(/\D/g, '')).toBe(
       `91${seedPatientPhone(0)}`,
     );
+  });
+});
+
+describe('seed identity contract (cross-app)', () => {
+  it('pins the Rajesh trio ids', () => {
+    expect(RAJESH_APPOINTMENT_ID).toBe('seed-apt-rajesh-completed');
+    expect(RAJESH_PRESCRIPTION_ID).toBe('seed-prescription-rajesh');
+    expect(RAJESH_INVOICE_ID).toBe('seed-invoice-rajesh');
+  });
+
+  it('pins the portal patient identity', () => {
+    expect(seedPatientPhone(0)).toBe('9000000001');
+    expect(SEED_PATIENT_PHONE_NUMBER_E164).toBe('+91 9000000001');
   });
 });
