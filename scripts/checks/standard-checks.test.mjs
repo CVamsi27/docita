@@ -233,6 +233,11 @@ test("standard gate wiring check requires all mandatory standards checks", () =>
     "check:client-storage-usage",
     "check:env-vs-globalenv",
     "check:use-case-loc",
+    "check:workflow-script-refs",
+    "check:jsx-escape-literals",
+    "check:api-conformance",
+    "check:route-shadowing",
+    "check:openai-client-singleton",
   ];
   expectFail(
     runCheck(
@@ -628,6 +633,95 @@ test("API latency budget accepts a compliant baseline and fails an over-toleranc
     ),
   );
 });
+
+test("workflow script refs check fails on missing deploy scripts and unknown packages", () => {
+  const fixture = {
+    "pnpm-workspace.yaml": 'packages:\n  - "apps/*"\n  - "packages/*"\n',
+    "package.json": JSON.stringify({
+      scripts: { "verify:standard": "pnpm check:workflow-script-refs" },
+    }),
+    "apps/app/package.json": JSON.stringify({
+      name: "@docita/app",
+      scripts: { build: "vite build" },
+    }),
+    "apps/internal/package.json": JSON.stringify({
+      name: "@docita/internal",
+      scripts: { build: "vite build" },
+    }),
+    ".github/workflows/deploy.yml": `name: deploy
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pnpm --filter @docita/internal run deploy:cloudflare:production
+      - run: pnpm --filter @workspace/missing run build
+`,
+  };
+
+  expectFail(
+    runCheck(makeGitFixture(fixture), "check-workflow-script-refs.mjs"),
+  );
+
+  // Both failures fixed: the script exists and the package exists. Also locks
+  // in the skip-logic: pnpm builtins (install/exec) and valid refs must not be
+  // flagged as script runs.
+  const fixed = {
+    ...fixture,
+    "apps/internal/package.json": JSON.stringify({
+      name: "@docita/internal",
+      scripts: {
+        build: "vite build",
+        "deploy:cloudflare:production": "wrangler deploy --env production",
+      },
+    }),
+    "packages/missing/package.json": JSON.stringify({
+      name: "@workspace/missing",
+      scripts: { build: "echo build" },
+    }),
+    ".github/workflows/deploy.yml": `name: deploy
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pnpm --filter @docita/internal run deploy:cloudflare:production
+      - run: pnpm --filter @workspace/missing run build
+      - run: pnpm install && pnpm --filter @docita/app run build
+      - run: pnpm --filter @docita/app exec playwright test
+      - run: pnpm verify:standard
+`,
+  };
+  expectPass(
+    runCheck(makeGitFixture(fixed), "check-workflow-script-refs.mjs"),
+  );
+});
+
+test("JSX escape literal check fails on unprocessed escapes and passes on JS positions", () => {
+  // Attribute strings and children text: escapes are NOT processed in JSX.
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/internal/src/features/demo/page.tsx":
+          `export function Page() {\n  return (\n    <>\n      <LoadingState message="Loading\\u2026" />\n      <div>Loading\\u2026</div>\n    </>\n  );\n}\n`,
+      }),
+      "check-jsx-escape-literals.mjs",
+    ),
+  );
+
+  // JS-string escapes (processed), fixed JSX, and a .ts file are all fine.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/internal/src/features/demo/page.tsx":
+          `const s = "\\u2026";\nconst re = /[\\u00a0]/;\nconst t = \`x\\u00b7\${y}\`;\nexport function Page() {\n  return (\n    <>\n      <LoadingState message="Loading…" />\n      <div>Loading…</div>\n      <div>{hasAccess ? "\\u2713" : "\\u2717"}</div>\n    </>\n  );\n}\n`,
+        "apps/app/src/features/demo/not-jsx.ts": `export const s = "\\u2026";\n`,
+      }),
+      "check-jsx-escape-literals.mjs",
+    ),
+  );
+});
+
 test("route shadowing check flags literal routes registered after a matching :param route", () => {
   const paramController = `import { Controller, Get } from '@nestjs/common';
 
@@ -1239,3 +1333,184 @@ export default app;
   );
 });
 
+test("API conformance check rejects embedded api/v1 controller prefixes", () => {
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/domains/demo/presentation/controllers/prefix.controller.ts": `import { Controller, Get } from '@nestjs/common';
+
+@Controller('api/v1/patients')
+export class PrefixController {
+  @Get()
+  list() {
+    return [];
+  }
+}
+`,
+      }),
+      "check-api-conformance.mjs",
+    ),
+  );
+
+  // Object-form (version-neutral) controllers and clean plural paths pass.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/domains/demo/presentation/controllers/ok.controller.ts": `import { Controller, Get } from '@nestjs/common';
+import { VERSION_NEUTRAL } from '@nestjs/common';
+
+@Controller({ path: 'health', version: VERSION_NEUTRAL })
+export class HealthController {
+  @Get()
+  health() {
+    return { status: 'ok' };
+  }
+}
+
+@Controller('patients')
+export class PatientsController {
+  @Get()
+  list() {
+    return [];
+  }
+}
+`,
+      }),
+      "check-api-conformance.mjs",
+    ),
+  );
+});
+
+test("API conformance check rejects 200-documented action POSTs without @HttpCode", () => {
+  // Multi-line @ApiResponse with status 200 and no @HttpCode -> Nest returns 201.
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/domains/demo/presentation/controllers/action.controller.ts": `import { Controller, Post, ApiResponse } from '@nestjs/common';
+
+@Controller('reminders')
+export class ActionController {
+  @Post('send')
+  @ApiResponse({
+    status: 200,
+    description: 'ok',
+  })
+  send() {
+    return { ok: true };
+  }
+}
+`,
+      }),
+      "check-api-conformance.mjs",
+    ),
+  );
+
+  // Action POSTs with @HttpCode(200) and creates with @HttpCode(201) pass.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/domains/demo/presentation/controllers/good.controller.ts": `import { Controller, Get, Post, HttpCode, HttpStatus, ApiResponse } from '@nestjs/common';
+
+@Controller('patients')
+export class GoodController {
+  @Get()
+  list() {
+    return [];
+  }
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiResponse({ status: 201 })
+  create() {
+    return {};
+  }
+
+  @Post('sync')
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({ status: 200 })
+  sync() {
+    return { ok: true };
+  }
+}
+`,
+      }),
+      "check-api-conformance.mjs",
+    ),
+  );
+
+  // Allowlisted legacy violations (audit 2026-08-08) do not fail the gate.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-auth.controller.ts": `import { Controller, Post, ApiResponse } from '@nestjs/common';
+
+@Controller('patient-portal/auth')
+export class PatientPortalAuthController {
+  @Post('request-otp')
+  @ApiResponse({ status: 200, description: 'OTP sent' })
+  requestOtp() {
+    return {};
+  }
+}
+`,
+      }),
+      "check-api-conformance.mjs",
+    ),
+  );
+});
+
+test("OpenAI client singleton check permits the allowed file and rejects client construction elsewhere", () => {
+  // The one allowed site constructs the client and value-imports the package.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/shared/modules/ai/openai.service.ts": `import OpenAI from 'openai';
+export class OpenaiService {
+  constructor() {
+    if (this.enabled) {
+      this.openai = new OpenAI({ apiKey: process.env.AI_API_KEY });
+    }
+  }
+}
+`,
+        "apps/api/src/shared/modules/ai/openai.service.spec.ts": `import type OpenAI from 'openai';
+`,
+        "apps/worker/src/main.ts": `import { NestFactory } from '@nestjs/core';
+`,
+      }),
+      "check-openai-client-singleton.mjs",
+    ),
+  );
+
+  // Constructing the client outside the allowed file fails the gate.
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/shared/modules/ai/openai.service.ts": `import OpenAI from 'openai';
+`,
+        "apps/api/src/shared/modules/other/llm.client.ts": `import OpenAI from 'openai';
+const client = new OpenAI({ apiKey: process.env.AI_API_KEY });
+`,
+        // A block comment prefix must not exempt a line that still constructs.
+        "apps/api/src/shared/modules/other/inline.client.ts": `/* legacy bypass */ new OpenAI({ apiKey: process.env.AI_API_KEY });
+`,
+      }),
+      "check-openai-client-singleton.mjs",
+    ),
+  );
+
+  // A value import (or require) elsewhere fails even without construction.
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/shared/modules/ai/openai.service.ts": `import OpenAI from 'openai';
+`,
+        "apps/api/src/domains/patients/application/services/medical-history.service.ts": `import OpenAI from 'openai';
+`,
+        "apps/worker/src/jobs/llm.job.ts": `const OpenAI = require('openai');
+`,
+      }),
+      "check-openai-client-singleton.mjs",
+    ),
+  );
+});
