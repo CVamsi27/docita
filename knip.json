@@ -34,6 +34,11 @@
         "@sentry/profiling-node",
         "@willsoto/nestjs-prometheus",
         "@workspace/types",
+        // worker tsconfig maps @/* to ../api/src/* and main.ts imports API
+        // config services, so the worker's tsc resolves API files that import
+        // @workspace/authorization — required for type resolution even though
+        // no worker file imports it directly.
+        "@workspace/authorization",
         "@workspace/db",
         "@workspace/utils",
         "bcrypt",
