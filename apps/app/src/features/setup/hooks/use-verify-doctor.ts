@@ -154,7 +154,7 @@ function useVerifyDoctorQueries(
   );
   const clinicQuery = useAPIQuery<Clinic>(
     appQueryKeys.clinicSettings(user?.clinicId ?? ""),
-    "/clinic/settings",
+    "/clinics/settings",
     { enabled: !!user?.clinicId && isDoctor },
   );
   return {

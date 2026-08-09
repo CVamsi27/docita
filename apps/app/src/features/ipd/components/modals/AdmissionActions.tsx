@@ -11,7 +11,7 @@ export function AdmissionActions({ isSubmitting, onCancel, onSubmit }: Admission
     <DialogFooter>
       <Button variant="outline" onClick={onCancel}>Cancel</Button>
       <Button onClick={onSubmit} disabled={isSubmitting}>
-        {isSubmitting ? "Admitting\u2026" : "Admit"}
+        {isSubmitting ? "Admitting…" : "Admit"}
       </Button>
     </DialogFooter>
   );

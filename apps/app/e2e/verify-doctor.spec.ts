@@ -547,7 +547,7 @@ test.describe("Doctor Verification Flow", () => {
       );
     }
 
-    const clinicSettingsRes = await request.get(`${API_URL}/clinic/settings`, {
+    const clinicSettingsRes = await request.get(`${API_URL}/clinics/settings`, {
       headers: {
         Authorization: `Bearer ${doctor.accessToken}`,
       },

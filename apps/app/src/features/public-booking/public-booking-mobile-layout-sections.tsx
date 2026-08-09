@@ -222,7 +222,7 @@ export function PublicBookingMobileBottomBar({
               disabled={c.submit.isPending || !c.submitRequestReady}
               onClick={() => void c.handleSubmit()}
             >
-              {c.submit.isPending ? "Sending\u2026" : "Send visit request"}
+              {c.submit.isPending ? "Sending…" : "Send visit request"}
             </Button>
           </div>
         </div>

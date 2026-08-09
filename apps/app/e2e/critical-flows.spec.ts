@@ -1,12 +1,12 @@
 import type { APIRequestContext } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 import { DPDP_NOTICE_VERSION } from "@workspace/types";
+import { seedPatientPhone } from "@workspace/utils";
 import {
+  API_URL,
   createUniqueClientIp,
   setupTestUser,
 } from "./utils/patient-helpers";
-
-const API_URL = "http://127.0.0.1:3001/api/v1";
 
 const DPDP_CONSENT_PAYLOAD = {
   accepted: true,
@@ -95,7 +95,7 @@ test.describe("Critical Business Flows", () => {
         firstName: "Test",
         lastName: "Patient",
         gender: "OTHER",
-        phoneNumber: "9000000000",
+        phoneNumber: seedPatientPhone(0),
         dateOfBirth: "1990-01-01",
         clinicId: doctor.clinicId,
         dpdpConsent: DPDP_CONSENT_PAYLOAD,
@@ -128,7 +128,7 @@ test.describe("Critical Business Flows", () => {
         lastName: "Patient",
         email: newPatientEmail,
         gender: "OTHER",
-        phoneNumber: "9000000001",
+        phoneNumber: seedPatientPhone(1),
         dateOfBirth: "1990-01-01",
         clinicId: doctor.clinicId,
         dpdpConsent: DPDP_CONSENT_PAYLOAD,
@@ -332,7 +332,7 @@ test.describe("Critical Business Flows", () => {
   });
 
   test(" FLOW 5: Clinic Operations - View Settings → Manage Members → View Appointments", async () => {
-    const clinicRes = await request.get(`${API_URL}/clinic/settings`, {
+    const clinicRes = await request.get(`${API_URL}/clinics/settings`, {
       headers: { Authorization: `Bearer ${doctor.accessToken}` },
     });
 
@@ -340,7 +340,7 @@ test.describe("Critical Business Flows", () => {
     const clinicData = (await clinicRes.json()) as { id: string; name: string };
     expect(clinicData.id).toBe(clinic.id);
 
-    const membersRes = await request.get(`${API_URL}/clinic/members`, {
+    const membersRes = await request.get(`${API_URL}/clinics/members`, {
       headers: { Authorization: `Bearer ${doctor.accessToken}` },
     });
 
@@ -381,7 +381,7 @@ test.describe("Critical Business Flows", () => {
           lastName: "ClinicPatient",
           email: `other-clinic-${Date.now()}@test.com`,
           gender: "OTHER",
-          phoneNumber: "9000000002",
+          phoneNumber: seedPatientPhone(2),
           dateOfBirth: "1991-01-01",
           clinicId: otherDoctor.clinicId,
           dpdpConsent: DPDP_CONSENT_PAYLOAD,
