@@ -400,10 +400,6 @@ export type { SignatureUploadToken, ActiveToken, UploadResult } from "./hooks/us
 export {
   useSendPrescriptionWhatsApp,
   useSendInvoiceWhatsApp,
-  useWhatsappUnreadNotificationCount,
-  useUnreadNotifications,
-  useWhatsappDeleteNotification,
-  useWhatsappDeleteAllNotifications,
   useResendPrescriptionWhatsApp,
   useResendInvoiceWhatsApp,
   useApprovePrescriptionWhatsApp,
@@ -430,7 +426,6 @@ export {
   useCreateClinicWhatsappCampaign,
   useCancelClinicWhatsappCampaign,
 } from "./hooks/use-whatsapp";
-export type { NotificationUnreadCountResponse } from "./hooks/use-whatsapp";
 
 // File upload hooks
 export { useUploadFile } from "./hooks/use-file-upload";

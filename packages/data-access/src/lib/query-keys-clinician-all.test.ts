@@ -203,22 +203,6 @@ describe("queryKeys (clinician)", () => {
     });
   });
 
-  describe("whatsapp", () => {
-    it("exposes unread-notification prefix and limit keys", () => {
-      expect(queryKeys.whatsapp.notifications.unreadPrefix()).toEqual([
-        "whatsapp",
-        "notifications",
-        "unread",
-      ]);
-      expect(queryKeys.whatsapp.notifications.unread(20)).toEqual([
-        "whatsapp",
-        "notifications",
-        "unread",
-        20,
-      ]);
-    });
-  });
-
   describe("prescriptions / invoices", () => {
     it("applies withParams for filtered lists and keeps detail keys granular", () => {
       expect(queryKeys.prescriptions.list()).toEqual(["prescriptions", {}]);
