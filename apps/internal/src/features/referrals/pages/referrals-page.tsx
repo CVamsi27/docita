@@ -50,7 +50,7 @@ export function ReferralsPage() {
           <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Converted</CardTitle><TrendingUp className="h-4 w-4 text-muted-foreground" /></CardHeader>
             <CardContent><div className="text-2xl font-semibold tabular-nums">{stats.converted}</div></CardContent></Card>
           <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Commission Paid</CardTitle><ArrowLeftRight className="h-4 w-4 text-muted-foreground" /></CardHeader>
-            <CardContent><div className="text-2xl font-semibold tabular-nums">\u20b9{stats.commission.toLocaleString()}</div></CardContent></Card>
+            <CardContent><div className="text-2xl font-semibold tabular-nums">₹{stats.commission.toLocaleString()}</div></CardContent></Card>
         </div>
 
         <Card><CardHeader><CardTitle>All Referrals</CardTitle><CardDescription>{referrals.length} referral record(s)</CardDescription></CardHeader>
