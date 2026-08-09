@@ -9,7 +9,7 @@
  * layout directory (page-meta, providers, top-bar-actions, skeletons, ...)
  * are not route boundaries. RootLayout and ToolsLayout only render
  * `<Helmet>` + `<Outlet />` (no content of their own) and are allowlisted
- * with rationale in EXECUTION_PLAN Phase 13.
+ * with rationale (they render no content of their own).
  *
  * Usage:
  *   node scripts/checks/check-error-boundary-coverage.mjs           # report only
@@ -22,8 +22,7 @@ import process from "node:process";
 
 const LAYOUT_DIR = path.join(process.cwd(), "apps/app/src/components/layout");
 const ERROR_BOUNDARY_RE = /ErrorBoundary/;
-// Layouts that render only <Helmet> + <Outlet /> — nothing to boundary-wrap
-// (EXECUTION_PLAN Phase 13).
+// Layouts that render only <Helmet> + <Outlet /> — nothing to boundary-wrap.
 const INTENTIONAL_WITHOUT_BOUNDARY = new Set([
   "root-layout.tsx",
   "tools-layout.tsx",

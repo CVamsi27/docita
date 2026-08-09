@@ -14,7 +14,6 @@
 #
 # See:
 #   docs/operations/RELEASE_EVIDENCE_CHECKLIST.md
-#   docs/analysis/EXECUTION_PLAN.md (P5, Verification matrix)
 #   docs/operations/STABILITY_RUNBOOK.md §4
 set -euo pipefail
 

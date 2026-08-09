@@ -4,7 +4,7 @@
  * check:i18next-parity.
  *
  * Enforces exact en/hi leaf-key parity for the app i18next message
- * bundle (AGENTS.md §3.1 / EXECUTION_PLAN Phase 11). The corpus lives as
+ * bundle (AGENTS.md §3.1). The corpus lives as
  * per-namespace pairs under apps/app/src/messages/{en,hi}/ (file name = top-level
  * namespace, e.g. en/Auth.json); the leaves are compared across locales:
  *   - every en/ leaf must exist in hi/ — no untranslated UI strings;
@@ -17,7 +17,7 @@
  * en.json edit cannot silently regress Hindi coverage.
  *
  * Scope: apps/app only. internal is a documented English-only
- * admin portal with no en/hi bundle (PORTING_PLAN_APP_VITE.md).
+ * admin portal with no en/hi bundle.
  *
  * Usage:
  *   node scripts/checks/check-i18next-parity.mjs           # report only

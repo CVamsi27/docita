@@ -16,7 +16,7 @@
  * catch new parallel definitions.
  *
  * Documented intentional divergences (form-local shapes for complex
- * multi-field inputs, EXECUTION_PLAN Phase 9 — deferred) live in
+ * multi-field inputs, deferred) live in
  * `scripts/checks/allowlists/zod-interface-parity.json` as
  * `"relative/path:InterfaceName"` entries. Pre-existing collisions are
  * allowlisted there (ratchet); new parallel definitions must be fixed via

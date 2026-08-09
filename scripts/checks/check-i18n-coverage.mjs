@@ -4,7 +4,7 @@
  * Phase 15 check:i18n-coverage.
  *
  * Enforces that every feature in the Vite SPA apps uses react-i18next for
- * user-facing strings (AGENTS.md §8.5 / EXECUTION_PLAN Phase 11): a feature
+ * user-facing strings (AGENTS.md §8.5): a feature
  * directory must contain at least one non-test source file importing
  * `useTranslation`, otherwise it is flagged.
  *
@@ -15,7 +15,7 @@
  * deliberately not routed through react-i18next.
  *
  * Scope: app only. internal is a documented English-only admin
- * portal with no en/hi message bundle (PORTING_PLAN_APP_VITE.md).
+ * portal with no en/hi message bundle.
  *
  * Usage:
  *   node scripts/checks/check-i18n-coverage.mjs           # report only
@@ -27,7 +27,7 @@ import path from "node:path";
 import process from "node:process";
 
 // app only: internal is a documented English-only admin portal
-// (PORTING_PLAN_APP_VITE.md — "internal i18n: none"), so it has no
+// ("internal i18n: none"), so it has no
 // en/hi message bundle and is intentionally excluded.
 const APPS = ["apps/app/src/features"];
 const ALLOWLIST_PATH = path.join(
@@ -89,7 +89,7 @@ if (findings.length > 0) {
     console.error(`- ${finding}`);
   }
   console.error(
-    "Add useTranslation + message keys for user-facing strings (see EXECUTION_PLAN Phase 11).",
+    "Add useTranslation + message keys for user-facing strings.",
   );
   process.exit(enforce ? 1 : 0);
 }

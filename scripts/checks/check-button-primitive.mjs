@@ -10,8 +10,8 @@
  * The rule applies to the Vite SPA apps (`apps/app`, `apps/internal`)
  * in `src/features` and `src/components`. The primitive's own definition lives
  * in `packages/ui` and is out of scope. Test files and E2E specs may use raw
- * `<button>` (native HTML is acceptable for test mocks per EXECUTION_PLAN
- * §12.1).
+ * `<button>` (native HTML is acceptable for test mocks — documented
+ * intentional divergence, see the jsx-button-primitive allowlist).
  *
  * Usage:
  *   node scripts/checks/check-button-primitive.mjs           # report only

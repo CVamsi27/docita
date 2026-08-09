@@ -1,6 +1,6 @@
 # @docita/internal
 
-Internal admin portal — Vite + React Router v7 SPA (replaces the Next.js `apps/internal`; same shape as `apps/app`, see [`docs/PORTING_PLAN_APP_VITE.md`](../../docs/PORTING_PLAN_APP_VITE.md) for the migration plan and feature status).
+Internal admin portal — Vite + React Router v7 SPA (replaces the Next.js `apps/internal`; same shape as `apps/app`).
 
 ## Stack
 

@@ -1,6 +1,6 @@
 # @docita/app
 
-Main clinician application — Vite + React Router v7 SPA (replaces the Next.js `apps/app`; see [`docs/PORTING_PLAN_APP_VITE.md`](../../docs/PORTING_PLAN_APP_VITE.md) for the migration plan and feature status).
+Main clinician application — Vite + React Router v7 SPA (replaces the Next.js `apps/app`).
 
 ## Stack
 
@@ -55,7 +55,7 @@ Import aliases: `@/*` → `./src/*`, `@workspace/*` → `packages/*/src`. Cross-
 
 ## Testing
 
-Vitest + Testing Library (jsdom). No Playwright E2E suite exists here yet — porting the Next app's 50 specs is tracked in `docs/PORTING_PLAN_APP_VITE.md` (Phase 8).
+Vitest + Testing Library (jsdom).
 
 ## Deployment
 
