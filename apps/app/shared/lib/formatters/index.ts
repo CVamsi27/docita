@@ -31,12 +31,18 @@ export function formatDateSafe(
   return formatted.length > 0 ? formatted : "-";
 }
 
-export function formatLocaleDateShortMonth(date: Date | string): string {
-  return wsFormatDate(date, "d MMM", { timezone: DEFAULT_TIMEZONE });
+export function formatLocaleDateShortMonth(
+  date: Date | string,
+  timezone: string = DEFAULT_TIMEZONE,
+): string {
+  return wsFormatDate(date, "d MMM", { timezone });
 }
 
-export function formatLocaleDateShortMonthYear(date: Date | string): string {
-  return wsFormatDate(date, "d MMM yyyy", { timezone: DEFAULT_TIMEZONE });
+export function formatLocaleDateShortMonthYear(
+  date: Date | string,
+  timezone: string = DEFAULT_TIMEZONE,
+): string {
+  return wsFormatDate(date, "d MMM yyyy", { timezone });
 }
 
 export function formatTime(

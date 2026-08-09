@@ -21,18 +21,12 @@ import {
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { useTranslations } from "next-intl";
 import type { ClinicWhatsappTemplate, ClinicWhatsappSentMessage } from "@workspace/types";
+import { getClinicTimezoneOrDefault } from "@/lib/utils/clinic-timezone";
+import { useOptionalClinic } from "@/lib/contexts/clinic-context";
+import { formatDateTime } from "@/lib/formatters";
 
 const FAILED_STATUSES = new Set(["FAILED", "UNDELIVERED", "REJECTED"]);
 const MAX_LENGTH = 4096;
-
-function formatSentAt(value: string | Date): string {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
 
 /**
  * Phase 3 (per-feature): apps/app Patients > WhatsApp composer
@@ -149,6 +143,7 @@ export function SentMessageHistory({
   onRetry,
 }: SentMessageHistoryProps) {
   const t = useWhatsappComposerTranslations();
+  const clinicTimezone = getClinicTimezoneOrDefault(useOptionalClinic()?.clinic);
   return (
     <div className="ui-card-surface space-y-3 p-5">
       <div className="flex items-center gap-2">
@@ -180,7 +175,7 @@ export function SentMessageHistory({
             >
               <div className="mb-1 flex items-center justify-between gap-2">
                 <span className="text-xs text-muted-foreground">
-                  {formatSentAt(entry.createdAt)}
+                  {formatDateTime(entry.createdAt, undefined, clinicTimezone)}
                 </span>
                 <Badge
                   variant={

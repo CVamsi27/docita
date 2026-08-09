@@ -6,6 +6,7 @@ import { usePartnerAuth } from "../hooks/use-partner-auth";
 import { usePartnerMe } from "@workspace/data-access";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { formatPaise } from "@/features/referral-partner/lib/format-currency";
+import { formatDate } from "@/lib/formatters";
 
 export function PartnerDashboard() {
   const auth = usePartnerAuth();
@@ -116,9 +117,7 @@ export function PartnerDashboard() {
           <CardDescription>
             {hasBanking
               ? d.payoutDetails?.verified
-                ? `Verified (last updated ${new Date(
-                    d.payoutDetails.updatedAt,
-                  ).toLocaleDateString()})`
+                ? `Verified (last updated ${formatDate(d.payoutDetails.updatedAt)})`
                 : "Submitted but not yet verified. We pay you once we confirm."
               : "Add your bank account so we can pay your revenue share."}
           </CardDescription>

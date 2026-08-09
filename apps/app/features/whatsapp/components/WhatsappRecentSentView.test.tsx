@@ -8,6 +8,12 @@ vi.mock("@workspace/data-access", () => ({
   useClinicRecentSentMessages: () => mockUseRecentSent(),
 }));
 
+// The component resolves the clinic wall-clock timezone from context; outside
+// the provider tree it falls back to DEFAULT_TIMEZONE (IST).
+vi.mock("@/lib/contexts/clinic-context", () => ({
+  useOptionalClinic: () => undefined,
+}));
+
 function setHook(value: Record<string, unknown>) {
   mockUseRecentSent.mockReturnValue({
     isLoading: false,
