@@ -1188,7 +1188,7 @@ The trade-off: anything that strips or transforms the `X-CSRF-Token` response he
 [`MfaService`](../../apps/api/src/shared/modules/auth/auth/mfa.service.ts) implements optional second-factor for staff accounts:
 
 - **TOTP** via `otplib` (`generateSecret` / `verify`) with a QR code rendered by `qrcode`. The TOTP secret is **encrypted at rest** via `EncryptionService` before being stored on the user row.
-- **Backup codes**: 10 single-use codes are generated with `nanoid`, **bcrypt-hashed** (`bcrypt.hash(code, 10)`) and stored as a JSON column validated by `mfaHashedBackupCodesSchema` from `@workspace/types`. The plaintext codes are returned to the user **once** at enrollment.
+- **Backup codes**: 10 single-use codes are generated with `nanoid`, **bcrypt-hashed** (`bcrypt.hash(code, 10)`) and stored as a JSON column on the user row; `MfaService` generates and manages the hashes itself (the former `packages/types` backup-code schemas were removed as dead code). The plaintext codes are returned to the user **once** at enrollment.
 - Verifying a backup code at login does a bcrypt compare across the stored hashes and then **removes** the matched hash so the code cannot be reused.
 - Disabling MFA requires a valid current TOTP code — there is no admin override path that skips verification.
 
@@ -1420,7 +1420,7 @@ Failure mode: vitals telemetry must be non-blocking and must not produce console
 ### 10.4 Caching
 
 - React Query owns the client cache (§6.3). Stale times are intentional and per-data-type, not a global default.
-- A backend cache module (`apps/api/src/shared/modules/cache/`) wraps an optional Redis. `check-cache-redis-required.mjs` flags any code path that assumes Redis is present without a fallback.
+- A backend cache module (`apps/api/src/cache/`, `CacheConfigModule`) wraps an optional Redis behind an in-memory fallback. `check-cache-redis-required.mjs` blocks deploying with `CACHE_BACKEND=redis` until Redis is provisioned.
 - Cloudflare edge caching is **not** used for authenticated routes — they're marked dynamic. Static assets and the marketing site use long cache TTLs by default.
 
 ### 10.5 Bundle and code-splitting controls
@@ -1707,11 +1707,9 @@ The service guarantees: tenant filter is always present, results are paginated, 
 
 ## 20. AI / OCR pipeline
 
-Split across two modules to keep SDK imports at the infrastructure edge:
+### 20.1 `ai-core` — REMOVED 2026-08-08
 
-### 20.1 `ai-core` (provider factory + schemas)
-
-[`apps/api/src/shared/modules/ai-core/`](../../apps/api/src/shared/modules/ai-core/) — provider selection, shared request/response shapes, factory wiring ([`ai.factory.ts`](../../apps/api/src/shared/modules/ai-core/factories/ai.factory.ts)). No domain-specific clinical logic.
+The former `apps/api/src/shared/modules/ai-core/` module (provider factory + shared AI schemas) was **deleted**; its only consumer (`summarizeMedicalHistory` in `medical-history.service.ts`) was removed with it. The SDK-at-the-edge constraint it existed to enforce survives via `check-external-sdk-in-application.mjs` (§20.2), and the live LLM integration lives solely in `shared/modules/ai/`. Do not reintroduce a second AI module.
 
 ### 20.2 `ai` (orchestration)
 
@@ -2234,7 +2232,7 @@ The system has **four** layers of caching, each with a different invalidation mo
 | Layer | Lives in | Invalidation | Use for |
 | --- | --- | --- | --- |
 | HTTP response cache (`CacheInterceptor`) | `apps/api/src/shared/common/interceptors/cache.interceptor.ts` | Opt-in `@CacheDuration`, normalized key, TTL, ETag | Selected GET configuration routes |
-| Service cache (Redis/in-memory) | `apps/api/src/shared/modules/cache/` | TTL + explicit | Cross-request compute (tier-feature matrix, clinic auth context) |
+| Service cache (Redis/in-memory) | `apps/api/src/cache/` (`CacheConfigModule`) | TTL + explicit | Cross-request compute (tier-feature matrix, clinic auth context) |
 | Prisma query cache | N/A — intentionally not used | — | Avoid; correctness with the tenant extension is hard |
 | Frontend React Query cache | `packages/data-access` | Per-key invalidation on mutation | All client-visible read data |
 
@@ -2892,7 +2890,7 @@ Flat modules used across domains. Prefer importing the module, not reaching into
 | --- | --- |
 | `auth` | JWT, refresh, MFA, guards, decorators, policy engine, rate limits |
 | `audit` | Audit log writers, event listeners |
-| `cache` | Optional Redis / in-memory cache-manager |
+| `cache` | Optional Redis / in-memory cache-manager (module removed 2026-08-08 — superseded by `apps/api/src/cache/`, `CacheConfigModule`) |
 | `compliance` | Consent, DSR, retention, archival, PHI definitions |
 | `config` | Zod-validated env (`AppConfigService`) |
 | `database` / `prisma` | Prisma module wiring |
@@ -2918,7 +2916,6 @@ Flat modules used across domains. Prefer importing the module, not reaching into
 | `webhooks` | Replay dedupe |
 | `whatsapp-broadcast` | Template broadcast quotas |
 | `ai` | OCR + clinical AI orchestration |
-| `ai-core` | Provider factory, shared AI schemas (keep SDK at edge) |
 | `internal` | Staff-only utilities |
 | `contact` | Contact/lead capture |
 | `clinic-workspace` | Workspace-level clinic helpers |

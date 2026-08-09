@@ -12,10 +12,13 @@ Base URL: `http://localhost:3001/api` (Development)
 > **Current contract (2026-08-07).** The examples below follow the actual wire
 > surface; this callout is the ground truth if a section drifts again.
 >
-> - **Versioning**: the main surface is `/api/<resource>` (global `setGlobalPrefix('api')`);
->   there is no `v1` path segment on the public surface. `/health*` is
->   version-neutral. One internal controller (`/api/v1/operations/database`) is
->   the only `v1`-prefixed route — do not copy that pattern into new domains.
+> - **Versioning**: every route lives at `/api/v1/<resource>` — the global
+>   `setGlobalPrefix('api')` + URI versioning (`defaultVersion: '1'`, see
+>   `apps/api/src/main.ts` `configureRouting()`) compose to `/api/v1/...`;
+>   controllers never embed `api`/`v1` in their paths (the old
+>   `@Controller('api/v1/operations/database')` was a double-prefix bug, fixed in
+>   `cd3a9c56f`). `/health*` is version-neutral (`VERSION_NEUTRAL`). See
+>   [`API_DESIGN_STANDARD.md`](API_DESIGN_STANDARD.md) §1 for the policy.
 > - **Partial updates use `PATCH`** (patients, invoices, appointments). `PUT` is
 >   reserved for full replacement (e.g. `PUT /clinics/:id`, `PUT /reminders/settings`).
 > - **Workflow transitions are action routes on the resource**:

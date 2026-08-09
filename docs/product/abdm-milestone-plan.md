@@ -58,7 +58,7 @@
 - Gateway client: `pushHealthInformation`, `notifyHealthInformation` methods
 - FHIR service: `FhirService.getPatientBundle` — FHIR R4 bundles (Patient, Observation, MedicationRequest, Condition, AllergyIntolerance, Immunization, Appointment)
 - Callback endpoint: `POST /abdm/callbacks/:clinicId/:type` with shared-secret verification
-- Dashboard: `GET /clinic/abdm/dashboard` with readiness items + DHIS estimate
+- Dashboard: `GET /clinics/abdm/dashboard` with readiness items + DHIS estimate
 
 **What needs to be done (by 07/07/2026):**
 
