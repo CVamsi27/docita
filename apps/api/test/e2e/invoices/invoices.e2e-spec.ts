@@ -70,7 +70,9 @@ describe('Invoices (e2e)', () => {
     await resetDatabase();
     clearMockPaymentLinkProvider(mockPaymentLinkProvider);
 
-    const clinic = await factories.clinic({ tier: 'PRO' });
+    // Invoicing is an ESSENTIAL+ feature; 'PRO' is not a canonical ClinicTier
+    // and silently fell back to STARTER, 403ing every mutation here.
+    const clinic = await factories.clinic({ tier: 'PROFESSIONAL' });
     clinicId = clinic.id;
 
     const { user, plainPassword } = await factories.user({

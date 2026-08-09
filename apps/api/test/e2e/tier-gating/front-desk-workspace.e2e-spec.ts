@@ -57,9 +57,12 @@ describe('Front desk tier (e2e)', () => {
     if (!prisma || !httpServer) throw new Error('E2E app not initialized');
     await resetDatabase();
 
-    // Clinical mutation guard keys off clinic.tier === FRONT_DESK.
+    // Front Desk is a plan mode on a canonical tier, not a DB tier enum value
+    // (legacy FRONT_DESK tier was removed). The clinical mutation guard keys
+    // off clinic.planMode === FRONT_DESK via MODE_BLOCKED_FEATURES.
     const clinic = await factories.clinic({
-      tier: 'FRONT_DESK',
+      tier: 'ESSENTIAL',
+      planMode: 'FRONT_DESK',
     });
     clinicId = clinic.id;
 
@@ -244,7 +247,10 @@ describe('Front desk tier (e2e)', () => {
 
     beforeEach(async () => {
       if (!prisma) throw new Error('E2E prisma not initialized');
-      const skuClinic = await factories.clinic({ tier: 'FRONT_DESK' });
+      const skuClinic = await factories.clinic({
+        tier: 'ESSENTIAL',
+        planMode: 'FRONT_DESK',
+      });
       frontDeskClinicId = skuClinic.id;
 
       const { user: skuDoctor, plainPassword: skuDoctorPlain } =
