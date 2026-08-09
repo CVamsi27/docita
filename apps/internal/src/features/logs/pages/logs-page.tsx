@@ -6,6 +6,12 @@ import { apiGet } from "@/lib/api/api-client";
 
 interface SystemLog { id: string; timestamp: string; level: string; module: string; message: string; details?: string; }
 
+type PageSize = 25 | 50 | 100;
+
+function isPageSize(value: number): value is PageSize {
+  return value === 25 || value === 50 || value === 100;
+}
+
 export function LogsPage() {
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState<SystemLog[]>([]);
@@ -81,7 +87,7 @@ export function LogsPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Page Size</label>
-            <Select value={String(selectedLimit)} onValueChange={(v) => { setSelectedLimit(Number(v) as 25 | 50 | 100); setOffset(0); }}>
+            <Select value={String(selectedLimit)} onValueChange={(v) => { const limit = Number(v); if (isPageSize(limit)) setSelectedLimit(limit); setOffset(0); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="25">25</SelectItem>
