@@ -22,7 +22,7 @@
     "post:all:now": "node post-social.mjs --now --all"
   },
   "dependencies": {
-    "js-yaml": "^4.3.0",
+    "js-yaml": "^4.3.1",
     "twitter-api-v2": "^1.18.0"
   },
   "devDependencies": {

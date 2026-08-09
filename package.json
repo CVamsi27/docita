@@ -256,6 +256,7 @@
       "jws": "3.2.3",
       "lodash": "^4.18.1",
       "multer": "^2.2.0",
+      "nanoid": "^3.3.17",
       "path-to-regexp": "^8.4.2",
       "picomatch": "^4.0.4",
       "qs": "^6.15.2",
@@ -271,7 +272,7 @@
       "ws": "8.21.0",
       "ts-node>diff": "4.0.4",
       "form-data": "^4.0.6",
-      "js-yaml": "^4.3.0",
+      "js-yaml": "^4.3.1",
       "@opentelemetry/core": ">=2.8.0",
       "@babel/core": ">=7.29.6",
       "webpack": "^5.104.1"
