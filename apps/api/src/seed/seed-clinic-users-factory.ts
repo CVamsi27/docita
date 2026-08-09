@@ -1,6 +1,5 @@
 import type {
   HospitalRole,
-  PlanMode,
   Role,
   Specialization,
 } from '@workspace/db';
@@ -158,5 +157,5 @@ export const SEED_DEFAULT_CLINIC_PLAN = {
   email: 'contact@docita.work',
   active: true,
   tier: 'ENTERPRISE',
-  planMode: 'FULL' as PlanMode,
+  planMode: 'FULL',
 } as const;
