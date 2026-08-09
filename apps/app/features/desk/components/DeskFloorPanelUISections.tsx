@@ -5,6 +5,10 @@ import { Clock, Users } from "lucide-react";
 import { Avatar, AvatarFallback, Card, CardContent, CardHeader, CardTitle, EmptyState, Section } from "@workspace/ui/components";
 import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
 import { cn } from "@workspace/ui/lib/utils";
+import { DATE_FORMATS, DEFAULT_TIMEZONE } from "@workspace/utils";
+import { getClinicTimezoneOrDefault } from "@/lib/utils/clinic-timezone";
+import { useOptionalClinic } from "@/lib/contexts/clinic-context";
+import { formatTime } from "@/lib/formatters";
 
 export interface DeskFloorRow {
   id: string;
@@ -32,15 +36,12 @@ export function formatToken(n: number): string {
 
 export function formatScheduled(
   value: string | null | undefined,
+  timezone: string = DEFAULT_TIMEZONE,
 ): string | null {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  return formatTime(date, DATE_FORMATS.TIME_SHORT, timezone);
 }
 
 export interface FloorStatsSectionProps {
@@ -103,6 +104,7 @@ export interface WaitingListSectionProps {
 }
 
 export function WaitingListSection({ waiting }: WaitingListSectionProps) {
+  const clinicTimezone = getClinicTimezoneOrDefault(useOptionalClinic()?.clinic);
   return (
     <Section
       id="desk-floor-waiting"
@@ -157,7 +159,7 @@ export function WaitingListSection({ waiting }: WaitingListSectionProps) {
                       "shrink-0 font-mono text-xs tabular-nums text-muted-foreground",
                     )}
                   >
-                    {formatScheduled(row.scheduledTime) ?? "—"}
+                    {formatScheduled(row.scheduledTime, clinicTimezone) ?? "—"}
                   </span>
                 </li>
               ))}
@@ -176,6 +178,7 @@ export interface RecentlyCompletedSectionProps {
 export function RecentlyCompletedSection({
   recentlyCompleted,
 }: RecentlyCompletedSectionProps) {
+  const clinicTimezone = getClinicTimezoneOrDefault(useOptionalClinic()?.clinic);
   if (recentlyCompleted.length === 0) return null;
 
   return (
@@ -210,7 +213,7 @@ export function RecentlyCompletedSection({
                   </p>
                 </div>
                 <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
-                  {formatScheduled(row.scheduledTime) ?? "—"}
+                  {formatScheduled(row.scheduledTime, clinicTimezone) ?? "—"}
                 </span>
               </li>
             ))}

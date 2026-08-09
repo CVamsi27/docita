@@ -110,6 +110,8 @@ export function buildPlanDetails(params: {
   showStarterAccessThroughLabel: boolean;
   planStripPeriodEnd: Date | null;
   planStripDaysLeft: number | null;
+  /** Clinic wall-clock timezone; defaults to IST when absent. */
+  clinicTimezone?: string;
 }) {
   return [
     { label: "Plan", value: `${params.billedTierLabel}${params.billedModeLabel}` },
@@ -135,7 +137,10 @@ export function buildPlanDetails(params: {
               : "Renews On",
       value:
         params.planStripPeriodEnd !== null
-          ? `${formatPlanDate(params.planStripPeriodEnd.toISOString())}${
+          ? `${formatPlanDate(
+              params.planStripPeriodEnd.toISOString(),
+              params.clinicTimezone,
+            )}${
               params.planStripDaysLeft !== null
                 ? ` (${params.planStripDaysLeft} day${params.planStripDaysLeft === 1 ? "" : "s"} left)`
                 : ""

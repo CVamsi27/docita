@@ -5,6 +5,9 @@ import { Badge, Button } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 import { formatCurrency } from "@workspace/utils";
+import { getClinicTimezoneOrDefault } from "@/lib/utils/clinic-timezone";
+import { useOptionalClinic } from "@/lib/contexts/clinic-context";
+import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 import type { CurrentPlanCardProps } from "./current-plan-card-types";
 
 /**
@@ -41,6 +44,7 @@ export function CurrentPlanCardMeta({
   | "planDetailsFootnote"
   | "statusNotice"
 >) {
+  const clinicTimezone = getClinicTimezoneOrDefault(useOptionalClinic()?.clinic);
   const statusNoticeClassName =
     statusNotice?.variant === "destructive"
       ? "border-destructive/50 bg-destructive/10 text-destructive"
@@ -69,9 +73,9 @@ export function CurrentPlanCardMeta({
               </p>
               <p className="text-xs text-muted-foreground">
                 Applies on{" "}
-                {new Date(scheduledChange.effectiveAt).toLocaleDateString(
-                  undefined,
-                  { day: "numeric", month: "short", year: "numeric" },
+                {formatLocaleDateShortMonthYear(
+                  scheduledChange.effectiveAt,
+                  clinicTimezone,
                 )}
                 . Your current plan stays active until then.
               </p>
