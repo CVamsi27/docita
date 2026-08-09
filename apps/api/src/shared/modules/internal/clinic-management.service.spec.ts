@@ -153,6 +153,30 @@ describe('ClinicManagementService admin lifecycle', () => {
       );
     });
 
+    it('getAllAdmins caps the query with the default limit when none is passed', async () => {
+      prisma.user.findMany.mockResolvedValue([]);
+
+      await service.getAllAdmins();
+
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 200 }),
+      );
+    });
+
+    it('getAllUsers honors an explicit limit and defaults to 200', async () => {
+      prisma.user.findMany.mockResolvedValue([]);
+
+      await service.getAllUsers({ limit: 50 });
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 50 }),
+      );
+
+      await service.getAllUsers();
+      expect(prisma.user.findMany).toHaveBeenLastCalledWith(
+        expect.objectContaining({ take: 200 }),
+      );
+    });
+
     it('getAllUsers leaves clinicName undefined when the user has no clinic', async () => {
       prisma.user.findMany.mockResolvedValue([
         {

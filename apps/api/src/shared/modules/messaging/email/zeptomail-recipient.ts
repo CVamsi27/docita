@@ -5,7 +5,7 @@ export function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-export function toAddresses(emailInfo: unknown): string[] {
+function toAddresses(emailInfo: unknown): string[] {
   if (!isRecord(emailInfo)) return [];
   const out: string[] = [];
   for (const entry of asArray(emailInfo.to)) {

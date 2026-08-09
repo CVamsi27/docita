@@ -6,7 +6,6 @@ import {
 } from '@/shared/whatsapp/template-resolution.service';
 
 export type { ResolvedTemplate };
-export type { TemplateButton, TemplateVariable } from '@workspace/types';
 
 @Injectable()
 export class TemplateResolverService {

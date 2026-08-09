@@ -4,7 +4,6 @@ import type {
   WhatsappTemplateCategory,
   WhatsappTemplateStatus,
 } from '@workspace/db';
-import type { WhatsAppDefaultTemplateDefinition } from '@workspace/types';
 import { DefaultTemplatesService } from './default-templates.service';
 import { TemplateDataService } from './template-data.service';
 import { TemplateVariableService } from './template-variable.service';
@@ -13,14 +12,6 @@ import {
   type ResolvedTemplate,
 } from './template-resolution.service';
 import { TemplateModeService } from './template-mode.service';
-
-/** Docita catalogue definition minus the partner set. */
-type SeedableTemplateDefinition = Omit<
-  WhatsAppDefaultTemplateDefinition,
-  'category'
-> & {
-  category: WhatsappTemplateCategory;
-};
 
 @Injectable()
 export class TemplatesFacadeService {
@@ -33,10 +24,6 @@ export class TemplatesFacadeService {
     private templateResolution: TemplateResolutionService,
     private templateMode: TemplateModeService,
   ) {}
-
-  getDefaultTemplateNames(): string[] {
-    return this.defaultTemplates.getDefaultTemplateNames();
-  }
 
   async getTemplate(templateId: string, clinicId?: string) {
     return this.templateResolution.getTemplate(templateId, clinicId);
@@ -58,26 +45,6 @@ export class TemplatesFacadeService {
   getMessageForMode(resolved: ResolvedTemplate): string {
     // jscpd:ignore-end
     return this.templateMode.getMessageForMode(resolved);
-  }
-
-  async seedDefaultTemplates(clinicId: string): Promise<void> {
-    // Partner templates (Docita-internal) must NOT be cloned into the
-    // clinic's per-clinic `WhatsappTemplate` table — they're built into
-    // the partner surface and have no clinic-side editor. The
-    // `defaultTemplates.templates` map is the full Docita catalogue
-    // (including the partner set), so we filter down to the
-    // clinic-seedable subset here. The predicate narrows `category` to
-    // the Prisma enum: the Docita category schema is exactly the
-    // `WhatsappTemplateCategory` enum plus `PARTNER`, so excluding it
-    // leaves only values the Prisma layer accepts (checked at runtime
-    // by the filter body).
-    const seedable = Object.fromEntries(
-      Object.entries(this.defaultTemplates.templates).filter(
-        (entry): entry is [string, SeedableTemplateDefinition] =>
-          entry[1].category !== 'PARTNER',
-      ),
-    );
-    return this.templateData.seedDefaultTemplates(clinicId, seedable);
   }
 
   async listTemplates(clinicId: string) {

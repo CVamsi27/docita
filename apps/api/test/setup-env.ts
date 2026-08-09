@@ -38,7 +38,6 @@ const shouldSuppressTestErrorLog = (message: string): boolean =>
   message.includes('[InvoiceEventsListener] Failed to create payment link') ||
   message.includes('[MetricsService] Failed to record metric') ||
   message.includes('[MetricsService] Error: DB Error') ||
-  message.includes('[AiService] OpenAI API call failed') ||
   message.includes('AuthenticationError: 401 Incorrect API key provided') ||
   message.includes('invalid_api_key') ||
   message.includes('APIConnectionError: Connection error') ||

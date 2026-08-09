@@ -1,13 +1,13 @@
 import { Role } from '@workspace/db';
 
 /** Staff/clinic app sessions (default for non-patient, non-lab roles). */
-export const JWT_AUDIENCE_STAFF = 'staff' as const;
+const JWT_AUDIENCE_STAFF = 'staff' as const;
 
 /** Patient portal OTP login. */
 export const JWT_AUDIENCE_PATIENT_PORTAL = 'patient-portal' as const;
 
 /** Lab technician portal login (email + password). */
-export const JWT_AUDIENCE_LAB_PORTAL = 'lab-portal' as const;
+const JWT_AUDIENCE_LAB_PORTAL = 'lab-portal' as const;
 
 /** Short-lived public booking verification tokens. */
 export const JWT_AUDIENCE_PUBLIC_BOOKING = 'public-booking' as const;

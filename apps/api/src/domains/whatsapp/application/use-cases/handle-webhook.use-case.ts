@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { WhatsAppWebhookPayload } from '@workspace/types';
 import { WhatsAppWebhookIngressService } from '@/domains/whatsapp/application/services/whatsapp-webhook-ingress.service';
 
-export interface WebhookRequest {
+interface WebhookRequest {
   payload: WhatsAppWebhookPayload;
 }
 

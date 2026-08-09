@@ -8,7 +8,7 @@ import type {
   DelayContext,
 } from './patient-response.types';
 
-export type PatientConfirmationPlan =
+type PatientConfirmationPlan =
   | { kind: 'plain_text'; text: string }
   | { kind: 'template'; templateId: string };
 

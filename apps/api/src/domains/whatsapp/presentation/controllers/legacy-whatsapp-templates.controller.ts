@@ -22,8 +22,6 @@ import {
   CreateWhatsappTemplateDto,
   SuccessResponseDto,
   UpdateWhatsappTemplateDto,
-  WhatsappDefaultTemplatesResponseDto,
-  WhatsappTemplateListResponseDto,
 } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
 import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/require-clinic-id';
@@ -45,26 +43,6 @@ function toClinicTemplate(row: WhatsappTemplate): ClinicWhatsappTemplate {
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappTemplatesController {
   constructor(private readonly whatsappService: WhatsappService) {}
-
-  @Get('templates')
-  @ZodSerializerDto(WhatsappTemplateListResponseDto)
-  async listTemplates(@Req() req: Request) {
-    return this.whatsappService.listTemplates(requireClinicId(req));
-  }
-
-  @Get('templates/defaults')
-  @ZodSerializerDto(WhatsappDefaultTemplatesResponseDto)
-  getDefaultTemplates() {
-    return this.whatsappService.getDefaultTemplateNames();
-  }
-
-  @Post('templates/seed')
-  @ZodSerializerDto(SuccessResponseDto)
-  async seedTemplates(@Req() req: Request) {
-    const clinicId = requireClinicId(req);
-    await this.whatsappService.seedDefaultTemplates(clinicId);
-    return { success: true, message: 'Templates seeded successfully' };
-  }
 
   @Get('templates/custom')
   @ZodSerializerDto(ClinicWhatsappTemplateListResponseDto)

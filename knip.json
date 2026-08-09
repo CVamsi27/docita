@@ -8,8 +8,58 @@
     "types": "warn"
   },
   "ignoreBinaries": ["printf", "tsx"],
-  "ignoreWorkspaces": ["apps/worker"],
   "workspaces": {
+    "apps/worker": {
+      "entry": [
+        "src/main.ts",
+        "src/**/*.spec.js"
+      ],
+      "paths": {
+        "@/*": ["./../api/src/*"]
+      },
+      "ignoreDependencies": [
+        "@aws-sdk/client-s3",
+        "@aws-sdk/s3-request-presigner",
+        "@nestjs/cache-manager",
+        "@nestjs/config",
+        "@nestjs/event-emitter",
+        "@nestjs/jwt",
+        "@nestjs/passport",
+        "@nestjs/schedule",
+        "@nestjs/serve-static",
+        "@nestjs/swagger",
+        "@nestjs/terminus",
+        "@nestjs/throttler",
+        "@prisma/adapter-pg",
+        "@sentry/profiling-node",
+        "@willsoto/nestjs-prometheus",
+        "@workspace/types",
+        "@workspace/db",
+        "@workspace/utils",
+        "bcrypt",
+        "cache-manager",
+        "compression",
+        "cookie-parser",
+        "dotenv",
+        "exceljs",
+        "express",
+        "helmet",
+        "nanoid",
+        "nestjs-zod",
+        "otplib",
+        "papaparse",
+        "passport",
+        "passport-jwt",
+        "pdfkit",
+        "pg",
+        "prom-client",
+        "qrcode",
+        "razorpay",
+        "sharp",
+        "socket.io",
+        "zod"
+      ]
+    },
     "apps/api": {
       "entry": [
         "src/main.ts",
@@ -37,49 +87,30 @@
         "@/*": ["./src/*"]
       },
       "ignore": [
-        "src/common/extensions/**",
-        "src/common/pagination.helper.ts",
-        "src/common/types/common.types.ts",
-        "src/domains/subscriptions/core/**",
-        "src/domains/subscriptions/application/use-cases/**",
         "src/shared/modules/idempotency/**",
-        "src/shared/modules/cache/**",
         "src/shared/modules/error-handling/sentry.utils.ts",
-        "src/shared/modules/ai-core/schemas/**",
         "src/shared/modules/services/**",
         "src/shared/modules/queue/queue.interface.ts",
         "src/shared/modules/search/search.service.ts",
         "src/shared/modules/document-generation/pdf/**",
         "src/shared/modules/error-handling/logger.service.ts",
         "src/shared/modules/feature-flags/feature-flags.service.ts",
-        "src/shared/modules/imports/**",
-        "src/shared/modules/messaging/**",
-        "src/shared/modules/monitoring/**",
-        "src/shared/modules/auth/**",
         "src/shared/modules/compliance/**",
         "src/shared/modules/database/**",
-        "src/gateways/**",
-        "src/domains/analytics/factories/**",
         "src/domains/appointments/core/domain-services/**",
         "src/domains/billing/application/services/retry.service.ts",
         "src/domains/billing/core/services/billing-calculator.service.ts",
         "src/domains/billing/core/services/tax-calculator.service.ts",
         "src/domains/billing/core/entities/**",
         "src/domains/billing/core/utils/**",
-        "src/domains/documents/**",
         "src/domains/payments/core/ports/**",
-        "src/domains/whatsapp/core/**",
-        "src/domains/whatsapp/application/**",
         "src/domains/webhooks/**",
-        "src/domains/subscriptions/application/ports/**",
-        "src/domains/subscriptions/application/services/subscription-checkout-pricing.service.ts",
         "src/shared/modules/ai/ask-ai.service.ts",
         "src/shared/modules/audit/**",
         "src/domains/payments/infrastructure/**",
         "src/domains/prescriptions/core/**",
         "src/domains/public-booking/application/services/public-booking-token.service.ts",
         "src/domains/public-booking/application/services/public-booking-utils.ts",
-        "src/providers/**",
         "src/domains/clinical/application/services/clinical-settings.service.ts",
         "src/domains/clinics/application/services/onboarding/onboarding-step-engine.ts",
         "src/domains/clinics/application/services/onboarding/type-helpers.ts",
@@ -98,12 +129,6 @@
         "src/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers.ts"
       ],
       "ignoreDependencies": ["pino-pretty"]
-    },
-    "packages/types": {
-      "ignore": [
-        "src/auth/mfa.ts",
-        "src/shared/auth.ts"
-      ]
     },
     "packages/utils": {
       "ignoreDependencies": ["clsx", "tailwind-merge"]

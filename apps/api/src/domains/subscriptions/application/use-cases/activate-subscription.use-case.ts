@@ -14,7 +14,7 @@ import { ActivateSubscriptionPricingResolver } from '@/domains/subscriptions/app
 import { ReferralService } from '@/domains/subscriptions/core/services/referral.service';
 import type { PlatformInvoiceSummary } from '@/domains/payments/core/ports/platform-invoice-provider.port';
 
-export interface ActivateSubscriptionRequest {
+interface ActivateSubscriptionRequest {
   clinicId: string;
   razorpayPaymentId: string;
   razorpayOrderId: string;

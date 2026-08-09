@@ -5,6 +5,9 @@
 // only on the list queue) — C4.1 pins this baseline; assignment pinning and
 // payment-state conditions are DEFERRED and must flip in the same commit as
 // the decision.
+// Routing pin: GET /clinical/lab-tests/queue and /labs must reach
+// LabWorkflowController's literal handlers (registered before
+// LabTestsController's @Get(':id')), verified below.
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
@@ -202,5 +205,34 @@ describe('Lab-order ABAC policy (e2e, C4)', () => {
       .get(`/clinical/lab-tests/orders/${order.id}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(403);
+  });
+
+  describe('literal workflow routes beat the :id shadow (routing pin)', () => {
+    // LabWorkflowController's @Get('queue') / @Get('labs') must register
+    // before LabTestsController's @Get(':id') on the shared
+    // /clinical/lab-tests prefix. If the order regresses, GET
+    // /clinical/lab-tests/queue resolves to getTestById with id="queue" and
+    // 404s (no test with that id); the literal handlers return a 200 array.
+    it('GET /clinical/lab-tests/queue returns the queue list (200 array, not :id 404)', async () => {
+      const clinicA = await makeClinic();
+      const { token } = await signStaff(clinicA.id, Role.DOCTOR);
+
+      const res = await request(app.getHttpServer())
+        .get('/clinical/lab-tests/queue')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('GET /clinical/lab-tests/labs returns the lab directory (200 array, not :id 404)', async () => {
+      const clinicA = await makeClinic();
+      const { token } = await signStaff(clinicA.id, Role.DOCTOR);
+
+      const res = await request(app.getHttpServer())
+        .get('/clinical/lab-tests/labs')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
   });
 });

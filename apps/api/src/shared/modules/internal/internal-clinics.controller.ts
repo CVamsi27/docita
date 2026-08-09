@@ -29,6 +29,7 @@ import {
 } from './dto/internal.dto';
 import { ClinicResponseDto } from '@/domains/clinics/application/dto/clinics.dto';
 import { InternalApiAccess } from './internal.controller.access';
+import { parsePaginationInt } from '@/shared/common/utils/string.utils';
 
 @Controller('internal')
 @InternalApiAccess()
@@ -104,15 +105,19 @@ export class InternalClinicsController {
   /** P5.11 — cross-clinic admin list for the internal console. */
   @Get('admins')
   @ZodSerializerDto(InternalAdminListResponseDto)
-  async getAllAdmins() {
-    return this.clinicService.getAllAdmins();
+  async getAllAdmins(@Query('limit') limit?: string) {
+    return this.clinicService.getAllAdmins({
+      limit: parsePaginationInt(limit, { min: 1, max: 500 }) ?? 200,
+    });
   }
 
   /** P5.11 — cross-clinic users list (with clinic name) for the internal console. */
   @Get('users')
   @ZodSerializerDto(InternalUserListWithClinicResponseDto)
-  async getAllUsers() {
-    return this.clinicService.getAllUsers();
+  async getAllUsers(@Query('limit') limit?: string) {
+    return this.clinicService.getAllUsers({
+      limit: parsePaginationInt(limit, { min: 1, max: 500 }) ?? 200,
+    });
   }
 
   /** P5.11 — cross-clinic admin create for the internal console. */

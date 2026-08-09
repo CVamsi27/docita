@@ -8,7 +8,7 @@ import { clinicHasFeatureForAccess } from '@/shared/modules/auth/utils/clinic-fe
 import { AIService } from '@/shared/modules/ai/ai.service';
 import { OCRService } from './ocr.service';
 
-export interface OcrExtractionResult {
+interface OcrExtractionResult {
   success: boolean;
   method: string;
   text: string;

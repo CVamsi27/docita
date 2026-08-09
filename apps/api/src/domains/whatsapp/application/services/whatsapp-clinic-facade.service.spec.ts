@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WhatsappService } from './whatsapp-clinic-facade.service';
-import { WhatsappClientAdapter } from '@/domains/whatsapp/infrastructure/clients/whatsapp-client.adapter';
 import { TemplatesService } from './templates.service';
 import { WhatsappResendService } from './resend.service';
 import { SystemEventsService } from './system-events.service';
@@ -20,95 +19,94 @@ import {
 describe('WhatsappService', () => {
   let service: WhatsappService;
   let module: TestingModule;
-  let originalMetaPhoneId: string | undefined;
-  let originalMetaAccessToken: string | undefined;
-  let originalFetch: typeof global.fetch;
-  let mockWhatsappClient: { sendMessage: ReturnType<typeof jest.fn> };
+
   let mockTemplatesService: {
-    resolveTemplate: ReturnType<typeof jest.fn>;
-    getMessageForMode: ReturnType<typeof jest.fn>;
+    listTemplates: ReturnType<typeof jest.fn>;
+    getTemplateById: ReturnType<typeof jest.fn>;
+    createTemplate: ReturnType<typeof jest.fn>;
+    updateTemplate: ReturnType<typeof jest.fn>;
+    deleteTemplate: ReturnType<typeof jest.fn>;
+  };
+  let mockResendService: {
+    resendPrescription: ReturnType<typeof jest.fn>;
+    resendInvoice: ReturnType<typeof jest.fn>;
+  };
+  let mockSystemEventsService: {
+    sendPrescriptionSystem: ReturnType<typeof jest.fn>;
+    sendInvoiceSystem: ReturnType<typeof jest.fn>;
+    sendPaymentConfirmation: ReturnType<typeof jest.fn>;
+    sendAppointmentConfirmation: ReturnType<typeof jest.fn>;
+    sendAppointmentUpdate: ReturnType<typeof jest.fn>;
+    sendAppointmentDelayNotification: ReturnType<typeof jest.fn>;
+  };
+  let mockApprovalService: {
+    approvePrescription: ReturnType<typeof jest.fn>;
+    approveInvoice: ReturnType<typeof jest.fn>;
+  };
+  let mockMessagingService: {
+    getLogs: ReturnType<typeof jest.fn>;
+    getWhatsappStats: ReturnType<typeof jest.fn>;
   };
   let mockTemplateMessageService: {
-    sendTemplate: ReturnType<typeof jest.fn>;
-    handleSendTemplate: ReturnType<typeof jest.fn>;
+    handleSendCustomMessage: ReturnType<typeof jest.fn>;
+  };
+  let mockStaffNotificationService: {
+    getUnreadCount: ReturnType<typeof jest.fn>;
+    getUnreadNotifications: ReturnType<typeof jest.fn>;
+    deleteNotification: ReturnType<typeof jest.fn>;
+    deleteAllNotifications: ReturnType<typeof jest.fn>;
   };
 
   const asyncMock = <T>(value: T) =>
     jest.fn().mockImplementation(async () => value);
 
   beforeEach(async () => {
-    originalMetaPhoneId = process.env.META_PHONE_NUMBER_ID;
-    originalMetaAccessToken = process.env.META_ACCESS_TOKEN;
-    originalFetch = global.fetch;
-
-    mockWhatsappClient = {
-      sendMessage: jest
-        .fn()
-        .mockImplementation(async () => ({ messageId: 'msg-123' })),
-    };
-
     mockTemplatesService = {
-      resolveTemplate: jest.fn().mockImplementation(async () => ({
-        name: 'appointment_reminder_24hr',
-        language: 'en_US',
-        components: [],
-      })),
-      getMessageForMode: jest
-        .fn()
-        .mockReturnValue('Your appointment is confirmed'),
+      listTemplates: asyncMock([{ id: 'tpl-1', name: 'reminder' }]),
+      getTemplateById: asyncMock({ id: 'tpl-1' }),
+      createTemplate: asyncMock({ id: 'tpl-new' }),
+      updateTemplate: asyncMock({ id: 'tpl-1' }),
+      deleteTemplate: asyncMock({ success: true }),
     };
 
-    const mockResendService = {
-      createResend: asyncMock({}),
-      removeResend: asyncMock({}),
+    mockResendService = {
+      resendPrescription: asyncMock({ success: true }),
+      resendInvoice: asyncMock({ success: true }),
     };
 
-    const mockSystemEventsService = {
-      recordSystemEvent: asyncMock({}),
+    mockSystemEventsService = {
+      sendPrescriptionSystem: asyncMock({ success: true }),
+      sendInvoiceSystem: asyncMock({ success: true }),
+      sendPaymentConfirmation: asyncMock({ success: true }),
+      sendAppointmentConfirmation: asyncMock({ success: true }),
+      sendAppointmentUpdate: asyncMock({ success: true }),
+      sendAppointmentDelayNotification: asyncMock({ success: true }),
     };
 
-    const mockApprovalService = {
-      requestApproval: asyncMock({}),
-      getApprovalStatus: asyncMock({}),
+    mockApprovalService = {
+      approvePrescription: asyncMock({ success: true }),
+      approveInvoice: asyncMock({ success: true }),
     };
 
-    const mockMessagingService = {
-      sendMessage: jest
-        .fn()
-        .mockImplementation(async () => ({ success: true })),
+    mockMessagingService = {
+      getLogs: asyncMock([]),
+      getWhatsappStats: asyncMock({ sent: 3 }),
     };
 
     mockTemplateMessageService = {
-      sendTemplate: jest
-        .fn()
-        .mockImplementation(async () => ({ success: true })),
-      handleSendTemplate: jest
-        .fn()
-        .mockImplementation(async (...args: unknown[]) => {
-          const dto = args[2] as { phoneNumber: string; templateId?: string };
-          await mockWhatsappClient.sendMessage({
-            to: dto.phoneNumber,
-            text: 'Template message',
-          });
-          return {
-            success: true,
-            messageId: 'msg-123',
-            templateId: dto.templateId,
-          };
-        }),
+      handleSendCustomMessage: asyncMock({ success: true }),
     };
 
-    const mockStaffNotificationService = {
-      getUnreadCount: jest.fn().mockImplementation(async () => 0),
-      getUnreadNotifications: jest.fn().mockImplementation(async () => []),
-      deleteNotification: asyncMock({}),
-      deleteAllNotifications: asyncMock({}),
+    mockStaffNotificationService = {
+      getUnreadCount: asyncMock(0),
+      getUnreadNotifications: asyncMock([]),
+      deleteNotification: asyncMock({ success: true }),
+      deleteAllNotifications: asyncMock({ success: true }),
     };
 
     module = await Test.createTestingModule({
       providers: [
         WhatsappService,
-        { provide: WhatsappClientAdapter, useValue: mockWhatsappClient },
         { provide: TemplatesService, useValue: mockTemplatesService },
         { provide: WhatsappResendService, useValue: mockResendService },
         { provide: SystemEventsService, useValue: mockSystemEventsService },
@@ -126,244 +124,228 @@ describe('WhatsappService', () => {
     }).compile();
 
     service = module.get<WhatsappService>(WhatsappService);
-
-    global.fetch = jest.fn<typeof fetch>();
-
-    process.env.META_PHONE_NUMBER_ID = '1234567890';
-    process.env.META_ACCESS_TOKEN = 'test_token';
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    global.fetch = originalFetch;
-    if (originalMetaPhoneId === undefined) {
-      delete process.env.META_PHONE_NUMBER_ID;
-    } else {
-      process.env.META_PHONE_NUMBER_ID = originalMetaPhoneId;
-    }
-    if (originalMetaAccessToken === undefined) {
-      delete process.env.META_ACCESS_TOKEN;
-    } else {
-      process.env.META_ACCESS_TOKEN = originalMetaAccessToken;
-    }
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('handleSendTemplate', () => {
-    it('should send appointment_reminder_24hr template', async () => {
-      mockTemplatesService.resolveTemplate.mockImplementation(async () => ({
-        name: 'appointment_reminder_24hr',
-        language: 'en_US',
-        components: [
-          {
-            type: 'body',
-            parameters: [
-              { type: 'text', text: 'Rahul Sharma' },
-              { type: 'text', text: 'Tomorrow at 10:00 AM' },
-              { type: 'text', text: 'Dr. Priya Patel' },
-              { type: 'text', text: 'Test Clinic' },
-            ],
-          },
-        ],
-      }));
+  it('delegates listTemplates to the templates service', async () => {
+    await expect(service.listTemplates('clinic-1')).resolves.toEqual([
+      { id: 'tpl-1', name: 'reminder' },
+    ]);
+    expect(mockTemplatesService.listTemplates).toHaveBeenCalledWith('clinic-1');
+  });
 
-      const result = await service.handleSendTemplate(
-        'clinic-123',
-        'user-123',
-        {
-          templateId: 'appointment_reminder_24hr',
-          variables: {
-            patientName: 'Rahul Sharma',
-            appointmentTime: 'Tomorrow at 10:00 AM',
-            doctorName: 'Dr. Priya Patel',
-            clinicName: 'Test Clinic',
-          },
-          phoneNumber: '9876543210',
-          patientId: 'patient-123',
-        },
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.templateId).toBe('appointment_reminder_24hr');
-
-      const client = module.get(WhatsappClientAdapter);
-      expect(client.sendMessage).toHaveBeenCalledWith({
-        to: '9876543210',
-        text: expect.any(String),
-      });
+  it('delegates createCustomTemplate to createTemplate with a NONE button type', async () => {
+    await expect(
+      service.createCustomTemplate('clinic-1', {
+        name: 'greeting',
+        content: 'Hi',
+        category: 'PAYMENT',
+      }),
+    ).resolves.toEqual({ id: 'tpl-new' });
+    expect(mockTemplatesService.createTemplate).toHaveBeenCalledWith({
+      clinicId: 'clinic-1',
+      name: 'greeting',
+      content: 'Hi',
+      category: 'PAYMENT',
+      buttonType: 'NONE',
     });
+  });
 
-    it('should send appointment_reminder_30min template', async () => {
-      mockTemplatesService.resolveTemplate.mockImplementation(async () => ({
-        name: 'appointment_reminder_30min',
-        language: 'en_US',
-        components: [
-          {
-            type: 'body',
-            parameters: [
-              { type: 'text', text: 'Sunita Devi' },
-              { type: 'text', text: '30 minutes' },
-              { type: 'text', text: 'Test Clinic' },
-            ],
-          },
-        ],
-      }));
+  it('delegates resendPrescription to the resend service', async () => {
+    await expect(
+      service.resendPrescription('clinic-1', 'user-1', 'DOCTOR', 'rx-1'),
+    ).resolves.toEqual({ success: true });
+    expect(mockResendService.resendPrescription).toHaveBeenCalledWith(
+      'clinic-1',
+      'user-1',
+      'DOCTOR',
+      'rx-1',
+    );
+  });
 
-      const result = await service.handleSendTemplate(
-        'clinic-123',
-        'user-123',
-        {
-          templateId: 'appointment_reminder_30min',
-          variables: {
-            patientName: 'Sunita Devi',
-            timeUntilAppointment: '30 minutes',
-            clinicName: 'Test Clinic',
-          },
-          phoneNumber: '9876543211',
-          patientId: 'patient-124',
-        },
-      );
+  it('delegates resendInvoice to the resend service', async () => {
+    await expect(
+      service.resendInvoice('clinic-1', 'user-1', 'DOCTOR', 'inv-1'),
+    ).resolves.toEqual({ success: true });
+    expect(mockResendService.resendInvoice).toHaveBeenCalledWith(
+      'clinic-1',
+      'user-1',
+      'DOCTOR',
+      'inv-1',
+    );
+  });
 
-      expect(result.success).toBe(true);
-      expect(result.templateId).toBe('appointment_reminder_30min');
+  it('delegates sendPrescriptionSystem to the system events service', async () => {
+    await expect(
+      service.sendPrescriptionSystem('rx-1', 'clinic-1'),
+    ).resolves.toEqual({ success: true });
+    expect(mockSystemEventsService.sendPrescriptionSystem).toHaveBeenCalledWith(
+      'rx-1',
+      'clinic-1',
+    );
+  });
+
+  it('delegates sendInvoiceSystem to the system events service', async () => {
+    await expect(
+      service.sendInvoiceSystem('inv-1', 'clinic-1'),
+    ).resolves.toEqual({ success: true });
+    expect(mockSystemEventsService.sendInvoiceSystem).toHaveBeenCalledWith(
+      'inv-1',
+      'clinic-1',
+    );
+  });
+
+  it('delegates sendPaymentConfirmation to the system events service', async () => {
+    await expect(
+      service.sendPaymentConfirmation('inv-1', 'clinic-1'),
+    ).resolves.toEqual({ success: true });
+    expect(mockSystemEventsService.sendPaymentConfirmation).toHaveBeenCalledWith(
+      'inv-1',
+      'clinic-1',
+    );
+  });
+
+  it('delegates sendAppointmentConfirmation to the system events service', async () => {
+    await expect(
+      service.sendAppointmentConfirmation('apt-1', 'clinic-1'),
+    ).resolves.toEqual({ success: true });
+    expect(
+      mockSystemEventsService.sendAppointmentConfirmation,
+    ).toHaveBeenCalledWith('apt-1', 'clinic-1');
+  });
+
+  it('delegates sendAppointmentUpdate with the event type to the system events service', async () => {
+    await expect(
+      service.sendAppointmentUpdate('apt-1', 'clinic-1', 'RESCHEDULED'),
+    ).resolves.toEqual({ success: true });
+    expect(mockSystemEventsService.sendAppointmentUpdate).toHaveBeenCalledWith(
+      'apt-1',
+      'clinic-1',
+      'RESCHEDULED',
+    );
+  });
+
+  it('delegates sendAppointmentDelayNotification with the delay to the system events service', async () => {
+    await expect(
+      service.sendAppointmentDelayNotification('apt-1', 'clinic-1', 15),
+    ).resolves.toEqual({ success: true });
+    expect(
+      mockSystemEventsService.sendAppointmentDelayNotification,
+    ).toHaveBeenCalledWith('apt-1', 'clinic-1', 15);
+  });
+
+  it('delegates getTemplateById to the templates service', async () => {
+    await expect(service.getTemplateById('tpl-1')).resolves.toEqual({
+      id: 'tpl-1',
     });
+    expect(mockTemplatesService.getTemplateById).toHaveBeenCalledWith('tpl-1');
+  });
 
-    it('should send prescription_sent template with PDF link', async () => {
-      mockTemplatesService.resolveTemplate.mockImplementation(async () => ({
-        name: 'prescription_sent',
-        language: 'en_US',
-        components: [
-          {
-            type: 'body',
-            parameters: [
-              { type: 'text', text: 'Anand Kumar' },
-              { type: 'text', text: 'Dr. Rajesh Sharma' },
-            ],
-          },
-          {
-            type: 'button',
-            sub_type: 'url',
-            index: 0,
-            parameters: [
-              {
-                type: 'text',
-                text: 'https://app.docita.com/prescriptions/rx-456',
-              },
-            ],
-          },
-        ],
-      }));
-
-      const result = await service.handleSendTemplate(
-        'clinic-123',
-        'user-123',
-        {
-          templateId: 'prescription_sent',
-          variables: {
-            patientName: 'Anand Kumar',
-            doctorName: 'Dr. Rajesh Sharma',
-            prescriptionUrl: 'https://app.docita.com/prescriptions/rx-456',
-          },
-          phoneNumber: '9876543212',
-          patientId: 'patient-125',
-        },
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.templateId).toBe('prescription_sent');
+  it('delegates updateCustomTemplate to the templates service', async () => {
+    await expect(
+      service.updateCustomTemplate('tpl-1', { content: 'New body' }),
+    ).resolves.toEqual({ id: 'tpl-1' });
+    expect(mockTemplatesService.updateTemplate).toHaveBeenCalledWith('tpl-1', {
+      content: 'New body',
     });
+  });
 
-    it('should send invoice_payment template with payment link', async () => {
-      mockTemplatesService.resolveTemplate.mockImplementation(async () => ({
-        name: 'invoice_payment',
-        language: 'en_US',
-        components: [
-          {
-            type: 'body',
-            parameters: [
-              { type: 'text', text: 'Meera Nair' },
-              { type: 'text', text: '₹1,500' },
-              { type: 'text', text: '2026-04-01' },
-              { type: 'text', text: 'INV-2026-001' },
-            ],
-          },
-          {
-            type: 'button',
-            sub_type: 'url',
-            index: 0,
-            parameters: [
-              {
-                type: 'text',
-                text: 'https://pay.docita.com/inv/abc123',
-              },
-            ],
-          },
-        ],
-      }));
-
-      const result = await service.handleSendTemplate(
-        'clinic-123',
-        'user-123',
-        {
-          templateId: 'invoice_payment',
-          variables: {
-            patientName: 'Meera Nair',
-            amount: '₹1,500',
-            dueDate: '2026-04-01',
-            invoiceNumber: 'INV-2026-001',
-            paymentUrl: 'https://pay.docita.com/inv/abc123',
-          },
-          phoneNumber: '9876543213',
-          patientId: 'patient-126',
-        },
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.templateId).toBe('invoice_payment');
-      const client = module.get(WhatsappClientAdapter);
-      expect(client.sendMessage).toHaveBeenCalledWith({
-        to: '9876543213',
-        text: expect.any(String),
-      });
+  it('delegates deleteCustomTemplate to the templates service', async () => {
+    await expect(service.deleteCustomTemplate('tpl-1')).resolves.toEqual({
+      success: true,
     });
+    expect(mockTemplatesService.deleteTemplate).toHaveBeenCalledWith('tpl-1');
+  });
 
-    it('should return success false when template send fails', async () => {
-      mockTemplateMessageService.handleSendTemplate.mockImplementationOnce(
-        async () => {
-          throw new Error('WhatsApp API unavailable');
-        },
-      );
+  it('delegates handleSendCustomMessage to the template message service', async () => {
+    const dto = { patientId: 'pat-1', text: 'Hello' };
+    await expect(
+      service.handleSendCustomMessage('clinic-1', 'user-1', dto),
+    ).resolves.toEqual({ success: true });
+    expect(
+      mockTemplateMessageService.handleSendCustomMessage,
+    ).toHaveBeenCalledWith('clinic-1', 'user-1', dto);
+  });
 
-      await expect(
-        service.handleSendTemplate('clinic-123', 'user-123', {
-          templateId: 'appointment_reminder_24hr',
-          variables: {},
-          phoneNumber: '9876543210',
-          patientId: 'patient-127',
-        }),
-      ).rejects.toThrow();
+  it('delegates getLogs to the messaging service', async () => {
+    const options = { limit: 10, patientId: 'pat-1' };
+    await expect(service.getLogs('clinic-1', options)).resolves.toEqual([]);
+    expect(mockMessagingService.getLogs).toHaveBeenCalledWith(
+      'clinic-1',
+      options,
+    );
+  });
+
+  it('delegates getWhatsappStats to the messaging service', async () => {
+    await expect(service.getWhatsappStats('clinic-1')).resolves.toEqual({
+      sent: 3,
     });
+    expect(mockMessagingService.getWhatsappStats).toHaveBeenCalledWith(
+      'clinic-1',
+    );
+  });
 
-    it('should use indian locale phone number format', async () => {
-      const result = await service.handleSendTemplate(
-        'clinic-123',
-        'user-123',
-        {
-          templateId: 'appointment_reminder_24hr',
-          variables: { patientName: 'Test Patient' },
-          phoneNumber: '+919876543210',
-          patientId: 'patient-128',
-        },
-      );
+  it('delegates getUnreadNotificationCount to the staff notification service', async () => {
+    await expect(service.getUnreadNotificationCount('user-1')).resolves.toBe(0);
+    expect(mockStaffNotificationService.getUnreadCount).toHaveBeenCalledWith(
+      'user-1',
+    );
+  });
 
-      expect(result.success).toBe(true);
-      const client = module.get(WhatsappClientAdapter);
-      expect(client.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ to: '+919876543210' }),
-      );
-    });
+  it('delegates getUnreadNotifications with the limit to the staff notification service', async () => {
+    await expect(service.getUnreadNotifications('user-1', 5)).resolves.toEqual(
+      [],
+    );
+    expect(
+      mockStaffNotificationService.getUnreadNotifications,
+    ).toHaveBeenCalledWith('user-1', 5);
+  });
+
+  it('delegates deleteNotification to the staff notification service', async () => {
+    await expect(
+      service.deleteNotification('notif-1', 'user-1'),
+    ).resolves.toEqual({ success: true });
+    expect(mockStaffNotificationService.deleteNotification).toHaveBeenCalledWith(
+      'notif-1',
+      'user-1',
+    );
+  });
+
+  it('delegates deleteAllNotifications to the staff notification service', async () => {
+    await expect(
+      service.deleteAllNotifications('user-1', 'clinic-1'),
+    ).resolves.toEqual({ success: true });
+    expect(
+      mockStaffNotificationService.deleteAllNotifications,
+    ).toHaveBeenCalledWith('user-1', 'clinic-1');
+  });
+
+  it('delegates approvePrescription to the approval service', async () => {
+    await expect(
+      service.approvePrescription('rx-1', 'user-1', 'clinic-1'),
+    ).resolves.toEqual({ success: true });
+    expect(mockApprovalService.approvePrescription).toHaveBeenCalledWith(
+      'rx-1',
+      'user-1',
+      'clinic-1',
+    );
+  });
+
+  it('delegates approveInvoice to the approval service', async () => {
+    await expect(
+      service.approveInvoice('inv-1', 'user-1', 'clinic-1'),
+    ).resolves.toEqual({ success: true });
+    expect(mockApprovalService.approveInvoice).toHaveBeenCalledWith(
+      'inv-1',
+      'user-1',
+      'clinic-1',
+    );
   });
 });

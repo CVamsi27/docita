@@ -22,7 +22,7 @@ import {
   ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
-export interface ApplyPlanChangeWithoutPaymentParams {
+interface ApplyPlanChangeWithoutPaymentParams {
   clinicId: string;
   tier: string;
   cycle: string;

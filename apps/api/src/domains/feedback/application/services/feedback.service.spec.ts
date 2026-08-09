@@ -438,6 +438,18 @@ describe('FeedbackService', () => {
       );
     });
 
+    it('should forward the limit cap to the repository', async () => {
+      mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([
+        mockFeedback,
+      ]);
+
+      await service.findAll({ limit: 100 });
+
+      expect(mockFeedbackRepository.findAll).toHaveBeenCalledWith({
+        limit: 100,
+      });
+    });
+
     it('should filter by search text', async () => {
       mockFeedbackPersistenceMock.feedback.findMany.mockResolvedValue([
         mockFeedback,

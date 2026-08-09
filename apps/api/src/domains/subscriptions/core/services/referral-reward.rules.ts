@@ -18,8 +18,6 @@ export type ReferrerType =
   | 'MARKETING_PERSON'
   | 'CUSTOM';
 
-export type ReferrerRewardKind = 'CREDIT_MONTHS' | 'REVENUE_SHARE';
-
 /** Revenue-share % over an inclusive, 1-based month index of the first year. */
 export interface RateBand {
   fromMonth: number;
@@ -41,7 +39,7 @@ export const DEFAULT_SPECIAL_MARKETING_RATE_BANDS: readonly RateBand[] = [
   { fromMonth: 7, toMonth: 12, percent: 5 },
 ];
 
-export interface CreditMilestoneConfig {
+interface CreditMilestoneConfig {
   /** Conversions required per grant, e.g. 5. */
   perNReferrals: number;
   /** Free months granted per milestone reached, e.g. 1. */
@@ -50,7 +48,7 @@ export interface CreditMilestoneConfig {
   yearlyCap: number;
 }
 
-export const DEFAULT_CLINIC_CREDIT_MILESTONE: CreditMilestoneConfig = {
+const DEFAULT_CLINIC_CREDIT_MILESTONE: CreditMilestoneConfig = {
   perNReferrals: 5,
   freeMonths: 1,
   yearlyCap: MAX_REFERRAL_CREDITS_PER_YEAR,
@@ -145,7 +143,7 @@ export function defaultRateBandsForType(
   }
 }
 
-export const rateBandSchema = z.object({
+const rateBandSchema = z.object({
   fromMonth: z.number().int().min(1),
   toMonth: z.number().int().min(1),
   percent: z.number().min(0).max(100),

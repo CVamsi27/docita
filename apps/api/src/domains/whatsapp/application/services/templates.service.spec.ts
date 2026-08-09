@@ -15,46 +15,11 @@ describe('TemplatesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TemplatesService,
-        {
-          provide: DefaultTemplatesService,
-          useValue: {
-            getDefaultTemplateNames: jest.fn(),
-            getDefaultTemplate: jest.fn(),
-            getDefaultTemplates: jest.fn(),
-          },
-        },
-        {
-          provide: TemplateDataService,
-          useValue: {
-            getTemplate: jest.fn(),
-            listTemplates: jest.fn(),
-            createTemplate: jest.fn(),
-            updateTemplate: jest.fn(),
-            deleteTemplate: jest.fn(),
-          },
-        },
-        {
-          provide: TemplateVariableService,
-          useValue: {
-            validateVariables: jest.fn(),
-            substituteVariables: jest.fn(),
-            getRequiredVariables: jest.fn(),
-          },
-        },
-        {
-          provide: TemplateResolutionService,
-          useValue: {
-            getTemplate: jest.fn(),
-            resolveTemplate: jest.fn(),
-          },
-        },
-        {
-          provide: TemplateModeService,
-          useValue: {
-            getMessageForMode: jest.fn(),
-            applyModeTransformations: jest.fn(),
-          },
-        },
+        { provide: DefaultTemplatesService, useValue: {} },
+        { provide: TemplateDataService, useValue: {} },
+        { provide: TemplateVariableService, useValue: {} },
+        { provide: TemplateResolutionService, useValue: {} },
+        { provide: TemplateModeService, useValue: {} },
       ],
     }).compile();
 
@@ -63,19 +28,5 @@ describe('TemplatesService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
-
-  describe('getDefaultTemplateNames', () => {
-    it('should return default template names', () => {
-      const defaultTemplatesService = service['defaultTemplates'];
-      const mockNames = ['template1', 'template2'];
-      (
-        defaultTemplatesService.getDefaultTemplateNames as jest.Mock
-      ).mockReturnValue(mockNames);
-
-      const names = service.getDefaultTemplateNames();
-
-      expect(names).toEqual(mockNames);
-    });
   });
 });

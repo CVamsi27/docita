@@ -13,8 +13,6 @@ import type {
   UserWithoutPassword,
 } from './auth.types';
 
-export type { UserWithoutPassword } from './auth.types';
-
 /**
  * Facade for authentication flows. Delegates to focused services (SRP).
  */

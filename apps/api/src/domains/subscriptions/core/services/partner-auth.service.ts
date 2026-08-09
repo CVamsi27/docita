@@ -24,6 +24,8 @@ import {
   type PartnerOtpVerifyResponse,
 } from '@workspace/types';
 
+// TTLs are module-local by design (no external importers). If a spec ever
+// needs to reference one, add a bottom-of-file re-export for it.
 const PARTNER_OTP_TTL_MS = 10 * 60 * 1000;
 const PARTNER_OTP_MAX_ATTEMPTS = 3;
 const PARTNER_ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
@@ -234,10 +236,3 @@ export class PartnerAuthService {
   }
 }
 
-// Re-export for tests that want to mock out the constant.
-export {
-  PARTNER_OTP_TTL_MS,
-  PARTNER_OTP_MAX_ATTEMPTS,
-  PARTNER_ACCESS_TOKEN_TTL_SECONDS,
-  PARTNER_REFRESH_TOKEN_TTL_SECONDS,
-};

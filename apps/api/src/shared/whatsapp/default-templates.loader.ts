@@ -2,7 +2,6 @@ import {
   WHATSAPP_DEFAULT_TEMPLATES,
   getAllWhatsAppDefaultTemplates,
   getWhatsAppDefaultTemplate,
-  getWhatsAppDefaultTemplateNames,
   type WhatsAppDefaultTemplateDefinition,
 } from '@workspace/types';
 
@@ -10,10 +9,6 @@ import {
 export class DefaultTemplatesLoader {
   readonly templates: Record<string, WhatsAppDefaultTemplateDefinition> =
     WHATSAPP_DEFAULT_TEMPLATES;
-
-  getDefaultTemplateNames(): string[] {
-    return getWhatsAppDefaultTemplateNames();
-  }
 
   getDefaultTemplate(
     templateId: string,

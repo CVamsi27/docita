@@ -8,7 +8,7 @@ import {
   BillingCycle,
 } from '@/domains/subscriptions/core/value-objects';
 
-export type SubscriptionCheckoutPricingBreakdown = {
+type SubscriptionCheckoutPricingBreakdown = {
   currentTier: string | null;
   currentCycle: string | null;
   newTier: string;

@@ -10,7 +10,7 @@ import { normalizeReferrerCodeInput } from '@/domains/subscriptions/core/service
  * Pure: no decorators that escape DI scope, no side effects beyond the
  * underlying Prisma query.
  */
-export interface ResolvedReferralCode {
+interface ResolvedReferralCode {
   kind: 'PARTNER' | 'CLINIC' | 'NONE';
   referrerId?: string;
   clinicId?: string;

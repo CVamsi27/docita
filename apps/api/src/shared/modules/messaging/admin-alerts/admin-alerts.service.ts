@@ -8,9 +8,9 @@ import {
 } from '@/shared/common/constants/support-contact.constants';
 import { PrismaService } from '@/prisma/prisma.service';
 
-export type AdminAlertSeverity = 'info' | 'warn' | 'critical';
+type AdminAlertSeverity = 'info' | 'warn' | 'critical';
 
-export interface AdminAlertOptions {
+interface AdminAlertOptions {
   alertKey: string;
   severity: AdminAlertSeverity;
   subject: string;

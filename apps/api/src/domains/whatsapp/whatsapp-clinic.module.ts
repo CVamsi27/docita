@@ -1,7 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import {
   WhatsappService,
-  TemplatesService as _TemplatesService,
   WhatsappResendService,
   SystemEventsService,
   ApprovalService,
@@ -26,7 +25,6 @@ import { WHATSAPP_CLIENT_TOKEN } from '@/domains/whatsapp/application/ports/what
 import {
   LegacyWhatsappTemplatesController,
   LegacyWhatsappSendController,
-  LegacyWhatsappSettingsController,
   LegacyWhatsappResendController,
   LegacyWhatsappLogsController,
   LegacyWhatsappApprovalController,
@@ -50,7 +48,6 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
   controllers: [
     LegacyWhatsappTemplatesController,
     LegacyWhatsappSendController,
-    LegacyWhatsappSettingsController,
     LegacyWhatsappResendController,
     LegacyWhatsappLogsController,
     LegacyWhatsappApprovalController,
@@ -60,7 +57,6 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
   providers: [
     { provide: WHATSAPP_PERSISTENCE_PORT, useExisting: PrismaService },
     TemplatesFacadeService,
-    { provide: 'TemplatesService', useClass: TemplatesFacadeService },
 
     WhatsappResendService,
     SystemEventsService,

@@ -12,12 +12,12 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
 
-export interface NotifyGraceDeadlineRequest {
+interface NotifyGraceDeadlineRequest {
   targetDate: Date;
   reminderType: string;
 }
 
-export type NotifyGraceDeadlineResult = {
+type NotifyGraceDeadlineResult = {
   reminderType: string;
   matchedSubscriptions: number;
   attemptedClinics: number;

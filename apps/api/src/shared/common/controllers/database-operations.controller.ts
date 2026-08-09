@@ -6,6 +6,8 @@ import {
   UseGuards,
   Logger,
   Inject,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
@@ -43,6 +45,7 @@ export class DatabaseOperationsController {
     this.poolingService.logPoolConfig();
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('backup/full')
   @ApiOperation({ summary: 'Create full database backup' })
   @ApiResponse({ status: 200, description: 'Backup created successfully' })
@@ -52,6 +55,7 @@ export class DatabaseOperationsController {
     return result;
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('backup/schema')
   @ApiOperation({ summary: 'Create schema-only backup' })
   @ApiResponse({
@@ -71,6 +75,7 @@ export class DatabaseOperationsController {
     return this.backupService.getAvailableBackups();
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('backups/cleanup')
   @ApiOperation({ summary: 'Clean up old backups based on retention policy' })
   @ApiResponse({ status: 200, description: 'Old backups cleaned up' })
@@ -82,6 +87,7 @@ export class DatabaseOperationsController {
     return result;
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('backup/verify')
   @ApiOperation({ summary: 'Verify backup integrity' })
   @ApiResponse({ status: 200, description: 'Backup verification result' })
@@ -96,6 +102,7 @@ export class DatabaseOperationsController {
     return this.slowQueryService.getSlowQueryStats();
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('slow-queries/clear')
   @ApiOperation({ summary: 'Clear slow query history' })
   @ApiResponse({ status: 200, description: 'Slow query history cleared' })

@@ -5,7 +5,7 @@ import {
 } from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { ReminderSettings } from '@workspace/db';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { isDatabaseAuthError } from '@/shared/modules/auth/auth/auth-database.util';
+import { isDatabaseAuthError } from '@/shared/common/utils/is-database-auth-error';
 
 interface ReminderSettingsData {
   enabled?: boolean;

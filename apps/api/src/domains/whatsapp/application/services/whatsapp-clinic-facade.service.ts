@@ -7,7 +7,6 @@ import { ApprovalService } from '@/domains/whatsapp/application/services/approva
 import { MessagingService } from '@/domains/whatsapp/application/services/messaging.service';
 import { TemplateMessageService } from '@/domains/whatsapp/application/services/template-message.service';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
-import { SendTemplateDto } from '@/domains/whatsapp/presentation/dto/send-template.dto';
 
 /** Facade — legacy clinic WhatsApp routes; delegates to shared messaging services until full domain migration. */
 @Injectable()
@@ -56,26 +55,6 @@ export class WhatsappService {
 
   async deleteCustomTemplate(id: string) {
     return this.templatesService.deleteTemplate(id);
-  }
-
-  getDefaultTemplateNames() {
-    return this.templatesService.getDefaultTemplateNames();
-  }
-
-  async seedDefaultTemplates(clinicId: string) {
-    return this.templatesService.seedDefaultTemplates(clinicId);
-  }
-
-  async handleSendTemplate(
-    clinicId: string,
-    userId: string,
-    dto: SendTemplateDto,
-  ) {
-    return this.templateMessageService.handleSendTemplate(
-      clinicId,
-      userId,
-      dto,
-    );
   }
 
   async handleSendCustomMessage(

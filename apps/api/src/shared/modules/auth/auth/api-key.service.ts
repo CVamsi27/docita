@@ -13,14 +13,14 @@ import { PrismaService } from '@/prisma/prisma.service';
 const API_KEY_PREFIX = 'dct_';
 const API_KEY_BYTES = 32;
 
-export interface CreateApiKeyDto {
+interface CreateApiKeyDto {
   name: string;
   scopes: string[];
   expiresAt?: Date;
   allowedIps?: string[];
 }
 
-export interface ApiKeyWithSecret {
+interface ApiKeyWithSecret {
   id: string;
   name: string;
   key: string;
@@ -31,7 +31,7 @@ export interface ApiKeyWithSecret {
   createdAt: Date;
 }
 
-export interface RotatedApiKeyWithSecret extends ApiKeyWithSecret {
+interface RotatedApiKeyWithSecret extends ApiKeyWithSecret {
   previousKeyValidUntil: Date;
 }
 

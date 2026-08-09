@@ -10,19 +10,9 @@ import { ImportPreviewService } from './import-preview.service';
 import { PatientTabularImportService } from './patient-tabular-import.service';
 import { ImportOcrWorkflowService } from './import-ocr-workflow.service';
 import { OcrImportCommitService } from './ocr-import-commit.service';
-import type {
-  ExcelRow,
-  ImportAuditContext,
-  MappedPatientData,
-} from './import-types';
+import type { ImportAuditContext } from './import-types';
 
-export {
-  PATIENT_FIELD_MAPPINGS,
-  type ColumnMapping,
-  type ImportPreview,
-  type ImportResult,
-};
-export type { ExcelRow, ImportAuditContext, MappedPatientData };
+export { PATIENT_FIELD_MAPPINGS };
 
 /**
  * Facade — tabular preview/import, OCR extraction, and OCR commit orchestration.

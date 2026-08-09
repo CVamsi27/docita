@@ -4,7 +4,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { isRecord } from '@workspace/utils';
-import { isDatabaseAuthError } from '@/shared/modules/auth/auth/auth-database.util';
+import { isDatabaseAuthError } from '@/shared/common/utils/is-database-auth-error';
 import {
   API_REQUEST_METRICS_REPOSITORY_TOKEN,
   type ApiRequestMetricsRepository,
