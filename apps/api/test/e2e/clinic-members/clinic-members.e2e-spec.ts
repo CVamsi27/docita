@@ -176,8 +176,23 @@ describe('Clinic Members Lifecycle (e2e)', () => {
     const memberId = createReceptionistResponse.body?.id;
     expect(memberId).toBeDefined();
 
+    // Route-registration guard: ClinicSettingsController is registered FIRST
+    // in ClinicsModule's controllers array (before ClinicsController) so these
+    // single-segment literals win over its /clinics/:id routes (Express
+    // matches by registration order). Cross-module app.module order cannot
+    // fix this — the AuthModule forwardRef cycle pulls ClinicsModule into the
+    // Nest container before ClinicsSettingsModule is scanned. If the literal
+    // controller is moved after ClinicsController, this 200 becomes 403
+    // (INTERNAL role gate) and the spec fails.
+    const settingsResponse = await request(app.getHttpServer())
+      .get('/clinics/settings')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(settingsResponse.body?.id).toBe(clinicId);
+
     const listMembersResponse = await request(app.getHttpServer())
-      .get('/clinic/members')
+      .get('/clinics/members')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
 
@@ -188,7 +203,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
     expect(createdMember).toBeDefined();
 
     const updateMemberResponse = await request(app.getHttpServer())
-      .put(`/clinic/members/${memberId}`)
+      .put(`/clinics/members/${memberId}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'E2E Receptionist Updated',
@@ -200,7 +215,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
     expect(updateMemberResponse.body?.phoneNumber).toBe('+918888888888');
 
     const deleteMemberResponse = await request(app.getHttpServer())
-      .delete(`/clinic/members/${memberId}`)
+      .delete(`/clinics/members/${memberId}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
 
