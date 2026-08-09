@@ -39,8 +39,18 @@ function normalizeClinicTier(tier: unknown): ClinicTier {
     case ClinicTier.HOSPITAL:
     case ClinicTier.ENTERPRISE:
       return tier;
-    default:
+    case undefined:
+    case null:
+      // Explicit default: a missing tier means STARTER.
       return ClinicTier.STARTER;
+    default:
+      // Fail loudly on non-canonical tier strings instead of silently
+      // degrading to STARTER — a typo'd tier used to paper over four e2e
+      // suite failures and hid gating bugs in tests.
+      throw new Error(
+        `Invalid ClinicTier "${String(tier)}" passed to factories.clinic. ` +
+          `Expected one of: ${Object.values(ClinicTier).join(', ')}.`,
+      );
   }
 }
 
