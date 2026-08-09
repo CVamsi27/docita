@@ -6,15 +6,11 @@ import {
   type PatientPersistencePort,
 } from '@/domains/patients/application/ports/patient-persistence.port';
 import { MedicalHistoryFactory } from '@/domains/patients/core/factories/medical-history.factory';
-import { AiService } from '@/shared/modules/ai-core/ai.service';
-import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('MedicalHistoryService', () => {
   let service: MedicalHistoryService;
   let factory: MedicalHistoryFactory;
-  let aiService: AiService;
-  let aiFactory: AiFactory;
 
   async function runPatientTransaction(
     callback: (tx: PatientPersistencePort) => unknown,
@@ -61,9 +57,6 @@ describe('MedicalHistoryService', () => {
       update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
-    prescription: {
-      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    },
   };
 
   const mockFactory = {
@@ -72,14 +65,6 @@ describe('MedicalHistoryService', () => {
     createFamilyHistory: jest.fn<(...args: unknown[]) => unknown>(),
     createSocialHistory: jest.fn<(...args: unknown[]) => unknown>(),
     createSurgicalHistory: jest.fn<(...args: unknown[]) => unknown>(),
-  };
-
-  const mockAiService = {
-    generateText: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-  };
-
-  const mockAiFactory = {
-    createPrompt: jest.fn<(...args: unknown[]) => unknown>(),
   };
 
   beforeEach(async () => {
@@ -93,15 +78,11 @@ describe('MedicalHistoryService', () => {
           useValue: mockPatientPersistencePort,
         },
         { provide: MedicalHistoryFactory, useValue: mockFactory },
-        { provide: AiService, useValue: mockAiService },
-        { provide: AiFactory, useValue: mockAiFactory },
       ],
     }).compile();
 
     service = module.get<MedicalHistoryService>(MedicalHistoryService);
     factory = module.get<MedicalHistoryFactory>(MedicalHistoryFactory);
-    aiService = module.get<AiService>(AiService);
-    aiFactory = module.get<AiFactory>(AiFactory);
   });
 
   it('should be defined', () => {
@@ -254,24 +235,4 @@ describe('MedicalHistoryService', () => {
     });
   });
 
-  describe('summarizeMedicalHistory', () => {
-    it('should aggregate data and call AI service', async () => {
-      const patientId = 'p123';
-      mockPatientPersistencePort.patientMedicalCondition.findMany.mockResolvedValue(
-        [],
-      );
-      mockPatientPersistencePort.patientAllergy.findMany.mockResolvedValue([]);
-      mockPatientPersistencePort.prescription.findMany.mockResolvedValue([]);
-
-      const mockPrompt = { user: 'test prompt' };
-      mockAiFactory.createPrompt.mockReturnValue(mockPrompt);
-      mockAiService.generateText.mockResolvedValue('Summary');
-
-      const result = await service.summarizeMedicalHistory(patientId);
-
-      expect(result).toBe('Summary');
-      expect(mockAiFactory.createPrompt).toHaveBeenCalled();
-      expect(mockAiService.generateText).toHaveBeenCalledWith(mockPrompt);
-    });
-  });
 });
