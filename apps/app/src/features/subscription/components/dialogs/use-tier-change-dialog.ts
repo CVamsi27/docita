@@ -10,6 +10,9 @@ import {
 import { useProrationPreview } from "@workspace/data-access";
 import { formatPriceWithCurrency } from "@workspace/utils";
 import { getTierFeatureDelta } from "@/features/subscription/lib/feature-delta";
+import { getClinicTimezoneOrDefault } from "@/features/appointments/hooks/appointment-time-helpers";
+import { useOptionalClinic } from "@/lib/contexts/clinic-context";
+import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 import {
   type TierChangeDialogProps,
   PLAN_TIER_RANK,
@@ -27,6 +30,7 @@ export function useTierChangeDialog({
   currentPeriodEnd,
   checkoutInFlight = false,
 }: TierChangeDialogProps) {
+  const clinicTimezone = getClinicTimezoneOrDefault(useOptionalClinic()?.clinic);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,11 +91,7 @@ export function useTierChangeDialog({
     : { gained: [], lost: [] };
 
   const formattedRenewalDate = currentPeriodEnd
-    ? new Date(currentPeriodEnd).toLocaleDateString(undefined, {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
+    ? formatLocaleDateShortMonthYear(currentPeriodEnd, clinicTimezone)
     : null;
 
   const busy = isLoading || checkoutInFlight;

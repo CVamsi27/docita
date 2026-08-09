@@ -4,6 +4,9 @@ import { Badge, Button } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { subscriptionGstNotice } from "../../lib/billing-display-messages";
 import { formatCurrency } from "@workspace/utils";
+import { getClinicTimezoneOrDefault } from "@/features/appointments/hooks/appointment-time-helpers";
+import { useOptionalClinic } from "@/lib/contexts/clinic-context";
+import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 import type { CurrentPlanCardProps } from "./current-plan-card-types";
 
 function planDetailIcon(label: string) {
@@ -24,6 +27,7 @@ export function CurrentPlanCardMeta({
   statusNotice,
 }: Pick<CurrentPlanCardProps, "scheduledChange" | "accountCreditCents" | "accountCreditCurrency" | "planDetails" | "planDetailsFootnote" | "statusNotice">) {
   const { t } = useTranslation("Subscription");
+  const clinicTimezone = getClinicTimezoneOrDefault(useOptionalClinic()?.clinic);
   const statusNoticeClassName =
     statusNotice?.variant === "destructive"
       ? "border-destructive/50 bg-destructive/10 text-destructive"
@@ -46,12 +50,12 @@ export function CurrentPlanCardMeta({
             <div>
               <p className="font-medium text-foreground">Scheduled to switch to {scheduledChange.planName}</p>
               <p className="text-xs text-muted-foreground">
-                Applies on {new Date(scheduledChange.effectiveAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}. Your current plan stays active until then.
+                Applies on {formatLocaleDateShortMonthYear(scheduledChange.effectiveAt, clinicTimezone)}. Your current plan stays active until then.
               </p>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={scheduledChange.onCancel} disabled={scheduledChange.isCancelling} className="shrink-0">
-            {scheduledChange.isCancelling ? "Undoing\u2026" : "Undo"}
+            {scheduledChange.isCancelling ? "Undoing…" : "Undo"}
           </Button>
         </div>
       ) : null}

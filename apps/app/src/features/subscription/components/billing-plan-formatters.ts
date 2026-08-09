@@ -1,14 +1,13 @@
-export function formatPlanDate(value?: string | null): string {
+import { DEFAULT_TIMEZONE } from "@workspace/utils";
+import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
+
+export function formatPlanDate(
+  value?: string | null,
+  timezone: string = DEFAULT_TIMEZONE,
+): string {
   if (!value) return "Not scheduled";
-  try {
-    return new Date(value).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  } catch {
-    return "Not scheduled";
-  }
+  const formatted = formatLocaleDateShortMonthYear(value, timezone);
+  return formatted || "Not scheduled";
 }
 
 export function formatStatusLabel(status?: string): string {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, Label, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { CreditCard, DollarSign } from "lucide-react";
-import { formatCurrency } from "../../../lib/formatters";
+import { formatCurrency, formatInternalListDate } from "../../../lib/formatters";
 import { apiGet, apiPost } from "@/lib/api/api-client";
 
 interface Clinic { id: string; name: string; tier: string; email: string; subscriptionStatus?: string; }
@@ -94,7 +94,7 @@ export function PaymentProcessingPage() {
               <TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">No payments recorded</TableCell></TableRow>
             ) : payments.map((p) => (
               <TableRow key={p.id}>
-                <TableCell className="text-sm">{p.paidAt ? new Date(p.paidAt).toLocaleDateString() : "-"}</TableCell>
+                <TableCell className="text-sm">{p.paidAt ? formatInternalListDate(p.paidAt) : "-"}</TableCell>
                 <TableCell className="font-medium">{p.clinicName}</TableCell>
                 <TableCell><Badge variant="outline">{p.planLabel}</Badge></TableCell>
                 <TableCell>{formatCurrency(p.amount, { currency: "INR", fractionDigits: 0 })}</TableCell>

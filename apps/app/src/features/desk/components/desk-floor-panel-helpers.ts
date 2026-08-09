@@ -1,5 +1,7 @@
 import type { QueueItem } from "@workspace/data-access";
+import { DATE_FORMATS, DEFAULT_TIMEZONE } from "@workspace/utils";
 import { getOpdQueueSummaryLine } from "@/features/consultation";
+import { formatTime } from "@/lib/formatters";
 
 export interface DeskFloorRow {
   id: string;
@@ -27,15 +29,12 @@ export function formatToken(n: number): string {
 
 export function formatScheduled(
   value: string | null | undefined,
+  timezone: string = DEFAULT_TIMEZONE,
 ): string | null {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  return formatTime(date, DATE_FORMATS.TIME_SHORT, timezone);
 }
 
 export function patientNameOf(item: QueueItem): string {

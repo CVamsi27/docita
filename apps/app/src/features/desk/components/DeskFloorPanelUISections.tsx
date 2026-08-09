@@ -4,6 +4,8 @@ import { Clock, Users } from "lucide-react";
 import { Avatar, AvatarFallback, Card, CardContent, CardHeader, CardTitle, EmptyState, Section } from "@workspace/ui/components";
 import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
 import { cn } from "@workspace/ui/lib/utils";
+import { getClinicTimezoneOrDefault } from "@/features/appointments/hooks/appointment-time-helpers";
+import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import {
   formatScheduled,
   formatToken,
@@ -73,6 +75,7 @@ interface WaitingListSectionProps {
 
 export function WaitingListSection({ waiting }: WaitingListSectionProps) {
   const { t } = useTranslation("Desk");
+  const clinicTimezone = getClinicTimezoneOrDefault(useOptionalClinic()?.clinic);
   return (
     <Section
       id="desk-floor-waiting"
@@ -127,7 +130,7 @@ export function WaitingListSection({ waiting }: WaitingListSectionProps) {
                       "shrink-0 font-mono text-xs tabular-nums text-muted-foreground",
                     )}
                   >
-                    {formatScheduled(row.scheduledTime) ?? "—"}
+                    {formatScheduled(row.scheduledTime, clinicTimezone) ?? "—"}
                   </span>
                 </li>
               ))}
@@ -147,6 +150,7 @@ export function RecentlyCompletedSection({
   recentlyCompleted,
 }: RecentlyCompletedSectionProps) {
   const { t } = useTranslation("Desk");
+  const clinicTimezone = getClinicTimezoneOrDefault(useOptionalClinic()?.clinic);
   if (recentlyCompleted.length === 0) return null;
 
   return (
@@ -181,7 +185,7 @@ export function RecentlyCompletedSection({
                   </p>
                 </div>
                 <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
-                  {formatScheduled(row.scheduledTime) ?? "—"}
+                  {formatScheduled(row.scheduledTime, clinicTimezone) ?? "—"}
                 </span>
               </li>
             ))}

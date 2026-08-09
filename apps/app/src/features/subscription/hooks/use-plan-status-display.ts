@@ -3,6 +3,8 @@ import {
   buildPlanDetails,
   type SubscriptionDerivedState,
 } from "./billing-subscription-workspace-helpers";
+import { getClinicTimezoneOrDefault } from "@/features/appointments/hooks/appointment-time-helpers";
+import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import type { PlanMode, SubscriptionCurrentResponse } from "@workspace/types";
 
 export function usePlanStatusDisplay(
@@ -40,6 +42,7 @@ export function usePlanStatusDisplay(
     showStarterAccessThroughLabel,
     planStripPeriodEnd,
     planStripDaysLeft,
+    clinicTimezone: getClinicTimezoneOrDefault(useOptionalClinic()?.clinic),
   });
 
   return { planDetails };

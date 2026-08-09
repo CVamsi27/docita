@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, Input, PageHeader, PageTabs, Textarea } from "@workspace/ui/components";
 import { Search, Send, MessageSquare } from "lucide-react";
-import { formatDistanceToNow } from "../../../lib/formatters";
+import { formatDistanceToNow, formatInternalTimestamp } from "../../../lib/formatters";
 import { apiGet, apiPost } from "@/lib/api/api-client";
 
 interface Thread { threadPhoneNumber: string; senderName?: string | null; lastMessageBody: string; lastMessageAt: string; unreadCount: number; lastMessageType: string; lastMessageDirection: string; }
@@ -116,7 +116,7 @@ export function SupportPage() {
                         <div key={msg.id} className={`flex ${msg.direction === "INBOUND" ? "justify-start" : "justify-end"}`}>
                           <div className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.direction === "INBOUND" ? "bg-muted" : "bg-primary text-primary-foreground"}`}>
                             <p className="text-sm">{msg.body}</p>
-                            <p className="text-xs opacity-70 mt-1">{new Date(msg.createdAt).toLocaleTimeString()}</p>
+                            <p className="text-xs opacity-70 mt-1">{formatInternalTimestamp(msg.createdAt)}</p>
                           </div>
                         </div>
                       ))}

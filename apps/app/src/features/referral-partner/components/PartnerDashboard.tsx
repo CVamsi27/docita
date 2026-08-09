@@ -4,6 +4,7 @@ import { usePartnerAuth } from "@/features/referral-partner/hooks/use-partner-au
 import { usePartnerMe } from "@workspace/data-access";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components";
 import { formatPaise } from "@/features/referral-partner/lib/format-currency";
+import { formatDate } from "@/lib/formatters";
 
 export function PartnerDashboard() {
   const { t } = useTranslation("ReferralPartner");
@@ -114,7 +115,7 @@ export function PartnerDashboard() {
           <CardDescription>
             {hasBanking
               ? d.payoutDetails?.verified
-                ? t("dashboard.bankingVerified", { date: new Date(d.payoutDetails.updatedAt).toLocaleDateString() })
+                ? t("dashboard.bankingVerified", { date: formatDate(d.payoutDetails.updatedAt) })
                 : t("dashboard.bankingSubmittedNotVerified")
               : t("dashboard.bankingAddDescription")}
           </CardDescription>
