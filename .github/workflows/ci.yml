@@ -111,6 +111,7 @@ jobs:
       - name: Build API workspace dependencies
         run: |
           pnpm --filter @workspace/types run build
+          pnpm --filter @workspace/authorization run build
           pnpm --filter @workspace/utils run build
           pnpm --filter @workspace/auth run build
           pnpm --filter @workspace/db run build
@@ -159,10 +160,10 @@ jobs:
         run: |
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
