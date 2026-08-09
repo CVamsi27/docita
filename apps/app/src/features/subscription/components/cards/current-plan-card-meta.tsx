@@ -4,7 +4,7 @@ import { Badge, Button } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 import { subscriptionGstNotice } from "../../lib/billing-display-messages";
 import { formatCurrency } from "@workspace/utils";
-import { getClinicTimezoneOrDefault } from "@/features/appointments/hooks/appointment-time-helpers";
+import { getClinicTimezoneOrDefault } from "@/lib/utils/clinic-timezone";
 import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 import type { CurrentPlanCardProps } from "./current-plan-card-types";

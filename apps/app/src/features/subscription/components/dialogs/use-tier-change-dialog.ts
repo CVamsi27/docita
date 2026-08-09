@@ -10,7 +10,7 @@ import {
 import { useProrationPreview } from "@workspace/data-access";
 import { formatPriceWithCurrency } from "@workspace/utils";
 import { getTierFeatureDelta } from "@/features/subscription/lib/feature-delta";
-import { getClinicTimezoneOrDefault } from "@/features/appointments/hooks/appointment-time-helpers";
+import { getClinicTimezoneOrDefault } from "@/lib/utils/clinic-timezone";
 import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 import {

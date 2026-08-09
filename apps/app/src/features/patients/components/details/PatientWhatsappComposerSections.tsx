@@ -17,7 +17,7 @@ import {
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { useTranslation } from "react-i18next";
 import type { ClinicWhatsappTemplate, ClinicWhatsappSentMessage } from "@workspace/types";
-import { getClinicTimezoneOrDefault } from "@/features/appointments/hooks/appointment-time-helpers";
+import { getClinicTimezoneOrDefault } from "@/lib/utils/clinic-timezone";
 import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import { formatDateTime } from "@/lib/formatters";
 

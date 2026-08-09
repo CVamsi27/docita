@@ -4,7 +4,7 @@ import { Clock, Users } from "lucide-react";
 import { Avatar, AvatarFallback, Card, CardContent, CardHeader, CardTitle, EmptyState, Section } from "@workspace/ui/components";
 import { LiveDot } from "@workspace/ui/components/indicators/live-dot";
 import { cn } from "@workspace/ui/lib/utils";
-import { getClinicTimezoneOrDefault } from "@/features/appointments/hooks/appointment-time-helpers";
+import { getClinicTimezoneOrDefault } from "@/lib/utils/clinic-timezone";
 import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import {
   formatScheduled,
