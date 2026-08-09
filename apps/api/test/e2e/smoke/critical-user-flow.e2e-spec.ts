@@ -61,7 +61,9 @@ describe('Critical User Flow (e2e)', () => {
   });
 
   const createAuthenticatedDoctor = async () => {
-    const clinic = await factories.clinic({ tier: 'PRO' });
+    // Invoicing is an ESSENTIAL+ feature; 'PRO' is not a canonical ClinicTier
+    // and silently fell back to STARTER, 403ing the invoice step.
+    const clinic = await factories.clinic({ tier: 'PROFESSIONAL' });
     const { user, plainPassword } = await factories.user({
       clinicId: clinic.id,
       role: 'DOCTOR',
