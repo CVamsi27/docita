@@ -80,7 +80,11 @@ describe("LocaleSwitcher with the real i18next instance", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText("Pick up where you left off")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Sign in to manage appointments, patients, billing, and clinical workflows",
+      ),
+    ).toBeInTheDocument();
     // Assurance items render in both the branding panel and the footer.
     expect(screen.getAllByText("Encrypted sessions").length).toBeGreaterThan(0);
     expect(screen.getByText("Need help")).toBeInTheDocument();
@@ -90,7 +94,9 @@ describe("LocaleSwitcher with the real i18next instance", () => {
     await waitFor(() => {
       expect(i18n.resolvedLanguage).toBe("hi");
       expect(
-        screen.getByText("जहां छोड़े थे, वहीं से जारी रखें"),
+        screen.getByText(
+          "अपॉइंटमेंट, मरीज़, बिलिंग और क्लिनिकल वर्कफ़्लो प्रबंधित करने के लिए साइन इन करें",
+        ),
       ).toBeInTheDocument();
       expect(
         screen.getAllByText("एन्क्रिप्टेड सत्र").length,

@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Languages } from "lucide-react";
-import { Button } from "@workspace/ui/components/form/button";
+import { LocaleToggle } from "@workspace/ui/components/form/locale-toggle";
 import {
   isLocale,
   persistLocale,
@@ -9,10 +8,10 @@ import {
 } from "@/i18n/locale-utils";
 
 /**
- * Locale switcher for the auth shell / sidebar footer. A minimal two-button
- * toggle (EN / हिंदी) next to the theme toggle. Persists the choice in
- * localStorage and re-renders i18next strings immediately (SPA — no cookie
- * round-trip needed, unlike the Next.js NEXT_LOCALE implementation).
+ * Locale switcher for the auth shell / sidebar footer. Composes the shared
+ * {@link LocaleToggle} primitive with react-i18next wiring. Persists the
+ * choice in localStorage and re-renders i18next strings immediately (SPA —
+ * no cookie round-trip needed, unlike the Next.js NEXT_LOCALE implementation).
  */
 export function LocaleSwitcher() {
   const { i18n } = useTranslation();
@@ -26,35 +25,7 @@ export function LocaleSwitcher() {
     persistLocale(nextLocale);
   }
 
-  const activeLabel = activeLocale === "hi" ? "हिंदी" : "EN";
-
   return (
-    <div className="flex items-center gap-1">
-      <Languages
-        className="h-3.5 w-3.5 text-muted-foreground"
-        aria-hidden="true"
-      />
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-7 px-2 text-xs"
-        aria-pressed={activeLocale === "en"}
-        onClick={() => handleSwitch("en")}
-      >
-        EN
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-7 px-2 text-xs"
-        aria-pressed={activeLocale === "hi"}
-        onClick={() => handleSwitch("hi")}
-      >
-        हिंदी
-      </Button>
-      <span className="sr-only">Active language: {activeLabel}</span>
-    </div>
+    <LocaleToggle locale={activeLocale} onLocaleChange={handleSwitch} />
   );
 }

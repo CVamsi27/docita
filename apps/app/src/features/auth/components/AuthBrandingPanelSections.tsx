@@ -1,47 +1,26 @@
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
+import { DaypartGreetingHero } from "@workspace/ui/components/data-display/daypart-greeting-hero";
 import type { AuthBrandingStep } from "../types/auth";
 import { LoginDailyThought } from "./LoginDailyThought";
 import { AUTH_ASSURANCE_ITEMS } from "../lib/auth-assurance-items";
-import { getDaypartFromHour } from "../lib/auth-daypart";
 import { setupSteps } from "./auth-branding-setup-steps";
 
 export function AuthBrandingHero({ description }: { description: string }) {
   const { t, i18n } = useTranslation("Auth");
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 30_000);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const daypart = getDaypartFromHour(now.getHours());
-  const greeting =
-    daypart === "morning"
-      ? t("branding.greeting.morning")
-      : daypart === "afternoon"
-        ? t("branding.greeting.afternoon")
-        : t("branding.greeting.evening");
-  const timeLabel = new Intl.DateTimeFormat(i18n.language, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(now);
 
   return (
-    <div className="max-w-xl space-y-4">
-      <p className="flex items-center gap-2 text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-        <span>{t("branding.clockEyebrow")}</span>
-        <span aria-hidden="true" className="opacity-60">·</span>
-        <span className="tabular-nums">{timeLabel}</span>
-      </p>
-      <h2 className="font-serif text-[var(--fs-3xl)] font-semibold leading-[var(--lh-tight)] tracking-tight text-foreground xl:text-[var(--fs-4xl)]">
-        {greeting}
-      </h2>
-      <p className="ui-page-subtitle max-w-md">{description}</p>
-    </div>
+    <DaypartGreetingHero
+      greetings={{
+        morning: t("branding.greeting.morning"),
+        afternoon: t("branding.greeting.afternoon"),
+        evening: t("branding.greeting.evening"),
+      }}
+      eyebrow={t("branding.clockEyebrow")}
+      description={description}
+      timeLocale={i18n.language}
+    />
   );
 }
 

@@ -8,6 +8,7 @@ import { client } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { InternalLoginHeader } from "./internal-login-header";
 import { InternalLoginForm } from "./internal-login-form";
+import { InternalLoginGreeting } from "./internal-login-greeting";
 import { PageMeta } from "./page-meta";
 
 export function LoginPage() {
@@ -59,7 +60,8 @@ export function LoginPage() {
     <>
       <PageMeta title="Admin Login" />
       <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-8">
-        <div className="w-full max-w-md space-y-6">
+        <div className="w-full max-w-md space-y-8">
+          <InternalLoginGreeting />
           <InternalLoginHeader />
           <InternalLoginForm onLogin={handleLogin} loading={loading} />
         </div>
