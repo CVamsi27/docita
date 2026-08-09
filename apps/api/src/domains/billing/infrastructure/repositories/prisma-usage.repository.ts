@@ -3,6 +3,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, UsageType } from '@workspace/db';
 import { isRecord } from '@workspace/utils';
 import { GLOBAL_BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
+import { activeUsersWhereFilter } from '@/shared/common/user-where-fragments';
 import {
   type ActiveAddOnSnapshot,
   type CreateUsageEventParams,
@@ -15,6 +16,7 @@ export class PrismaUsageRepository implements IUsageRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   runUnrestricted<T>(fn: () => Promise<T>): Promise<T> {
+    // RLS-BYPASS: usage metering rolls up metrics across clinics for the billing job
     return this.prisma.runUnrestricted(fn);
   }
 
@@ -140,16 +142,7 @@ export class PrismaUsageRepository implements IUsageRepository {
     planMode: string | null | undefined,
   ): Promise<number> {
     return this.prisma.user.count({
-      where: {
-        clinicId,
-        ...(planMode === 'FRONT_DESK'
-          ? {
-              NOT: {
-                AND: [{ role: 'DOCTOR' }, { appLoginDisabled: true }],
-              },
-            }
-          : {}),
-      },
+      where: activeUsersWhereFilter(clinicId, planMode),
     });
   }
 
