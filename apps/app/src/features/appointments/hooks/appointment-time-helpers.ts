@@ -1,16 +1,10 @@
 import {
-  DEFAULT_TIMEZONE,
   formatClinicPickerDayIsoFromSelection,
   formatClinicTodayPickerIso,
 } from "@workspace/utils";
 import { defaultStartIsoForSelectedCalendarDay } from "@/features/appointments/lib/calendar-slot-local-iso";
 
-export function getClinicTimezoneOrDefault(
-  clinic: { timezone?: string | null } | undefined | null,
-): string {
-  const trimmed = clinic?.timezone?.trim();
-  return trimmed || DEFAULT_TIMEZONE;
-}
+export { getClinicTimezoneOrDefault } from "@/lib/utils/clinic-timezone";
 
 export function computeDateKey(
   date: Date | undefined,

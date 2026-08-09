@@ -125,6 +125,65 @@ jobs:
         run: git fetch origin main --depth=1
       - name: Test API (changed only)
         run: pnpm --filter @docita/api run test:ci --changedSince=origin/main
+  api-e2e:
+    name: API E2E Tests
+    needs: changes
+    if: github.event.pull_request.draft != true && needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    env:
+      PGHOST: localhost
+      PGPORT: "5434"
+      PGUSER: docita
+      PGPASSWORD: password
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: docita
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: docita_test
+          POSTGRES_INITDB_ARGS: >-
+            --set=shared_preload_libraries=pg_stat_statements
+            --set=pg_stat_statements.track=all
+            --set=pg_stat_statements.max=10000
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U docita -d docita_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.12.0
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+      - name: Run Database Migrations
+        env:
+          DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
+        run: pnpm db:deploy
+      - name: Run API E2E Tests
+        env:
+          DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
+          JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          NODE_ENV: test
+          APP_URL: http://localhost:3001
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          NEXT_PUBLIC_API_URL: http://localhost:3001/api
+          CORS_ORIGINS: http://localhost:3000
+          WHATSAPP_PRODUCTION_MODE: "false"
+        run: pnpm --filter @docita/api run test:e2e
 
   app-quality:
     name: App Vite Unit Checks
