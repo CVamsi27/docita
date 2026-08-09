@@ -3,7 +3,25 @@ import {
   buildSeedUsageKeys,
   getMonthRange,
   getSeedBillingPeriods,
+  type SeedBillingPeriods,
 } from './seed-billing-factory';
+
+/**
+ * Deterministic periods for the key-shape tests. The local-vs-UTC month
+ * relationship in `getSeedBillingPeriods()` depends on the runner's timezone
+ * (UTC runners collapse the six keys to three), so these tests construct
+ * periods explicitly instead of asserting on the ambient clock.
+ */
+function periodsWithCycleKeys(legacyUtcCycleKey: string): SeedBillingPeriods {
+  return {
+    cycleStart: new Date('2026-04-01T00:00:00.000Z'),
+    cycleEnd: new Date('2026-04-30T23:59:59.999Z'),
+    cycleKey: '2026-04',
+    legacyUtcCycleKey,
+    subscriptionStart: new Date('2026-04-01T00:00:00.000Z'),
+    subscriptionEnd: new Date('2027-04-01T00:00:00.000Z'),
+  };
+}
 
 describe('seed billing factory', () => {
   it('getMonthRange returns the first instant and last instant of the month', () => {
@@ -40,7 +58,10 @@ describe('seed billing factory', () => {
   });
 
   it('buildSeedUsageKeys emits the six seed:<clinic>:<cycle>:<metric> keys', () => {
-    const periods = getSeedBillingPeriods();
+    // Distinct cycle keys (as on a positive-offset timezone runner): the
+    // legacy-UTC and current keys name different months, so all six values
+    // are distinct strings.
+    const periods = periodsWithCycleKeys('2026-03');
     const keys = buildSeedUsageKeys('clinic-1', periods);
     expect(keys.consultations).toBe(
       `seed:clinic-1:${periods.cycleKey}:consultations`,
@@ -60,12 +81,12 @@ describe('seed billing factory', () => {
   });
 
   it('buildSeedUsageKeys collapses to 3 distinct keys when cycle keys match', () => {
-    const periods = getSeedBillingPeriods();
-    // When local and UTC months coincide, legacy and current keys are the same
-    // string — the delete path dedupes them (Array.from(new Set(...))).
+    // When local and UTC months coincide (UTC runner), legacy and current
+    // keys are the same string — the delete path dedupes them
+    // (Array.from(new Set(...))), so only 3 distinct values remain.
+    const periods = periodsWithCycleKeys('2026-04');
     const keys = buildSeedUsageKeys('clinic-1', periods);
     const distinct = new Set(Object.values(keys)).size;
-    expect(distinct).toBeGreaterThanOrEqual(3);
-    expect(distinct).toBeLessThanOrEqual(6);
+    expect(distinct).toBe(3);
   });
 });
