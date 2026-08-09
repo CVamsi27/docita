@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// fallow-ignore-file unused-file
 /**
  * Zero-importer audit for apps/api/src/shared/modules/*.
  *

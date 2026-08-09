@@ -51,6 +51,7 @@ describe('InvoicesService', () => {
 
   const repository: jest.Mocked<IInvoiceRepository> = {
     findAll: jest.fn<IInvoiceRepository['findAll']>(),
+    belongsToClinic: jest.fn<IInvoiceRepository['belongsToClinic']>(),
     findById: jest.fn<IInvoiceRepository['findById']>(),
     create: jest.fn<IInvoiceRepository['create']>(),
     update: jest.fn<IInvoiceRepository['update']>(),
