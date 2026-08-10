@@ -2,6 +2,7 @@
 // by Zod above; the two inline casts are defense-in-depth for callers
 // that bypass the pipe (e.g. raw fetch smoke tests).
 import {
+  BadRequestException,
   Body,
   Controller,
   HttpCode,
@@ -45,7 +46,7 @@ export class PartnerAuthController {
   async requestOtp(@Body() body: unknown) {
     const parsed = partnerOtpRequestSchema.safeParse(body);
     if (!parsed.success) {
-      throw new UnauthorizedException('Invalid request');
+      throw new BadRequestException('Invalid request');
     }
     return this.authService.requestOtp(parsed.data);
   }
@@ -60,7 +61,7 @@ export class PartnerAuthController {
   async verifyOtp(@Body() body: unknown): Promise<PartnerOtpVerifyResponse> {
     const parsed = partnerOtpVerifySchema.safeParse(body);
     if (!parsed.success) {
-      throw new UnauthorizedException('Invalid request');
+      throw new BadRequestException('Invalid request');
     }
     return this.authService.verifyOtp(parsed.data);
   }

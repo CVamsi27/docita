@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { ConsentType } from '@workspace/db';
+import type { Consent, ConsentType, Patient } from '@workspace/db';
 import { ConsentComplianceService } from './consent-compliance.service';
 import { DataSubjectRequestService } from './data-subject-request.service';
+import type { ExportResult } from './factories/data-export.factory';
 import type {
   ConsentRecord,
   DataSubjectRequest,
@@ -25,7 +26,7 @@ export class DPDPComplianceService {
     private readonly dataSubjectRequests: DataSubjectRequestService,
   ) {}
 
-  recordConsent(data: ConsentRecord, ipAddress?: string): Promise<unknown> {
+  recordConsent(data: ConsentRecord, ipAddress?: string): Promise<Consent> {
     return this.consentCompliance.recordConsent(data, ipAddress);
   }
 
@@ -42,7 +43,7 @@ export class DPDPComplianceService {
     ipAddress?: string,
     clinicId?: string,
     actorUserId?: string,
-  ): Promise<unknown> {
+  ): Promise<Consent> {
     return this.consentCompliance.withdrawConsent(
       consentId,
       reason,
@@ -91,28 +92,28 @@ export class DPDPComplianceService {
   handleAccessRequest(
     data: DataSubjectRequest,
     ipAddress?: string,
-  ): Promise<unknown> {
+  ): Promise<ExportResult> {
     return this.dataSubjectRequests.handleAccessRequest(data, ipAddress);
   }
 
   handleCorrectionRequest(
     data: DataSubjectRequest & { corrections: Record<string, unknown> },
     ipAddress?: string,
-  ): Promise<unknown> {
+  ): Promise<Patient> {
     return this.dataSubjectRequests.handleCorrectionRequest(data, ipAddress);
   }
 
   handleErasureRequest(
     data: DataSubjectRequest,
     ipAddress?: string,
-  ): Promise<unknown> {
+  ): Promise<{ anonymized: true; patient: Patient }> {
     return this.dataSubjectRequests.handleErasureRequest(data, ipAddress);
   }
 
   handlePortabilityRequest(
     data: DataSubjectRequest,
     ipAddress?: string,
-  ): Promise<unknown> {
+  ): Promise<ExportResult> {
     return this.dataSubjectRequests.handlePortabilityRequest(data, ipAddress);
   }
 }

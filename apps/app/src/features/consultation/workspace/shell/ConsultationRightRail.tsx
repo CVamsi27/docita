@@ -38,7 +38,7 @@ export function ConsultationRightRail({
           </Button>
         </SymbolTooltip>
         <span
-          className="mt-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 [writing-mode:vertical-rl]"
+          className="mt-3 text-[var(--fs-2xs)] font-medium uppercase tracking-wider text-muted-foreground/70 [writing-mode:vertical-rl]"
           aria-hidden="true"
         >
           Patient

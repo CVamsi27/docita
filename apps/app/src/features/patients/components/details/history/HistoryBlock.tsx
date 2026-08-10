@@ -50,7 +50,7 @@ export function HistoryBlock({
             {title}
           </h3>
           {typeof count === "number" && count > 0 ? (
-            <span className="rounded-full border border-border/60 bg-muted/40 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
+            <span className="rounded-full border border-border/60 bg-muted/40 px-1.5 py-0.5 text-[var(--fs-2xs)] font-semibold tabular-nums text-muted-foreground">
               {count}
             </span>
           ) : null}

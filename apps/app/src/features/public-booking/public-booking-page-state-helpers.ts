@@ -15,7 +15,7 @@ export function computeSlotRangeSubmitError(
 ): string {
   const values = [slotStart, slotEnd].filter(isNonEmptyString);
   return values.length === 2 && values[0] !== values[1]
-    ? `${values[0]} \u00B7 ${values[1]}`
+    ? `${values[0]} · ${values[1]}`
     : (values[0] ?? "");
 }
 

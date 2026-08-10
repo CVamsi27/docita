@@ -213,7 +213,7 @@ export function VisitCardDiagnosisSection({
         {diagnoses.slice(0, mode === "full" ? 5 : 2).map((d, i) => (
           <span key={i} className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/30 px-2 py-0.5 text-xs">
             {d.description || d.code}
-            {d.isPrimary && <span className="text-[10px] font-semibold text-primary">PRIMARY</span>}
+            {d.isPrimary && <span className="text-[length:var(--fs-2xs)] font-semibold text-primary">PRIMARY</span>}
           </span>
         ))}
         {diagnoses.length > 5 && mode === "full" && (

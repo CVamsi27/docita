@@ -14,10 +14,17 @@ type SumCall = {
   end: Date;
 };
 
-// The service derives calendar boundaries with local-time Date math
-// (setHours / new Date(y, m, d)), so assertions pin date COMPONENTS
-// (yesterday's calendar day, the usage month's 1st..last) rather than exact
-// UTC instants, which would vary with the machine/worker timezone.
+// KNOWN PRODUCT-DECISION ITEM (do not change behavior): the service derives
+// the aggregation window with local-time Date math on the injected clock
+// (setDate(-1) + setHours(0,0,0,0)) and the usage-month bounds with
+// `new Date(y, m, ...)` constructors. On the production worker (UTC) this
+// yields a UTC-midnight window; clinics operate on IST — whether the billing
+// window should be IST-based (Asia/Kolkata) is an open product decision.
+// This spec PINS the current behavior and does not "fix" it.
+//
+// Assertions therefore pin date COMPONENTS (yesterday's calendar day, the
+// usage month's 1st..last) rather than exact UTC instants, which would vary
+// with the machine/worker timezone.
 // The noon-UTC clock keeps the calendar-day assertions valid for any
 // timezone <= UTC+11; on UTC+12..+14 machines (NZ/Fiji/Samoa/Kiritimati)
 // yesterday would land a day later and these assertions would need to shift.

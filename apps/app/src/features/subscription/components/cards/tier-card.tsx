@@ -26,7 +26,7 @@ export function TierCard({
       !isCurrentTier && !isRecommended && "border-border/80 hover:border-primary/40", className)}>
       {showTopAccent ? <div className={cn("h-1.5 w-full", gradient.accent)} /> : null}
       {isRecommended && !isCurrentTier ? (
-        <Badge variant="default" className="absolute right-4 top-4 z-10 gap-1 rounded-full border border-primary/30 bg-primary px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-foreground shadow-sm">
+        <Badge variant="default" className="absolute right-4 top-4 z-10 gap-1 rounded-full border border-primary/30 bg-primary px-2.5 py-0.5 text-[length:var(--fs-2xs)] font-semibold uppercase tracking-[0.08em] text-primary-foreground shadow-sm">
           <Sparkles className="h-3 w-3" aria-hidden />Recommended
         </Badge>
       ) : null}

@@ -77,7 +77,7 @@ export function PatientFamilyHistory({
                 <span className="truncate text-sm font-medium text-foreground">
                   {history.condition}
                 </span>
-                <span className="w-fit rounded-md border border-border/60 bg-muted/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                <span className="w-fit rounded-md border border-border/60 bg-muted/40 px-1.5 py-0.5 text-[var(--fs-2xs)] font-medium text-muted-foreground">
                   {history.relationship}
                 </span>
               </div>

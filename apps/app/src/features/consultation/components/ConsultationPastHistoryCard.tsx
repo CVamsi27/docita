@@ -36,7 +36,7 @@ export function ConsultationPastHistoryCard({
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
       <CollapsibleContent className="pb-3">
-        <div className="overflow-hidden rounded-[var(--radius-md)] border border-border/60 bg-card shadow-[0_1px_2px_0_rgb(0_0_0/0.04)]">
+        <div className="overflow-hidden rounded-[var(--radius-md)] border border-border/60 bg-card shadow-xs">
           <header className="flex items-center gap-2 border-b border-border/50 bg-muted/20 px-4 py-2.5">
             <History className="h-4 w-4 text-info" aria-hidden="true" />
             <h3 className="text-sm font-semibold text-foreground">

@@ -108,21 +108,21 @@ export function SectionRail({
             <span className="flex flex-1 min-w-0 flex-col gap-0.5">
               <span
                 className={cn(
-                  "truncate text-[13px] leading-tight",
+                  "truncate text-[var(--fs-sm)] leading-tight",
                   isActive ? "font-semibold text-foreground" : "font-medium",
                 )}
               >
                 {section.shortLabel}
               </span>
               {section.subtitle ? (
-                <span className="truncate text-[11px] leading-snug text-muted-foreground">
+                <span className="truncate text-[var(--fs-2xs)] leading-snug text-muted-foreground">
                   {section.subtitle}
                 </span>
               ) : null}
               {(isComplete || needsAttention) ? (
                 <span
                   className={cn(
-                    "text-[10px] font-semibold leading-snug",
+                    "text-[var(--fs-2xs)] font-semibold leading-snug",
                     isComplete ? "text-success" : "text-warning",
                   )}
                 >

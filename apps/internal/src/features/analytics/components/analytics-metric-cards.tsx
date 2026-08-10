@@ -28,7 +28,7 @@ export function MetricCardsGrid({ metrics }: MetricCardsGridProps) {
             <p className="text-2xl font-semibold tabular-nums">{metric.value}</p>
             {metric.change && (
               <p className={`text-sm font-medium ${trendClass[metric.trend ?? "neutral"]}`}>
-                {metric.trend === "up" ? "\u2191" : metric.trend === "down" ? "\u2193" : "\u2192"} {metric.change} from last period
+                {metric.trend === "up" ? "↑" : metric.trend === "down" ? "↓" : "→"} {metric.change} from last period
               </p>
             )}
           </CardContent>

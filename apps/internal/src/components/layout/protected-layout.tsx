@@ -81,7 +81,7 @@ export function ProtectedLayout() {
         <nav className="flex-1 overflow-y-auto p-2 space-y-4">
           {navItems.map((group) => (
             <div key={group.section}>
-              {!collapsed && <p className="px-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{group.section}</p>}
+              {!collapsed && <p className="px-2 text-[length:var(--fs-2xs)] font-semibold text-muted-foreground uppercase tracking-wider">{group.section}</p>}
               <div className="mt-1 space-y-0.5">
                 {group.items.map((item) => {
                   const active = location.pathname === item.href || location.pathname.startsWith(item.href + "/");

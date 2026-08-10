@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import { ConsentStatus, ConsentType } from '@workspace/db';
+import { Consent, ConsentStatus, ConsentType } from '@workspace/db';
 import { DpdpAuditEmitter } from './dpdp-audit.emitter';
 import { isRecord } from '@workspace/utils';
 import type {
@@ -31,7 +31,7 @@ export class ConsentComplianceService {
   async recordConsent(
     data: ConsentRecord,
     ipAddress?: string,
-  ): Promise<unknown> {
+  ): Promise<Consent> {
     const consent = await this.prisma.consent.create({
       data: {
         patientId: data.patientId,
@@ -113,7 +113,7 @@ export class ConsentComplianceService {
     ipAddress?: string,
     clinicId?: string,
     actorUserId?: string,
-  ): Promise<unknown> {
+  ): Promise<Consent> {
     if (clinicId) {
       const existing = await this.prisma.consent.findFirst({
         where: { id: consentId, clinicId },
