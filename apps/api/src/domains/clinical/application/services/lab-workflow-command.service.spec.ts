@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { BadRequestException } from '@nestjs/common';
 import { LabWorkflowCommandService } from './lab-workflow-command.service';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import { LabTestOrderStatus } from '@workspace/db';
@@ -112,5 +113,95 @@ describe('LabWorkflowCommandService', () => {
       'clinic-1',
       expect.any(Date),
     );
+  });
+
+  it('rejects payment verification on a terminal (completed/cancelled) order', async () => {
+    const completedOrder = new LabOrder(
+      'order-1',
+      'patient-1',
+      'test-1',
+      LabTestOrderStatus.COMPLETED,
+      'clinic-1',
+      undefined,
+      undefined,
+      'lab-results/order-1.pdf',
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      new Date('2026-07-01T09:00:00.000Z'),
+    );
+    orderRepository.findOrderById.mockResolvedValue(completedOrder);
+
+    await expect(
+      service.verifyPayment('order-1', 'clinic-1', {
+        method: 'CASH',
+        verifiedBy: 'staff-1',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(workflowRepository.verifyPayment).not.toHaveBeenCalled();
+  });
+
+  it('records payment but skips release when no result has been uploaded yet', async () => {
+    const orderWithoutResult = new LabOrder(
+      'order-1',
+      'patient-1',
+      'test-1',
+      LabTestOrderStatus.PAYMENT_PENDING,
+      'clinic-1',
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      new Date('2026-07-01T09:00:00.000Z'),
+    );
+    const orderAfterPayment = new LabOrder(
+      'order-1',
+      'patient-1',
+      'test-1',
+      LabTestOrderStatus.RESULT_PENDING,
+      'clinic-1',
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      new Date('2026-07-01T09:00:00.000Z'),
+    );
+    orderRepository.findOrderById
+      .mockImplementationOnce(async () => orderWithoutResult)
+      .mockImplementationOnce(async () => orderAfterPayment);
+
+    await service.verifyPayment('order-1', 'clinic-1', {
+      method: 'CARD',
+      verifiedBy: 'staff-2',
+    });
+
+    expect(workflowRepository.verifyPayment).toHaveBeenCalledWith(
+      'order-1',
+      'clinic-1',
+      { method: 'CARD', verifiedBy: 'staff-2' },
+      expect.any(Date),
+    );
+    // markReleased should not fire — there's no resultUrl yet so canRelease() is false
+    expect(workflowRepository.markReleased).not.toHaveBeenCalled();
   });
 });
