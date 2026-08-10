@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,7 +12,10 @@ import {
   type ReferrerPayoutDetailsInput,
   type ReferrerPayoutDetailsView,
 } from '@workspace/types';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PARTNER_PERSISTENCE_PORT,
+  type PartnerPersistencePort,
+} from '@/domains/subscriptions/application/ports/partner-persistence.port';
 import { EncryptionService } from '@/shared/common/encryption.service';
 import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -29,7 +33,8 @@ export class PartnerPortalService {
   private static readonly SHOWCASE_PDF_TTL_SECONDS = 24 * 60 * 60;
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PARTNER_PERSISTENCE_PORT)
+    private readonly prisma: PartnerPersistencePort,
     private readonly encryption: EncryptionService,
     private readonly storage: StorageProvider,
     private readonly pdf: PartnerShowcasePdfService,

@@ -11,7 +11,10 @@ import {
   WHATSAPP_CLIENT_TOKEN,
   type IWhatsAppClient,
 } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PARTNER_PERSISTENCE_PORT,
+  type PartnerPersistencePort,
+} from '@/domains/subscriptions/application/ports/partner-persistence.port';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   JWT_AUDIENCE_PARTNER,
@@ -42,7 +45,8 @@ export class PartnerAuthService {
   private readonly logger = new Logger(PartnerAuthService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PARTNER_PERSISTENCE_PORT)
+    private readonly prisma: PartnerPersistencePort,
     private readonly jwt: JwtService,
     @Inject(WHATSAPP_CLIENT_TOKEN) private readonly whatsapp: IWhatsAppClient,
     @Inject(CLOCK_PORT) private readonly clock: IClock,

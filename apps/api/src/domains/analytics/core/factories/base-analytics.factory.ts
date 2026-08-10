@@ -1,14 +1,18 @@
 import { Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  ANALYTICS_PERSISTENCE_PORT,
+  type AnalyticsPersistencePort,
+} from '@/domains/analytics/application/ports/analytics-persistence.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 export abstract class BaseAnalyticsFactory {
   protected readonly logger: Logger;
 
   constructor(
-    protected prisma: PrismaService,
+    @Inject(ANALYTICS_PERSISTENCE_PORT)
+    protected prisma: AnalyticsPersistencePort,
     protected configService: AppConfigService,
     @Inject(CACHE_MANAGER) protected cacheManager: Cache,
   ) {

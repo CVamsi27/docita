@@ -85,24 +85,9 @@ const coveredLayerPatterns = [
  * KNOWN_CYCLES in check-circular-deps.mjs. Keep sorted by path.
  */
 const KNOWN_LEGACY_PRISMA_SERVICE_LEAKS = new Set([
-  // Analytics — factories do read + snapshot persistence; migrate behind
-  // analytics.repository.interface.ts.
-  'apps/api/src/domains/analytics/core/factories/base-analytics.factory.ts',
-  'apps/api/src/domains/analytics/core/factories/snapshot-analytics.factory.ts',
-  // Appointments — scheduling rules query conflicts/time-off; migrate
-  // behind appointment-read/queue repository interfaces.
-  'apps/api/src/domains/appointments/core/domain-services/appointment-scheduling-rules.service.ts',
   // Billing — pricing strategy reads discount; migrate behind
   // tier-pricing.repository.ts.
   'apps/api/src/domains/billing/strategies/default-pricing-calculator.strategy.ts',
-  // Subscriptions — partner/referral services persist directly; migrate
-  // behind subscription/referral repository ports.
-  'apps/api/src/domains/subscriptions/core/services/partner-auth.service.ts',
-  'apps/api/src/domains/subscriptions/core/services/partner-portal.service.ts',
-  'apps/api/src/domains/subscriptions/core/services/referral-code-resolver.service.ts',
-  'apps/api/src/domains/subscriptions/core/services/referral.service.ts',
-  'apps/api/src/domains/subscriptions/core/services/referrer-code-backfill.service.ts',
-  'apps/api/src/domains/subscriptions/core/services/referrer-welcome.service.ts',
   // WhatsApp — campaign dispatch cron; migrate behind whatsapp repository.
   'apps/api/src/domains/whatsapp/whatsapp-campaign-dispatch.cron.ts',
   // Legacy top-level modules/ — app config reads clinic settings.

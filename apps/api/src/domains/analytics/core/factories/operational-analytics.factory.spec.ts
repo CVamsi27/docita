@@ -3,6 +3,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { OperationalAnalyticsFactory } from './operational-analytics.factory';
 import { PrismaService } from '@/prisma/prisma.service';
+import { ANALYTICS_PERSISTENCE_PORT } from '@/domains/analytics/application/ports/analytics-persistence.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   ANALYTICS_REPOSITORY_TOKEN,
@@ -167,6 +168,7 @@ describe('OperationalAnalyticsFactory', () => {
           useValue: mockAnalyticsRepository,
         },
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: ANALYTICS_PERSISTENCE_PORT, useExisting: PrismaService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
         {
           provide: AppConfigService,

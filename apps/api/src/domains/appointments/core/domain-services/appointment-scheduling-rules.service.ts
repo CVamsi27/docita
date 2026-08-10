@@ -11,7 +11,10 @@ import {
   fromLocalISOString,
   formatUtcInstantAsClinicPickerIso,
 } from '@workspace/utils';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  APPOINTMENT_PERSISTENCE_PORT,
+  type AppointmentPersistencePort,
+} from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { AppointmentStatus } from '@workspace/db';
 import { findFirstSchedulingConflict } from '@/domains/appointments/core/domain-services/appointment-interval-overlap';
 
@@ -70,7 +73,8 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
   private readonly BUSINESS_HOURS_END = 18;
 
   constructor(
-    private prisma: PrismaService,
+    @Inject(APPOINTMENT_PERSISTENCE_PORT)
+    private prisma: AppointmentPersistencePort,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 

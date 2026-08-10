@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { AppointmentSchedulingRulesService } from './appointment-scheduling-rules.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { APPOINTMENT_PERSISTENCE_PORT } from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { AppointmentStatus } from '@workspace/db';
 import { clockPortTestProvider, createMutableClockMock } from '@/test-utils';
 
@@ -33,6 +34,10 @@ describe('AppointmentSchedulingRulesService', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: APPOINTMENT_PERSISTENCE_PORT,
+          useExisting: PrismaService,
         },
         clockPortTestProvider(createMutableClockMock()),
       ],

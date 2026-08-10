@@ -5,7 +5,11 @@ import {
   type OnApplicationBootstrap,
 } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PARTNER_PERSISTENCE_PORT,
+  type PartnerPersistencePort,
+} from '@/domains/subscriptions/application/ports/partner-persistence.port';
+import { type PrismaDelegatePort } from '@/shared/modules/database/prisma-delegate.port';
 import {
   type WithAdvisoryLock,
   WITH_ADVISORY_LOCK_TOKEN,
@@ -48,7 +52,8 @@ export class ReferrerCodeBackfillService implements OnApplicationBootstrap {
   private static readonly MAX_BATCH = 200;
 
   constructor(
-    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(PARTNER_PERSISTENCE_PORT)
+    private readonly prisma: PartnerPersistencePort,
     /**
      * The advisory-lock helper is injected via the WITH_ADVISORY_LOCK_TOKEN
      * so tests can swap it for an in-process no-op. In production it
@@ -111,9 +116,12 @@ export class ReferrerCodeBackfillService implements OnApplicationBootstrap {
       );
 
       // Try-acquire the advisory lock; if another replica is already
-      // running the backfill, skip and let it finish.
+      // running the backfill, skip and let it finish. The port is a
+      // narrow Pick<PrismaDelegatePort, ...>; widening to the full
+      // delegate type is purely a TS bridge (the runtime is the same
+      // PrismaService instance — `useExisting` in the module wiring).
       const result = await this.withLock(
-        this.prisma,
+        this.prisma as unknown as PrismaDelegatePort,
         ReferrerCodeBackfillService.LOCK_NAME,
         () => this.backfillInBatches(),
         5_000,

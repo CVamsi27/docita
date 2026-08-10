@@ -1,7 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PARTNER_PERSISTENCE_PORT,
+  type PartnerPersistencePort,
+} from '@/domains/subscriptions/application/ports/partner-persistence.port';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   MAX_REFERRAL_CREDITS_PER_YEAR,
@@ -16,7 +19,8 @@ export class ReferralService {
   private readonly logger = new Logger(ReferralService.name);
 
   constructor(
-    private prisma: PrismaService,
+    @Inject(PARTNER_PERSISTENCE_PORT)
+    private prisma: PartnerPersistencePort,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 

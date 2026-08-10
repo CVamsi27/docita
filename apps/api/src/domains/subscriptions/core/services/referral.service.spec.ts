@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { ReferralService } from './referral.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { PARTNER_PERSISTENCE_PORT } from '@/domains/subscriptions/application/ports/partner-persistence.port';
 import { clockPortTestProvider } from '@/test-utils';
 
 interface FakeReferral {
@@ -167,6 +168,10 @@ describe('ReferralService.applyReferralCreditsOnFirstPayment', () => {
         {
           provide: PrismaService,
           useValue: prisma as unknown as PrismaService,
+        },
+        {
+          provide: PARTNER_PERSISTENCE_PORT,
+          useExisting: PrismaService,
         },
         clockPortTestProvider(),
       ],

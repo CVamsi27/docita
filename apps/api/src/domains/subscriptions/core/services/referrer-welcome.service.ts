@@ -1,6 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PARTNER_PERSISTENCE_PORT,
+  type PartnerPersistencePort,
+} from '@/domains/subscriptions/application/ports/partner-persistence.port';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
@@ -32,7 +35,8 @@ export class ReferrerWelcomeService {
   private static readonly PDF_SIGNED_URL_TTL_SECONDS = 24 * 60 * 60;
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PARTNER_PERSISTENCE_PORT)
+    private readonly prisma: PartnerPersistencePort,
     private readonly pdf: PartnerShowcasePdfService,
     private readonly template: PartnerTemplateService,
     private readonly storage: StorageProvider,
