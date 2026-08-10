@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import { AppointmentStatus, InvoiceStatus } from '@workspace/db';
+import { AppointmentStatus, InvoiceStatus, Patient } from '@workspace/db';
 import { AnonymizationFactory } from './factories/anonymization.factory';
-import { DataExportFactory } from './factories/data-export.factory';
+import { DataExportFactory, type ExportResult } from './factories/data-export.factory';
 import { DpdpAuditEmitter } from './dpdp-audit.emitter';
 import type { DataSubjectRequest } from './dpdp-compliance.types';
 
@@ -27,7 +27,7 @@ export class DataSubjectRequestService {
   async handleAccessRequest(
     data: DataSubjectRequest,
     ipAddress?: string,
-  ): Promise<unknown> {
+  ): Promise<ExportResult> {
     const patientData = await this.dataExportFactory.exportPatientData(
       data.patientId,
     );
@@ -54,7 +54,7 @@ export class DataSubjectRequestService {
   async handleCorrectionRequest(
     data: DataSubjectRequest & { corrections: Record<string, unknown> },
     ipAddress?: string,
-  ): Promise<unknown> {
+  ): Promise<Patient> {
     const updatedPatient = await this.prisma.patient.update({
       where: { id: data.patientId },
       data: data.corrections,
@@ -82,7 +82,7 @@ export class DataSubjectRequestService {
   async handleErasureRequest(
     data: DataSubjectRequest,
     ipAddress?: string,
-  ): Promise<unknown> {
+  ): Promise<{ anonymized: true; patient: Patient }> {
     const pendingObligations = await this.checkPendingObligations(
       data.patientId,
     );
@@ -119,7 +119,7 @@ export class DataSubjectRequestService {
   async handlePortabilityRequest(
     data: DataSubjectRequest,
     ipAddress?: string,
-  ): Promise<unknown> {
+  ): Promise<ExportResult> {
     const exportData = await this.dataExportFactory.exportPatientData(
       data.patientId,
     );

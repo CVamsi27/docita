@@ -9,6 +9,7 @@ import {
 } from '@/domains/feedback/core/repositories/feedback.repository.interface';
 import type { FeedbackFilters } from './feedback-helpers';
 import { FeedbackCategory, FeedbackStatus } from '@workspace/db';
+import type { Feedback } from '@workspace/types';
 import { clockPortTestProvider } from '@/test-utils';
 
 describe('FeedbackService', () => {
@@ -16,10 +17,10 @@ describe('FeedbackService', () => {
 
   const mockFeedbackPersistenceMock = {
     feedback: {
-      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      create: jest.fn<(...args: unknown[]) => Promise<Feedback>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<Feedback[]>>(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<Feedback | null>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<Feedback>>(),
       count: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       groupBy: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       aggregate: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -73,7 +74,7 @@ describe('FeedbackService', () => {
           where: { clinicId },
           include: {},
           orderBy: { createdAt: 'desc' },
-        }) as Promise<unknown[]>,
+        }) as Promise<Feedback[]>,
     ),
     findAll: jest.fn(
       (filters: FeedbackFilters) =>
@@ -81,7 +82,7 @@ describe('FeedbackService', () => {
           where: buildWhere(filters),
           include: {},
           orderBy: { createdAt: 'desc' },
-        }) as Promise<unknown[]>,
+        }) as Promise<Feedback[]>,
     ),
     findOneRaw: jest.fn((id) =>
       mockFeedbackPersistenceMock.feedback.findUnique({
@@ -95,7 +96,7 @@ describe('FeedbackService', () => {
           where: { userId },
           include: {},
           orderBy: { createdAt: 'desc' },
-        }) as Promise<unknown[]>,
+        }) as Promise<Feedback[]>,
     ),
     updateStatus: jest.fn((id, data) =>
       mockFeedbackPersistenceMock.feedback.update({
