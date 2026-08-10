@@ -7,6 +7,48 @@ const APP_ORIGIN = new URL(
 ).origin;
 
 test.describe("Clinic Registration Flow", () => {
+  async function installFetchMocks(
+    page: import("@playwright/test").Page,
+    user: unknown,
+    token: string,
+  ) {
+    await page.context().addInitScript(
+      ({ user, token }) => {
+        const originalFetch = window.fetch.bind(window);
+
+        window.fetch = async (input, init) => {
+          const url =
+            typeof input === "string"
+              ? input
+              : input instanceof URL
+                ? input.toString()
+                : input.url;
+
+          if (url.includes("/auth/validate")) {
+            return new Response(JSON.stringify({ user }), {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+          }
+
+          if (url.includes("/auth/refresh")) {
+            return new Response(JSON.stringify({ access_token: token }), {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+          }
+
+          return originalFetch(input, init);
+        };
+      },
+      { user, token },
+    );
+  }
+
   async function registerAndOpenOnboarding(
     page: import("@playwright/test").Page,
     request: import("@playwright/test").APIRequestContext,
@@ -60,41 +102,7 @@ test.describe("Clinic Registration Flow", () => {
       },
       { user: registerData.user, token: authToken },
     );
-    await page.context().addInitScript(
-      ({ user, token }) => {
-        const originalFetch = window.fetch.bind(window);
-
-        window.fetch = async (input, init) => {
-          const url =
-            typeof input === "string"
-              ? input
-              : input instanceof URL
-                ? input.toString()
-                : input.url;
-
-          if (url.includes("/auth/validate")) {
-            return new Response(JSON.stringify({ user }), {
-              status: 200,
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
-          }
-
-          if (url.includes("/auth/refresh")) {
-            return new Response(JSON.stringify({ access_token: token }), {
-              status: 200,
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
-          }
-
-          return originalFetch(input, init);
-        };
-      },
-      { user: registerData.user, token: authToken },
-    );
+    await installFetchMocks(page, registerData.user, authToken);
     await page.context().route("**/auth/validate**", async (route) => {
       await route.fulfill({
         status: 200,
@@ -209,6 +217,12 @@ test.describe("Clinic Registration Flow", () => {
             billingCycle: "MONTHLY",
             currency: "INR",
           },
+          // STARTER is trial-eligible; skipPayment is the explicit marker the
+          // API requires instead of a Razorpay test order (same pattern as
+          // setupTestUser's unpaid-trial path).
+          paymentDetails: {
+            skipPayment: true,
+          },
           slaAgreement: {
             acceptedSLA: true,
             slaVersion: "1.0",
@@ -228,6 +242,49 @@ test.describe("Clinic Registration Flow", () => {
       },
     );
     expect(completeRes.ok()).toBeTruthy();
+
+    // The register-time user object is stale (no clinicId), and the app's
+    // /auth/validate mock is fed from it — so after onboarding completes the
+    // app would keep routing to /choose-path. The completion response ships a
+    // freshly-signed token with the clinicId; fetch the post-onboarding user
+    // through the real validate endpoint and re-point the mocks at it.
+    const completion = (await completeRes.json()) as {
+      access_token?: string;
+      accessToken?: string;
+    };
+    const freshToken = completion.access_token ?? completion.accessToken ?? authToken;
+    const freshValidateRes = await request.get(`${API_URL}/auth/validate`, {
+      headers: { Authorization: `Bearer ${freshToken}` },
+    });
+    const freshUser = freshValidateRes.ok()
+      ? ((await freshValidateRes.json()) as { user?: unknown }).user
+      : registerData.user;
+
+    await page.context().addCookies([
+      {
+        name: "access_token",
+        value: freshToken,
+        url: `${APP_ORIGIN}/`,
+      },
+    ]);
+    await page.context().addInitScript(
+      ({ user, token }) => {
+        localStorage.setItem("docita_user", JSON.stringify(user));
+        localStorage.setItem("docita_token", token);
+      },
+      { user: freshUser, token: freshToken },
+    );
+    // The in-page fetch mock wins over context.route handlers, so it must
+    // also be re-pointed at the fresh user/token or the app keeps seeing the
+    // stale register-time user (no clinicId) and routes to /choose-path.
+    await installFetchMocks(page, freshUser, freshToken);
+    await page.context().route("**/auth/validate**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ user: freshUser }),
+      });
+    });
 
     await page.goto("/dashboard");
     await page.waitForURL(/\/today/, { timeout: 30000 });
