@@ -6,6 +6,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { REQUIRE_POLICY_KEY } from '@/shared/modules/auth/decorators/require-policy.decorator';
 import { EMERGENCY_ACCESS_KEY } from '@/shared/modules/auth/decorators/emergency-access.decorator';
 import { AuthorizationService } from '@/shared/modules/authorization/authorization.service';
+import { getCurrentTenant } from '@/shared/common/middleware/tenant.middleware';
 import { PolicyGuard } from '@/shared/modules/auth/guards/policy.guard';
 import { PolicyResourceResolverRegistry } from '@/shared/modules/authorization/resolvers/policy-resource-resolver';
 import type { PolicyResourceResolver } from '@/shared/modules/authorization/resolvers/policy-resource-resolver.interface';
@@ -160,6 +161,59 @@ describe('PolicyGuard', () => {
 
     await expect(guard.canActivate(context)).rejects.toBeInstanceOf(
       ForbiddenException,
+    );
+  });
+
+  it('resolves the policy resource inside a bypassed tenant context (pins the guard-phase tenant fix)', async () => {
+    // Guards run BEFORE the TenantContextInterceptor, so without the bypass
+    // the tenant Prisma extension would throw "Security Violation" (500) on
+    // the resolver's deliberate cross-clinic reads. Pin the escape hatch:
+    // resolver execution must see tenant enforcement bypassed. Reverting to
+    // a bare `resolver.resolve(context)` (or dropping `bypassed: true`)
+    // makes this assertion fail — the masked bug class returning.
+    const reflector = new Reflector();
+    const authorization = {
+      evaluateAbac: jest.fn(async () => ({ allowed: true })),
+    } as unknown as AuthorizationService;
+
+    let resolverTenant: ReturnType<typeof getCurrentTenant>;
+    const attributes: ResourceAttributes = {
+      type: 'patient',
+      clinicId: 'clinic-a',
+      ownerId: 'u1',
+      assignedDoctorIds: [],
+      classification: 'phi',
+      requiresAssignment: false,
+    };
+    const resolver: PolicyResourceResolver = {
+      resource: 'patient',
+      resolve: jest.fn(async () => {
+        resolverTenant = getCurrentTenant();
+        return attributes;
+      }),
+    };
+    const registry = new PolicyResourceResolverRegistry(
+      resolver,
+      makeResolver('appointment'),
+      makeResolver('prescription'),
+      makeResolver('invoice'),
+      makeResolver('lab-order'),
+      makeResolver('audit-log'),
+    );
+    const guard = new PolicyGuard(reflector, authorization, registry);
+
+    const meta = { requirePolicy: { resource: 'patient', action: 'read' } };
+    const result = await guard.canActivate(
+      makeContext(meta, { id: 'u1', role: Role.DOCTOR, clinicId: 'clinic-a' }),
+    );
+
+    expect(result).toBe(true);
+    expect(resolverTenant).toEqual(
+      expect.objectContaining({
+        clinicId: 'clinic-a',
+        userId: 'u1',
+        bypassed: true,
+      }),
     );
   });
 
