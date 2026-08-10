@@ -8,7 +8,7 @@ import {
 
 const routeDecorator = /^\s*@(Get|Post|Put|Patch|Delete|All)\b/;
 const authDecorator =
-  /^\s*@(Public|Roles|RequireFeature|RequireFeatureFlag|UseGuards|SkipSubscriptionCheck)\b/;
+  /^\s*@(Public|Roles|RequireFeature|UseGuards|SkipSubscriptionCheck)\b/;
 const classPosturePattern = /@(Roles|Public|UseGuards)\b|@\w+Access\s*\(/;
 const classLine = /^\s*export\s+class\s+\w+Controller\b/;
 

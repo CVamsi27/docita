@@ -2148,9 +2148,9 @@ Direct `prisma.<model>.findX` calls outside repositories are blocked by `check-p
 [`apps/api/src/shared/modules/auth/auth/api-key.service.ts`](../../apps/api/src/shared/modules/auth/auth/api-key.service.ts) implements per-clinic API keys for integration partners (lab vendors, PMS systems, FHIR consumers).
 
 - Keys are stored as **hashed only** — the plaintext is shown once at creation and never recoverable.
-- Each key carries constrained scopes, an optional IP allowlist, and an optional expiry. `ApiKeyGuard` validates the `Authorization: ApiKey ...` header and source IP, then attaches `apiKeyClinicId` / `apiKeyScopes` to the request.
 - Admin-authenticated clinic routes create, list, rotate, and revoke keys. Plaintext is returned only at creation or rotation; validation updates `lastUsedAt`. Rotation supports a bounded overlap window so partner credentials can roll without an all-at-once cutover.
-- `RequireApiKeyScopes` enables route-level scope enforcement, including domain wildcards. A clearly wired first partner surface is still pending; add that deliberately before describing broad partner API availability (§65.2).
+
+> **Note:** route-level `ApiKey` header enforcement (`ApiKeyGuard` / `RequireApiKeyScopes`) was removed as unused dead code (2026-08). When a real partner surface lands, reintroduce a guard wired to `ApiKeyService.validateApiKey` + scoped enforcement deliberately.
 
 ---
 

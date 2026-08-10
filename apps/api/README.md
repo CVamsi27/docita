@@ -17,7 +17,7 @@ Every non-public HTTP route passes through the following guards in order:
 3. **`TenantGuard`** — resolves and attaches the clinic/tenant context; rejects cross-tenant access
 4. **`SubscriptionStatusGuard`** — blocks requests when the clinic's subscription is lapsed
 
-Additional optional guards: `FeatureFlagGuard` (tier/feature gating), `EmailVerifiedGuard`, `ConsentGuard`, `IpRateLimitGuard`, `UserRateLimitGuard`, `TenantRateLimitGuard`. All guards live in `apps/api/src/shared/modules/auth/`.
+Additional optional guards: `EmailVerifiedGuard`, `ConsentGuard`, `IpRateLimitGuard`, `UserRateLimitGuard`, `TenantRateLimitGuard`. All guards live in `apps/api/src/shared/modules/auth/`.
 
 ## How to add a new endpoint (see AGENTS.md §9.1)
 

@@ -21,7 +21,6 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
 import { PasswordExpiredGuard } from '@/shared/modules/auth/guards/password-expired.guard';
-import { ApiKeyGuard } from '@/shared/modules/auth/guards/api-key.guard';
 import { UsersModule } from '@/domains/users/users.module';
 import { ClinicsModule } from '@/domains/clinics/clinics.module';
 import { PassportModule } from '@nestjs/passport';
@@ -89,7 +88,6 @@ function parseJwtDuration(value: string): JwtDuration | null {
     ClinicTypeGuard,
     FacilityTypeGuard,
     PasswordExpiredGuard,
-    ApiKeyGuard,
     ConsentGuard,
     PatientDoctorGuard,
     EmailVerifiedGuard,
@@ -120,7 +118,6 @@ function parseJwtDuration(value: string): JwtDuration | null {
     FacilityTypeGuard,
     AuthGuardsModule,
     PasswordExpiredGuard,
-    ApiKeyGuard,
     ConsentGuard,
     PatientDoctorGuard,
     EmailVerifiedGuard,
