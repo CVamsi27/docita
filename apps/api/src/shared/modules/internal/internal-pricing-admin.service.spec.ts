@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InternalPricingAdminService } from './internal-pricing-admin.service';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 
 describe('InternalPricingAdminService.updatePricingTier', () => {
   let service: InternalPricingAdminService;
@@ -32,9 +33,10 @@ describe('InternalPricingAdminService.updatePricingTier', () => {
       monthlyBasePriceCents: 9900,
     });
 
-    expect(emitSpy).toHaveBeenCalledWith('tierPricing.updated', {
-      tierId: 'tier-1',
-    });
+    expect(emitSpy).toHaveBeenCalledWith(
+      ApplicationEvents.TIER_PRICING_UPDATED,
+      { tierId: 'tier-1' },
+    );
   });
 
   it('strips unknown keys before persisting', async () => {

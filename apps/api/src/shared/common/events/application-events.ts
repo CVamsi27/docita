@@ -33,4 +33,10 @@ export enum ApplicationEvents {
   // ReferrerCodeBackfillService, which is the same service that fires
   // automatically on app/worker boot.
   REFERRER_BACKFILL_REQUESTED = 'referrer.backfill.requested',
+  // Emitted by InternalPricingAdminService.updatePricingTier after a
+  // tier-pricing row is written. Listened to by PricingService to
+  // invalidate the in-process tier cache so an INTERNAL operator
+  // editing tier pricing sees the change on the next request rather
+  // than waiting for the 5-min TTL.
+  TIER_PRICING_UPDATED = 'tierPricing.updated',
 }

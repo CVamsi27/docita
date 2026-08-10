@@ -6,6 +6,7 @@ import { Prisma } from '@workspace/db';
 import { ClinicPricingOffer } from '@/shared/modules/services/feature-flag.service';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { isRecord } from '@workspace/utils';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 
 const PRICING_OFFER_FLAG = 'clinic_pricing_offer';
 
@@ -79,7 +80,7 @@ export class InternalPricingAdminService {
     });
     // Bust the in-process tier cache in PricingService so the change is
     // visible to the next request rather than waiting for the 5-min TTL.
-    this.events.emit('tierPricing.updated', { tierId });
+    this.events.emit(ApplicationEvents.TIER_PRICING_UPDATED, { tierId });
     return updated;
   }
 

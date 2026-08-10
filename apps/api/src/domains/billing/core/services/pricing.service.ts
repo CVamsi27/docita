@@ -5,6 +5,7 @@ import {
   ITierPricingRepository,
 } from '@/domains/billing/core/repositories/tier-pricing.repository';
 import { TierPricing } from '@workspace/db';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   TIER_PRICING,
   TIER_LIMITS,
@@ -50,7 +51,7 @@ export class PricingService {
    * on the next request without waiting for the TTL. Emitted by
    * tierPricingRepository.create/update and the INTERNAL seed script.
    */
-  @OnEvent('tierPricing.updated')
+  @OnEvent(ApplicationEvents.TIER_PRICING_UPDATED)
   invalidateTierCache(): void {
     this.cachedTiers = null;
   }
