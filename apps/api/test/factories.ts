@@ -39,8 +39,18 @@ function normalizeClinicTier(tier: unknown): ClinicTier {
     case ClinicTier.HOSPITAL:
     case ClinicTier.ENTERPRISE:
       return tier;
-    default:
+    case undefined:
+    case null:
+      // Explicit default: a missing tier means STARTER.
       return ClinicTier.STARTER;
+    default:
+      // Fail loudly on non-canonical tier strings instead of silently
+      // degrading to STARTER — a typo'd tier used to paper over four e2e
+      // suite failures and hid gating bugs in tests.
+      throw new Error(
+        `Invalid ClinicTier "${String(tier)}" passed to factories.clinic. ` +
+          `Expected one of: ${Object.values(ClinicTier).join(', ')}.`,
+      );
   }
 }
 
@@ -184,45 +194,6 @@ export const factories = {
         appointmentId,
         patientId,
         doctorId,
-        ...overrides,
-      },
-    });
-  },
-
-  labTestOrder: async (patientId: string, clinicId: string, overrides = {}) => {
-    const labTest = await prisma.labTest.create({
-      data: {
-        clinicId,
-        name: `Lab Test ${Date.now()}`,
-        category: 'BLOOD',
-      },
-    });
-    return prisma.labTestOrder.create({
-      data: {
-        clinicId,
-        patientId,
-        labTestId: labTest.id,
-        orderedBy: 'system',
-        ...overrides,
-      },
-    });
-  },
-
-  patientDoctor: async (
-    patientId: string,
-    doctorId: string,
-    clinicId: string,
-    overrides = {},
-  ) => {
-    const now = new Date();
-    return prisma.patientDoctor.create({
-      data: {
-        patientId,
-        doctorId,
-        clinicId,
-        isActive: true,
-        firstSeenAt: now,
-        lastSeenAt: now,
         ...overrides,
       },
     });

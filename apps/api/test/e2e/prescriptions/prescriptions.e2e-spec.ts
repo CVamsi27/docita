@@ -46,7 +46,7 @@ describe('Prescriptions (e2e)', () => {
   beforeEach(async () => {
     await resetDatabase();
 
-    const clinic = await factories.clinic({ tier: 'PRO' });
+    const clinic = await factories.clinic({ tier: 'PROFESSIONAL' });
     clinicId = clinic.id;
 
     const { user, plainPassword } = await factories.user({
