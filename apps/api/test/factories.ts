@@ -213,4 +213,34 @@ export const factories = {
       },
     });
   },
+
+  patientDoctor: async (
+    patientId: string,
+    doctorId: string,
+    clinicId: string,
+  ) => {
+    return prisma.patientDoctor.create({
+      data: { patientId, doctorId, clinicId },
+    });
+  },
+
+  labTestOrder: async (patientId: string, clinicId: string) => {
+    const labTest = await prisma.labTest.create({
+      data: {
+        clinicId,
+        name: 'Complete Blood Count',
+        category: 'HEMATOLOGY',
+      },
+    });
+    return prisma.labTestOrder.create({
+      data: {
+        clinicId,
+        patientId,
+        labTestId: labTest.id,
+        // orderedBy is a free-form string in the schema (no relation);
+        // these ABAC specs only exercise clinic-scoped read access.
+        orderedBy: 'factory-default-doctor',
+      },
+    });
+  },
 };
