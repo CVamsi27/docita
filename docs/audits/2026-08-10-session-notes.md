@@ -1,6 +1,6 @@
 # 2026-08-10 Session Notes
 
-> **Status:** Read-only chronicle of the #211 conflict-resolution and cleanup-branch work. The full cleanup branch lives at `fix/cleanup-deep-analysis-2026-08-10` (4 commits, all gates green, not yet pushed). The PR #211 lives at `fix/app-deployment-failure` (200 commits, mergeable: true, mergeable_state: clean, rebaseable: false).
+> **Status:** Read-only chronicle of the #211 conflict-resolution and cleanup-branch work. The full cleanup branch lives at `fix/cleanup-deep-analysis-2026-08-10` (4 commits, all gates green, not yet pushed). The PR #211 lives at `fix/app-deployment-failure` (200+ commits, mergeable: true, mergeable_state: clean, rebaseable: false). Last refreshed 2026-08-11 02:25 IST.
 
 ## TL;DR
 
@@ -199,5 +199,65 @@ The cron for #211 CI monitoring has been **deleted** (it had become stale — th
 - GitHub state: `mergeable: True, mergeable_state: clean, rebaseable: False`
 - CI: in progress on the latest head (run 31381356870); API Unit Checks failing for the pre-existing `@workspace/utils` issue described in §6.3.
 - Decision: **do not auto-merge** — the user has consistently said "do not merge the PR" and this is the founder's call.
+
+## 13. Late-session batch (2026-08-11 02:25 IST, branch tip `8733f00ef`)
+
+The user instruction "implement all in this branch only fix/app-deployment-failure" was received. This section captures the work landed since §12.
+
+### 13.1 Health-surface consolidation + PDF queue hardening (commit `8733f00ef`)
+
+Audit §9.1 flagged that `AppController` and `monitoring/HealthController` were duplicate stubs returning `{ status: 'ok' }` without touching the DB. Both are removed; the canonical `HealthCheckController` (which runs `SELECT 1`) is now the sole `/health` surface.
+
+- `apps/api/src/app.controller.ts` — deleted (was a fake `/health` stub).
+- `apps/api/src/shared/modules/monitoring/monitoring/health.controller.ts` — deleted (also a fake `/health` stub).
+- `apps/api/src/shared/modules/monitoring/monitoring/index.ts` — drop the `health.controller` barrel export.
+- `apps/api/src/shared/modules/monitoring/monitoring/monitoring.module.ts` — drop the `HealthController` from `controllers: [...]`.
+- `apps/api/src/app.module.ts` — drop `AppController` from `controllers: [...]`.
+- `apps/api/src/shared/common/controllers/health-check.controller.ts` — `ping()` now returns `{ status, timestamp, version }` (version was on the old `AppController` only; the canonical surface now exposes it).
+- `apps/api/src/shared/common/controllers/health-check.controller.spec.ts` — cover the version field; tighten `jest.fn<string, []>(...)` to `jest.fn(() => ...)` (the old form was a 2-type-arg `jest.fn` overload that doesn't exist in the current jest typings).
+- `apps/api/test/e2e/smoke/app.e2e-spec.ts` — describe renamed to `HealthCheckController (e2e)`; pin `/health`, `/health/live`, `/health/db` response shapes so a future refactor cannot silently break load-balancer readiness.
+- `apps/api/src/shared/modules/queue/in-memory-queue.service.spec.ts` (new) — 5 cases: enqueue/process happy path, exponential backoff (3 attempts), maxAttempts honored (1 = no retry), failure-reason recording. Tighten the same `jest.fn<T, []>` typing issue in 4 spots.
+- `apps/api/src/shared/modules/queue/pdf-job.service.ts` — pass `attempts: 3` + `{ type: 'exponential', delay: 2_000 }` + `idempotencyKey: ${jobName}:${documentId}` to `queue.enqueue(...)` for `GENERATE_PRESCRIPTION_PDF` / `GENERATE_INVOICE_PDF`. PDF rendering is user-visible (clinician opens the file), so transient failures now retry; without this, a single network blip would force the doctor to click "regenerate".
+
+Verification:
+
+- `pnpm --filter @docita/api run check-types` — clean.
+- `pnpm --filter @docita/api exec jest --testPathPatterns="(health-check|in-memory-queue)"` — 2 suites, 13 cases, all pass.
+- Pre-push turbo check (11 tasks, 10 cached) — green in 51 s.
+
+### 13.2 Partner-portal e2e verification
+
+The `apps/api/test/e2e/partner-portal/partner-portal.e2e-spec.ts` (318 lines, 13 cases) was added by the parallel cleanup agent. Verified against the local `docita-e2e-pg` Postgres on `localhost:5434`:
+
+- `DATABASE_URL=postgresql://docita:password@localhost:5434/docita_test?schema=public`
+- `pnpm --filter @docita/api exec jest --config ./test/jest-e2e.json --testPathPatterns="partner-portal"`
+- **13/13 pass** in 77 s. Coverage: OTP request (success, non-enumerable unknown phone, malformed 400), OTP verify (success, wrong OTP 401, no-challenge 401, malformed 400), `/partner/me` (success, missing bearer 401, garbage bearer 401), `/partner/auth/refresh` (rotate, access-as-refresh rejected, missing 401). The mock captures OTPs by parsing `bodyComponent.text` from the WhatsApp client `SendMessageRequest` so the full challenge-row + bcrypt-hash + token-rotation path is exercised end-to-end.
+
+### 13.3 State after this batch
+
+- Branch tip: `8733f00ef`
+- Commits since §12: +8 (the cleanup branch merge `5bd3084d3`, the polish tip `1536a4010`, plus the late batch `8733f00ef`)
+- Pre-merge gate: deferred to the end of the PrismaService migration sweep (next section).
+- Decision unchanged: **do not auto-merge**.
+
+### 13.4 Next: PrismaService migration sweep (in progress)
+
+The 9 services in `apps/api/src/domains/*/core/services` that still inject `PrismaService` directly:
+
+- `analytics/core/factories/base-analytics.factory.ts`
+- `analytics/core/factories/snapshot-analytics.factory.ts`
+- `appointments/core/domain-services/appointment-scheduling-rules.service.ts`
+- `subscriptions/core/services/partner-auth.service.ts`
+- `subscriptions/core/services/partner-portal.service.ts`
+- `subscriptions/core/services/referral-code-resolver.service.ts`
+- `subscriptions/core/services/referral.service.ts`
+- `subscriptions/core/services/referrer-code-backfill.service.ts`
+- `subscriptions/core/services/referrer-welcome.service.ts`
+
+For each: introduce an `I*Repository` port, add a Prisma implementation, wire the module provider, add a unit spec, and remove the entry from `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` so `check:prisma-boundary` count trends down (currently 28; the parallel agent added 2). The list is in §3 of [`2026-08-10-deep-analysis.md`](2026-08-10-deep-analysis.md) and the gate is at `scripts/checks/check-prisma-boundary.js`.
+
+### 13.5 42 repository specs (next)
+
+Mechanical sweep: every `apps/api/src/domains/*/infrastructure/repositories/prisma-*.repository.ts` without a sibling `.spec.ts` gets one. Each spec uses an in-memory mock (no DB) and asserts the Prisma→domain mapping shape. Audit §4.2 listed the open repos. The total is bounded by `find apps/api/src -path '*/infrastructure/repositories/*' -name '*.ts' ! -name '*.spec.ts' ! -name '*.d.ts' | wc -l`.
 
 End of session notes.
