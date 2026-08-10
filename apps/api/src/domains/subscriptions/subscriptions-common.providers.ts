@@ -3,6 +3,7 @@ import {
   ProratingService,
   SubscriptionValidationService,
   ReferralService,
+  ReferralFirstPaymentCreditService,
 } from './core/services';
 import {
   CreateSubscriptionUseCase,
@@ -70,6 +71,7 @@ export const SUBSCRIPTIONS_COMMON_PROVIDERS = [
   ProratingService,
   SubscriptionValidationService,
   ReferralService,
+  ReferralFirstPaymentCreditService,
   ReferralPayoutService,
   ReferralAccrualService,
   ReferralCodeResolverService,
