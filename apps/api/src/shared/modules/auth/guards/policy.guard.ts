@@ -10,6 +10,7 @@ import { Role } from '@workspace/db';
 import type { SubjectAttributes } from '@workspace/types';
 import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import type { RequestWithUser } from '@/shared/common/types/common.types';
+import { tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 import { AuthorizationService } from '@/shared/modules/authorization/authorization.service';
 import { PolicyResourceResolverRegistry } from '@/shared/modules/authorization/resolvers/policy-resource-resolver';
 import {
@@ -96,7 +97,19 @@ export class PolicyGuard implements CanActivate {
       throw forbiddenProblem('INSUFFICIENT_PERMISSIONS', 'Access denied.');
     }
 
-    const resource = await resolver.resolve(context);
+    // Guards run BEFORE the TenantContextInterceptor, so the tenant
+    // storage is empty here and the tenant Prisma extension would fail
+    // closed on the resolver's reads (500 Security Violation). The
+    // resolver is policy input, not data access: it reads a row by id
+    // across clinics so the policy stage can map a cross-tenant hit to
+    // 404 (no existence disclosure). Run it in a bypassed tenant context
+    // — the same escape the emergency-access interceptor and
+    // PrismaService.runUnrestricted use — and let the policy below
+    // enforce the tenant boundary.
+    const resource = await tenantStorage.run(
+      { clinicId: user.clinicId ?? undefined, userId: user.id, bypassed: true },
+      () => resolver.resolve(context),
+    );
 
     const subject: SubjectAttributes = {
       userId: user.id,
