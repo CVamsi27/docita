@@ -159,7 +159,10 @@ test.describe("Clinic Registration Flow", () => {
     expect(signatureUploadSecret).toBeDefined();
 
     const pngBuffer = Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=",
+      // Valid 2x2 PNG: the previous fixture decoded but was corrupt, and the
+    // API's sharp pipeline rejected it with libpng read error (400
+    // "Invalid file format or upload failed").
+    "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEUlEQVQImWPgEpH7D8IMMAYAJowE7bwlVOYAAAAASUVORK5CYII=",
       "base64",
     );
     const uploadSignatureRes = await request.post(
