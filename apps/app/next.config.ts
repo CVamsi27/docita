@@ -1,7 +1,10 @@
 import { createRequire } from "module";
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
 import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 const require = createRequire(import.meta.url);
 const nextCloudflareEmptyStub = require.resolve(
   "./scripts/deploy/cloudflare-stubs/empty-module.cjs",
@@ -184,7 +187,15 @@ const nextConfig: NextConfig = {
 
 };
 
-let config: NextConfig = withBundleAnalyzer(nextConfig);
+// next-intl v4 requires its plugin to register the request config for the
+// standard (non-Cloudflare) build path — without it, every server render
+// throws "Couldn't find next-intl config file". It must wrap the Sentry
+// plugin (Sentry's webpack pass otherwise swallows the next-intl plugin);
+// Sentry is skipped entirely on Cloudflare builds. The webpack
+// NormalModuleReplacementPlugin below still swaps `i18n/request.ts` for the
+// Cloudflare-optimized variant during DOCITA_CLOUDFLARE=1 builds, so the
+// production worker path is unchanged.
+let config: NextConfig = withNextIntl(withBundleAnalyzer(nextConfig));
 
 config = process.env.NEXT_PUBLIC_SENTRY_DSN && !isCloudflareBuild
   ? withSentryConfig(config, {
