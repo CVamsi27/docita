@@ -1,7 +1,6 @@
 import type { ConsentStatus, ConsentType } from '@workspace/db';
 
 export enum DataSubjectRight {
-  ACCESS = 'ACCESS',
   PORTABILITY = 'PORTABILITY',
   ERASURE = 'ERASURE',
 }

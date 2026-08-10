@@ -195,7 +195,10 @@ function OptionFieldset<V extends string>({
               key={opt.id}
               type="button"
               onClick={() => onChange(opt.id)}
-              className={cn("r2-plan-picker-option", active && "is-active")}
+              className={cn(
+                "r2-plan-picker-option focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                active && "is-active",
+              )}
               aria-pressed={active}
             >
               <Icon className="h-4 w-4" aria-hidden />

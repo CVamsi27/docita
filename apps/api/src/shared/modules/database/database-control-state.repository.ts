@@ -11,9 +11,9 @@ export type DatabaseControlActionType =
   | 'DELETE'
   | 'RESTORE';
 
-export type DatabaseControlActionStatus = 'IN_PROGRESS' | 'SUCCESS' | 'FAILED';
+type DatabaseControlActionStatus = 'IN_PROGRESS' | 'SUCCESS' | 'FAILED';
 
-export interface NewDatabaseControlAction {
+interface NewDatabaseControlAction {
   action: DatabaseControlActionType;
   reason: string;
   actorUserId: string;
@@ -21,7 +21,7 @@ export interface NewDatabaseControlAction {
   snapshotId?: string;
 }
 
-export interface CompletedDatabaseControlAction {
+interface CompletedDatabaseControlAction {
   id: string;
   status: DatabaseControlActionStatus;
   awsRequestId?: string;

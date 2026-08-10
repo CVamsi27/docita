@@ -8,7 +8,7 @@ import { type PublicBookingPersistencePort } from '@/domains/public-booking/appl
 import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
 import { isRecord, normalizePhoneE164 } from '@workspace/utils';
 
-export type ResolvedPublicBookingClinic = PublicBookingClinicResponse;
+type ResolvedPublicBookingClinic = PublicBookingClinicResponse;
 
 // Re-exported for backwards compatibility with public-booking call sites that
 // already import `normalizePhone` from this module. The implementation lives

@@ -29,7 +29,6 @@ import {
   buildUserActionLog,
 } from './domain-audit-action-builders';
 
-export type { AuditLogData, AuditLogFilter } from './audit.service.types';
 import type { AuditLogData, AuditLogFilter } from './audit.service.types';
 
 @Injectable()

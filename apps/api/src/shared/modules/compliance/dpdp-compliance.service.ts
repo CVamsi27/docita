@@ -9,12 +9,7 @@ import type {
   DpdpNoticeConsentInput,
 } from './dpdp-compliance.types';
 
-export {
-  DataSubjectRight,
-  type ConsentRecord,
-  type DataSubjectRequest,
-  type DpdpNoticeConsentInput,
-} from './dpdp-compliance.types';
+export { DataSubjectRight } from './dpdp-compliance.types';
 
 /**
  * Facade for DPDP compliance operations. Delegates to consent and data-subject services.

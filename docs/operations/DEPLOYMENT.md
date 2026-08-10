@@ -1,5 +1,10 @@
 # Deployment Strategy
 
+> **Vite SPA apps (`apps/app`, `apps/internal`)**: see
+> [`CLOUDFLARE_VITE_DEPLOYMENT.md`](./CLOUDFLARE_VITE_DEPLOYMENT.md) for the
+> focused Cloudflare strategy (topology, caching, proxy contract, CI flow,
+> rollback, failure modes).
+
 ## Current Production Stack
 
 - Frontend

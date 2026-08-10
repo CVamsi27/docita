@@ -1720,7 +1720,7 @@ canvas {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.625rem 0.875rem 0.875rem;
+  padding: 0.375rem 0.875rem 0.625rem;
   border-top: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
 }
 

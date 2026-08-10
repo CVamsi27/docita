@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { getApiBaseUrl, apiPath, getAuthHeaders, handleResponse } from "./api-client";
 import { ApiError } from "@/lib/errors";
@@ -14,6 +14,18 @@ vi.mock("@/lib/auth/session", () => ({
 import { appSession } from "@/lib/auth/session";
 
 const mockedSession = vi.mocked(appSession);
+
+// The resolver reads process.env.VITE_API_URL. A developer-local .env may set
+// an absolute value (e.g. http://localhost:3001) that would bypass the
+// same-origin proxy logic this suite pins, so stub the default relative URL
+// explicitly and restore afterward.
+beforeEach(() => {
+  vi.stubEnv("VITE_API_URL", "/api/v1");
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 // In jsdom, window.location.origin = "http://localhost:3000" and the API
 // URL resolver prepends the origin to relative paths via resolveApiUrl().

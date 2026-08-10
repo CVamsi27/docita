@@ -8,7 +8,7 @@ import { type UpdateAppointmentRequest } from '@workspace/types';
  * wants the same observations/notes → metric mapping.
  */
 
-export type AppointmentObservationMetric = {
+type AppointmentObservationMetric = {
   definitionKey: string;
   definitionLabel: string;
   value: string;

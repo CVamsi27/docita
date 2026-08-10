@@ -9,7 +9,7 @@
 
 The Next.js 16 + OpenNext Cloudflare Worker bundle for `apps/app` was ~3.5 MB gzip, over the 3 MB Workers Free plan limit and growing. Every feature port increased bundle size with framework overhead (Next.js runtime, RSC, OpenNext adapter, `@sentry/nextjs`) rather than app code. Both frontend apps are login-gated (clinician app, internal admin portal) with no public SEO surface, so SSR/SSG provides no product value.
 
-Work started as `apps/app-vite` / `apps/internal-vite` (Vite 6 + React Router v7 SPA) alongside the Next.js apps; infra (turbo tasks, CI, deploy workflows, ~30 repo checks) was already repointed at the Vite apps. This ADR records the decision and the cutover contract. Progress and phase plan: [`PORTING_PLAN_APP_VITE.md`](../../PORTING_PLAN_APP_VITE.md). Supersedes [0002](./0002-opennext-on-cloudflare.md).
+Work started as `apps/app-vite` / `apps/internal-vite` (Vite 6 + React Router v7 SPA) alongside the Next.js apps; infra (turbo tasks, CI, deploy workflows, ~30 repo checks) was already repointed at the Vite apps. This ADR records the decision and the cutover contract. (The working phase plan `PORTING_PLAN_APP_VITE.md` lived on the port branch and was not carried into the tree; the cutover completed 2026-08-10 — the Vite apps now own `apps/app` / `apps/internal`.) Supersedes [0002](./0002-opennext-on-cloudflare.md).
 
 ## Decision
 
@@ -32,6 +32,5 @@ Replace `apps/app` and `apps/internal` (Next.js 16 App Router, OpenNext on Cloud
 
 ## References
 
-- Files: `apps/app-vite/wrangler.toml`, `apps/app-vite/api/index.ts`, `apps/app-vite/vite.config.ts`, `apps/internal-vite/wrangler.toml`
-- Docs: [`PORTING_PLAN_APP_VITE.md`](../../PORTING_PLAN_APP_VITE.md)
+- Files: `apps/app/wrangler.toml`, `apps/app/api/index.ts`, `apps/app/vite.config.ts`, `apps/internal/wrangler.toml`
 - Related ADRs: [0002](./0002-opennext-on-cloudflare.md) (superseded), [0009](./0009-vercel-retired.md)

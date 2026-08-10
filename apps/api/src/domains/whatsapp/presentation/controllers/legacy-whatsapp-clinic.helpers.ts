@@ -1,4 +1,3 @@
-export { requireClinicId } from './require-clinic-id';
 import { BadRequestException } from '@nestjs/common';
 
 type ClinicAuthRequest = {

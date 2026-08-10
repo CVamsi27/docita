@@ -51,14 +51,14 @@ export async function logPatientPortalPhiRead(
   );
 }
 
-export type ClinicPhiListReadAction =
+type ClinicPhiListReadAction =
   | 'VIEW_PATIENT_LIST'
   | 'VIEW_APPOINTMENT_LIST'
   | 'VIEW_PRESCRIPTION_LIST'
   | 'VIEW_LAB_ORDER_LIST'
   | 'VIEW_LAB_QUEUE';
 
-export type ClinicPhiListReadResourceType =
+type ClinicPhiListReadResourceType =
   | 'Patient'
   | 'Appointment'
   | 'Prescription'

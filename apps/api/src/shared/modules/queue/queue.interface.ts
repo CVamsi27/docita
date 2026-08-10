@@ -68,24 +68,6 @@ export enum JobNames {
   GENERATE_PRESCRIPTION_PDF = 'generate-prescription-pdf',
 }
 
-export interface SendEmailJobData extends Prisma.InputJsonObject {
-  to: string | string[];
-  subject: string;
-  template: string;
-  variables?: Prisma.InputJsonObject;
-}
-
-export interface SendSmsJobData extends Prisma.InputJsonObject {
-  phoneNumber: string;
-  message: string;
-}
-
-export interface SendWhatsAppJobData extends Prisma.InputJsonObject {
-  phoneNumber: string;
-  message: string;
-  mediaUrl?: string;
-}
-
 export interface GeneratePdfJobData extends Prisma.InputJsonObject {
   documentId: string;
   documentType: 'invoice' | 'prescription';
@@ -93,9 +75,3 @@ export interface GeneratePdfJobData extends Prisma.InputJsonObject {
   pdfJobId?: string;
 }
 
-export interface SendAppointmentReminderJobData extends Prisma.InputJsonObject {
-  appointmentId: string;
-  clinicId: string;
-  patientId: string;
-  hoursBeforeAppointment: number;
-}

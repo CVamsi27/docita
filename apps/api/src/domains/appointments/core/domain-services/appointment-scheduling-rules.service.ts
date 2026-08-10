@@ -15,13 +15,13 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus } from '@workspace/db';
 import { findFirstSchedulingConflict } from '@/domains/appointments/core/domain-services/appointment-interval-overlap';
 
-export interface AppointmentConflict {
+interface AppointmentConflict {
   id: string;
   startTime: Date;
   endTime: Date;
 }
 
-export interface AppointmentSchedulingRulesInterface {
+interface AppointmentSchedulingRulesInterface {
   validateAppointmentTime(
     startTime: Date,
     endTime: Date,
