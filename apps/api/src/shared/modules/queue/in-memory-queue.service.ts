@@ -31,13 +31,14 @@ export class InMemoryQueueService implements IQueueProvider {
     options?: QueueJobOptions,
   ): Promise<QueueJob<T>> {
     const jobId = `${name}-${++this.jobCounter}`;
+    const maxAttempts = Math.max(1, options?.attempts ?? 1);
     const job: InMemoryJob<QueueJobData> = {
       id: jobId,
       name,
       data,
       progress: 0,
       attemptsMade: 0,
-      maxAttempts: 1,
+      maxAttempts,
       timestamp: Date.now(),
       status: 'waiting',
       delayedUntil: options?.delay ? Date.now() + options.delay : undefined,
@@ -58,13 +59,22 @@ export class InMemoryQueueService implements IQueueProvider {
 
     this.jobsByName.get(name)?.add(jobId);
 
+    // Enqueue is fire-and-forget for the caller: the job is dispatched in
+    // the background so the HTTP request / event handler that called
+    // enqueue returns immediately. Retries happen inside processJob and
+    // are also backgrounded via setTimeout.
     if (!options?.delay || options.delay <= 0) {
-      await this.processJob(job);
+      void this.processJob(job, options).catch((error: unknown) => {
+        this.logger.error(
+          `In-memory queue job ${job.id} dispatcher crashed: ${error instanceof Error ? error.message : String(error)}`,
+          error instanceof Error ? error.stack : undefined,
+        );
+      });
     } else {
       setTimeout(() => {
-        void this.processJob(job).catch((error: unknown) => {
+        void this.processJob(job, options).catch((error: unknown) => {
           this.logger.error(
-            `Delayed in-memory queue job ${job.id} failed: ${error instanceof Error ? error.message : String(error)}`,
+            `Delayed in-memory queue job ${job.id} failed terminally: ${error instanceof Error ? error.message : String(error)}`,
             error instanceof Error ? error.stack : undefined,
           );
         });
@@ -77,7 +87,7 @@ export class InMemoryQueueService implements IQueueProvider {
       data,
       progress: 0,
       attemptsMade: 0,
-      maxAttempts: 1,
+      maxAttempts,
       timestamp: job.timestamp,
     };
   }
@@ -144,7 +154,10 @@ export class InMemoryQueueService implements IQueueProvider {
     );
   }
 
-  private async processJob(job: InMemoryJob<QueueJobData>): Promise<void> {
+  private async processJob(
+    job: InMemoryJob<QueueJobData>,
+    options?: QueueJobOptions,
+  ): Promise<void> {
     const handler = this.handlers.get(job.name);
     if (!handler) {
       return;
@@ -162,16 +175,72 @@ export class InMemoryQueueService implements IQueueProvider {
         stats.active--;
         stats.processed++;
       }
+      return;
     } catch (error) {
-      job.status = 'failed';
-      job.failedReason = error instanceof Error ? error.message : String(error);
       job.attemptsMade++;
+      job.failedReason = error instanceof Error ? error.message : String(error);
+      const maxAttempts = job.maxAttempts ?? 1;
+      const remainingAttempts = maxAttempts - job.attemptsMade;
 
       const stats = this.stats.get(job.name);
+      if (stats) stats.active--;
+
+      if (remainingAttempts > 0 && this.shouldRetry(job, error, options)) {
+        const backoffMs = this.computeBackoffMs(job.attemptsMade, options);
+        this.logger.warn(
+          `In-memory queue job ${job.name}:${job.id} attempt ${job.attemptsMade}/${maxAttempts} failed (${job.failedReason}); retrying in ${backoffMs}ms`,
+        );
+        job.status = 'waiting';
+        if (stats) stats.waiting++;
+        setTimeout(() => {
+          job.status = 'active';
+          void this.processJob(job, options).catch((err: unknown) => {
+            this.logger.error(
+              `In-memory queue retry crashed: ${err instanceof Error ? err.message : String(err)}`,
+              err instanceof Error ? err.stack : undefined,
+            );
+          });
+        }, backoffMs);
+        return;
+      }
+
+      job.status = 'failed';
       if (stats) {
-        stats.active--;
         stats.failed++;
       }
+      this.logger.error(
+        `In-memory queue job ${job.name}:${job.id} failed terminally after ${job.attemptsMade} attempt(s): ${job.failedReason}`,
+      );
     }
+  }
+
+  /**
+   * Decide whether a thrown error should trigger a retry. Fatal errors
+   * (validation, missing data) are surfaced immediately so callers see
+   * the failure instead of retrying pointlessly.
+   */
+  private shouldRetry(
+    _job: InMemoryJob<QueueJobData>,
+    error: unknown,
+    _options?: QueueJobOptions,
+  ): boolean {
+    if (!(error instanceof Error)) return true;
+    // Surface validation errors immediately; retrying a bad payload is
+    // a guaranteed second failure and burns attempt budget.
+    if (error.name === 'ZodError' || error.name === 'BadRequestException') {
+      return false;
+    }
+    return true;
+  }
+
+  private computeBackoffMs(
+    attemptNumber: number,
+    options?: QueueJobOptions,
+  ): number {
+    const baseDelay = options?.backoff?.delay ?? 1000;
+    if (options?.backoff?.type === 'exponential') {
+      return baseDelay * Math.pow(2, Math.max(0, attemptNumber - 1));
+    }
+    return baseDelay;
   }
 }

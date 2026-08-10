@@ -4,7 +4,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
-import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { SharedModule } from './shared/shared.module';
 import { PatientsModule } from './domains/patients/patients.module';
@@ -188,7 +187,6 @@ import { getClientIp } from '@/shared/common/http/client-ip';
     PublicBookingModule,
     AbdmModule,
   ],
-  controllers: [AppController],
   providers: [
     // Global pipeline order (first registered runs first on inbound request):
     // Guards: throttle → JWT → tenant → tenant rate limit → roles → subscription →

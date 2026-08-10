@@ -5,7 +5,6 @@ import { MonitoringRumController } from './monitoring-rum.controller';
 import { MonitoringClientController } from './monitoring-client.controller';
 import { MonitoringService } from './monitoring.service';
 import { PrismaModule } from '@/prisma/prisma.module';
-import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
 import { MonitoringFactory } from './factories/monitoring.factory';
 import { PrismaHealthIndicator } from './health/prisma.health';
@@ -52,7 +51,6 @@ const MONITORING_EXPORTED_SERVICES = [
     MonitoringController,
     MonitoringRumController,
     MonitoringClientController,
-    HealthController,
   ],
   providers: [
     {
