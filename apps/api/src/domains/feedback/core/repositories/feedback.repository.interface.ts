@@ -4,6 +4,7 @@ import {
   FeedbackFeatureType,
   FeedbackStatus,
 } from '@workspace/db';
+import type { Feedback } from '@workspace/types';
 import type { FeedbackFilters } from '@/domains/feedback/application/services/feedback-helpers';
 
 export interface CreateFeedbackData {
@@ -48,13 +49,13 @@ export interface FeedbackStatsCounts {
  * `application/services` and orchestrates — it does not touch `@prisma/client`.
  */
 export interface IFeedbackRepository {
-  create(data: CreateFeedbackData): Promise<unknown>;
-  findAllForClinic(clinicId: string): Promise<unknown[]>;
-  findAll(filters: FeedbackFilters): Promise<unknown[]>;
-  findOneRaw(id: string): Promise<unknown>;
-  findByUser(userId: string): Promise<unknown[]>;
-  updateStatus(id: string, data: UpdateFeedbackStatusData): Promise<unknown>;
-  delete(id: string): Promise<unknown>;
+  create(data: CreateFeedbackData): Promise<Feedback>;
+  findAllForClinic(clinicId: string): Promise<Feedback[]>;
+  findAll(filters: FeedbackFilters): Promise<Feedback[]>;
+  findOneRaw(id: string): Promise<Feedback | null>;
+  findByUser(userId: string): Promise<Feedback[]>;
+  updateStatus(id: string, data: UpdateFeedbackStatusData): Promise<Feedback>;
+  delete(id: string): Promise<Feedback>;
   computeStats(clinicId: string | undefined): Promise<FeedbackStatsCounts>;
   hasFeedbackInWindow(
     userId: string,

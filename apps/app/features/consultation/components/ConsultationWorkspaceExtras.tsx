@@ -103,7 +103,7 @@ export function ConsultationAfterVisitStrip({
 
   return (
     <div
-      className="rounded-[var(--radius-md)] border border-border/60 bg-card px-3 py-3 shadow-[0_1px_2px_0_rgb(0_0_0/0.04)] sm:px-4"
+      className="rounded-[var(--radius-md)] border border-border/60 bg-card px-3 py-3 shadow-xs sm:px-4"
       aria-label="After this visit"
     >
       <MicroLabel className="mb-2 block">After this visit</MicroLabel>

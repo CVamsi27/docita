@@ -29,26 +29,34 @@ export class RazorpayWebhookAdapter
   }
 
   verifyWebhookSignature(payload: string | Buffer, signature: string): boolean {
+    const webhookSecret = this.configService.get<string>(
+      'RAZORPAY_WEBHOOK_SECRET',
+    );
+    if (!webhookSecret) {
+      this.logger.warn('Razorpay webhook secret not configured');
+      return false;
+    }
+
+    const payloadString =
+      typeof payload === 'string' ? payload : payload.toString('utf8');
+
+    const expectedSignature = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(payloadString)
+      .digest('hex');
+
+    // Signature comparison: a mismatch returns false (intentional, do not
+    // log the supplied signature itself). A crypto-level error (malformed
+    // input, length mismatch) is logged so a misconfigured client surfaces
+    // in observability instead of silently failing as "invalid signature".
     try {
-      const webhookSecret = this.configService.get<string>(
-        'RAZORPAY_WEBHOOK_SECRET',
-      );
-      if (!webhookSecret) {
-        this.logger.warn('Razorpay webhook secret not configured');
-        return false;
-      }
-
-      const payloadString =
-        typeof payload === 'string' ? payload : payload.toString('utf8');
-
-      const expectedSignature = crypto
-        .createHmac('sha256', webhookSecret)
-        .update(payloadString)
-        .digest('hex');
-
       return this.timingSafeEqual(expectedSignature, signature);
     } catch (error) {
-      this.logger.error('Failed to verify webhook signature', error);
+      this.logger.error(
+        `Failed to compare Razorpay webhook signature: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
       return false;
     }
   }

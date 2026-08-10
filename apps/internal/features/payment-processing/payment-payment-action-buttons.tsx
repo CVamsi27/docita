@@ -19,7 +19,7 @@ export function PaymentActionButtons({ setShowPaymentDialog, processPaymentMutat
         {processPaymentMutation.isPending && (
           <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
         )}
-        {processPaymentMutation.isPending ? "Processing\u2026" : "Process Payment"}
+        {processPaymentMutation.isPending ? "Processing…" : "Process Payment"}
       </Button>
     </div>
   );

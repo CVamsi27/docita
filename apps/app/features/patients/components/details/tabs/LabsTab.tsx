@@ -90,7 +90,7 @@ function LabsTabContent({ patientId }: LabsTabProps) {
                   <p className="text-xs text-muted-foreground mt-1">
                     {t("orderedLabel", { date: orderedAt })}
                     {order.doctor?.name
-                      ? ` \u00b7 ${t("doctorPrefix", { name: order.doctor.name })}`
+                      ? ` · ${t("doctorPrefix", { name: order.doctor.name })}`
                       : ""}
                   </p>
                 </div>

@@ -38,7 +38,7 @@ export const SectionContainer = forwardRef<HTMLElement, SectionContainerProps>(
         data-section-id={id}
         aria-labelledby={`${id}-title`}
         className={cn(
-          "scroll-mt-24 overflow-hidden rounded-[var(--radius-md)] border border-border/60 bg-card shadow-[0_1px_2px_0_rgb(0_0_0/0.04)]",
+          "scroll-mt-24 overflow-hidden rounded-[var(--radius-md)] border border-border/60 bg-card shadow-xs",
           className,
         )}
       >

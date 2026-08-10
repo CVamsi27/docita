@@ -98,7 +98,7 @@ export function BillingTab({ patientId }: BillingTabProps) {
                   <p className="text-xs text-muted-foreground mt-1">
                     {dateLabel}
                     {invoice.appointment?.doctor?.name
-                      ? ` \u00b7 ${t("doctorPrefix", { name: invoice.appointment.doctor.name })}`
+                      ? ` · ${t("doctorPrefix", { name: invoice.appointment.doctor.name })}`
                       : ""}
                   </p>
                 </div>

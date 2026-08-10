@@ -10,7 +10,7 @@ export async function pollInvoicePdfUrl(
   invoiceId: string,
   signal?: AbortSignal,
 ): Promise<void> {
-  const toastId = toast.loading("Preparing PDF\u2026");
+  const toastId = toast.loading("Preparing PDF…");
   try {
     const { jobId } = await invoicesApi.enqueuePdf(invoiceId);
 

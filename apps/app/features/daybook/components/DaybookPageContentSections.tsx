@@ -152,9 +152,9 @@ export function DaybookLedgerSection({
                     {row.patientName}
                   </span>
                   <span className="text-[length:var(--fs-2xs)] text-muted-foreground">
-                    {row.invoiceNumber ? `${row.invoiceNumber} \u00B7 ` : ""}
+                    {row.invoiceNumber ? `${row.invoiceNumber} · ` : ""}
                     {row.at ? formatTime(row.at, "h:mm a") : ""}
-                    {row.methodLabel ? ` \u00B7 ${row.methodLabel}` : ""}
+                    {row.methodLabel ? ` · ${row.methodLabel}` : ""}
                   </span>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">

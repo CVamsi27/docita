@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
@@ -10,7 +11,10 @@ const PRICING_OFFER_FLAG = 'clinic_pricing_offer';
 
 @Injectable()
 export class InternalPricingAdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly events: EventEmitter2,
+  ) {}
 
   private parseOfferValue(
     value: Prisma.JsonValue | null,
@@ -69,10 +73,14 @@ export class InternalPricingAdminService {
     for (const key of allowed) {
       if (key in data) update[key] = data[key];
     }
-    return this.prisma.tierPricing.update({
+    const updated = await this.prisma.tierPricing.update({
       where: { id: tierId },
       data: update,
     });
+    // Bust the in-process tier cache in PricingService so the change is
+    // visible to the next request rather than waiting for the 5-min TTL.
+    this.events.emit('tierPricing.updated', { tierId });
+    return updated;
   }
 
   async getPricingOffers() {

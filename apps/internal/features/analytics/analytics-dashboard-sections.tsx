@@ -137,7 +137,7 @@ export function AnalyticsMrrTrendSection({
             className="flex flex-1 flex-col items-center gap-1"
           >
             <SymbolTooltip
-              label={`${item.month}: \u20B9${formatAmountLocale(
+              label={`${item.month}: ₹${formatAmountLocale(
                 item.revenue,
                 "en-IN",
                 {

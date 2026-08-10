@@ -283,7 +283,7 @@ function NextPatientPreview({ nextPatient }: NextPatientPreviewProps) {
   return (
     <div className="flex w-full items-center gap-2.5 rounded-[var(--radius)] border border-border/60 bg-card/80 px-3 py-2 text-left shadow-sm">
       <Avatar className="h-8 w-8 shrink-0">
-        <AvatarFallback className="border border-border/60 bg-background/70 text-foreground text-[11px] font-semibold">
+        <AvatarFallback className="border border-border/60 bg-background/70 text-foreground text-[var(--fs-2xs)] font-semibold">
           {getInitials(
             nextPatient.patient?.firstName ?? "",
             nextPatient.patient?.lastName,
@@ -291,7 +291,7 @@ function NextPatientPreview({ nextPatient }: NextPatientPreviewProps) {
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        <p className="text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Next up
         </p>
         <p className="truncate text-sm font-semibold text-foreground">

@@ -186,7 +186,7 @@ export function PrescriptionDefaultsFormActions({
     <div className="flex justify-end border-t border-border/60 pt-4">
       <Button type="submit" disabled={saving} className="gap-2">
         <Save className="h-4 w-4" />
-        {saving ? "Saving\u2026" : "Save defaults"}
+        {saving ? "Saving…" : "Save defaults"}
       </Button>
     </div>
   );

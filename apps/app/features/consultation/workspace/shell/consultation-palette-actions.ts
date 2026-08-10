@@ -129,7 +129,7 @@ export function buildConsultationPaletteActions({
             label: "Save consultation",
             group: "Action" as const,
             icon: Save,
-            shortcut: "\u2318 S",
+            shortcut: "⌘ S",
             onRun: onSaveClick,
           },
         ]),

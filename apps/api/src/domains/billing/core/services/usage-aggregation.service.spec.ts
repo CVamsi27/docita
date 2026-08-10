@@ -27,17 +27,15 @@ type UsageAggregateRow = { _sum: { quantity: number | null } };
 // UTC+12..+14 machines (NZ/Fiji/Samoa/Kiritimati) yesterday would land a
 // day later and these assertions would need to shift.
 describe('UsageAggregationService (main: Prisma-backed)', () => {
-  const runUnrestrictedMock = jest.fn<
-    (cb: () => Promise<unknown>) => Promise<unknown>
-  >();
-  const clinicFindManyMock = jest.fn<(args?: unknown) => Promise<ClinicRow[]>>();
-  const subscriptionFindUniqueMock = jest.fn<
-    (args?: unknown) => Promise<SubscriptionRow | null>
-  >();
+  const runUnrestrictedMock =
+    jest.fn<(cb: () => Promise<unknown>) => Promise<unknown>>();
+  const clinicFindManyMock =
+    jest.fn<(args?: unknown) => Promise<ClinicRow[]>>();
+  const subscriptionFindUniqueMock =
+    jest.fn<(args?: unknown) => Promise<SubscriptionRow | null>>();
   const addOnFindManyMock = jest.fn<(args?: unknown) => Promise<AddOnRow[]>>();
-  const usageEventAggregateMock = jest.fn<
-    (args?: unknown) => Promise<UsageAggregateRow>
-  >();
+  const usageEventAggregateMock =
+    jest.fn<(args?: unknown) => Promise<UsageAggregateRow>>();
   const usageRecordUpsertMock = jest.fn<(args?: unknown) => Promise<unknown>>();
 
   const prisma = Object.create(PrismaService.prototype) as PrismaService;
@@ -77,8 +75,8 @@ describe('UsageAggregationService (main: Prisma-backed)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    runUnrestrictedMock.mockImplementation(
-      async (cb: () => Promise<unknown>) => cb(),
+    runUnrestrictedMock.mockImplementation(async (cb: () => Promise<unknown>) =>
+      cb(),
     );
     clinicFindManyMock.mockResolvedValue([]);
     subscriptionFindUniqueMock.mockResolvedValue({ plan: 'PROFESSIONAL' });
@@ -176,19 +174,20 @@ describe('UsageAggregationService (main: Prisma-backed)', () => {
 
     // records upsert into the usage day's month with quota and overage
     const upsertCalls = usageRecordUpsertMock.mock.calls.map(
-      (call) => call[0] as {
-        where: { clinicId_type_periodStart: Record<string, unknown> };
-        update: { quantity: { increment: number } };
-        create: {
-          clinicId: string;
-          type: string;
-          periodStart: Date;
-          periodEnd: Date;
-          quantity: number;
-          includedQuota: number;
-          overageUnits: number;
-        };
-      },
+      (call) =>
+        call[0] as {
+          where: { clinicId_type_periodStart: Record<string, unknown> };
+          update: { quantity: { increment: number } };
+          create: {
+            clinicId: string;
+            type: string;
+            periodStart: Date;
+            periodEnd: Date;
+            quantity: number;
+            includedQuota: number;
+            overageUnits: number;
+          };
+        },
     );
     expect(upsertCalls).toHaveLength(2);
     const whatsappUpsert = upsertCalls.find(
@@ -257,7 +256,10 @@ describe('UsageAggregationService (main: Prisma-backed)', () => {
   it('treats an unknown tier key in the add-on quota as zero included', async () => {
     clinicFindManyMock.mockResolvedValue([{ id: 'clinic-1' }]);
     addOnFindManyMock.mockResolvedValue([
-      { addOnType: 'WHATSAPP', addOn: { includedQuotaByTier: { STARTER: 100 } } },
+      {
+        addOnType: 'WHATSAPP',
+        addOn: { includedQuotaByTier: { STARTER: 100 } },
+      },
     ]);
     usageEventAggregateMock.mockResolvedValue({ _sum: { quantity: 60 } });
 
@@ -346,7 +348,10 @@ describe('UsageAggregationService (main: Prisma-backed)', () => {
   });
 
   it('aggregates across all active clinics in parallel', async () => {
-    clinicFindManyMock.mockResolvedValue([{ id: 'clinic-1' }, { id: 'clinic-2' }]);
+    clinicFindManyMock.mockResolvedValue([
+      { id: 'clinic-1' },
+      { id: 'clinic-2' },
+    ]);
     usageEventAggregateMock.mockResolvedValue({ _sum: { quantity: 5 } });
 
     await service.runDailyUsageAggregation();
@@ -356,13 +361,18 @@ describe('UsageAggregationService (main: Prisma-backed)', () => {
       (call) =>
         (call[0] as { create: { clinicId: string; periodStart: Date } }).create,
     );
-    expect(upsertCalls.filter((c) => c.clinicId === 'clinic-2')).toHaveLength(2);
+    expect(upsertCalls.filter((c) => c.clinicId === 'clinic-2')).toHaveLength(
+      2,
+    );
     // each record lands in the usage day's month (June)
     expect(upsertCalls[0]?.periodStart.getMonth()).toBe(5);
   });
 
   it('isolates a failing clinic so the remaining clinics still aggregate', async () => {
-    clinicFindManyMock.mockResolvedValue([{ id: 'clinic-1' }, { id: 'clinic-2' }]);
+    clinicFindManyMock.mockResolvedValue([
+      { id: 'clinic-1' },
+      { id: 'clinic-2' },
+    ]);
     subscriptionFindUniqueMock
       .mockRejectedValueOnce(new Error('plan boom'))
       .mockResolvedValueOnce({ plan: 'PROFESSIONAL' });

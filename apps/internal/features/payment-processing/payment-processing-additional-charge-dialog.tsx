@@ -59,7 +59,7 @@ export function PaymentProcessingAdditionalChargeDialog(props: PaymentProcessing
                   {recordAdditionalChargeMutation.isPending && (
                     <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                   )}
-                  {recordAdditionalChargeMutation.isPending ? "Saving\u2026" : "Record charge"}
+                  {recordAdditionalChargeMutation.isPending ? "Saving…" : "Record charge"}
                 </Button>
               </div>
             </form>
