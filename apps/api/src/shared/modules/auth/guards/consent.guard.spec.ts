@@ -9,6 +9,7 @@ import {
   mockGetAllAndOverrideKeyMap,
   type MockedReflectorGetAllAndOverride,
 } from '@/test-utils';
+import { getCurrentTenant, tenantStorage } from '@/shared/common/middleware/tenant.middleware';
 import { ConsentGuard, REQUIRE_CONSENT_KEY } from './consent.guard';
 
 function createContext(
@@ -46,6 +47,9 @@ describe('ConsentGuard', () => {
         (...args: unknown[]) => Promise<{ settings: unknown } | null>
       >;
     };
+    runUnrestricted: jest.MockedFunction<
+      (fn: () => Promise<unknown>) => Promise<unknown>
+    >;
   };
   let guard: ConsentGuard;
 
@@ -58,6 +62,13 @@ describe('ConsentGuard', () => {
     prisma = {
       consent: { findMany: jest.fn() },
       clinic: { findUnique: jest.fn() },
+      // Mirrors PrismaService.runUnrestricted: establishes the bypassed
+      // tenant context for the wrapped read (the real escape hatch the
+      // guard-phase fix relies on).
+      runUnrestricted: jest.fn(
+        async (fn: () => Promise<unknown>) =>
+          tenantStorage.run({ bypassed: true }, fn),
+      ),
     };
     // Default: clinic has opted in to treatment-consent enforcement.
     prisma.clinic.findUnique.mockResolvedValue({
@@ -139,6 +150,30 @@ describe('ConsentGuard', () => {
     await expect(
       guard.canActivate(createContext({ patientId: 'p1' })),
     ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('runs the consent read inside a bypassed tenant context (pins the guard-phase tenant fix)', async () => {
+    // Guards run before the TenantContextInterceptor, so without the bypass
+    // the tenant Prisma extension throws "Security Violation" (500) on the
+    // tenant-scoped Consent read. Pin the escape hatch: the consent lookup
+    // must execute with tenant enforcement bypassed (ownership is enforced
+    // later in the handler phase via verifyMedicalHistoryPatientAccess).
+    mockRequiredConsentTypes(reflector.getAllAndOverride, [
+      ConsentType.TREATMENT,
+    ]);
+    let tenantAtRead: ReturnType<typeof getCurrentTenant>;
+    prisma.consent.findMany.mockImplementation(async () => {
+      tenantAtRead = getCurrentTenant();
+      return [{ consentType: ConsentType.TREATMENT }];
+    });
+
+    await expect(
+      guard.canActivate(createContext({ patientId: 'p1' })),
+    ).resolves.toBe(true);
+
+    expect(tenantAtRead).toEqual(
+      expect.objectContaining({ bypassed: true }),
+    );
   });
 
   it('queries only ACTIVE non-expired consents', async () => {
