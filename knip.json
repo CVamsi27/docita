@@ -92,6 +92,13 @@
         "@/*": ["./src/*"]
       },
       "ignore": [
+        // base-repository.types.ts types are re-exported through
+        // base.repository.ts / base-repository.core.ts. Knip sees no
+        // direct external consumer of the types file because the
+        // entry patterns (.module.ts / .controller.ts / etc.) never
+        // import types — they consume them transitively via
+        // BaseRepository<T> instantiation. The exports are live.
+        "src/shared/common/repositories/base-repository.types.ts"
       ],
       "ignoreDependencies": ["pino-pretty"]
     },
@@ -108,6 +115,19 @@
         "src/lib/api-fetch.ts"
       ],
       "ignoreDependencies": ["tailwindcss", "sharp"]
+    },
+    "apps/app": {
+      "entry": [
+        "src/**/*.tsx"
+      ],
+      "ignore": [
+        "src/test-utils/**"
+      ]
+    },
+    "apps/internal": {
+      "entry": [
+        "src/**/*.tsx"
+      ]
     },
     ".": {
       "entry": [

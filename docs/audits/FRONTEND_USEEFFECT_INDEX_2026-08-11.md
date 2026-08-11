@@ -1,4 +1,10 @@
-# Frontend `useEffect` Index — 2026-08-11
+# Frontend `useEffect` Index — 2026-08-11 (CONDENSED)
+
+> **For the full version of this index, see
+> [`FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md`](./FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md)**
+> which contains every effect with its full body, deps array, line
+> range, and classification. This file is the original condensed
+> summary, kept for reference.
 
 This is the source-of-truth index for every `useEffect` call in
 `apps/app/src` and `apps/internal/src` as of branch `fix/app-deployment-failure`

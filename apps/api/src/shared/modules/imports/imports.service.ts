@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import type { OcrImportCommitRequest } from '@workspace/types';
 import {
   PATIENT_FIELD_MAPPINGS,
-  type ColumnMapping,
   type ImportPreview,
   type ImportResult,
 } from '@workspace/utils';
