@@ -8,24 +8,35 @@ import { type PdfJobProcessorPrismaPort } from '@/shared/modules/queue/pdf-job.s
 import { type IClock } from '@/shared/common/ports/clock.port';
 import { shouldRegisterPdfQueueHandlers } from '@/shared/modules/queue/pdf-processor-registration';
 
-export interface BasePdfServicePort {
-  findOne(documentId: string, clinicId: string): Promise<unknown>;
+/**
+ * Service-side contract that every PDF processor consumer satisfies.
+ * The `Document` generic narrows `findOne` and `uploadAndPersist` so
+ * concrete processors (PrescriptionPdfProcessor, InvoicePdfProcessor)
+ * can pass through the typed shape from their domain service instead
+ * of round-tripping through `unknown`. The default of `unknown` keeps
+ * the historic contract for any future consumer that does not have a
+ * narrowed shape.
+ */
+export interface BasePdfServicePort<Document = unknown> {
+  findOne(documentId: string, clinicId: string): Promise<Document>;
   generatePDF(documentId: string, clinicId: string): Promise<Buffer>;
   uploadAndPersist(
     documentId: string,
     clinicId: string,
     buffer: Buffer,
-    document: unknown,
+    document: Document,
   ): Promise<{ storedKey: string }>;
 }
 
-export abstract class BasePdfProcessor implements OnModuleInit {
+export abstract class BasePdfProcessor<Document = unknown>
+  implements OnModuleInit
+{
   protected abstract readonly logger: Logger;
   protected abstract readonly jobName: JobNames;
   protected abstract readonly entityLabel: string;
 
   constructor(
-    protected readonly service: BasePdfServicePort,
+    protected readonly service: BasePdfServicePort<Document>,
     protected readonly persistence: PdfJobProcessorPrismaPort,
     protected readonly queue: Pick<IQueueProvider, 'process'>,
     protected readonly clock: IClock,

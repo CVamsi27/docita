@@ -6,6 +6,7 @@ import {
 } from '@/shared/modules/queue/pdf-job.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { InvoicesService } from './invoices.service';
+import type { InvoiceDetail } from '@/domains/billing/core/repositories/invoice.repository';
 import {
   BasePdfProcessor,
   BasePdfServicePort,
@@ -18,7 +19,7 @@ export type InvoicePdfProcessorPort = Pick<
 >;
 
 @Injectable()
-export class InvoicePdfProcessor extends BasePdfProcessor {
+export class InvoicePdfProcessor extends BasePdfProcessor<InvoiceDetail> {
   protected readonly logger = new Logger(InvoicePdfProcessor.name);
   protected readonly jobName = JobNames.GENERATE_INVOICE_PDF;
   protected readonly entityLabel = 'Invoice';
@@ -27,7 +28,7 @@ export class InvoicePdfProcessor extends BasePdfProcessor {
     @Inject(PDF_JOB_PROCESSOR_PRISMA_TOKEN)
     persistence: PdfJobProcessorPrismaPort,
     @Inject(InvoicesService)
-    service: InvoicePdfProcessorPort & BasePdfServicePort,
+    service: InvoicePdfProcessorPort & BasePdfServicePort<InvoiceDetail>,
     @Inject('queue') queue: Pick<IQueueProvider, 'process'>,
     @Inject(CLOCK_PORT) clock: IClock,
   ) {

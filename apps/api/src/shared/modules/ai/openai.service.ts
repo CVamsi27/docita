@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — generic T defaults to unknown; the cache hit, content-string branch, and parsed-content branch all coerce to T at the contract boundary. No domain loss: callers narrow with Zod or isRecord.
 import {
   Injectable,
   Logger,
@@ -117,7 +118,7 @@ export class OpenaiService {
     ) {
       const cacheKey = `${cacheKeyPrefix}:${Buffer.from(JSON.stringify(cacheKeyData)).toString('base64')}`;
       const cached = await this.cacheManager.get(cacheKey);
-      if (cached !== undefined && cached !== null) return cached;
+      if (cached !== undefined && cached !== null) return cached as T;
     }
 
     if (!this.openai)
@@ -150,15 +151,17 @@ export class OpenaiService {
     if (!content)
       throw new InternalServerErrorException('Empty response from OpenAI');
 
-    let result: unknown = content;
+    let result: T;
     if (jsonMode) {
       try {
-        result = JSON.parse(content);
+        result = JSON.parse(content) as T;
       } catch {
         throw new InternalServerErrorException(
           'Invalid JSON response from OpenAI',
         );
       }
+    } else {
+      result = content as T;
     }
 
     if (
