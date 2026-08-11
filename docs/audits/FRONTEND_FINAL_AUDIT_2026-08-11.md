@@ -525,3 +525,49 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | Landing hero redesign | §7 #6 | OPEN | MED |
 | Landing pricing toggle | §7 #7 | OPEN | MED |
 | Internal admin analytics dashboard | §7 #8 | OPEN | MED |
+
+---
+
+## 19. Expansion — 2026-08-12 additional scan findings
+
+> Added during the 2026-08-12 continued session.
+
+### 19.1 Items implemented since §18
+
+| Item | § ref | Status | Details |
+|---|---|---|---|
+| Unused type exports from context splits | §18.1 | **DONE** | Removed `export` from `AppConfigContextType` and `SocketContextType`. |
+| Raw button primitive in sidebar | §18.3 | **DONE** | Replaced `<button>` with `<Button variant="ghost">` in Ask AI footer. |
+| 3 exhaustive-deps bugs fixed | §6.2 | **DONE** | WhatsappOperationsPageContent, use-patients-logic, use-patient-data all fixed. |
+| Internal LogsPage exhaustive-deps | §6.2 | **DONE** | Added `fetchLogs` to useEffect deps. |
+
+### 19.2 Current lint status (frontend)
+
+| App | Before (original audit) | After §18 | After §19 | Delta |
+|---|---|---|---|---|
+| `apps/app` | 16 warnings | 16 warnings | **13 warnings** | -3 (exhaustive-deps fixed) |
+| `apps/internal` | 2 warnings | 2 warnings | **1 warning** | -1 (exhaustive-deps fixed) |
+| `apps/landing` | 0 warnings | 0 warnings | 0 warnings | 0 |
+
+**Breakdown of remaining 14 warnings:**
+- **13 in app**: all `react-refresh/only-export-components` (re-exports for backward compat with 104 consumers)
+- **1 in internal**: `react-refresh/only-export-components` in `auth.tsx`
+- **0 exhaustive-deps**: all fixed
+
+### 19.3 Verified still-open items (deduplicated)
+
+| Item | § ref | Status | Priority | Est. |
+|---|---|---|---|---|
+| Delete IPD sub-feature (~500 lines) | §9.2 | OPEN | LOW | 30 min |
+| Wire theme CSS to `data-accent`/`data-density` | §18.3 | OPEN | MED | 1h |
+| Create `AskAiButton` component | §14.2 #4 | OPEN | MED | 1h |
+| Extract `<Toaster>` to `@workspace/ui` | §14.2 #7 | OPEN | LOW | 30 min |
+| Migrate 13 react-refresh warnings | §6.1 | OPEN | LOW | 3h |
+| Move `min-h-[50vh]` to CSS token | §14.3 #8 | OPEN | LOW | 1h |
+| Add JSX-text-must-be-t() lint rule | §14.3 #9 | OPEN | LOW | 1h |
+| Audit 40 `<h1>` sites | §14.4 #12 | OPEN | LOW | 1h |
+| Landing hero redesign | §7 #6 | OPEN | MED | 8h |
+| Landing pricing toggle | §7 #7 | OPEN | MED | 6h |
+| Internal admin analytics | §7 #8 | OPEN | MED | 16h |
+| Mobile breakpoints audit | §7 #5 | OPEN | MED | 4h |
+| i18n coverage gate | §7 #4 | OPEN | MED | 4h |

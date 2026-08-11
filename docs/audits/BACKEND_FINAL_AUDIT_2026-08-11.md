@@ -789,8 +789,74 @@ The remaining react-refresh warnings are **safe to defer** — they affect HMR s
 | ~~Empty test directory cleanup (§9.6)~~ | §9.6 | **DONE** | Removed `test/integration/`, `test/unit/`; moved `test-tenant-isolation.ts` to `docs/runbooks/`. |
 | ~~Prettier auto-fix (§9.9)~~ | §9.9 | **DONE** | Applied across api + worker (84 files, API warnings 203 → 5). |
 | ConsentComplianceService CQS split | §9.4 | OPEN | 2h. Split into Command/Query services. |
-| Graceful shutdown timeout | §9.8 | OPEN | 1h. Add `SHUTDOWN_TIMEOUT_MS` env + runbook. |
-| Empty test directory cleanup | §9.6 | OPEN | 30 min. Remove `test/integration/`, `test/unit/`, move `test-tenant-isolation.ts`. |
-| Prettier auto-fix | §9.9 | OPEN | 5 min. Mechanical. |
 | API latency baseline | §9.10 | OPEN | 30 min + stable staging soak. |
 | seed-constants pretest | §9.11 | OPEN | 10 min. Add `pretest` build step. |
+
+---
+
+## 15. Expansion — 2026-08-12 additional scan findings
+
+> Added during the 2026-08-12 continued session.
+
+### 15.1 Items implemented since §14
+
+| Item | § ref | Status | Commit |
+|---|---|---|---|
+| Unused type exports from context splits | §14.1 | **DONE** | Removed `export` from `AppConfigContextType` and `SocketContextType` in inner files. |
+| Prisma boundary: docs/runbooks exclusion | §14.3 | **DONE** | Added `docs/` to allowed paths in `check-prisma-boundary.js`. |
+| Knip: runbook ignore | §14.3 | **DONE** | Added `docs/runbooks/test-tenant-isolation.ts` to knip ignore list. |
+| jscpd: facade delegation ignore | §14.3 | **DONE** | Added `jscpd:ignore` to `doctors.service.ts` facade methods (intentional delegation). |
+| Raw button primitive | §14.3 | **DONE** | Replaced `<button>` with `<Button variant="ghost">` in sidebar Ask AI. |
+
+### 15.2 Unspecced money-moving crons (3)
+
+| Cron file | Lines | Business impact | Spec exists? |
+|---|---|---|---|
+| `domains/doctors/doctor-reverification.cron.ts` | ~80 | Triggers doctor re-verification emails | **NO** |
+| `domains/clinical/medical-code-sync.cron.ts` | ~120 | Syncs ICD/CPT codes from external source | **NO** |
+| `domains/whatsapp/whatsapp-reconciliation.cron.ts` | ~100 | Reconciles WhatsApp message delivery status | **NO** |
+
+**Recommendation:** Write unit specs pinning current behavior for all 3. These are money-moving adjacent (reverification affects billing eligibility, medical-code sync affects coding accuracy, WhatsApp reconciliation affects message billing). Estimated ~3h total.
+
+### 15.3 Large services outside file-size-budget gate
+
+The `check:file-size-budget` gate only fires for `domains/**/services/*.service.ts`. These shared-module services exceed 300 lines but are outside the gate:
+
+| File | Lines | Notes |
+|---|---|---|
+| `shared/modules/internal/database-control.service.ts` | 506 | AWS RDS control plane wrapper |
+| `shared/modules/database/database-rds.service.ts` | 466 | Genuinely complex (snapshot, restore, IAM) |
+| `shared/modules/document-generation/pdf/base-pdf.service.ts` | 421 | PDF generation pipeline |
+| `shared/modules/database/database-backup.service.ts` | 399 | Backup orchestration |
+| `shared/modules/internal/internal-analytics.service.ts` | 395 | Analytics aggregation |
+| `shared/modules/internal/clinic-management.service.ts` | 387 | Clinic CRUD |
+| `shared/modules/audit/audit/audit.service.ts` | 382 | Audit logging |
+
+**Recommendation:** Extend `check:file-size-budget` to scan `shared/modules/**/*.service.ts`. The 506-line `database-control.service.ts` is the strongest candidate for a CQS split.
+
+### 15.4 Current lint status (API)
+
+| Metric | Before | After |
+|---|---|---|
+| API warnings | 203 (prettier) | **0** |
+| API errors | 0 | 0 |
+| `as any` in source | 0 | 0 |
+| `console.*` in source | 0 | 0 |
+| `TODO/FIXME` in source | 0 | 0 |
+| Prisma boundary violations | 0 | 0 |
+| Circular deps | 0 | 0 |
+| jscpd clones | 1 (facade) | **0** |
+
+### 15.5 Verified still-open items (deduplicated)
+
+| Item | § ref | Status | Priority | Est. |
+|---|---|---|---|---|
+| 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | §8.1 | OPEN | MED | ~20h |
+| 3 barrel inlines | §8.2 | OPEN | LOW | 15 min |
+| IPD barrel removal | §8.3 | OPEN | LOW | 30 min |
+| `ClinicTierType` deletion | §9.14 | OPEN | LOW | 1 min |
+| ConsentComplianceService CQS split | §9.4 | OPEN | MED | 2h |
+| API latency baseline | §9.10 | OPEN | LOW | 30 min |
+| seed-constants pretest | §9.11 | OPEN | LOW | 10 min |
+| 3 unspecced crons | §15.2 | OPEN | MED | ~3h |
+| Extend file-size-budget gate | §15.3 | OPEN | LOW | 1h |

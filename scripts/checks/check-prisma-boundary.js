@@ -146,7 +146,8 @@ for (const file of files) {
     const allowed =
       file.startsWith('packages/db/') ||
       file.startsWith('apps/api/') ||
-      file.startsWith('scripts/');
+      file.startsWith('scripts/') ||
+      file.startsWith('docs/');
 
     if (!allowed) {
       if (file.startsWith('packages/types/')) {

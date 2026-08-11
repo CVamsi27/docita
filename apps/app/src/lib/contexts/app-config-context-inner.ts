@@ -1,7 +1,7 @@
 import { createContext } from "react";
 import type { AppConfig, ClinicSettings, DefaultValues, FormOptions } from "@/lib/constants/app-config";
 
-export interface AppConfigContextType {
+interface AppConfigContextType {
   config: AppConfig;
   isLoading: boolean;
   error: Error | null;

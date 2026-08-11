@@ -134,7 +134,8 @@
         "vitest.shared.config.ts"
       ],
       "ignore": [
-        "packages/db/prisma/schema.prisma"
+        "packages/db/prisma/schema.prisma",
+        "docs/runbooks/test-tenant-isolation.ts"
       ],
       "ignoreDependencies": [
         "fallow",
