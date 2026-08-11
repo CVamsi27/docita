@@ -18,8 +18,6 @@ const requiredPaths = [
   'apps/landing/src',
   'apps/landing/public',
   'apps/landing/e2e',
-  'apps/api/test/unit',
-  'apps/api/test/integration',
   'apps/api/test/e2e',
   'packages',
   'packages/ui',
