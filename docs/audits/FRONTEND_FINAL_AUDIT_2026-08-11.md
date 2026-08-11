@@ -182,9 +182,14 @@ The biggest single surface: **`features/<domain>/rules/*.ts` files** with 8+ exp
 
 Knip (the project-wide unused-export detector) only flagged 4 items (all backend) at the time of the original audit because `apps/app` and `apps/internal` were not declared in `knip.json`. **Adding those entries to Knip is a one-line config change** (this cycle's `e22397f9a` commit) that would let this report run automatically in CI.
 
-### 9.1 Group A — `features/*/rules/*.ts` business rules: tested, unused
+### 9.1 Group A — `features/*/rules/*.ts` business rules: tested, reachable via barrels
 
-These 8 files export 33 functions/types, all tested, all unused in production. The most likely explanation: the production code calls inline equivalents (e.g. `isPast(...)` from `@workspace/utils` instead of `isAppointmentPast`). The tests document the intent but the indirection was never adopted.
+**UPDATE (2026-08-12):** These files are NOT dead. TypeScript compilation confirms every file is reachable through barrel `index.ts` re-exports and internal cross-references within the rules directories. The initial audit grep only checked direct `from.*rules/filename` imports and missed:
+- Barrel re-exports from `features/*/index.ts` (e.g. `appointments/index.ts` re-exports `appointment-rules`)
+- Internal cross-references (e.g. `appointment-rules.ts` imports `appointment-status-display` and `appointment-validation`)
+- Hook-file imports (e.g. `use-consultation-completion.ts` imports from `consultation-rules`)
+
+**All 13 rule files and their tests remain in the codebase.** The functions ARE used through the barrel graph. No deletion needed.
 
 | File | Unused exports |
 |---|---|
@@ -444,7 +449,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | PR | Scope | § ref | Est. time | Risk |
 |---|---|---|---|---|
 | **#212** "fix(app): split mixed-export files + fix React-Hooks deps" | §6.1, §6.2 | 3h | LOW (dev-iteration only) |
-| **#213** "chore(app): delete dead `features/*/rules/*.ts` exports + tests (33 fns)" | §9.1 | 2h | LOW (mechanical delete) |
+| ~~**#213** "chore(app): delete dead `features/*/rules/*.ts` exports + tests (33 fns)"~~ | §9.1 | N/A | **WITHDRAWN** — files are reachable via barrel re-exports; not dead. |
 | **#214** "chore(app): delete IPD sub-feature (~500 lines)" | §9.2 | 30 min | LOW |
 | **#215** "chore(app): delete unused `ConsentContent` export" | §9.3 | 1 min | LOW |
 | **#216** "fix(ui): wire theme settings to DOM via data-accent / data-density" | §14.1 #1 | 30 min | LOW |
@@ -507,7 +512,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 
 | Item | § ref | Status | Priority |
 |---|---|---|---|
-| Delete dead `features/*/rules/*.ts` exports (33 fns) | §9.1 | OPEN | LOW |
+| ~~Delete dead `features/*/rules/*.ts` exports (33 fns)~~ | §9.1 | **WITHDRAWN** | Files reachable via barrel re-exports; not dead. |
 | Delete IPD sub-feature (~500 lines) | §9.2 | OPEN | LOW |
 | Wire theme CSS to respond to `data-accent`/`data-density` | §14.1 #1 follow-up | OPEN | MED |
 | Create `AskAiButton` component | §14.2 #4 | OPEN | MED |
