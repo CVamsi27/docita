@@ -53,7 +53,7 @@ function ProtectedMainArea({ isConsultationDetailRoute }: { isConsultationDetail
 
   return (
     <>
-      <main className={mainClassName} aria-label="Main content">
+      <main className={`${mainClassName} animate-fade-up`} aria-label="Main content">
         <ErrorBoundaryWrapper><Outlet /></ErrorBoundaryWrapper>
       </main>
     </>
