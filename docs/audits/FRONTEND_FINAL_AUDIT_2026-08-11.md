@@ -513,12 +513,12 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | Item | § ref | Status | Priority |
 |---|---|---|---|
 | ~~Delete dead `features/*/rules/*.ts` exports (33 fns)~~ | §9.1 | **WITHDRAWN** | Files reachable via barrel re-exports; not dead. |
-| Delete IPD sub-feature (~500 lines) | §9.2 | OPEN | LOW |
+| ~~Delete IPD sub-feature (~500 lines)~~ | §9.2 | **DONE** | 15 files deleted (~500 lines). |
 | Wire theme CSS to respond to `data-accent`/`data-density` | §14.1 #1 follow-up | OPEN | MED |
 | Create `AskAiButton` component | §14.2 #4 | OPEN | MED |
 | Extract `<Toaster>` to `@workspace/ui` | §14.2 #7 | OPEN | LOW |
 | Migrate remaining 12 react-refresh warnings | §6.1 | OPEN | LOW |
-| Fix 2 `react-hooks/exhaustive-deps` warnings | §6.2 | OPEN | MED |
+| ~~Fix `react-hooks/exhaustive-deps` warnings~~ | §6.2 | **DONE** | 4 bugs fixed (WhatsappOperationsPageContent, use-patients-logic, use-patient-data, LogsPage). |
 | Move `min-h-[50vh]` to CSS token | §14.3 #8 | OPEN | LOW |
 | Add JSX-text-must-be-t()-wrapped lint rule | §14.3 #9 | OPEN | LOW |
 | Audit 40 `<h1>` sites for duplicates | §14.4 #12 | OPEN | LOW |
@@ -562,7 +562,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | Wire theme CSS to `data-accent`/`data-density` | §18.3 | OPEN | MED | 1h |
 | Create `AskAiButton` component | §14.2 #4 | OPEN | MED | 1h |
 | Extract `<Toaster>` to `@workspace/ui` | §14.2 #7 | OPEN | LOW | 30 min |
-| Migrate 13 react-refresh warnings | §6.1 | OPEN | LOW | 3h |
+| Migrate 13 react-refresh warnings (re-exports for 104 consumers) | §6.1 | OPEN | LOW | 3h |
 | Move `min-h-[50vh]` to CSS token | §14.3 #8 | OPEN | LOW | 1h |
 | Add JSX-text-must-be-t() lint rule | §14.3 #9 | OPEN | LOW | 1h |
 | Audit 40 `<h1>` sites | §14.4 #12 | OPEN | LOW | 1h |
