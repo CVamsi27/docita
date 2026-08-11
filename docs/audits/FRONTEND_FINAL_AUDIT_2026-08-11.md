@@ -558,7 +558,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 
 | Item | § ref | Status | Priority | Est. |
 |---|---|---|---|---|
-| Delete IPD sub-feature (~500 lines) | §9.2 | OPEN | LOW | 30 min |
+| ~~Delete IPD sub-feature (~500 lines)~~ | §9.2 | **DONE** | 15 files deleted (~500 lines). |
 | Wire theme CSS to `data-accent`/`data-density` | §18.3 | OPEN | MED | 1h |
 | Create `AskAiButton` component | §14.2 #4 | OPEN | MED | 1h |
 | Extract `<Toaster>` to `@workspace/ui` | §14.2 #7 | OPEN | LOW | 30 min |

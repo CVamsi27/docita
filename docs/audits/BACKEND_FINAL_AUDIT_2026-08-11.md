@@ -782,8 +782,8 @@ The remaining react-refresh warnings are **safe to defer** — they affect HMR s
 |---|---|---|---|
 | 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | §8.1 | OPEN | ~20h estimated. Lowest-risk: `modules/config/config.service.ts` + `default-pricing-calculator.strategy.ts` (1h each). |
 | 3 barrel inlines | §8.2 | OPEN | 15 min total. Deferred to avoid merge conflicts with parallel branches. |
-| IPD barrel removal | §8.3 | OPEN | 30 min. Deferred — IPD is in active development. |
-| `ClinicTierType` deletion | §9.14 | OPEN | 1 min. Can be done in the same PR as §8.4. |
+| ~~IPD barrel removal~~ | §8.3 | **DONE** | Entire IPD feature deleted (~500 lines, 15 files). |
+| ~~`ClinicTierType` deletion~~ | §9.14 | **DONE** | Type alias removed from `packages/types/src/admin/internal.ts`. |
 | ~~ClinicContextGuard (§9.2)~~ | §9.2 | **DONE** | Removed 5 redundant inline checks in subscriptions controller; `TenantGuard` (global `APP_GUARD`) already handles this. Partner-portal's throw is intentionally a 500 (server misconfiguration). |
 | ~~Graceful shutdown timeout (§9.8)~~ | §9.8 | **DONE** | `SHUTDOWN_TIMEOUT_MS` env var added (default 15000ms). |
 | ~~Empty test directory cleanup (§9.6)~~ | §9.6 | **DONE** | Removed `test/integration/`, `test/unit/`; moved `test-tenant-isolation.ts` to `docs/runbooks/`. |
@@ -853,10 +853,8 @@ The `check:file-size-budget` gate only fires for `domains/**/services/*.service.
 |---|---|---|---|---|
 | 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | §8.1 | OPEN | MED | ~20h |
 | 3 barrel inlines | §8.2 | OPEN | LOW | 15 min |
-| IPD barrel removal | §8.3 | OPEN | LOW | 30 min |
-| `ClinicTierType` deletion | §9.14 | OPEN | LOW | 1 min |
 | ConsentComplianceService CQS split | §9.4 | OPEN | MED | 2h |
 | API latency baseline | §9.10 | OPEN | LOW | 30 min |
 | seed-constants pretest | §9.11 | OPEN | LOW | 10 min |
-| 3 unspecced crons | §15.2 | OPEN | MED | ~3h |
-| Extend file-size-budget gate | §15.3 | OPEN | LOW | 1h |
+| ~~3 unspecced crons~~ | §15.2 | **DONE** | 3 specs written (12 tests). |
+| ~~Extend file-size-budget gate~~ | §15.3 | **DONE** | Gate extended to `shared/modules/**/*.service.ts` with 3 pre-existing allowlisted services. |
