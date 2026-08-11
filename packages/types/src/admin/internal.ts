@@ -18,51 +18,91 @@ export type ClinicTierType =
   | "FRONT_DESK_HOSPITAL"
   | "INTELLIGENCE";
 
-export interface CreateClinicDto {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  tier?: ClinicTierType;
-  website?: string;
-  mrnPrefix?: string;
-  timezone?: string;
-  adminEmail: string;
-  adminName: string;
-  adminPassword: string;
-}
+/**
+ * Internal-admin clinic management. These were hand-written TS interfaces
+ * and re-typed as NestJS DTOs at the API boundary with no runtime
+ * validation. Migrated to Zod (2026-08-11, AGENTS §3.1) so the canonical
+ * schema lives in packages/types and the API can wire it through
+ * `createZodDto` + `ZodValidationPipe`. The runtime `tier` enum is locked
+ * to the 5-value `ClinicTier` Prisma enum (the only values the DB can
+ * actually store today); the wider 9-value `ClinicTierType` stays as a
+ * type-only forward-compat alias for the FRONT_DESK family pre-migration.
+ */
+export const internalCreateClinicRequestSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().min(1),
+  address: z.string().min(1),
+  tier: z
+    .enum([
+      "STARTER",
+      "ESSENTIAL",
+      "PROFESSIONAL",
+      "HOSPITAL",
+      "ENTERPRISE",
+    ])
+    .optional(),
+  website: z.string().optional(),
+  mrnPrefix: z.string().optional(),
+  timezone: z.string().optional(),
+  adminEmail: z.string().email(),
+  adminName: z.string().min(1),
+  adminPassword: z.string().min(8),
+});
+export type CreateClinicDto = z.infer<typeof internalCreateClinicRequestSchema>;
 
-export interface CreateAdminDto {
-  name: string;
-  email: string;
-  password: string;
-  phoneNumber?: string;
-  adminType: "admin" | "admin_doctor";
-  qualification?: string;
-  registrationNumber?: string;
-  specialization?: string;
-}
+export const internalUpdateClinicRequestSchema = z.object({
+  name: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().min(1).optional(),
+  address: z.string().min(1).optional(),
+  tier: z
+    .enum([
+      "STARTER",
+      "ESSENTIAL",
+      "PROFESSIONAL",
+      "HOSPITAL",
+      "ENTERPRISE",
+    ])
+    .optional(),
+  type: z.string().optional(),
+  active: z.boolean().optional(),
+});
+export type UpdateClinicDto = z.infer<typeof internalUpdateClinicRequestSchema>;
 
-export interface UpdateAdminDto {
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-  adminType?: "admin" | "admin_doctor";
-  qualification?: string;
-  registrationNumber?: string;
-  specialization?: string;
-}
+export const internalCreateAdminRequestSchema = z.object({
+  clinicId: z.string().min(1),
+  name: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(8),
+  phoneNumber: z.string().optional(),
+  adminType: z.enum(["admin", "admin_doctor"]),
+});
+export type CreateAdminDto = z.infer<typeof internalCreateAdminRequestSchema>;
 
-export interface UpdateClinicAIFeaturesDto {
-  enabled?: boolean;
-  features?: {
-    predictiveAnalytics?: boolean;
-    automatedDiagnosis?: boolean;
-    patientInsights?: boolean;
-    appointmentOptimization?: boolean;
-    prescriptionAssistant?: boolean;
-  };
-}
+export const internalUpdateAdminRequestSchema = z.object({
+  name: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  phoneNumber: z.string().optional(),
+  adminType: z.enum(["admin", "admin_doctor"]).optional(),
+});
+export type UpdateAdminDto = z.infer<typeof internalUpdateAdminRequestSchema>;
+
+export const internalUpdateClinicAIFeaturesRequestSchema = z.object({
+  enabled: z.boolean(),
+  features: z
+    .object({
+      predictiveAnalytics: z.boolean().optional(),
+      automatedDiagnosis: z.boolean().optional(),
+      patientInsights: z.boolean().optional(),
+      appointmentOptimization: z.boolean().optional(),
+      prescriptionAssistant: z.boolean().optional(),
+    })
+    .optional(),
+});
+export type UpdateClinicAIFeaturesDto = z.infer<
+  typeof internalUpdateClinicAIFeaturesRequestSchema
+>;
 
 export interface InternalPaymentData {
   razorpayPaymentId?: string;

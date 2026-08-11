@@ -31,8 +31,8 @@ describe('ReferralConversionCreditService', () => {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
     prismaMock.$transaction.mockImplementation(
-      async (cb: (client: typeof prismaMock) => Promise<unknown>) =>
-        cb(prismaMock),
+      (async (cb: (client: typeof prismaMock) => Promise<unknown>) =>
+        cb(prismaMock)) as AnyAsync,
     );
     const clock = createFixedClockMock('2026-08-10T00:00:00.000Z');
     service = new ReferralConversionCreditService(
