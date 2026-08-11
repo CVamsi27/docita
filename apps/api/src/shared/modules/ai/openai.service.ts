@@ -85,14 +85,21 @@ export class OpenaiService {
     }
   }
 
-  async callChatCompletion(params: {
+  /**
+   * Call the chat-completions endpoint. The return type is generic so
+   * callers can assert the expected shape (`callChatCompletion<MyShape>(...)`).
+   * The default of `unknown` preserves the historic contract; new
+   * callers should pass the expected type and validate with Zod before
+   * use, since the upstream API can return any JSON.
+   */
+  async callChatCompletion<T = unknown>(params: {
     systemPrompt: string;
     userPrompt: string;
     temperature?: number;
     jsonMode?: boolean;
     cacheKeyPrefix?: string;
     cacheKeyData?: unknown;
-  }): Promise<unknown> {
+  }): Promise<T> {
     const {
       systemPrompt,
       userPrompt,

@@ -2,8 +2,6 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { EnterpriseContractStatus, EnterpriseInvoiceKind } from '@workspace/db';
 import type { EnterpriseContractPersistencePort } from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';
 import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-invoice-command.service';
-import type { EmailService } from '@/shared/modules/messaging/email/email.service';
-import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import type { IClock } from '@/shared/common/ports/clock.port';
 
 const contract = {
@@ -69,8 +67,6 @@ function createService(overrides?: {
 
   const service = new EnterpriseContractInvoiceCommandService(
     persistence,
-    {} as EmailService,
-    { getInternalAllowedEmails: () => [] } as unknown as AppConfigService,
     { now: () => new Date('2026-06-05T00:00:00.000Z') } satisfies IClock,
   );
 
