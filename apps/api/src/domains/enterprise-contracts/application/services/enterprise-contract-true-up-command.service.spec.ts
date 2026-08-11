@@ -62,7 +62,7 @@ function createService(opts: {
   } as unknown as EnterpriseContractPersistencePort;
 
   const send = jest.fn(
-    async () => opts.sendResult ?? { success: true },
+    async (_opts: unknown) => opts.sendResult ?? { success: true },
   );
   const emailService = { send } as unknown as EmailService;
   const configService = {
@@ -104,7 +104,7 @@ describe('EnterpriseContractTrueUpCommandService', () => {
 
   it('returns no-alert when contract is not ACTIVE', async () => {
     const ctx = createService({
-      contract: { ...ACTIVE_CONTRACT, status: EnterpriseContractStatus.TERMINATED },
+      contract: { ...ACTIVE_CONTRACT, status: EnterpriseContractStatus.TERMINATED } as unknown as typeof ACTIVE_CONTRACT,
     });
     const result = await ctx.service.evaluateAndAlertTrueUp('contract-1');
     expect(result).toEqual({ alerted: false, observedPercent: 0 });
@@ -136,10 +136,12 @@ describe('EnterpriseContractTrueUpCommandService', () => {
     expect(ctx.enterpriseTrueUpAlertCreate).toHaveBeenCalledTimes(1);
     expect(ctx.enterpriseContractUpdate).toHaveBeenCalledTimes(1);
     expect(ctx.send).toHaveBeenCalledTimes(1);
-    const emailArgs = ctx.send.mock.calls[0][0];
-    expect(emailArgs.to).toBe('finance@docita.work');
-    expect(emailArgs.subject).toContain('True-up alert');
-    expect(emailArgs.subject).toContain('133%');
+    const emailCall = ctx.send.mock.calls.at(0)?.[0] as
+      | { to: string; subject: string }
+      | undefined;
+    expect(emailCall?.to).toBe('finance@docita.work');
+    expect(emailCall?.subject).toContain('True-up alert');
+    expect(emailCall?.subject).toContain('133%');
   });
 
   it('skips when an alert was already raised this month', async () => {
