@@ -106,6 +106,9 @@ const config: Config = {
         20: "var(--space-20, 80px)",
         24: "var(--space-24, 96px)",
       },
+      minHeight: {
+        "page-content": "var(--page-content-min-h, 50vh)",
+      },
       borderRadius: {
         none: "0px",
         sm: "var(--radius-sm, 2px)",

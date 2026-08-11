@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "sonner";
+import { ToasterWrapper } from "@workspace/ui/components";
 import { initializeSentryClient } from "@/lib/monitoring/sentry.client.config";
 import { installGlobalErrorHandler } from "@/lib/monitoring/client-error-reporter";
 import { installWebVitalsReporter } from "@/lib/monitoring/web-vitals";
@@ -45,7 +45,7 @@ createRoot(rootElement).render(
             >
               <App />
             </ErrorBoundary>
-            <Toaster richColors position="top-right" />
+            <ToasterWrapper />
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

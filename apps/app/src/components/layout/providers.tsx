@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Toaster } from "sonner";
+import { ToasterWrapper } from "@workspace/ui/components";
 import { AppConfigProvider } from "@/lib/contexts/app-config-context";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { TooltipProvider } from "@workspace/ui/components/overlay/tooltip";
@@ -24,17 +24,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
           </DialogStackProvider>
         </TooltipProvider>
       </ThemeProvider>
-      <Toaster
-        richColors
-        position="top-right"
-        duration={4000}
-        toastOptions={{
-          classNames: {
-            toast: "rounded-xl border shadow-lg",
-            description: "text-sm",
-          },
-        }}
-      />
+      <ToasterWrapper />
     </AppConfigProvider>
   );
 }

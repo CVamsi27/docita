@@ -127,6 +127,8 @@
   --lh-relaxed: 1.625;
   --tracking-tight: 0;
   --tracking-normal: 0;
+  /* Page content minimum height for empty/loading states */
+  --page-content-min-h: 50vh;
   --tracking-wide: 0.01em;
   --fw-regular: 400;
   --fw-medium: 500;
