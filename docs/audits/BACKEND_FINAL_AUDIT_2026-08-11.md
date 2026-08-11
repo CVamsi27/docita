@@ -784,7 +784,7 @@ The remaining react-refresh warnings are **safe to defer** — they affect HMR s
 | 3 barrel inlines | §8.2 | OPEN | 15 min total. Deferred to avoid merge conflicts with parallel branches. |
 | IPD barrel removal | §8.3 | OPEN | 30 min. Deferred — IPD is in active development. |
 | `ClinicTierType` deletion | §9.14 | OPEN | 1 min. Can be done in the same PR as §8.4. |
-| ClinicContextGuard (§9.2) | §9.2 | OPEN | 1h. Maps `throw new Error` in controllers to 401. |
+| ~~ClinicContextGuard (§9.2)~~ | §9.2 | **DONE** | Removed 5 redundant inline checks in subscriptions controller; `TenantGuard` (global `APP_GUARD`) already handles this. Partner-portal's throw is intentionally a 500 (server misconfiguration). |
 | ConsentComplianceService CQS split | §9.4 | OPEN | 2h. Split into Command/Query services. |
 | Graceful shutdown timeout | §9.8 | OPEN | 1h. Add `SHUTDOWN_TIMEOUT_MS` env + runbook. |
 | Empty test directory cleanup | §9.6 | OPEN | 30 min. Remove `test/integration/`, `test/unit/`, move `test-tenant-isolation.ts`. |
