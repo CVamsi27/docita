@@ -92,27 +92,17 @@ const KNOWN_LEGACY_PRISMA_SERVICE_LEAKS = new Set([
   'apps/api/src/domains/whatsapp/whatsapp-campaign-dispatch.cron.ts',
   // Legacy top-level modules/ — app config reads clinic settings.
   'apps/api/src/modules/config/config.service.ts',
-  // Shared compliance — retention scheduler + export/anonymization factories.
+  // Shared compliance — retention scheduler.
   'apps/api/src/shared/modules/compliance/data-retention.scheduler.ts',
-  'apps/api/src/shared/modules/compliance/factories/anonymization.factory.ts',
-  'apps/api/src/shared/modules/compliance/factories/data-export.factory.ts',
   // Shared ephemeral-store — cleanup scheduler.
   'apps/api/src/shared/modules/ephemeral-store/ephemeral-store-cleanup.scheduler.ts',
-  // Shared imports — per-type import strategies persist directly.
-  'apps/api/src/shared/modules/imports/strategies/doctor-import.strategy.ts',
-  'apps/api/src/shared/modules/imports/strategies/inventory-import.strategy.ts',
-  'apps/api/src/shared/modules/imports/strategies/lab-test-import.strategy.ts',
-  'apps/api/src/shared/modules/imports/strategies/prescription-import.strategy.ts',
+  // Shared imports — covered by IMPORT_STRATEGY_PERSISTENCE_PORT.
   // Shared messaging — platform health alerts scheduler (nested under
   // messaging/admin-alerts/; surfaced by the nesting-tolerant pattern).
   'apps/api/src/shared/modules/messaging/admin-alerts/platform-health-alerts.scheduler.ts',
   // Shared outbox — relay scheduler.
   'apps/api/src/shared/modules/outbox/outbox-relay.scheduler.ts',
-  // Shared search — search strategies query indexes directly.
-  'apps/api/src/shared/modules/search/strategies/appointment-search.strategy.ts',
-  'apps/api/src/shared/modules/search/strategies/patient-search.strategy.ts',
-  'apps/api/src/shared/modules/search/strategies/prescription-search.strategy.ts',
-  'apps/api/src/shared/modules/search/strategies/search-strategy.base.ts',
+  // Shared search — covered by SEARCH_STRATEGY_PERSISTENCE_PORT.
 ]);
 
 const violations = [];
