@@ -29,7 +29,7 @@ export function BillingPlansHeader({ selectedMode, onModeChange, selectedCycle, 
             const active = selectedMode === mode;
             return (
               <SymbolTooltip key={mode} label={info.helpText}>
-                <Button variant={active ? "default" : "ghost"} size="sm" className="rounded-full" onClick={() => onModeChange(mode)} aria-pressed={active}>
+                <Button variant={active ? "default" : "ghost"} size="sm" className="rounded-full" onClick={() => onModeChange(mode)} role="tab" aria-selected={active}>
                   {info.shortLabel}
                 </Button>
               </SymbolTooltip>
