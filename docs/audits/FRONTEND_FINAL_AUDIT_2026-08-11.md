@@ -521,7 +521,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | ~~Fix `react-hooks/exhaustive-deps` warnings~~ | §6.2 | **DONE** | 4 bugs fixed (WhatsappOperationsPageContent, use-patients-logic, use-patient-data, LogsPage). |
 | ~~Move `min-h-[50vh]` to CSS token~~ | §14.3 #8 | **DONE** | Added `--page-content-min-h` CSS token + `min-h-page-content` Tailwind utility. |
 | ~~Add JSX-text-must-be-t()-wrapped lint rule~~ | §14.3 #9 | **DONE** | `check:i18n-coverage` already enforces this; passes cleanly. |
-| Audit 40 `<h1>` sites for duplicates | §14.4 #12 | OPEN | LOW |
+| ~~Audit 40 `<h1>` sites for duplicates~~ | §14.4 #12 | **DONE** | 40 h1s across 716 files; 2 files with 2 h1s are separate components (different page views). No duplicates. |
 | Landing hero redesign | §7 #6 | OPEN | MED |
 | Landing pricing toggle | §7 #7 | OPEN | MED |
 | Internal admin analytics dashboard | §7 #8 | OPEN | MED |
@@ -565,7 +565,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | Migrate 13 react-refresh warnings (re-exports for 104 consumers) | §6.1 | OPEN | LOW | 3h |
 | ~~Move `min-h-[50vh]` to CSS token~~ | §14.3 #8 | **DONE** | Added `--page-content-min-h` CSS token + `min-h-page-content` Tailwind utility. | 1h |
 | Add JSX-text-must-be-t() lint rule | §14.3 #9 | OPEN | LOW | 1h |
-| Audit 40 `<h1>` sites | §14.4 #12 | OPEN | LOW | 1h |
+| ~~Audit 40 `<h1>` sites~~ | §14.4 #12 | **DONE** | No duplicate h1s found. |
 | Landing hero redesign | §7 #6 | OPEN | MED | 8h |
 | Landing pricing toggle | §7 #7 | OPEN | MED | 6h |
 | Internal admin analytics | §7 #8 | OPEN | MED | 16h |
