@@ -1,12 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Patient } from '@workspace/db';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  ANONYMIZATION_PERSISTENCE_PORT,
+  type AnonymizationPersistencePort,
+} from '../ports/anonymization.persistence.port';
 
 @Injectable()
 export class AnonymizationFactory {
   private readonly logger = new Logger(AnonymizationFactory.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(ANONYMIZATION_PERSISTENCE_PORT)
+    private readonly prisma: AnonymizationPersistencePort,
+  ) {}
 
   async anonymizePatient(patientId: string): Promise<Patient> {
     const randomId = `ANON-${Date.now()}`;
