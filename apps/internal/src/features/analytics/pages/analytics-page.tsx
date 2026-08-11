@@ -189,7 +189,7 @@ export function AnalyticsPage() {
                   <div key={tier} className="flex items-center gap-3">
                     <span className="w-28 text-sm">{tier}</span>
                     <div className="flex-1 h-3 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full rounded-full bg-primary transition-all"
+                      <div className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
                         style={{ width: `${String(totalTierCount ? Math.round((count / totalTierCount) * 100) : 0)}%` }} />
                     </div>
                     <span className="w-12 text-right text-sm text-muted-foreground">{count}</span>

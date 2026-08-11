@@ -62,9 +62,13 @@ export function ProtectedLayout() {
   const { logout } = useAuth();
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none">
+        Skip to content
+      </a>
+      <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <aside className={`flex flex-col border-r bg-background transition-all duration-200 ${collapsed ? "w-14" : "w-56"}`}>
+      <aside className={`flex flex-col border-r bg-background transition-[width] duration-200 ease-out ${collapsed ? "w-14" : "w-56"}`}>
         <div className="flex items-center justify-between border-b px-3 h-14">
           {!collapsed && <span className="font-semibold text-sm">Docita Admin</span>}
           <Button
@@ -122,9 +126,10 @@ export function ProtectedLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6">
+      <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-6">
         <Outlet />
       </main>
     </div>
+    </>
   );
 }

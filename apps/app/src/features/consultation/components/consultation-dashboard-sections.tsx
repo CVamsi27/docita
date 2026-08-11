@@ -80,17 +80,19 @@ export function ConsultationDashboardErrorState({ onRetry }: ErrorStateProps) {
 /* -------------------------------------------------------------------------- */
 /*  Skeleton                                                                  */
 /* -------------------------------------------------------------------------- */
+import { Skeleton } from "@workspace/ui/components/feedback/skeleton";
+
 export function ConsultationDashboardSkeleton() {
   return (
     <div className="space-y-4 p-4">
-      <div className="animate-pulse space-y-3">
-        <div className="h-8 w-48 rounded bg-muted-foreground/10" />
+      <div className="space-y-3">
+        <Skeleton className="h-8 w-48 rounded" />
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-20 rounded-lg bg-muted-foreground/10" />
+            <Skeleton key={i} className="h-20 rounded-lg" />
           ))}
         </div>
-        <div className="h-64 rounded-lg bg-muted-foreground/10" />
+        <Skeleton className="h-64 rounded-lg" />
       </div>
     </div>
   );

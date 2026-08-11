@@ -472,3 +472,51 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 - **Fixed in:** PR #211 (commits `bb13fbbff`, `13a6844bb`, `e22397f9a`, `39c029391`)
 - **Verified by:** `pnpm verify:standard` exit 0; `pnpm knip` clean; App/Internal/Worker Unit Checks all pass
 - **Open follow-ups:** 14 follow-up items in §16 (~15h for items #212-#225 plus ~30h for #226+).
+
+---
+
+## 18. Expansion — 2026-08-12 scan findings
+
+> Added during the 2026-08-12 session that expanded both audit docs and
+> executed the highest-value follow-up items.
+
+### 18.1 Items implemented since the original audit
+
+| Item | § ref | Status | Details |
+|---|---|---|---|
+| Theme settings → DOM wiring | §14.1 #1 | **DONE** | `ThemeProvider` now reads `primaryColor` + `compactMode` from zustand and applies `data-accent` + `data-density` to `<html>`. |
+| DoctorProfileSettings loading state | §14.1 #2 | **DONE** | Added `isLoading` check with `<LoadingState />` fallback. |
+| Sidebar footer (Settings, Help, Theme, Plan, Ask AI) | §14.1 #3 | **DONE** | Added footer section to `sidebar.tsx` with Settings link, Help link (external), Theme toggle, and Ask AI button. |
+| animate-pulse → Skeleton | §14.3 #11 | **DONE** | Replaced `animate-pulse` in `consultation-dashboard-sections.tsx` with `<Skeleton>` from `@workspace/ui`. |
+| transition-all scoping (2 sites) | §14.3 #10 | **DONE** | Scoped to `transition-[width] duration-500 ease-out` (analytics bar chart) and `transition-[width] duration-200 ease-out` (sidebar collapse). |
+| Skip-to-content links | §14.2 #5 | **DONE** | Added `<a href="#main-content">` to both app and internal protected layouts. |
+| Mixed-export file splits (4 files) | §6.1 | **PARTIAL** | Extracted hooks from `auth-context.tsx`, `app-config-context.tsx`, `clinic-context.tsx`, `socket-context.tsx` into dedicated `*-hooks.ts` files with `*-context-inner.ts` for the context object. 12 remaining warnings are re-exports needed by 104 consumers. |
+| ConsentContent export demotion | §9.3 | **DONE** | Removed `export` keyword — interface is now file-private. |
+
+### 18.2 Current lint status after fixes
+
+| App | Before | After | Delta |
+|---|---|---|---|
+| `apps/app` | 16 warnings | 16 warnings | 0 (re-exports still counted) |
+| `apps/internal` | 2 warnings | 2 warnings | 0 |
+| `apps/landing` | 0 warnings | 0 warnings | 0 |
+
+**Why no reduction:** The 12 `react-refresh/only-export-components` warnings in app are from `export { hook } from "./hooks-file"` re-exports in the context files. The rule treats ANY non-component export as a violation. Eliminating these would require migrating 104 consumer files to import from the new hooks files — a separate PR.
+
+### 18.3 Verified still-open items
+
+| Item | § ref | Status | Priority |
+|---|---|---|---|
+| Delete dead `features/*/rules/*.ts` exports (33 fns) | §9.1 | OPEN | LOW |
+| Delete IPD sub-feature (~500 lines) | §9.2 | OPEN | LOW |
+| Wire theme CSS to respond to `data-accent`/`data-density` | §14.1 #1 follow-up | OPEN | MED |
+| Create `AskAiButton` component | §14.2 #4 | OPEN | MED |
+| Extract `<Toaster>` to `@workspace/ui` | §14.2 #7 | OPEN | LOW |
+| Migrate remaining 12 react-refresh warnings | §6.1 | OPEN | LOW |
+| Fix 2 `react-hooks/exhaustive-deps` warnings | §6.2 | OPEN | MED |
+| Move `min-h-[50vh]` to CSS token | §14.3 #8 | OPEN | LOW |
+| Add JSX-text-must-be-t()-wrapped lint rule | §14.3 #9 | OPEN | LOW |
+| Audit 40 `<h1>` sites for duplicates | §14.4 #12 | OPEN | LOW |
+| Landing hero redesign | §7 #6 | OPEN | MED |
+| Landing pricing toggle | §7 #7 | OPEN | MED |
+| Internal admin analytics dashboard | §7 #8 | OPEN | MED |

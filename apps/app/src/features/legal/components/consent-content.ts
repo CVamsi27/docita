@@ -1,6 +1,6 @@
 import { SUPPORT_EMAIL } from "@/lib/constants/support-contact";
 
-export interface ConsentContent {
+interface ConsentContent {
   title: string;
   description: string;
   purposes: { key: string; label: string; description: string }[];

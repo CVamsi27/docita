@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useContext } from "react";
+import { ReactNode, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router";
 
@@ -7,27 +7,12 @@ import { isNetworkError } from "@/lib/api/network-error";
 import { appQueryKeys } from "@/lib/api/query-keys";
 import { useOptionalAuth } from "@/lib/auth/auth-context";
 import { shouldSkipAuthenticatedBootstrapFetch } from "@/lib/auth/pre-clinic-setup-routes";
+import { AppConfigContext } from "./app-config-context-inner";
 
 export type {
   SelectOption,
 } from "@/lib/constants/app-config";
-
-interface AppConfigContextType {
-  config: AppConfig;
-  isLoading: boolean;
-  error: Error | null;
-  refetch: () => Promise<void>;
-
-  getFormOptions: <K extends keyof FormOptions>(key: K) => FormOptions[K];
-  getDefault: <K extends keyof DefaultValues>(key: K) => DefaultValues[K];
-  getClinicSetting: <K extends keyof ClinicSettings>(
-    key: K,
-  ) => ClinicSettings[K] | undefined;
-}
-
-const AppConfigContext = createContext<AppConfigContextType | undefined>(
-  undefined,
-);
+export { useOptionalAppConfig } from "./app-config-hooks";
 
 interface AppConfigProviderProps {
   children: ReactNode;
@@ -107,8 +92,6 @@ export function AppConfigProvider({
   );
 }
 
-export function useOptionalAppConfig() {
-  return useContext(AppConfigContext);
-}
+
 
 

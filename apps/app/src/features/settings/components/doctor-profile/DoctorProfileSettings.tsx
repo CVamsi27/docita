@@ -5,6 +5,7 @@ import { appQueryKeys } from "@workspace/data-access";
 import { useAPIMutation, useAPIQuery } from "@/lib/api/api-core";
 import type { User } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { LoadingState } from "@workspace/ui/components/feedback/empty-state";
 import { RegistrationCertificateUpload } from "@/features/settings/components/doctor-profile/RegistrationCertificateUpload";
 import { DigitalSignatureCard, HprIdCard, MedicalRegistrationCard } from "./DoctorProfileSettingsSections";
 
@@ -12,7 +13,7 @@ export function DoctorProfileSettings() {
   const { user } = useAuth();
   const [hprIdDraft, setHprIdDraft] = useState<string | null>(null);
 
-  const { data: doctorProfile } = useAPIQuery<User>(
+  const { data: doctorProfile, isLoading } = useAPIQuery<User>(
     appQueryKeys.doctorProfile.detail(user?.id ?? ""),
     `/doctors/${user?.id}`,
     { enabled: !!user?.id },
@@ -41,6 +42,10 @@ export function DoctorProfileSettings() {
   );
 
   const resolvedHprIdDraft = hprIdDraft ?? profile?.hprId ?? "";
+
+  if (isLoading) {
+    return <LoadingState />;
+  }
 
   return (
     <div className="flex flex-col gap-6">

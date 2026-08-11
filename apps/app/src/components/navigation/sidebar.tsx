@@ -1,10 +1,37 @@
 import { Link, useLocation } from "react-router";
 import { useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { HelpCircle, Menu, Settings, X } from "lucide-react";
 import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, SymbolTooltip } from "@workspace/ui/components";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { navSections } from "@/components/navigation/nav-config";
 import { SidebarTrackSection } from "@/components/navigation/sidebar-sections";
+import { ThemeToggleWithAppearanceSync } from "@/components/layout/theme-toggle-with-appearance-sync";
+import { openCommandPaletteFromUi } from "@/components/layout/command-palette-launcher";
+
+function SidebarFooterLink({ to, icon: Icon, label, external }: { to: string; icon: React.ComponentType<{ className?: string }>; label: string; external?: boolean }) {
+  const content = (
+    <span className="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors">
+      <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-background/60 ring-1 ring-border/40">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="flex-1 truncate">{label}</span>
+    </span>
+  );
+
+  if (external) {
+    return (
+      <a href={to} target="_blank" rel="noopener noreferrer" aria-label={label}>
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <Link to={to} aria-label={label}>
+      {content}
+    </Link>
+  );
+}
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -19,6 +46,23 @@ export function Sidebar({ isCollapsed: _isCollapsed = false, mobileOpen = false,
   useEffect(() => {
     onMobileOpenChange?.(false);
   }, [location.pathname, onMobileOpenChange]);
+
+  const sidebarFooter = (
+    <div className="shrink-0 border-t border-border/60 px-2 py-2 space-y-0.5">
+      <SidebarFooterLink to="/settings" icon={Settings} label="Settings" />
+      <SidebarFooterLink to="https://docs.docita.work" icon={HelpCircle} label="Help" external />
+      <div className="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium text-muted-foreground">
+        <ThemeToggleWithAppearanceSync className="h-4 w-4" />
+        <span className="flex-1 truncate">Theme</span>
+      </div>
+      <button type="button" onClick={openCommandPaletteFromUi} className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors cursor-pointer">
+        <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 0 0-6.88 17.23l.9-1.2A2 2 0 0 1 7.62 17h8.76a2 2 0 0 1 1.6.83l.9 1.2A10 10 0 0 0 12 2z" /><circle cx="12" cy="10" r="3" /></svg>
+        </span>
+        <span className="flex-1 truncate">Ask AI</span>
+      </button>
+    </div>
+  );
 
   const nav = (
     <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 scrollbar-none px-2 space-y-4" aria-label="Primary">
@@ -35,6 +79,7 @@ export function Sidebar({ isCollapsed: _isCollapsed = false, mobileOpen = false,
           </Link>
         </div>
         {nav}
+        {sidebarFooter}
       </aside>
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <SheetContent side="left" className="w-72 p-0 flex flex-col gap-0 md:hidden" aria-label="Navigation">

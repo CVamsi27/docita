@@ -744,4 +744,50 @@ CI state (this cycle's commits):
 - **Related runbook:** (planned) `docs/runbooks/graceful-shutdown.md` per §9.8; (planned) `docs/runbooks/tenant-isolation.md` per §9.5
 - **Fixed in:** PR #211 (commits `bb13fbbff`, `13a6844bb`, `e22397f9a`, `39c029391`)
 - **Verified by:** `pnpm verify:standard` exit 0; API unit 3308/3308; invoice-abac 9/9; partner-portal 13/13; clinic-management spec 8/8; referral-conversion-credit spec 5/5
-- **Open follow-ups:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (§8.1), 3 barrel inlines (§8.2), 1 IPD barrel removal (§8.3), 1 `ConsentContent` demotion (§8.4), 1 `ClinicTierType` deletion (§9.14), and the 12 follow-up items in §10 (~7.5h for items 1-10 plus ~20h for #11).
+- **Open follow-ups:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (§8.1), 3 barrel inlines (§8.2), 1 IPD barrel removal (§8.3), 1 `ClinicTierType` deletion (§9.14), and the 12 follow-up items in §10 (~7.5h for items 1-10 plus ~20h for #11).
+
+---
+
+## 14. Expansion — 2026-08-12 scan findings
+
+> Added during the 2026-08-12 session that expanded both audit docs and
+> executed the highest-value follow-up items.
+
+### 14.1 Items implemented since the original audit
+
+| Item | § ref | Status | Commit |
+|---|---|---|---|
+| `ConsentContent` export demotion | §8.4 | **DONE** | Removed `export` keyword; interface is now file-private. |
+| Toaster (sonner) added to app providers | §14.2 #7 (frontend) | **DONE** | `<Toaster>` added to `providers.tsx` with `richColors`, `top-right`, 4s duration. |
+| Theme settings wired to DOM | §14.1 #1 (frontend) | **DONE** | `ThemeProvider` now applies `data-accent` (primaryColor) and `data-density` (compactMode) to `<html>`. |
+| DoctorProfileSettings loading state | §14.1 #2 (frontend) | **DONE** | Added `isLoading` check with `<LoadingState />` fallback. |
+| Sidebar footer | §14.1 #3 (frontend) | **DONE** | Added Settings, Help, Theme toggle, and Ask AI to sidebar footer. |
+| Skip-to-content links | §14.2 #5 (frontend) | **DONE** | Added `<a href="#main-content">` to app and internal layouts. |
+| animate-pulse → Skeleton | §14.3 #11 (frontend) | **DONE** | Replaced `animate-pulse` in `consultation-dashboard-sections.tsx` with `<Skeleton>`. |
+| transition-all scoping | §14.3 #10 (frontend) | **DONE** | Scoped 2 `transition-all` in internal to `transition-[width]`. |
+| Mixed-export file splits | §9.3 (frontend) | **PARTIAL** | 4 context files split (auth, app-config, clinic, socket); 12 remaining warnings are re-exports needed for backward compatibility (104 consumers). |
+
+### 14.2 Remaining lint warnings (16 in app, 2 in internal)
+
+After the split work, the warning count remains at 16 because:
+- **12 warnings** are `export { ... } from "./..."` re-exports in the context files. These are necessary for backward compatibility — 104 files import hooks from the context files. Migrating all consumers to import from the new hooks files would be a separate PR.
+- **2 warnings** are `react-hooks/exhaustive-deps` (real bugs — stale closures).
+- **2 warnings** are in `internal` (1 react-refresh, 1 exhaustive-deps).
+
+The remaining react-refresh warnings are **safe to defer** — they affect HMR speed (full remount on save) but not correctness.
+
+### 14.3 Verified still-open items
+
+| Item | § ref | Status | Notes |
+|---|---|---|---|
+| 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | §8.1 | OPEN | ~20h estimated. Lowest-risk: `modules/config/config.service.ts` + `default-pricing-calculator.strategy.ts` (1h each). |
+| 3 barrel inlines | §8.2 | OPEN | 15 min total. Deferred to avoid merge conflicts with parallel branches. |
+| IPD barrel removal | §8.3 | OPEN | 30 min. Deferred — IPD is in active development. |
+| `ClinicTierType` deletion | §9.14 | OPEN | 1 min. Can be done in the same PR as §8.4. |
+| ClinicContextGuard (§9.2) | §9.2 | OPEN | 1h. Maps `throw new Error` in controllers to 401. |
+| ConsentComplianceService CQS split | §9.4 | OPEN | 2h. Split into Command/Query services. |
+| Graceful shutdown timeout | §9.8 | OPEN | 1h. Add `SHUTDOWN_TIMEOUT_MS` env + runbook. |
+| Empty test directory cleanup | §9.6 | OPEN | 30 min. Remove `test/integration/`, `test/unit/`, move `test-tenant-isolation.ts`. |
+| Prettier auto-fix | §9.9 | OPEN | 5 min. Mechanical. |
+| API latency baseline | §9.10 | OPEN | 30 min + stable staging soak. |
+| seed-constants pretest | §9.11 | OPEN | 10 min. Add `pretest` build step. |

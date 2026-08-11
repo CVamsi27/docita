@@ -1,29 +1,21 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import type { ReactNode } from "react";
-import { appClinicSchema, type AppClinic } from "@workspace/types";
+import { appClinicSchema } from "@workspace/types";
 import { isRecord } from "@workspace/utils";
 import { fetchClinicSettings } from "@/lib/api/clinic-settings";
 import { useAuth } from "@/lib/auth/auth-context";
 import { logger } from "@/lib/monitoring/logger";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { ClinicContext } from "./clinic-context-inner";
+import type { Clinic, ClinicContextValue } from "./clinic-context-inner";
 
-export type Clinic = AppClinic;
-
-interface ClinicContextValue {
-  clinicId: string | null;
-  clinic: Clinic | null;
-  isLoading: boolean;
-  refreshClinic: () => Promise<void>;
-}
-
-const ClinicContext = createContext<ClinicContextValue | undefined>(undefined);
+export type { Clinic, ClinicContextValue };
+export { useClinic, useOptionalClinic } from "./clinic-hooks";
 
 const STORAGE_KEY = "selectedClinicId";
 
@@ -121,14 +113,4 @@ export function ClinicProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useClinic(): ClinicContextValue {
-  const context = useContext(ClinicContext);
-  if (context === undefined) {
-    throw new Error("useClinic must be used within a ClinicProvider");
-  }
-  return context;
-}
 
-export function useOptionalClinic(): ClinicContextValue | undefined {
-  return useContext(ClinicContext);
-}

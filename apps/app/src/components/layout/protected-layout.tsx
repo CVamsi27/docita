@@ -53,7 +53,7 @@ function ProtectedMainArea({ isConsultationDetailRoute }: { isConsultationDetail
 
   return (
     <>
-      <main className={`${mainClassName} animate-fade-up`} aria-label="Main content">
+      <main id="main-content" className={`${mainClassName} animate-fade-up`} aria-label="Main content">
         <ErrorBoundaryWrapper><Outlet /></ErrorBoundaryWrapper>
       </main>
     </>
@@ -79,6 +79,9 @@ export function ProtectedLayout() {
 
   return (
     <ProvidersWrapper>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none">
+        Skip to content
+      </a>
       <div className="flex h-screen overflow-hidden bg-background">
         <ResizablePanelGroup direction="horizontal">
           <ResizablePanel ref={sidebarPanelRef} defaultSize={18} minSize={15} maxSize={25} className="hidden md:block" collapsible collapsedSize={4} onCollapse={() => setIsCollapsed(true)} onExpand={() => setIsCollapsed(false)}

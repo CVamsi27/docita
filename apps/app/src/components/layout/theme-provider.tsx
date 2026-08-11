@@ -7,7 +7,11 @@ function getSystemTheme(): "light" | "dark" {
     : "light";
 }
 
-function applyTheme(theme: "light" | "dark" | "system") {
+function applyThemeToDOM(
+  theme: "light" | "dark" | "system",
+  primaryColor: string,
+  compactMode: boolean,
+) {
   const resolved = theme === "system" ? getSystemTheme() : theme;
   const root = document.documentElement;
   if (resolved === "dark") {
@@ -16,21 +20,25 @@ function applyTheme(theme: "light" | "dark" | "system") {
     root.classList.remove("dark");
   }
   root.setAttribute("data-theme", resolved);
+  root.setAttribute("data-accent", primaryColor);
+  root.setAttribute("data-density", compactMode ? "compact" : "comfortable");
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = useAppearanceStore((s) => s.theme);
+  const primaryColor = useAppearanceStore((s) => s.primaryColor);
+  const compactMode = useAppearanceStore((s) => s.compactMode);
 
   useEffect(() => {
-    applyTheme(theme);
+    applyThemeToDOM(theme, primaryColor, compactMode);
 
     if (theme === "system") {
       const mq = window.matchMedia("(prefers-color-scheme: dark)");
-      const handler = () => applyTheme("system");
+      const handler = () => applyThemeToDOM("system", primaryColor, compactMode);
       mq.addEventListener("change", handler);
       return () => mq.removeEventListener("change", handler);
     }
-  }, [theme]);
+  }, [theme, primaryColor, compactMode]);
 
   return <>{children}</>;
 }
