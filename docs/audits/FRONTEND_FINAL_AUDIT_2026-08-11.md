@@ -514,7 +514,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 |---|---|---|---|
 | ~~Delete dead `features/*/rules/*.ts` exports (33 fns)~~ | §9.1 | **WITHDRAWN** | Files reachable via barrel re-exports; not dead. |
 | ~~Delete IPD sub-feature (~500 lines)~~ | §9.2 | **DONE** | 15 files deleted (~500 lines). |
-| Wire theme CSS to respond to `data-accent`/`data-density` | §14.1 #1 follow-up | OPEN | MED |
+| ~~Wire theme CSS to respond to `data-accent`/`data-density`~~ | §14.1 #1 follow-up | **DONE** | CSS rules already override `--primary`/`--ring` for green/purple/orange/rose/teal; `--density-scale` controls spacing. ThemeProvider applies attributes correctly. |
 | Create `AskAiButton` component | §14.2 #4 | OPEN | MED |
 | ~~Extract `<Toaster>` to `@workspace/ui`~~ | §14.2 #7 | **DONE** | Created `ToasterWrapper` in `@workspace/ui`; both apps now import from shared component. |
 | Migrate remaining 12 react-refresh warnings | §6.1 | OPEN | LOW |
@@ -559,7 +559,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | Item | § ref | Status | Priority | Est. |
 |---|---|---|---|---|
 | ~~Delete IPD sub-feature (~500 lines)~~ | §9.2 | **DONE** | 15 files deleted (~500 lines). |
-| Wire theme CSS to `data-accent`/`data-density` | §18.3 | OPEN | MED | 1h |
+| ~~Wire theme CSS to `data-accent`/`data-density`~~ | §18.3 | **DONE** | CSS rules + ThemeProvider already wired correctly. |
 | Create `AskAiButton` component | §14.2 #4 | OPEN | MED | 1h |
 | ~~Extract `<Toaster>` to `@workspace/ui`~~ | §14.2 #7 | **DONE** | Created `ToasterWrapper` in `@workspace/ui`; both apps now import from shared component. | 30 min |
 | Migrate 13 react-refresh warnings (re-exports for 104 consumers) | §6.1 | OPEN | LOW | 3h |
