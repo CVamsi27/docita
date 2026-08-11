@@ -83,6 +83,52 @@ export class DatabaseControlStateRepository {
   }
 
   /**
+   * Update the `errorMessage` and `completedAt` columns on a row that has
+   * already been written by `recordCompletion` (or `recordStart` for a
+   * still-IN_PROGRESS action that failed in the background wait). Used by
+   * the background `waitFor*` chains in DatabaseControlService so the
+   * UI's getState() poll reflects the real terminal state once the RDS
+   * instance finishes its lifecycle.
+   *
+   * No-op when `id` no longer exists (e.g. the row was deleted between
+   * the action starting and the background wait completing) — the
+   * background chain must not throw on a missing row.
+   */
+  async recordBackgroundCompletion(
+    id: string,
+    completion: {
+      status: 'SUCCESS' | 'FAILED';
+      errorMessage?: string;
+      completedAt: Date;
+    },
+  ): Promise<void> {
+    try {
+      await this.prisma.databaseControlAction.update({
+        where: { id },
+        data: {
+          status: completion.status,
+          errorMessage: completion.errorMessage ?? null,
+          completedAt: completion.completedAt,
+        },
+      });
+    } catch (error) {
+      // P2025 = "Record to update not found" — the action row was
+      // removed between start and background completion (e.g. a manual
+      // cleanup). Swallow so the background chain does not surface an
+      // unhandled rejection to the process exit handler.
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: unknown }).code === 'P2025'
+      ) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Returns the timestamp of the most recent IN_PROGRESS or SUCCESS row of
    * the given action type, used to enforce the cooldown window. Returns
    * null if there is no recent action.

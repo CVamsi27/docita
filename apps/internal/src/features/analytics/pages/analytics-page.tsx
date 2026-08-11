@@ -7,7 +7,7 @@ import { downloadInternalAnalyticsExport } from "@workspace/data-access/internal
 import { API_URL } from "@/lib/api/api-config";
 import { internalSession } from "@/lib/auth/session";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatCompactCurrency } from "@/lib/formatters";
 import { apiGet } from "@/lib/api/api-client";
 import { BillingOverviewCards } from "../components/analytics-billing-cards";
 import { MetricCardsGrid } from "../components/analytics-metric-cards";
@@ -42,7 +42,7 @@ function buildMetrics(data: InternalAnalyticsData | null) {
   return [
     {
       title: "Total Revenue",
-      value: data ? `\u20b9${((data.revenue || 0) / 1000).toFixed(1)}K` : "\u20b90",
+      value: data ? formatCompactCurrency(data.revenue || 0) : formatCompactCurrency(0),
       change: formatChange(data?.revenueChange),
       trend: resolveTrend(data?.revenueChange),
       icon: icons.revenue,
@@ -63,7 +63,7 @@ function buildMetrics(data: InternalAnalyticsData | null) {
     },
     {
       title: "Avg Invoice Value",
-      value: data ? `\u20b9${(data.avgInvoiceValue || 0).toFixed(2)}` : "\u20b90.00",
+      value: data ? formatCurrency(data.avgInvoiceValue || 0) : formatCurrency(0),
       change: formatChange(data?.invoiceValueChange),
       trend: resolveTrend(data?.invoiceValueChange),
       icon: icons.invoice,

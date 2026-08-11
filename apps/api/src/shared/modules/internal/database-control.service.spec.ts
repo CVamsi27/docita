@@ -95,6 +95,9 @@ function makeCtx() {
       .fn<() => Promise<string>>()
       .mockResolvedValue('action-id-1'),
     recordCompletion: jest.fn<() => Promise<void>>().mockResolvedValue(),
+    recordBackgroundCompletion: jest
+      .fn<() => Promise<void>>()
+      .mockResolvedValue(),
     findLastActionTimestamp: jest
       .fn<() => Promise<Date | null>>()
       .mockResolvedValue(null),
@@ -325,5 +328,45 @@ describe('DatabaseControlService cooldown', () => {
       ADMIN_USER,
     );
     expect(ctx.rds.requestStart).toHaveBeenCalled();
+  });
+
+  it('persists a FAILED outcome when the background waitForStopped chain rejects', async () => {
+    // Arrange: the SDK accepted the stop request (so the API call returns
+    // 202), but the long-running wait chain that follows the instance
+    // transition times out. The operator must see the failure on the next
+    // getState() poll.
+    (ctx.rds.waitForStopped as jest.Mock).mockRejectedValueOnce(
+      new Error('waitForStopped timed out after 5m'),
+    );
+
+    const result = await ctx.service.execute(
+      { action: 'STOP', reason: 'background wait failure test' },
+      ADMIN_USER,
+    );
+
+    // The foreground call still returned the actionId.
+    expect(result.actionId).toBe('action-id-1');
+
+    // Let the background chain complete (microtask flush).
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(ctx.state.recordBackgroundCompletion).toHaveBeenCalledWith(
+      'action-id-1',
+      expect.objectContaining({
+        status: 'FAILED',
+        errorMessage: expect.stringContaining('waitForStopped timed out'),
+      }),
+    );
+  });
+
+  it('does not call recordBackgroundCompletion when the background wait succeeds', async () => {
+    await ctx.service.execute(
+      { action: 'STOP', reason: 'background wait success test' },
+      ADMIN_USER,
+    );
+    // Flush the success chain.
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(ctx.state.recordBackgroundCompletion).not.toHaveBeenCalled();
   });
 });

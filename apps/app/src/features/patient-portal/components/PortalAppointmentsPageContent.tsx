@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { PatientPortalAppointmentsUI } from "@/features/patient-portal/components";
 import { usePatientPortalAppointments, useRequestAppointment } from "@workspace/data-access";
 import { useTranslation } from "react-i18next";
-import { AppPageScaffold, Button, DataState, Input, IsoDatePickerField, Label, PageHeader, Textarea } from "@workspace/ui/components";
+import { AppPageScaffold, Button, DataState, Input, IsoDatePickerField, Label, PageHeader, Textarea, TimePicker } from "@workspace/ui/components";
 import {
   Card,
   CardContent,
@@ -98,11 +98,12 @@ export default function PortalAppointmentsPage() {
                 triggerClassName="h-10 w-full min-w-0 sm:w-full lg:w-[160px]"
               />
             </div>
-            <Input
-              type="time"
+            <TimePicker
               value={preferredTime}
-              onChange={(event) => setPreferredTime(event.target.value)}
-              aria-label={t("appointments.preferredTimeLabel")}
+              onChange={(value) => setPreferredTime(value)}
+              placeholder={t("appointments.preferredTimeLabel")}
+              use12Hour={false}
+              stepMinutes={15}
             />
             <Textarea
               value={notes}

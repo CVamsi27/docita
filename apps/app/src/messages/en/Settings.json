@@ -316,7 +316,9 @@
     "emptyMessage": "No time away scheduled for this doctor",
     "removeTooltip": "Remove",
     "addTimeAwayButton": "Add time away",
-    "savingLabel": "Saving…"
+    "savingLabel": "Saving…",
+    "selectStartPlaceholder": "Select start time",
+    "selectEndPlaceholder": "Select end time"
   },
   "doctorProfile": {
     "digitalSignatureTitle": "Digital signature",

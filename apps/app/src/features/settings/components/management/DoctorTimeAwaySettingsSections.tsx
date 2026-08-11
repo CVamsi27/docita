@@ -9,6 +9,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { Input } from "@workspace/ui/components/form/input";
 import { Switch } from "@workspace/ui/components/form/switch";
+import { TimePicker } from "@workspace/ui/components/form/time-picker";
 import {
   Select,
   SelectContent,
@@ -118,20 +119,24 @@ function TimeAwayAvailabilityControls({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="time-away-partial-start">{t("awayFromLabel")}</Label>
-            <Input
+            <TimePicker
               id="time-away-partial-start"
-              type="time"
               value={partialStart}
-              onChange={(e) => onPartialStartChange(e.target.value)}
+              onChange={(value) => onPartialStartChange(value)}
+              placeholder={t("selectStartPlaceholder")}
+              use12Hour={false}
+              stepMinutes={15}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="time-away-partial-end">{t("awayUntilLabel")}</Label>
-            <Input
+            <TimePicker
               id="time-away-partial-end"
-              type="time"
               value={partialEnd}
-              onChange={(e) => onPartialEndChange(e.target.value)}
+              onChange={(value) => onPartialEndChange(value)}
+              placeholder={t("selectEndPlaceholder")}
+              use12Hour={false}
+              stepMinutes={15}
             />
           </div>
         </div>

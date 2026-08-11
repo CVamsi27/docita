@@ -316,7 +316,9 @@
     "emptyMessage": "इस डॉक्टर के लिए कोई अनुपस्थिति निर्धारित नहीं है",
     "removeTooltip": "हटाएं",
     "addTimeAwayButton": "अनुपस्थिति जोड़ें",
-    "savingLabel": "सहेजा जा रहा है…"
+    "savingLabel": "सहेजा जा रहा है…",
+    "selectStartPlaceholder": "आरंभ समय चुनें",
+    "selectEndPlaceholder": "समाप्ति समय चुनें"
   },
   "doctorProfile": {
     "digitalSignatureTitle": "डिजिटल हस्ताक्षर",

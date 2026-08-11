@@ -40,6 +40,28 @@ export function formatCurrency(
   }).format(amount);
 }
 
+/**
+ * Compact currency formatter for analytics cards ("₹1.2L", "$2.5M"). Uses
+ * `Intl.NumberFormat` compact notation so the suffix is locale-correct
+ * without the hand-rolled `value / 1000` math that loses precision and
+ * breaks for sub-1K values. Falls back to the regular `formatCurrency` for
+ * sub-1K amounts so the analytics card stays readable when there is no
+ * revenue yet.
+ */
+export function formatCompactCurrency(
+  amount: number,
+  options?: { currency?: string; fractionDigits?: number }
+): string {
+  if (!Number.isFinite(amount)) return formatCurrency(0, options);
+  if (Math.abs(amount) < 1_000) return formatCurrency(amount, options);
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: options?.currency ?? "INR",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(amount);
+}
+
 export function formatDate(date: string | Date, _format?: string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return d.toLocaleString("en-IN", {

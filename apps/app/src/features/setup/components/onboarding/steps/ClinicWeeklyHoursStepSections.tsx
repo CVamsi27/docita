@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
-import { Label, Switch } from "@workspace/ui/components";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
+import { Label, Switch, TimePicker } from "@workspace/ui/components";
 import { DAY_OF_WEEK_LABELS, type DayOfWeek } from "@workspace/types";
 import type { ClinicWeeklyHourRow } from "@/features/setup/components/onboarding/types";
 
@@ -49,12 +49,13 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
           >
             {t("opens")}
           </Label>
-          <Input
+          <TimePicker
             id={`clinic-hours-${day}-start`}
-            type="time"
             value={dayRow.startTime}
-            onChange={(e) => onUpdateDay(day, { startTime: e.target.value })}
+            onChange={(value) => onUpdateDay(day, { startTime: value })}
             disabled={!dayRow.isActive}
+            use12Hour={false}
+            stepMinutes={15}
             className="rounded-[var(--radius-md)]"
           />
         </div>
@@ -65,12 +66,13 @@ export function DayRowCard({ day, dayRow, onUpdateDay }: DayRowCardProps) {
           >
             {t("closes")}
           </Label>
-          <Input
+          <TimePicker
             id={`clinic-hours-${day}-end`}
-            type="time"
             value={dayRow.endTime}
-            onChange={(e) => onUpdateDay(day, { endTime: e.target.value })}
+            onChange={(value) => onUpdateDay(day, { endTime: value })}
             disabled={!dayRow.isActive}
+            use12Hour={false}
+            stepMinutes={15}
             className="rounded-[var(--radius-md)]"
           />
         </div>
