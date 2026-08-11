@@ -411,6 +411,8 @@ function registerShutdownHandlers(
 ): void {
   const observabilityService = app.get(ObservabilityService);
 
+  const shutdownTimeoutMs = Number(process.env.SHUTDOWN_TIMEOUT_MS) || 15_000;
+
   const gracefulShutdown = () => {
     server.close(async () => {
       await observabilityService.flush(5000);
@@ -422,7 +424,7 @@ function registerShutdownHandlers(
 
     setTimeout(() => {
       process.exit(1);
-    }, 15000);
+    }, shutdownTimeoutMs);
   };
 
   process.on('SIGTERM', gracefulShutdown);
