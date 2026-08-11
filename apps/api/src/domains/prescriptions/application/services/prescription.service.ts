@@ -1,11 +1,11 @@
 // jscpd:ignore-start
 import { Injectable } from '@nestjs/common';
 import { PrescriptionDetail } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
+import type { CreatePrescriptionCommand } from '@/domains/prescriptions/core/repositories/prescription-commands';
 import { type EnqueuePdfJobResponse } from '@workspace/types';
 import { DEFAULT_LOCALE } from '@workspace/utils';
 import { PrescriptionsCommandService } from './prescriptions-command.service';
 import { PrescriptionsQueryService } from './prescriptions-query.service';
-import type { CreatePrescriptionParams } from './prescription-create.type';
 
 /**
  * Facade — delegates prescription reads and mutations to query/command services.
@@ -36,7 +36,7 @@ export class PrescriptionsService {
     return this.queryService.findOne(id, clinicId);
   }
 
-  create(data: CreatePrescriptionParams) {
+  create(data: CreatePrescriptionCommand) {
     return this.commandService.create(data);
   }
 

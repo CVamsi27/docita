@@ -1,8 +1,11 @@
 import { Prescription } from '@workspace/db';
+import type { PaginatedResult } from '@/shared/common/repositories/base-repository.types';
 import {
   CreatePrescriptionCommand,
   UpdatePrescriptionCommand,
 } from './prescription-commands';
+
+export type { PaginatedResult };
 
 export interface PrescriptionSearchParams {
   clinicId: string;
@@ -15,15 +18,7 @@ export interface PrescriptionSearchParams {
   limit?: number;
 }
 
-export interface PaginatedResult<T> {
-  items: T[];
-  nextCursor?: string;
-  hasMore: boolean;
-  count: number;
-}
-
 export interface PrescriptionDetail extends Prescription {
-  // jscpd:ignore-end
   medications: Array<{
     id: string;
     name: string;

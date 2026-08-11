@@ -22,8 +22,8 @@ import {
 import { type EnqueuePdfJobResponse } from '@workspace/types';
 
 import { PrescriptionDetail } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
+import type { CreatePrescriptionCommand } from '@/domains/prescriptions/core/repositories/prescription-commands';
 import { PrescriptionPdfOrchestratorService } from './prescription-pdf-orchestrator.service';
-import type { CreatePrescriptionParams } from './prescription-create.type';
 
 @Injectable()
 export class PrescriptionsCommandService {
@@ -38,7 +38,7 @@ export class PrescriptionsCommandService {
     private readonly pdfOrchestrator: PrescriptionPdfOrchestratorService,
   ) {}
 
-  async create(data: CreatePrescriptionParams) {
+  async create(data: CreatePrescriptionCommand) {
     const doctorProfile = await this.repository.findDoctorCompliance(
       data.doctorId,
       data.clinicId,
@@ -180,8 +180,16 @@ export class PrescriptionsCommandService {
         quantity: med.quantity,
         refillsAllowed: med.refillsAllowed ?? 0,
         dispenseAsWritten: med.dispenseAsWritten ?? false,
-        startDate: med.startDate ? new Date(med.startDate) : undefined,
-        endDate: med.endDate ? new Date(med.endDate) : undefined,
+        startDate: med.startDate
+          ? med.startDate instanceof Date
+            ? med.startDate
+            : new Date(med.startDate)
+          : undefined,
+        endDate: med.endDate
+          ? med.endDate instanceof Date
+            ? med.endDate
+            : new Date(med.endDate)
+          : undefined,
         isPRN: med.isPRN ?? false,
         prnInstructions: med.prnInstructions,
         prnMaxDose: med.prnMaxDose,

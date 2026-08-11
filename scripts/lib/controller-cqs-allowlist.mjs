@@ -20,4 +20,25 @@ export const CONTROLLER_CQS_ALLOWLIST = new Set([
   /** Clinic-side referral port adapter: read status + apply code. Both routes
    * land in the same controller and share the same session/clinicId binding. */
   "IClinicReferralAppService",
+  /** WhatsApp approval route (legacy controller): single mutation `approvePrescription` /
+   * `approveInvoice`. Both are writes; introducing a *CommandService wrapper would add
+   * a pass-through. The 2026-08 facade-removal refactor (2881b8929) intentionally
+   * promoted the use-case to the controller boundary. */
+  "ApprovalService",
+  /** WhatsApp legacy logs route: `getLogs` + `getWhatsappStats` are both reads on the
+   * same data source behind a single legacy controller. Rename to *QueryService
+   * tracked as a follow-up; the rename would be mechanical and adds no behavior. */
+  "MessagingService",
+  /** WhatsApp resend route: single mutation `resendMessage`. Pure write — wrapping in
+   * a *CommandService would be a pass-through. */
+  "WhatsappResendService",
+  /** WhatsApp template-message route: single mutation `handleSendCustomMessage`. */
+  "TemplateMessageService",
+  /** Consent compliance: `recordConsent` / `withdrawConsent` / `setMarketingConsent` /
+   * `setDpdpNoticeConsent` (writes) plus `hasValidConsent` / `getConsentHistory` /
+   * `validateWhatsAppConsent` (reads). Mixed CQS behind a single DPDP consent surface.
+   * The 2026-08 facade-removal refactor (19535755b) promoted the previously-wrapped
+   * `DPDPComplianceService` use-cases into this class; splitting into
+   * `ConsentCommandService` + `ConsentQueryService` is tracked as a follow-up. */
+  "ConsentComplianceService",
 ]);

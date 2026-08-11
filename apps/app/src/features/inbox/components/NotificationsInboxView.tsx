@@ -120,6 +120,9 @@ export function NotificationsInboxView() {
     [byTab],
   );
 
+  // Reset active tab to "all" when the currently selected tab is no longer in the visible
+  // set. Kept as a useEffect (rather than inlined into render) because calling a setState
+  // during render triggers a React warning; the effect runs after render commits.
   useEffect(() => {
     if (!visibleCategories.some((c) => c.id === activeTab)) setActiveTab("all");
   }, [visibleCategories, activeTab]);
