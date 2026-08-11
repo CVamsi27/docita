@@ -49,7 +49,7 @@ The backend is in **structurally clean shape**. The 80+ `verify:standard` checks
 
 **Net removals landed in this cycle:** 3 (1 dead import, 1 dead eslint suppression, 1 dead knip false-positive entry). **Net bug fixes landed:** 2 (`ApprovalService.approveInvoice` copy-paste where-clause + 1 typecheck break in the spec, 1 `$transaction` mock type narrowing in `referral-conversion-credit.service.spec.ts`). **Net Zod drift fixed:** 5 internal-admin DTOs migrated to Zod-first.
 
-**Removals possible but deferred:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (~20h of port-and-repository extraction), 3 single-line barrel aliases, 1 IPD feature barrel, 1 `ConsentContent` type demotion.
+**Removals possible but deferred:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (~20h of port-and-repository extraction), 1 `ConsentComplianceService` CQS split (2h).
 
 ---
 
@@ -744,7 +744,7 @@ CI state (this cycle's commits):
 - **Related runbook:** (planned) `docs/runbooks/graceful-shutdown.md` per §9.8; (planned) `docs/runbooks/tenant-isolation.md` per §9.5
 - **Fixed in:** PR #211 (commits `bb13fbbff`, `13a6844bb`, `e22397f9a`, `39c029391`)
 - **Verified by:** `pnpm verify:standard` exit 0; API unit 3308/3308; invoice-abac 9/9; partner-portal 13/13; clinic-management spec 8/8; referral-conversion-credit spec 5/5
-- **Open follow-ups:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (§8.1), 3 barrel inlines (§8.2), 1 IPD barrel removal (§8.3), 1 `ClinicTierType` deletion (§9.14), and the 12 follow-up items in §10 (~7.5h for items 1-10 plus ~20h for #11).
+- **Open follow-ups:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (§8.1), `ConsentComplianceService` CQS split (§9.4), API latency baseline (§9.10).
 
 ---
 
@@ -765,6 +765,12 @@ CI state (this cycle's commits):
 | Skip-to-content links | §14.2 #5 (frontend) | **DONE** | Added `<a href="#main-content">` to app and internal layouts. |
 | animate-pulse → Skeleton | §14.3 #11 (frontend) | **DONE** | Replaced `animate-pulse` in `consultation-dashboard-sections.tsx` with `<Skeleton>`. |
 | transition-all scoping | §14.3 #10 (frontend) | **DONE** | Scoped 2 `transition-all` in internal to `transition-[width]`. |
+| 3 barrel re-export inlines | §8.2 | **DONE** | Deleted clinics.service.ts, templates.service.ts, ocr.service.ts barrels; updated 12 files. |
+| seed-constants pretest | §9.11 | **DONE** | Added `"pretest"` script to `apps/api/package.json`. |
+| IPD sub-feature deletion | §9.2 (frontend) | **DONE** | 15 files deleted (~500 lines). |
+| ClinicTierType alias deletion | §9.14 | **DONE** | Removed from `packages/types/src/admin/internal.ts`. |
+| 3 cron unit specs | §15.2 | **DONE** | 3 specs written (12 tests) for doctor-reverification, medical-code-sync, whatsapp-reconciliation. |
+| file-size-budget gate extension | §15.3 | **DONE** | Gate extended to `shared/modules/**/*.service.ts` with 3 allowlisted services. |
 | Mixed-export file splits | §9.3 (frontend) | **PARTIAL** | 4 context files split (auth, app-config, clinic, socket); 12 remaining warnings are re-exports needed for backward compatibility (104 consumers). |
 
 ### 14.2 Remaining lint warnings (16 in app, 2 in internal)
@@ -781,7 +787,7 @@ The remaining react-refresh warnings are **safe to defer** — they affect HMR s
 | Item | § ref | Status | Notes |
 |---|---|---|---|
 | 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | §8.1 | OPEN | ~20h estimated. Lowest-risk: `modules/config/config.service.ts` + `default-pricing-calculator.strategy.ts` (1h each). |
-| 3 barrel inlines | §8.2 | OPEN | 15 min total. Deferred to avoid merge conflicts with parallel branches. |
+| ~~3 barrel inlines~~ | §8.2 | **DONE** | 3 barrels deleted (clinics, templates, ocr); 7 prod + 5 spec files updated to import from canonical sources. |
 | ~~IPD barrel removal~~ | §8.3 | **DONE** | Entire IPD feature deleted (~500 lines, 15 files). |
 | ~~`ClinicTierType` deletion~~ | §9.14 | **DONE** | Type alias removed from `packages/types/src/admin/internal.ts`. |
 | ~~ClinicContextGuard (§9.2)~~ | §9.2 | **DONE** | Removed 5 redundant inline checks in subscriptions controller; `TenantGuard` (global `APP_GUARD`) already handles this. Partner-portal's throw is intentionally a 500 (server misconfiguration). |
@@ -790,7 +796,7 @@ The remaining react-refresh warnings are **safe to defer** — they affect HMR s
 | ~~Prettier auto-fix (§9.9)~~ | §9.9 | **DONE** | Applied across api + worker (84 files, API warnings 203 → 5). |
 | ConsentComplianceService CQS split | §9.4 | OPEN | 2h. Split into Command/Query services. |
 | API latency baseline | §9.10 | OPEN | 30 min + stable staging soak. |
-| seed-constants pretest | §9.11 | OPEN | 10 min. Add `pretest` build step. |
+| ~~seed-constants pretest~~ | §9.11 | **DONE** | Added `"pretest": "pnpm --filter @workspace/utils run build"` to `apps/api/package.json`. |
 
 ---
 
@@ -852,9 +858,7 @@ The `check:file-size-budget` gate only fires for `domains/**/services/*.service.
 | Item | § ref | Status | Priority | Est. |
 |---|---|---|---|---|
 | 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | §8.1 | OPEN | MED | ~20h |
-| 3 barrel inlines | §8.2 | OPEN | LOW | 15 min |
 | ConsentComplianceService CQS split | §9.4 | OPEN | MED | 2h |
 | API latency baseline | §9.10 | OPEN | LOW | 30 min |
-| seed-constants pretest | §9.11 | OPEN | LOW | 10 min |
 | ~~3 unspecced crons~~ | §15.2 | **DONE** | 3 specs written (12 tests). |
 | ~~Extend file-size-budget gate~~ | §15.3 | **DONE** | Gate extended to `shared/modules/**/*.service.ts` with 3 pre-existing allowlisted services. |
