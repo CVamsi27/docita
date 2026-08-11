@@ -131,7 +131,7 @@ export function usePatientsLogic() {
 
   const clearSearch = useCallback(() => setSearchQuery(""), []);
 
-  const openAddDialog = useCallback(() => setIsAddDialogOpen(true), []);
+  const openAddDialog = useCallback(() => setIsAddDialogOpen(true), [setIsAddDialogOpen]);
 
   const onPatientAdded = useCallback(() => {
     void refetch();

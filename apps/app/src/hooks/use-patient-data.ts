@@ -75,7 +75,8 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
   // The appointments list endpoint returns schema-validated list items; the
   // detail surface only reads id/startTime/status/vitalSign, all present on
   // the list-item contract, so consumers are typed against that shape.
-  const appointments = appointmentsQuery.data?.items ?? [];
+  const EMPTY_ARRAY: never[] = [];
+  const appointments = appointmentsQuery.data?.items ?? EMPTY_ARRAY;
   const loading = patientQuery.isLoading || appointmentsQuery.isLoading;
   const error = patientQuery.error?.message ?? appointmentsQuery.error?.message ?? null;
   const refetch = () => {

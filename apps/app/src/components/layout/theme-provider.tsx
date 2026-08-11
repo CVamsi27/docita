@@ -20,7 +20,11 @@ function applyThemeToDOM(
     root.classList.remove("dark");
   }
   root.setAttribute("data-theme", resolved);
-  root.setAttribute("data-accent", primaryColor);
+  if (primaryColor && primaryColor !== "blue") {
+    root.setAttribute("data-accent", primaryColor);
+  } else {
+    root.removeAttribute("data-accent");
+  }
   root.setAttribute("data-density", compactMode ? "compact" : "comfortable");
 }
 

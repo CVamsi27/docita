@@ -17,22 +17,22 @@ function WhatsappOperationsContent() {
   const { user } = useAuth();
   const canManageSender = isAdmin(user?.role);
 
-  // Declared before the useMemo below: the memo factory runs synchronously
-  // during the first render, so referencing TABS after its declaration line
-  // would hit the temporal dead zone (ReferenceError on the WhatsApp page).
-  const TABS: PageTabItem[] = [
-    { id: "sent", label: t("tabs.sent") },
-    { id: "campaigns", label: t("tabs.campaigns") },
-    { id: "templates", label: t("tabs.templates") },
-    { id: "delivery", label: t("tabs.delivery") },
-  ];
+  const TABS = useMemo<PageTabItem[]>(
+    () => [
+      { id: "sent", label: t("tabs.sent") },
+      { id: "campaigns", label: t("tabs.campaigns") },
+      { id: "templates", label: t("tabs.templates") },
+      { id: "delivery", label: t("tabs.delivery") },
+    ],
+    [t],
+  );
 
   const activeTab = useMemo(() => {
     const requested = searchParams?.get("tab");
     return TABS.some((tab) => tab.id === requested)
       ? (requested ?? "sent")
       : "sent";
-  }, [searchParams]);
+  }, [searchParams, TABS]);
 
   return (
     <AppPageScaffold
