@@ -323,8 +323,8 @@ triggered.
 
 ### 13.7 Final state at session end (2026-08-11 ~05:50 IST)
 
-- Branch tip: `3bd88dfa2`
-- Commits since §12: +7
+- Branch tip: `73f2ec8b2`
+- Commits since §12: +8
 - Files changed vs main: ~3900
 - `check:prisma-boundary` allowlist: 28 → 17 (9 services migrated).
 - `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS`: 17 remaining — billing/payments
@@ -335,6 +335,12 @@ triggered.
 - Full API unit suite: 469 suites, 3320/3320 tests pass.
 - Partner-portal e2e: 13/13 pass against local `docita-e2e-pg`.
 - `pnpm verify:standard`: green end-to-end.
+- **CI run 31445532758**: all 10 non-skipping checks pass
+  (Detect CI Scope, Internal Unit, Repository Standards, App Unit,
+  Landing, API E2E, API Unit, Worker Unit, Security Audit,
+  OSV). PR #211 → `mergeable: True, mergeable_state: clean,
+  rebaseable: False`. Use "Create a merge commit" or "Squash and
+  merge"; the rebase button is permanently disabled at this file count.
 - Decision unchanged: **do not auto-merge** — founder's call.
 
 End of session notes.
