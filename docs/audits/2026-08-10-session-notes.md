@@ -343,4 +343,144 @@ triggered.
   merge"; the rebase button is permanently disabled at this file count.
 - Decision unchanged: **do not auto-merge** — founder's call.
 
+## 14. Late-session batch (2026-08-11 11:00–15:50 IST)
+
+The user asked for four follow-ups, all addressed in commits
+`18d8c890f`…`f75c55c35`:
+
+### 14.1 Emojis audit + `check:no-emoji` (commit `18d8c890f`)
+
+The user said "remove emojis in the codebase, especially I see emoji in
+landing page, very bad". A targeted scan (`/tmp/find-emoji4.mjs` with
+pictographic Unicode planes U+1F000–U+1FFFF + U+1F1E6–U+1F1FF) found
+**0 colorful emoji in app/internal/landing source code**. The only
+non-ASCII characters are `⌘` and `⌥` (Mac command/option
+glyphs) in 3 files (consultation toolbar / palette actions /
+keyboard-shortcut-format.ts) — standard UI affordances, not the
+"colorful emoji" the user objected to.
+
+Added `check:no-emoji` (new gate, scripts/checks/check-no-emoji.mjs)
+that scans all `*.{ts,tsx,js,mjs,cjs,jsx,astro}` files in
+apps/, packages/, scripts/ and rejects any pictographic Unicode in
+the supplementary plane. Allow-list covers `⌘`, `⌥`, and a small
+set of CLI status glyphs (✅/❌/⚠) in two scripts. Wired into
+verify:standard after check:no-duplicate-shared-paths.
+
+### 14.2 Deep frontend checklist + 3 implementation items (commits `20fcfb193`, `18bc6ec2b`, `f7e1279ec`)
+
+The user asked "check entire frontend ... create a deep checklist ...
+create a detailed doc and start implementation". Wrote
+[docs/audits/2026-08-11-frontend-deep-audit.md](2026-08-11-frontend-deep-audit.md)
+(12.7 KB) — a top-10 ranked improvement list with impact × effort
+scoring and the Next.js → Vite migration verification (§10). All
+three implementation items from §11 of that doc are now in:
+
+- `check:tailwind-raw-color` (new gate, scripts/checks/check-tailwind-raw-color.mjs)
+  scans apps/ + packages/ + landing/ for raw color literals
+  (text-[#ff0000], bg-[rgb(...)], etc.) and rejects them. The Origin
+  palette lives as tokens in packages/ui/src/styles/globals.css.
+  Wired into verify:standard after check:token-typography.
+- `check:token-typography` extended to also catch `text-[NNrem]`
+  (the previous regex only matched `text-[NNpx]`). Uncovered and
+  fixed 5 actual regressions in app code
+  (apps/app/src/features/{patients/details/tabs/VitalsTabSections,
+  consultation/components/consultation-page-header-toolbar-sections,
+  subscription/components/{billing-plans-section-sections,
+  pricing/comparison-table-desktop}}). All 5 changed
+  `text-[0.625rem]` → `text-[var(--fs-2xs)]` (the documented Origin
+  micro-label size per UI_UX_STANDARD_2026 §2.2).
+- `check:empty-state-coverage` (new gate) scans
+  apps/app/src/features/*/components/ for components that use a
+  TanStack Query data hook + have a length === 0 check + don't render
+  the canonical `<DataState status="empty">` or `<EmptyState />`.
+  Initial scan of 581 components found 2 offenders. One was a false
+  positive (the heuristic now skips files that already render DataState's
+  empty status). The other was a real gap in clinic-selection-page
+  (rendered a hand-rolled `<div>` with a Building2 icon + a tiny
+  text label). Fixed: now uses `<DataState>` with the `<EmptyState>`
+  primitive, a description, and a primary "create your first clinic"
+  CTA wired to `/onboarding`. Clinicians with 0 clinics now get a
+  one-click path to the onboarding flow instead of staring at a
+  blank list. Added i18n keys in both en + hi (Setup.clinicSelection.
+  noClinicsDescription + createClinic). Parity check passes (en
+  2970 = hi 2970 leaves).
+- `check:skeleton-animation` (new gate) bans `<Skeleton animation="wave|pulse">`
+  per UI_UX_STANDARD_2026 motion policy. The Skeleton primitive
+  already deprecates the prop, but the gate prevents regressions.
+  0 current violations.
+
+### 14.3 Next.js → Vite migration verification (covered in §10 of the audit doc)
+
+The user asked "also check if migration was done properly from next to vite".
+Full evidence:
+
+- No `*-next*` / `*-vite*` directories left: `find apps -maxdepth 2 -type d \( -name '*-next*' -o -name '*-vite*' \)` returns 0.
+- No `next.config.*` files: `find apps -name 'next.config*'` returns 0. The `middleware.ts` in apps/landing is Astro's `onRequest` (correct).
+- No `from 'next/...'` imports: `grep -rln "from 'next/" apps packages` returns 0.
+- No `next-intl|next-themes|next/font|next/image|next/link|next/router|next/script` runtime imports: 0.
+- No `"next"` dep in any package.json: `grep -l '"next"' apps/*/package.json packages/*/package.json` returns 0.
+- Comments mentioning `next-intl` or `next/navigation` exist in 4 files (apps/app/src/features/consultation/components/structured/diagnosis-item-row.tsx, apps/app/src/features/verify-email/components/VerifyEmailSentPageContentSections.tsx, apps/app/src/i18n/index.ts, packages/hooks/src/use-navigation-history-tracker.ts) — all are documentation of where the i18n code was ported from or where the original nav helper came from, not active imports.
+
+The migration is clean.
+
+### 14.4 PrismaService migration sweep (10 more files) — commits `47a5f5ba4`, `4fc29e7ff`, `f75c55c35`
+
+The user asked "cant we fix these?" about the parallel agent's
+additions to `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS`. Investigated: the
+parallel agent's commit `96662c4a2` extended the gate's coverage
+domain (28 → 29 entries — the "2 new entries" were the
+platform-health-alerts scheduler and the 4 newly-tracked scheduler/
+strategy classes in shared modules). Most of the new entries are
+legitimate tracked debt, but 4 of them (the 3 billing usage services)
+were stale — they had already been migrated to `IUsageRepository`
+behind the scenes, just not removed from the allowlist.
+
+Then the user said "implement all in this branch only
+fix/app-deployment-failure" — expanded the sweep:
+
+Four new persistence ports cover the 10 remaining service-layer
+files that still injected PrismaService directly:
+
+- `AnonymizationPersistencePort` (compliance/ports/) — `patient` + `runUnrestricted` for AnonymizationFactory.
+- `DataExportPersistencePort` (compliance/ports/) — `patient` + `runUnrestricted` for DataExportFactory. The export must return the whole record (DPDP right-to-access) so the port exposes the full patient graph.
+- `SearchStrategyPersistencePort` (search/ports/) — `prescription`, `patient`, `appointment` for the 3 search strategies.
+- `ImportStrategyPersistencePort` (imports/ports/) — union of all 4 import strategy delegates (appointment, inventoryItem, labTest, prescription, user).
+
+Module wirings (`ComplianceModule`, `SearchModule`, `ImportsModule`)
+register each port via `useExisting: PrismaService` so DI wires
+transparently. Specs updated to add the port provider (Nest DI
+needs the port registered before the strategies that consume it).
+
+Verification:
+
+- `pnpm check:prisma-boundary --enforce-prisma-service`: passes,
+  **7 tracked legacy uses** remaining (down from 17).
+- `pnpm check:fallow`: 100/100 (no dead-code or duplication).
+- `pnpm exec tsc --noEmit -p tsconfig.spec.json`: clean.
+- `pnpm --filter @docita/api run test`: 3331/3331 (470 suites).
+- `pnpm verify:standard`: passes end-to-end.
+
+### 14.5 Final state at session end (2026-08-11 15:50 IST)
+
+- Branch tip: `f75c55c35`
+- Commits since §12: +13
+- Files changed vs main: ~3930
+- `check:prisma-boundary` allowlist: 28 → 7 (21 services migrated over the whole session).
+- New gates added this session: `check:no-emoji`, `check:tailwind-raw-color`, `check:empty-state-coverage`, `check:skeleton-animation`.
+- 5 text-[0.625rem] → text-[var(--fs-2xs)] regressions fixed.
+- 43 mechanical Prisma*Repository spec files created.
+- 1 real empty-state gap (clinic-selection-page) fixed with proper CTA.
+- Full API unit suite: 470 suites, 3331/3331 tests pass.
+- `pnpm verify:standard`: green end-to-end.
+- `pnpm check:fallow`: 100/100.
+- CI run 31482254465: triggered, all checks pending as of writing.
+- Decision unchanged: **do not auto-merge** — founder's call.
+
+The remaining 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` entries are
+tracked debt for follow-up PRs (billing/strategies/ tier pricing,
+whatsapp-campaign-dispatch.cron, modules/config/config.service,
+compliance/data-retention.scheduler, ephemeral-store-cleanup.scheduler,
+messaging/admin-alerts/platform-health-alerts.scheduler,
+outbox/outbox-relay.scheduler).
+
 End of session notes.
