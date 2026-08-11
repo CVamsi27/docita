@@ -16,12 +16,11 @@ import {
 import {
   DEFAULT_LOCALE,
   checkPrescriptionAllergies,
-  parseStringEnumMember,
   validateControlledSubstances,
   validateDosage,
 } from '@workspace/utils';
 import { type EnqueuePdfJobResponse } from '@workspace/types';
-import { DosageForm, SigCode } from '@workspace/db';
+
 import { PrescriptionDetail } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
 import { PrescriptionPdfOrchestratorService } from './prescription-pdf-orchestrator.service';
 import type { CreatePrescriptionParams } from './prescription-create.type';
@@ -151,9 +150,9 @@ export class PrescriptionsCommandService {
     }
 
     const prescription = await this.repository.create({
-      appointment: { connect: { id: data.appointmentId } },
-      patient: { connect: { id: data.patientId } },
-      doctor: { connect: { id: data.doctorId } },
+      appointmentId: data.appointmentId,
+      patientId: data.patientId,
+      doctorId: data.doctorId,
       instructions: data.instructions,
       doctorName: data.doctorName ?? doctorProfile.name,
       doctorEmail: data.doctorEmail ?? doctorProfile.email,
@@ -166,39 +165,29 @@ export class PrescriptionsCommandService {
         undefined,
       doctorLicenseNumber:
         data.doctorLicenseNumber ?? doctorProfile.licenseNumber ?? undefined,
-      medications: {
-        create: data.medications.map((med) => ({
-          name: med.name,
-          dosage: med.dosage,
-          frequency: med.frequency,
-          duration: med.duration,
-          route: med.route || 'PO',
-          ndcCode: med.ndcCode,
-          rxNormCui: med.rxNormCui,
-          dosageForm: med.dosageForm
-            ? (parseStringEnumMember(
-                Object.values(DosageForm),
-                med.dosageForm,
-              ) ?? undefined)
-            : undefined,
-          strengthValue: med.strengthValue,
-          strengthUnit: med.strengthUnit,
-          sigCode: med.sigCode
-            ? (parseStringEnumMember(Object.values(SigCode), med.sigCode) ??
-              undefined)
-            : undefined,
-          quantity: med.quantity,
-          refillsAllowed: med.refillsAllowed ?? 0,
-          dispenseAsWritten: med.dispenseAsWritten ?? false,
-          startDate: med.startDate ? new Date(med.startDate) : undefined,
-          endDate: med.endDate ? new Date(med.endDate) : undefined,
-          isPRN: med.isPRN ?? false,
-          prnInstructions: med.prnInstructions,
-          prnMaxDose: med.prnMaxDose,
-          specialInstructions: med.specialInstructions,
-          indication: med.indication,
-        })),
-      },
+      medications: data.medications.map((med) => ({
+        name: med.name,
+        dosage: med.dosage,
+        frequency: med.frequency,
+        duration: med.duration,
+        route: med.route || 'PO',
+        ndcCode: med.ndcCode,
+        rxNormCui: med.rxNormCui,
+        dosageForm: med.dosageForm ?? undefined,
+        strengthValue: med.strengthValue,
+        strengthUnit: med.strengthUnit,
+        sigCode: med.sigCode ?? undefined,
+        quantity: med.quantity,
+        refillsAllowed: med.refillsAllowed ?? 0,
+        dispenseAsWritten: med.dispenseAsWritten ?? false,
+        startDate: med.startDate ? new Date(med.startDate) : undefined,
+        endDate: med.endDate ? new Date(med.endDate) : undefined,
+        isPRN: med.isPRN ?? false,
+        prnInstructions: med.prnInstructions,
+        prnMaxDose: med.prnMaxDose,
+        specialInstructions: med.specialInstructions,
+        indication: med.indication,
+      })),
     });
 
     if (data.clinicId) {

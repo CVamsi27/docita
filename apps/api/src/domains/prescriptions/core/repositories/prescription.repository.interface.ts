@@ -1,5 +1,8 @@
-// jscpd:ignore-start
-import { Prescription, Prisma } from '@workspace/db';
+import { Prescription } from '@workspace/db';
+import {
+  CreatePrescriptionCommand,
+  UpdatePrescriptionCommand,
+} from './prescription-commands';
 
 export interface PrescriptionSearchParams {
   clinicId: string;
@@ -95,10 +98,10 @@ export interface IPrescriptionRepository {
     params: PrescriptionSearchParams,
   ): Promise<Prescription[] | PaginatedResult<Prescription>>;
   findById(id: string, clinicId: string): Promise<PrescriptionDetail | null>;
-  create(data: Prisma.PrescriptionCreateInput): Promise<Prescription>;
+  create(data: CreatePrescriptionCommand): Promise<Prescription>;
   update(
     id: string,
-    data: Prisma.PrescriptionUpdateInput,
+    data: UpdatePrescriptionCommand,
     clinicId: string,
     expectedVersion?: number,
   ): Promise<Prescription>;
