@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TemplatesService } from './templates.service';
+import { TemplatesFacadeService as TemplatesService } from '@/shared/whatsapp/templates-facade.service';
 import { DefaultTemplatesService } from '@/shared/whatsapp/default-templates.service';
 import { TemplateDataService } from '@/shared/whatsapp/template-data.service';
 import { TemplateVariableService } from '@/shared/whatsapp/template-variable.service';

@@ -10,7 +10,7 @@ import {
   Request,
   UsePipes,
 } from '@nestjs/common';
-import { ClinicsService } from '@/domains/clinics/application/services/clinics.service';
+import { ClinicsService } from '@/domains/clinics/application/services/clinics-facade.service';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import {

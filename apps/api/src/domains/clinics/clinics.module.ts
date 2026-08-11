@@ -6,7 +6,7 @@ import { ClinicsComplianceController } from './presentation/controllers/clinics-
 import { ClinicReferralController } from './presentation/controllers/clinic-referral.controller';
 import { ClinicSettingsController } from './presentation/controllers/clinic-settings.controller';
 import { JoinRequestsController } from './presentation/controllers/join-requests.controller';
-import { ClinicsService } from './application/services/clinics.service';
+import { ClinicsService } from './application/services/clinics-facade.service';
 import { ClinicDataService } from './application/services/clinic-data.service';
 import { ClinicDataCommandService } from './application/services/clinic-data-command.service';
 import { ClinicDataQueryService } from './application/services/clinic-data-query.service';

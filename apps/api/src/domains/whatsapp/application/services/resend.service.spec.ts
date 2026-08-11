@@ -8,7 +8,7 @@ import {
 import { WhatsappResendService } from './resend.service';
 import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
-import { TemplatesService } from './templates.service';
+import { TemplatesFacadeService as TemplatesService } from '@/shared/whatsapp/templates-facade.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { ApprovalStatus, WhatsappLogStatus } from '@workspace/db';
 import {

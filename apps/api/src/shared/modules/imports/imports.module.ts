@@ -25,7 +25,6 @@ import {
   LabTestImportStrategy,
   InventoryImportStrategy,
 } from './strategies';
-import { OCRService as _OCRService } from './ocr.service';
 import { OCRFacadeService } from './ocr-facade.service';
 import { ImagePreprocessorService } from './image-preprocessor.service';
 import { TextExtractorService } from './text-extractor.service';

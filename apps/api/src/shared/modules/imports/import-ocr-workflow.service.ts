@@ -6,7 +6,7 @@ import { Feature } from '@workspace/types';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { clinicHasFeatureForAccess } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { AIService } from '@/shared/modules/ai/ai.service';
-import { OCRService } from './ocr.service';
+import { OCRFacadeService as OCRService } from './ocr-facade.service';
 
 interface OcrExtractionResult {
   success: boolean;
