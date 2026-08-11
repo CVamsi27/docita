@@ -770,3 +770,16 @@ html.dark[data-accent="slate"] {
     scrollbar-width: none;
   }
 }
+
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skeleton]::after {
+    animation: none !important;
+  }
+}

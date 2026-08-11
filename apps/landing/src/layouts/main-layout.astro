@@ -111,6 +111,23 @@ const structuredDataItems =
     {structuredDataItems.map((item) => (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />
     ))}
+    <script is:inline>
+      /* Scroll-aware header: add backdrop blur + border after user scrolls */
+      (() => {
+        const header = document.querySelector('.landing-site-header');
+        if (!header) return;
+        const onScroll = () => {
+          const scrolled = window.scrollY > 8;
+          header.classList.toggle('backdrop-blur-md', scrolled);
+          header.classList.toggle('bg-background/85', scrolled);
+          header.style.borderBottomColor = scrolled
+            ? 'color-mix(in oklch, var(--primary) 18%, var(--border))'
+            : '';
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      })();
+    </script>
     <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-8M9WEK4LEE"></script>
     <script is:inline>
       window.dataLayer = window.dataLayer || [];

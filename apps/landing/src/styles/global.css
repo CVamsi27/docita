@@ -315,6 +315,17 @@
   pointer-events: none;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* header height + breathing room */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 html,
 body {
   max-width: 100%;
