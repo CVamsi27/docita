@@ -12,7 +12,7 @@ import {
   closeDatabase,
 } from '../../setup';
 import { WhatsappConfigService } from '@/shared/modules/config/whatsapp-config.service';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 
 /**
@@ -73,7 +73,7 @@ describe('WhatsApp webhook ingress (e2e)', () => {
       .useValue(getPrismaInstance())
       .overrideProvider(WhatsappConfigService)
       .useValue(mockMetaConfig)
-      .overrideProvider(WhatsappService)
+      .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .compile();
 

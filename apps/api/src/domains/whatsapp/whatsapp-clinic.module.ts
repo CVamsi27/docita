@@ -1,6 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
 import {
-  WhatsappService,
   WhatsappResendService,
   SystemEventsService,
   ApprovalService,
@@ -64,8 +63,6 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     MessagingService,
     TemplateMessageService,
 
-    WhatsappService,
-
     WhatsappClientAdapter,
     {
       provide: WHATSAPP_CLIENT_TOKEN,
@@ -90,7 +87,6 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     StaffNotificationListener,
   ],
   exports: [
-    WhatsappService,
     TemplatesFacadeService,
     WhatsappClientAdapter,
     {

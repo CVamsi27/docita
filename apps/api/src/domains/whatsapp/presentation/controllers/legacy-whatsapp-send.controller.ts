@@ -14,7 +14,7 @@ import {
   type SendWhatsAppCustomMessageRequest,
 } from '@workspace/types';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { TemplateMessageService } from '@/domains/whatsapp/application/services/template-message.service';
 import { SendWhatsappCustomMessageResponseDto } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
 import { requireClinicActor } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers';
@@ -22,7 +22,7 @@ import { requireClinicActor } from '@/domains/whatsapp/presentation/controllers/
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappSendController {
-  constructor(private readonly whatsappService: WhatsappService) {}
+  constructor(private readonly templateMessageService: TemplateMessageService) {}
 
   @UsePipes(new ZodValidationPipe(sendWhatsAppCustomMessageRequestSchema))
   @HttpCode(HttpStatus.OK)
@@ -33,6 +33,6 @@ export class LegacyWhatsappSendController {
     @Body() dto: SendWhatsAppCustomMessageRequest,
   ) {
     const { clinicId, id } = requireClinicActor(req);
-    return this.whatsappService.handleSendCustomMessage(clinicId, id, dto);
+    return this.templateMessageService.handleSendCustomMessage(clinicId, id, dto);
   }
 }

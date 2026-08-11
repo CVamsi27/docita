@@ -21,7 +21,7 @@ import {
 } from '../../setup';
 import { factories, setPrismaInstance } from '../../factories';
 import { signE2eAccessToken } from '../../e2e-auth-token';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN } from '@/domains/payments/core/ports/payment-link-provider.port';
 import {
@@ -44,7 +44,7 @@ describe('Audit log ABAC policy (e2e, C5)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(WhatsappService)
+      .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .overrideProvider(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
       .useValue(mockPaymentLinkProvider)

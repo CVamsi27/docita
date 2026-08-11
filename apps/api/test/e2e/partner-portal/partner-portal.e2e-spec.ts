@@ -17,7 +17,7 @@ import {
   getPrismaInstance,
 } from '../../setup';
 import { setPrismaInstance } from '../../factories';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { getCsrfHeaders } from '../../csrf-helpers';
 
@@ -103,7 +103,7 @@ describe('Partner Portal (e2e)', () => {
       .useValue(getPrismaInstance())
       .overrideProvider(WHATSAPP_CLIENT_TOKEN)
       .useValue(mockWhatsAppClient)
-      .overrideProvider(WhatsappService)
+      .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .compile();
 

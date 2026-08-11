@@ -11,7 +11,7 @@ import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { ApprovalService } from '@/domains/whatsapp/application/services/approval.service';
 import { SuccessResponseDto } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
 import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/require-clinic-id';
@@ -19,7 +19,7 @@ import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/req
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappApprovalController {
-  constructor(private readonly whatsappService: WhatsappService) {}
+  constructor(private readonly approvalService: ApprovalService) {}
 
   @Post('approve-prescription/:id')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
@@ -31,7 +31,7 @@ export class LegacyWhatsappApprovalController {
   ) {
     const userId = getAuthenticatedUserId(req.user);
     if (!userId) throw new ForbiddenException('Authenticated user required');
-    return this.whatsappService.approvePrescription(
+    return this.approvalService.approvePrescription(
       id,
       userId,
       requireClinicId(req),
@@ -49,7 +49,7 @@ export class LegacyWhatsappApprovalController {
   async approveInvoice(@Req() req: RequestWithUser, @Param('id') id: string) {
     const userId = getAuthenticatedUserId(req.user);
     if (!userId) throw new ForbiddenException('Authenticated user required');
-    return this.whatsappService.approveInvoice(
+    return this.approvalService.approveInvoice(
       id,
       userId,
       requireClinicId(req),

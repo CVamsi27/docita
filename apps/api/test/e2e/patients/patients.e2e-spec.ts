@@ -12,7 +12,7 @@ import {
   getPrismaInstance,
 } from '../../setup';
 import { factories, setPrismaInstance } from '../../factories';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import {
   listPatientsResponseSchema,
@@ -36,7 +36,7 @@ describe('Patients (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(WhatsappService)
+      .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .overrideProvider(CACHE_MANAGER)
       .useValue({

@@ -14,7 +14,7 @@ import {
 } from '../../setup';
 import { PAYMENT_GATEWAY_TOKEN } from '@/domains/subscriptions/application/ports';
 import { RazorpayConfigService } from '@/shared/modules/config/razorpay-config.service';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { getCsrfHeaders } from '../../csrf-helpers';
 
@@ -68,7 +68,7 @@ describe('CSRF exemption for webhook ingress (e2e)', () => {
       .useValue(mockPaymentGateway)
       .overrideProvider(RazorpayConfigService)
       .useValue(mockRazorpayConfig)
-      .overrideProvider(WhatsappService)
+      .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .compile();
 

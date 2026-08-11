@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PublicBookingService } from '@/domains/public-booking/application/services/public-booking.service';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 
 describe('PublicBookingController (e2e)', () => {
@@ -27,7 +27,7 @@ describe('PublicBookingController (e2e)', () => {
     })
       .overrideProvider(PublicBookingService)
       .useValue(mockPublicBookingService)
-      .overrideProvider(WhatsappService)
+      .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .compile();
 

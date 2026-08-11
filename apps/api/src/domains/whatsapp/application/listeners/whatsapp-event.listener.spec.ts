@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WhatsappEventListener } from './whatsapp-event.listener';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { SystemEventsService } from '@/domains/whatsapp/application/services/system-events.service';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { Logger } from '@nestjs/common';
@@ -22,18 +22,18 @@ import {
 describe('WhatsappEventListener', () => {
   let listener: WhatsappEventListener;
   const sendPrescriptionSystemMock =
-    jest.fn<WhatsappService['sendPrescriptionSystem']>();
-  const sendInvoiceSystemMock = jest.fn<WhatsappService['sendInvoiceSystem']>();
+    jest.fn<SystemEventsService['sendPrescriptionSystem']>();
+  const sendInvoiceSystemMock = jest.fn<SystemEventsService['sendInvoiceSystem']>();
   const sendAppointmentConfirmationMock =
-    jest.fn<WhatsappService['sendAppointmentConfirmation']>();
+    jest.fn<SystemEventsService['sendAppointmentConfirmation']>();
   const sendAppointmentUpdateMock =
-    jest.fn<WhatsappService['sendAppointmentUpdate']>();
+    jest.fn<SystemEventsService['sendAppointmentUpdate']>();
   const sendPaymentConfirmationMock =
-    jest.fn<WhatsappService['sendPaymentConfirmation']>();
+    jest.fn<SystemEventsService['sendPaymentConfirmation']>();
   const notifyStaffMock = jest.fn<StaffNotificationService['notifyStaff']>();
 
-  const mockWhatsappService: Pick<
-    WhatsappService,
+  const mockSystemEventsService: Pick<
+    SystemEventsService,
     | 'sendPrescriptionSystem'
     | 'sendInvoiceSystem'
     | 'sendAppointmentConfirmation'
@@ -78,7 +78,7 @@ describe('WhatsappEventListener', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WhatsappEventListener,
-        { provide: WhatsappService, useValue: mockWhatsappService },
+        { provide: SystemEventsService, useValue: mockSystemEventsService },
         {
           provide: StaffNotificationService,
           useValue: { notifyStaff: notifyStaffMock },
@@ -107,7 +107,7 @@ describe('WhatsappEventListener', () => {
 
       await listener.handlePrescriptionCreated(event);
 
-      expect(mockWhatsappService.sendPrescriptionSystem).toHaveBeenCalledWith(
+      expect(mockSystemEventsService.sendPrescriptionSystem).toHaveBeenCalledWith(
         'rx-123',
         'clinic-123',
       );
@@ -137,7 +137,7 @@ describe('WhatsappEventListener', () => {
 
       await listener.handleInvoiceGenerated(event);
 
-      expect(mockWhatsappService.sendInvoiceSystem).toHaveBeenCalledWith(
+      expect(mockSystemEventsService.sendInvoiceSystem).toHaveBeenCalledWith(
         'inv-123',
         'clinic-123',
       );
@@ -169,7 +169,7 @@ describe('WhatsappEventListener', () => {
       await listener.handleAppointmentCreated(event);
 
       expect(
-        mockWhatsappService.sendAppointmentConfirmation,
+        mockSystemEventsService.sendAppointmentConfirmation,
       ).toHaveBeenCalledWith('appt-123', 'clinic-123');
     });
 
@@ -202,7 +202,7 @@ describe('WhatsappEventListener', () => {
 
       await listener.handlePaymentCaptured(event);
 
-      expect(mockWhatsappService.sendPaymentConfirmation).toHaveBeenCalledWith(
+      expect(mockSystemEventsService.sendPaymentConfirmation).toHaveBeenCalledWith(
         'inv-pay-123',
         'clinic-123',
       );
@@ -249,7 +249,7 @@ describe('WhatsappEventListener', () => {
 
       await listener.handleAppointmentUpdated(event);
 
-      expect(mockWhatsappService.sendAppointmentUpdate).toHaveBeenCalledWith(
+      expect(mockSystemEventsService.sendAppointmentUpdate).toHaveBeenCalledWith(
         'appt-123',
         'clinic-123',
         'CANCELLED',
@@ -270,7 +270,7 @@ describe('WhatsappEventListener', () => {
 
       await listener.handleAppointmentUpdated(event);
 
-      expect(mockWhatsappService.sendAppointmentUpdate).toHaveBeenCalledWith(
+      expect(mockSystemEventsService.sendAppointmentUpdate).toHaveBeenCalledWith(
         'appt-123',
         'clinic-123',
         'CANCELLED',
@@ -292,7 +292,7 @@ describe('WhatsappEventListener', () => {
 
       await listener.handleAppointmentUpdated(event);
 
-      expect(mockWhatsappService.sendAppointmentUpdate).toHaveBeenCalledWith(
+      expect(mockSystemEventsService.sendAppointmentUpdate).toHaveBeenCalledWith(
         'appt-123',
         'clinic-123',
         'RESCHEDULED',
@@ -313,7 +313,7 @@ describe('WhatsappEventListener', () => {
 
       await listener.handleAppointmentUpdated(event);
 
-      expect(mockWhatsappService.sendAppointmentUpdate).not.toHaveBeenCalled();
+      expect(mockSystemEventsService.sendAppointmentUpdate).not.toHaveBeenCalled();
     });
 
     it('should catch errors without rethrowing', async () => {

@@ -15,7 +15,7 @@ import { Request } from 'express';
 import { ZodSerializerDto } from 'nestjs-zod';
 import type { WhatsappTemplate } from '@workspace/db';
 import type { ClinicWhatsappTemplate } from '@workspace/types';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
 import {
   ClinicWhatsappTemplateListResponseDto,
   ClinicWhatsappTemplateResponseDto,
@@ -42,12 +42,12 @@ function toClinicTemplate(row: WhatsappTemplate): ClinicWhatsappTemplate {
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappTemplatesController {
-  constructor(private readonly whatsappService: WhatsappService) {}
+  constructor(private readonly templatesService: TemplatesService) {}
 
   @Get('templates/custom')
   @ZodSerializerDto(ClinicWhatsappTemplateListResponseDto)
   async listCustomTemplates(@Req() req: Request) {
-    const rows = await this.whatsappService.listTemplates(requireClinicId(req));
+    const rows = await this.templatesService.listTemplates(requireClinicId(req));
     return rows.filter((row) => row.isActive).map(toClinicTemplate);
   }
 
@@ -59,10 +59,13 @@ export class LegacyWhatsappTemplatesController {
   ) {
     const clinicId = requireClinicId(req);
     try {
-      const row = await this.whatsappService.createCustomTemplate(
+      const row = await this.templatesService.createTemplate({
         clinicId,
-        dto,
-      );
+        name: dto.name,
+        content: dto.content,
+        category: dto.category,
+        buttonType: 'NONE',
+      });
       return toClinicTemplate(row);
     } catch (error) {
       if (isUniqueConstraintError(error)) {
@@ -82,7 +85,7 @@ export class LegacyWhatsappTemplatesController {
     @Body() dto: UpdateWhatsappTemplateDto,
   ) {
     await this.assertOwnedCustomTemplate(req, id);
-    const row = await this.whatsappService.updateCustomTemplate(id, dto);
+    const row = await this.templatesService.updateTemplate(id, dto);
     return toClinicTemplate(row);
   }
 
@@ -90,7 +93,7 @@ export class LegacyWhatsappTemplatesController {
   @ZodSerializerDto(SuccessResponseDto)
   async deleteCustomTemplate(@Req() req: Request, @Param('id') id: string) {
     await this.assertOwnedCustomTemplate(req, id);
-    await this.whatsappService.deleteCustomTemplate(id);
+    await this.templatesService.deleteTemplate(id);
     return { success: true, message: 'Template deleted' };
   }
 
@@ -100,7 +103,7 @@ export class LegacyWhatsappTemplatesController {
    */
   private async assertOwnedCustomTemplate(req: Request, id: string) {
     const clinicId = requireClinicId(req);
-    const existing = await this.whatsappService.getTemplateById(id);
+    const existing = await this.templatesService.getTemplateById(id);
     if (!existing || existing.clinicId !== clinicId || !existing.isActive)
       throw new NotFoundException('Template not found');
     if (existing.isDefault)

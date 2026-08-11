@@ -1,4 +1,3 @@
-export { WhatsappService } from './whatsapp-clinic-facade.service';
 export { WhatsappResendService } from './resend.service';
 export { SystemEventsService } from './system-events.service';
 export { ApprovalService } from './approval.service';
