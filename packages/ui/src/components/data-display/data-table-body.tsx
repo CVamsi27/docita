@@ -23,7 +23,7 @@ export function DataTableBodyRows<T>({
         <TableRow
           key={rowKey(row, idx)}
           onClick={onRowClick ? () => onRowClick(row) : undefined}
-          className={cn(onRowClick && "cursor-pointer hover:bg-muted/40")}
+          className={cn(onRowClick && "cursor-pointer hover:bg-muted/40 transition-colors duration-150")}
         >
           {columns.map((col) => (
             <TableCell
