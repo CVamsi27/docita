@@ -1,8 +1,13 @@
 # Audits
 
-> **See [`INDEX.md`](INDEX.md) for the master index of every audit,
-> runbook, and architecture doc in this repo, organized by topic,
-> date, severity, and cross-references.**
+> **The 2026-08-11 audit cycle is consolidated into 2 docs:**
+>
+> 1. **[`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md)**
+>    — Every backend finding, fix, and follow-up.
+> 2. **[`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md)**
+>    — Every frontend finding, fix, and follow-up.
+>
+> See [`INDEX.md`](INDEX.md) for the full history + open findings by severity.
 
 Quality gates live in `pnpm verify:standard` (see root `package.json`). This folder keeps the audit coverage ledger required by `check:audit-coverage`.
 
