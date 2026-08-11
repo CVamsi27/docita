@@ -436,8 +436,26 @@ function registerExceptionTelemetry(): void {
     );
   });
 
+  // Node.js docs explicitly say `uncaughtException` is a "crude mechanism"
+  // and recommend logging then exiting — the process is in an undefined
+  // state after a true uncaught exception (e.g. a require() that threw
+  // halfway through a module init), and continuing to serve traffic
+  // risks further corruption (zombie connections, half-initialised
+  // singletons). We give the existing in-flight requests 5 seconds to
+  // finish via the same graceful-shutdown path the SIGTERM/SIGINT
+  // handlers use, then force-exit with code 1 so the platform restarts
+  // us. The Sentry captureException runs first so the Sentry event
+  // includes the originating error before the process goes down.
   process.on('uncaughtException', (error) => {
     Sentry.captureException(error);
+    // Schedule the exit on the next tick so the Sentry SDK has a
+    // chance to flush its event to the relay.
+    setImmediate(() => {
+      process.stderr.write(
+        `Uncaught exception — forcing exit: ${error.message}\n`,
+      );
+      process.exit(1);
+    });
   });
 }
 

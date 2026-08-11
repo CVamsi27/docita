@@ -6,10 +6,10 @@ describe('DatabaseControlStateRepository', () => {
   let repository: DatabaseControlStateRepository;
   let prisma: {
     databaseControlAction: {
-      create: jest.Mock;
-      update: jest.Mock;
-      findFirst: jest.Mock;
-      findMany: jest.Mock;
+      create: jest.Mock<(args: unknown) => Promise<unknown>>;
+      update: jest.Mock<(args: unknown) => Promise<unknown>>;
+      findFirst: jest.Mock<(args: unknown) => Promise<unknown>>;
+      findMany: jest.Mock<(args: unknown) => Promise<unknown>>;
     };
   };
   let clock: { now: jest.Mock };
@@ -112,7 +112,7 @@ describe('DatabaseControlStateRepository', () => {
   it('recordBackgroundCompletion swallows P2025 (row was deleted between start and background wait)', async () => {
     const p2025 = Object.assign(new Error('Record to update not found'), {
       code: 'P2025',
-    });
+    }) as never;
     prisma.databaseControlAction.update.mockRejectedValueOnce(p2025);
 
     // Should not throw — the background wait chain must not surface a
@@ -121,21 +121,21 @@ describe('DatabaseControlStateRepository', () => {
       repository.recordBackgroundCompletion('deleted-action', {
         status: 'FAILED',
         errorMessage: 'irrelevant',
-        completedAt: clock.now(),
+        completedAt: clock.now() as unknown as Date,
       }),
     ).resolves.toBeUndefined();
   });
 
   it('recordBackgroundCompletion rethrows non-P2025 errors so genuine failures are not swallowed', async () => {
     prisma.databaseControlAction.update.mockRejectedValueOnce(
-      new Error('connection refused'),
+      new Error('connection refused') as never,
     );
 
     await expect(
       repository.recordBackgroundCompletion('action-1', {
         status: 'FAILED',
         errorMessage: 'x',
-        completedAt: clock.now(),
+        completedAt: clock.now() as unknown as Date,
       }),
     ).rejects.toThrow('connection refused');
   });
@@ -168,7 +168,9 @@ describe('DatabaseControlStateRepository', () => {
   });
 
   it('findRecentHistory caps the page at the requested limit', async () => {
-    prisma.databaseControlAction.findMany.mockResolvedValueOnce([]);
+    prisma.databaseControlAction.findMany.mockResolvedValueOnce(
+      [] as never,
+    );
 
     await repository.findRecentHistory(7);
 

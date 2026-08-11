@@ -336,7 +336,7 @@ describe('DatabaseControlService cooldown', () => {
     // transition times out. The operator must see the failure on the next
     // getState() poll.
     (ctx.rds.waitForStopped as jest.Mock).mockRejectedValueOnce(
-      new Error('waitForStopped timed out after 5m'),
+      new Error('waitForStopped timed out after 5m') as never,
     );
 
     const result = await ctx.service.execute(

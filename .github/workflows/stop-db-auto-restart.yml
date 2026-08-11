@@ -1,5 +1,13 @@
 name: Stop DB - Auto-Restart Guard
 
+# Explicit minimum permissions: the workflow only reads AWS credentials
+# and calls describe-db-instances / stop-db-instance. It does not write
+# to the repository, comment on issues, or push to packages — so the
+# default `read-all` is too broad. This is the documented GitHub Actions
+# posture: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+permissions:
+  contents: read
+
 on:
   schedule:
     # RDS auto-restarts exactly 7 days after every stop, so the restart
