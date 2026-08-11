@@ -516,11 +516,11 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | ~~Delete IPD sub-feature (~500 lines)~~ | §9.2 | **DONE** | 15 files deleted (~500 lines). |
 | Wire theme CSS to respond to `data-accent`/`data-density` | §14.1 #1 follow-up | OPEN | MED |
 | Create `AskAiButton` component | §14.2 #4 | OPEN | MED |
-| Extract `<Toaster>` to `@workspace/ui` | §14.2 #7 | OPEN | LOW |
+| ~~Extract `<Toaster>` to `@workspace/ui`~~ | §14.2 #7 | **DONE** | Created `ToasterWrapper` in `@workspace/ui`; both apps now import from shared component. |
 | Migrate remaining 12 react-refresh warnings | §6.1 | OPEN | LOW |
 | ~~Fix `react-hooks/exhaustive-deps` warnings~~ | §6.2 | **DONE** | 4 bugs fixed (WhatsappOperationsPageContent, use-patients-logic, use-patient-data, LogsPage). |
-| Move `min-h-[50vh]` to CSS token | §14.3 #8 | OPEN | LOW |
-| Add JSX-text-must-be-t()-wrapped lint rule | §14.3 #9 | OPEN | LOW |
+| ~~Move `min-h-[50vh]` to CSS token~~ | §14.3 #8 | **DONE** | Added `--page-content-min-h` CSS token + `min-h-page-content` Tailwind utility. |
+| ~~Add JSX-text-must-be-t()-wrapped lint rule~~ | §14.3 #9 | **DONE** | `check:i18n-coverage` already enforces this; passes cleanly. |
 | Audit 40 `<h1>` sites for duplicates | §14.4 #12 | OPEN | LOW |
 | Landing hero redesign | §7 #6 | OPEN | MED |
 | Landing pricing toggle | §7 #7 | OPEN | MED |
@@ -561,9 +561,9 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | ~~Delete IPD sub-feature (~500 lines)~~ | §9.2 | **DONE** | 15 files deleted (~500 lines). |
 | Wire theme CSS to `data-accent`/`data-density` | §18.3 | OPEN | MED | 1h |
 | Create `AskAiButton` component | §14.2 #4 | OPEN | MED | 1h |
-| Extract `<Toaster>` to `@workspace/ui` | §14.2 #7 | OPEN | LOW | 30 min |
+| ~~Extract `<Toaster>` to `@workspace/ui`~~ | §14.2 #7 | **DONE** | Created `ToasterWrapper` in `@workspace/ui`; both apps now import from shared component. | 30 min |
 | Migrate 13 react-refresh warnings (re-exports for 104 consumers) | §6.1 | OPEN | LOW | 3h |
-| Move `min-h-[50vh]` to CSS token | §14.3 #8 | OPEN | LOW | 1h |
+| ~~Move `min-h-[50vh]` to CSS token~~ | §14.3 #8 | **DONE** | Added `--page-content-min-h` CSS token + `min-h-page-content` Tailwind utility. | 1h |
 | Add JSX-text-must-be-t() lint rule | §14.3 #9 | OPEN | LOW | 1h |
 | Audit 40 `<h1>` sites | §14.4 #12 | OPEN | LOW | 1h |
 | Landing hero redesign | §7 #6 | OPEN | MED | 8h |
