@@ -39,7 +39,7 @@ export function AuthBrandingContentCard({
 }) {
   const { t } = useTranslation("Auth");
   return (
-    <div className="mt-8 max-w-lg rounded-[var(--radius)] border border-border/70 bg-background/85 p-4 shadow-sm backdrop-blur">
+    <div className="mt-8 max-w-lg rounded-[var(--radius)] border border-border/70 bg-background/85 p-4 shadow-sm backdrop-blur-md transition-shadow duration-300 hover:shadow-md">
       {isEmailFirst ? (
         <div className="space-y-1">
           <p className="text-sm font-semibold text-foreground">
