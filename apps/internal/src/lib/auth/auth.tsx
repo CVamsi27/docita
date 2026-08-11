@@ -1,8 +1,6 @@
 import {
-  createContext,
   type ReactNode,
   useCallback,
-  useContext,
   useEffect,
 } from "react";
 import { useNavigate } from "react-router";
@@ -16,19 +14,7 @@ import { useAuthState, type InternalUser } from "./use-auth-state";
 import { clearAuthStorage, useAuthSession } from "./use-auth-session";
 
 export type { InternalUser } from "./use-auth-state";
-
-interface AuthContextType {
-  user: InternalUser | null;
-  token: string | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  isInternal: boolean;
-  login: (token: string | null, user: InternalUser) => void;
-  logout: (reason?: string) => void;
-  validateToken: () => Promise<boolean>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext } from "./auth-context-inner";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const authState = useAuthState();
@@ -136,9 +122,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined)
-    throw new Error("useAuth must be used within an AuthProvider");
-  return context;
-}
+export { useAuth } from "./use-auth";

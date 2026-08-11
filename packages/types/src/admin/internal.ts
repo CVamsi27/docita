@@ -7,26 +7,12 @@ export type InternalClinicAdminType = z.infer<
   typeof internalClinicAdminTypeSchema
 >;
 
-export type ClinicTierType =
-  | "STARTER"
-  | "ESSENTIAL"
-  | "PROFESSIONAL"
-  | "HOSPITAL"
-  | "ENTERPRISE"
-  | "FRONT_DESK"
-  | "FRONT_DESK_CLINIC"
-  | "FRONT_DESK_HOSPITAL"
-  | "INTELLIGENCE";
-
 /**
- * Internal-admin clinic management. These were hand-written TS interfaces
- * and re-typed as NestJS DTOs at the API boundary with no runtime
- * validation. Migrated to Zod (2026-08-11, AGENTS §3.1) so the canonical
- * schema lives in packages/types and the API can wire it through
- * `createZodDto` + `ZodValidationPipe`. The runtime `tier` enum is locked
- * to the 5-value `ClinicTier` Prisma enum (the only values the DB can
- * actually store today); the wider 9-value `ClinicTierType` stays as a
- * type-only forward-compat alias for the FRONT_DESK family pre-migration.
+ * Internal-admin clinic management. Migrated to Zod (2026-08-11, AGENTS
+ * §3.1) so the canonical schema lives in packages/types and the API can
+ * wire it through `createZodDto` + `ZodValidationPipe`. The runtime `tier`
+ * enum is locked to the 5-value `ClinicTier` Prisma enum (the only values
+ * the DB can actually store today).
  */
 export const internalCreateClinicRequestSchema = z.object({
   name: z.string().min(1),
