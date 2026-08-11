@@ -194,7 +194,8 @@
     "check:circular:enforce": "node scripts/checks/check-circular-deps.mjs --enforce",
     "openapi:generate": "pnpm --filter @docita/api run openapi:generate",
     "prepare": "husky",
-    "check:tailwind-raw-color": "node scripts/checks/check-tailwind-raw-color.mjs"
+    "check:tailwind-raw-color": "node scripts/checks/check-tailwind-raw-color.mjs",
+    "check:skeleton-animation": "node scripts/checks/check-skeleton-animation.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
