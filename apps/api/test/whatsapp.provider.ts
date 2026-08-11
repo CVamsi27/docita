@@ -47,9 +47,11 @@ export const mockWhatsappService = {
   sendPrescriptionSystem: mockSystemEventsService.sendPrescriptionSystem,
   sendInvoiceSystem: mockSystemEventsService.sendInvoiceSystem,
   sendPaymentConfirmation: mockSystemEventsService.sendPaymentConfirmation,
-  sendAppointmentConfirmation: mockSystemEventsService.sendAppointmentConfirmation,
+  sendAppointmentConfirmation:
+    mockSystemEventsService.sendAppointmentConfirmation,
   sendAppointmentUpdate: mockSystemEventsService.sendAppointmentUpdate,
-  sendAppointmentDelayNotification: mockSystemEventsService.sendAppointmentDelayNotification,
+  sendAppointmentDelayNotification:
+    mockSystemEventsService.sendAppointmentDelayNotification,
   // MessagingService methods
   getLogs: mockMessagingService.getLogs,
   getWhatsappStats: mockMessagingService.getWhatsappStats,
