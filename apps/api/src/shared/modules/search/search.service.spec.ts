@@ -102,15 +102,15 @@ describe('SearchService', () => {
             searchAppointmentsFuzzy: mockSearchAppointmentsFuzzy,
           },
         },
+        {
+          provide: SEARCH_STRATEGY_PERSISTENCE_PORT,
+          useExisting: PrismaService,
+        },
         PatientSearchStrategy,
         AppointmentSearchStrategy,
         PrescriptionSearchStrategy,
         SearchStrategyRegistry,
         SearchService,
-        {
-          provide: SEARCH_STRATEGY_PERSISTENCE_PORT,
-          useExisting: PrismaService,
-        },
         {
           provide: PrismaService,
           useValue: {

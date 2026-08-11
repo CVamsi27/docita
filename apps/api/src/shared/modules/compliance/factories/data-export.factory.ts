@@ -3,7 +3,7 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   DATA_EXPORT_PERSISTENCE_PORT,
   type DataExportPersistencePort,
-} from './ports/data-export.persistence.port';
+} from '../ports/data-export.persistence.port';
 
 export interface ExportResult {
   exportDate: string;
