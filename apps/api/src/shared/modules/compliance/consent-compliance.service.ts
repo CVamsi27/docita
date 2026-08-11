@@ -290,7 +290,7 @@ export class ConsentComplianceService {
   async getConsentHistory(
     patientId: string,
     clinicId: string,
-  ): Promise<unknown[]> {
+  ): Promise<Consent[]> {
     return this.prisma.consent.findMany({
       where: {
         patientId,

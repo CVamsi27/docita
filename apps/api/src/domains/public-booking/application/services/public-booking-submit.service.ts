@@ -17,7 +17,7 @@ import {
   type PublicBookingPersistencePort,
 } from '@/domains/public-booking/application/ports/public-booking-persistence.port';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
-import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
+import { ConsentComplianceService } from '@/shared/modules/compliance/consent-compliance.service';
 import { AppointmentRequestService } from '@/domains/appointments/application/services/appointment-request.service';
 import { PublicBookingTokenService } from '@/domains/public-booking/application/services/public-booking-token.service';
 import { TurnstileVerifyService } from '@/shared/modules/turnstile/turnstile-verify.service';
@@ -41,7 +41,7 @@ export class PublicBookingSubmitService {
     private readonly bookingTokenService: PublicBookingTokenService,
     private readonly turnstile: TurnstileVerifyService,
     private readonly appConfig: AppConfigService,
-    private readonly dpdpService: DPDPComplianceService,
+    private readonly consentCompliance: ConsentComplianceService,
     private readonly slotsService: PublicBookingSlotsService,
   ) {}
 
@@ -94,7 +94,7 @@ export class PublicBookingSubmitService {
         dateOfBirth: data.dateOfBirth,
       }),
     );
-    await this.dpdpService.recordDpdpNoticeConsent({
+    await this.consentCompliance.recordDpdpNoticeConsent({
       patientId: created.id,
       clinicId,
       noticeVersion: data.dpdpConsent.noticeVersion,

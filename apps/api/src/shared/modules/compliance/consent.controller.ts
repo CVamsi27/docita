@@ -12,10 +12,9 @@ import {
   Query,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import {
-  DPDPComplianceService,
-  DataSubjectRight,
-} from './dpdp-compliance.service';
+import { ConsentComplianceService } from './consent-compliance.service';
+import { DataSubjectRequestService } from './data-subject-request.service';
+import { DataSubjectRight } from './dpdp-compliance.types';
 import { ConsentType, ConsentStatus, Role } from '@workspace/db';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { z } from 'zod';
@@ -57,7 +56,8 @@ function requireClinicId(clinicId: string | null | undefined): string {
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ConsentController {
   constructor(
-    private readonly dpdpService: DPDPComplianceService,
+    private readonly consentCompliance: ConsentComplianceService,
+    private readonly dataSubjectRequests: DataSubjectRequestService,
     private readonly consentPdfService: ConsentPdfService,
   ) {}
 
@@ -69,7 +69,7 @@ export class ConsentController {
     @Req() req: RequestWithUser,
   ) {
     const ipAddress = req.ip || req.socket?.remoteAddress;
-    return this.dpdpService.recordConsent(
+    return this.consentCompliance.recordConsent(
       {
         ...data,
         clinicId: requireClinicId(data.clinicId ?? req.user?.clinicId),
@@ -85,7 +85,7 @@ export class ConsentController {
     @Query('patientId') patientId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.dpdpService.getConsentHistory(
+    return this.consentCompliance.getConsentHistory(
       patientId,
       requireClinicId(req.user?.clinicId),
     );
@@ -119,7 +119,7 @@ export class ConsentController {
     @Req() req: RequestWithUser,
   ) {
     const ipAddress = req.ip || req.socket?.remoteAddress;
-    return this.dpdpService.withdrawConsent(
+    return this.consentCompliance.withdrawConsent(
       consentId,
       data.reason,
       data.withdrawnBy,
@@ -139,7 +139,7 @@ export class ConsentController {
     const ipAddress = req.ip || req.socket?.remoteAddress;
     // Satisfies the DPDP right to access + data portability: returns a
     // machine-readable copy of the patient's record and is audit-logged.
-    return this.dpdpService.handlePortabilityRequest(
+    return this.dataSubjectRequests.handlePortabilityRequest(
       {
         patientId,
         clinicId: requireClinicId(req.user?.clinicId),
@@ -159,7 +159,7 @@ export class ConsentController {
     @Req() req: RequestWithUser,
   ) {
     const ipAddress = req.ip || req.socket?.remoteAddress;
-    return this.dpdpService.handleErasureRequest(
+    return this.dataSubjectRequests.handleErasureRequest(
       {
         patientId,
         clinicId: requireClinicId(req.user?.clinicId),

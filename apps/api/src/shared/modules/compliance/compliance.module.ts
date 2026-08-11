@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { DPDPComplianceService } from './dpdp-compliance.service';
 import { DpdpAuditEmitter } from './dpdp-audit.emitter';
 import { ConsentComplianceService } from './consent-compliance.service';
 import { DataSubjectRequestService } from './data-subject-request.service';
@@ -31,12 +30,11 @@ import { ArchivalService } from './archival.service';
     DpdpAuditEmitter,
     ConsentComplianceService,
     DataSubjectRequestService,
-    DPDPComplianceService,
     AnonymizationFactory,
     DataExportFactory,
     ArchivalService,
     ConsentPdfService,
   ],
-  exports: [DPDPComplianceService, ArchivalService],
+  exports: [ConsentComplianceService, DataSubjectRequestService, ArchivalService],
 })
 export class ComplianceModule {}

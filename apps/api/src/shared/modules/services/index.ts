@@ -3,4 +3,6 @@ export { PDFGeneratorService } from '@/shared/modules/document-generation/pdf/pd
 export { BasePdfService } from '@/shared/modules/document-generation/pdf/base-pdf.service';
 export * from './common-services.module';
 
-export * from '@/shared/modules/compliance/dpdp-compliance.service';
+export { ConsentComplianceService } from '@/shared/modules/compliance/consent-compliance.service';
+export { DataSubjectRequestService } from '@/shared/modules/compliance/data-subject-request.service';
+export { DataSubjectRight } from '@/shared/modules/compliance/dpdp-compliance.types';

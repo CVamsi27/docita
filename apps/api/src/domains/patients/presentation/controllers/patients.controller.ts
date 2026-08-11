@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { RequiresIdempotency } from '@/shared/modules/idempotency';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
-import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
+import { ConsentComplianceService } from '@/shared/modules/compliance/consent-compliance.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import {
   APP_ACCESS_TARGETS,
@@ -56,7 +56,7 @@ import {
 export class PatientsController {
   constructor(
     private readonly patientService: PatientService,
-    private readonly dpdpService: DPDPComplianceService,
+    private readonly consentCompliance: ConsentComplianceService,
     private readonly auditService: AuditService,
   ) {}
 
@@ -110,7 +110,7 @@ export class PatientsController {
       this.normalizeCreateBody(body, clinicId),
     );
 
-    await this.dpdpService.recordDpdpNoticeConsent({
+    await this.consentCompliance.recordDpdpNoticeConsent({
       patientId: created.id,
       clinicId,
       noticeVersion: consent.noticeVersion,

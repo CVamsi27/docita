@@ -18,7 +18,7 @@ import { EncryptionService } from '@/shared/common/encryption.service';
 import { CircuitBreakerRegistry } from '@/shared/common/utils/circuit-breaker.registry';
 import { UserRateLimitService } from './user-rate-limit.service';
 import { UserRateLimitGuard } from '@/shared/modules/auth/guards/user-rate-limit.guard';
-import { DPDPComplianceService as _DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
+
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
 import { UsersModule } from '@/domains/users/users.module';
