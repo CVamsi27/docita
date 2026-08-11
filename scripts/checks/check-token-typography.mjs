@@ -27,6 +27,9 @@ import {
 // Matches `text-[NNpx]` or `text-[NN.Npx]` where NN is a positive integer/decimal.
 // The set of literal sizes the design system has previously drifted into.
 const HARDCODED_TEXT_PX = /(?<![\w-])text-\[(\d+(?:\.\d+)?)px\]/g;
+// And the same for `rem` values — the design system only has rem values
+// declared in --fs-* (e.g. --fs-2xs = 0.6875rem). Anything else is drift.
+const HARDCODED_TEXT_REM = /(?<![\w-])text-\[(\d+(?:\.\d+)?)rem\]/g;
 
 // Files where the text-[Npx] is acceptable (e.g. fixtures, third-party shims).
 const FILE_EXCLUDES = [
@@ -45,16 +48,20 @@ const violations = [];
 
 for (const file of files) {
   const contents = readFileSync(file, "utf8");
-  const matches = contents.matchAll(HARDCODED_TEXT_PX);
 
-  for (const match of matches) {
-    const line = getLineNumber(contents, match.index ?? 0);
-    const value = match[1];
-    const relPath = normalizePath(file);
-    const replacement = suggestToken(parseFloat(value));
-    violations.push(
-      `${relPath}:${line}: ${match[0]} — replace with ${replacement} (declared in packages/ui/src/styles/globals.css).`,
-    );
+  for (const regex of [HARDCODED_TEXT_PX, HARDCODED_TEXT_REM]) {
+    const matches = contents.matchAll(regex);
+    for (const match of matches) {
+      const line = getLineNumber(contents, match.index ?? 0);
+      const value = match[1];
+      const unit = match[0].endsWith('rem]') ? 'rem' : 'px';
+      const px = unit === 'rem' ? Math.round(parseFloat(value) * 16) : parseFloat(value);
+      const relPath = normalizePath(file);
+      const replacement = suggestToken(px);
+      violations.push(
+        `${relPath}:${line}: ${match[0]} — replace with ${replacement} (declared in packages/ui/src/styles/globals.css).`,
+      );
+    }
   }
 }
 

@@ -40,7 +40,7 @@ export function BillingPlansHeader({ selectedMode, onModeChange, selectedCycle, 
           <Button variant={selectedCycle === "MONTHLY" ? "default" : "ghost"} size="sm" className="rounded-full" onClick={() => onCycleChange("MONTHLY")}>{t("monthly")}</Button>
           <Button variant={selectedCycle === "YEARLY" ? "default" : "ghost"} size="sm" className="gap-1.5 rounded-full" onClick={() => onCycleChange("YEARLY")}>
             {t("yearly")}
-            <span className={cn("rounded-full px-1.5 py-0.5 text-[0.625rem] font-semibold leading-none", selectedCycle === "YEARLY" ? "bg-primary-foreground/20 text-primary-foreground" : "bg-success/15 text-success")}>{t("saveBadge", { amount: `${ANNUAL_DISCOUNT_PERCENT}%` })}</span>
+            <span className={cn("rounded-full px-1.5 py-0.5 text-[var(--fs-2xs)] font-semibold leading-none", selectedCycle === "YEARLY" ? "bg-primary-foreground/20 text-primary-foreground" : "bg-success/15 text-success")}>{t("saveBadge", { amount: `${ANNUAL_DISCOUNT_PERCENT}%` })}</span>
           </Button>
         </div>
       </div>

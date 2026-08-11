@@ -61,7 +61,7 @@ export function ComparisonTableDesktop({
                     {isCurrent ? (
                       <Badge
                         variant="secondary"
-                        className="h-5 px-2 text-[0.625rem]"
+                        className="h-5 px-2 text-[var(--fs-2xs)]"
                       >
                         Current
                       </Badge>

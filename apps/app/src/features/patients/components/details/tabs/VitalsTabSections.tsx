@@ -55,14 +55,14 @@ function VitalCell({
         {unit && (
           <Badge
             variant="outline"
-            className="text-[0.625rem] px-1 h-4 font-normal"
+            className="text-[var(--fs-2xs)] px-1 h-4 font-normal"
           >
             {unit}
           </Badge>
         )}
       </div>
       {secondary ? (
-        <p className="mt-1 text-[0.625rem] text-muted-foreground leading-tight">
+        <p className="mt-1 text-[var(--fs-2xs)] text-muted-foreground leading-tight">
           {secondary}
         </p>
       ) : null}
