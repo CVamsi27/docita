@@ -785,6 +785,9 @@ The remaining react-refresh warnings are **safe to defer** — they affect HMR s
 | IPD barrel removal | §8.3 | OPEN | 30 min. Deferred — IPD is in active development. |
 | `ClinicTierType` deletion | §9.14 | OPEN | 1 min. Can be done in the same PR as §8.4. |
 | ~~ClinicContextGuard (§9.2)~~ | §9.2 | **DONE** | Removed 5 redundant inline checks in subscriptions controller; `TenantGuard` (global `APP_GUARD`) already handles this. Partner-portal's throw is intentionally a 500 (server misconfiguration). |
+| ~~Graceful shutdown timeout (§9.8)~~ | §9.8 | **DONE** | `SHUTDOWN_TIMEOUT_MS` env var added (default 15000ms). |
+| ~~Empty test directory cleanup (§9.6)~~ | §9.6 | **DONE** | Removed `test/integration/`, `test/unit/`; moved `test-tenant-isolation.ts` to `docs/runbooks/`. |
+| ~~Prettier auto-fix (§9.9)~~ | §9.9 | **DONE** | Applied across api + worker (84 files, API warnings 203 → 5). |
 | ConsentComplianceService CQS split | §9.4 | OPEN | 2h. Split into Command/Query services. |
 | Graceful shutdown timeout | §9.8 | OPEN | 1h. Add `SHUTDOWN_TIMEOUT_MS` env + runbook. |
 | Empty test directory cleanup | §9.6 | OPEN | 30 min. Remove `test/integration/`, `test/unit/`, move `test-tenant-isolation.ts`. |
