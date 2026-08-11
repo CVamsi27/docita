@@ -37,8 +37,12 @@ describe('PrismaMedicalCodingRepository', () => {
 
   describe('searchIcdCodes / searchCptCodes', () => {
     it('passes the limit to the read client', async () => {
-      const icdResult = [{ id: 'icd-1', code: 'E11.9', description: 'Type 2 diabetes' }];
-      const cptResult = [{ id: 'cpt-1', code: '99213', description: 'Office visit' }];
+      const icdResult = [
+        { id: 'icd-1', code: 'E11.9', description: 'Type 2 diabetes' },
+      ];
+      const cptResult = [
+        { id: 'cpt-1', code: '99213', description: 'Office visit' },
+      ];
       const readClient = {
         icdCode: {
           findMany: jest.fn(async () => icdResult) as jest.Mock,

@@ -35,8 +35,8 @@ function createService(opts: {
   const enterpriseContractMemberFindMany = jest.fn(
     async () => opts.members ?? [{ clinicId: 'clinic-1', removedAt: null }],
   );
-  const enterpriseTrueUpAlertFindFirst = jest.fn(
-    async () => (opts.alreadyAlerted ? { id: 'alert-prev' } : null),
+  const enterpriseTrueUpAlertFindFirst = jest.fn(async () =>
+    opts.alreadyAlerted ? { id: 'alert-prev' } : null,
   );
   const enterpriseContractFindUnique = jest.fn(async () => opts.contract);
   const runUnrestricted = jest.fn(
@@ -104,7 +104,10 @@ describe('EnterpriseContractTrueUpCommandService', () => {
 
   it('returns no-alert when contract is not ACTIVE', async () => {
     const ctx = createService({
-      contract: { ...ACTIVE_CONTRACT, status: EnterpriseContractStatus.TERMINATED } as unknown as typeof ACTIVE_CONTRACT,
+      contract: {
+        ...ACTIVE_CONTRACT,
+        status: EnterpriseContractStatus.TERMINATED,
+      } as unknown as typeof ACTIVE_CONTRACT,
     });
     const result = await ctx.service.evaluateAndAlertTrueUp('contract-1');
     expect(result).toEqual({ alerted: false, observedPercent: 0 });

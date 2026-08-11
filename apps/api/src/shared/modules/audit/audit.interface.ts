@@ -77,7 +77,9 @@ export interface AuditLogEntry {
  */
 export interface AuditTransactionClient {
   auditLog: {
-    create: (args: { data: Record<string, unknown> }) => Promise<{ id: string }>;
+    create: (args: {
+      data: Record<string, unknown>;
+    }) => Promise<{ id: string }>;
   };
 }
 

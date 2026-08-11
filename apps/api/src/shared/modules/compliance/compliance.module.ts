@@ -35,6 +35,10 @@ import { ArchivalService } from './archival.service';
     ArchivalService,
     ConsentPdfService,
   ],
-  exports: [ConsentComplianceService, DataSubjectRequestService, ArchivalService],
+  exports: [
+    ConsentComplianceService,
+    DataSubjectRequestService,
+    ArchivalService,
+  ],
 })
 export class ComplianceModule {}

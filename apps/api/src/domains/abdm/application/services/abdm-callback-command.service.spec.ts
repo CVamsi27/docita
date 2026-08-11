@@ -1,7 +1,4 @@
-import {
-  ConflictException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { AbdmGatewayCallback } from '@workspace/types';
 import type { AbdmExchangeService } from '@/domains/abdm/application/services/abdm-exchange.service';
@@ -120,7 +117,10 @@ describe('AbdmCallbackCommandService', () => {
   });
 
   it('rejects replayed callbacks with a conflict', async () => {
-    webhookVerifier.verify.mockResolvedValue({ ok: false, failure: 'replayed' });
+    webhookVerifier.verify.mockResolvedValue({
+      ok: false,
+      failure: 'replayed',
+    });
 
     await expect(
       service.recordCallback({

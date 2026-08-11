@@ -100,7 +100,11 @@ describe('ApprovalService', () => {
 
   describe('approveInvoice', () => {
     it('approves the invoice scoped to the clinic without a version bump', async () => {
-      const result = await service.approveInvoice('inv-1', 'user-1', 'clinic-1');
+      const result = await service.approveInvoice(
+        'inv-1',
+        'user-1',
+        'clinic-1',
+      );
 
       expect(mockPersistence.invoice.findFirst).toHaveBeenCalledWith({
         where: { id: 'inv-1', patient: { clinicId: 'clinic-1' } },

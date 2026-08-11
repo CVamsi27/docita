@@ -1,8 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import {
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { InternalSubscriptionAdminService } from './internal-subscription-admin.service';
 import type { PrismaService } from '@/prisma/prisma.service';
@@ -10,9 +7,17 @@ import type { PrismaService } from '@/prisma/prisma.service';
 describe('InternalSubscriptionAdminService', () => {
   let service: InternalSubscriptionAdminService;
   let prisma: {
-    subscription: { findUnique: jest.Mock<(args: unknown) => Promise<unknown>>; update: jest.Mock<(args: unknown) => Promise<unknown>> };
-    subscriptionReminder: { create: jest.Mock<(args: unknown) => Promise<unknown>> };
-    clinic: { findUnique: jest.Mock<(args: unknown) => Promise<unknown>>; update: jest.Mock<(args: unknown) => Promise<unknown>> };
+    subscription: {
+      findUnique: jest.Mock<(args: unknown) => Promise<unknown>>;
+      update: jest.Mock<(args: unknown) => Promise<unknown>>;
+    };
+    subscriptionReminder: {
+      create: jest.Mock<(args: unknown) => Promise<unknown>>;
+    };
+    clinic: {
+      findUnique: jest.Mock<(args: unknown) => Promise<unknown>>;
+      update: jest.Mock<(args: unknown) => Promise<unknown>>;
+    };
   };
   let clock: { now: jest.Mock };
 
@@ -23,7 +28,10 @@ describe('InternalSubscriptionAdminService', () => {
       clinic: { findUnique: jest.fn(), update: jest.fn() },
     };
     clock = { now: jest.fn(() => new Date('2026-08-10T00:00:00Z')) };
-    service = new InternalSubscriptionAdminService(prisma as unknown as PrismaService, clock as never);
+    service = new InternalSubscriptionAdminService(
+      prisma as unknown as PrismaService,
+      clock as never,
+    );
   });
 
   it('sendReminder persists a sent reminder and returns success', async () => {
@@ -112,7 +120,10 @@ describe('InternalSubscriptionAdminService', () => {
     expect(prisma.clinic.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'clinic-1' },
-        data: { tier: ClinicTier.PROFESSIONAL, subscriptionStatus: SubscriptionStatus.ACTIVE },
+        data: {
+          tier: ClinicTier.PROFESSIONAL,
+          subscriptionStatus: SubscriptionStatus.ACTIVE,
+        },
       }),
     );
   });
@@ -133,7 +144,10 @@ describe('InternalSubscriptionAdminService', () => {
 
   it('upgradeTier and downgradeTier both write the new tier via the shared helper', async () => {
     prisma.clinic.findUnique.mockResolvedValueOnce({ id: 'clinic-1' });
-    prisma.clinic.update.mockResolvedValueOnce({ id: 'clinic-1', tier: 'PROFESSIONAL' });
+    prisma.clinic.update.mockResolvedValueOnce({
+      id: 'clinic-1',
+      tier: 'PROFESSIONAL',
+    });
 
     const up = await service.upgradeTier('clinic-1', ClinicTier.PROFESSIONAL);
     expect(up.message).toContain('upgraded');
@@ -142,7 +156,10 @@ describe('InternalSubscriptionAdminService', () => {
     );
 
     prisma.clinic.findUnique.mockResolvedValueOnce({ id: 'clinic-1' });
-    prisma.clinic.update.mockResolvedValueOnce({ id: 'clinic-1', tier: 'STARTER' });
+    prisma.clinic.update.mockResolvedValueOnce({
+      id: 'clinic-1',
+      tier: 'STARTER',
+    });
 
     const down = await service.downgradeTier('clinic-1', ClinicTier.STARTER);
     expect(down.message).toContain('downgraded');

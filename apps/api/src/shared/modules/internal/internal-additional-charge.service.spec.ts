@@ -9,7 +9,9 @@ describe('InternalAdditionalChargeService', () => {
     clinic: { findUnique: jest.Mock<(args: unknown) => Promise<unknown>> };
     subscription: { findFirst: jest.Mock<(args: unknown) => Promise<unknown>> };
   };
-  let subscriptionRepository: { savePayment: jest.Mock<(payload: unknown) => Promise<unknown>> };
+  let subscriptionRepository: {
+    savePayment: jest.Mock<(payload: unknown) => Promise<unknown>>;
+  };
   let clock: { now: jest.Mock };
 
   beforeEach(() => {

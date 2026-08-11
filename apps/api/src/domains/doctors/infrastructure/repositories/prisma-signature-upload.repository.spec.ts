@@ -60,7 +60,10 @@ describe('PrismaSignatureUploadRepository', () => {
     for (const [key, value] of Object.entries(prismaMock)) {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
-    repository = new PrismaSignatureUploadRepository(prismaService as never, {} as never);
+    repository = new PrismaSignatureUploadRepository(
+      prismaService as never,
+      {} as never,
+    );
   });
 
   it('constructs without throwing', () => {

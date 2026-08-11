@@ -46,7 +46,10 @@ describe('PrismaAppointmentRequestRepository', () => {
     for (const [key, value] of Object.entries(prismaMock)) {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
-    repository = new PrismaAppointmentRequestRepository(prismaService as never, {} as never);
+    repository = new PrismaAppointmentRequestRepository(
+      prismaService as never,
+      {} as never,
+    );
   });
 
   it('constructs without throwing', () => {

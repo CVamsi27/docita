@@ -47,7 +47,10 @@ export function buildAppConfigService(): AppConfigService {
       new SmsConfigService(),
       new WhatsappConfigService(),
     ),
-    new PaymentConfigService(new RazorpayConfigService(), new OpsConfigService()),
+    new PaymentConfigService(
+      new RazorpayConfigService(),
+      new OpsConfigService(),
+    ),
     new PlatformInfrastructureConfigService(),
     new ExternalIntegrationsConfigService(),
   );

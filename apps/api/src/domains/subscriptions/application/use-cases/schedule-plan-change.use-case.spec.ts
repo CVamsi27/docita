@@ -77,7 +77,11 @@ describe('SchedulePlanChangeUseCase', () => {
       findByClinicIdMock.mockResolvedValue(null);
 
       await expect(
-        useCase.execute({ clinicId: 'missing', tier: 'STARTER', cycle: 'MONTHLY' }),
+        useCase.execute({
+          clinicId: 'missing',
+          tier: 'STARTER',
+          cycle: 'MONTHLY',
+        }),
       ).rejects.toThrow(NotFoundException);
       expect(saveMock).not.toHaveBeenCalled();
     });
@@ -86,7 +90,11 @@ describe('SchedulePlanChangeUseCase', () => {
       findByClinicIdMock.mockResolvedValue(buildSubscription());
 
       await expect(
-        useCase.execute({ clinicId: 'clinic-1', tier: 'ESSENTIAL', cycle: 'MONTHLY' }),
+        useCase.execute({
+          clinicId: 'clinic-1',
+          tier: 'ESSENTIAL',
+          cycle: 'MONTHLY',
+        }),
       ).rejects.toThrow(BadRequestException);
       expect(saveMock).not.toHaveBeenCalled();
     });

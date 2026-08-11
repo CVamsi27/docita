@@ -1,8 +1,4 @@
-import type {
-  HospitalRole,
-  Role,
-  Specialization,
-} from '@workspace/db';
+import type { HospitalRole, Role, Specialization } from '@workspace/db';
 
 export const seededSignatureUploadedAt = new Date('2026-01-01T00:00:00.000Z');
 

@@ -239,4 +239,3 @@ export class PartnerAuthService {
     return raw.replace(/[\s-]/g, '').trim();
   }
 }
-

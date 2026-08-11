@@ -47,7 +47,9 @@ export class LegacyWhatsappTemplatesController {
   @Get('templates/custom')
   @ZodSerializerDto(ClinicWhatsappTemplateListResponseDto)
   async listCustomTemplates(@Req() req: Request) {
-    const rows = await this.templatesService.listTemplates(requireClinicId(req));
+    const rows = await this.templatesService.listTemplates(
+      requireClinicId(req),
+    );
     return rows.filter((row) => row.isActive).map(toClinicTemplate);
   }
 

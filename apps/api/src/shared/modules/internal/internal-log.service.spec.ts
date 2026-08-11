@@ -4,8 +4,16 @@ import { InternalLogService } from './internal-log.service';
 
 describe('InternalLogService', () => {
   let service: InternalLogService;
-  let storageQuery: { queryStoredLogs: jest.Mock<(args1: unknown, args2: unknown, args3: unknown) => Promise<unknown>> };
-  let activityFallback: { queryRecentActivityLogs: jest.Mock<(args1: unknown, args2: unknown, args3: unknown) => Promise<unknown>> };
+  let storageQuery: {
+    queryStoredLogs: jest.Mock<
+      (args1: unknown, args2: unknown, args3: unknown) => Promise<unknown>
+    >;
+  };
+  let activityFallback: {
+    queryRecentActivityLogs: jest.Mock<
+      (args1: unknown, args2: unknown, args3: unknown) => Promise<unknown>
+    >;
+  };
 
   beforeEach(() => {
     storageQuery = { queryStoredLogs: jest.fn() };
@@ -36,7 +44,11 @@ describe('InternalLogService', () => {
     const result = await service.getLogs(10, 0, {});
 
     expect(result.data[0]?.id).toBe('fallback-1');
-    expect(activityFallback.queryRecentActivityLogs).toHaveBeenCalledWith(10, 0, {});
+    expect(activityFallback.queryRecentActivityLogs).toHaveBeenCalledWith(
+      10,
+      0,
+      {},
+    );
   });
 
   it('clamps the limit to the [1, 100] range to prevent unbounded fetches', async () => {

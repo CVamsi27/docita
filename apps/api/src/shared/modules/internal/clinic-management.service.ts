@@ -245,7 +245,10 @@ export class ClinicManagementService {
       where: { role: { in: CLINIC_ADMIN_ROLES } },
       select: CLINIC_ADMIN_SELECT,
       orderBy: { createdAt: 'desc' },
-      take: Math.min(options?.limit ?? INTERNAL_LIST_DEFAULT_LIMIT, INTERNAL_LIST_MAX_LIMIT),
+      take: Math.min(
+        options?.limit ?? INTERNAL_LIST_DEFAULT_LIMIT,
+        INTERNAL_LIST_MAX_LIMIT,
+      ),
     });
   }
 
@@ -278,7 +281,10 @@ export class ClinicManagementService {
         clinic: { select: { name: true } },
       },
       orderBy: { createdAt: 'desc' },
-      take: Math.min(options?.limit ?? INTERNAL_LIST_DEFAULT_LIMIT, INTERNAL_LIST_MAX_LIMIT),
+      take: Math.min(
+        options?.limit ?? INTERNAL_LIST_DEFAULT_LIMIT,
+        INTERNAL_LIST_MAX_LIMIT,
+      ),
     });
     return users.map((user) => ({
       ...user,

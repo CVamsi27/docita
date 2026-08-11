@@ -74,4 +74,3 @@ export interface GeneratePdfJobData extends Prisma.InputJsonObject {
   clinicId: string;
   pdfJobId?: string;
 }
-

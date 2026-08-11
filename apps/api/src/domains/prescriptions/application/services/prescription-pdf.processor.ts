@@ -28,7 +28,8 @@ export class PrescriptionPdfProcessor extends BasePdfProcessor<PrescriptionDetai
     @Inject(PDF_JOB_PROCESSOR_PRISMA_TOKEN)
     persistence: PdfJobProcessorPrismaPort,
     @Inject(PrescriptionsService)
-    service: PrescriptionPdfProcessorPort & BasePdfServicePort<PrescriptionDetail>,
+    service: PrescriptionPdfProcessorPort &
+      BasePdfServicePort<PrescriptionDetail>,
     @Inject('queue') queue: Pick<IQueueProvider, 'process'>,
     @Inject(CLOCK_PORT) clock: IClock,
   ) {

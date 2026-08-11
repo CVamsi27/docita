@@ -29,21 +29,21 @@ type SumCall = {
 // timezone <= UTC+11; on UTC+12..+14 machines (NZ/Fiji/Samoa/Kiritimati)
 // yesterday would land a day later and these assertions would need to shift.
 describe('UsageAggregationService', () => {
-  const runUnrestrictedMock = jest.fn<
-    (cb: () => Promise<unknown>) => Promise<unknown>
-  >();
+  const runUnrestrictedMock =
+    jest.fn<(cb: () => Promise<unknown>) => Promise<unknown>>();
   const findClinicIdsMock = jest.fn<() => Promise<string[]>>();
   const findPlanMock = jest.fn<(clinicId: string) => Promise<string | null>>();
   const findAddOnsMock =
     jest.fn<(clinicId: string) => Promise<ActiveAddOnSnapshot[]>>();
-  const sumUsageMock = jest.fn<
-    (
-      clinicId: string,
-      type: UsageType,
-      start: Date,
-      end: Date,
-    ) => Promise<number>
-  >();
+  const sumUsageMock =
+    jest.fn<
+      (
+        clinicId: string,
+        type: UsageType,
+        start: Date,
+        end: Date,
+      ) => Promise<number>
+    >();
   const upsertMock =
     jest.fn<(params: UpsertUsageRecordParams) => Promise<void>>();
 
@@ -63,8 +63,8 @@ describe('UsageAggregationService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    runUnrestrictedMock.mockImplementation(
-      async (cb: () => Promise<unknown>) => cb(),
+    runUnrestrictedMock.mockImplementation(async (cb: () => Promise<unknown>) =>
+      cb(),
     );
     findClinicIdsMock.mockResolvedValue([]);
     findPlanMock.mockResolvedValue('PROFESSIONAL');
@@ -111,9 +111,7 @@ describe('UsageAggregationService', () => {
     expect(sumCalls).toHaveLength(2);
 
     // usage is summed over yesterday's calendar window (June 11)
-    const whatsappSum = sumCalls.find(
-      (c) => c.type === 'WHATSAPP_MESSAGES',
-    );
+    const whatsappSum = sumCalls.find((c) => c.type === 'WHATSAPP_MESSAGES');
     expect(whatsappSum?.clinicId).toBe('clinic-1');
     expect(whatsappSum?.start.getFullYear()).toBe(2026);
     expect(whatsappSum?.start.getMonth()).toBe(5); // June
@@ -184,7 +182,10 @@ describe('UsageAggregationService', () => {
     findClinicIdsMock.mockResolvedValue(['clinic-1']);
     findPlanMock.mockResolvedValue('PROFESSIONAL');
     findAddOnsMock.mockResolvedValue([
-      { addOnType: 'WHATSAPP', addOn: { includedQuotaByTier: { STARTER: 100 } } },
+      {
+        addOnType: 'WHATSAPP',
+        addOn: { includedQuotaByTier: { STARTER: 100 } },
+      },
     ]);
     sumUsageMock.mockResolvedValue(60);
 
@@ -273,9 +274,9 @@ describe('UsageAggregationService', () => {
     await service.runDailyUsageAggregation();
 
     expect(upsertCalls).toHaveLength(4); // 2 clinics x 2 usage types
-    expect(
-      upsertCalls.filter((p) => p.clinicId === 'clinic-2'),
-    ).toHaveLength(2);
+    expect(upsertCalls.filter((p) => p.clinicId === 'clinic-2')).toHaveLength(
+      2,
+    );
     // each record lands in the usage day's month (June)
     expect(upsertCalls[0]?.periodStart.getMonth()).toBe(5);
   });

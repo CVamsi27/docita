@@ -35,10 +35,14 @@ describe('InMemoryQueueService', () => {
     });
     await service.process('test-job', handler);
 
-    await service.enqueue('test-job', { x: 1 }, {
-      attempts: 3,
-      backoff: { type: 'fixed', delay: 100 },
-    });
+    await service.enqueue(
+      'test-job',
+      { x: 1 },
+      {
+        attempts: 3,
+        backoff: { type: 'fixed', delay: 100 },
+      },
+    );
 
     // First attempt fails immediately.
     await Promise.resolve();
@@ -68,10 +72,14 @@ describe('InMemoryQueueService', () => {
     });
     await service.process('test-job', handler);
 
-    await service.enqueue('test-job', { x: 1 }, {
-      attempts: 5,
-      backoff: { type: 'fixed', delay: 50 },
-    });
+    await service.enqueue(
+      'test-job',
+      { x: 1 },
+      {
+        attempts: 5,
+        backoff: { type: 'fixed', delay: 50 },
+      },
+    );
 
     await Promise.resolve();
     expect(handler).toHaveBeenCalledTimes(1);
@@ -87,10 +95,14 @@ describe('InMemoryQueueService', () => {
     });
     await service.process('test-job', handler);
 
-    await service.enqueue('test-job', { x: 1 }, {
-      attempts: 3,
-      backoff: { type: 'exponential', delay: 100 },
-    });
+    await service.enqueue(
+      'test-job',
+      { x: 1 },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 100 },
+      },
+    );
 
     await Promise.resolve();
     expect(handler).toHaveBeenCalledTimes(1);

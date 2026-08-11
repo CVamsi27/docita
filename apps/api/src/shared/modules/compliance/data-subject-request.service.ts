@@ -8,7 +8,10 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus, InvoiceStatus, Patient } from '@workspace/db';
 import { AnonymizationFactory } from './factories/anonymization.factory';
-import { DataExportFactory, type ExportResult } from './factories/data-export.factory';
+import {
+  DataExportFactory,
+  type ExportResult,
+} from './factories/data-export.factory';
 import { DpdpAuditEmitter } from './dpdp-audit.emitter';
 import type { DataSubjectRequest } from './dpdp-compliance.types';
 

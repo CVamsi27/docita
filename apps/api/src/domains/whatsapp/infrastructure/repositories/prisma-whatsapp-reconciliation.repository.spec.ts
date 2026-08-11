@@ -32,7 +32,9 @@ describe('PrismaWhatsappReconciliationRepository', () => {
     for (const [key, value] of Object.entries(prismaMock)) {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
-    repository = new PrismaWhatsappReconciliationRepository(prismaService as never);
+    repository = new PrismaWhatsappReconciliationRepository(
+      prismaService as never,
+    );
   });
 
   it('constructs without throwing', () => {

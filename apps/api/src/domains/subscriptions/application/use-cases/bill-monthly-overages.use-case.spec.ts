@@ -6,9 +6,8 @@ import { SubscriptionOverageMeterService } from '@/domains/subscriptions/applica
 import { GLOBAL_BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
 describe('BillMonthlyOveragesUseCase', () => {
-  const runUnrestrictedMock = jest.fn<
-    (callback: () => Promise<void>) => Promise<void>
-  >();
+  const runUnrestrictedMock =
+    jest.fn<(callback: () => Promise<void>) => Promise<void>>();
   const findManyMock = jest.fn<
     (args: unknown) => Promise<
       Array<{
@@ -49,10 +48,7 @@ describe('BillMonthlyOveragesUseCase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new BillMonthlyOveragesUseCase(
-      persistence,
-      overageMeterService,
-    );
+    useCase = new BillMonthlyOveragesUseCase(persistence, overageMeterService);
     runUnrestrictedMock.mockImplementation(async (callback) => {
       await callback();
     });

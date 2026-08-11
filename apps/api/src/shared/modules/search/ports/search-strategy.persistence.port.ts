@@ -7,5 +7,4 @@ export type SearchStrategyPersistencePort = Pick<
   SearchStrategyPersistenceKey
 >;
 
-export const SEARCH_STRATEGY_PERSISTENCE_PORT =
-  'SearchStrategyPersistencePort';
+export const SEARCH_STRATEGY_PERSISTENCE_PORT = 'SearchStrategyPersistencePort';

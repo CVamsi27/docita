@@ -100,7 +100,12 @@ export class DoctorsService {
     ticketId: string,
     note?: string,
   ) {
-    return this.commandService.adminVerifyDoctor(doctorId, adminId, ticketId, note);
+    return this.commandService.adminVerifyDoctor(
+      doctorId,
+      adminId,
+      ticketId,
+      note,
+    );
   }
 
   adminRejectDoctor(
@@ -109,7 +114,12 @@ export class DoctorsService {
     ticketId: string,
     reason: string,
   ) {
-    return this.commandService.adminRejectDoctor(doctorId, adminId, ticketId, reason);
+    return this.commandService.adminRejectDoctor(
+      doctorId,
+      adminId,
+      ticketId,
+      reason,
+    );
   }
 
   uploadRegistrationCertificate(doctorId: string, file: StorageFile) {

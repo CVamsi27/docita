@@ -32,7 +32,11 @@ describe('PrismaSubscriptionPaymentRepository', () => {
     for (const [key, value] of Object.entries(prismaMock)) {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
-    repository = new PrismaSubscriptionPaymentRepository(prismaService as never, {} as never, {} as never);
+    repository = new PrismaSubscriptionPaymentRepository(
+      prismaService as never,
+      {} as never,
+      {} as never,
+    );
   });
 
   it('constructs without throwing', () => {

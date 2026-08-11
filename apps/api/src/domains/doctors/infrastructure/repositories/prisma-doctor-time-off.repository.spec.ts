@@ -5,9 +5,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 type AnyAsync = (...args: unknown[]) => Promise<unknown>;
 
 describe('PrismaDoctorTimeOffRepository', () => {
-  const prismaMock: Record<string, Record<string, jest.Mock<AnyAsync>>> = {
-
-  };
+  const prismaMock: Record<string, Record<string, jest.Mock<AnyAsync>>> = {};
 
   let repository: PrismaDoctorTimeOffRepository;
 

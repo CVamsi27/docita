@@ -46,7 +46,10 @@ describe('PrismaSubscriptionCoreRepository', () => {
     for (const [key, value] of Object.entries(prismaMock)) {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
-    repository = new PrismaSubscriptionCoreRepository(prismaService as never, {} as never);
+    repository = new PrismaSubscriptionCoreRepository(
+      prismaService as never,
+      {} as never,
+    );
   });
 
   it('constructs without throwing', () => {

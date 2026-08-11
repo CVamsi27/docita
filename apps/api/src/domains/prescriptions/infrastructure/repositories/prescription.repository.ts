@@ -185,16 +185,16 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
         doctorEmail: data.doctorEmail,
         doctorPhone: data.doctorPhone,
         doctorSpecialization: data.doctorSpecialization
-          ? parseStringEnumMember(
+          ? (parseStringEnumMember(
               Object.values(Specialization),
               data.doctorSpecialization,
-            ) ?? undefined
+            ) ?? undefined)
           : undefined,
         doctorRole: data.doctorRole
-          ? parseStringEnumMember(
+          ? (parseStringEnumMember(
               Object.values(HospitalRole),
               data.doctorRole,
-            ) ?? undefined
+            ) ?? undefined)
           : undefined,
         doctorRegistrationNumber: data.doctorRegistrationNumber,
         doctorLicenseNumber: data.doctorLicenseNumber,
@@ -208,18 +208,16 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
             ndcCode: med.ndcCode,
             rxNormCui: med.rxNormCui,
             dosageForm: med.dosageForm
-              ? parseStringEnumMember(
+              ? (parseStringEnumMember(
                   Object.values(DosageForm),
                   med.dosageForm,
-                ) ?? undefined
+                ) ?? undefined)
               : undefined,
             strengthValue: med.strengthValue,
             strengthUnit: med.strengthUnit,
             sigCode: med.sigCode
-              ? parseStringEnumMember(
-                  Object.values(SigCode),
-                  med.sigCode,
-                ) ?? undefined
+              ? (parseStringEnumMember(Object.values(SigCode), med.sigCode) ??
+                undefined)
               : undefined,
             quantity: med.quantity,
             refillsAllowed: med.refillsAllowed,

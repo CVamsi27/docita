@@ -8,9 +8,10 @@ import { EnterpriseContractTrueUpScheduler } from './enterprise-contract-trueup.
 describe('EnterpriseContractTrueUpScheduler', () => {
   const runUnrestrictedMock =
     jest.fn<(cb: () => Promise<unknown>) => Promise<unknown>>();
-  const findManyMock = jest.fn<
-    (args?: unknown) => Promise<Array<{ id: string; contractNumber: string }>>
-  >();
+  const findManyMock =
+    jest.fn<
+      (args?: unknown) => Promise<Array<{ id: string; contractNumber: string }>>
+    >();
   const evaluateMock =
     jest.fn<EnterpriseContractsService['evaluateAndAlertTrueUp']>();
 
@@ -39,8 +40,8 @@ describe('EnterpriseContractTrueUpScheduler', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    runUnrestrictedMock.mockImplementation(
-      async (cb: () => Promise<unknown>) => cb(),
+    runUnrestrictedMock.mockImplementation(async (cb: () => Promise<unknown>) =>
+      cb(),
     );
     findManyMock.mockResolvedValue([
       { id: 'c1', contractNumber: 'EC-1' },

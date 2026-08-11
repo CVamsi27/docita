@@ -56,7 +56,11 @@ describe('WhatsappCampaignDispatchCron', () => {
   sendMessage.execute = sendMessageExecuteMock;
 
   const clock = { now: () => FIXED_NOW };
-  const scheduler = new WhatsappCampaignDispatchCron(prisma, sendMessage, clock);
+  const scheduler = new WhatsappCampaignDispatchCron(
+    prisma,
+    sendMessage,
+    clock,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -317,20 +321,27 @@ describe('WhatsappCampaignDispatchCron', () => {
   });
 
   it('skips dispatch for jobs without a clinic or marked CANCELLED', async () => {
-    queryRawMock.mockResolvedValue([{ id: 'job_orphan' }, { id: 'job_cancelled' }]);
+    queryRawMock.mockResolvedValue([
+      { id: 'job_orphan' },
+      { id: 'job_cancelled' },
+    ]);
     jobFindUniqueMock
       .mockResolvedValueOnce({
         id: 'job_orphan',
         status: 'RUNNING',
         attempts: 0,
-        recipients: [{ id: 'r1', phoneNumber: '+919000000001', status: 'PENDING' }],
+        recipients: [
+          { id: 'r1', phoneNumber: '+919000000001', status: 'PENDING' },
+        ],
       })
       .mockResolvedValueOnce({
         id: 'job_cancelled',
         clinicId: 'clinic_1',
         status: 'CANCELLED',
         attempts: 0,
-        recipients: [{ id: 'r2', phoneNumber: '+919000000002', status: 'PENDING' }],
+        recipients: [
+          { id: 'r2', phoneNumber: '+919000000002', status: 'PENDING' },
+        ],
       });
 
     await scheduler.run();

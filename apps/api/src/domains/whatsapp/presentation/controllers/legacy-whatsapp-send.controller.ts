@@ -22,7 +22,9 @@ import { requireClinicActor } from '@/domains/whatsapp/presentation/controllers/
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappSendController {
-  constructor(private readonly templateMessageService: TemplateMessageService) {}
+  constructor(
+    private readonly templateMessageService: TemplateMessageService,
+  ) {}
 
   @UsePipes(new ZodValidationPipe(sendWhatsAppCustomMessageRequestSchema))
   @HttpCode(HttpStatus.OK)
@@ -33,6 +35,10 @@ export class LegacyWhatsappSendController {
     @Body() dto: SendWhatsAppCustomMessageRequest,
   ) {
     const { clinicId, id } = requireClinicActor(req);
-    return this.templateMessageService.handleSendCustomMessage(clinicId, id, dto);
+    return this.templateMessageService.handleSendCustomMessage(
+      clinicId,
+      id,
+      dto,
+    );
   }
 }

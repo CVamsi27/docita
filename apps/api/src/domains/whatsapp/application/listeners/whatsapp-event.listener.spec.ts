@@ -23,7 +23,8 @@ describe('WhatsappEventListener', () => {
   let listener: WhatsappEventListener;
   const sendPrescriptionSystemMock =
     jest.fn<SystemEventsService['sendPrescriptionSystem']>();
-  const sendInvoiceSystemMock = jest.fn<SystemEventsService['sendInvoiceSystem']>();
+  const sendInvoiceSystemMock =
+    jest.fn<SystemEventsService['sendInvoiceSystem']>();
   const sendAppointmentConfirmationMock =
     jest.fn<SystemEventsService['sendAppointmentConfirmation']>();
   const sendAppointmentUpdateMock =
@@ -107,10 +108,9 @@ describe('WhatsappEventListener', () => {
 
       await listener.handlePrescriptionCreated(event);
 
-      expect(mockSystemEventsService.sendPrescriptionSystem).toHaveBeenCalledWith(
-        'rx-123',
-        'clinic-123',
-      );
+      expect(
+        mockSystemEventsService.sendPrescriptionSystem,
+      ).toHaveBeenCalledWith('rx-123', 'clinic-123');
     });
 
     it('should catch and log errors without rethrowing', async () => {
@@ -202,10 +202,9 @@ describe('WhatsappEventListener', () => {
 
       await listener.handlePaymentCaptured(event);
 
-      expect(mockSystemEventsService.sendPaymentConfirmation).toHaveBeenCalledWith(
-        'inv-pay-123',
-        'clinic-123',
-      );
+      expect(
+        mockSystemEventsService.sendPaymentConfirmation,
+      ).toHaveBeenCalledWith('inv-pay-123', 'clinic-123');
       expect(notifyStaffMock).toHaveBeenCalledWith(
         expect.objectContaining({
           clinicId: 'clinic-123',
@@ -249,11 +248,9 @@ describe('WhatsappEventListener', () => {
 
       await listener.handleAppointmentUpdated(event);
 
-      expect(mockSystemEventsService.sendAppointmentUpdate).toHaveBeenCalledWith(
-        'appt-123',
-        'clinic-123',
-        'CANCELLED',
-      );
+      expect(
+        mockSystemEventsService.sendAppointmentUpdate,
+      ).toHaveBeenCalledWith('appt-123', 'clinic-123', 'CANCELLED');
     });
 
     it('should call sendAppointmentUpdate with CANCELLED when status is "no-show"', async () => {
@@ -270,11 +267,9 @@ describe('WhatsappEventListener', () => {
 
       await listener.handleAppointmentUpdated(event);
 
-      expect(mockSystemEventsService.sendAppointmentUpdate).toHaveBeenCalledWith(
-        'appt-123',
-        'clinic-123',
-        'CANCELLED',
-      );
+      expect(
+        mockSystemEventsService.sendAppointmentUpdate,
+      ).toHaveBeenCalledWith('appt-123', 'clinic-123', 'CANCELLED');
     });
 
     it('should call sendAppointmentUpdate with RESCHEDULED when startTime changed', async () => {
@@ -292,11 +287,9 @@ describe('WhatsappEventListener', () => {
 
       await listener.handleAppointmentUpdated(event);
 
-      expect(mockSystemEventsService.sendAppointmentUpdate).toHaveBeenCalledWith(
-        'appt-123',
-        'clinic-123',
-        'RESCHEDULED',
-      );
+      expect(
+        mockSystemEventsService.sendAppointmentUpdate,
+      ).toHaveBeenCalledWith('appt-123', 'clinic-123', 'RESCHEDULED');
     });
 
     it('should do nothing when status unchanged and start time unchanged', async () => {
@@ -313,7 +306,9 @@ describe('WhatsappEventListener', () => {
 
       await listener.handleAppointmentUpdated(event);
 
-      expect(mockSystemEventsService.sendAppointmentUpdate).not.toHaveBeenCalled();
+      expect(
+        mockSystemEventsService.sendAppointmentUpdate,
+      ).not.toHaveBeenCalled();
     });
 
     it('should catch errors without rethrowing', async () => {

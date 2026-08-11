@@ -89,23 +89,32 @@ describe('NotifySubscriptionGraceDeadlineUseCase', () => {
   });
 
   it.each([
-    ['grace_deadline_7d', 'Docita subscription: 7 days left to resolve billing'],
-    ['grace_deadline_3d', 'Docita subscription: 3 days left to resolve billing'],
+    [
+      'grace_deadline_7d',
+      'Docita subscription: 7 days left to resolve billing',
+    ],
+    [
+      'grace_deadline_3d',
+      'Docita subscription: 3 days left to resolve billing',
+    ],
     ['grace_deadline_1d', 'Docita subscription: 1 day left to resolve billing'],
     ['grace_deadline_today', 'Docita subscription: billing deadline is today'],
-  ] as const)('uses the day-specific subject for %s', async (reminderType, expectedSubject) => {
-    findCandidatesMock.mockResolvedValue([candidate]);
-    findRecentReminderClinicIdsMock.mockResolvedValue([]);
+  ] as const)(
+    'uses the day-specific subject for %s',
+    async (reminderType, expectedSubject) => {
+      findCandidatesMock.mockResolvedValue([candidate]);
+      findRecentReminderClinicIdsMock.mockResolvedValue([]);
 
-    await useCase.execute({
-      targetDate: new Date('2026-05-15T00:00:00.000Z'),
-      reminderType,
-    });
+      await useCase.execute({
+        targetDate: new Date('2026-05-15T00:00:00.000Z'),
+        reminderType,
+      });
 
-    expect(emailService.send).toHaveBeenCalledWith(
-      expect.objectContaining({ subject: expectedSubject }),
-    );
-  });
+      expect(emailService.send).toHaveBeenCalledWith(
+        expect.objectContaining({ subject: expectedSubject }),
+      );
+    },
+  );
 
   it('skips candidates without a grace deadline and reports matched vs attempted', async () => {
     findCandidatesMock.mockResolvedValue([

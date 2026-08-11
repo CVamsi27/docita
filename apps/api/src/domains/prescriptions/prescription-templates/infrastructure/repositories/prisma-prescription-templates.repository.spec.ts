@@ -32,7 +32,9 @@ describe('PrismaPrescriptionTemplatesRepository', () => {
     for (const [key, value] of Object.entries(prismaMock)) {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
-    repository = new PrismaPrescriptionTemplatesRepository(prismaService as never);
+    repository = new PrismaPrescriptionTemplatesRepository(
+      prismaService as never,
+    );
   });
 
   it('constructs without throwing', () => {

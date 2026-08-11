@@ -12,5 +12,4 @@ export type ImportStrategyPersistencePort = Pick<
   ImportStrategyPersistenceKey
 >;
 
-export const IMPORT_STRATEGY_PERSISTENCE_PORT =
-  'ImportStrategyPersistencePort';
+export const IMPORT_STRATEGY_PERSISTENCE_PORT = 'ImportStrategyPersistencePort';

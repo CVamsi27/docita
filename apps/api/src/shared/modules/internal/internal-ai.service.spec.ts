@@ -5,7 +5,12 @@ import type { PrismaService } from '@/prisma/prisma.service';
 
 describe('InternalAiService', () => {
   let service: InternalAiService;
-  let prisma: { clinic: { findUnique: jest.Mock<(args: unknown) => Promise<unknown>>; update: jest.Mock<(args: unknown) => Promise<unknown>> } };
+  let prisma: {
+    clinic: {
+      findUnique: jest.Mock<(args: unknown) => Promise<unknown>>;
+      update: jest.Mock<(args: unknown) => Promise<unknown>>;
+    };
+  };
 
   beforeEach(() => {
     prisma = { clinic: { findUnique: jest.fn(), update: jest.fn() } };
@@ -25,7 +30,9 @@ describe('InternalAiService', () => {
 
     expect(result.aiEnabled).toBe(true);
     expect(result.clinicId).toBe('clinic-1');
-    expect((result.features as { predictiveAnalytics: boolean }).predictiveAnalytics).toBe(true);
+    expect(
+      (result.features as { predictiveAnalytics: boolean }).predictiveAnalytics,
+    ).toBe(true);
   });
 
   it('getClinicAIFeatures throws when the clinic is missing', async () => {
@@ -37,7 +44,10 @@ describe('InternalAiService', () => {
   });
 
   it('updateClinicAIFeatures sets intelligenceAddon to ACTIVE when enabled=true', async () => {
-    prisma.clinic.findUnique.mockResolvedValueOnce({ id: 'clinic-1', features: {} });
+    prisma.clinic.findUnique.mockResolvedValueOnce({
+      id: 'clinic-1',
+      features: {},
+    });
     prisma.clinic.update.mockResolvedValueOnce({
       id: 'clinic-1',
       intelligenceAddon: 'ACTIVE',

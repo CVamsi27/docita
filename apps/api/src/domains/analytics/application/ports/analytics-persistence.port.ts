@@ -6,9 +6,7 @@ import { type PrismaDelegatePort } from '@/shared/modules/database/prisma-delega
  * because base reads use the read replica; `analyticsSnapshot` covers
  * the snapshot write/read path.
  */
-type AnalyticsPersistenceKey =
-  | 'analyticsSnapshot'
-  | 'getReadClient';
+type AnalyticsPersistenceKey = 'analyticsSnapshot' | 'getReadClient';
 
 export type AnalyticsPersistencePort = Pick<
   PrismaDelegatePort,

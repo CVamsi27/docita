@@ -1,9 +1,5 @@
 // jscpd:ignore-start
-import {
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
   type EnterpriseContractPersistencePort,

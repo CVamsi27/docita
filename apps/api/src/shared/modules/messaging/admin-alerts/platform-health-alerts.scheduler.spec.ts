@@ -154,9 +154,7 @@ describe('PlatformHealthAlertsScheduler', () => {
       alertKey: 'razorpay_config_missing',
       severity: 'warn',
       subject: 'Razorpay configuration missing',
-      text: expect.stringContaining(
-        'RAZORPAY_KEY_ID, RAZORPAY_WEBHOOK_SECRET',
-      ),
+      text: expect.stringContaining('RAZORPAY_KEY_ID, RAZORPAY_WEBHOOK_SECRET'),
       dedupeWindowMs: 6 * 60 * 60 * 1000,
     });
     expect(markRecoveredMock).not.toHaveBeenCalledWith(

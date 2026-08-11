@@ -29,10 +29,7 @@ describe('AbdmCallbackStateService', () => {
     pushHealthInformation: jest.fn(),
     notifyHealthInformation: jest.fn(),
   } as unknown as jest.Mocked<
-    Pick<
-      AbdmGatewayClient,
-      'pushHealthInformation' | 'notifyHealthInformation'
-    >
+    Pick<AbdmGatewayClient, 'pushHealthInformation' | 'notifyHealthInformation'>
   >;
   const clock = { now: () => new Date('2026-06-12T00:00:00.000Z') };
 

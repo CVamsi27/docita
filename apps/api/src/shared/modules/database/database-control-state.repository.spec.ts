@@ -24,11 +24,16 @@ describe('DatabaseControlStateRepository', () => {
       },
     };
     clock = { now: jest.fn(() => new Date('2026-08-10T00:00:00Z')) };
-    repository = new DatabaseControlStateRepository(prisma as never, clock as never);
+    repository = new DatabaseControlStateRepository(
+      prisma as never,
+      clock as never,
+    );
   });
 
   it('recordStart inserts an IN_PROGRESS row and returns the generated id', async () => {
-    prisma.databaseControlAction.create.mockResolvedValueOnce({ id: 'action-1' });
+    prisma.databaseControlAction.create.mockResolvedValueOnce({
+      id: 'action-1',
+    });
 
     const id = await repository.recordStart({
       action: 'STOP',
@@ -168,9 +173,7 @@ describe('DatabaseControlStateRepository', () => {
   });
 
   it('findRecentHistory caps the page at the requested limit', async () => {
-    prisma.databaseControlAction.findMany.mockResolvedValueOnce(
-      [] as never,
-    );
+    prisma.databaseControlAction.findMany.mockResolvedValueOnce([] as never);
 
     await repository.findRecentHistory(7);
 

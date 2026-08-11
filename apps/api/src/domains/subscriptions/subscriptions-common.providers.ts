@@ -34,9 +34,7 @@ import { PartnerAuthService } from './core/services/partner-auth.service';
 import { ReferrerCodeBackfillService } from './core/services/referrer-code-backfill.service';
 import { REFERRAL_PAYOUT_REPOSITORY_TOKEN } from './application/ports/referral-payout.repository.port';
 import { PrismaReferralPayoutRepository } from './infrastructure/repositories/prisma-referral-payout.repository';
-import {
-  PARTNER_PERSISTENCE_PORT,
-} from './application/ports/partner-persistence.port';
+import { PARTNER_PERSISTENCE_PORT } from './application/ports/partner-persistence.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ActivateSubscriptionClinicSyncService } from './application/services/activate-subscription-clinic-sync.service';
 import { ActivateSubscriptionPricingResolver } from './application/services/activate-subscription-pricing.resolver';

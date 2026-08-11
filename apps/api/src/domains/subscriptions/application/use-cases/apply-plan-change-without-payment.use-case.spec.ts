@@ -81,8 +81,7 @@ describe('ApplyPlanChangeWithoutPaymentUseCase', () => {
     getClinicPricingOffer: getClinicPricingOfferMock,
   } as unknown as FeatureFlagService;
 
-  const computeMock =
-    jest.fn<SubscriptionCheckoutPricingService['compute']>();
+  const computeMock = jest.fn<SubscriptionCheckoutPricingService['compute']>();
   const checkoutPricing = Object.create(
     SubscriptionCheckoutPricingService.prototype,
   ) as SubscriptionCheckoutPricingService;
@@ -99,11 +98,15 @@ describe('ApplyPlanChangeWithoutPaymentUseCase', () => {
     SubscriptionActivationPolicyService.prototype,
   ) as SubscriptionActivationPolicyService;
   const shouldPreserveMock =
-    jest.fn<SubscriptionActivationPolicyService['shouldPreserveCurrentPeriodEnd']>();
+    jest.fn<
+      SubscriptionActivationPolicyService['shouldPreserveCurrentPeriodEnd']
+    >();
   activationPolicy.shouldPreserveCurrentPeriodEnd = shouldPreserveMock;
 
   const persistActivatedSubscriptionMock =
-    jest.fn<SubscriptionBillingSnapshotService['persistActivatedSubscription']>();
+    jest.fn<
+      SubscriptionBillingSnapshotService['persistActivatedSubscription']
+    >();
   const billingSnapshot = Object.create(
     SubscriptionBillingSnapshotService.prototype,
   ) as SubscriptionBillingSnapshotService;
@@ -133,9 +136,7 @@ describe('ApplyPlanChangeWithoutPaymentUseCase', () => {
     );
     getClinicPricingOfferMock.mockResolvedValue(null);
     shouldPreserveMock.mockReturnValue(false);
-    persistActivatedSubscriptionMock.mockResolvedValue(
-      buildSubscription(),
-    );
+    persistActivatedSubscriptionMock.mockResolvedValue(buildSubscription());
     syncAfterActivationMock.mockResolvedValue(undefined);
   });
 

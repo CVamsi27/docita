@@ -1,16 +1,14 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import {
-  BillingCycle,
-  ClinicTier,
-  SubscriptionStatus,
-} from '@workspace/db';
+import { BillingCycle, ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { InternalSubscriptionQueryService } from './internal-subscription-query.service';
 
 describe('InternalSubscriptionQueryService', () => {
   let service: InternalSubscriptionQueryService;
   let prisma: {
     subscription: { findMany: jest.Mock<(args: unknown) => Promise<unknown>> };
-    subscriptionPayment: { findMany: jest.Mock<(args: unknown) => Promise<unknown>> };
+    subscriptionPayment: {
+      findMany: jest.Mock<(args: unknown) => Promise<unknown>>;
+    };
   };
   let clock: { now: jest.Mock };
 
@@ -20,7 +18,10 @@ describe('InternalSubscriptionQueryService', () => {
       subscriptionPayment: { findMany: jest.fn() },
     };
     clock = { now: jest.fn(() => new Date('2026-08-10T00:00:00Z')) };
-    service = new InternalSubscriptionQueryService(prisma as never, clock as never);
+    service = new InternalSubscriptionQueryService(
+      prisma as never,
+      clock as never,
+    );
   });
 
   it('getSubscriptions applies the requested tier and status filters', async () => {
@@ -102,7 +103,9 @@ describe('InternalSubscriptionQueryService', () => {
       SubscriptionStatus.TRIALING,
     ]);
     // currentPeriodEnd is bounded to [now, now+7d]
-    expect(call.where.currentPeriodEnd.gte).toEqual(new Date('2026-08-10T00:00:00Z'));
+    expect(call.where.currentPeriodEnd.gte).toEqual(
+      new Date('2026-08-10T00:00:00Z'),
+    );
   });
 
   it('getExpiringSubscriptions accepts a custom window', async () => {
@@ -118,7 +121,9 @@ describe('InternalSubscriptionQueryService', () => {
         plan: unknown;
       };
     };
-    expect(call.where.currentPeriodEnd.gte).toEqual(new Date('2026-08-10T00:00:00Z'));
+    expect(call.where.currentPeriodEnd.gte).toEqual(
+      new Date('2026-08-10T00:00:00Z'),
+    );
   });
 
   it('getPayments applies clinicId and date filters', async () => {
@@ -130,7 +135,8 @@ describe('InternalSubscriptionQueryService', () => {
       endDate: '2026-08-31',
     });
 
-    const call = (prisma.subscriptionPayment.findMany.mock.calls[0]?.[0] ?? {}) as {
+    const call = (prisma.subscriptionPayment.findMany.mock.calls[0]?.[0] ??
+      {}) as {
       where: {
         clinicId: unknown;
         createdAt: { gte: unknown; lte: unknown };
@@ -149,7 +155,8 @@ describe('InternalSubscriptionQueryService', () => {
 
     await service.getPayments({});
 
-    const call = (prisma.subscriptionPayment.findMany.mock.calls[0]?.[0] ?? {}) as {
+    const call = (prisma.subscriptionPayment.findMany.mock.calls[0]?.[0] ??
+      {}) as {
       where: {
         clinicId: unknown;
         createdAt: { gte: unknown; lte: unknown };

@@ -11,15 +11,13 @@ type PatientRow = { id: string; clinicId: string | null };
 type UserRow = { id: string; clinicId: string | null; createdAt?: Date };
 
 describe('DataRetentionScheduler', () => {
-  const runUnrestrictedMock = jest.fn<
-    (cb: () => Promise<unknown>) => Promise<unknown>
-  >();
+  const runUnrestrictedMock =
+    jest.fn<(cb: () => Promise<unknown>) => Promise<unknown>>();
   const patientFindManyMock =
     jest.fn<(args?: unknown) => Promise<PatientRow[]>>();
   const patientUpdateMock =
     jest.fn<(args: unknown) => Promise<Record<string, never>>>();
-  const userFindManyMock =
-    jest.fn<(args?: unknown) => Promise<UserRow[]>>();
+  const userFindManyMock = jest.fn<(args?: unknown) => Promise<UserRow[]>>();
   const userUpdateMock =
     jest.fn<(args: unknown) => Promise<Record<string, never>>>();
   const auditLogActionMock = jest.fn<AuditService['logAction']>();
@@ -70,8 +68,8 @@ describe('DataRetentionScheduler', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    runUnrestrictedMock.mockImplementation(
-      async (cb: () => Promise<unknown>) => cb(),
+    runUnrestrictedMock.mockImplementation(async (cb: () => Promise<unknown>) =>
+      cb(),
     );
     patientFindManyMock.mockResolvedValue([]);
     userFindManyMock.mockResolvedValue([]);
@@ -105,7 +103,9 @@ describe('DataRetentionScheduler', () => {
   });
 
   it('anonymizes soft-deleted patients and audits with the earliest clinic admin', async () => {
-    patientFindManyMock.mockResolvedValue([{ id: 'pat_1', clinicId: 'clinic_1' }]);
+    patientFindManyMock.mockResolvedValue([
+      { id: 'pat_1', clinicId: 'clinic_1' },
+    ]);
     userFindManyMock
       .mockResolvedValueOnce([
         {
@@ -165,7 +165,9 @@ describe('DataRetentionScheduler', () => {
   });
 
   it('skips the audit log when the clinic has no admin user', async () => {
-    patientFindManyMock.mockResolvedValue([{ id: 'pat_2', clinicId: 'clinic_1' }]);
+    patientFindManyMock.mockResolvedValue([
+      { id: 'pat_2', clinicId: 'clinic_1' },
+    ]);
     userFindManyMock.mockResolvedValue([]);
 
     await scheduler.handleDataRetention();
@@ -175,7 +177,9 @@ describe('DataRetentionScheduler', () => {
   });
 
   it('anonymizes soft-deleted staff accounts and audits the change', async () => {
-    userFindManyMock.mockResolvedValue([{ id: 'user_1', clinicId: 'clinic_1' }]);
+    userFindManyMock.mockResolvedValue([
+      { id: 'user_1', clinicId: 'clinic_1' },
+    ]);
 
     await scheduler.handleDataRetention();
 
@@ -262,7 +266,9 @@ describe('DataRetentionScheduler', () => {
   });
 
   it('isolates a failed anonymization so the sweep still resolves', async () => {
-    patientFindManyMock.mockResolvedValue([{ id: 'pat_1', clinicId: 'clinic_1' }]);
+    patientFindManyMock.mockResolvedValue([
+      { id: 'pat_1', clinicId: 'clinic_1' },
+    ]);
     userFindManyMock
       .mockResolvedValueOnce([
         {

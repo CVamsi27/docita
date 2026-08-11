@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ReferralConversionCreditService } from './referral-conversion-credit.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { createFixedClockMock } from '@/test-utils';
-import {
-  PARTNER_PERSISTENCE_PORT,
-} from '@/domains/subscriptions/application/ports/partner-persistence.port';
+import { PARTNER_PERSISTENCE_PORT } from '@/domains/subscriptions/application/ports/partner-persistence.port';
 
-type AnyAsync<TArgs extends unknown[] = unknown[]> = (...args: TArgs) => Promise<unknown>;
+type AnyAsync<TArgs extends unknown[] = unknown[]> = (
+  ...args: TArgs
+) => Promise<unknown>;
 
 describe('ReferralConversionCreditService', () => {
   const prismaMock = {
@@ -30,10 +30,9 @@ describe('ReferralConversionCreditService', () => {
     for (const [key, value] of Object.entries(prismaMock)) {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
-    prismaMock.$transaction.mockImplementation(
-      (async (cb: (client: typeof prismaMock) => Promise<unknown>) =>
-        cb(prismaMock)) as AnyAsync,
-    );
+    prismaMock.$transaction.mockImplementation((async (
+      cb: (client: typeof prismaMock) => Promise<unknown>,
+    ) => cb(prismaMock)) as AnyAsync);
     const clock = createFixedClockMock('2026-08-10T00:00:00.000Z');
     service = new ReferralConversionCreditService(
       prismaService as never,

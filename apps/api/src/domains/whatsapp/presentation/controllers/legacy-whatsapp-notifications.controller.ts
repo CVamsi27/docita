@@ -15,7 +15,9 @@ import { requireUserId } from '@/domains/whatsapp/presentation/controllers/legac
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappNotificationsController {
-  constructor(private readonly staffNotificationService: StaffNotificationService) {}
+  constructor(
+    private readonly staffNotificationService: StaffNotificationService,
+  ) {}
 
   @Get('notifications/unread-count')
   @ZodSerializerDto(WhatsappUnreadCountResponseDto)
@@ -41,7 +43,10 @@ export class LegacyWhatsappNotificationsController {
   @Delete('notifications/:id')
   @ZodSerializerDto(SuccessResponseDto)
   async deleteNotification(@Req() req: Request, @Param('id') id: string) {
-    await this.staffNotificationService.deleteNotification(id, requireUserId(req));
+    await this.staffNotificationService.deleteNotification(
+      id,
+      requireUserId(req),
+    );
     return { success: true, message: 'Notification deleted' };
   }
 

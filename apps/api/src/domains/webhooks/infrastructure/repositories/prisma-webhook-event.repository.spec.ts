@@ -46,7 +46,10 @@ describe('PrismaWebhookEventRepository', () => {
     for (const [key, value] of Object.entries(prismaMock)) {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
-    repository = new PrismaWebhookEventRepository(prismaService as never, {} as never);
+    repository = new PrismaWebhookEventRepository(
+      prismaService as never,
+      {} as never,
+    );
   });
 
   it('constructs without throwing', () => {

@@ -17,8 +17,7 @@ import { createFixedClockMock } from '@/test-utils';
 describe('CreateSubscriptionUseCase', () => {
   const clock = createFixedClockMock('2026-05-01T10:00:00.000Z');
 
-  const findByIdMock =
-    jest.fn<ISubscriptionRepository['findById']>();
+  const findByIdMock = jest.fn<ISubscriptionRepository['findById']>();
   const findByClinicIdMock =
     jest.fn<ISubscriptionRepository['findByClinicId']>();
   const saveMock = jest.fn<ISubscriptionRepository['save']>();

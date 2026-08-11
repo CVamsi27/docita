@@ -97,10 +97,7 @@ describe('AbdmCommandService', () => {
 
     const result = await service.createCareContext('clinic-1', input);
 
-    expect(exchange.createCareContext).toHaveBeenCalledWith(
-      'clinic-1',
-      input,
-    );
+    expect(exchange.createCareContext).toHaveBeenCalledWith('clinic-1', input);
     expect(result.id).toBe('ctx-1');
   });
 

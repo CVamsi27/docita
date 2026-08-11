@@ -46,7 +46,10 @@ describe('PrismaPortalAuthRepository', () => {
     for (const [key, value] of Object.entries(prismaMock)) {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
-    repository = new PrismaPortalAuthRepository(prismaService as never, {} as never);
+    repository = new PrismaPortalAuthRepository(
+      prismaService as never,
+      {} as never,
+    );
   });
 
   it('constructs without throwing', () => {

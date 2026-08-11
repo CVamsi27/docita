@@ -88,9 +88,7 @@ describe('ExpireSubscriptionUseCase', () => {
   it('throws NotFoundException when the subscription does not exist', async () => {
     findByIdMock.mockResolvedValue(null);
 
-    await expect(useCase.execute('missing')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(useCase.execute('missing')).rejects.toThrow(NotFoundException);
     expect(saveMock).not.toHaveBeenCalled();
   });
 

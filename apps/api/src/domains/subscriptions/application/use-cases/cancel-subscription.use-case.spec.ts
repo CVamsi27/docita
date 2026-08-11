@@ -14,7 +14,9 @@ import {
 } from '@/domains/subscriptions/core/value-objects';
 import { createFixedClockMock } from '@/test-utils';
 
-function buildSubscription(overrides: Partial<Subscription> = {}): Subscription {
+function buildSubscription(
+  overrides: Partial<Subscription> = {},
+): Subscription {
   return new Subscription({
     id: 'sub-1',
     clinicId: 'clinic-1',
@@ -115,9 +117,9 @@ describe('CancelSubscriptionUseCase', () => {
   it('throws NotFoundException when no subscription exists for the clinic', async () => {
     findByClinicIdMock.mockResolvedValue(null);
 
-    await expect(
-      useCase.execute({ clinicId: 'missing' }),
-    ).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute({ clinicId: 'missing' })).rejects.toThrow(
+      NotFoundException,
+    );
     expect(saveMock).not.toHaveBeenCalled();
   });
 

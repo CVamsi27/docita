@@ -112,7 +112,10 @@ describe('PdfJobService', () => {
       expect(enqueueMock).toHaveBeenCalledWith(
         JobNames.GENERATE_INVOICE_PDF,
         expect.objectContaining({ documentId: 'doc-1', pdfJobId: 'pdf-job-1' }),
-        expect.objectContaining({ attempts: 3, idempotencyKey: 'generate-invoice-pdf:doc-1' }),
+        expect.objectContaining({
+          attempts: 3,
+          idempotencyKey: 'generate-invoice-pdf:doc-1',
+        }),
       );
       expect(result.jobId).toBe('pdf-job-1');
       expect(result.status).toBe('PENDING');
@@ -136,7 +139,10 @@ describe('PdfJobService', () => {
       expect(enqueueMock).toHaveBeenCalledWith(
         JobNames.GENERATE_PRESCRIPTION_PDF,
         expect.objectContaining({ documentType: 'prescription' }),
-        expect.objectContaining({ attempts: 3, idempotencyKey: 'generate-prescription-pdf:rx-1' }),
+        expect.objectContaining({
+          attempts: 3,
+          idempotencyKey: 'generate-prescription-pdf:rx-1',
+        }),
       );
     });
 

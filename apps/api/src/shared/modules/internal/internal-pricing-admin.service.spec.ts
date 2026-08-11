@@ -7,8 +7,17 @@ import type { PrismaService } from '@/prisma/prisma.service';
 describe('InternalPricingAdminService', () => {
   let service: InternalPricingAdminService;
   let prisma: {
-    tierPricing: { findMany: jest.Mock<(args: unknown) => Promise<unknown>>; update: jest.Mock<(args: unknown) => Promise<unknown>> };
-    featureFlag: { findMany: jest.Mock<(args: unknown) => Promise<unknown>>; findFirst: jest.Mock<(args: unknown) => Promise<unknown>>; update: jest.Mock<(args: unknown) => Promise<unknown>>; create: jest.Mock<(args: unknown) => Promise<unknown>>; deleteMany: jest.Mock<(args: unknown) => Promise<unknown>> };
+    tierPricing: {
+      findMany: jest.Mock<(args: unknown) => Promise<unknown>>;
+      update: jest.Mock<(args: unknown) => Promise<unknown>>;
+    };
+    featureFlag: {
+      findMany: jest.Mock<(args: unknown) => Promise<unknown>>;
+      findFirst: jest.Mock<(args: unknown) => Promise<unknown>>;
+      update: jest.Mock<(args: unknown) => Promise<unknown>>;
+      create: jest.Mock<(args: unknown) => Promise<unknown>>;
+      deleteMany: jest.Mock<(args: unknown) => Promise<unknown>>;
+    };
   };
   let events: { emit: jest.Mock };
 
@@ -24,7 +33,10 @@ describe('InternalPricingAdminService', () => {
       },
     };
     events = { emit: jest.fn() };
-    service = new InternalPricingAdminService(prisma as unknown as PrismaService, events as unknown as EventEmitter2);
+    service = new InternalPricingAdminService(
+      prisma as unknown as PrismaService,
+      events as unknown as EventEmitter2,
+    );
   });
 
   it('returns pricing tiers ordered by display order', async () => {
@@ -79,10 +91,21 @@ describe('InternalPricingAdminService', () => {
           durationMonths: 6,
         },
         updatedAt: new Date('2026-08-01'),
-        clinic: { id: 'clinic-1', name: 'Acme', email: 'a@x.com', tier: 'STARTER' },
+        clinic: {
+          id: 'clinic-1',
+          name: 'Acme',
+          email: 'a@x.com',
+          tier: 'STARTER',
+        },
       },
       // Missing clinicId — must be filtered out.
-      { id: 'flag-2', clinicId: null, value: null, updatedAt: new Date(), clinic: null },
+      {
+        id: 'flag-2',
+        clinicId: null,
+        value: null,
+        updatedAt: new Date(),
+        clinic: null,
+      },
     ]);
 
     const result = await service.getPricingOffers();

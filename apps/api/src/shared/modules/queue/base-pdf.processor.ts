@@ -28,9 +28,9 @@ export interface BasePdfServicePort<Document = unknown> {
   ): Promise<{ storedKey: string }>;
 }
 
-export abstract class BasePdfProcessor<Document = unknown>
-  implements OnModuleInit
-{
+export abstract class BasePdfProcessor<
+  Document = unknown,
+> implements OnModuleInit {
   protected abstract readonly logger: Logger;
   protected abstract readonly jobName: JobNames;
   protected abstract readonly entityLabel: string;

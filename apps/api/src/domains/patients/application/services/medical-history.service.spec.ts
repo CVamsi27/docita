@@ -234,5 +234,4 @@ describe('MedicalHistoryService', () => {
       ).toHaveBeenCalledWith({ where: { patientId: 'p-del' } });
     });
   });
-
 });

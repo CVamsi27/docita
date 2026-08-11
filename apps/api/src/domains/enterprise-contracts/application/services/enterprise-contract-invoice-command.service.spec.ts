@@ -65,10 +65,9 @@ function createService(overrides?: {
     ),
   } as unknown as EnterpriseContractPersistencePort;
 
-  const service = new EnterpriseContractInvoiceCommandService(
-    persistence,
-    { now: () => new Date('2026-06-05T00:00:00.000Z') } satisfies IClock,
-  );
+  const service = new EnterpriseContractInvoiceCommandService(persistence, {
+    now: () => new Date('2026-06-05T00:00:00.000Z'),
+  } satisfies IClock);
 
   return {
     service,

@@ -3,18 +3,26 @@ import { InternalBillingService } from './internal-billing.service';
 
 describe('InternalBillingService (facade)', () => {
   let service: InternalBillingService;
-  let billingMetrics: { getMetrics: jest.Mock<(args: unknown) => Promise<unknown>> };
+  let billingMetrics: {
+    getMetrics: jest.Mock<(args: unknown) => Promise<unknown>>;
+  };
   let subscriptionQuery: {
     getSubscriptions: jest.Mock<(args: unknown) => Promise<unknown>>;
     getExpiringSubscriptions: jest.Mock<(args: unknown) => Promise<unknown>>;
     getPayments: jest.Mock<(args: unknown) => Promise<unknown>>;
   };
-  let subscriptionAdmin: { sendReminder: jest.Mock<(args: unknown) => Promise<unknown>> };
+  let subscriptionAdmin: {
+    sendReminder: jest.Mock<(args: unknown) => Promise<unknown>>;
+  };
   let pricingAdmin: {
     getPricingTiers: jest.Mock<() => Promise<unknown>>;
     getPricingOffers: jest.Mock<() => Promise<unknown>>;
   };
-  let additionalCharge: { recordAdditionalCharge: jest.Mock<(args1: unknown, args2: unknown) => Promise<unknown>> };
+  let additionalCharge: {
+    recordAdditionalCharge: jest.Mock<
+      (args1: unknown, args2: unknown) => Promise<unknown>
+    >;
+  };
 
   beforeEach(() => {
     billingMetrics = { getMetrics: jest.fn() };
@@ -43,7 +51,10 @@ describe('InternalBillingService (facade)', () => {
 
   it('forwards subscription query filters to InternalSubscriptionQueryService', async () => {
     const filters = { status: 'ACTIVE' };
-    subscriptionQuery.getSubscriptions.mockResolvedValueOnce({ items: [], total: 0 });
+    subscriptionQuery.getSubscriptions.mockResolvedValueOnce({
+      items: [],
+      total: 0,
+    });
     await service.getSubscriptions(filters as never);
     expect(subscriptionQuery.getSubscriptions).toHaveBeenCalledWith(filters);
   });
@@ -77,7 +88,9 @@ describe('InternalBillingService (facade)', () => {
   });
 
   it('forwards additional charges to InternalAdditionalChargeService', async () => {
-    additionalCharge.recordAdditionalCharge.mockResolvedValueOnce({ success: true });
+    additionalCharge.recordAdditionalCharge.mockResolvedValueOnce({
+      success: true,
+    });
     await service.recordAdditionalCharge('clinic-1', {
       amount: 100,
       category: 'OTHER',

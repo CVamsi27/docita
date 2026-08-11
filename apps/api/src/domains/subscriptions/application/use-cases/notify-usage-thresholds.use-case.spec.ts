@@ -6,12 +6,10 @@ import { UsageThresholdNotifierService } from '@/domains/subscriptions/applicati
 import { GLOBAL_BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
 describe('NotifyUsageThresholdsUseCase', () => {
-  const runUnrestrictedMock = jest.fn<
-    (callback: () => Promise<void>) => Promise<void>
-  >();
-  const findManyMock = jest.fn<
-    (args: unknown) => Promise<Array<{ clinicId: string }>>
-  >();
+  const runUnrestrictedMock =
+    jest.fn<(callback: () => Promise<void>) => Promise<void>>();
+  const findManyMock =
+    jest.fn<(args: unknown) => Promise<Array<{ clinicId: string }>>>();
 
   const persistence = {
     runUnrestricted: runUnrestrictedMock,
@@ -24,9 +22,8 @@ describe('NotifyUsageThresholdsUseCase', () => {
     trackPrescription: jest.fn(async () => undefined),
   } as unknown as IClinicUsagePort;
 
-  const processUsageWarningsMock = jest.fn<
-    (clinicId: string, usage: unknown) => Promise<void>
-  >();
+  const processUsageWarningsMock =
+    jest.fn<(clinicId: string, usage: unknown) => Promise<void>>();
   const usageThresholdNotifier = Object.create(
     UsageThresholdNotifierService.prototype,
   ) as UsageThresholdNotifierService;

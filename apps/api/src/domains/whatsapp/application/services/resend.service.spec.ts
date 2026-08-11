@@ -102,12 +102,10 @@ describe('WhatsappResendService', () => {
           .mockReturnValue('Preview text'),
       },
       sendMessage: {
-        execute: jest
-          .fn<SendMessageUseCase['execute']>()
-          .mockResolvedValue({
-            messageId: 'msg-123',
-            providerMessageId: 'prov-123',
-          }),
+        execute: jest.fn<SendMessageUseCase['execute']>().mockResolvedValue({
+          messageId: 'msg-123',
+          providerMessageId: 'prov-123',
+        }),
       },
     };
   }
@@ -255,7 +253,12 @@ describe('WhatsappResendService', () => {
 
       let caught: unknown;
       try {
-        await service.resendPrescription('clinic-1', 'user-1', 'DOCTOR', 'rx-1');
+        await service.resendPrescription(
+          'clinic-1',
+          'user-1',
+          'DOCTOR',
+          'rx-1',
+        );
       } catch (err) {
         caught = err;
       }
@@ -383,9 +386,7 @@ describe('WhatsappResendService', () => {
     });
 
     it('throws NotFoundException when the invoice does not exist', async () => {
-      mocks.persistence.invoice.findUnique.mockImplementation(
-        async () => null,
-      );
+      mocks.persistence.invoice.findUnique.mockImplementation(async () => null);
 
       await expect(
         service.resendInvoice('clinic-1', 'user-1', 'DOCTOR', 'inv-1'),

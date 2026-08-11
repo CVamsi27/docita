@@ -19,9 +19,8 @@ describe("worker process wiring", () => {
   it("shares the AppConfigService construction with the API", async () => {
     // Dynamic import so the spec is run with the same module-resolution
     // rules as the worker entrypoint (`@/*` → `apps/api/src/*`).
-    const { buildAppConfigService } = await import(
-      "@/shared/modules/config/app-config.builder"
-    );
+    const { buildAppConfigService } =
+      await import("@/shared/modules/config/app-config.builder");
 
     const config = buildAppConfigService();
 
@@ -34,9 +33,8 @@ describe("worker process wiring", () => {
   });
 
   it("builds independent config instances per call (no shared mutable state)", async () => {
-    const { buildAppConfigService } = await import(
-      "@/shared/modules/config/app-config.builder"
-    );
+    const { buildAppConfigService } =
+      await import("@/shared/modules/config/app-config.builder");
 
     // Two independent builds must produce independent instances — the
     // builder is intentionally a factory, not a singleton, so a
