@@ -291,3 +291,15 @@ either:
 
 See the companion doc
 [`FRONTEND_DEAD_CODE_2026-08-11.md`](./FRONTEND_DEAD_CODE_2026-08-11.md).
+
+---
+
+## Tracker
+
+- **Previous:** [`FRONTEND_DEAD_CODE_FULL_2026-08-11.md`](FRONTEND_DEAD_CODE_FULL_2026-08-11.md)
+- **Next:** [`FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md`](FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md) for full version
+- **Related architecture:** [`../ui/UI_UX_STANDARD_2026.md`](../../ui/UI_UX_STANDARD_2026.md)
+- **Related runbook:** (none)
+- **Fixed in:** (not yet — index of every useEffect for reference)
+- **Verified by:** (parent doc verification applies)
+- **Open follow-ups:** See companion doc [`FRONTEND_DEAD_CODE_2026-08-11.md`](FRONTEND_DEAD_CODE_2026-08-11.md) and [`2026-08-11-final-pass-minute-misses.md`](2026-08-11-final-pass-minute-misses.md) §1.3 (React-Hooks warnings).

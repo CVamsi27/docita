@@ -88,3 +88,15 @@ All checks pass:
 - `pnpm check:duplication` — 0 clones
 - `pnpm check:prisma-boundary` — 0 violations
 - `pnpm check:hygiene` — pass
+
+---
+
+## Tracker
+
+- **Previous:** [`FRONTEND_FULL_AUDIT_2026-08-11.md`](FRONTEND_FULL_AUDIT_2026-08-11.md)
+- **Next:** [`FRONTEND_FINAL_PASS_CONT_2026-08-11.md`](FRONTEND_FINAL_PASS_CONT_2026-08-11.md)
+- **Related architecture:** [`../ui/UI_UX_STANDARD_2026.md`](../../ui/UI_UX_STANDARD_2026.md)
+- **Related runbook:** (none)
+- **Fixed in:** (not yet — recommended follow-ups tracked in this doc)
+- **Verified by:** `pnpm verify:standard` exit 0; `pnpm check:duplication` 0 clones; `pnpm check:prisma-boundary` 0 violations
+- **Open follow-ups:** See [`FRONTEND_FINAL_PASS_CONT_2026-08-11.md`](FRONTEND_FINAL_PASS_CONT_2026-08-11.md) for continued items.

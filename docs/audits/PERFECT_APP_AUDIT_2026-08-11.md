@@ -692,3 +692,15 @@ Combining this doc with
 - [`FRONTEND_FULL_AUDIT_2026-08-11.md`](./FRONTEND_FULL_AUDIT_2026-08-11.md) — earlier broad static review
 - [`FRONTEND_USEEFFECT_INDEX_2026-08-11.md`](./FRONTEND_USEEFFECT_INDEX_2026-08-11.md) — condensed
 - [`FRONTEND_DEAD_CODE_2026-08-11.md`](./FRONTEND_DEAD_CODE_2026-08-11.md) — condensed
+
+---
+
+## Tracker
+
+- **Previous:** [`2026-08-11-final-pass-minute-misses.md`](2026-08-11-final-pass-minute-misses.md) (recommended fixes)
+- **Next:** [`UI_UX_ENHANCEMENTS_2026-08-11.md`](UI_UX_ENHANCEMENTS_2026-08-11.md)
+- **Related architecture:** [`../architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md), [`../ui/UI_UX_STANDARD_2026.md`](../../ui/UI_UX_STANDARD_2026.md)
+- **Related runbook:** (none)
+- **Fixed in:** (not yet — full-app scope audit)
+- **Verified by:** `pnpm verify:standard` exit 0 (existing baseline)
+- **Open follow-ups:** See [`2026-08-11-final-pass-minute-misses.md`](2026-08-11-final-pass-minute-misses.md) for the recommended fix order.

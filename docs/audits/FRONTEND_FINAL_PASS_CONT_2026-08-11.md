@@ -482,3 +482,15 @@ The prior
 - [`FRONTEND_DEAD_CODE_FULL_2026-08-11.md`](./FRONTEND_DEAD_CODE_FULL_2026-08-11.md) — every dead export
 - [`FRONTEND_BEST_PRACTICES_2026-08-11.md`](./FRONTEND_BEST_PRACTICES_2026-08-11.md) — shared primitives, React Query, Zod-shared-schemas, 0-waste API
 - [`FRONTEND_FULL_AUDIT_2026-08-11.md`](./FRONTEND_FULL_AUDIT_2026-08-11.md) — broad static review
+
+---
+
+## Tracker
+
+- **Previous:** [`FRONTEND_FINAL_PASS_SUMMARY_2026-08-11.md`](FRONTEND_FINAL_PASS_SUMMARY_2026-08-11.md)
+- **Next:** [`FRONTEND_BEST_PRACTICES_2026-08-11.md`](FRONTEND_BEST_PRACTICES_2026-08-11.md) / [`FRONTEND_DEAD_CODE_2026-08-11.md`](FRONTEND_DEAD_CODE_2026-08-11.md) (parallel)
+- **Related architecture:** [`../ui/UI_UX_STANDARD_2026.md`](../../ui/UI_UX_STANDARD_2026.md)
+- **Related runbook:** (none)
+- **Fixed in:** (not yet — continued items)
+- **Verified by:** (parent doc FRONTEND_FINAL_PASS_SUMMARY verification applies)
+- **Open follow-ups:** Continued follow-ups from the FRONTEND_FINAL_PASS_SUMMARY.

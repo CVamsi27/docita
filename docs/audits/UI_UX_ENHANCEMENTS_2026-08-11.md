@@ -624,3 +624,15 @@ In priority order, with effort/impact:
 - [`FRONTEND_FULL_AUDIT_2026-08-11.md`](./FRONTEND_FULL_AUDIT_2026-08-11.md) — earlier broad static review
 - `docs/ui/UI_UX_STANDARD_2026.md` — the design system spec this audit checks against
 - `packages/ui/src/styles/globals.css` — the design tokens
+
+---
+
+## Tracker
+
+- **Previous:** [`PERFECT_APP_AUDIT_2026-08-11.md`](PERFECT_APP_AUDIT_2026-08-11.md)
+- **Next:** [`FINAL_EXECUTION_PLAN_2026-08-11.md`](FINAL_EXECUTION_PLAN_2026-08-11.md)
+- **Related architecture:** [`../ui/UI_UX_STANDARD_2026.md`](../../ui/UI_UX_STANDARD_2026.md)
+- **Related runbook:** (none)
+- **Fixed in:** (not yet — enhancement backlog)
+- **Verified by:** (parent doc verification applies)
+- **Open follow-ups:** UI/UX enhancement backlog for upcoming sprints.

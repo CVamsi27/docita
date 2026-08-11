@@ -242,3 +242,15 @@ list of "color names" is generated from the tokens; anything not in
 the list fails.
 
 End of audit.
+
+---
+
+## Tracker
+
+- **Previous:** [`2026-08-10-deep-analysis.md`](2026-08-10-deep-analysis.md)
+- **Next:** [`2026-08-11-backend-final-pass.md`](2026-08-11-backend-final-pass.md)
+- **Related architecture:** [`../architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md), [`../ui/UI_UX_STANDARD_2026.md`](../../ui/UI_UX_STANDARD_2026.md)
+- **Related runbook:** (none)
+- **Fixed in:** (not yet — Top-10 list is the recommended follow-up backlog)
+- **Verified by:** `pnpm verify:standard` exit 0 (existing baseline; items 1, 2, 3 already done in PR #211)
+- **Open follow-ups:** Items 4-10 (i18n coverage, mobile breakpoints, landing page hero/pricing, internal admin dashboard, image opt). See [`2026-08-11-final-pass-minute-misses.md`](2026-08-11-final-pass-minute-misses.md) §1.3 (fast-refresh + useMemo warnings) and the parallel agent's [`FRONTEND_FINAL_PASS_SUMMARY_2026-08-11.md`](FRONTEND_FINAL_PASS_SUMMARY_2026-08-11.md) for the full frontend backlog.

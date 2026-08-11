@@ -419,3 +419,15 @@ Tests: 258 passed, 258 total
 
 CI run `31509870896` is in flight; the cron self-reminder will
 confirm green when it lands.
+
+---
+
+## Tracker
+
+- **Previous:** [`2026-08-10-session-notes.md`](2026-08-10-session-notes.md)
+- **Next:** [`2026-08-11-best-practices-and-zod.md`](2026-08-11-best-practices-and-zod.md)
+- **Related architecture:** [`../architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md), [`../architecture/SINGLE_SOURCE_OF_TRUTH.md`](../architecture/SINGLE_SOURCE_OF_TRUTH.md)
+- **Related runbook:** (none yet — see §1.8 in final-pass-minute-misses)
+- **Fixed in:** PR #211 (commits `bb13fbbff`, `13a6844bb`)
+- **Verified by:** `pnpm verify:standard` exit 0; API E2E partner-portal 13/13; API unit 3331/3331; invoice-abac 9/9
+- **Open follow-ups:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (§2.1), 3 barrel inlines (§2.2), 1 IPD barrel removal (§2.3), 1 `ConsentContent` demotion (§2.4) — see [`2026-08-11-final-pass-minute-misses.md`](2026-08-11-final-pass-minute-misses.md) §1.13 for the multi-PR plan.

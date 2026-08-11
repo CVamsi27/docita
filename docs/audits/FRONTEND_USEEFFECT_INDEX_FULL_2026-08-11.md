@@ -3434,3 +3434,15 @@ This is the "document them" companion to the elimination pass. Every line of eve
               if (refreshed 
   ... [truncated — see source for full body]
 ```
+
+---
+
+## Tracker
+
+- **Previous:** [`FRONTEND_USEEFFECT_INDEX_2026-08-11.md`](FRONTEND_USEEFFECT_INDEX_2026-08-11.md) (condensed)
+- **Next:** [`2026-08-11-best-practices-and-zod.md`](2026-08-11-best-practices-and-zod.md) (backend) or [`PERFECT_APP_AUDIT_2026-08-11.md`](PERFECT_APP_AUDIT_2026-08-11.md) (full-app)
+- **Related architecture:** [`../ui/UI_UX_STANDARD_2026.md`](../../ui/UI_UX_STANDARD_2026.md)
+- **Related runbook:** (none)
+- **Fixed in:** (not yet — comprehensive index)
+- **Verified by:** (parent doc verification applies)
+- **Open follow-ups:** See [`2026-08-11-final-pass-minute-misses.md`](2026-08-11-final-pass-minute-misses.md) §1.3 (React-Hooks warnings).

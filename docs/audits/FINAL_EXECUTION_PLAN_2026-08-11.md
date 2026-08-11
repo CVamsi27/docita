@@ -1470,3 +1470,15 @@ This plan is the actionable layer on top of the 9 audit docs:
 When starting a task, **always re-read the relevant section** of the
 doc it's drawn from to confirm the line numbers and surrounding code
 haven't changed since the audit was generated.
+
+---
+
+## Tracker
+
+- **Previous:** [`UI_UX_ENHANCEMENTS_2026-08-11.md`](UI_UX_ENHANCEMENTS_2026-08-11.md)
+- **Next:** (none — this is the closing doc for the 2026-08-11 audit cycle)
+- **Related architecture:** [`../architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md)
+- **Related runbook:** (none)
+- **Fixed in:** (not yet — execution plan)
+- **Verified by:** `pnpm verify:standard` exit 0 (existing baseline)
+- **Open follow-ups:** Follow the plan; refer to [`INDEX.md`](INDEX.md) §3 for severity-ranked open findings.

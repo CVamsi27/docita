@@ -2707,3 +2707,15 @@ function resolvePublishedInternalApiUrl(): string {
 ```
 
 > **Action:** investigate — the function is tested but never imported in production. Either wire it up or delete it with the test.
+
+---
+
+## Tracker
+
+- **Previous:** [`FRONTEND_DEAD_CODE_2026-08-11.md`](FRONTEND_DEAD_CODE_2026-08-11.md) (condensed)
+- **Next:** [`FRONTEND_USEEFFECT_INDEX_2026-08-11.md`](FRONTEND_USEEFFECT_INDEX_2026-08-11.md) (condensed) or [`2026-08-11-backend-final-pass.md`](2026-08-11-backend-final-pass.md) (backend)
+- **Related architecture:** [`../ui/UI_UX_STANDARD_2026.md`](../../ui/UI_UX_STANDARD_2026.md)
+- **Related runbook:** (none)
+- **Fixed in:** (not yet — full inventory)
+- **Verified by:** (parent doc verification applies)
+- **Open follow-ups:** Delete or wire the dead exports. See [`2026-08-11-final-pass-minute-misses.md`](2026-08-11-final-pass-minute-misses.md) §1.14.

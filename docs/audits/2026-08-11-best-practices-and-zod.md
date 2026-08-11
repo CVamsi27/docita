@@ -436,3 +436,15 @@ invoice-abac / prescription-abac specs). A follow-up should add an
 e2e test for `POST /internal/clinics` that asserts a non-5-value tier
 (e.g. `"FRONT_DESK"`) now 400s at the boundary — tracked in
 `docs/audits/2026-08-11-backend-final-pass.md` §1.4 lesson.
+
+---
+
+## Tracker
+
+- **Previous:** [`2026-08-11-backend-final-pass.md`](2026-08-11-backend-final-pass.md)
+- **Next:** [`2026-08-11-final-pass-minute-misses.md`](2026-08-11-final-pass-minute-misses.md)
+- **Related architecture:** [`../architecture/zod-first-architecture.md`](../architecture/zod-first-architecture.md), [`../architecture/SINGLE_SOURCE_OF_TRUTH.md`](../architecture/SINGLE_SOURCE_OF_TRUTH.md)
+- **Related runbook:** (none)
+- **Fixed in:** PR #211 (commit `e22397f9a`)
+- **Verified by:** `pnpm verify:standard` exit 0; API unit 3308/3308; clinic-management spec 8/8; referral-conversion-credit spec 5/5
+- **Open follow-ups:** Delete unused `ClinicTierType` type alias (see [`2026-08-11-final-pass-minute-misses.md`](2026-08-11-final-pass-minute-misses.md) §1.14)
