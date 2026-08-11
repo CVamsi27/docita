@@ -46,7 +46,10 @@ describe('HealthCheckController (e2e)', () => {
       .get('/health/live')
       .expect(200)
       .expect((response) => {
-        expect(response.body).toMatchObject({ status: 'ok', service: 'docita-api' });
+        expect(response.body).toMatchObject({
+          status: 'ok',
+          service: 'docita-api',
+        });
         expect(typeof response.body.uptime).toBe('number');
       });
   });

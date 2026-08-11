@@ -54,8 +54,9 @@ const mockWhatsAppClient: IWhatsAppClient = {
         type?: string;
         text?: string;
       }>;
-      const otp = parameters.find((parameter) => parameter.type === 'text')
-        ?.text;
+      const otp = parameters.find(
+        (parameter) => parameter.type === 'text',
+      )?.text;
       if (otp) sentOtps.push(otp);
       return { externalId: 'wamid.e2e-partner-otp' };
     }),
