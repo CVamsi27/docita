@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { AppPageScaffold, Badge, Button, DataState, Input, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { RefreshCw } from "lucide-react";
 import { formatDate } from "@/lib/formatters";
@@ -31,9 +31,7 @@ export function LogsPage() {
     if (selectedModule !== "ALL") p.set("module", selectedModule);
     if (searchText) p.set("q", searchText);
     return p.toString();
-  }, [selectedLimit, offset, selectedLevel, selectedModule, searchText]);
-
-  const fetchLogs = async () => {
+  }, [selectedLimit, offset, selectedLevel, selectedModule, searchText]);  const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
       const data = await apiGet<{ logs: SystemLog[]; total: number }>(`/api/internal/logs?${params}`);
@@ -41,9 +39,9 @@ export function LogsPage() {
       setTotalCount(data.total);
     } catch { /* ignore */ }
     finally { setLoading(false); }
-  };
+  }, [params]);
 
-  useEffect(() => { void fetchLogs(); }, [params]);
+  useEffect(() => { void fetchLogs(); }, [fetchLogs]);
 
   function handleRefresh() {
     setRefreshing(true);
