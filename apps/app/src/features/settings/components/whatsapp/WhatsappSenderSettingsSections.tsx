@@ -241,7 +241,7 @@ export function DeliverabilityCard({
               <span className="font-medium">
                 {stats.data.deliveryRate === null ||
                 stats.data.deliveryRate === undefined
-                  ? "\u2014"
+                  ? "—"
                   : `${stats.data.deliveryRate}%`}
               </span>
             </div>

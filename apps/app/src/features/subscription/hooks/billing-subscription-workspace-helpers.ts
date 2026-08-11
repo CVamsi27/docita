@@ -78,7 +78,7 @@ export function buildBilledTierLabel(
     ? (TIER_INFO[billedTierName]?.name ?? currentTierInfoName)
     : currentTierInfoName;
   const billedModeLabel =
-    currentMode !== "FULL" ? ` \u00b7 ${PLAN_MODE_INFO[currentMode].name}` : "";
+    currentMode !== "FULL" ? ` · ${PLAN_MODE_INFO[currentMode].name}` : "";
 
   return { billedTierName, billedTierLabel, billedModeLabel };
 }

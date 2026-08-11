@@ -1514,3 +1514,62 @@ const client = new OpenAI({ apiKey: process.env.AI_API_KEY });
     ),
   );
 });
+
+test("unicode escape literal check fails on UI backslash-u escapes and passes on literal glyphs", () => {
+  // UI source with \u escapes for typographic characters fails under --enforce.
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/internal/src/features/demo/page.tsx": `export function Page() {\n  return <div>{"Loading\\u2026"}</div>;\n}\n`,
+      }),
+      "check-unicode-escape-literals.mjs",
+      ["--enforce"],
+    ),
+  );
+
+  // Literal glyphs in the same fixture pass.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/internal/src/features/demo/page.tsx": `export function Page() {\n  return <div>{"Loading\u2026"}</div>;\n}\n`,
+      }),
+      "check-unicode-escape-literals.mjs",
+      ["--enforce"],
+    ),
+  );
+
+  // Allow-listed pictographs (check mark, ballot x) are permitted.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/app/src/features/demo/page.tsx": `export function Page() {\n  return <div>{hasAccess ? "\\u2713" : "\\u2717"}</div>;\n}\n`,
+      }),
+      "check-unicode-escape-literals.mjs",
+      ["--enforce"],
+    ),
+  );
+
+  // Non-UI files (api, packages, scripts) are exempt even with escapes.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/shared/utils/string.ts": `export const re = /[\\u00a0\\u2026]/;\n`,
+        "packages/types/src/sanitization.ts": `export const map = { "\\u00a9": "" };\n`,
+        "scripts/checks/demo.ts": `const x = "\\u2026";\n`,
+      }),
+      "check-unicode-escape-literals.mjs",
+      ["--enforce"],
+    ),
+  );
+
+  // File-level opt-out marker exempts a UI file with escapes.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/app/src/features/demo/page.tsx": `// unicode-escape-allow-file: domain content needs literal codepoints\nexport const x = "\\u2026";\n`,
+      }),
+      "check-unicode-escape-literals.mjs",
+      ["--enforce"],
+    ),
+  );
+});

@@ -71,7 +71,15 @@ describe('AuditService', () => {
         resourceId: 'patient-1',
       };
 
-      jest.spyOn(service, 'createAuditLog').mockResolvedValue({});
+      jest.spyOn(service, 'createAuditLog').mockResolvedValue({
+        id: 'audit-1',
+        clinicId: 'clinic-1',
+        userId: 'user-1',
+        actionType: 'PATIENT_CREATED',
+        resourceType: 'PATIENT',
+        resourceId: 'patient-1',
+        createdAt: new Date(),
+      });
 
       await service.logAction(logData);
 
@@ -107,10 +115,7 @@ describe('AuditService', () => {
         resourceId: 'patient-1',
       };
 
-      const result = (await service.createAuditLog(logData)) as Record<
-        string,
-        unknown
-      >;
+      const result = await service.createAuditLog(logData);
 
       expect(result).toBeDefined();
       expect(result.clinicId).toBe('clinic-1');

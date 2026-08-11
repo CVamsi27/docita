@@ -37,9 +37,9 @@ export function AuditsPage() {
               <TableRow key={log.id}>
                 <TableCell className="whitespace-nowrap text-xs">{formatInternalTimestamp(log.createdAt)}</TableCell>
                 <TableCell className="font-mono text-xs">{log.action}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{log.resource ? `${log.resource}${log.resourceId ? ` \u00b7 ${log.resourceId}` : ""}` : "\u2014"}</TableCell>
-                <TableCell className="font-mono text-xs">{log.clinicId || "\u2014"}</TableCell>
-                <TableCell className="font-mono text-xs">{log.userId || "\u2014"}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{log.resource ? `${log.resource}${log.resourceId ? ` · ${log.resourceId}` : ""}` : "—"}</TableCell>
+                <TableCell className="font-mono text-xs">{log.clinicId || "—"}</TableCell>
+                <TableCell className="font-mono text-xs">{log.userId || "—"}</TableCell>
                 <TableCell><Badge variant={log.status === "SUCCESS" ? "secondary" : "destructive"}>{log.status === "SUCCESS" ? "Success" : "Failed"}</Badge></TableCell>
               </TableRow>
             ))}

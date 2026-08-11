@@ -50,7 +50,7 @@ export function TierCard({
             {features.slice(0, maxDisplay).map(({ feature, details, hasAccess }) => (
               <div key={feature} className="flex items-center gap-2 text-sm">
                 <span className={cn("h-4 w-4", hasAccess ? "text-success" : "text-muted-foreground")}>
-                  {hasAccess ? "\u2713" : "\u2717"}
+                  {hasAccess ? "✓" : "✗"}
                 </span>
                 <span className={cn(!hasAccess && "text-muted-foreground")}>{details.name}</span>
               </div>

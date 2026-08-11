@@ -29,7 +29,11 @@ import {
   buildUserActionLog,
 } from './domain-audit-action-builders';
 
-import type { AuditLogData, AuditLogFilter } from './audit.service.types';
+import type {
+  AuditLogData,
+  AuditLogFilter,
+  CreatedAuditLog,
+} from './audit.service.types';
 
 @Injectable()
 export class AuditService {
@@ -50,7 +54,7 @@ export class AuditService {
     await this.createAuditLog(data);
   }
 
-  async createAuditLog(data: AuditLogData): Promise<unknown> {
+  async createAuditLog(data: AuditLogData): Promise<CreatedAuditLog> {
     // RLS-BYPASS: audit persistence correlates events across tenants for compliance
     return this.prisma.runUnrestricted(async () =>
       runOutsideActiveTx(async () => {

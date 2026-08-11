@@ -97,13 +97,13 @@ export function BillingPlanCards({ planCards, selectedMode, selectedCycle, curre
         const supportedModes = getAvailableModesForTier(tierName);
         const effectiveMode: PlanMode = supportedModes.includes(selectedMode) ? selectedMode : "FULL";
         const resolvedPricing = applyModeToPricing(basePricing, effectiveMode);
-        const currencySymbol = PRICING_CURRENCY_SYMBOLS[pricingCurrency] ?? "\u20B9";
+        const currencySymbol = PRICING_CURRENCY_SYMBOLS[pricingCurrency] ?? "₹";
         const keyHighlights = planHighlightKeys(tierName).map((key) =>
           key === "essential.trial"
             ? tHighlights(key, { days: SUBSCRIPTION_TRIAL_DAYS })
             : tHighlights(key),
         );
-        const modeSuffix = effectiveMode === "FULL" ? null : ` \u00b7 ${PLAN_MODE_INFO[effectiveMode].name}`;
+        const modeSuffix = effectiveMode === "FULL" ? null : ` · ${PLAN_MODE_INFO[effectiveMode].name}`;
         const cardInfo = modeSuffix ? { ...info, name: `${info.name}${modeSuffix}` } : info;
         const modeMismatched = effectiveMode !== selectedMode && selectedMode !== "FULL";
 
