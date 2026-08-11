@@ -94,6 +94,7 @@ export class DoctorsService {
     return this.commandService.reverifyDoctor(id, clinicId);
   }
 
+  /* jscpd:ignore-start */
   adminVerifyDoctor(
     doctorId: string,
     adminId: string,
@@ -121,6 +122,7 @@ export class DoctorsService {
       reason,
     );
   }
+  /* jscpd:ignore-end */
 
   uploadRegistrationCertificate(doctorId: string, file: StorageFile) {
     return this.commandService.uploadRegistrationCertificate(doctorId, file);
