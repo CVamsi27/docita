@@ -12,7 +12,7 @@ import {
   type ClinicReferralStatus,
 } from '@workspace/types';
 import { firstRateBandPercent } from './referral-reward.rules';
-import { ReferralFirstPaymentCreditService } from './referral-first-payment-credit.service';
+import { ReferralConversionCreditService } from './referral-conversion-credit.service';
 
 @Injectable()
 export class ReferralService {
@@ -22,7 +22,7 @@ export class ReferralService {
     @Inject(PARTNER_PERSISTENCE_PORT)
     private prisma: PartnerPersistencePort,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
-    private readonly firstPaymentCredit: ReferralFirstPaymentCreditService,
+    private readonly firstPaymentCredit: ReferralConversionCreditService,
   ) {}
 
   async validateReferralCode(

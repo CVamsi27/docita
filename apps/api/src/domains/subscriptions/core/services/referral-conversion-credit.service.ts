@@ -20,8 +20,8 @@ import { MAX_REFERRAL_CREDITS_PER_YEAR } from '@workspace/types';
  * accrual handles the partner payout downstream.
  */
 @Injectable()
-export class ReferralFirstPaymentCreditService {
-  private readonly logger = new Logger(ReferralFirstPaymentCreditService.name);
+export class ReferralConversionCreditService {
+  private readonly logger = new Logger(ReferralConversionCreditService.name);
 
   constructor(
     @Inject(PARTNER_PERSISTENCE_PORT)

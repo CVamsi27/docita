@@ -21,7 +21,7 @@ function makeCtx() {
       // The capture spec only exercises validateReferralCode +
       // captureReferralAtSignup — applyReferralCreditsOnFirstPayment
       // has its own describe in referral.service.spec.ts and goes
-      // through the extracted ReferralFirstPaymentCreditService. Pass
+      // through the extracted ReferralConversionCreditService. Pass
       // a no-op stub here.
       {
         applyOnFirstPayment: async () => {

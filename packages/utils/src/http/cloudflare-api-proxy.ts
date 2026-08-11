@@ -1,4 +1,8 @@
 // jscpd:ignore-start
+// check-as-cast-density: allow-file — `require("hono") as typeof import("hono")`
+// is the documented bridge for a lazy require of an optional peerDependency
+// (Hono is only required at the production call site; tests pass options.app
+// to avoid loading the runtime). No other cast in this file.
 // Shared factory for the Cloudflare Worker API proxies that live next to
 // the Vite SPA bundles (apps/app/api/index.ts, apps/internal/api/index.ts).
 // The factory wires the canonical /api/v1/*, /api/*, and /socket.io/* routes

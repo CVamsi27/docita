@@ -1,3 +1,7 @@
+// check-as-cast-density: allow-file — `this.prisma` is a narrow Pick<PrismaService, ...>
+// (PartnerPersistencePort) but withAdvisoryLock's signature accepts the full
+// PrismaDelegatePort. The widening cast is required by the helper's type contract;
+// the runtime is the same PrismaService instance via useExisting.
 import {
   Inject,
   Injectable,

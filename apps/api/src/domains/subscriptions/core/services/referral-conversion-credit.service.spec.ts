@@ -1,26 +1,26 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { ReferralFirstPaymentCreditService } from './referral-first-payment-credit.service';
+import { ReferralConversionCreditService } from './referral-conversion-credit.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { createFixedClockMock } from '@/test-utils';
 import {
   PARTNER_PERSISTENCE_PORT,
 } from '@/domains/subscriptions/application/ports/partner-persistence.port';
 
-type AnyAsync = (...args: unknown[]) => Promise<unknown>;
+type AnyAsync<TArgs extends unknown[] = unknown[]> = (...args: TArgs) => Promise<unknown>;
 
-describe('ReferralFirstPaymentCreditService', () => {
-  const prismaMock: Record<string, Record<string, jest.Mock<AnyAsync>>> = {
-    subscriptionPayment: { count: jest.fn<AnyAsync>() },
+describe('ReferralConversionCreditService', () => {
+  const prismaMock = {
+    subscriptionPayment: { count: jest.fn<AnyAsync>() as jest.Mock<AnyAsync> },
     referral: {
-      findFirst: jest.fn<AnyAsync>(),
-      updateMany: jest.fn<AnyAsync>(),
+      findFirst: jest.fn<AnyAsync>() as jest.Mock<AnyAsync>,
+      updateMany: jest.fn<AnyAsync>() as jest.Mock<AnyAsync>,
     },
-    clinic: { update: jest.fn<AnyAsync>() },
-    referralCredit: { create: jest.fn<AnyAsync>() },
-    $transaction: jest.fn<AnyAsync>(),
+    clinic: { update: jest.fn<AnyAsync>() as jest.Mock<AnyAsync> },
+    referralCredit: { create: jest.fn<AnyAsync>() as jest.Mock<AnyAsync> },
+    $transaction: jest.fn<AnyAsync>() as jest.Mock<AnyAsync>,
   };
 
-  let service: ReferralFirstPaymentCreditService;
+  let service: ReferralConversionCreditService;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -31,11 +31,11 @@ describe('ReferralFirstPaymentCreditService', () => {
       Object.defineProperty(prismaService, key, { value, writable: true });
     }
     prismaMock.$transaction.mockImplementation(
-      async (cb: (tx: typeof prismaMock) => Promise<unknown>) =>
-        cb(prismaMock),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async (cb: any) => cb(prismaMock),
     );
     const clock = createFixedClockMock('2026-08-10T00:00:00.000Z');
-    service = new ReferralFirstPaymentCreditService(
+    service = new ReferralConversionCreditService(
       prismaService as never,
       clock,
     );
