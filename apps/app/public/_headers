@@ -1,10 +1,8 @@
-/*
-  /api/* requests are handled by the Worker — this file only contains
-  static asset security headers. script-src keeps 'unsafe-inline' for
-  the Vite module-preload bootstrap and lists the third-party widgets
-  (Razorpay checkout, Cloudflare Turnstile) that load their own scripts;
-  tightening this further requires a browser smoke of the checkout flow.
-*/
+# /api/* requests are handled by the Worker - this file only contains
+# static asset security headers. script-src keeps 'unsafe-inline' for
+# the Vite module-preload bootstrap and lists the third-party widgets
+# (Razorpay checkout, Cloudflare Turnstile) that load their own scripts;
+# tightening this further requires a browser smoke of the checkout flow.
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
