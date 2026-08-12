@@ -1,11 +1,12 @@
 # Audit Index
 
-> **The 2026-08-11 audit cycle is consolidated into 2 docs:**
+> **The 2026-08-11/12 audit cycle is consolidated into 2 docs:**
 >
 > 1. **[`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md)**
 >    — Every backend finding, fix, and follow-up. 80+ gate results,
 >    best-practices spot-checks, architectural observations, 7
->    PrismaService leaks, 15 minute-miss findings, 11 follow-up PRs.
+>    PrismaService leaks, 15 minute-miss findings, 11 follow-up PRs,
+>    §17 final pass consolidating the cycle.
 >
 > 2. **[`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md)**
 >    — Every frontend finding, fix, and follow-up. 16 lint warnings,
@@ -16,59 +17,68 @@
 >    The 2026-08-12 `UI_UX_PERFECT_2026-08-12.md` and
 >    `PERFECT_RESPONSIVE_2026-08-12.md` docs were folded into §35
 >    and §36 and are no longer separate files.
->
-> Older docs from this cycle were merged into the 2 consolidated
-> docs. The pre-2026-08-11 docs below remain in their original
-> form (they document closed or superseded work).
->
-> Two large full-index files are intentionally kept as separate
-> files because they exceed the practical inline size for the
-> consolidated doc:
-> - [`FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md`](FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md) (88KB) — full useEffect body + deps
-> - [`FRONTEND_DEAD_CODE_FULL_2026-08-11.md`](FRONTEND_DEAD_CODE_FULL_2026-08-11.md) (73KB) — full dead-export context
 
 ## How to use this index
 
 - **For an active review:** start with the 2 consolidated docs.
-- **For history:** the pre-2026-08-11 docs document earlier rounds
-  of audit work; they're "closed" — every item is remediated.
+- **For history:** the consolidated docs each have a Tracker section
+  pointing to the prior audits they supersede.
 - **For cross-references:** both consolidated docs end with a
   Tracker section pointing to the relevant architecture docs,
   runbooks, and the PRs that fixed the issues.
 
-## By date (newest first)
+## Prior audit docs (all pruned in `b6d51c4d8`)
+
+The 14 prior audit docs were merged into the 2 consolidated docs in
+commit `b6d51c4d8` ("chore(docs): prune 14 closed/superseded audit
+docs"). The prior set was:
 
 | Date | Doc | Status | One-line summary |
 |---|---|---|---|
-| 2026-08-11 | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) | open | Consolidated backend final pass — 80+ gate results, 3 cleanups + 2 bug fixes + Zod migration |
-| 2026-08-12 | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §35, §36, §37, §38 | open | Consolidated frontend final pass — 16 lint, 94 dead exports, 171 useEffects, perfect-app scorecard, **micro-interactions + visual polish (§35), responsive layer (§36), unified P0–P3 tracker (§37), doc consolidation map (§38)**. `UI_UX_PERFECT_2026-08-12.md` and `PERFECT_RESPONSIVE_2026-08-12.md` were folded into this doc and are no longer separate files. |
-| 2026-08-10 | [`2026-08-10-deep-analysis.md`](2026-08-10-deep-analysis.md) | closed (all in PR #211) | Subagent full-repo deep-dive |
-| 2026-08-10 | [`2026-08-10-session-notes.md`](2026-08-10-session-notes.md) | closed | Session timeline for the #211 conflict-resolution + cleanup-branch work |
-| 2026-07-14 | [`REFERRER_MIGRATION_REVIEW_2026-07-14.md`](REFERRER_MIGRATION_REVIEW_2026-07-14.md) | closed | Referral feature migration review |
-| 2026-07-13 | [`UI_UX_AUDIT_2026-07-13.md`](UI_UX_AUDIT_2026-07-13.md) + [`UI_UX_PATIENTS_VISIT_COLUMN_SPEC_2026-07-13.md`](UI_UX_PATIENTS_VISIT_COLUMN_SPEC_2026-07-13.md) | open (superseded by 2026-08-11) | UI/UX standard + patients visit column spec |
-| 2026-06-11 | [`COMPLIANCE_LEDGER_2026-06-11.md`](COMPLIANCE_LEDGER_2026-06-11.md) | closed (DPDP / RLS gates now pass) | DPDP / RLS coverage |
-| 2026-06-10 | [`2026-06-10-full-repo-audit.md`](2026-06-10-full-repo-audit.md) | closed | Round 1 of repo-wide audit |
-| 2026-06-02 | [`FULL_APPLICATION_FLOW_AUDIT_2026-06-02.md`](FULL_APPLICATION_FLOW_AUDIT_2026-06-02.md) | closed | Feature-flow walkthrough |
-| 2026-05-29 | [`PRE_DEPLOY_CHECKLIST_AUDIT_2026-05-29.md`](PRE_DEPLOY_CHECKLIST_AUDIT_2026-05-29.md) | closed (now in `verify:standard`) | Pre-deploy gates |
-| 2026-05-27 | [`MAIN_FEATURES_AUDIT_2026-05-27.md`](MAIN_FEATURES_AUDIT_2026-05-27.md) + [`MAIN_FEATURES_AUDIT_2026-05-27_findings.md`](MAIN_FEATURES_AUDIT_2026-05-27_findings.md) | closed | Feature inventory |
-| 2026-05-27 | [`DB_RETIREMENT_INVENTORY_2026-05-27.md`](DB_RETIREMENT_INVENTORY_2026-05-27.md) | closed | Database retirement candidates |
-| 2026-05 | [`2026-05-comprehensive-audit.md`](2026-05-comprehensive-audit.md) | closed | Earliest round, fully remediated |
+| 2026-08-11 | `BACKEND_FINAL_AUDIT_2026-08-11.md` (pruned precursor) | superseded by current doc | First draft of the consolidated backend pass |
+| 2026-08-11 | `2026-08-11-backend-final-pass.md` | merged into current doc | Initial backend final pass |
+| 2026-08-11 | `2026-08-11-best-practices-and-zod.md` | merged into current doc | Best-practices + Zod spot-checks |
+| 2026-08-11 | `2026-08-11-final-pass-minute-misses.md` | merged into current doc | Human-reviewer minute-miss findings |
+| 2026-08-10 | `2026-08-10-deep-analysis.md` | closed (all in PR #211) | Subagent full-repo deep-dive |
+| 2026-08-10 | `2026-08-10-session-notes.md` | closed | Session timeline for the #211 conflict-resolution + cleanup-branch work |
+| 2026-07-14 | `REFERRER_MIGRATION_REVIEW_2026-07-14.md` | closed | Referral feature migration review |
+| 2026-07-13 | `UI_UX_AUDIT_2026-07-13.md` + `UI_UX_PATIENTS_VISIT_COLUMN_SPEC_2026-07-13.md` | open (superseded by 2026-08-11) | UI/UX standard + patients visit column spec |
+| 2026-06-11 | `COMPLIANCE_LEDGER_2026-06-11.md` | closed (DPDP / RLS gates now pass) | DPDP / RLS coverage |
+| 2026-06-10 | `2026-06-10-full-repo-audit.md` | closed | Round 1 of repo-wide audit |
+| 2026-06-02 | `FULL_APPLICATION_FLOW_AUDIT_2026-06-02.md` | closed | Feature-flow walkthrough |
+| 2026-05-29 | `PRE_DEPLOY_CHECKLIST_AUDIT_2026-05-29.md` | closed (now in `verify:standard`) | Pre-deploy gates |
+| 2026-05-27 | `MAIN_FEATURES_AUDIT_2026-05-27.md` + `_findings.md` | closed | Feature inventory |
+| 2026-05-27 | `DB_RETIREMENT_INVENTORY_2026-05-27.md` | closed | Database retirement candidates |
+| 2026-05 | `2026-05-comprehensive-audit.md` | closed | Earliest round, fully remediated |
 
-## Open follow-ups ranked by severity
+For prior-audit content, see the consolidated docs' `Tracker` sections.
+
+## Open follow-ups ranked by severity (as of `52a7284bd`)
 
 | Severity | Finding | Doc | Est. effort |
 |---|---|---|---|
-| HIGH | App-side fast-refresh + useMemo warnings (16) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §6 | 3h |
-| HIGH | `ConsentComplianceService` should be split into Command/Query | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §9.4 | 2h |
-| HIGH | `throw new Error` in 5 controller methods | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §9.2 | 1h |
-| MED | No graceful-shutdown timeout env | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §9.8 | 1h |
-| MED | 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §8.1 | 20h (multi-PR) |
-| MED | Empty test subdirectories + manual runbook | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §9.5, §9.6 | 30 min |
-| MED | Dead `features/*/rules/*.ts` exports (33 fns) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §9.1 | 2h |
-| LOW | IPD sub-feature removal (~500 lines) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §9.2 | 30 min |
-| LOW | 14 other LOW items | see consolidated docs | ~10h |
+| MED | 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §8.1 | ~20h (multi-PR; lowest-risk first: `modules/config/config.service.ts` + `default-pricing-calculator.strategy.ts` at 1h each) |
+| LOW | API latency baseline (operational) | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §9.10 | ~30 min (after stable staging soak) |
+| LOW | 12 mixed-export file warnings (re-exports) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §14.2 | 4h (migrate 104 consumers) |
+| LOW | 4 react-hooks/exhaustive-deps warnings (real bugs) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §14.2 | 1h |
+| LOW | 2 internal mixed-export + exhaustive-deps warnings | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §14.2 | 30 min |
+| LOW | Mobile breakpoints audit (every page at 375/768/1280) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #5 | 4h |
+| LOW | Landing page hero redesign | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #6 | 8h |
+| LOW | Landing pricing page (interactive tier toggle) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #7 | 6h |
+| LOW | Internal admin analytics dashboard | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #8 | 16h |
+| LOW | Image opt (Cloudflare Polish + WebP/AVIF) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #9 | 2h |
+| LOW | Reduced-motion audit | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #10 | 2h |
 
-**Total open:** ~50h across ~25 PRs.
+**Total open:** ~53h across ~11 items (all LOW or MED; nothing HIGH or CRITICAL).
+
+Closed in this cycle (per the consolidated docs' §16.1):
+ConsentComplianceService CQS split, ClinicContextGuard consolidation,
+SHUTDOWN_TIMEOUT_MS env var, empty test dir cleanup, prettier auto-fix,
+`seed-constants` pretest, 3 unspecced crons, file-size-budget gate extension,
+IPD sub-feature removal, 3 barrel inlines, `ClinicTierType` alias deletion,
+`ConsentContent` export demotion, Dead `ColumnMapping` import, knip false-positive
+allowlist, `ApprovalService.approveInvoice` tenant-scope fix, Internal-admin
+DTOs → Zod-first, test fix for `approval.service.spec.ts`.
 
 ## Contributing to this index
 
@@ -76,13 +86,14 @@ When you add a new audit doc:
 
 1. Create the doc under `docs/audits/YYYY-MM-DD-<short-name>.md`.
 2. End with a Tracker section (Previous / Next / Related architecture / Related runbook / Fixed in / Verified by / Open follow-ups).
-3. Add a row to the date table above.
+3. Add a row to the date table above (or to the consolidated doc it feeds).
 4. If the doc introduces open findings, add a row to the severity table.
 
 When you close an audit doc:
 
 1. Mark the date-table status `closed`.
 2. Move the open findings from the severity table to the closed doc with a link to the PR that closed them.
+3. If the doc is fully closed and superseded by a consolidated doc, prune it in a `chore(docs)` commit and update the prior-audits table above.
 
 ## See also
 
