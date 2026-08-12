@@ -1312,11 +1312,11 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 29. **§30 #29**: Landing pricing toggle — **OPEN** (6h)
 30. **§30 #30**: Internal admin analytics dashboard — **OPEN** (16h)
 31. **§22/§30 #31**: Unify section registry with `<PageTabs>` — **OPEN** (4h)
-32. **§22/§30 #32**: Wire or delete 2 dead skeletons — **OPEN** (2h)
+32. **§22/§30 #32**: Wire or delete 2 dead skeletons — **DONE (2026-08-12, verified)** — `PatientListSkeleton` and `AppointmentCalendarSkeleton` no longer exist anywhere in `apps/app/src` (removed during the Vite migration); all 35 remaining `Skeleton`-using files have live importers
 33. **§22/§30 #33**: Promote `useEffectivePermissions` to `@workspace/data-access` — **OPEN** (2h)
 34. **§30 #34**: i18n coverage gate enforcement — **DONE (2026-08-12)** — `check:i18n-coverage` + `check:i18next-parity` both wired into verify:standard and passing
 
-**Total estimated remaining work: ~74h across 21 open items** (updated 2026-08-12: §33.1 #3, #4, §30 #13, #18, #20, #23, #24, #26, #34 closed — see §39).
+**Total estimated remaining work: ~72h across 20 open items** (updated 2026-08-12: §33.1 #3, #4, §30 #13, #18, #20, #23, #24, #26, #32, #34 closed — see §39).
 
 ### 33.5 Final tracker
 
@@ -2213,7 +2213,15 @@ still opens the command palette). The sidebar footer now renders
 `<AskAiButton />` instead of the inline `<Button>`. App check-types EXIT 0,
 app lint 0 new warnings, app suite 140 files / 726 tests pass.
 
-### 39.7 Still-open frontend items (unchanged, intentionally deferred)
+### 39.7 §30 #32 — dead skeletons — DONE (verified stale)
+
+`PatientListSkeleton` and `AppointmentCalendarSkeleton` (the two
+skeletons §5.2 flagged) no longer exist anywhere in `apps/app/src` —
+they were removed during the Next.js → Vite migration. A sweep of all
+35 `Skeleton`-using files found every exported skeleton component has
+at least one live importer. Nothing to wire or delete.
+
+### 39.8 Still-open frontend items (unchanged, intentionally deferred)
 
 - §6.1 / §30 #25 12-13 react-refresh warnings (re-exports for 104 consumers)
 - §7 #5 / §30 #21 mobile breakpoints audit
