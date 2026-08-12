@@ -2124,7 +2124,7 @@ UI surface to learn about the failure.
 
 **Status:** CLOSED.
 
-#### 26.3.5 Audit logger fire-and-forget — OPEN
+#### 26.3.5 Audit logger fire-and-forget — OPEN (requires design decision, 2026-08-12)
 
 **File:** `apps/api/src/shared/modules/audit/audit-logger.service.ts:154`.
 
@@ -2138,9 +2138,30 @@ the audit logger does not use it.
 **Fix shape:** Route `AuditLoggerService.log()` through the outbox
 for at-least-once delivery.
 
-**Effort:** medium. **Status:** OPEN.
+**Design blocker (assessed 2026-08-12):** the outbox payload contract
+(`outbox.interface.ts`) requires *"Must NOT contain PHI in
+plaintext"*, but audit entries carry redacted-but-sensitive
+`oldValue`/`newValue`/`metadata` payloads. The outbox `append()`
+also requires an enclosing `prisma.$transaction`, while `logAsync`
+callers (read audits, login attempts) have no transaction in scope.
+Routing audit through the outbox therefore needs a decision on
+(a) PHI-safe serialization for audit payloads and (b) whether
+fire-and-forget callers should open a transaction or use a separate
+at-least-once queue. **Do not implement without a design note.**
 
-#### 26.3.6 Observability fire-and-forget — OPEN
+**Effort:** medium. **Status:** OPEN (requires design decision).
+
+#### 26.3.6 Observability fire-and-forget — CLOSED (2026-08-12, verified: metrics view is in-memory; DB write is best-effort)
+
+**Verified:** `getMetricsSummary()` (`observability.service.ts:320`)
+reads from the in-memory `metricsBuffer`, not from the persisted
+`errorLog` rows. A `persistStructuredLog` failure therefore cannot
+cascade into a degraded `/health/metrics` view — the doc's premise
+was stale. The `.catch` in `logStructured` already logs a warn, and
+`persistStructuredLog` has its own internal catch. Losing a
+best-effort structured-log row is acceptable; adding a retry buffer
+or circuit breaker here would be over-engineering for a non-critical
+audit-adjacent path.
 
 **File:** `apps/api/src/shared/modules/observability/observability.service.ts:140`.
 
@@ -2464,7 +2485,7 @@ runtime assert that the RLS context was actually applied.
 | 9.3.7 | 3 hand-rolled currency compactors | CLOSED (§10) | — |
 | 9.3.8 | `in-memory-queue` `maxAttempts: 1` | CLOSED (§10) | — |
 | 9.3.5 | Audit logger fire-and-forget | OPEN | medium |
-| 9.3.6 | Observability fire-and-forget | OPEN | small |
+| 9.3.6 | Observability fire-and-forget | CLOSED (2026-08-12: metrics view in-memory; DB write best-effort) | — |
 | 9.3.7 | Feature flag void | CLOSED (2026-08-12: fallback verified + 2 tests) | small |
 | 9.3.8 | Prisma `$connect` void (intentional) | CLOSED (no action) | — |
 | 9.4.1 | 9 `text-[10px]` violations | CLOSED (§10) | — |
@@ -2803,7 +2824,8 @@ verified + 2 regression tests).
 
 ### 27.43 [low] `apps/api/src/shared/modules/observability/observability.service.ts:140` — void
 
-See §26.3.6. **Status:** OPEN.
+See §26.3.6. **Status:** CLOSED (2026-08-12: verified metrics view is
+in-memory; DB write is best-effort by design).
 
 ### 27.44 [low] `apps/api/src/shared/modules/audit/audit-logger.service.ts:154` — void
 
@@ -3433,10 +3455,16 @@ lab-workflow-command (3), prisma-medical-coding (5) with the remaining
 | ESLint on touched files | 0 errors after `--fix` |
 | Hooks build | EXIT 0 |
 
-### 31.6 Still-open (unchanged, intentionally deferred)
+### 31.6 §26.3.6 Observability fire-and-forget — CLOSED (verified, no code change needed)
+
+`getMetricsSummary()` reads the in-memory `metricsBuffer`, so a DB write
+failure cannot degrade `/health/metrics`. Both call layers already catch
+and warn. Best-effort log persistence is the intended design; a retry
+buffer would be over-engineering. See §26.3.6.
+
+### 31.7 Still-open (unchanged, intentionally deferred)
 
 - §26.3.5 Audit logger fire-and-forget → outbox routing (medium, DPDP surface)
-- §26.3.6 Observability fire-and-forget → retry buffer/circuit breaker (small)
 - §26.1.3 Bulk-import / WhatsApp broadcast void (medium)
 - §26.7.1 remaining money-moving spec targets (razorpay webhook + lab-workflow + medical-coding extensions)
 - §26.8.1 7 Prisma boundary leaks (~20h)
