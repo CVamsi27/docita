@@ -2234,6 +2234,10 @@ reasons; §6.1/§14.2 react-refresh **DEFERRED**. See §41.1.
 
 ### 40.1 Stale tracker rows corrected
 
+> The `Before` column shows the **stale status that predated the fix**;
+> every row is resolved (the `After` column is authoritative). None of
+> these are live OPEN items.
+
 | Row | Before | After |
 |---|---|---|
 | §18.3 `AskAiButton` | OPEN | **DONE** (`a49629eb1`) — extraction landed in round 5; the §18.3/§19.3 tables never caught up |

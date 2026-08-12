@@ -57,7 +57,7 @@
 
 The backend audit cycle asked four questions and ran a battery of checks to answer them:
 
-1. **What can be removed?** — automated gates (knip, fallow, prisma-boundary, as-cast-density, file-size-budget, controller-cqs, facade-delegation, type-duplicates, jscpd, lint), targeted greps for `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (7 remaining), exported-but-unused, single-method classes, jscpd-ignore marker distribution.
+1. **What can be removed?** — automated gates (knip, fallow, prisma-boundary, as-cast-density, file-size-budget, controller-cqs, facade-delegation, type-duplicates, jscpd, lint), targeted greps for `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (7 remaining at cycle start; **5 tracked at the current tip**), exported-but-unused, single-method classes, jscpd-ignore marker distribution.
 2. **What can be fixed?** — manual inspection of the largest API domain services (>340 lines), the new `feat/database-control` services (506 + 466 lines), and every recent facade-removal refactor for tenant-scope correctness.
 3. **Does it follow AGENTS.md best practices?** — every check in `pnpm verify:standard` (80+ gates), plus manual greps for `as any`, `@ts-ignore`, `console.*`, `TODO`/`FIXME`, hardcoded URLs, `JSON.parse` without Zod, hand-written DTOs.
 4. **What do automated gates miss?** — the human-reviewer perspective: lint warnings (not errors), `throw new Error` in controllers, observability, resilience, documentation surface, test infrastructure, operational hygiene.
@@ -68,9 +68,14 @@ The backend audit cycle asked four questions and ran a battery of checks to answ
 
 The backend is in **structurally clean shape**. The 80+ `verify:standard` checks pass with exit 0. The application has no `console.*`, no `as any`, no `TODO`/`FIXME`, no `Date.now()` in domain, no `@ts-ignore`. Knip reports 0 unused files, 0 unused dependencies, 0 unused type exports, 2 unused value exports (in-development app code). The API test suite is 3331/3331 green. E2E partner-portal 13/13 green; invoice-abac 9/9 green (post-fix). At the cycle's close (`b77eb67e7`), the API has 473 suites / 3,332 tests passing and 4,568 tests pass across all 8 test runners.
 
+> **Current tip (round 7, 2026-08-12):** API suite is **475 suites / 3,366
+tests** (rounds 5-7 added specs for the money-moving targets); the
+PrismaService leak count is **5 tracked** (3 closed, allowlist pruned);
+standards-checks suite is **38 tests**. See §33.
+
 **Net removals landed in this cycle:** 3 (1 dead import, 1 dead eslint suppression, 1 dead knip false-positive entry). **Net bug fixes landed:** 2 (`ApprovalService.approveInvoice` copy-paste where-clause + 1 typecheck break in the spec, 1 `$transaction` mock type narrowing in `referral-conversion-credit.service.spec.ts`). **Net Zod drift fixed:** 5 internal-admin DTOs migrated to Zod-first.
 
-**Removals possible but deferred:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (~20h of port-and-repository extraction). 1 `ConsentComplianceService` CQS split was originally deferred but was closed in `323aa76fa`. API latency baseline (§9.10) remains open pending a stable staging soak.
+**Removals possible but deferred:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` at cycle start (~20h of port-and-repository extraction); **5 remain tracked at the current tip** — 2 closed via port extraction in round 6, the allowlist pruned in round 7. 1 `ConsentComplianceService` CQS split was originally deferred but was closed in `323aa76fa`. API latency baseline (§9.10) remains open pending a stable staging soak.
 
 ---
 
