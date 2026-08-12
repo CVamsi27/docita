@@ -94,6 +94,23 @@ export function createCloudflareApiProxy(
     return fetch(withForwardedHeaders(c.req.raw, targetUrl));
   });
 
+  // Every other path is the Vite SPA. Delegate to the static-assets binding
+  // so `not_found_handling = "single-page-application"` (wrangler.toml)
+  // serves index.html for client-side routes like /today; without this the
+  // proxy would 404 every deep link. Worker bindings are untyped on the
+  // plain Hono context (Bindings = object), so read ASSETS through a narrow
+  // guarded cast and fail back to a plain 404 if it is ever absent.
+  app.notFound(async (c: Context) => {
+    const env = c.env as Record<string, unknown> | undefined;
+    const assets = env?.["ASSETS"] as
+      | { fetch(request: Request): Promise<Response> }
+      | undefined;
+    if (typeof assets?.fetch !== "function") {
+      return c.text("Not found", 404);
+    }
+    return assets.fetch(c.req.raw);
+  });
+
   return app;
 }
 

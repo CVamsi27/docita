@@ -119,6 +119,31 @@ describe("createCloudflareApiProxy", () => {
     expect(forwardedReq.headers.get("X-Forwarded-Host")).toBe("app.test");
   });
 
+  it("serves non-API routes from the ASSETS binding (SPA fallback)", async () => {
+    const app = createCloudflareApiProxy({ app: new Hono() });
+    const assetsFetch = vi.fn(async (request: Request) =>
+      new Response("spa-index", { status: 200 }),
+    );
+
+    const res = await app.fetch(
+      new Request("https://app.test/today", { method: "GET" }),
+      { ASSETS: { fetch: assetsFetch } },
+    );
+
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe("spa-index");
+    expect(assetsFetch).toHaveBeenCalledOnce();
+    // The binding receives the original request so the assets layer applies
+    // not_found_handling = "single-page-application" (wrangler.toml).
+    expect(assetsFetch.mock.calls[0]?.[0].url).toBe("https://app.test/today");
+  });
+
+  it("returns a plain 404 when the ASSETS binding is unavailable", async () => {
+    const app = createCloudflareApiProxy({ app: new Hono() });
+    const res = await app.request(new Request("https://app.test/today"));
+    expect(res.status).toBe(404);
+  });
+
   it("falls back to https://api.docita.work when no backend is configured", async () => {
     const fetchMock = vi.fn(async (input) => {
       const url = typeof input === "string" ? input : input.url;
