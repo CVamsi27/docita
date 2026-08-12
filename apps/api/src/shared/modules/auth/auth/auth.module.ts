@@ -20,7 +20,6 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
 import { PasswordExpiredGuard } from '@/shared/modules/auth/guards/password-expired.guard';
 import { ApiKeyGuard } from '@/shared/modules/auth/guards/api-key.guard';
 import { UsersModule } from '@/domains/users/users.module';
@@ -32,7 +31,6 @@ import { DefaultPasswordPolicy } from './policies/password.policy';
 import { TurnstileModule } from '@/shared/modules/turnstile/turnstile.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 import { ConsentGuard } from '@/shared/modules/auth/guards/consent.guard';
-import { PatientDoctorGuard } from '@/shared/modules/auth/guards/patient-doctor.guard';
 import { EmailVerifiedGuard } from '@/shared/modules/auth/guards/email-verified.guard';
 import { AuthGuardsModule } from './auth-guards.module';
 
@@ -89,12 +87,9 @@ function parseJwtDuration(value: string): JwtDuration | null {
     ApiKeyService,
     JwtStrategy,
     JwtAuthGuard,
-    ClinicTypeGuard,
-    FacilityTypeGuard,
     PasswordExpiredGuard,
     ApiKeyGuard,
     ConsentGuard,
-    PatientDoctorGuard,
     EmailVerifiedGuard,
     {
       provide: 'IPasswordPolicy',
@@ -120,13 +115,10 @@ function parseJwtDuration(value: string): JwtDuration | null {
     JwtStrategy,
     PassportModule,
     JwtModule,
-    ClinicTypeGuard,
-    FacilityTypeGuard,
     AuthGuardsModule,
     PasswordExpiredGuard,
     ApiKeyGuard,
     ConsentGuard,
-    PatientDoctorGuard,
     EmailVerifiedGuard,
   ],
 })

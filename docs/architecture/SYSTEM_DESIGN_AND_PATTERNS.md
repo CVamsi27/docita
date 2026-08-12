@@ -414,7 +414,6 @@ Custom decorators in `apps/api/src/shared/modules/auth/auth/` annotate routes an
 | `@RequireFeature(Feature.X)` | feature guard module | `FeatureGuard` |
 | `@AllowNoClinic()` | [`allow-no-clinic.decorator.ts`](../../apps/api/src/shared/modules/auth/auth/allow-no-clinic.decorator.ts) | tenant guard |
 | `@Tier(...)` | [`tier.decorator.ts`](../../apps/api/src/shared/modules/auth/auth/tier.decorator.ts) | `TierGuard` |
-| `@ClinicType(...)` | [`clinic-type.decorator.ts`](../../apps/api/src/shared/modules/auth/auth/clinic-type.decorator.ts) | `ClinicTypeGuard` |
 | `@PatientPortalSession()` | [`patient-portal-session.decorator.ts`](../../apps/api/src/shared/modules/auth/auth/patient-portal-session.decorator.ts) | session guard |
 | `@UploadSessionSecretRoute()` | [`upload-session-secret-route.decorator.ts`](../../apps/api/src/shared/modules/auth/auth/upload-session-secret-route.decorator.ts) | upload guard |
 
