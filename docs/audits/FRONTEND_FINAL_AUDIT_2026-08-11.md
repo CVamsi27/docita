@@ -84,11 +84,18 @@ The frontend is in **good shape mechanically**. The audit caught:
 
 - **16 lint warnings** in `apps/app` (mostly `react-refresh/only-export-components` — Vite HMR slowdown, not bugs).
 - **94 unused-in-production exports** across 51 files — the rules exist (often with thorough tests) but no consumer ever calls them. **Safe to delete.**
-- **3 P0 bugs**: theme settings not applied to DOM, missing loading-state check in DoctorProfileSettings, sidebar missing the spec-required footer.
+- **3 P0 bugs**: theme settings not applied to DOM, missing loading-state check in DoctorProfileSettings, sidebar missing the spec-required footer. **All three are closed (2026-08-12, rounds 5-6):** theme wiring (`data-accent`/`data-density`, §14.1 #1), DoctorProfileSettings `isLoading` check (§14.1 #2), sidebar footer with `AskAiButton` (§14.1 #3 / §14.2 #4). See the P0 tracker at §33.5.
 - **Next.js → Vite migration verified clean** — 0 `next/*` imports, 0 `*-next*` dirs, 0 `"next"` deps. PR #211 P0 migration is complete and locked.
 - **171 useEffect calls** across 123 files, all necessary (KEEP / KEEP-extract-to-hook / documented rare cases). None empty-catch or detached-promise.
 
 First 3 of 10 from the Top-10 list are implemented in this cycle: **empty-state coverage**, **error-boundary coverage**, **design-token compliance audit**.
+
+> **Current tip (round 7, 2026-08-12):** the audit counts above are the
+> cycle's original findings. Since then rounds 5-7 closed the 3 P0s (see
+> the note on the P0 bullet), landed the sidebar footer / `AskAiButton`,
+> and corrected stale tracker rows (§40). App lint is now **13 warnings**
+> (all `react-refresh`, 0 errors) — down from 16 — and the dead-export
+> inventory in §9/§11/§20 is consolidated. See §41 for the round-7 record.
 
 ---
 
