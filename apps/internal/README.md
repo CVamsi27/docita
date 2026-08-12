@@ -36,7 +36,7 @@ Same conventions as `apps/app`: `src/App.tsx` route tree, `src/features/<feature
 
 ## Deployment
 
-Cloudflare Workers + Static Assets (CI: `.github/workflows/deploy-cloudflare.yml`). The Hono proxy Worker (`api/index.ts`) forwards `/api/*` and `/socket.io/*` to the NestJS API on Fly.io; static assets are served from the edge with SPA fallback.
+Cloudflare Workers + Static Assets (CI: `deploy-internal` job in `.github/workflows/deploy.yml`, gated on the `gate` job's Cloudflare credential check). The Hono proxy Worker (`api/index.ts`) forwards `/api/*` and `/socket.io/*` to the NestJS API on Fly.io and serves the SPA from the `ASSETS` binding (SPA fallback via `not_found_handling`); static assets are served from the edge.
 
 ## PWA
 

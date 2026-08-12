@@ -59,4 +59,4 @@ Vitest + Testing Library (jsdom).
 
 ## Deployment
 
-Cloudflare Workers + Static Assets (CI: `.github/workflows/deploy-cloudflare.yml`). The Hono proxy Worker (`api/index.ts`) forwards `/api/*` and `/socket.io/*` to the NestJS API on Fly.io; static assets are served from the edge with SPA fallback. Production/staging names and domains are defined in `wrangler.toml`.
+Cloudflare Workers + Static Assets (CI: `deploy-app` job in `.github/workflows/deploy.yml`, gated on the `gate` job's Cloudflare credential check). The Hono proxy Worker (`api/index.ts`) forwards `/api/*` and `/socket.io/*` to the NestJS API on Fly.io and serves the SPA from the `ASSETS` binding (SPA fallback via `not_found_handling`); static assets are served from the edge. Production/staging names and domains are defined in `wrangler.toml`.

@@ -2548,8 +2548,7 @@ Shared toolchain configs. The TS config exposes three presets: `base.json`, `nex
 | `staging-smoke.yml` | staging changes / dispatch | End-to-end smoke against staging URLs |
 | `sync-staging-after-promotion.yml` | push to `main` / dispatch | Update `staging` to the exact `main` commit |
 | `synthetic-monitoring.yml` | schedule / dispatch | Production synthetic probes |
-| `deploy.yml` | scoped push to `main` | Production Fly API + worker deploy |
-| `deploy-cloudflare.yml` | scoped push to `main` / dispatch | Cloudflare app, internal, landing deploy |
+| `deploy.yml` | scoped push to `main` | Production Fly API + worker deploy; `deploy-app` / `deploy-internal` / `deploy-landing` jobs for Cloudflare (gated on the `gate` job's credential check) |
 
 ### 47.1 Scope detection in CI
 
@@ -2575,7 +2574,8 @@ Where configured, `TURBO_TOKEN` and `TURBO_TEAM` enable Turborepo remote caching
 feature branch → PR into main
   → merge/push to main
     → deploy.yml selectively deploys API / worker
-    → deploy-cloudflare.yml selectively deploys app / internal / landing
+    → deploy.yml deploy-app / deploy-internal / deploy-landing jobs (gated on
+      the Cloudflare credential check) selectively deploy app / internal / landing
     → sync-staging-after-promotion.yml updates the staging ref to the exact main SHA
 ```
 
@@ -2712,7 +2712,7 @@ AGENTS.md §9.4 defines the existing-user compatibility posture: avoid destructi
 | `package.json` | Root scripts (`pnpm dev`, `pnpm build`, `pnpm verify:standard`, etc.) and workspace-wide dev deps. |
 | `tsconfig.json` | Two-line root TS config; per-app configs extend it. |
 | `fly.toml` | API Fly app config. Worker has its own under `apps/worker/`. |
-| `.github/workflows/deploy-cloudflare.yml` | Path-filtered Cloudflare deploy workflow for app, internal, and landing. |
+| `.github/workflows/deploy.yml` | Path-filtered deploy workflow: Fly API/worker jobs plus the credential-gated `deploy-app` / `deploy-internal` / `deploy-landing` Cloudflare jobs. |
 | `docker-compose.yml` | Local dev only. Not used in production. |
 | `eng.traineddata` | Optional ignored local Tesseract data; production image downloads its own copy (§48.5). |
 | `.env.example` | Authoritative env var contract. |
@@ -3037,7 +3037,7 @@ Consolidates §28, §56, SSOT 🚧 items, and codebase references. **Not a commi
 | Item | State |
 | --- | --- |
 | `staging` mirror semantics | Resolved: workflow updates the `staging` ref to the exact `main` SHA |
-| Cloudflare deployment ownership | Resolved in checked-in docs: path-scoped `deploy-cloudflare.yml` owns app, internal, and landing deploys |
+| Cloudflare deployment ownership | Resolved: the `gate` + `deploy-app` / `deploy-internal` / `deploy-landing` jobs in `deploy.yml` own Cloudflare deploys (credential-gated; Cloudflare Git integration is the documented fallback) |
 | Postgres provider references | Resolved in current architecture/operations docs: production migration safety is AWS RDS snapshot-aware; staging-specific provider notes remain scoped to staging |
 | Prisma topic decomposition | Resolved: retired the manual `prisma/schema/` snapshots and retained one canonical schema |
 | OpenAPI artifact policy | Resolved: generated release artifact, intentionally ignored; see `docs/api/README.md` |
