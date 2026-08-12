@@ -32,8 +32,7 @@ describe('PatientPortalCommandService — DPDP data-subject requests', () => {
 
   const setDpdpNoticeConsentMock =
     jest.fn<ConsentCommandService['setDpdpNoticeConsent']>();
-  const hasValidConsentMock =
-    jest.fn<ConsentQueryService['hasValidConsent']>();
+  const hasValidConsentMock = jest.fn<ConsentQueryService['hasValidConsent']>();
   const consentCommand = {
     setDpdpNoticeConsent: setDpdpNoticeConsentMock,
   } as unknown as ConsentCommandService;

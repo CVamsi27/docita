@@ -13,12 +13,18 @@ describe('ConsentCommandService', () => {
   const patientUpdateMany = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 
   const prisma = {
-    consent: { create: consentCreate, findFirst: consentFindFirst, update: consentUpdate },
+    consent: {
+      create: consentCreate,
+      findFirst: consentFindFirst,
+      update: consentUpdate,
+    },
     patient: { updateMany: patientUpdateMany },
   } as unknown as PrismaService;
 
-  const logConsentRecorded = jest.fn<(...args: unknown[]) => Promise<unknown>>();
-  const logConsentWithdrawn = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+  const logConsentRecorded =
+    jest.fn<(...args: unknown[]) => Promise<unknown>>();
+  const logConsentWithdrawn =
+    jest.fn<(...args: unknown[]) => Promise<unknown>>();
   const dpdpAudit = {
     logConsentRecorded,
     logConsentWithdrawn,
@@ -69,14 +75,25 @@ describe('ConsentCommandService', () => {
 
   describe('withdrawConsent', () => {
     it('updates the consent and cascades to patient WhatsApp opt-in for DPDP_NOTICE', async () => {
-      consentFindFirst.mockResolvedValue({ id: 'c-3', clinicId: 'clinic-1', patientId: 'pat-1' });
+      consentFindFirst.mockResolvedValue({
+        id: 'c-3',
+        clinicId: 'clinic-1',
+        patientId: 'pat-1',
+      });
       consentUpdate.mockResolvedValue({
         id: 'c-3',
         consentType: ConsentType.DPDP_NOTICE,
         patientId: 'pat-1',
         clinicId: 'clinic-1',
       });
-      await service.withdrawConsent('c-3', 'user request', 'user-1', '127.0.0.1', 'clinic-1', 'user-1');
+      await service.withdrawConsent(
+        'c-3',
+        'user request',
+        'user-1',
+        '127.0.0.1',
+        'clinic-1',
+        'user-1',
+      );
       expect(consentUpdate).toHaveBeenCalledTimes(1);
       expect(patientUpdateMany).toHaveBeenCalledWith({
         where: { id: 'pat-1', clinicId: 'clinic-1' },
@@ -88,12 +105,21 @@ describe('ConsentCommandService', () => {
     it('throws NotFoundException when scoped to a clinic and not found', async () => {
       consentFindFirst.mockResolvedValue(null);
       await expect(
-        service.withdrawConsent('missing', 'reason', 'user-1', undefined, 'clinic-1'),
+        service.withdrawConsent(
+          'missing',
+          'reason',
+          'user-1',
+          undefined,
+          'clinic-1',
+        ),
       ).rejects.toThrow(/Consent record not found/);
     });
 
     it('skips the scope check when no clinicId is provided', async () => {
-      consentUpdate.mockResolvedValue({ id: 'c-4', consentType: ConsentType.MARKETING });
+      consentUpdate.mockResolvedValue({
+        id: 'c-4',
+        consentType: ConsentType.MARKETING,
+      });
       await service.withdrawConsent('c-4', 'reason', 'user-1');
       expect(consentFindFirst).not.toHaveBeenCalled();
       expect(consentUpdate).toHaveBeenCalledTimes(1);
@@ -127,7 +153,10 @@ describe('ConsentCommandService', () => {
 
     it('withdraws the existing consent when grant is false', async () => {
       consentFindFirst.mockResolvedValue({ id: 'c-7' });
-      consentUpdate.mockResolvedValue({ id: 'c-7', consentType: ConsentType.MARKETING });
+      consentUpdate.mockResolvedValue({
+        id: 'c-7',
+        consentType: ConsentType.MARKETING,
+      });
       const out = await service.setMarketingConsent({
         patientId: 'pat-1',
         clinicId: 'clinic-1',

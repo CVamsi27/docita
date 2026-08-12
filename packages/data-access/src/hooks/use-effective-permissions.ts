@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { EffectivePermissionsResponse } from "@workspace/types";
-import { fetchEffectivePermissions } from "@/lib/api/effective-permissions.api";
+import { effectivePermissionsResponseSchema } from "@workspace/types";
+import { useDataAccessFetcher } from "../provider/hooks";
 
 /**
  * C7 (ADR-0013): loads the server permission snapshot once per session.
@@ -22,6 +23,7 @@ export function clearEffectivePermissionsCache(): void {
 export function useEffectivePermissions():
   | EffectivePermissionsResponse
   | null {
+  const fetcher = useDataAccessFetcher();
   const [snapshot, setSnapshot] = useState<
     EffectivePermissionsResponse | null
   >(() => (cachedSnapshot === undefined ? null : cachedSnapshot));
@@ -32,10 +34,11 @@ export function useEffectivePermissions():
       return;
     }
     let active = true;
-    fetchEffectivePermissions()
+    fetcher<unknown>("/auth/effective-permissions")
       .then((value) => {
-        cachedSnapshot = value;
-        if (active) setSnapshot(value);
+        const parsed = effectivePermissionsResponseSchema.parse(value);
+        cachedSnapshot = parsed;
+        if (active) setSnapshot(parsed);
       })
       .catch(() => {
         // Offline / error fallback: keep the local matrix evaluation.
@@ -45,7 +48,7 @@ export function useEffectivePermissions():
     return () => {
       active = false;
     };
-  }, []);
+  }, [fetcher]);
 
   return snapshot;
 }

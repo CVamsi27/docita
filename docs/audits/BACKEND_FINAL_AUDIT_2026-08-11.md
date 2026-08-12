@@ -394,14 +394,16 @@ These are the patterns the codebase already follows and the audit formalizes as 
 
 ## 8. Code that can be removed (deferred to follow-ups)
 
-### 8.1 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` — 7 remaining entries
+### 8.1 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` — 5 remaining entries (2 closed 2026-08-12)
 
 Each entry below is a domain/service file that imports `PrismaService` directly, bypassing the `I*Repository` port pattern. The full allowlist is in `scripts/checks/check-prisma-boundary.js:87-106`. The migration shape is the same as the 21 services that were already ported (Anonymization, DataExport, SearchStrategy, ImportStrategy, Analytics, Partner, Appointment, Compliance helpers, etc.): create a `*PersistencePort` that's a `Pick<PrismaDelegatePort, ...>` alias, wire `useExisting: PrismaService` in the owning module, switch the consumer to inject the port.
 
+**Closed 2026-08-12:**
+- `domains/billing/strategies/default-pricing-calculator.strategy.ts` — **deleted** (verified dead code: zero imports, no provider registration, no spec). The interface `pricing-calculator.interface.ts` was deleted with it; `docs/architecture/DESIGN_PRINCIPLES_AND_PATTERNS.md` strategy-pattern reference repointed to the live bulk-import registry. Both files pruned from the allowlist.
+- `modules/config/config.service.ts` — **ported** behind a new `IClinicConfigQuery` port (`modules/config/core/clinic-config-query.port.ts` + `modules/config/infrastructure/prisma-clinic-config.query.ts` — persistence impl under `infrastructure/` so the prisma-boundary gate exempts it, mirroring domain layout), wired via `CLINIC_CONFIG_QUERY_PROVIDER` in `config.module.ts`. `ConfigService` now injects the port, not `PrismaService`; the 35-test spec was updated to mock the port.
+
 | File | Prisma surface | Migration cost | Notes |
 |---|---|---|---|
-| `domains/billing/strategies/default-pricing-calculator.strategy.ts` | `prisma.discount.findUnique` (1 call) | ~1h | Smallest surface. The strategy is the only direct prisma user in `billing/strategies/`. |
-| `modules/config/config.service.ts` | `prisma.clinic.findUnique` (1 call) | ~1h | Legacy `src/modules/` location. The `getAppConfig(clinicId)` branch is the only prisma site. |
 | `shared/modules/messaging/admin-alerts/platform-health-alerts.scheduler.ts` | `prisma.$queryRaw` (1 call) | ~1h | Just a `SELECT 1` ping. Can use a `*DatabaseHealthPort` instead. |
 | `shared/modules/ephemeral-store/ephemeral-store-cleanup.scheduler.ts` | 6 model delegates (findMany + deleteMany) | ~3h | Three batched purges across `ApiHttpIdempotencyRecord`, `WebhookReplayDedupe`, `OnboardingSession`. Extract a `EphemeralStoreRepository` with `purgeExpiredIdempotency(batch)` / `purgeExpiredWebhookDedupe(batch)` / `purgeExpiredOnboardingSessions(batch)`. |
 | `shared/modules/outbox/outbox-relay.scheduler.ts` | 1 raw CTE + 2 model delegates | ~4h | The raw SQL is the lock-and-claim pattern (`FOR UPDATE SKIP LOCKED`); an `IOutboxEventRepository.claimAndMarkRunning(batch, lockTtl)` method wraps it. |
@@ -811,7 +813,7 @@ The remaining react-refresh warnings are **safe to defer** — they affect HMR s
 
 | Item | § ref | Status | Notes |
 |---|---|---|---|
-| 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | §8.1 | OPEN | ~20h estimated. Lowest-risk: `modules/config/config.service.ts` + `default-pricing-calculator.strategy.ts` (1h each). |
+| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7) | §8.1 | **PARTIAL (2 closed 2026-08-12)** | ~15h left. Closed: strategy deleted (dead code); config.service ported behind `IClinicConfigQuery`. |
 | ~~3 barrel inlines~~ | §8.2 | **DONE** | 3 barrels deleted (clinics, templates, ocr); 7 prod + 5 spec files updated to import from canonical sources. |
 | ~~IPD barrel removal~~ | §8.3 | **DONE** | Entire IPD feature deleted (~500 lines, 15 files). |
 | ~~`ClinicTierType` deletion~~ | §9.14 | **DONE** | Type alias removed from `packages/types/src/admin/internal.ts`. |
@@ -882,7 +884,7 @@ The `check:file-size-budget` gate only fires for `domains/**/services/*.service.
 
 | Item | § ref | Status | Priority | Est. |
 |---|---|---|---|---|
-| 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | §8.1 | OPEN | MED | ~20h |
+| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7) | §8.1 | **PARTIAL** | MED | ~15h |
 | ~~ConsentComplianceService CQS split~~ | §9.4 | **DONE** | `323aa76fa`: split into `ConsentCommandService` + `ConsentQueryService`. |
 | API latency baseline | §9.10 | OPEN | LOW | 30 min |
 | ~~3 unspecced crons~~ | §15.2 | **DONE** | 3 specs written (12 tests). |
@@ -946,12 +948,12 @@ This section is the master inventory of every item tracked, fixed, and deferred 
 
 | # | Item | § ref | Priority | Est. |
 |---|---|---|---|---|
-| 1 | 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | §8.1 | MED | ~20h |
+| 1 | 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7) | §8.1 | MED | ~15h |
 | 2 | ~~ConsentComplianceService CQS split~~ | §9.4 | **DONE** (`323aa76fa`) | — |
 | 3 | API latency baseline | §9.10 | LOW | 30 min |
 | 4 | 12 mixed-export file warnings (re-exports) | §14.2 | LOW | 4h (migrate 104 consumers) |
-| 5 | 4 react-hooks/exhaustive-deps warnings (real bugs) | §14.2 | MED | 1h |
-| 6 | 2 internal mixed-export + exhaustive-deps warnings | §14.2 | LOW | 30 min |
+| 5 | ~~4 react-hooks/exhaustive-deps warnings (real bugs)~~ | §14.2 | **DONE** | 0 remain (app lint: 13 warnings, all react-refresh) |
+| 6 | ~~2 internal mixed-export + exhaustive-deps warnings~~ | §14.2 | **DONE** | internal: 1 react-refresh warning only |
 | 7 | Mobile breakpoints audit (every page at 375/768/1280) | §7 #5 (frontend) | MED | 4h |
 | 8 | Landing page hero redesign | §7 #6 (frontend) | MED | 8h |
 | 9 | Landing pricing page (interactive tier toggle) | §7 #7 (frontend) | MED | 6h |
@@ -970,7 +972,7 @@ This section is the master inventory of every item tracked, fixed, and deferred 
 | 1 superseded UI snapshot | DONE | 50 KB | (this commit, b6d51c4d8) |
 | **Total removed this cycle** | | **~600 lines + 15 docs** | |
 | | | | |
-| 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | OPEN | ~200 (after port) | §8.1 |
+| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | OPEN | ~140 (after port) | §8.1 |
 | 3 single-line barrel aliases in `apps/api` (if any remain) | OPEN | minimal | §8.2 |
 
 ### 16.3 Gate results — final
@@ -2384,9 +2386,12 @@ the only `/health` controller in `app.module.ts`. See §26.1.1.
   verifyPayment (clinic-scoped payment record) and getStats (status
   bucketing).
 
-**Still OPEN (next targets):** razorpay-invoice-webhook (has 5, extend with
-signature-mismatch + idempotency-replay + paid-mismatch), lab-workflow-command
-(has 3), prisma-medical-coding (has 5, extend with partial-failure recovery).
+**Closed 2026-08-12:** razorpay-invoice-webhook extended 5 → 9 tests
+(missing-entity 400 for both payment.captured and payment_link.paid,
+unmatched payment_link 400, matched-but-unlinked session 400).
+
+**Still OPEN (next targets):** lab-workflow-command (has 3), prisma-medical-coding
+(has 5, extend with partial-failure recovery).
 
 
 The 5 priority targets from .fallow §11.2 are repeated here with
@@ -2438,11 +2443,13 @@ top 7 target features).
 
 ### 26.8 Architectural debt (open)
 
-#### 26.8.1 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` — OPEN (~20h)
+#### 26.8.1 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` — PARTIAL (2 closed 2026-08-12, ~15h left)
 
 See §18.4 for the full list and §20 for the migration pattern.
-**Status:** OPEN; lowest-risk first: `default-pricing-calculator.strategy.ts`
-and `modules/config/config.service.ts` at 1h each.
+**Status:** PARTIAL; the two lowest-risk entries are closed —
+`default-pricing-calculator.strategy.ts` deleted (verified dead code,
+zero imports/registrations/specs) and `modules/config/config.service.ts`
+ported behind the new `IClinicConfigQuery` port.
 
 #### 26.8.2 12 service files in 380-399 line range — INFO
 
@@ -2508,7 +2515,7 @@ runtime assert that the RLS context was actually applied.
 | 9.7.2 | `apps/internal` zero unit specs | OPEN | small per file |
 | 9.7.3 | 111/112 check scripts no test | OPEN | small per file |
 | 9.7.4 | E2E for INTERNAL controllers | OPEN | small per file |
-| 9.8.1 | 7 prisma leaks | OPEN | ~20h total |
+| 9.8.1 | 5 prisma leaks (was 7) | PARTIAL (2 closed 2026-08-12) | ~15h left |
 | 9.8.2 | 12 services at 380-399 | INFO (no action) | — |
 | 9.8.3 | `rls-routing.extension.ts` unknown | OPEN | small |
 
@@ -2530,23 +2537,31 @@ This section captures low-priority items that are too small for
 the main body but worth recording for future audits. Each is
 file:line-referenced with a one-line fix shape.
 
-### 27.1 [low] `apps/api/src/domains/billing/application/services/scheduler.service.ts:48` — `clinic.findMany` with no `take` cap
+### 27.1 [low] `apps/api/src/domains/billing/application/services/scheduler.service.ts:48` — `clinic.findMany` with no `take` cap — CLOSED (2026-08-12)
 
 The list is used to fan out a per-clinic cron job; the safety net
 is the global `GLOBAL_BULK_READ_LIMIT` constant referenced via
 `prisma-tier-pricing.repository.ts`. **Fix:** confirm the LIMIT is
 applied at this call site and add a one-line comment, matching
 the rationale style used in `prisma-doctor-delay.repository.ts:55,108`.
-**Effort:** trivial. **Status:** OPEN.
+**Effort:** trivial. **Status:** CLOSED — added
+`take: GLOBAL_BULK_READ_LIMIT` + rationale comment to the
+`clinic.findMany` in `runScheduledPaymentReminders` (matches the
+`notify-usage-thresholds.use-case.ts` guardrail style). Billing suite
+(38 suites / 321 tests) green.
 
-### 27.2 [low] `apps/api/src/domains/clinical/infrastructure/persistence/prisma-medical-coding.repository.ts:96,104,165,203,244` — N+1 with `_count.id` + re-fetch
+### 27.2 [low] `apps/api/src/domains/clinical/infrastructure/persistence/prisma-medical-coding.repository.ts:96,104,165,203,244` — N+1 with `_count.id` + re-fetch — CLOSED (2026-08-12, verified stale)
 
 `_count.id` + extra `findMany` re-fetch of the entities to map.
 The N+1 is bounded by the prior `take: 50` (so the upper bound is
 50 + 1 = 51 round trips on the medical-coding analytics page).
 Not a hot path. **Fix:** switch to `groupBy({ by: [...], _count })`
 then a single `findMany` on the joined keys. **Effort:** small.
-**Status:** OPEN.
+**Status:** CLOSED — re-verified the current 333-line file: it has
+NO `_count`, `groupBy`, or analytics method anymore (the analytics
+page was reworked during the Vite/domain migration). The cited
+lines 96/104/165/203/244 no longer hold the pattern; zero N+1
+present today. No code change needed.
 
 ### 27.3 [low] 17 literal `\uXXXX` escape sequences — CLOSED in this round
 
@@ -3442,9 +3457,9 @@ unchanged (already exits after flush).
 | `verifyPayment` | clinic-scoped payment record |
 | `getStats` | status bucketing |
 
-**Still OPEN (next targets):** extend razorpay-invoice-webhook (5),
-lab-workflow-command (3), prisma-medical-coding (5) with the remaining
-§26.7.1 cases.
+**Still OPEN (next targets):** lab-workflow-command (3),
+prisma-medical-coding (5) with the remaining §26.7.1 cases.
+(razorpay-invoice-webhook extended to 9 in §32.)
 
 ### 31.5 Validation
 
@@ -3466,6 +3481,63 @@ buffer would be over-engineering. See §26.3.6.
 
 - §26.3.5 Audit logger fire-and-forget → outbox routing (medium, DPDP surface)
 - §26.1.3 Bulk-import / WhatsApp broadcast void (medium)
-- §26.7.1 remaining money-moving spec targets (razorpay webhook + lab-workflow + medical-coding extensions)
-- §26.8.1 7 Prisma boundary leaks (~20h)
+- §26.7.1 remaining money-moving spec targets (lab-workflow + medical-coding extensions; razorpay now 9/9 in §32)
+- §26.8.1 5 Prisma boundary leaks (~15h; 2 closed in §32)
 - §26.6.1 API latency baseline (needs staging soak)
+
+---
+
+## 32. Round-6 batch — 2026-08-12 (lowest-risk prisma leaks + spec extensions + scheduler cap)
+
+### 32.1 §8.1 — 2 of 7 prisma leaks closed
+
+**Closed:**
+
+| File | How | Commit |
+|---|---|---|
+| `domains/billing/strategies/default-pricing-calculator.strategy.ts` | **Deleted as dead code** — verified zero imports, no provider registration, no spec anywhere in `apps/api/src`. Interface `pricing-calculator.interface.ts` deleted with it; `docs/architecture/DESIGN_PRINCIPLES_AND_PATTERNS.md` strategy-pattern reference repointed to the live `BulkImportStrategyRegistry`. Both files pruned from `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS`. | (this batch) |
+| `modules/config/config.service.ts` | **Ported** behind new `IClinicConfigQuery` port: `clinic-config-query.port.ts` (token + interface) + `prisma-clinic-config.query.ts` (impl, `CLINIC_CONFIG_QUERY_PROVIDER`), wired in `config.module.ts`. `ConfigService` injects the port; spec updated to mock the port (35 tests green). | (this batch) |
+
+**Remaining 5 leaks** (~15h): `platform-health-alerts.scheduler.ts` (~1h, next), `ephemeral-store-cleanup.scheduler.ts` (~3h), `outbox-relay.scheduler.ts` (~4h), `data-retention.scheduler.ts` (~4h), `whatsapp-campaign-dispatch.cron.ts` (~6h).
+
+### 32.2 §27.1 — scheduler bulk-read cap — CLOSED
+
+`SchedulerService.runScheduledPaymentReminders` clinic fan-out now applies
+`take: GLOBAL_BULK_READ_LIMIT` with a rationale comment (matches the
+`notify-usage-thresholds.use-case.ts` guardrail style).
+
+### 32.3 §27.2 — medical-coding N+1 — CLOSED (verified stale)
+
+Re-verified the current `prisma-medical-coding.repository.ts` (333 lines):
+no `_count`, `groupBy`, or analytics method remains — the analytics page
+was reworked during the domain migration. The cited lines 96/104/165/203/244
+no longer hold the pattern; zero N+1 today. No code change needed.
+
+### 32.4 §26.7.1 — razorpay-invoice-webhook spec extended 5 → 9
+
+Added 4 tests: missing-entity 400 for `payment.captured` and
+`payment_link.paid`, unmatched `payment_link.paid` 400, and
+matched-but-unlinked-session 400. All 9 pass.
+
+### 32.5 §30 #33 (frontend) — `useEffectivePermissions` promoted to `@workspace/data-access`
+
+Hook + `clearEffectivePermissionsCache` moved to
+`packages/data-access/src/hooks/use-effective-permissions.ts`; fetcher swapped
+from the app `api` client to the injected `useDataAccessFetcher` (endpoint
+`/auth/effective-permissions` resolves identically against `/api/v1`).
+4 app importers updated (`InboxPageContent`, `ConsultationWorkspaceExtras`,
+`sidebar-sections`, `use-auth-provider-value`); old files
+`apps/app/src/lib/access-control/use-effective-permissions.ts` +
+`apps/app/src/lib/api/effective-permissions.api.ts` deleted. Data-access +
+app check-types EXIT 0.
+
+### 32.6 Validation
+
+| Check | Result |
+|---|---|
+| API check-types (main + spec tsconfig) | EXIT 0 |
+| Billing + config jest suites | 38 suites / 321 tests pass |
+| Config suite (ported spec) | 35/35 pass |
+| Razorpay webhook suite | 9/9 pass |
+| Data-access check-types | EXIT 0 |
+| App check-types | EXIT 0 |

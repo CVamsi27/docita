@@ -7,7 +7,7 @@ import { Bell, CalendarClock, Stethoscope, UserPlus, type LucideIcon } from "luc
 import { AppPageScaffold, DataState, PageHeader, PageTabs, type PageTabItem } from "@workspace/ui/components";
 import { APP_ACCESS_TARGETS, type AppAccessTarget, type EffectivePermissionsResponse, type Feature, Tier, type UserRole } from "@workspace/types";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
-import { useEffectivePermissions } from "@/lib/access-control/use-effective-permissions";
+import { useEffectivePermissions } from "@workspace/data-access";
 import { parseUserRole } from "@/lib/access-control/parse-user-role";
 import { useAuth } from "@/lib/auth/auth-context";
 import { hasPermission, type Permission } from "@/lib/auth/permissions";

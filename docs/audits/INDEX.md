@@ -57,11 +57,11 @@ For prior-audit content, see the consolidated docs' `Tracker` sections.
 
 | Severity | Finding | Doc | Est. effort |
 |---|---|---|---|
-| MED | 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §8.1 | ~20h (multi-PR; lowest-risk first: `modules/config/config.service.ts` + `default-pricing-calculator.strategy.ts` at 1h each) |
+| MED | 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7; 2 closed 2026-08-12) | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §8.1 | ~15h (next: `platform-health-alerts.scheduler.ts` at ~1h) |
 | LOW | API latency baseline (operational) | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §9.10 | ~30 min (after stable staging soak) |
 | LOW | 12 mixed-export file warnings (re-exports) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §14.2 | 4h (migrate 104 consumers) |
-| LOW | 4 react-hooks/exhaustive-deps warnings (real bugs) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §14.2 | 1h |
-| LOW | 2 internal mixed-export + exhaustive-deps warnings | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §14.2 | 30 min |
+| ~~LOW~~ | ~~4 react-hooks/exhaustive-deps warnings~~ | **DONE** (0 remain) | — |
+| ~~LOW~~ | ~~2 internal mixed-export + exhaustive-deps warnings~~ | **DONE** (1 react-refresh warning remains) | — |
 | LOW | Mobile breakpoints audit (every page at 375/768/1280) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #5 | 4h |
 | LOW | Landing page hero redesign | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #6 | 8h |
 | LOW | Landing pricing page (interactive tier toggle) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #7 | 6h |

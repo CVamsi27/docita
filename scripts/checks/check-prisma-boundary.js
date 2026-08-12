@@ -85,9 +85,6 @@ const coveredLayerPatterns = [
  * KNOWN_CYCLES in check-circular-deps.mjs. Keep sorted by path.
  */
 const KNOWN_LEGACY_PRISMA_SERVICE_LEAKS = new Set([
-  // Billing — pricing strategy reads discount; migrate behind
-  // tier-pricing.repository.ts.
-  'apps/api/src/domains/billing/strategies/default-pricing-calculator.strategy.ts',
   // WhatsApp — campaign dispatch cron; migrate behind whatsapp repository.
   'apps/api/src/domains/whatsapp/whatsapp-campaign-dispatch.cron.ts',
   // Legacy top-level modules/ — app config reads clinic settings.

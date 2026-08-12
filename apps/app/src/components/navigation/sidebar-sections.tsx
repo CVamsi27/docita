@@ -3,7 +3,7 @@ import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import type { NavSection } from "@/components/navigation/nav-config";
 import { SidebarLink } from "@/components/navigation/sidebar-nav-link";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
-import { useEffectivePermissions } from "@/lib/access-control/use-effective-permissions";
+import { useEffectivePermissions } from "@workspace/data-access";
 import { parseUserRole } from "@/lib/access-control/parse-user-role";
 import { useAuth } from "@/lib/auth/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";

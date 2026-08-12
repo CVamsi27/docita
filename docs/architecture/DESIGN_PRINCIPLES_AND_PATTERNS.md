@@ -484,7 +484,7 @@ export class BulkImportStrategyRegistry {
 }
 ```
 
-**Also seen in:** `PricingCalculatorStrategy` (billing); `WhatsApp provider` switching (whatsapp).
+**Also seen in:** bulk-import strategy registry (`BulkImportStrategyRegistry`); `WhatsApp provider` switching (whatsapp).
 **Avoid:** `switch (entityType) { case 'PATIENT': …; case 'DOCTOR': … }` — use a registry map instead.
 
 ### 4.5 Anti-corruption Layer (Adapter)

@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -32,11 +31,18 @@ import {
   TEETH_QUADRANTS,
   TOOTH_CONDITIONS,
 } from '@workspace/utils';
+import {
+  CLINIC_CONFIG_QUERY_TOKEN,
+  IClinicConfigQuery,
+} from './core/clinic-config-query.port';
 
 @Injectable()
 export class ConfigService {
   // jscpd:ignore-start
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(CLINIC_CONFIG_QUERY_TOKEN)
+    private readonly clinicConfigQuery: IClinicConfigQuery,
+  ) {}
 
   private toRecord(value: unknown): Record<string, unknown> {
     if (!value || typeof value !== 'object') {
@@ -121,13 +127,7 @@ export class ConfigService {
     };
 
     if (clinicId) {
-      const clinic = await this.prisma.clinic.findUnique({
-        where: { id: clinicId },
-        select: {
-          settings: true,
-          tier: true,
-        },
-      });
+      const clinic = await this.clinicConfigQuery.findAppConfigById(clinicId);
 
       if (clinic) {
         const clinicSettings = this.toRecord(clinic.settings);

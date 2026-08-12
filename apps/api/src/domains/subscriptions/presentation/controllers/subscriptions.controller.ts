@@ -62,7 +62,9 @@ export class SubscriptionsController {
   @Get('current')
   async getCurrent(@Request() req: RequestWithUser) {
     return subscriptionCurrentResponseSchema.parse(
-      await this.queryService.getSubscriptionDetails(getClinicStaffRequestContext(req).clinicId),
+      await this.queryService.getSubscriptionDetails(
+        getClinicStaffRequestContext(req).clinicId,
+      ),
     );
   }
 
@@ -70,7 +72,9 @@ export class SubscriptionsController {
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Get('usage')
   async getCurrentUsage(@Request() req: RequestWithUser) {
-    const usage = await this.clinicUsage.getCurrentUsage(getClinicStaffRequestContext(req).clinicId);
+    const usage = await this.clinicUsage.getCurrentUsage(
+      getClinicStaffRequestContext(req).clinicId,
+    );
     return currentUsageSchema.parse(JSON.parse(JSON.stringify(usage)));
   }
 

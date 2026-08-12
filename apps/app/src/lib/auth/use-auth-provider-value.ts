@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { logger } from "@/lib/monitoring/logger";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { clearEffectivePermissionsCache } from "@/lib/access-control/use-effective-permissions";
+import { clearEffectivePermissionsCache } from "@workspace/data-access";
 import {
   clearLegacyUserStorage,
   clearSensitiveClientStorageOnLogout,

@@ -51,6 +51,10 @@ export type {
 
 // hooks barrel
 export {
+  useEffectivePermissions,
+  clearEffectivePermissionsCache,
+} from "./hooks/use-effective-permissions";
+export {
   useAnalyticsOverview,
   useDiseaseTrends,
   useRevenueByCPT,

@@ -544,7 +544,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | ~~Delete dead `features/*/rules/*.ts` exports (33 fns)~~ | §9.1 | **WITHDRAWN** | Files reachable via barrel re-exports; not dead. |
 | ~~Delete IPD sub-feature (~500 lines)~~ | §9.2 | **DONE** | 15 files deleted (~500 lines). |
 | ~~Wire theme CSS to respond to `data-accent`/`data-density`~~ | §14.1 #1 follow-up | **DONE** | CSS rules already override `--primary`/`--ring` for green/purple/orange/rose/teal; `--density-scale` controls spacing. ThemeProvider applies attributes correctly. |
-| Create `AskAiButton` component | §14.2 #4 | OPEN | MED |
+| ~~Create `AskAiButton` component~~ | §14.2 #4 | **DONE** (`a49629eb1`) | Extracted to `apps/app/src/components/ask-ai/ask-ai-button.tsx`; sidebar footer uses it. |
 | ~~Extract `<Toaster>` to `@workspace/ui`~~ | §14.2 #7 | **DONE** | Created `ToasterWrapper` in `@workspace/ui`; both apps now import from shared component. |
 | Migrate remaining 12 react-refresh warnings | §6.1 | OPEN | LOW |
 | ~~Fix `react-hooks/exhaustive-deps` warnings~~ | §6.2 | **DONE** | 4 bugs fixed (WhatsappOperationsPageContent, use-patients-logic, use-patient-data, LogsPage). |
@@ -589,7 +589,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 |---|---|---|---|---|
 | ~~Delete IPD sub-feature (~500 lines)~~ | §9.2 | **DONE** | 15 files deleted (~500 lines). |
 | ~~Wire theme CSS to `data-accent`/`data-density`~~ | §18.3 | **DONE** | CSS rules + ThemeProvider already wired correctly. |
-| Create `AskAiButton` component | §14.2 #4 | OPEN | MED | 1h |
+| ~~Create `AskAiButton` component~~ | §14.2 #4 | **DONE** (`a49629eb1`) | MED | 1h |
 | ~~Extract `<Toaster>` to `@workspace/ui`~~ | §14.2 #7 | **DONE** | Created `ToasterWrapper` in `@workspace/ui`; both apps now import from shared component. | 30 min |
 | Migrate 13 react-refresh warnings (re-exports for 104 consumers) | §6.1 | OPEN | LOW | 3h |
 | ~~Move `min-h-[50vh]` to CSS token~~ | §14.3 #8 | **DONE** | Added `--page-content-min-h` CSS token + `min-h-page-content` Tailwind utility. | 1h |
@@ -1313,7 +1313,7 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 30. **§30 #30**: Internal admin analytics dashboard — **OPEN** (16h)
 31. **§22/§30 #31**: Unify section registry with `<PageTabs>` — **OPEN** (4h)
 32. **§22/§30 #32**: Wire or delete 2 dead skeletons — **DONE (2026-08-12, verified)** — `PatientListSkeleton` and `AppointmentCalendarSkeleton` no longer exist anywhere in `apps/app/src` (removed during the Vite migration); all 35 remaining `Skeleton`-using files have live importers
-33. **§22/§30 #33**: Promote `useEffectivePermissions` to `@workspace/data-access` — **OPEN** (2h)
+33. **§22/§30 #33**: Promote `useEffectivePermissions` to `@workspace/data-access` — **DONE (2026-08-12)** — hook + `clearEffectivePermissionsCache` moved to `packages/data-access/src/hooks/use-effective-permissions.ts`, fetcher swapped from app `api` client to injected `useDataAccessFetcher`; 4 app importers updated; old files deleted
 34. **§30 #34**: i18n coverage gate enforcement — **DONE (2026-08-12)** — `check:i18n-coverage` + `check:i18next-parity` both wired into verify:standard and passing
 
 **Total estimated remaining work: ~72h across 20 open items** (updated 2026-08-12: §33.1 #3, #4, §30 #13, #18, #20, #23, #24, #26, #32, #34 closed — see §39).
@@ -1327,12 +1327,12 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 - [x] P0-7: Delete IPD sub-feature
 - [x] P0-9: animate-pulse → Skeleton
 - [x] P0-10: Fix 4 react-hooks/exhaustive-deps
-- [ ] P0-3: Per-layout ErrorBoundary in apps/internal (30 min)
-- [ ] P0-4: Add VITE_SENTRY_DSN to internal vite-env (5 min)
-- [ ] P0-8: Fix remaining 2 transition-all sites (15 min)
+- [x] P0-3: Per-layout ErrorBoundary in apps/internal (30 min)
+- [x] P0-4: Add VITE_SENTRY_DSN to internal vite-env (5 min)
+- [x] P0-8: Fix remaining 2 transition-all sites (15 min)
 - [x] P1-11: Sidebar footer (Settings, Help, Theme, Plan, Ask AI)
 - [x] P1-12: Skip-to-content links in 6 layouts
-- [ ] P1-13: Create AskAiButton component (1h)
+- [x] P1-13: Create AskAiButton component (1h)
 - [ ] P1-14: @ZodSerializerDto on 51 controllers (4h)
 - [ ] P1-15: 14 internal pages to React Query (4h)
 - [ ] P1-16: 13 settings forms to RHF values prop (3h)
@@ -1352,7 +1352,7 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 - [ ] P3-30: Internal admin analytics (16h)
 - [ ] P3-31: Unify section registry with PageTabs (4h)
 - [ ] P3-32: Wire or delete 2 dead skeletons (2h)
-- [ ] P3-33: Promote useEffectivePermissions (2h)
+- [x] P3-33: Promote useEffectivePermissions (2h)
 - [ ] P3-34: i18n coverage gate (4h)
 ```
 
@@ -2075,7 +2075,7 @@ This is the **single tracker** for every P0-P3 item across all 11 audit docs. Ea
 - [ ] P3-3: Internal admin analytics dashboard (§7) — **16h**
 - [ ] P3-4: Unify section registry with `<PageTabs>` (§14) — **4h**
 - [ ] P3-5: Wire or delete 2 dead skeletons (§14) — **2h**
-- [ ] P3-6: Promote `useEffectivePermissions` to `@workspace/data-access` (§14) — **2h**
+- [x] P3-6: Promote `useEffectivePermissions` to `@workspace/data-access` (§14) — **2h**
 - [ ] P3-7: i18n coverage gate enforcement (§14) — **4h**
 - [ ] P3-8: Audit 5 features with weakest coverage (whatsapp, documents, inbox, medical-documents, lab-tests) (§36.2) — **8h**
 - [ ] P3-9: Add container queries to consultation workspace (§36.10) — **4h**
@@ -2228,3 +2228,39 @@ at least one live importer. Nothing to wire or delete.
 - §7 #6-7 / §30 #28-29 landing hero + pricing redesign (design decisions)
 - §7 #8 / §30 #30 internal admin analytics dashboard
 - §30 #14, #15, #16, #17, #19, #31, #32, #33 (P1-P3 backlog)
+
+---
+
+## 40. Round-6 batch — 2026-08-12 (stale-row cleanup + useEffectivePermissions promotion)
+
+### 40.1 Stale tracker rows corrected
+
+| Row | Before | After |
+|---|---|---|
+| §18.3 `AskAiButton` | OPEN | **DONE** (`a49629eb1`) — extraction landed in round 5; the §18.3/§19.3 tables never caught up |
+| §19.3 `AskAiButton` | OPEN | **DONE** (`a49629eb1`) |
+| §33.5 P1-13 `AskAiButton` | unchecked | checked |
+| §33.5 P0-3 / P0-4 / P0-8 | unchecked | checked (ErrorBoundary, VITE_SENTRY_DSN, transition-all all landed; `transition-all` count now 0 across both apps) |
+| §16.1 #5/#6 exhaustive-deps rows (backend doc) | OPEN | **DONE** (0 exhaustive-deps warnings remain — app lint: 13 warnings, all react-refresh) |
+
+### 40.2 §30 #33 — `useEffectivePermissions` promoted to `@workspace/data-access` — DONE
+
+- New: `packages/data-access/src/hooks/use-effective-permissions.ts` (hook +
+  `clearEffectivePermissionsCache`, session-cache semantics preserved).
+- Fetcher swapped: `@/lib/api/api-client` → `useDataAccessFetcher()` from the
+  `DataAccessProvider` bridge (`/auth/effective-permissions` resolves against
+  `/api/v1` exactly as before).
+- Importers updated (4): `InboxPageContent`, `ConsultationWorkspaceExtras`,
+  `sidebar-sections`, `use-auth-provider-value` — now `@workspace/data-access`.
+- Deleted: `apps/app/src/lib/access-control/use-effective-permissions.ts`,
+  `apps/app/src/lib/api/effective-permissions.api.ts` (dir removed).
+- Exported from `packages/data-access` index hooks barrel.
+- Validation: data-access check-types EXIT 0, app check-types EXIT 0.
+
+### 40.3 Validation
+
+| Check | Result |
+|---|---|
+| App check-types | EXIT 0 |
+| Data-access check-types | EXIT 0 |
+| App lint | 13 warnings, 0 errors (all pre-existing react-refresh) |

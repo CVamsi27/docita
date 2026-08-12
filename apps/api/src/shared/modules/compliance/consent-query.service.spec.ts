@@ -29,21 +29,34 @@ describe('ConsentQueryService', () => {
   describe('hasValidConsent', () => {
     it('returns true when an active consent row exists with no expiry', async () => {
       consentFindFirst.mockResolvedValue({ id: 'c-1' });
-      const result = await service.hasValidConsent('pat-1', 'clinic-1', ConsentType.MARKETING);
+      const result = await service.hasValidConsent(
+        'pat-1',
+        'clinic-1',
+        ConsentType.MARKETING,
+      );
       expect(result).toBe(true);
       expect(consentFindFirst).toHaveBeenCalledTimes(1);
     });
 
     it('returns false when no consent row is found', async () => {
       consentFindFirst.mockResolvedValue(null);
-      const result = await service.hasValidConsent('pat-1', 'clinic-1', ConsentType.MARKETING);
+      const result = await service.hasValidConsent(
+        'pat-1',
+        'clinic-1',
+        ConsentType.MARKETING,
+      );
       expect(result).toBe(false);
     });
 
     it('uses the OR clause to allow null OR future validUntil', async () => {
       consentFindFirst.mockResolvedValue({ id: 'c-2' });
-      await service.hasValidConsent('pat-1', 'clinic-1', ConsentType.DPDP_NOTICE);
-      const where = (consentFindFirst.mock.calls[0]?.[0] as { where: unknown })?.where as {
+      await service.hasValidConsent(
+        'pat-1',
+        'clinic-1',
+        ConsentType.DPDP_NOTICE,
+      );
+      const where = (consentFindFirst.mock.calls[0]?.[0] as { where: unknown })
+        ?.where as {
         OR: unknown[];
       };
       expect(where.OR).toEqual([
@@ -74,15 +87,25 @@ describe('ConsentQueryService', () => {
     });
 
     it('returns true when the clinic requires consent and the patient has opted in', async () => {
-      clinicFindUnique.mockResolvedValue({ whatsappAutomation: { requireConsentBeforeSending: true } });
-      patientFindUnique.mockResolvedValue({ whatsappConsent: true, whatsappConsentAt: NOW });
+      clinicFindUnique.mockResolvedValue({
+        whatsappAutomation: { requireConsentBeforeSending: true },
+      });
+      patientFindUnique.mockResolvedValue({
+        whatsappConsent: true,
+        whatsappConsentAt: NOW,
+      });
       const result = await service.validateWhatsAppConsent('pat-1', 'clinic-1');
       expect(result).toBe(true);
     });
 
     it('returns false when the clinic requires consent and the patient has not opted in', async () => {
-      clinicFindUnique.mockResolvedValue({ whatsappAutomation: { requireConsentBeforeSending: true } });
-      patientFindUnique.mockResolvedValue({ whatsappConsent: false, whatsappConsentAt: null });
+      clinicFindUnique.mockResolvedValue({
+        whatsappAutomation: { requireConsentBeforeSending: true },
+      });
+      patientFindUnique.mockResolvedValue({
+        whatsappConsent: false,
+        whatsappConsentAt: null,
+      });
       const result = await service.validateWhatsAppConsent('pat-1', 'clinic-1');
       expect(result).toBe(false);
     });

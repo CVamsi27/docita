@@ -4,7 +4,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccessTarget } from "@/lib/access-control/access-policy";
-import { useEffectivePermissions } from "@/lib/access-control/use-effective-permissions";
+import { useEffectivePermissions } from "@workspace/data-access";
 import { isConsultationReadOnlyStatus } from "@/features/appointments";
 import { PrimaryActionButtons, ViewActionsInline, ViewActionsOverflow } from "./ConsultationWorkspaceExtrasSections";
 

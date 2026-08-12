@@ -237,6 +237,127 @@ describe('RazorpayInvoiceWebhookService', () => {
     );
   });
 
+  it('throws 400 when payment.captured has no payment entity', async () => {
+    const outbox: IOutboxService = {
+      append: jest.fn(async () => undefined),
+    };
+    const service = new RazorpayInvoiceWebhookService(
+      Object.assign(Object.create(null), {
+        findByProviderPaymentId: jest.fn(async () => null),
+        findByProviderSessionId: jest.fn(async () => null),
+        update: jest.fn(async () => Object.create(null)),
+      }),
+      Object.assign(Object.create(null), {
+        update: jest.fn(async () => Object.create(null)),
+      }),
+      { runInTransaction: async (fn) => fn(Object.create(null)) },
+      { now: () => new Date() },
+      outbox,
+    );
+
+    await expect(
+      service.handle(
+        {
+          event: 'payment.captured',
+          payload: { payment: {} } as never,
+        },
+        'signature',
+      ),
+    ).rejects.toThrow(/payment payload is missing/);
+  });
+
+  it('throws 400 when payment_link.paid has no payment_link entity', async () => {
+    const service = new RazorpayInvoiceWebhookService(
+      Object.assign(Object.create(null), {
+        findByProviderPaymentId: jest.fn(async () => null),
+        findByProviderSessionId: jest.fn(async () => null),
+        update: jest.fn(async () => Object.create(null)),
+      }),
+      Object.assign(Object.create(null), {
+        update: jest.fn(async () => Object.create(null)),
+      }),
+      { runInTransaction: async (fn) => fn(Object.create(null)) },
+      { now: () => new Date() },
+      { append: jest.fn(async () => undefined) },
+    );
+
+    await expect(
+      service.handle(
+        {
+          event: 'payment_link.paid',
+          payload: { payment_link: {} } as never,
+        },
+        'signature',
+      ),
+    ).rejects.toThrow(/payment link payload is missing/);
+  });
+
+  it('throws 400 when payment_link.paid cannot be matched to a session', async () => {
+    const service = new RazorpayInvoiceWebhookService(
+      Object.assign(Object.create(null), {
+        findByProviderPaymentId: jest.fn(async () => null),
+        findByProviderSessionId: jest.fn(async () => null),
+        update: jest.fn(async () => Object.create(null)),
+      }),
+      Object.assign(Object.create(null), {
+        update: jest.fn(async () => Object.create(null)),
+      }),
+      { runInTransaction: async (fn) => fn(Object.create(null)) },
+      { now: () => new Date() },
+      { append: jest.fn(async () => undefined) },
+    );
+
+    await expect(
+      service.handle(
+        {
+          event: 'payment_link.paid',
+          payload: {
+            payment_link: {
+              entity: { id: 'link-orphan', amount: 100, status: 'paid' },
+            },
+          },
+        },
+        'signature',
+      ),
+    ).rejects.toThrow(/could not be matched to a payment session/);
+  });
+
+  it('throws 400 when a matched session is not linked to an invoice', async () => {
+    const session = {
+      id: 'session-unlinked',
+      clinicId: 'clinic-1',
+      invoiceId: null,
+      patientId: 'patient-1',
+    };
+    const service = new RazorpayInvoiceWebhookService(
+      Object.assign(Object.create(null), {
+        findByProviderPaymentId: jest.fn(async () => null),
+        findByProviderSessionId: jest.fn(async () => session),
+        update: jest.fn(async () => Object.create(null)),
+      }),
+      Object.assign(Object.create(null), {
+        update: jest.fn(async () => Object.create(null)),
+      }),
+      { runInTransaction: async (fn) => fn(Object.create(null)) },
+      { now: () => new Date() },
+      { append: jest.fn(async () => undefined) },
+    );
+
+    await expect(
+      service.handle(
+        {
+          event: 'payment_link.paid',
+          payload: {
+            payment_link: {
+              entity: { id: 'link-1', amount: 100, status: 'paid' },
+            },
+          },
+        },
+        'signature',
+      ),
+    ).rejects.toThrow(/could not be matched to a payment session/);
+  });
+
   it('returns status:ignored for events outside the supported set', async () => {
     const outbox: IOutboxService = {
       append: jest.fn(async () => undefined),
