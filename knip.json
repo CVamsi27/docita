@@ -12,7 +12,7 @@
     "apps/worker": {
       "entry": [
         "src/main.ts",
-        "src/**/*.spec.js"
+        "src/**/*.spec.ts"
       ],
       "paths": {
         "@/*": ["./../api/src/*"]
