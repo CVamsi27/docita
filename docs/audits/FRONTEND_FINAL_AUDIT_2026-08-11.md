@@ -169,18 +169,18 @@ See §16 PR #212 for the full step-by-step. **3h estimated.**
 
 ## 7. Top-10 improvement areas (ranked by impact × effort)
 
-| # | Area | Impact | Effort | Status |
+| # | Area | Impact | Effort | Status (all terminal, 2026-08-12) |
 |---|---|---|---|---|
 | 1 | Empty-state coverage audit + sweep | HIGH | 2h | **DONE in this cycle** |
 | 2 | Error-boundary coverage (AppShell + feature roots) | HIGH | 1h | **DONE in this cycle** |
 | 3 | Design-token compliance audit (raw color, raw font-size) | HIGH | 30 min | **DONE in this cycle** |
-| 4 | i18n coverage gate (every JSX string wrapped in `t(...)`) | MED | 4h | deferred |
-| 5 | Mobile breakpoints audit (every page at 375px / 768px / 1280px) | MED | 4h | deferred |
-| 6 | Landing page hero redesign (motion + composition) | MED | 8h | deferred |
-| 7 | Landing pricing page (interactive tier toggle) | MED | 6h | deferred |
-| 8 | Internal admin analytics dashboard | MED | 16h | deferred |
-| 9 | Image opt (Cloudflare Polish + WebP/AVIF auto) | LOW | 2h | deferred |
-| 10 | Reduced-motion audit (every `animate-*` respects `prefers-reduced-motion`) | LOW | 2h | deferred |
+| 4 | i18n coverage gate (every JSX string wrapped in `t(...)`) | MED | 4h | **DONE** — `check:i18n-coverage` + `check:i18next-parity` in `verify:standard`, green (en 2970 = hi 2970) |
+| 5 | Mobile breakpoints audit (every page at 375px / 768px / 1280px) | MED | 4h | **DEFERRED** (2026-08-12; audit round) |
+| 6 | Landing page hero redesign (motion + composition) | MED | 8h | **DEFERRED** (2026-08-12; design/product decision) |
+| 7 | Landing pricing page (interactive tier toggle) | MED | 6h | **DONE** — `pricing-mode-toggle.tsx` with `role=tab` + `aria-selected`, pinned by `apps/landing/e2e/accessibility.spec.ts` |
+| 8 | Internal admin analytics dashboard | MED | 16h | **DEFERRED** (2026-08-12; design/product decision) |
+| 9 | Image opt (Cloudflare Polish + WebP/AVIF auto) | LOW | 2h | **DEFERRED** (2026-08-12; infra/product) |
+| 10 | Reduced-motion audit (every `animate-*` respects `prefers-reduced-motion`) | LOW | 2h | **DONE** — `use-prefers-reduced-motion` hook in `packages/hooks`; `check:a11y-budget:enforce` passes |
 
 ---
 
