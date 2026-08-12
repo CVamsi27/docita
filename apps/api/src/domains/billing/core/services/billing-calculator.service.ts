@@ -3,13 +3,7 @@ import { InvoiceItem } from '@/domains/billing/core/entities/invoice-item.entity
 import { DEFAULT_CURRENCY } from '@workspace/utils';
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
-export interface TaxConfiguration {
-  rate: number;
-  name: string;
-  description?: string;
-}
-
-export interface DiscountConfiguration {
+interface DiscountConfiguration {
   type: 'PERCENTAGE' | 'FIXED';
   value: number;
   description?: string;

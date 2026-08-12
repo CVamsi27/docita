@@ -1,5 +1,4 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { JoinRequestsController } from './presentation/controllers/join-requests.controller';
 import { StaffManagementService } from './application/services/staff-management.service';
 import { StaffInviteService } from './application/services/staff-invite.service';
 import { JoinRequestService } from './application/services/join-request.service';
@@ -23,7 +22,10 @@ import { CLINIC_PERSISTENCE_PORT } from './application/ports/clinic-persistence.
     MessagingModule,
     WhatsappModule,
   ],
-  controllers: [JoinRequestsController],
+  // JoinRequestsController intentionally lives in ClinicsModule (registered
+  // before ClinicsController so /clinics/join-requests literals beat
+  // /clinics/:id); this module only provides its services.
+  controllers: [],
   providers: [
     { provide: CLINIC_PERSISTENCE_PORT, useExisting: PrismaService },
     JoinRequestService,

@@ -39,6 +39,14 @@ STARTUP_TIMEOUT_SECONDS="${STARTUP_TIMEOUT_SECONDS:-120}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-2}"
 PORT="${PORT:-3001}"
 API_HEALTH_URL="${API_HEALTH_URL:-http://127.0.0.1:${PORT}/api/health/live}"
+API_READY_URL="${API_READY_URL:-http://127.0.0.1:${PORT}/api/health/ready}"
+# Cold-start budget: process launch -> first /health/live 200. The API must
+# become live within this window (Fly autostart and slow CI runners get slack;
+# tighten per environment when the boot profile is known).
+STARTUP_TIME_BUDGET_SECONDS="${STARTUP_TIME_BUDGET_SECONDS:-60}"
+# Post-boot readiness latency budget: /health/ready performs a SELECT 1 round
+# trip, so this is the cheapest real DB+app latency signal available locally.
+HEALTH_READY_LATENCY_BUDGET_MS="${HEALTH_READY_LATENCY_BUDGET_MS:-1000}"
 
 cleanup() {
   if [ -n "${API_PID:-}" ] && kill -0 "$API_PID" 2>/dev/null; then
@@ -90,10 +98,31 @@ echo ""
 echo "==> Starting API and waiting for ${API_HEALTH_URL}..."
 pnpm --filter @docita/api run start:prod >"$LOG_FILE" 2>&1 &
 API_PID=$!
+START_SECONDS=$SECONDS
 
 deadline=$((SECONDS + STARTUP_TIMEOUT_SECONDS))
 while [ "$SECONDS" -lt "$deadline" ]; do
   if curl -fsS "$API_HEALTH_URL" >/dev/null 2>&1; then
+    COLD_START_SECONDS=$((SECONDS - START_SECONDS))
+    echo "API live in ${COLD_START_SECONDS}s (budget: ${STARTUP_TIME_BUDGET_SECONDS}s)"
+
+    if [ "$COLD_START_SECONDS" -gt "$STARTUP_TIME_BUDGET_SECONDS" ]; then
+      echo "API startup smoke failed: cold start ${COLD_START_SECONDS}s exceeds budget ${STARTUP_TIME_BUDGET_SECONDS}s." >&2
+      echo "Raise STARTUP_TIME_BUDGET_SECONDS intentionally, or fix the boot regression." >&2
+      exit 1
+    fi
+
+    # Measure the readiness endpoint (real DB round trip) once the API is live.
+    # curl -w gives us the total time; fail if it exceeds the latency budget.
+    READY_LATENCY_MS=$(curl -fsS -o /dev/null -w '%{time_total}' "$API_READY_URL" | awk '{printf "%.0f", $1 * 1000}')
+    echo "API ready endpoint responded in ${READY_LATENCY_MS}ms (budget: ${HEALTH_READY_LATENCY_BUDGET_MS}ms)"
+
+    if [ "$READY_LATENCY_MS" -gt "$HEALTH_READY_LATENCY_BUDGET_MS" ]; then
+      echo "API startup smoke failed: readiness latency ${READY_LATENCY_MS}ms exceeds budget ${HEALTH_READY_LATENCY_BUDGET_MS}ms." >&2
+      echo "Raise HEALTH_READY_LATENCY_BUDGET_MS intentionally, or investigate the DB round trip." >&2
+      exit 1
+    fi
+
     echo "API startup smoke passed."
     exit 0
   fi

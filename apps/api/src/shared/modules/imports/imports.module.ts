@@ -25,7 +25,6 @@ import {
   LabTestImportStrategy,
   InventoryImportStrategy,
 } from './strategies';
-import { OCRService as _OCRService } from './ocr.service';
 import { OCRFacadeService } from './ocr-facade.service';
 import { ImagePreprocessorService } from './image-preprocessor.service';
 import { TextExtractorService } from './text-extractor.service';
@@ -34,8 +33,10 @@ import { TextParserService } from './text-parser.service';
 import { ConfidenceScorerService } from './confidence-scorer.service';
 import { ImportSessionService } from './import-session.service';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import { AIModule } from '@/shared/modules/ai/ai.module';
 import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
+import { IMPORT_STRATEGY_PERSISTENCE_PORT } from './ports/import-strategy.persistence.port';
 
 @Module({
   imports: [PrismaModule, AIModule, ComplianceModule],
@@ -45,6 +46,10 @@ import { ComplianceModule } from '@/shared/modules/compliance/compliance.module'
     BulkImportController,
   ],
   providers: [
+    {
+      provide: IMPORT_STRATEGY_PERSISTENCE_PORT,
+      useExisting: PrismaService,
+    },
     ImportsService,
     ImportPreviewService,
     PatientTabularImportService,

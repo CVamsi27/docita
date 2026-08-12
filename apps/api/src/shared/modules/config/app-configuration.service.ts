@@ -79,10 +79,6 @@ export class AppConfigService {
     return this.environment.isTest();
   }
 
-  isApiE2eEnabled(): boolean {
-    return this.environment.isApiE2eEnabled();
-  }
-
   shouldAllowTestEmailAutoVerify(): boolean {
     return this.environment.shouldAllowTestEmailAutoVerify();
   }

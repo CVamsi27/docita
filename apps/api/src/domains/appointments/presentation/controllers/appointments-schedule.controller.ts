@@ -11,6 +11,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { RequiresIdempotency } from '@/shared/modules/idempotency';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import { parseAppointmentStatus } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
@@ -196,6 +197,7 @@ export class AppointmentsScheduleController {
   }
 
   @Get(':id')
+  @RequirePolicy('appointment', 'read')
   @ApiOperation({ summary: 'Get appointment by ID' })
   async findOne(@Param('id') id: string, @Request() req: RequestWithUser) {
     const appointment = await this.appointmentService.getAppointment(
@@ -213,6 +215,7 @@ export class AppointmentsScheduleController {
   }
 
   @Patch(':id')
+  @RequirePolicy('appointment', 'update')
   @ApiOperation({ summary: 'Update appointment details' })
   async update(
     @Param('id') id: string,

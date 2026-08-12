@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — narrowing casts required by generic AWS SDK responses
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import {
   RDSClient,
@@ -437,7 +436,7 @@ export class DatabaseRdsService implements OnModuleDestroy {
 
   private normalizeStatus(status: string | undefined): RdsInstanceStatus {
     if (!status) return 'unknown';
-    const known: RdsInstanceStatus[] = [
+    const known: readonly RdsInstanceStatus[] = [
       'available',
       'stopped',
       'stopping',
@@ -452,9 +451,7 @@ export class DatabaseRdsService implements OnModuleDestroy {
       'storage-full',
       'storage-optimization',
     ];
-    return (known as string[]).includes(status)
-      ? (status as RdsInstanceStatus)
-      : 'unknown';
+    return known.find((candidate) => candidate === status) ?? 'unknown';
   }
 
   /** Formats a snapshot id per project convention. */

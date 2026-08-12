@@ -1,9 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import {
   TIER_PRICING_REPOSITORY_TOKEN,
   ITierPricingRepository,
 } from '@/domains/billing/core/repositories/tier-pricing.repository';
 import { TierPricing } from '@workspace/db';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   TIER_PRICING,
   TIER_LIMITS,
@@ -42,6 +44,17 @@ export class PricingService {
   private readonly supportedCurrencies = SUPPORTED_PRICING_CURRENCIES;
 
   private cachedTiers: { data: TierPricing[]; expiry: number } | null = null;
+
+  /**
+   * Invalidate the in-process tier cache when a tier pricing row is written,
+   * so an INTERNAL operator editing tier pricing sees the change reflected
+   * on the next request without waiting for the TTL. Emitted by
+   * tierPricingRepository.create/update and the INTERNAL seed script.
+   */
+  @OnEvent(ApplicationEvents.TIER_PRICING_UPDATED)
+  invalidateTierCache(): void {
+    this.cachedTiers = null;
+  }
 
   private async getActiveTiers(): Promise<TierPricing[]> {
     if (this.cachedTiers && Date.now() < this.cachedTiers.expiry) {

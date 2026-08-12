@@ -1,26 +1,31 @@
-import { configDefaults, defineConfig } from "vitest/config";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import { buildAppVitestConfig } from "../../vitest.shared.config";
+import path from "path";
+
+const __dirname = import.meta.dirname;
 
 export default defineConfig({
   plugins: [react()],
-  ...buildAppVitestConfig({
-    rootDir: __dirname,
-    extraExclude: ["tests/visual/**"],
-    coverageInclude: [
-      "features/**/rules/**/*.ts",
-      "shared/lib/rules/**/*.ts",
-      "shared/lib/access-control/rules/**/*.ts",
-      "shared/lib/errors/**/*.ts",
-      "shared/components/whatsapp/whatsapp-button.tsx",
-      "shared/components/feedback/delete-confirm-dialog.tsx",
-      "features/appointments/components/sections/add-dialog/AppointmentFormFields.tsx",
-      "features/onboarding/components/steps/PaymentStep.tsx",
-      "features/patients/components/forms/PatientDialogs.tsx",
-      "features/consultation/components/consultation.tsx",
-      "providers/react-query-provider.tsx",
-    ],
-    defaultExclude: configDefaults.exclude,
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@workspace/ui": path.resolve(__dirname, "../../packages/ui/src"),
+      "@workspace/types": path.resolve(__dirname, "../../packages/types/src"),
+      "@workspace/utils": path.resolve(__dirname, "../../packages/utils/src"),
+      "@workspace/hooks": path.resolve(__dirname, "../../packages/hooks/src"),
+      "@workspace/data-access": path.resolve(__dirname, "../../packages/data-access/src"),
+    },
+  },
+  test: {
+    globals: true,
+    environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
-  }),
+    css: true,
+    testTimeout: 30000,
+    exclude: ["e2e/**", "dist/**", "node_modules/**"],
+    coverage: {
+      reporter: ["text", "html"],
+      exclude: ["e2e/**", "**/*.d.ts", "**/*.config.*", "dist/**"],
+    },
+  },
 });

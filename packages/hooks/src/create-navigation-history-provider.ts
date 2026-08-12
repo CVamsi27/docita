@@ -16,11 +16,12 @@ export interface NavigationHistoryProviderFactoryResult {
 /**
  * Builds a complete navigation-history provider — component and
  * `readInAppNavCount` reader together — from a storage-key pair and the host
- * app's own `usePathname` hook. `apps/app` and `apps/internal` each had a
- * `NavigationHistoryProvider` that was identical apart from its storage-key
- * prefix and which `usePathname` it called; accepting the hook as a parameter
- * keeps this package decoupled from `next/navigation` while still letting the
- * provider component's shape live in exactly one place.
+ * app's own pathname hook. `apps/app` and `apps/internal` each have
+ * a `NavigationHistoryProvider` that is identical apart from its storage-key
+ * prefix and which pathname hook it calls (`useLocation().pathname` in the
+ * Vite apps, via a small adapter); accepting the hook as a parameter keeps
+ * this package decoupled from `react-router` while still letting the provider
+ * component's shape live in exactly one place.
  */
 export function createNavigationHistoryProvider(
   keys: NavigationHistoryStorageKeys,

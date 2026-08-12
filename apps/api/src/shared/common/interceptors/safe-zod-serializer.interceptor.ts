@@ -11,10 +11,12 @@ import { map } from 'rxjs/operators';
 import type { Observable } from 'rxjs';
 import type { ZodType } from 'zod';
 
-// check-as-cast-density: allow-file — this interceptor bridges nestjs-zod's
-// reflector metadata (typed `unknown`) to the ZodDto/ZodType shapes it actually
-// holds. The `as` casts are inherent to reading framework metadata and are each
-// guarded by runtime checks (`codec`/`schema`/`safeParse`/`array`) before use.
+// check-as-cast-density: allow-file — sanctioned seam (P5.2j class): the casts
+// bridge nestjs-zod's reflector metadata, which is untyped `unknown` at the
+// framework boundary. Each access is guarded by a runtime check
+// (`codec`/`schema`/`safeParse`/`array`) before use; closing the seam would
+// only relocate the narrowing into duplicate predicates on metadata whose
+// shape is defined by a third-party library, not by this codebase.
 
 // Metadata key set by nestjs-zod's `@ZodSerializerDto(...)`.
 const ZOD_SERIALIZER_DTO_OPTIONS = 'ZOD_SERIALIZER_DTO_OPTIONS';

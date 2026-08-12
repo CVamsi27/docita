@@ -13,19 +13,6 @@ export const DUPLICATE_PATH_PAIRS = [
     toleratedRelativePaths: [],
   },
   {
-    id: "ai-ai-core",
-    label: "shared/modules/ai ↔ shared/modules/ai-core",
-    roots: [
-      "apps/api/src/shared/modules/ai",
-      "apps/api/src/shared/modules/ai-core",
-    ],
-    toleratedRelativePaths: [
-      "ai.module.ts",
-      "ai.service.ts",
-      "ai.service.spec.ts",
-    ],
-  },
-  {
     id: "razorpay-webhook-controllers",
     label:
       "subscriptions Razorpay webhook ↔ billing Razorpay webhook (same route shape)",

@@ -1,4 +1,1 @@
-export {
-  MessageTemplateService,
-  type MessageTemplate,
-} from './message-template.service';
+export { MessageTemplateService } from './message-template.service';

@@ -5,15 +5,13 @@
   "private": true,
   "exports": {
     "./base": "./base.js",
-    "./next-js": "./next.js",
     "./react-internal": "./react-internal.js"
   },
   "scripts": {
-    "check-types": "node -e \"process.exit(0)\""
+    "check-types": "node --check base.js react-internal.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@next/eslint-plugin-next": "^15.4.5",
     "@typescript-eslint/parser": "^8.39.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^9.1.2",
@@ -22,7 +20,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-turbo": "^2.5.5",
     "globals": "^15.15.0",
-    "typescript": "5.7.3",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.39.0"
   }
 }

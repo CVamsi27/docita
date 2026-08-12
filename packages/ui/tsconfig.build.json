@@ -3,7 +3,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@workspace/utils": ["../utils/dist/index.d.ts"]
+      "@workspace/utils": [
+        "../utils/dist/index.d.ts"
+      ]
     },
     "outDir": "dist",
     "rootDir": "src",
@@ -12,9 +14,12 @@
     "sourceMap": false,
     "exactOptionalPropertyTypes": false,
     "noPropertyAccessFromIndexSignature": false,
-    "stripInternal": true
+    "stripInternal": true,
+    "ignoreDeprecations": "6.0"
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "node_modules",
     "dist",

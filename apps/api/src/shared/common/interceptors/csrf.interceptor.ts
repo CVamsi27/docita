@@ -127,6 +127,22 @@ export class CsrfInterceptor implements NestInterceptor {
     );
   }
 
+  /**
+   * Signature-authenticated server-to-server webhook ingress (Razorpay,
+   * ZeptoMail, WhatsApp Meta, billing). These POSTs carry no browser session
+   * (no XSRF-TOKEN cookie to echo) and are already authenticated by their own
+   * HMAC signature verification + replay dedupe — a CSRF double-submit would
+   * be meaningless (there is no cross-site victim session to protect) and
+   * would hard-block legitimate provider callbacks. Keep the exemption scoped
+   * to the `/webhooks/*` path prefix only.
+   */
+  private isWebhookIngress(request: Request): boolean {
+    const method = request.method?.toUpperCase() ?? '';
+    if (method !== 'POST') return false;
+    const path = this.getRequestPath(request);
+    return /^\/(?:api(?:\/v\d+)?\/)?webhooks\//i.test(path);
+  }
+
   private hasSessionCookie(request: Request): boolean {
     const cookies = request.cookies ?? {};
     return Boolean(cookies['access_token'] || cookies['refresh_token']);
@@ -181,7 +197,8 @@ export class CsrfInterceptor implements NestInterceptor {
     if (!this.isSafeMethod(request.method)) {
       if (
         this.isPublicWebVitalsPost(request) ||
-        this.isPublicBookingWrite(request)
+        this.isPublicBookingWrite(request) ||
+        this.isWebhookIngress(request)
       ) {
         return next.handle();
       }

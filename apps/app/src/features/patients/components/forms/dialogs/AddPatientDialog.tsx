@@ -1,0 +1,41 @@
+import { FC } from "react";
+import { useTranslation } from "react-i18next";
+import { FormDialog } from "@workspace/ui/components/form/form-dialog";
+import { AddPatientDialogForm } from "./add-patient-dialog-form";
+import { useAddPatientDialog } from "./use-add-patient-dialog";
+
+interface AddPatientDialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onPatientAdded?: () => void;
+}
+
+export const AddPatientDialog: FC<AddPatientDialogProps> = ({
+  open = false,
+  onOpenChange,
+  onPatientAdded,
+}) => {
+  const { t } = useTranslation("Patients.addPatientDialog");
+  const dialog = useAddPatientDialog({ onPatientAdded, onOpenChange });
+
+  return (
+    <FormDialog
+      open={open}
+      onOpenChange={dialog.handleClose}
+      title={t("title")}
+      description={t("description")}
+    >
+      <AddPatientDialogForm
+        form={dialog.form}
+        dpdpAccepted={dialog.dpdpAccepted}
+        isPending={dialog.isPending}
+        abhaAddress={dialog.abhaAddress}
+        abhaStatus={dialog.abhaStatus}
+        createdPatientId={dialog.createdPatientId}
+        onVerifyAbha={dialog.handleVerifyCreatedAbha}
+        onSubmit={dialog.handleSubmit}
+        onCancel={() => dialog.handleClose(false)}
+      />
+    </FormDialog>
+  );
+};

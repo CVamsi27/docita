@@ -62,92 +62,24 @@ function parseTomlSingleQuotedEnvValue(source, key) {
 }
 
 try {
-  const appMiddleware = "apps/app/middleware.ts";
-  const internalMiddleware = "apps/internal/middleware.ts";
-  const deployWorkflowPath = ".github/workflows/deploy.yml";
-  const detectScopePath = "scripts/workflow/detect-workflow-scope.mjs";
-  const appLayoutPath = "apps/app/app/layout.tsx";
-  const internalLayoutPath = "apps/internal/app/layout.tsx";
-  const esbuildBootstrapHelperPath =
-    "packages/utils/src/runtime/esbuild-helper-bootstrap.ts";
   const flyTomlPath = "fly.toml";
   const workerFlyTomlPath = "apps/worker/fly.toml";
   const flyDeployScriptPath = "scripts/deploy/fly-deploy-in-primary-region.sh";
-  assertExists(
-    appMiddleware,
-    "apps/app must keep middleware.ts for Cloudflare production builds.",
-  );
-  assertExists(
-    internalMiddleware,
-    "apps/internal must keep middleware.ts for Cloudflare production builds.",
-  );
-  assertMissing(
-    "apps/app/proxy.ts",
-    "apps/app/proxy.ts must not exist. Use middleware.ts for Cloudflare builds.",
-  );
-  assertMissing(
-    "apps/internal/proxy.ts",
-    "apps/internal/proxy.ts must not exist. Use middleware.ts for Cloudflare builds.",
-  );
-
-  const appMiddlewareSource = read(appMiddleware);
-  const internalMiddlewareSource = read(internalMiddleware);
-  const appLayoutSource = read(appLayoutPath);
-  const internalLayoutSource = read(internalLayoutPath);
-  const esbuildBootstrapHelperSource = read(esbuildBootstrapHelperPath);
+  const deployWorkflowPath = ".github/workflows/deploy.yml";
+  const detectScopePath = "scripts/workflow/detect-workflow-scope.mjs";
   const deployWorkflowSource = read(deployWorkflowPath);
+  const flyTomlSource = read(flyTomlPath);
+  const workerFlyTomlSource = read(workerFlyTomlPath);
+  const flyDeployScriptSource = read(flyDeployScriptPath);
   const detectScopeSource = read(detectScopePath);
   const deployScopeSource = `${detectScopeSource}\n${read(
     "scripts/workflow/detect-workflow-deploy.mjs",
   )}`;
   const ciWorkflowSource = read(".github/workflows/ci.yml");
   const apiE2eWorkflowSource = read(".github/workflows/api-e2e.yml");
-  const frontendCriticalE2eWorkflowSource = read(
-    ".github/workflows/frontend-critical-e2e.yml",
-  );
-  const flyTomlSource = read(flyTomlPath);
-  const workerFlyTomlSource = read(workerFlyTomlPath);
-  const flyDeployScriptSource = read(flyDeployScriptPath);
-  assert(
-    /export async function middleware/.test(appMiddlewareSource) ||
-      /export function middleware/.test(appMiddlewareSource),
-    "apps/app/middleware.ts must export middleware().",
-  );
-  assert(
-    /export async function middleware/.test(internalMiddlewareSource) ||
-      /export function middleware/.test(internalMiddlewareSource),
-    "apps/internal/middleware.ts must export middleware().",
-  );
-  assertIncludes(
-    appMiddlewareSource,
-    'requestHeaders.set("x-nonce", nonce);',
-    "apps/app/middleware.ts must propagate x-nonce for CSP-safe production boot scripts.",
-  );
-  assertIncludes(
-    appLayoutSource,
-    'get("x-nonce")',
-    "apps/app/app/layout.tsx must read x-nonce from request headers.",
-  );
-  assertIncludes(
-    internalMiddlewareSource,
-    'requestHeaders.set("x-nonce", nonce);',
-    "apps/internal/middleware.ts must propagate x-nonce for CSP-safe production boot scripts.",
-  );
-  assertIncludes(
-    internalLayoutSource,
-    'get("x-nonce")',
-    "apps/internal/app/layout.tsx must read x-nonce from request headers.",
-  );
-  assertCloudflareBootstrapContract(
-    appLayoutSource,
-    appLayoutPath,
-    esbuildBootstrapHelperSource,
-  );
-  assertCloudflareBootstrapContract(
-    internalLayoutSource,
-    internalLayoutPath,
-    esbuildBootstrapHelperSource,
-  );
+  const frontendCriticalE2eWorkflowSource = read(".github/workflows/frontend-critical-e2e.yml");
+  // Next.js apps (apps/app, apps/internal) have been replaced by Vite apps (app, internal).
+  // Middleware/layout checks are no longer needed — Vite apps use wrangler.toml static assets.
 
   for (const requiredPath of [
     '"scripts/workflow/detect-workflow-scope.mjs"',

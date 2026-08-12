@@ -25,6 +25,7 @@ import {
   type PartnerReferralRow,
 } from '@workspace/types';
 import { PartnerPortalService } from '../../core/services/partner-portal.service';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import {
   PARTNER_AUTH_REQUEST_KEY,
   PartnerAuthGuard,
@@ -40,6 +41,12 @@ const WRITE_RATE_LIMIT = {
 } as const;
 
 @ApiTags('partner-portal')
+// The partner portal authenticates with its own bearer token via
+// PartnerAuthGuard (audience = "partner"), not the staff session JWT. Mark
+// the surface public so the global session guards (JWT/roles/subscription/
+// policy) skip it — without this, the global JwtAuthGuard rejects the
+// partner token first and every route 401s as "User not found".
+@Public()
 @UseGuards(PartnerAuthGuard)
 @Controller('partner')
 export class PartnerPortalController {

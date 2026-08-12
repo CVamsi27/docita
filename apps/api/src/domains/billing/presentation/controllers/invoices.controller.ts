@@ -49,6 +49,7 @@ import {
 } from '@/shared/modules/audit/audit/patient-access-audit.util';
 import { getBillingRequestContext } from './billing-request-context';
 import { setPrivateNoStoreHeaders } from '@/shared/common/http/private-download-response';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
 
 @Controller('invoices')
 @UseGuards(TierGuard)
@@ -119,6 +120,7 @@ export class InvoicesController {
   }
 
   @Get(':id/payment-activity')
+  @RequirePolicy('invoice', 'read')
   @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoicePaymentActivityResponseDto)
   async getPaymentActivity(
@@ -130,6 +132,7 @@ export class InvoicesController {
   }
 
   @Get(':id')
+  @RequirePolicy('invoice', 'read')
   @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
@@ -149,6 +152,7 @@ export class InvoicesController {
   }
 
   @Patch(':id')
+  @RequirePolicy('invoice', 'update')
   @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   update(
@@ -164,6 +168,7 @@ export class InvoicesController {
   }
 
   @Get(':id/claim-readiness')
+  @RequirePolicy('invoice', 'read')
   @RequireFeature(Feature.INVOICING)
   async getClaimReadiness(
     @Request() req: RequestWithUser,
@@ -174,6 +179,7 @@ export class InvoicesController {
   }
 
   @Post(':id/submit-claim')
+  @RequirePolicy('invoice', 'update')
   @RequireFeature(Feature.INVOICING)
   submitClaim(@Request() req: RequestWithUser, @Param('id') id: string) {
     return this.invoicesService.submitClaim(
@@ -183,6 +189,7 @@ export class InvoicesController {
   }
 
   @Get(':id/pdf/status')
+  @RequirePolicy('invoice', 'read')
   @RequireFeature(Feature.INVOICING)
   async getPdfStatus(
     @Request() req: RequestWithUser,
@@ -196,6 +203,7 @@ export class InvoicesController {
   }
 
   @Get(':id/pdf')
+  @RequirePolicy('invoice', 'read')
   @RequireFeature(Feature.INVOICING)
   async generatePDF(
     @Request() req: RequestWithUser,

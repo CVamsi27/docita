@@ -1,17 +1,68 @@
+import type { APIRequestContext } from "@playwright/test";
 import { test } from "@playwright/test";
 import { getViolations, injectAxe } from "axe-playwright";
 import * as fs from "fs";
 import * as path from "path";
 
+const API_URL = "http://127.0.0.1:3001/api/v1";
+
+// INTERNAL users are seeded (admin@docita.work / password123); they cannot be
+// registered through the public API. Login below yields a real token so the
+// protected pages render for the audit. If the seeded user is absent, the
+// audit falls back to whatever each route renders (login redirect).
+const INTERNAL_EMAIL = process.env["INTERNAL_E2E_EMAIL"] || "admin@docita.work";
+const INTERNAL_PASSWORD = process.env["INTERNAL_E2E_PASSWORD"] || "password123";
+
+const TOKEN_KEY = "docita_internal_token";
+const USER_KEY = "docita_internal_user";
+
 const AUDIT_PAGES = [
-  { path: "/", name: "Home" },
+  { path: "/login", name: "Login" },
   { path: "/dashboard", name: "Dashboard" },
   { path: "/system-monitoring", name: "System Monitoring" },
   { path: "/users", name: "Users" },
   { path: "/admins", name: "Admins" },
 ];
 
-test.describe("Accessibility Audit - Admin App", () => {
+interface SeededSession {
+  token: string;
+  user: { id: string; name: string; email: string; role: string };
+}
+
+async function seedInternalSession(
+  request: APIRequestContext,
+): Promise<SeededSession | null> {
+  const loginRes = await request.post(`${API_URL}/auth/login`, {
+    data: { email: INTERNAL_EMAIL, password: INTERNAL_PASSWORD },
+  });
+  if (!loginRes.ok()) {
+    return null;
+  }
+  const data = (await loginRes.json()) as {
+    access_token?: string;
+    accessToken?: string;
+    user?: { id?: string; name?: string; email?: string; role?: string };
+  };
+  const token = String(data.access_token || data.accessToken || "");
+  const user = data.user;
+  // Only seed the session for an INTERNAL user — the internal gate redirects
+  // other roles to the main app, so the audit would silently measure the
+  // login page while still reporting seeded: true.
+  if (!token || !user?.id || user.role !== "INTERNAL") {
+    return null;
+  }
+  return {
+    token,
+    user: {
+      id: user.id,
+      name: user.name || "Internal",
+      email: user.email || INTERNAL_EMAIL,
+      role: user.role,
+    },
+  };
+}
+
+test.describe("Accessibility Audit - Internal Admin App", () => {
   const violationsByPage: Record<
     string,
     {
@@ -27,11 +78,36 @@ test.describe("Accessibility Audit - Admin App", () => {
     }
   > = {};
 
+  let session: SeededSession | null = null;
+
+  test.beforeAll(async ({ request }) => {
+    session = await seedInternalSession(request);
+  });
+
   for (const pageConfig of AUDIT_PAGES) {
     test(`should audit ${pageConfig.name} page for accessibility violations`, async ({
       page,
     }) => {
       try {
+        if (session) {
+          await page.addInitScript(
+            ({ token, user, tokenKey, userKey }) => {
+              try {
+                localStorage.setItem(tokenKey, token);
+                localStorage.setItem(userKey, JSON.stringify(user));
+              } catch {
+                // ignore
+              }
+            },
+            {
+              token: session.token,
+              user: session.user,
+              tokenKey: TOKEN_KEY,
+              userKey: USER_KEY,
+            },
+          );
+        }
+
         await page.goto(pageConfig.path, {
           waitUntil: "networkidle",
           timeout: 30000,
@@ -93,8 +169,9 @@ test.describe("Accessibility Audit - Admin App", () => {
     }
 
     const report = {
-      app: "admin",
+      app: "internal-admin",
       timestamp: new Date().toISOString(),
+      seeded: Boolean(session),
       pages: violationsByPage,
       summary: {
         totalPages: AUDIT_PAGES.length,

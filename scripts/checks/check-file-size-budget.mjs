@@ -20,13 +20,33 @@ const budgets = [
     label: "API domain service",
   },
   {
-    root: "apps/app/features",
+    root: "apps/api/src/shared/modules",
+    pattern: /\/.*\.service\.ts$/,
+    exclude: EXCLUDED_PATTERN,
+    max: 400,
+    label: "API shared-module service",
+  },
+  {
+    root: "apps/app/src/features",
     pattern: /\.(ts|tsx)$/,
     exclude: EXCLUDED_PATTERN,
     max: 400,
     label: "frontend feature file",
   },
 ];
+
+/**
+ * Pre-existing services that exceed the budget but are justified:
+ * - database-rds.service.ts: AWS RDS control plane (snapshot, restore, IAM token)
+ * - base-pdf.service.ts: PDF generation pipeline (template + rendering)
+ * - database-control.service.ts: Database control facade (RDS + backup + email)
+ * These were added before the shared-module gate existed.
+ */
+const ALLOWLISTED = new Set([
+  "apps/api/src/shared/modules/database/database-rds.service.ts",
+  "apps/api/src/shared/modules/document-generation/pdf/base-pdf.service.ts",
+  "apps/api/src/shared/modules/internal/database-control.service.ts",
+]);
 
 const findings = [];
 
@@ -47,6 +67,7 @@ for (const budget of budgets) {
       .readFileSync(absolutePath, "utf8")
       .split(/\r?\n/).length;
     if (lineCount <= budget.max) continue;
+    if (ALLOWLISTED.has(file)) continue;
     findings.push({ ...budget, file, lineCount });
   }
 }

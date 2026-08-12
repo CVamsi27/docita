@@ -15,7 +15,7 @@ Promote a component here only when it has at least two independent consumers. Ap
 
 ## Token usage
 
-Tokens are CSS variables defined in `src/styles/globals.css` and referenced via Tailwind utilities (`bg-background`, `text-foreground`, `border-border`, etc.). The design-token catalogue is in `src/design-tokens.ts`.
+Tokens are CSS variables defined in `src/styles/globals.css` and referenced via Tailwind utilities (`bg-background`, `text-foreground`, `border-border`, etc.). Tailwind theme extensions in `tailwind.config.ts` read from these CSS variables.
 
 ## Component catalogue (selected)
 
@@ -37,6 +37,6 @@ import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 
 ## What does NOT belong here
 
-- Hooks that call APIs (use `@workspace/data-access` or `apps/app/hooks`)
+- Hooks that call APIs (use `@workspace/data-access` or an app's `src/hooks`)
 - Permission/tier checks (use `@workspace/types/access`)
 - Domain-specific components that are only ever used in one feature

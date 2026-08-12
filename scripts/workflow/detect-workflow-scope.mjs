@@ -51,8 +51,8 @@ const outputs =
     ? {
         dependencies: changedFiles.some(isDependenciesChange),
         api: changedFiles.some(isApiChange),
-        app: changedFiles.some(isAppChange),
-        internal: changedFiles.some(isInternalChange),
+        "app": changedFiles.some(isAppChange),
+        "internal": changedFiles.some(isInternalChange),
         landing: changedFiles.some(isLandingChange),
         worker: changedFiles.some(isWorkerChange),
         db: changedFiles.some(isDbChange),
@@ -62,6 +62,9 @@ const outputs =
         api: changedFiles.some(isDeployApiChange),
         worker: changedFiles.some(isDeployWorkerChange),
         db: changedFiles.some(isDbMigrationChange),
+        "app": changedFiles.some(isAppChange),
+        "internal": changedFiles.some(isInternalChange),
+        landing: changedFiles.some(isLandingChange),
       };
 
 appendFileSync(
@@ -83,7 +86,7 @@ function isAppChange(file) {
     file.startsWith("packages/types/") ||
     file.startsWith("packages/ui/") ||
     file.startsWith("packages/utils/") ||
-    file === "scripts/deploy/ensure-opennext-prefetch-manifest-patch.mjs"
+    file === "scripts/checks/check-worker-size.mjs"
   );
 }
 
@@ -98,7 +101,6 @@ function isInternalChange(file) {
     file.startsWith("packages/types/") ||
     file.startsWith("packages/ui/") ||
     file.startsWith("packages/utils/") ||
-    file === "scripts/deploy/ensure-opennext-prefetch-manifest-patch.mjs" ||
     file === "scripts/checks/check-worker-size.mjs"
   );
 }

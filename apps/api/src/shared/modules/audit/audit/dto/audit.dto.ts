@@ -1,10 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import {
-  auditLogSchema,
-  auditLogFilterSchema,
-  jsonObjectSchema,
-} from '@workspace/types';
+import { auditLogSchema, auditLogFilterSchema } from '@workspace/types';
 
 export class AuditLogFilterDto extends createZodDto(auditLogFilterSchema) {}
 
@@ -22,5 +18,3 @@ export const paginatedAuditLogSchema = z.object({
 export class PaginatedAuditLogResponseDto extends createZodDto(
   paginatedAuditLogSchema,
 ) {}
-
-export class AnyAuditResponseDto extends createZodDto(jsonObjectSchema) {}

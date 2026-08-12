@@ -1,7 +1,7 @@
 import { SubscriptionPrice } from '@/domains/subscriptions/core/value-objects';
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
-export interface ProratedResult {
+interface ProratedResult {
   creditCents: number;
   chargeCents: number;
   daysRemaining: number;

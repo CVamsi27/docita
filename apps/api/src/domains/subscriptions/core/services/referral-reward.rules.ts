@@ -1,6 +1,3 @@
-// check-as-cast-density: allow-file — the two intentional casts in this file
-// narrow `unknown` JSON-column values to typed shapes; replacing them with
-// type guards would just inline the same predicate without buying safety.
 import { z } from 'zod';
 import { MAX_REFERRAL_CREDITS_PER_YEAR } from '@workspace/types';
 
@@ -20,8 +17,6 @@ export type ReferrerType =
   | 'PHARMACY'
   | 'MARKETING_PERSON'
   | 'CUSTOM';
-
-export type ReferrerRewardKind = 'CREDIT_MONTHS' | 'REVENUE_SHARE';
 
 /** Revenue-share % over an inclusive, 1-based month index of the first year. */
 export interface RateBand {
@@ -44,7 +39,7 @@ export const DEFAULT_SPECIAL_MARKETING_RATE_BANDS: readonly RateBand[] = [
   { fromMonth: 7, toMonth: 12, percent: 5 },
 ];
 
-export interface CreditMilestoneConfig {
+interface CreditMilestoneConfig {
   /** Conversions required per grant, e.g. 5. */
   perNReferrals: number;
   /** Free months granted per milestone reached, e.g. 1. */
@@ -53,7 +48,7 @@ export interface CreditMilestoneConfig {
   yearlyCap: number;
 }
 
-export const DEFAULT_CLINIC_CREDIT_MILESTONE: CreditMilestoneConfig = {
+const DEFAULT_CLINIC_CREDIT_MILESTONE: CreditMilestoneConfig = {
   perNReferrals: 5,
   freeMonths: 1,
   yearlyCap: MAX_REFERRAL_CREDITS_PER_YEAR,
@@ -148,7 +143,7 @@ export function defaultRateBandsForType(
   }
 }
 
-export const rateBandSchema = z.object({
+const rateBandSchema = z.object({
   fromMonth: z.number().int().min(1),
   toMonth: z.number().int().min(1),
   percent: z.number().min(0).max(100),
@@ -172,13 +167,16 @@ export function parseRateBands(
  * column. Returns 0 if the column is missing/malformed. Used to seed the
  * first-invoice discount when a partner referral is captured.
  */
+/** Own-property check that narrows (an `in` check would also match a polluted prototype). */
+function hasOwnPercent(value: object): value is { percent: unknown } {
+  return Object.prototype.hasOwnProperty.call(value, 'percent');
+}
+
 export function firstRateBandPercent(rateBands: unknown): number {
   if (!Array.isArray(rateBands) || rateBands.length === 0) return 0;
   const first: unknown = rateBands[0];
   if (first === null || typeof first !== 'object') return 0;
-  const percent = Object.prototype.hasOwnProperty.call(first, 'percent')
-    ? (first as { percent: unknown }).percent
-    : undefined;
+  const percent = hasOwnPercent(first) ? first.percent : undefined;
   if (typeof percent !== 'number') return 0;
   return Math.min(100, Math.max(0, percent));
 }

@@ -3,13 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "license": "PROPRIETARY",
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
-    "check-types": "node -e \"process.exit(0)\""
-  },
-  "devDependencies": {
-    "next": "16.2.11"
+    "check-types": "node -e \"const fs=require('node:fs');['base','nestjs','react-library'].forEach((f)=>{JSON.parse(fs.readFileSync(f+'.json','utf8'))})\""
   }
 }

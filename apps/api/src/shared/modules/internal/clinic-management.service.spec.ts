@@ -7,6 +7,7 @@ describe('ClinicManagementService admin lifecycle', () => {
     user: {
       findUnique: jest.fn(),
       update: jest.fn(),
+      findMany: jest.fn(),
     },
   };
 
@@ -88,5 +89,119 @@ describe('ClinicManagementService admin lifecycle', () => {
       BadRequestException,
     );
     expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  describe('P5.11 cross-clinic lists', () => {
+    it('getAllAdmins queries only clinic admin roles across all clinics', async () => {
+      prisma.user.findMany.mockResolvedValue([
+        {
+          id: 'admin-1',
+          name: 'Admin',
+          email: 'admin@clinic.test',
+          phoneNumber: null,
+          role: Role.ADMIN,
+          appLoginDisabled: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]);
+
+      const result = await service.getAllAdmins();
+
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { role: { in: expect.any(Array) } },
+          select: expect.objectContaining({ appLoginDisabled: true }),
+          orderBy: { createdAt: 'desc' },
+        }),
+      );
+      expect(result).toHaveLength(1);
+    });
+
+    it('getAllUsers excludes INTERNAL role and attaches the clinic name', async () => {
+      prisma.user.findMany.mockResolvedValue([
+        {
+          id: 'user-1',
+          name: 'Doctor',
+          email: 'doc@clinic.test',
+          role: Role.DOCTOR,
+          phoneNumber: null,
+          specialization: null,
+          qualification: null,
+          registrationNumber: null,
+          yearsOfExperience: null,
+          bio: null,
+          clinicId: 'clinic-1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          clinic: { name: 'Clinic One' },
+        },
+      ]);
+
+      const result = await service.getAllUsers();
+
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { role: { not: Role.INTERNAL } },
+          select: expect.objectContaining({
+            clinic: { select: { name: true } },
+          }),
+        }),
+      );
+      expect(result[0]).toEqual(
+        expect.objectContaining({ clinicName: 'Clinic One' }),
+      );
+    });
+
+    it('getAllAdmins caps the query with the default limit when none is passed', async () => {
+      prisma.user.findMany.mockResolvedValue([]);
+
+      await service.getAllAdmins();
+
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 200 }),
+      );
+    });
+
+    it('getAllUsers honors an explicit limit and defaults to 200', async () => {
+      prisma.user.findMany.mockResolvedValue([]);
+
+      await service.getAllUsers({ limit: 50 });
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 50 }),
+      );
+
+      await service.getAllUsers();
+      expect(prisma.user.findMany).toHaveBeenLastCalledWith(
+        expect.objectContaining({ take: 200 }),
+      );
+    });
+
+    it('getAllUsers leaves clinicName undefined when the user has no clinic', async () => {
+      prisma.user.findMany.mockResolvedValue([
+        {
+          id: 'user-2',
+          name: 'Lone User',
+          email: 'lone@test.test',
+          role: Role.DOCTOR,
+          phoneNumber: null,
+          specialization: null,
+          qualification: null,
+          registrationNumber: null,
+          yearsOfExperience: null,
+          bio: null,
+          clinicId: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          clinic: null,
+        },
+      ]);
+
+      const result = await service.getAllUsers();
+
+      expect(result[0]).toEqual(
+        expect.objectContaining({ clinicName: undefined }),
+      );
+    });
   });
 });

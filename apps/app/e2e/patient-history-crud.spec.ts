@@ -6,7 +6,7 @@ import {
   PATIENTS_LIST_PATH,
   patientDetailPath,
   setupTestUser,
-  UserData,
+  type UserData,
 } from "./utils/patient-helpers";
 
 test.describe("Patient Medical History - CRUD", () => {

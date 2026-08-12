@@ -38,6 +38,7 @@ import {
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
 import type { LabStats } from '@/domains/clinical/core/repositories/lab-order.repository.interface';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import {
@@ -107,6 +108,7 @@ export class LabTestsController {
   }
 
   @Get('orders/:id')
+  @RequirePolicy('lab-order', 'read')
   async getOrderById(
     @Param('id') id: string,
     @Request() req: RequestWithUser,
@@ -138,6 +140,7 @@ export class LabTestsController {
   }
 
   @Put('orders/:id/status')
+  @RequirePolicy('lab-order', 'update')
   async updateOrderStatus(
     @Param('id') id: string,
     @Request() req: RequestWithUser,

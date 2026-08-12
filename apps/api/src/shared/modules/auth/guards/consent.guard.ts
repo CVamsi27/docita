@@ -68,16 +68,23 @@ export class ConsentGuard implements CanActivate {
 
     const now = this.clock.now();
 
-    // One query for all required consent types, instead of one per type.
-    const activeConsents = await this.prisma.consent.findMany({
-      where: {
-        patientId,
-        consentType: { in: requiredTypes },
-        status: 'ACTIVE',
-        OR: [{ validUntil: null }, { validUntil: { gt: now } }],
-      },
-      select: { consentType: true },
-    });
+    // RLS-BYPASS: guard-phase consent lookup precedes tenant binding (guard
+    // runs before TenantContextInterceptor; the tenant extension would 500
+    // the tenant-scoped Consent read). The lookup is policy input keyed by
+    // the request patientId — ownership is enforced in the handler phase via
+    // verifyMedicalHistoryPatientAccess → clinic-scoped getPatient. Same
+    // escape hatch as PolicyGuard. One query for all required consent types.
+    const activeConsents = await this.prisma.runUnrestricted(async () =>
+      this.prisma.consent.findMany({
+        where: {
+          patientId,
+          consentType: { in: requiredTypes },
+          status: 'ACTIVE',
+          OR: [{ validUntil: null }, { validUntil: { gt: now } }],
+        },
+        select: { consentType: true },
+      }),
+    );
     const grantedTypes = new Set(activeConsents.map((c) => c.consentType));
     for (const consentType of requiredTypes) {
       if (!grantedTypes.has(consentType)) {

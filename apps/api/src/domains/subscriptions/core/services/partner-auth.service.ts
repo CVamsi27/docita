@@ -11,7 +11,10 @@ import {
   WHATSAPP_CLIENT_TOKEN,
   type IWhatsAppClient,
 } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PARTNER_PERSISTENCE_PORT,
+  type PartnerPersistencePort,
+} from '@/domains/subscriptions/application/ports/partner-persistence.port';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import {
   JWT_AUDIENCE_PARTNER,
@@ -24,6 +27,8 @@ import {
   type PartnerOtpVerifyResponse,
 } from '@workspace/types';
 
+// TTLs are module-local by design (no external importers). If a spec ever
+// needs to reference one, add a bottom-of-file re-export for it.
 const PARTNER_OTP_TTL_MS = 10 * 60 * 1000;
 const PARTNER_OTP_MAX_ATTEMPTS = 3;
 const PARTNER_ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
@@ -40,7 +45,8 @@ export class PartnerAuthService {
   private readonly logger = new Logger(PartnerAuthService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PARTNER_PERSISTENCE_PORT)
+    private readonly prisma: PartnerPersistencePort,
     private readonly jwt: JwtService,
     @Inject(WHATSAPP_CLIENT_TOKEN) private readonly whatsapp: IWhatsAppClient,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
@@ -233,11 +239,3 @@ export class PartnerAuthService {
     return raw.replace(/[\s-]/g, '').trim();
   }
 }
-
-// Re-export for tests that want to mock out the constant.
-export {
-  PARTNER_OTP_TTL_MS,
-  PARTNER_OTP_MAX_ATTEMPTS,
-  PARTNER_ACCESS_TOKEN_TTL_SECONDS,
-  PARTNER_REFRESH_TOKEN_TTL_SECONDS,
-};

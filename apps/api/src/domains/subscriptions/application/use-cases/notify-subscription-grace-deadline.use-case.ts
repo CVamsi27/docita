@@ -1,7 +1,6 @@
-// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 import { Inject, Injectable } from '@nestjs/common';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
-import { DATE_FORMATS, formatDate } from '@workspace/utils';
+import { DATE_FORMATS, formatDate, nonNull } from '@workspace/utils';
 import {
   type ISubscriptionRepository,
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -13,12 +12,12 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
 
-export interface NotifyGraceDeadlineRequest {
+interface NotifyGraceDeadlineRequest {
   targetDate: Date;
   reminderType: string;
 }
 
-export type NotifyGraceDeadlineResult = {
+type NotifyGraceDeadlineResult = {
   reminderType: string;
   matchedSubscriptions: number;
   attemptedClinics: number;
@@ -46,7 +45,7 @@ export class NotifySubscriptionGraceDeadlineUseCase extends BaseSubscriptionNoti
     // jscpd:ignore-end
     const clinicName = sub.clinic?.name ?? `Clinic ${sub.clinicId}`;
     const deadlineLabel = formatDate(
-      sub.graceUntil!,
+      nonNull(sub.graceUntil),
       DATE_FORMATS.DATE_WEEKDAY_SHORT_MEDIUM,
     );
 

@@ -43,8 +43,8 @@ jobs:
       api: ${{ steps.detect.outputs.api }}
       worker: ${{ steps.detect.outputs.worker }}
       db: ${{ steps.detect.outputs.db }}
-      app: ${{ steps.detect.outputs.app }}
-      internal: ${{ steps.detect.outputs.internal }}
+      app: ${{ steps.detect.outputs['app'] }}
+      internal: ${{ steps.detect.outputs['internal'] }}
       landing: ${{ steps.detect.outputs.landing }}
     steps:
       - uses: actions/checkout@v7
@@ -53,7 +53,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           package-manager-cache: false
       - name: Detect changed deploy targets
         id: detect
@@ -76,7 +76,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -163,7 +163,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -223,8 +223,8 @@ jobs:
           echo "app_name=$app_name" >> "$GITHUB_OUTPUT"
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
-      - name: Deploy Worker to Fly.io
-        run: bash scripts/deploy/fly-deploy-in-primary-region.sh apps/worker/fly.toml "${{ steps.fly-config.outputs.app_name }}" --strategy rolling --ha=false
+      - name: Canary-deploy Worker to Fly.io (verify + promote)
+        run: bash scripts/deploy/worker-canary-deploy.sh apps/worker/fly.toml "${{ steps.fly-config.outputs.app_name }}" 90
 
   gate:
     name: Check Cloudflare deploy credentials
@@ -263,10 +263,10 @@ jobs:
         uses: pnpm/action-setup@v6
         with:
           version: 10.30.3
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           package-manager-cache: false
           cache: pnpm
       - name: Install dependencies
@@ -277,10 +277,6 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # Publishable checkout key. Prefer the repo Variable; the literal
-          # fallback keeps deploys working until NEXT_PUBLIC_RAZORPAY_KEY_ID
-          # is created under Settings → Variables, after which it can be removed.
-          NEXT_PUBLIC_RAZORPAY_KEY_ID: ${{ vars.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_SPNm7w8Ig24OSX' }}
         run: pnpm --filter @docita/app run deploy:cloudflare:production
 
   deploy-internal:
@@ -294,10 +290,10 @@ jobs:
         uses: pnpm/action-setup@v6
         with:
           version: 10.30.3
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           package-manager-cache: false
           cache: pnpm
       - name: Install dependencies
@@ -321,10 +317,10 @@ jobs:
         uses: pnpm/action-setup@v6
         with:
           version: 10.30.3
-      - name: Use Node.js 22.12.0
+      - name: Use Node.js 22.22.0
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           package-manager-cache: false
           cache: pnpm
       - name: Install dependencies

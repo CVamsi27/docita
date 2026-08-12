@@ -2,9 +2,7 @@ import { describe, it, expect, jest } from '@jest/globals';
 import { BillingUsageAggregationCron } from './billing-usage-aggregation.cron';
 import { UsageAggregationService } from '@/domains/billing/core/services/usage-aggregation.service';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
-import {
-  getHeartbeatName,
-} from '@/shared/modules/schedule/cron-heartbeat';
+import { getHeartbeatName } from '@/shared/modules/schedule/cron-heartbeat';
 
 describe('BillingUsageAggregationCron', () => {
   const usageAggregationService = {
@@ -28,8 +26,8 @@ describe('BillingUsageAggregationCron', () => {
   it('delegates run() to UsageAggregationService.runDailyUsageAggregation', async () => {
     await cron.run();
 
-    expect(usageAggregationService.runDailyUsageAggregation).toHaveBeenCalledTimes(
-      1,
-    );
+    expect(
+      usageAggregationService.runDailyUsageAggregation,
+    ).toHaveBeenCalledTimes(1);
   });
 });

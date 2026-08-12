@@ -4,7 +4,6 @@
 //   - parsers/excel-cell-parsers (getCell, sanitizeCellValue, isRowEmpty, toHeaderString)
 //   - parsers/excel-row-parsers  (mapDataRows, trimTrailingEmptyCells, extractNormalizedRow)
 export {
-  type ExcelCellValue,
   getCell,
   sanitizeCellValue,
   isRowEmpty,

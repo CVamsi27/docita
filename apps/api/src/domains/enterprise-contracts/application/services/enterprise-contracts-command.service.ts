@@ -22,12 +22,15 @@ import {
   type ContractWithMembers,
 } from './enterprise-contracts-query.service';
 import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-invoice-command.service';
+import { EnterpriseContractTrueUpCommandService } from './enterprise-contract-true-up-command.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 /**
  * Handles enterprise-contract lifecycle mutations: upsert, status transitions,
- * and member add/remove. Invoice and true-up operations live in EnterpriseContractInvoiceCommandService.
+ * and member add/remove. Invoice operations live in
+ * EnterpriseContractInvoiceCommandService; true-up alerting lives in
+ * EnterpriseContractTrueUpCommandService.
  */
 @Injectable()
 export class EnterpriseContractsCommandService {
@@ -38,6 +41,7 @@ export class EnterpriseContractsCommandService {
     @Inject(ENTERPRISE_CONTRACT_PERSISTENCE_PORT)
     private readonly persistence: EnterpriseContractPersistencePort,
     private readonly invoiceService: EnterpriseContractInvoiceCommandService,
+    private readonly trueUpService: EnterpriseContractTrueUpCommandService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -326,6 +330,6 @@ export class EnterpriseContractsCommandService {
   evaluateAndAlertTrueUp(
     contractId: string,
   ): Promise<{ alerted: boolean; observedPercent: number }> {
-    return this.invoiceService.evaluateAndAlertTrueUp(contractId);
+    return this.trueUpService.evaluateAndAlertTrueUp(contractId);
   }
 }

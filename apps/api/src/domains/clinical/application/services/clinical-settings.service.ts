@@ -16,7 +16,7 @@ export const medicalCodingSettingsSchema = z
 
 export type MedicalCodingSettings = z.infer<typeof medicalCodingSettingsSchema>;
 
-export interface ResolvedMedicalCodingSettings {
+interface ResolvedMedicalCodingSettings {
   enabled: boolean;
   provider: string;
   autoSuggest: boolean;

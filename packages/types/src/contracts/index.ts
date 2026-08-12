@@ -26,3 +26,4 @@ export * from "./uploads";
 export * from "./users";
 export * from "./whatsapp";
 export * from "./pdf-jobs";
+export * from "./effective-permissions";

@@ -1,4 +1,5 @@
-import { APIRequestContext, expect, Page, test } from "@playwright/test";
+import type { APIRequestContext, Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { API_URL, setupTestUser } from "./utils/patient-helpers";
 import { seedSession } from "./utils/session";
 import { expectPageHeader, expectRoute } from "./utils/ui-contracts";

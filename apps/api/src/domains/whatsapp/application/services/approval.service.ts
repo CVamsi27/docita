@@ -36,8 +36,14 @@ export class ApprovalService {
   }
 
   async approveInvoice(id: string, userId: string, clinicId: string) {
+    // Invoice.clinicId is nullable (onDelete: SetNull); tenant scope is read
+    // through the required patient relation instead. The legacy
+    // `appointment: { clinicId }` filter copy-pasted from approvePrescription
+    // was wrong because not every invoice has a linked appointment (the
+    // e2e `factories.invoice()` only sets `patientId`), so the lookup
+    // returned null and the e2e InvoiceAbacPolicy test (C4.3) falsely 404'd.
     const existing = await this.persistence.invoice.findFirst({
-      where: { id, appointment: { clinicId } },
+      where: { id, patient: { clinicId } },
     });
     if (!existing) {
       throw new NotFoundException(`Invoice with ID ${id} not found`);

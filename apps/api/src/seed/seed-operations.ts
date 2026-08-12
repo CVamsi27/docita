@@ -4,6 +4,7 @@ import {
   LeaveType,
   PrismaClient,
 } from '@workspace/db';
+import { dateOffset } from './seed-date-helpers';
 
 interface SeedOperationsParams {
   clinicId: string;
@@ -64,13 +65,6 @@ function buildFeedbackFeatures(clinicId: string, feedback: FeedbackSeed) {
     seen.add(key);
     return true;
   });
-}
-
-function dateOffset(days: number): Date {
-  const d = new Date();
-  d.setHours(9, 0, 0, 0);
-  d.setDate(d.getDate() + days);
-  return d;
 }
 
 export async function seedOperations(

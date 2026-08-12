@@ -1,6 +1,5 @@
 export type {
   IMessageChannel,
-  MessageContent,
   SendMessageResult,
 } from './message-channel.interface';
 

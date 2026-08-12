@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — narrowing a Prisma Json? field (meta: unknown) to read .source requires one cast; no cast-free alternative exists.
 import {
   Injectable,
   Logger,
@@ -6,6 +5,7 @@ import {
   NotFoundException,
   Inject,
 } from '@nestjs/common';
+import { isRecord } from '@workspace/utils';
 import { PaymentSessionStatus, InvoiceStatus, Prisma } from '@workspace/db';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 // This service was split out of `PaymentsCommandService` and necessarily
@@ -237,11 +237,7 @@ export class InvoiceSettlementService {
   }
 
   private isAdvanceSession(meta: unknown): boolean {
-    return (
-      typeof meta === 'object' &&
-      meta !== null &&
-      (meta as { source?: unknown }).source === 'advance'
-    );
+    return isRecord(meta) && meta.source === 'advance';
   }
 
   private normalizeChannel(channel: string): string {

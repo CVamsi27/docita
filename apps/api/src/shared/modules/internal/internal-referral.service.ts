@@ -1,5 +1,3 @@
-// check-as-cast-density: allow-file — narrowing Prisma decimal-to-number
-// for the welcome-error patch; the upstream schema enforces the type.
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { z } from 'zod';
@@ -212,12 +210,10 @@ export class InternalReferralService {
 }
 
 function isUniqueConstraintOnCode(error: unknown): boolean {
-  return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === 'P2002' &&
-    Array.isArray(error.meta?.target) &&
-    (error.meta.target as string[]).includes('code')
-  );
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return false;
+  if (error.code !== 'P2002') return false;
+  const target = error.meta?.target;
+  return Array.isArray(target) && target.includes('code');
 }
 
 // ReferrerMessageStatus is imported for use in this service's referrer

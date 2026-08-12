@@ -1,4 +1,6 @@
 export * from "./use-debounce.js";
+export * from "./use-timeout.js";
+export * from "./use-interval.js";
 export * from "./use-detected-currency.js";
 export * from "./use-speech-to-text.js";
 export * from "./use-keyboard-shortcuts.js";

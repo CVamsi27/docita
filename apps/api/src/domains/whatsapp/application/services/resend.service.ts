@@ -11,7 +11,7 @@ import {
   WHATSAPP_PERSISTENCE_PORT,
   type WhatsappPersistencePort,
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
-import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
+import { TemplatesFacadeService as TemplatesService } from '@/shared/whatsapp/templates-facade.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import {
   WhatsappLogStatus,

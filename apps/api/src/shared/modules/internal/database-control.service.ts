@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — narrowing casts for AWS SDK response metadata
 import {
   ForbiddenException,
   Inject,
@@ -192,7 +191,7 @@ export class DatabaseControlService {
     // audited, but we rethrow so the controller returns 5xx and the UI
     // surfaces the error.
     try {
-      const { requestId, snapshotId } = await this.runAction(input);
+      const { requestId, snapshotId } = await this.runAction(input, actionId);
 
       const completedAt = this.clock.now();
       await this.state.recordCompletion(actionId, {
@@ -262,10 +261,53 @@ export class DatabaseControlService {
 
   // ── Private: action runner ────────────────────────────────────────────────
 
-  private async runAction(input: ExecuteCommandInput): Promise<{
+  private async runAction(
+    input: ExecuteCommandInput,
+    actionId: string,
+  ): Promise<{
     requestId: string | undefined;
     snapshotId: string | undefined;
   }> {
+    /**
+     * Long-running RDS transitions (stop/start/delete/restore) return the
+     * accepted AWS request id synchronously but the actual instance state
+     * change happens minutes later. The background `waitFor*` chain
+     * follows that state machine and persists the terminal outcome back to
+     * the `database_control_actions` row so the operator sees the real
+     * status on the next `getState()` poll.
+     */
+    const trackBackgroundWait = (
+      wait: Promise<unknown>,
+      waitLabel: string,
+    ): void => {
+      void wait
+        .then(() => {
+          this.logger.log(
+            `Background wait '${waitLabel}' completed for action ${actionId}`,
+          );
+          // The action row is already SUCCESS at the API level (the AWS
+          // SDK accepted the request); we only persist a background failure
+          // here. A successful background wait does not need a write.
+        })
+        .catch(async (err) => {
+          const errorMessage = getErrorMessage(err);
+          this.logger.error(
+            `Background wait '${waitLabel}' failed for action ${actionId}: ${errorMessage}`,
+          );
+          try {
+            await this.state.recordBackgroundCompletion(actionId, {
+              status: 'FAILED',
+              errorMessage,
+              completedAt: this.clock.now(),
+            });
+          } catch (writeErr) {
+            this.logger.error(
+              `Failed to persist background failure for action ${actionId}: ${getErrorMessage(writeErr)}`,
+            );
+          }
+        });
+    };
+
     switch (input.action) {
       case 'CREATE_SNAPSHOT': {
         const snapshotId = this.rds.buildSnapshotId('manual');
@@ -274,29 +316,22 @@ export class DatabaseControlService {
       }
       case 'STOP': {
         const { requestId } = await this.rds.requestStop();
-        // Fire-and-forget the wait — stop completes in the background. The
-        // UI's getState() poll will pick up the state change.
-        void this.rds.waitForStopped().catch((err) => {
-          this.logger.error(`waitForStopped failed: ${getErrorMessage(err)}`);
-        });
+        trackBackgroundWait(this.rds.waitForStopped(), 'waitForStopped');
         return { requestId, snapshotId: undefined };
       }
       case 'START': {
         const { requestId } = await this.rds.requestStart();
-        void this.rds.waitForAvailable().catch((err) => {
-          this.logger.error(`waitForAvailable failed: ${getErrorMessage(err)}`);
-        });
+        trackBackgroundWait(this.rds.waitForAvailable(), 'waitForAvailable');
         return { requestId, snapshotId: undefined };
       }
       case 'DELETE': {
         const finalSnapshotId = this.rds.buildSnapshotId('final');
         const { requestId } =
           await this.rds.requestDeleteWithFinalSnapshot(finalSnapshotId);
-        void this.rds.waitForInstanceDeleted().catch((err) => {
-          this.logger.error(
-            `waitForInstanceDeleted failed: ${getErrorMessage(err)}`,
-          );
-        });
+        trackBackgroundWait(
+          this.rds.waitForInstanceDeleted(),
+          'waitForInstanceDeleted',
+        );
         return { requestId, snapshotId: finalSnapshotId };
       }
       case 'RESTORE': {
@@ -306,11 +341,7 @@ export class DatabaseControlService {
         const { requestId } = await this.rds.requestRestoreFromSnapshot(
           input.snapshotId,
         );
-        void this.rds.waitForAvailable().catch((err) => {
-          this.logger.error(
-            `waitForAvailable (post-restore) failed: ${getErrorMessage(err)}`,
-          );
-        });
+        trackBackgroundWait(this.rds.waitForAvailable(), 'waitForAvailable');
         return { requestId, snapshotId: input.snapshotId };
       }
       default: {
@@ -412,13 +443,14 @@ export class DatabaseControlService {
     reason: string;
     snapshotId?: string;
   }): Promise<void> {
+    const forwardedFor = input.request?.headers['x-forwarded-for'];
     const ipAddress = input.request
-      ? ((input.request.headers['x-forwarded-for'] as string | undefined) ??
+      ? ((typeof forwardedFor === 'string' ? forwardedFor : undefined) ??
         input.request.ip)
       : undefined;
-    const userAgent = input.request
-      ? (input.request.headers['user-agent'] as string | undefined)
-      : undefined;
+    const userAgentHeader = input.request?.headers['user-agent'];
+    const userAgent =
+      typeof userAgentHeader === 'string' ? userAgentHeader : undefined;
     await this.audit.log({
       action: AuditAction.SYSTEM_SETTING_CHANGED,
       userId: input.user.id,

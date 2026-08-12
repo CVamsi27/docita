@@ -1,6 +1,59 @@
-import { PlanMode, PrismaClient } from '@workspace/db';
+import { PrismaClient } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import { SEED_PATIENT_PHONE_NUMBER_E164 } from './seed-constants';
+import {
+  SEED_DEFAULT_CLINIC_PLAN,
+  SEED_DOCTOR_PLANS,
+  SEED_STAFF_PLANS,
+  seededSignatureUploadedAt,
+  seededSignatures,
+  type SeedDoctorKey,
+  type SeedDoctorPlan,
+  type SeedStaffKey,
+  type SeedStaffPlan,
+} from './seed-clinic-users-factory';
+
+function getDoctorPlan(key: SeedDoctorKey): SeedDoctorPlan {
+  const plan = SEED_DOCTOR_PLANS.find((p) => p.key === key);
+  if (!plan) throw new Error(`Unknown seed doctor key: ${key}`);
+  return plan;
+}
+
+function getStaffPlan(key: SeedStaffKey): SeedStaffPlan {
+  const plan = SEED_STAFF_PLANS.find((p) => p.key === key);
+  if (!plan) throw new Error(`Unknown seed staff key: ${key}`);
+  return plan;
+}
+
+function buildDoctorCreateData(
+  plan: SeedDoctorPlan,
+  clinicId: string,
+  hashedPassword: string,
+) {
+  return {
+    email: plan.email,
+    password: hashedPassword,
+    name: plan.name,
+    role: plan.role,
+    clinicId,
+    specialization: plan.specialization,
+    hospitalRole: plan.hospitalRole,
+    qualification: plan.qualification,
+    registrationNumber: plan.registrationNumber,
+    licenseNumber: plan.licenseNumber,
+    phoneNumber: plan.phoneNumber,
+    bio: plan.bio,
+    yearsOfExperience: plan.yearsOfExperience,
+    consultationFee: plan.consultationFee,
+    ...(plan.signatureUrl
+      ? {
+          signatureUrl: plan.signatureUrl,
+          signatureUploadedAt: seededSignatureUploadedAt,
+        }
+      : {}),
+    emailVerified: true,
+  };
+}
 
 type SeedEntityRef = { id: string };
 type SeedDoctorRefs = {
@@ -30,17 +83,6 @@ export interface SeedClinicUsersResult {
   doctor2: SeedEntityRef;
   doctor3: SeedEntityRef;
 }
-
-const seededSignatureUploadedAt = new Date('2026-01-01T00:00:00.000Z');
-const seededSignatures = {
-  internal:
-    'https://placehold.co/300x100/000000/FFFFFF?text=Super+Admin+Signature',
-  clinicAdmin:
-    'https://placehold.co/300x100/000000/FFFFFF?text=Clinic+Admin+Signature',
-  adminDoctor:
-    'https://placehold.co/300x100/000000/FFFFFF?text=Dr+Admin+Doctor',
-  doctor: 'https://placehold.co/300x100/000000/FFFFFF?text=Dr+Vamsi+Krishna',
-} as const;
 
 export async function seedClinicUsers(
   prisma: PrismaClient,
@@ -81,26 +123,17 @@ export async function seedClinicUsers(
 
 async function seedDefaultClinic(prisma: PrismaClient): Promise<SeedEntityRef> {
   const clinic = await prisma.clinic.upsert({
-    where: { id: 'default-clinic-id' },
+    where: { id: SEED_DEFAULT_CLINIC_PLAN.id },
     update: {
-      name: 'Docita General Hospital',
-      address: '1 Hospital Avenue, Whitefield, Bangalore, Karnataka 560066',
-      phone: '+91 80 4000 5000',
-      email: 'contact@docita.work',
-      active: true,
-      tier: 'ENTERPRISE',
-      planMode: PlanMode.FULL,
+      name: SEED_DEFAULT_CLINIC_PLAN.name,
+      address: SEED_DEFAULT_CLINIC_PLAN.address,
+      phone: SEED_DEFAULT_CLINIC_PLAN.phone,
+      email: SEED_DEFAULT_CLINIC_PLAN.email,
+      active: SEED_DEFAULT_CLINIC_PLAN.active,
+      tier: SEED_DEFAULT_CLINIC_PLAN.tier,
+      planMode: SEED_DEFAULT_CLINIC_PLAN.planMode,
     },
-    create: {
-      id: 'default-clinic-id',
-      name: 'Docita General Hospital',
-      address: '1 Hospital Avenue, Whitefield, Bangalore, Karnataka 560066',
-      phone: '+91 80 4000 5000',
-      email: 'contact@docita.work',
-      active: true,
-      tier: 'ENTERPRISE',
-      planMode: PlanMode.FULL,
-    },
+    create: { ...SEED_DEFAULT_CLINIC_PLAN },
   });
   return { id: clinic.id };
 }
@@ -160,140 +193,57 @@ async function seedDoctors(
   clinicId: string,
   hashedPassword: string,
 ): Promise<SeedDoctorRefs> {
-  const adminDoctor = await seedAdminDoctor(prisma, clinicId, hashedPassword);
-  const doctor1 = await seedPrimaryDoctor(prisma, clinicId, hashedPassword);
-  const doctor2 = await seedPediatricDoctor(prisma, clinicId, hashedPassword);
-  const doctor3 = await seedDentalDoctor(prisma, clinicId, hashedPassword);
+  const adminDoctor = await seedDoctorFromPlan(
+    prisma,
+    clinicId,
+    hashedPassword,
+    'adminDoctor',
+  );
+  const doctor1 = await seedDoctorFromPlan(
+    prisma,
+    clinicId,
+    hashedPassword,
+    'doctor1',
+  );
+  const doctor2 = await seedDoctorFromPlan(
+    prisma,
+    clinicId,
+    hashedPassword,
+    'doctor2',
+  );
+  const doctor3 = await seedDoctorFromPlan(
+    prisma,
+    clinicId,
+    hashedPassword,
+    'doctor3',
+  );
 
   return { adminDoctor, doctor1, doctor2, doctor3 };
 }
 
-async function seedAdminDoctor(
+async function seedDoctorFromPlan(
   prisma: PrismaClient,
   clinicId: string,
   hashedPassword: string,
+  key: SeedDoctorKey,
 ): Promise<SeedEntityRef> {
-  const adminDoctor = await prisma.user.upsert({
-    where: { email: 'admin.doctor@docita.work' },
+  const plan = getDoctorPlan(key);
+  const user = await prisma.user.upsert({
+    where: { email: plan.email },
     update: {
-      signatureUrl: seededSignatures.adminDoctor,
-      signatureUploadedAt: seededSignatureUploadedAt,
+      // Refresh the signature fields on re-run for signed doctors, matching
+      // the original per-doctor upsert behavior (doctor2/3 have no signature).
+      ...(plan.signatureUrl
+        ? {
+            signatureUrl: plan.signatureUrl,
+            signatureUploadedAt: seededSignatureUploadedAt,
+          }
+        : {}),
       emailVerified: true,
     },
-    create: {
-      email: 'admin.doctor@docita.work',
-      password: hashedPassword,
-      name: 'Admin Doctor',
-      role: 'ADMIN_DOCTOR',
-      clinicId,
-      specialization: 'GENERAL_PRACTICE',
-      hospitalRole: 'MEDICAL_DIRECTOR',
-      qualification: 'MBBS, MD (General Medicine)',
-      registrationNumber: 'KMC-2010-99887',
-      licenseNumber: 'KA-MED-2010-009988',
-      phoneNumber: '+91 9876543009',
-      bio: 'Medical Director with extensive experience in hospital administration and general practice.',
-      yearsOfExperience: 15,
-      consultationFee: 2000,
-      signatureUrl: seededSignatures.adminDoctor,
-      signatureUploadedAt: seededSignatureUploadedAt,
-      emailVerified: true,
-    },
+    create: buildDoctorCreateData(plan, clinicId, hashedPassword),
   });
-  return { id: adminDoctor.id };
-}
-
-async function seedPrimaryDoctor(
-  prisma: PrismaClient,
-  clinicId: string,
-  hashedPassword: string,
-): Promise<SeedEntityRef> {
-  const doctor1 = await prisma.user.upsert({
-    where: { email: 'doctor@docita.work' },
-    update: {
-      signatureUrl: seededSignatures.doctor,
-      signatureUploadedAt: seededSignatureUploadedAt,
-      emailVerified: true,
-    },
-    create: {
-      email: 'doctor@docita.work',
-      password: hashedPassword,
-      name: 'Vamsi Krishna',
-      role: 'DOCTOR',
-      clinicId,
-      specialization: 'CARDIOLOGY',
-      hospitalRole: 'SENIOR_CONSULTANT',
-      qualification: 'MBBS, MD (Cardiology)',
-      registrationNumber: 'KMC-2015-12345',
-      licenseNumber: 'KA-MED-2015-001234',
-      phoneNumber: '+91 9876543001',
-      bio: 'Senior Cardiologist with over 10 years of experience in interventional cardiology. Specializes in complex cardiac procedures and heart failure management.',
-      yearsOfExperience: 10,
-      consultationFee: 1500,
-      signatureUrl: seededSignatures.doctor,
-      signatureUploadedAt: seededSignatureUploadedAt,
-      emailVerified: true,
-    },
-  });
-  return { id: doctor1.id };
-}
-
-async function seedPediatricDoctor(
-  prisma: PrismaClient,
-  clinicId: string,
-  hashedPassword: string,
-): Promise<SeedEntityRef> {
-  const doctor2 = await prisma.user.upsert({
-    where: { email: 'dr.sharma@docita.work' },
-    update: { emailVerified: true },
-    create: {
-      email: 'dr.sharma@docita.work',
-      password: hashedPassword,
-      name: 'Priya Sharma',
-      role: 'DOCTOR',
-      clinicId,
-      specialization: 'PEDIATRICS',
-      hospitalRole: 'CONSULTANT',
-      qualification: 'MBBS, DCH, MD (Pediatrics)',
-      registrationNumber: 'KMC-2018-54341',
-      licenseNumber: 'KA-MED-2018-005678',
-      phoneNumber: '+91 9876543002',
-      bio: 'Pediatrician specializing in newborn care, childhood vaccinations, and developmental pediatrics. Committed to providing compassionate care for children.',
-      yearsOfExperience: 6,
-      consultationFee: 1000,
-      emailVerified: true,
-    },
-  });
-  return { id: doctor2.id };
-}
-
-async function seedDentalDoctor(
-  prisma: PrismaClient,
-  clinicId: string,
-  hashedPassword: string,
-): Promise<SeedEntityRef> {
-  const doctor3 = await prisma.user.upsert({
-    where: { email: 'dr.dental@docita.work' },
-    update: { emailVerified: true },
-    create: {
-      email: 'dr.dental@docita.work',
-      password: hashedPassword,
-      name: 'Arun Menon',
-      role: 'DOCTOR',
-      clinicId,
-      specialization: 'DENTAL',
-      hospitalRole: 'CONSULTANT',
-      qualification: 'BDS, MDS (Orthodontics)',
-      registrationNumber: 'KDC-2016-67890',
-      licenseNumber: 'KA-DEN-2016-002345',
-      phoneNumber: '+91 9876543003',
-      bio: 'Dental specialist with expertise in orthodontics, dental implants, and cosmetic dentistry. Uses latest technology for painless treatments.',
-      yearsOfExperience: 8,
-      consultationFee: 800,
-      emailVerified: true,
-    },
-  });
-  return { id: doctor3.id };
+  return { id: user.id };
 }
 
 async function seedDoctorProfileDetails(
@@ -591,111 +541,58 @@ async function seedClinicStaff(
   clinicId: string,
   hashedPassword: string,
 ): Promise<SeedStaffRefs> {
-  const receptionist = await seedReceptionist(prisma, clinicId, hashedPassword);
-  const nurse = await seedNurse(prisma, clinicId, hashedPassword);
-  const nurse2 = await seedSecondNurse(prisma, clinicId, hashedPassword);
-  const receptionist2 = await seedFrontDeskUser(
+  const receptionist = await seedStaffFromPlan(
     prisma,
     clinicId,
     hashedPassword,
+    'receptionist',
+  );
+  const nurse = await seedStaffFromPlan(
+    prisma,
+    clinicId,
+    hashedPassword,
+    'nurse',
+  );
+  const nurse2 = await seedStaffFromPlan(
+    prisma,
+    clinicId,
+    hashedPassword,
+    'nurse2',
+  );
+  const receptionist2 = await seedStaffFromPlan(
+    prisma,
+    clinicId,
+    hashedPassword,
+    'receptionist2',
   );
 
   return { nurse, nurse2, receptionist, receptionist2 };
 }
 
-async function seedReceptionist(
+async function seedStaffFromPlan(
   prisma: PrismaClient,
   clinicId: string,
   hashedPassword: string,
+  key: SeedStaffKey,
 ): Promise<SeedEntityRef> {
-  const receptionist = await prisma.user.upsert({
-    where: { email: 'reception@docita.work' },
+  const plan = getStaffPlan(key);
+  const user = await prisma.user.upsert({
+    where: { email: plan.email },
     update: {
       clinicId,
       emailVerified: true,
     },
     create: {
-      email: 'reception@docita.work',
+      email: plan.email,
       password: hashedPassword,
-      name: 'Anjali Reddy',
-      role: 'RECEPTIONIST',
+      name: plan.name,
+      role: plan.role,
       clinicId,
+      ...(plan.phoneNumber ? { phoneNumber: plan.phoneNumber } : {}),
       emailVerified: true,
     },
   });
-  return { id: receptionist.id };
-}
-
-async function seedNurse(
-  prisma: PrismaClient,
-  clinicId: string,
-  hashedPassword: string,
-): Promise<SeedEntityRef> {
-  const nurse = await prisma.user.upsert({
-    where: { email: 'nurse@docita.work' },
-    update: {
-      clinicId,
-      emailVerified: true,
-    },
-    create: {
-      email: 'nurse@docita.work',
-      password: hashedPassword,
-      name: 'Nurse Kavya',
-      role: 'NURSE',
-      clinicId,
-      phoneNumber: '+91 9876543010',
-      emailVerified: true,
-    },
-  });
-  return { id: nurse.id };
-}
-
-async function seedSecondNurse(
-  prisma: PrismaClient,
-  clinicId: string,
-  hashedPassword: string,
-): Promise<SeedEntityRef> {
-  const nurse2 = await prisma.user.upsert({
-    where: { email: 'nurse.priya@docita.work' },
-    update: {
-      clinicId,
-      emailVerified: true,
-    },
-    create: {
-      email: 'nurse.priya@docita.work',
-      password: hashedPassword,
-      name: 'Nurse Priya',
-      role: 'NURSE',
-      clinicId,
-      phoneNumber: '+91 9876543011',
-      emailVerified: true,
-    },
-  });
-  return { id: nurse2.id };
-}
-
-async function seedFrontDeskUser(
-  prisma: PrismaClient,
-  clinicId: string,
-  hashedPassword: string,
-): Promise<SeedEntityRef> {
-  const receptionist2 = await prisma.user.upsert({
-    where: { email: 'reception.front@docita.work' },
-    update: {
-      clinicId,
-      emailVerified: true,
-    },
-    create: {
-      email: 'reception.front@docita.work',
-      password: hashedPassword,
-      name: 'Front Desk Meera',
-      role: 'RECEPTIONIST',
-      clinicId,
-      phoneNumber: '+91 9876543012',
-      emailVerified: true,
-    },
-  });
-  return { id: receptionist2.id };
+  return { id: user.id };
 }
 
 async function seedPatientPortalUser(

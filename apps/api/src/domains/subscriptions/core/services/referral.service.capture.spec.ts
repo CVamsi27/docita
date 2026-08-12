@@ -15,7 +15,20 @@ function makeCtx() {
   const prisma = { referral, clinic, referrer } as never;
   const clock = { now: () => new Date('2026-07-02T00:00:00Z') } as never;
   return {
-    service: new ReferralService(prisma, clock),
+    service: new ReferralService(
+      prisma,
+      clock,
+      // The capture spec only exercises validateReferralCode +
+      // captureReferralAtSignup — applyReferralCreditsOnFirstPayment
+      // has its own describe in referral.service.spec.ts and goes
+      // through the extracted ReferralConversionCreditService. Pass
+      // a no-op stub here.
+      {
+        applyOnFirstPayment: async () => {
+          /* no-op for capture-only tests */
+        },
+      } as never,
+    ),
     referral,
     clinic,
     referrer,

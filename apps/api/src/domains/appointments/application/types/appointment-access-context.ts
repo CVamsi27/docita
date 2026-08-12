@@ -2,7 +2,7 @@ import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
-export type AppointmentAccessContext = {
+type AppointmentAccessContext = {
   userId: string;
   role: Role;
 };

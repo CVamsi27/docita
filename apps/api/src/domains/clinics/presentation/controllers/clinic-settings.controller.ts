@@ -13,7 +13,7 @@ import {
   BadRequestException,
   UsePipes,
 } from '@nestjs/common';
-import { ClinicsService } from '@/domains/clinics/application/services/clinics.service';
+import { ClinicsService } from '@/domains/clinics/application/services/clinics-facade.service';
 import { JoinRequestService } from '@/domains/clinics/application/services/join-request.service';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
@@ -31,9 +31,12 @@ import {
 } from '@workspace/types';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
+import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
+import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
+import { AllowNoClinic } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
-@Controller('clinic')
+@Controller('clinics')
 @SkipSubscriptionCheck()
 @Roles(
   Role.ADMIN,
@@ -158,6 +161,9 @@ export class ClinicSettingsController {
   }
 
   @Get('search-for-join')
+  @AllowNoClinic()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
   async searchClinicsForJoin(
     @Request() req: RequestWithUser,
     @Query('query') query: string,

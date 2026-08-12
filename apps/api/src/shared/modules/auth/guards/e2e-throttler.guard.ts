@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import type { ExecutionContext } from '@nestjs/common';
 import { getEnv } from '@/shared/modules/config/app-config';
+import { shouldBypassGuardForE2eConfig } from '@/shared/modules/config/app-configuration-values';
 
 @Injectable()
 export class E2EThrottlerGuard extends ThrottlerGuard {
@@ -17,11 +18,14 @@ export class E2EThrottlerGuard extends ThrottlerGuard {
         ? e2eHeader
         : undefined;
     const env = getEnv();
-    const isNonProduction = env.NODE_ENV !== 'production';
+    // Single source of truth for the e2e bypass (VULN-001 hardening): the
+    // header alone only counts under `test`; prod/staging never bypass.
     if (
-      isNonProduction &&
-      (env.DOCITA_API_E2E === 'true' ||
-        (e2eValue === 'true' && isNonProduction))
+      shouldBypassGuardForE2eConfig({
+        nodeEnv: env.NODE_ENV,
+        apiE2eEnabled: env.DOCITA_API_E2E === 'true',
+        e2eHeaderValue: e2eValue,
+      })
     ) {
       return true;
     }

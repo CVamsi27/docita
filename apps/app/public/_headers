@@ -1,0 +1,16 @@
+/*
+  /api/* requests are handled by the Worker — this file only contains
+  static asset security headers. script-src keeps 'unsafe-inline' for
+  the Vite module-preload bootstrap and lists the third-party widgets
+  (Razorpay checkout, Cloudflare Turnstile) that load their own scripts;
+  tightening this further requires a browser smoke of the checkout flow.
+*/
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(self), payment=(self)
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'; img-src 'self' data: blob: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://challenges.cloudflare.com; connect-src 'self' https://api.docita.work wss://api.docita.work https://api.razorpay.com https://checkout.razorpay.com https://*.sentry.io https://challenges.cloudflare.com; frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://challenges.cloudflare.com; worker-src 'self' blob:; manifest-src 'self'

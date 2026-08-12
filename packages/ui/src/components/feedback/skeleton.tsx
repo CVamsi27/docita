@@ -24,7 +24,11 @@ export function Skeleton({
   return (
     <div
       data-skeleton="true"
-      className={cn("bg-muted", variantClasses[variant], className)}
+      className={cn(
+        "bg-muted relative overflow-hidden after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/8 after:to-transparent dark:after:via-white/4",
+        variantClasses[variant],
+        className,
+      )}
     />
   );
 }

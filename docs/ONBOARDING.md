@@ -36,7 +36,8 @@ Critical variables:
 - `DATABASE_URL`
 - `JWT_SECRET`
 - `ENCRYPTION_KEY`
-- `NEXT_PUBLIC_API_URL`
+- `VITE_API_URL` (frontend apps; build-time inlined from each app's `.env.example`)
+- `FRONTEND_URL` / `API_PUBLIC_URL` (API process only — the backend's own public URLs, previously named `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_API_URL`; the legacy aliases still work during the compatibility rollout and the frontend no longer reads them)
 
 ## Verification
 

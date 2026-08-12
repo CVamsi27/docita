@@ -18,6 +18,7 @@ import { DoctorsCommandService } from './doctors-command.service';
 import { DoctorProfileService } from './doctor-profile.service';
 import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
 /**
  * Facade — keeps the original constructor signature so existing consumers
@@ -40,12 +41,14 @@ export class DoctorsService {
     @Inject(DOCTOR_REPOSITORY_TOKEN)
     doctorRepository: IDoctorRepository,
     @Inject(CLOCK_PORT) clock: IClock,
+    auditService: AuditService,
   ) {
     this.queryService = new DoctorsQueryService(prisma, storedFileUrlResolver);
     const adminVerificationService = new DoctorAdminVerificationCommandService(
       prisma,
       this.queryService,
       clock,
+      auditService,
     );
     this.commandService = new DoctorsCommandService(
       doctorRepository,
@@ -91,13 +94,35 @@ export class DoctorsService {
     return this.commandService.reverifyDoctor(id, clinicId);
   }
 
-  adminVerifyDoctor(doctorId: string, adminId: string, note?: string) {
-    return this.commandService.adminVerifyDoctor(doctorId, adminId, note);
+  /* jscpd:ignore-start */
+  adminVerifyDoctor(
+    doctorId: string,
+    adminId: string,
+    ticketId: string,
+    note?: string,
+  ) {
+    return this.commandService.adminVerifyDoctor(
+      doctorId,
+      adminId,
+      ticketId,
+      note,
+    );
   }
 
-  adminRejectDoctor(doctorId: string, adminId: string, reason: string) {
-    return this.commandService.adminRejectDoctor(doctorId, adminId, reason);
+  adminRejectDoctor(
+    doctorId: string,
+    adminId: string,
+    ticketId: string,
+    reason: string,
+  ) {
+    return this.commandService.adminRejectDoctor(
+      doctorId,
+      adminId,
+      ticketId,
+      reason,
+    );
   }
+  /* jscpd:ignore-end */
 
   uploadRegistrationCertificate(doctorId: string, file: StorageFile) {
     return this.commandService.uploadRegistrationCertificate(doctorId, file);

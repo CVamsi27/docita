@@ -6,7 +6,7 @@ export function hashUploadSecret(plaintext: string): string {
   return createHash('sha256').update(plaintext, 'utf8').digest('hex');
 }
 
-export function assertUploadSecretValid(
+function assertUploadSecretValid(
   uploadSecretHash: string | null,
   uploadSecret: string | undefined,
 ): void {

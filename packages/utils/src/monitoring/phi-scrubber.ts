@@ -8,9 +8,10 @@
  *    field/regex rules. Centralizing keeps the rule set consistent.
  *  - Pure-functional, no Sentry SDK dependency — safe to import from any
  *    runtime (Cloudflare Workers, Node, browser, jsdom tests).
- *  - The existing `apps/app/shared/lib/monitoring/sentry-phi-redactor.ts`
- *    is preserved as a thin re-export to keep the early Sentry init shape;
- *    it now sources its rule set from here.
+ *  - The Vite apps (`apps/app`, `apps/internal`) consume the rule
+ *    set through `sentry-event-scrub.ts`'s `scrubSentryEventRecord` in their
+ *    `sentry.client.config.ts` `beforeSend` hooks; no per-app redactor copies
+ *    remain.
  */
 
 // check-as-cast-density: allow-file — `redactPhiDeep<T>` uses `as T` to propagate the generic identity through the recursive `walk` function which must return `unknown`; this is the canonical pattern for structure-preserving utilities.

@@ -1,0 +1,22 @@
+{
+  "hospitalBeds": {
+    "title": "Hospital Beds",
+    "description": "Manage bed assignments and availability.",
+    "manageBeds": "Manage Beds",
+    "error": "We could not load bed data. Please try again.",
+    "emptyTitle": "No beds configured",
+    "emptyDescription": "Configure hospital beds to start managing assignments."
+  },
+  "specialty": {
+    "title": "Specialty Tools",
+    "description": "Specialty-specific clinical tools.",
+    "dentalCharts": "Dental Charts",
+    "dentalChartsDescription": "View and manage dental charts"
+  },
+  "dental": {
+    "title": "Dental Charts",
+    "description": "View and manage dental examination charts.",
+    "emptyTitle": "No dental charts",
+    "emptyDescription": "Dental chart records will appear here."
+  }
+}

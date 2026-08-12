@@ -48,7 +48,7 @@ async function main() {
     console.log(
       `[route-budgets] Web Vitals targets defined for ${
         Object.keys(ROUTE_WEB_VITALS).length
-      } route(s); LCP/INP/CLS enforcement TBD (see route-budgets.config.mjs).`,
+      } route(s); synthetic enforcement via \`pnpm perf:web-vitals\` (public routes; see check-web-vitals.mjs).`,
     );
     return;
   }

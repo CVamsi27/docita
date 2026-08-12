@@ -1,10 +1,6 @@
-export class UpdateAIFeaturesDto {
-  enabled!: boolean;
-  features?: {
-    predictiveAnalytics?: boolean;
-    automatedDiagnosis?: boolean;
-    patientInsights?: boolean;
-    appointmentOptimization?: boolean;
-    prescriptionAssistant?: boolean;
-  };
-}
+import { createZodDto } from 'nestjs-zod';
+import { internalUpdateClinicAIFeaturesRequestSchema } from '@workspace/types';
+
+export const UpdateAIFeaturesSchema =
+  internalUpdateClinicAIFeaturesRequestSchema;
+export class UpdateAIFeaturesDto extends createZodDto(UpdateAIFeaturesSchema) {}

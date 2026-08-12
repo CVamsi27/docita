@@ -17,11 +17,13 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 import { requireAuthenticatedUserId } from '@/shared/modules/auth/auth/clinic-request-context';
 
 const AdminVerifySchema = z.object({
+  ticketId: z.string().trim().min(3).max(100),
   note: z.string().trim().max(500).optional(),
 });
 type AdminVerifyDto = z.infer<typeof AdminVerifySchema>;
 
 const AdminRejectSchema = z.object({
+  ticketId: z.string().trim().min(3).max(100),
   reason: z.string().trim().min(3).max(500),
 });
 type AdminRejectDto = z.infer<typeof AdminRejectSchema>;
@@ -46,6 +48,7 @@ export class InternalDoctorsVerificationController {
     return this.doctorsService.adminVerifyDoctor(
       id,
       requireAuthenticatedUserId(req),
+      dto.ticketId,
       dto.note,
     );
   }
@@ -59,6 +62,7 @@ export class InternalDoctorsVerificationController {
     return this.doctorsService.adminRejectDoctor(
       id,
       requireAuthenticatedUserId(req),
+      dto.ticketId,
       dto.reason,
     );
   }

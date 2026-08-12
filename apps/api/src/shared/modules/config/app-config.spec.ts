@@ -17,12 +17,14 @@ describe('app-config validateEnv', () => {
       ENCRYPTION_KEY:
         '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
       APP_URL: 'https://app.docita.work',
-      NEXT_PUBLIC_APP_URL: 'https://app.docita.work',
-      NEXT_PUBLIC_API_URL: 'https://api.docita.work/api/v1',
+      FRONTEND_URL: 'https://app.docita.work',
+      API_PUBLIC_URL: 'https://api.docita.work/api/v1',
       CORS_ORIGINS: 'https://app.docita.work,https://internal.docita.work',
       RAZORPAY_KEY_ID: 'rzp_test_release_validation',
       RAZORPAY_KEY_SECRET: 'test-razorpay-secret',
       RAZORPAY_WEBHOOK_SECRET: 'test-razorpay-webhook-secret',
+      // Required in staging/production since VULN-002 (fail-closed bot-check).
+      TURNSTILE_SECRET_KEY: '0x4AA00000000000000000000000000000',
       ...overrides,
     };
   }

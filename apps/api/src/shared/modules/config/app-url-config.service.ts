@@ -21,11 +21,11 @@ export class AppUrlConfigService {
   }
 
   getFrontendAppUrl(): string {
-    return getEnv().NEXT_PUBLIC_APP_URL;
+    return getEnv().FRONTEND_URL;
   }
 
   getApiUrl(): string {
-    return getEnv().NEXT_PUBLIC_API_URL;
+    return getEnv().API_PUBLIC_URL;
   }
 
   /**

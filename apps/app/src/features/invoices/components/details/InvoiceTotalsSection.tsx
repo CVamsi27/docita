@@ -1,0 +1,64 @@
+import type { FC } from "react";
+import { useTranslation } from "react-i18next";
+import type { Invoice, InvoiceItem } from "@workspace/types";
+import { CardFooter } from "@workspace/ui/components/indicators/card";
+import { InvoiceTotalsOnly } from "./InvoiceTotalsOnly";
+
+type InvoiceTotalsView = Invoice & {
+  discount?: number;
+};
+
+interface InvoiceTotalsSectionProps {
+  invoice: InvoiceTotalsView;
+  calculateSubtotal: (items: InvoiceItem[]) => number;
+  formatCurrency: (amount: number) => string;
+  numberToWords: (amount: number) => string;
+  authorizedSignatureUrl: string | null;
+  authorizedSignatureName: string;
+}
+
+export const InvoiceTotalsSection: FC<InvoiceTotalsSectionProps> = ({
+  invoice,
+  calculateSubtotal,
+  formatCurrency,
+  numberToWords,
+  authorizedSignatureUrl,
+  authorizedSignatureName,
+}) => {
+  const { t } = useTranslation("Invoices.totalsSection");
+  return (
+    <>
+      <InvoiceTotalsOnly
+        invoice={invoice}
+        calculateSubtotal={calculateSubtotal}
+        formatCurrency={formatCurrency}
+        numberToWords={numberToWords}
+      />
+      <div className="mt-8 flex justify-end">
+        <div className="w-56 text-center">
+          <p className="text-sm font-medium mb-2">{t("authorizedSignature")}</p>
+          {authorizedSignatureUrl ? (
+            <div className="mb-2 flex justify-center rounded-md bg-background px-3 py-2">
+              <img
+                src={authorizedSignatureUrl}
+                alt={t("signatureAlt")}
+                className="h-14 w-auto object-contain"
+              />
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground italic mb-2">
+              {t("signaturePending")}
+            </p>
+          )}
+          <div className="border-t border-muted-foreground/60 pt-1 text-xs text-muted-foreground">
+            {t("forLabel", { name: authorizedSignatureName })}
+          </div>
+        </div>
+      </div>
+      <CardFooter className="flex-col items-center justify-center border-t py-6 text-center text-sm text-muted-foreground bg-muted/10 print:bg-transparent">
+        <p className="mb-1">{t("thankYou")}</p>
+        <p className="text-xs">{t("generatedBy")}</p>
+      </CardFooter>
+    </>
+  );
+};

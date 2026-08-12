@@ -1,4 +1,3 @@
-// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 "use client";
 
 // Re-export everything from the per-domain clinical hooks folder. This facade

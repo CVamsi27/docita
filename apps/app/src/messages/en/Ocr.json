@@ -1,0 +1,79 @@
+{
+  "invoiceDraft": {
+    "subtotalLabel": "Subtotal",
+    "subtotalPlaceholder": "Enter subtotal",
+    "taxLabel": "Tax",
+    "taxPlaceholder": "Enter tax",
+    "grandTotalLabel": "Grand total",
+    "grandTotalPlaceholder": "Enter grand total",
+    "lineDescriptionPlaceholder": "Enter description",
+    "lineQuantityPlaceholder": "Enter quantity",
+    "lineUnitPricePlaceholder": "Enter unit price",
+    "lineTotalPlaceholder": "Enter line total",
+    "removeButton": "Remove",
+    "lineItemsLabel": "Line items",
+    "addLineItemButton": "Add line item"
+  },
+  "patientInfo": {
+    "sectionTitle": "Patient information",
+    "lowConfidenceBadge": "Check",
+    "firstNameLabel": "First name",
+    "lastNameLabel": "Last name",
+    "suggestionLabel": "Suggestion:",
+    "ageLabel": "Age",
+    "phoneLabel": "Phone",
+    "emailLabel": "Email",
+    "bloodTypeLabel": "Blood type",
+    "bloodTypePlaceholder": "Blood type"
+  },
+  "vitals": {
+    "sectionTitle": "Vitals",
+    "bpLabel": "BP",
+    "bpPlaceholder": "BP",
+    "tempLabel": "Temp (°F)",
+    "tempPlaceholder": "Temperature",
+    "pulseLabel": "Pulse",
+    "pulsePlaceholder": "Pulse",
+    "respiratoryRateLabel": "Respiratory rate",
+    "respiratoryRatePlaceholder": "Respiratory rate",
+    "spO2Label": "SpO2 (%)",
+    "spO2Placeholder": "SpO2",
+    "glucoseLabel": "Glucose",
+    "glucosePlaceholder": "Glucose"
+  },
+  "labValues": {
+    "sectionTitle": "Lab values",
+    "glucoseLabel": "Glucose (mg/dL)",
+    "glucosePlaceholder": "Glucose",
+    "hemoglobinLabel": "Hemoglobin (g/dL)",
+    "hemoglobinPlaceholder": "Hemoglobin",
+    "creatinineLabel": "Creatinine (mg/dL)",
+    "creatininePlaceholder": "Creatinine"
+  },
+  "uploadSection": {
+    "stepTitle": "1. Upload Document",
+    "stepDescription": "Take a photo or upload an image",
+    "previewAlt": "Preview",
+    "dropzonePrompt": "Click to upload or drag and drop",
+    "uploadFromMobileButton": "Upload from Mobile",
+    "scanningLabel": "Scanning…",
+    "rescanButton": "Re-scan",
+    "scanDocumentButton": "Scan Document",
+    "chooseFileFirstTooltip": "Choose a file in the upload area first",
+    "selectedFileLabel": "Selected file: {name}",
+    "tipsTitle": "Tips for best results:",
+    "tipsTip1": "Ensure good lighting and clear handwriting",
+    "tipsTip2": "Capture the entire page including headers",
+    "tipsTip3": "Avoid shadows and blur"
+  },
+  "header": {
+    "staffPanelTitle": "2. Staff Correction Panel",
+    "staffPanelSubtitle": "Verify and correct the extracted information",
+    "manualEntryTitle": "Manual Data Entry Required",
+    "manualEntryBody": "This basic OCR mode accepts the image file. For automatic text extraction and field population, enable the AI-powered extraction feature.",
+    "lowConfidenceTitle": "Low confidence fields detected",
+    "lowConfidenceBody": "Please review and correct highlighted fields",
+    "aiSuggestionsTitle": "AI Suggestions Available",
+    "aiSuggestionsBody": "Review suggested corrections above each field"
+  }
+}

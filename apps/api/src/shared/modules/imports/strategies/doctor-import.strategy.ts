@@ -1,6 +1,9 @@
 // jscpd:ignore-start
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  IMPORT_STRATEGY_PERSISTENCE_PORT,
+  type ImportStrategyPersistencePort,
+} from '../ports/import-strategy.persistence.port';
 import { Specialization } from '@workspace/db';
 import { parseStringEnumMember } from '@workspace/utils';
 import * as bcrypt from 'bcrypt';
@@ -21,7 +24,10 @@ export class DoctorImportStrategy implements IImportStrategy {
   readonly entityType = 'DOCTOR';
   private readonly logger = new Logger(DoctorImportStrategy.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(IMPORT_STRATEGY_PERSISTENCE_PORT)
+    private readonly prisma: ImportStrategyPersistencePort,
+  ) {}
 
   validate(row: Record<string, unknown>): ImportValidationResult {
     if (

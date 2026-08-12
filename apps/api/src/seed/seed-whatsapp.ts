@@ -1,4 +1,5 @@
 import { PrismaClient } from '@workspace/db';
+import { RAJESH_INVOICE_ID } from './seed-constants';
 
 type SeedEntityRef = { id: string };
 
@@ -84,8 +85,7 @@ function getWhatsappLogs(): WhatsappLogSeed[] {
       id: 'seed-wa-invoice-01',
       patientIndex: 0,
       type: 'INVOICE',
-      message:
-        'Hi Rajesh!\n\nYour invoice #DC2627-000001 for ₹1,300 is ready.\n\nPay online:\nhttps://pay.docita.work/inv/seed-invoice-rajesh\n\nThank you for choosing Docita Health Clinic!',
+      message: `Hi Rajesh!\n\nYour invoice #DC2627-000001 for ₹1,300 is ready.\n\nPay online:\nhttps://pay.docita.work/inv/${RAJESH_INVOICE_ID}\n\nThank you for choosing Docita Health Clinic!`,
       status: 'DELIVERED',
       phoneNumber: '9000000001',
       daysOffset: -1,

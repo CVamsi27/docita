@@ -1,0 +1,63 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "lib": [
+      "ES2021",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "../src/*"
+      ],
+      "@workspace/types": [
+        "../../../packages/types/dist/index"
+      ],
+      "@workspace/types/*": [
+        "../../../packages/types/dist/*"
+      ],
+      "@workspace/ui": [
+        "../../../packages/ui/dist/index"
+      ],
+      "@workspace/ui/*": [
+        "../../../packages/ui/dist/*"
+      ],
+      "@workspace/utils": [
+        "../../../packages/utils/dist/index"
+      ],
+      "@workspace/utils/*": [
+        "../../../packages/utils/dist/*"
+      ],
+      "@workspace/hooks": [
+        "../../../packages/hooks/dist/index"
+      ],
+      "@workspace/hooks/*": [
+        "../../../packages/hooks/dist/*"
+      ],
+      "@workspace/data-access": [
+        "../../../packages/data-access/dist/index"
+      ],
+      "@workspace/data-access/*": [
+        "../../../packages/data-access/dist/*"
+      ]
+    },
+    "ignoreDeprecations": "6.0",
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ]
+}

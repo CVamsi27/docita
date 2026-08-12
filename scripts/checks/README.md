@@ -53,7 +53,6 @@ Map your concern to a script, then `Read` it to see the pattern:
 | No inline `fetch` in client features                                | [`check-frontend-fetch.mjs`](check-frontend-fetch.mjs)                                           |
 | Legacy app API hook directory stays gone                            | [`check-legacy-app-api-hooks.mjs`](check-legacy-app-api-hooks.mjs)                               |
 | Patient display names route through canonical helper                | [`check-patient-name-ssot.mjs`](check-patient-name-ssot.mjs)                                     |
-| `error.tsx` route coverage                                          | [`check-error-tsx-coverage.mjs`](check-error-tsx-coverage.mjs)                                   |
 | Suspense + error boundary paired                                    | [`check-suspense-error-boundary-pair.mjs`](check-suspense-error-boundary-pair.mjs)               |
 | No duplicate shared paths                                           | [`check-no-duplicate-shared-paths.mjs`](check-no-duplicate-shared-paths.mjs)                     |
 | Native button types                                                 | [`check-native-button-types.mjs`](check-native-button-types.mjs)                                 |
@@ -85,7 +84,6 @@ Map your concern to a script, then `Read` it to see the pattern:
 | Application event constants present                                 | [`check-application-event-constants.mjs`](check-application-event-constants.mjs)                 |
 | Worker bundle size                                                  | [`check-worker-size.mjs`](check-worker-size.mjs)                                                 |
 | File size budget (advisory)                                         | [`check-file-size-budget.mjs`](check-file-size-budget.mjs)                                       |
-| Dynamic-import budget                                               | [`check-dynamic-import-budget.mjs`](check-dynamic-import-budget.mjs)                             |
 | Domain rules unit-tested                                            | [`check-domain-rules-tests.mjs`](check-domain-rules-tests.mjs)                                   |
 | Feature test density                                                | [`check-feature-test-density.mjs`](check-feature-test-density.mjs)                               |
 | **PDF / data pipeline**                                             |                                                                                                  |
@@ -96,9 +94,6 @@ Map your concern to a script, then `Read` it to see the pattern:
 | **N+1 / query performance**                                         |                                                                                                  |
 | N+1 query patterns                                                  | [`check-n-plus-1.mjs`](check-n-plus-1.mjs)                                                       |
 | **Routing / nav / E2E**                                             |                                                                                                  |
-| E2E navigation route coverage                                       | [`check-e2e-nav-routes.mjs`](check-e2e-nav-routes.mjs)                                           |
-| `route-meta.ts` coverage                                            | [`check-route-meta-coverage.mjs`](check-route-meta-coverage.mjs)                                 |
-| `(tools)/` route group stays dev-only                               | [`check-tools-route-gate.mjs`](check-tools-route-gate.mjs)                                       |
 | **Deploy contracts**                                                |                                                                                                  |
 | Deployment contracts                                                | [`check-deployment-contracts.mjs`](check-deployment-contracts.mjs)                               |
 | `turbo.json#globalEnv` vs `.env.example` drift                      | [`check-env-vs-globalenv.mjs`](check-env-vs-globalenv.mjs)                                       |

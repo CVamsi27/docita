@@ -1,0 +1,31 @@
+{
+  "pageTitle": "Documents",
+  "pageDescription": "Manage clinic documents and files",
+  "pageHeader": {
+    "title": "Documents",
+    "description": "View and manage all uploaded documents."
+  },
+  "loading": "Loading documents…",
+  "error": "We could not load documents. Please try again.",
+  "emptyTitle": "No documents yet",
+  "emptyDescription": "Upload documents from a patient record or import flow to see them listed here.",
+  "showing": "Showing {count} of {total} documents",
+  "searchPlaceholder": "Enter patient, file name, or type",
+  "searchAriaLabel": "Search documents",
+  "clearSearch": "Clear search",
+  "columns": {
+    "documentId": "Document ID",
+    "fileName": "File Name",
+    "patient": "Patient",
+    "type": "Type",
+    "date": "Date",
+    "actions": "Actions"
+  },
+  "actions": {
+    "view": "View",
+    "viewTooltip": "View document",
+    "download": "Download",
+    "downloadTooltip": "Download document",
+    "openInNewTab": "Open in new tab"
+  }
+}

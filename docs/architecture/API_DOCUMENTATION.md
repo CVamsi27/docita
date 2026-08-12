@@ -9,6 +9,26 @@
 Version 1.0  
 Base URL: `http://localhost:3001/api` (Development)
 
+> **Current contract (2026-08-07).** The examples below follow the actual wire
+> surface; this callout is the ground truth if a section drifts again.
+>
+> - **Versioning**: every route lives at `/api/v1/<resource>` — the global
+>   `setGlobalPrefix('api')` + URI versioning (`defaultVersion: '1'`, see
+>   `apps/api/src/main.ts` `configureRouting()`) compose to `/api/v1/...`;
+>   controllers never embed `api`/`v1` in their paths (the old
+>   `@Controller('api/v1/operations/database')` was a double-prefix bug, fixed in
+>   `cd3a9c56f`). `/health*` is version-neutral (`VERSION_NEUTRAL`). See
+>   [`API_DESIGN_STANDARD.md`](API_DESIGN_STANDARD.md) §1 for the policy.
+> - **Partial updates use `PATCH`** (patients, invoices, appointments). `PUT` is
+>   reserved for full replacement (e.g. `PUT /clinics/:id`, `PUT /reminders/settings`).
+> - **Workflow transitions are action routes on the resource**:
+>   `PATCH /appointments/:id/cancel`, `PATCH /appointments/:id/reschedule`,
+>   `PATCH /follow-ups/:id/complete`, `POST /appointments/:id/start-consultation`,
+>   `POST /queue/check-in/:appointmentId`. Actions are `POST` (non-idempotent) or
+>   `PATCH` (idempotent state change), never `GET`.
+> - **Errors are RFC 9457 problem-details** (see [Error Handling](#error-handling)).
+> - **Pagination** has three sanctioned shapes (see [Pagination](#pagination)).
+
 ---
 
 ## Table of Contents
@@ -176,10 +196,10 @@ POST /patients
 ### Update Patient
 
 ```http
-PUT /patients/:id
+PATCH /patients/:id
 ```
 
-**Request Body:** (same as create, all fields optional)
+**Request Body:** (same as create, all fields optional — partial updates only)
 
 ### Delete Patient
 
@@ -255,13 +275,23 @@ POST /appointments
 ### Update Appointment
 
 ```http
-PUT /appointments/:id
+PATCH /appointments/:id
 ```
+
+**Request Body:** partial appointment fields
 
 ### Cancel Appointment
 
 ```http
-DELETE /appointments/:id
+PATCH /appointments/:id/cancel
+```
+
+**Request Body:** `{ "reason": "..." }`
+
+### Reschedule Appointment
+
+```http
+PATCH /appointments/:id/reschedule
 ```
 
 ---
@@ -404,13 +434,13 @@ POST /invoices
 }
 ```
 
-### Update Invoice Status
+### Update Invoice
 
 ```http
-PUT /invoices/:id/status
+PATCH /invoices/:id
 ```
 
-**Request Body:**
+**Request Body:** partial invoice fields, including `status` and `paymentMethod`
 
 ```json
 {
@@ -419,37 +449,32 @@ PUT /invoices/:id/status
 }
 ```
 
+### Invoice PDF + Claims
+
+```http
+GET /invoices/:id/pdf
+GET /invoices/:id/pdf/status
+POST /invoices/:id/submit-claim
+GET /invoices/:id/claim-readiness
+GET /invoices/:id/payment-activity
+```
+
 ---
 
 ## Documents API
 
-### Upload Document
+### Upload Session (multipart)
 
 ```http
-POST /documents/upload
+POST /uploads/session
 ```
 
-**Request:** Multipart form data
+**Request:** Multipart form data (file + patient/type metadata). Returns a
+session; the same session is completed with a follow-up call:
 
-- `file`: File to upload
-- `patientId`: Patient ID
-- `type`: Document type (lab_report, xray, prescription, etc.)
-- `description`: Optional description
-
-**Response:**
-
-```json
-{
-  "id": "doc_123",
-  "patientId": "patient_123",
-  "fileName": "lab_report.pdf",
-  "fileType": "application/pdf",
-  "fileSize": 1024000,
-  "type": "lab_report",
-  "description": "Blood test results",
-  "url": "/uploads/documents/lab_report.pdf",
-  "createdAt": "2024-01-15T10:30:00.000Z"
-}
+```http
+POST /uploads/session/:id
+GET  /uploads/session/:id
 ```
 
 ### List Documents
@@ -463,10 +488,10 @@ GET /documents
 - `patientId` (required): Patient ID
 - `type` (optional): Document type
 
-### Download Document
+### Get Document
 
 ```http
-GET /documents/:id/download
+GET /documents/:id
 ```
 
 ---
@@ -495,10 +520,13 @@ GET /analytics/overview
 }
 ```
 
-### Get Revenue Trends
+### Get Revenue
 
 ```http
-GET /analytics/revenue-trends
+GET /analytics/revenue
+GET /analytics/revenue/time-series
+GET /analytics/revenue/by-category
+GET /analytics/revenue/by-cpt
 ```
 
 **Query Parameters:**
@@ -520,13 +548,24 @@ GET /analytics/revenue-trends
 ### Get Patient Growth
 
 ```http
-GET /analytics/patient-growth
+GET /analytics/patients
 ```
 
 ### Get Appointment Statistics
 
 ```http
-GET /analytics/appointment-stats
+GET /analytics/appointments
+```
+
+### More Analytics
+
+```http
+GET /analytics/disease-trends
+GET /analytics/disease-trends/time-series
+GET /analytics/top-diagnoses
+GET /analytics/top-conditions
+GET /analytics/compliance/metrics
+GET /analytics/patient-demographics
 ```
 
 ### Get Top Diagnoses
@@ -593,6 +632,23 @@ POST /clinics
 GET /clinics/user/:userId
 ```
 
+### Update / Delete Clinic
+
+```http
+PUT /clinics/:id
+DELETE /clinics/:id
+```
+
+### Clinic Staff
+
+```http
+POST /clinics/:clinicId/doctors
+GET  /clinics/:clinicId/doctors
+POST /clinics/:clinicId/receptionists
+GET  /clinics/:clinicId/receptionists
+POST /clinics/:clinicId/members
+```
+
 ### Get Clinic Statistics
 
 ```http
@@ -650,18 +706,30 @@ GET /reminders/history
 - `appointmentId` (optional): Filter by appointment
 - `status` (optional): Filter by status (sent, failed)
 
+### Send Reminder
+
+```http
+POST /reminders/send/:appointmentId
+```
+
 ---
 
 ## Error Handling
 
-### Error Response Format
+### Error Response Format (RFC 9457 problem-details)
+
+All errors pass through the global exception filter and share one shape:
 
 ```json
 {
-  "statusCode": 400,
-  "message": "Validation failed",
-  "error": "Bad Request",
-  "details": [
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Validation failed",
+  "instance": "/patients",
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "code": "VALIDATION_FAILED",
+  "validationErrors": [
     {
       "field": "email",
       "message": "Invalid email format"
@@ -669,6 +737,11 @@ GET /reminders/history
   ]
 }
 ```
+
+- `code` is present on typed errors (e.g. `INSUFFICIENT_PERMISSIONS`, auth/Turnstile
+  codes); `validationErrors` carries Zod/field details.
+- `stack` and `errorType` appear only in development.
+- Messages never contain PHI.
 
 ### Common Status Codes
 
@@ -679,38 +752,73 @@ GET /reminders/history
 - `403 Forbidden`: Insufficient permissions
 - `404 Not Found`: Resource not found
 - `409 Conflict`: Duplicate resource
+- `429 Too Many Requests`: Rate limit exceeded
 - `500 Internal Server Error`: Server error
 
 ---
 
 ## Rate Limiting
 
-- **Limit**: 100 requests per minute per IP
-- **Headers**:
-  - `X-RateLimit-Limit`: Maximum requests allowed
-  - `X-RateLimit-Remaining`: Remaining requests
-  - `X-RateLimit-Reset`: Time when limit resets
+Limits are **tiered per surface**, not a single global cap:
+
+- **Auth / OTP / password reset**: brute-force-resistant (3–10 requests/min per
+  IP or account; e.g. `POST /auth/login`, OTP request/verify, password reset).
+- **Per-route `@RateLimit`** on expensive surfaces (AI, OCR, imports, analytics):
+  5–30 requests/min.
+- **Tenant API quotas** apply to clinic-scoped integrations.
+- Failed logins also trigger lockout with backoff.
 
 ---
 
 ## Pagination
 
-For list endpoints, use these query parameters:
+Three sanctioned shapes (all `limit` values are clamped server-side, e.g.
+1–200):
 
-- `page`: Page number (default: 1)
-- `limit`: Items per page (default: 10, max: 100)
+1. **Page/offset** — pageable reports and back-office lists
+   (`GET /patients`, `GET /analytics/*`):
 
-Response includes:
+   ```http
+   GET /patients?page=1&limit=20
+   ```
 
-```json
-{
-  "data": [...],
-  "total": 150,
-  "page": 1,
-  "limit": 10,
-  "totalPages": 15
-}
-```
+   ```json
+   {
+     "data": [...],
+     "total": 150,
+     "page": 1,
+     "limit": 20,
+     "totalPages": 8
+   }
+   ```
+
+2. **Cursor** — live, ordered collections (`GET /invoices`, `GET /insurance-claims`,
+   `GET /appointments`, partner portal):
+
+   ```http
+   GET /invoices?cursor=<opaque>&limit=20
+   ```
+
+   ```json
+   {
+     "data": [...],
+     "nextCursor": "<opaque>"
+   }
+   ```
+
+   `nextCursor` is omitted when there are no more rows.
+
+3. **Offset** — patient-portal / clinical timelines and internal logs:
+
+   ```http
+   GET /patient-portal/appointments?offset=0&limit=20
+   ```
+
+   Response uses `{ "data": [...], "total": N }`.
+
+Rules: list endpoints must always wrap rows in `data`; never return a bare
+array. Use cursor for collections that grow while being paged; keep page/offset
+for stable, queryable reports.
 
 ---
 

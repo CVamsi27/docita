@@ -51,6 +51,10 @@ export type {
 
 // hooks barrel
 export {
+  useEffectivePermissions,
+  clearEffectivePermissionsCache,
+} from "./hooks/use-effective-permissions";
+export {
   useAnalyticsOverview,
   useDiseaseTrends,
   useRevenueByCPT,
@@ -400,10 +404,6 @@ export type { SignatureUploadToken, ActiveToken, UploadResult } from "./hooks/us
 export {
   useSendPrescriptionWhatsApp,
   useSendInvoiceWhatsApp,
-  useWhatsappUnreadNotificationCount,
-  useUnreadNotifications,
-  useWhatsappDeleteNotification,
-  useWhatsappDeleteAllNotifications,
   useResendPrescriptionWhatsApp,
   useResendInvoiceWhatsApp,
   useApprovePrescriptionWhatsApp,
@@ -430,4 +430,19 @@ export {
   useCreateClinicWhatsappCampaign,
   useCancelClinicWhatsappCampaign,
 } from "./hooks/use-whatsapp";
-export type { NotificationUnreadCountResponse } from "./hooks/use-whatsapp";
+
+// File upload hooks
+export { useUploadFile } from "./hooks/use-file-upload";
+export type { UploadFileResult } from "./hooks/use-file-upload";
+
+// Web Vitals RUM (shared reporter for app + internal; P4.5/P5.4e)
+export {
+  installWebVitalsReporter,
+  postWebVitalsRum,
+} from "./lib/monitoring/web-vitals";
+export type {
+  WebVitalsRumPayload,
+  WebVitalsMetricName,
+  WebVitalsMetricRating,
+  WebVitalsReporterOptions,
+} from "./lib/monitoring/web-vitals";

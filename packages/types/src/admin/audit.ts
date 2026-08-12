@@ -23,6 +23,6 @@ export const auditLogFilterSchema = z.object({
   resource: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  limit: z.number().optional(),
-  page: z.number().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  page: z.coerce.number().int().positive().optional(),
 });

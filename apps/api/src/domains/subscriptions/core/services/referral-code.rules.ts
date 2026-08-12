@@ -21,7 +21,7 @@ import {
  */
 
 export const REFERRER_CODE_GENERATION_ALPHABET = REFERRER_CODE_SUFFIX_ALPHABET;
-export const REFERRER_CODE_GENERATION_LENGTH = REFERRER_CODE_SUFFIX_LENGTH;
+const REFERRER_CODE_GENERATION_LENGTH = REFERRER_CODE_SUFFIX_LENGTH;
 
 /** Generate a random referrer code (`RFR-XXXXXX`). Pure, no I/O. */
 export function generateReferrerCode(): string {

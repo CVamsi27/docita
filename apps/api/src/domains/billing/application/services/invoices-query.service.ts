@@ -1,4 +1,3 @@
-// check-non-null-assertion: allow-file — non-null guaranteed by prior guard or Prisma include
 import {
   Injectable,
   Inject,
@@ -259,11 +258,12 @@ export class InvoicesQueryService {
     const buyerTaxSnapshot = parseTaxRegistrationSnapshot(
       invoice.buyerTaxSnapshot,
     );
-    const clinic = invoice.patient?.clinic;
-    if (!clinic?.name)
+    const patient = invoice.patient;
+    if (!patient?.clinic?.name)
       throw new BadRequestException(
         'Clinic details are required to generate invoice PDF',
       );
+    const clinic = patient.clinic;
     if (!(invoice.appointment?.doctor?.name || invoice.doctorName)) {
       throw new BadRequestException(
         'Doctor details are required to generate invoice PDF',
@@ -282,7 +282,7 @@ export class InvoicesQueryService {
       invoiceId: buildPdfInvoiceId(invoice),
       title: buildPdfTitle(invoice, taxSummary),
       clinic: buildPdfClinicInfo(clinic, sellerTaxSnapshot),
-      patient: buildPdfPatientInfo(invoice.patient!),
+      patient: buildPdfPatientInfo(patient),
       doctor: buildPdfDoctorInfo(invoice),
       authorizedSignatureUrl: resolvedSignature.url ?? undefined,
       authorizedSignatureLabel: 'Authorized Signature',

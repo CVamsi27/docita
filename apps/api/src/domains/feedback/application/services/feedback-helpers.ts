@@ -10,6 +10,8 @@ export interface FeedbackFilters {
   minRating?: number;
   maxRating?: number;
   search?: string;
+  /** Optional cap on rows returned (applied as Prisma `take`). */
+  limit?: number;
 }
 
 export function buildFeedbackWhereClause(

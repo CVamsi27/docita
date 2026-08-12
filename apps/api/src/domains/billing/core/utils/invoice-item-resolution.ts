@@ -5,7 +5,7 @@ import {
 } from '@workspace/types';
 
 /** Row shape from `INVOICE_DETAIL_SELECT.lineItems`. */
-export type InvoiceLineItemRow = {
+type InvoiceLineItemRow = {
   id: string;
   description: string;
   code: string | null;

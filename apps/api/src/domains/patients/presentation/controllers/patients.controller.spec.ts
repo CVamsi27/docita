@@ -11,6 +11,7 @@ import { PatientsController } from './patients.controller';
 import { PatientService as PatientsService } from '@/domains/patients/application/services/patient.service';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { PolicyGuard } from '@/shared/modules/auth/guards/policy.guard';
 import {
   IdempotencyInterceptor,
   IdempotencyService,
@@ -19,7 +20,7 @@ import { Gender, Role } from '@workspace/db';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
-import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
+import { ConsentCommandService } from '@/shared/modules/compliance/consent-command.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
 describe('PatientsController (Authorization)', () => {
@@ -88,7 +89,7 @@ describe('PatientsController (Authorization)', () => {
           },
         },
         {
-          provide: DPDPComplianceService,
+          provide: ConsentCommandService,
           useValue: { recordDpdpNoticeConsent: jest.fn() },
         },
         {
@@ -100,6 +101,8 @@ describe('PatientsController (Authorization)', () => {
       .overrideGuard(RolesGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .overrideGuard(TierGuard)
+      .useValue({ canActivate: jest.fn(() => true) })
+      .overrideGuard(PolicyGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .compile();
 

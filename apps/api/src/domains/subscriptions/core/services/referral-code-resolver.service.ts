@@ -1,5 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  PARTNER_PERSISTENCE_PORT,
+  type PartnerPersistencePort,
+} from '@/domains/subscriptions/application/ports/partner-persistence.port';
 import { normalizeReferrerCodeInput } from '@/domains/subscriptions/core/services/referral-code.rules';
 
 /**
@@ -10,7 +13,7 @@ import { normalizeReferrerCodeInput } from '@/domains/subscriptions/core/service
  * Pure: no decorators that escape DI scope, no side effects beyond the
  * underlying Prisma query.
  */
-export interface ResolvedReferralCode {
+interface ResolvedReferralCode {
   kind: 'PARTNER' | 'CLINIC' | 'NONE';
   referrerId?: string;
   clinicId?: string;
@@ -18,7 +21,10 @@ export interface ResolvedReferralCode {
 
 @Injectable()
 export class ReferralCodeResolverService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PARTNER_PERSISTENCE_PORT)
+    private readonly prisma: PartnerPersistencePort,
+  ) {}
 
   /**
    * Resolve a user-entered code. Returns the type and the resolved id.

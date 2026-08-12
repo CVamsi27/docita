@@ -1,0 +1,39 @@
+{
+  "createDialog": {
+    "title": "नया चिकित्सा दस्तावेज़",
+    "typeLabel": "दस्तावेज़ प्रकार",
+    "titleLabel": "शीर्षक",
+    "titlePlaceholder": "शीर्षक",
+    "uploadLabel": "दस्तावेज़ अपलोड करें",
+    "uploadHelper": "वैकल्पिक, लेकिन अनुशंसित",
+    "mobileUploadButton": "फ़ोन से अपलोड करें",
+    "fileTypesHint": "PDF, PNG, JPG, या WebP",
+    "qrScanHint": "अपलोड करने के लिए अपने फ़ोन पर इस QR कोड को स्कैन करें।",
+    "hideButton": "छिपाएँ",
+    "fileSelectedLabel": "फ़ाइल चुनी गई।",
+    "cancelButton": "रद्द करें",
+    "creatingButton": "बना रहे हैं…",
+    "createButton": "बनाएँ"
+  },
+  "list": {
+    "loading": "दस्तावेज़ लोड हो रहे हैं…",
+    "error": "हम ये दस्तावेज़ लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+    "emptyTitle": "अभी कोई दस्तावेज़ नहीं",
+    "emptyDescription": "अपलोड किए और जनरेट किए गए चिकित्सा दस्तावेज़ यहाँ दिखाई देंगे।",
+    "title": "चिकित्सा दस्तावेज़",
+    "newButton": "नया"
+  },
+  "card": {
+    "viewUploadedFile": "अपलोड की गई फ़ाइल देखें",
+    "signButton": "हस्ताक्षर करें",
+    "revokeButton": "हस्ताक्षर वापस लें"
+  },
+  "documentTypes": {
+    "medicalCertificate": "मेडिकल प्रमाणपत्र",
+    "fitnessCertificate": "फिटनेस प्रमाणपत्र",
+    "dischargeSummary": "डिस्चार्ज सारांश",
+    "referralLetter": "रेफरल पत्र",
+    "sickNote": "बीमारी नोट",
+    "other": "अन्य / कस्टम"
+  }
+}

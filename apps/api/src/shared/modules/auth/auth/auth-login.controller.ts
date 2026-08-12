@@ -22,6 +22,7 @@ import {
   stripRefreshTokenFromBody,
 } from './auth-cookie.helpers';
 import { readRequestHeaderString } from '@/shared/common/http/request-headers';
+import { TurnstileVerifyService } from '@/shared/modules/turnstile/turnstile-verify.service';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -31,6 +32,7 @@ export class AuthLoginController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: AppConfigService,
+    private readonly turnstile: TurnstileVerifyService,
   ) {}
 
   @Public()
@@ -49,6 +51,9 @@ export class AuthLoginController {
     @Res({ passthrough: true }) res: Response,
   ) {
     try {
+      // P5.17: fail-closed human check when TURNSTILE_SECRET_KEY is configured;
+      // no-op otherwise so local dev / non-browser clients keep working.
+      await this.turnstile.assertValidToken(dto.turnstileToken, req.ip);
       const user = await this.authService.validateUser(dto.email, dto.password);
       if (!user) throw new UnauthorizedException('Invalid credentials');
       const result = await this.authService.loginWithMfaCheck(user);

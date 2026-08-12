@@ -1,7 +1,6 @@
 // jscpd:ignore-start
 import { Injectable } from '@nestjs/common';
 import { getPatientFullName } from '@workspace/utils';
-import { PrismaService } from '@/prisma/prisma.service';
 import { SearchFullTextSupportService } from '../search-full-text-support.service';
 import {
   SEARCH_QUERY_REPOSITORY_TOKEN,
@@ -10,6 +9,7 @@ import {
 import type { SearchResult } from '../search.types';
 import { SearchStrategyBase } from './search-strategy.base';
 import { Inject } from '@nestjs/common';
+import type { SearchStrategyPersistencePort } from '../ports/search-strategy.persistence.port';
 
 @Injectable()
 export class PatientSearchStrategy extends SearchStrategyBase {
@@ -17,7 +17,7 @@ export class PatientSearchStrategy extends SearchStrategyBase {
   readonly fullTextKey = 'patient' as const;
 
   constructor(
-    prisma: PrismaService,
+    prisma: SearchStrategyPersistencePort,
     fullTextSupport: SearchFullTextSupportService,
     @Inject(SEARCH_QUERY_REPOSITORY_TOKEN)
     searchQueries: SearchQueryRepository,

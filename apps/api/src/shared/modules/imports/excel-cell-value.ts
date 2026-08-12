@@ -1,4 +1,4 @@
-export type ExcelCellObject = {
+type ExcelCellObject = {
   result?: unknown;
   text?: unknown;
   richText?: Array<{ text?: string }>;

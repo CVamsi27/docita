@@ -1,0 +1,26 @@
+{
+  "filters": {
+    "searchPlaceholder": "इन्वेंट्री दर्ज करें",
+    "searchAriaLabel": "इन्वेंट्री खोजें",
+    "categoryPlaceholder": "श्रेणी",
+    "allCategories": "सभी श्रेणियाँ",
+    "stockPlaceholder": "स्टॉक स्थिति",
+    "allStatus": "सभी स्थितियाँ",
+    "lowCritical": "कम और गंभीर",
+    "inStock": "स्टॉक में"
+  },
+  "itemDetails": {
+    "skuLabel": "SKU: {sku}",
+    "notAvailable": "उपलब्ध नहीं",
+    "purchasePriceLabel": "क्रय मूल्य",
+    "sellingPriceLabel": "विक्रय मूल्य",
+    "minQuantityLabel": "न्यूनतम मात्रा",
+    "expiryDateLabel": "समाप्ति तिथि",
+    "recentMovementsTitle": "हालिया गतिविधियाँ",
+    "noMovementsRecorded": "अभी तक कोई गतिविधि दर्ज नहीं",
+    "tableTypeHeader": "प्रकार",
+    "tableQtyHeader": "मात्रा",
+    "tableDateHeader": "तारीख",
+    "tableNotesHeader": "टिप्पणियाँ"
+  }
+}

@@ -6,6 +6,7 @@ import { BulkImportJobProcessorService } from './bulk-import-job-processor.servi
 import { BulkImportOrchestratorService } from './bulk-import-orchestrator.service';
 import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
+import { IMPORT_STRATEGY_PERSISTENCE_PORT } from './ports/import-strategy.persistence.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { ImportFileParserService } from './import-file-parser.service';
 import { BulkImportStrategyRegistry } from './bulk-import-strategy.registry';
@@ -126,6 +127,10 @@ describe('BulkImportService', () => {
           useExisting: ImportDuplicateDetectorService,
         },
         ImportPatientPersistenceService,
+        {
+          provide: IMPORT_STRATEGY_PERSISTENCE_PORT,
+          useExisting: PrismaService,
+        },
         PatientImportStrategy,
         DoctorImportStrategy,
         PrescriptionImportStrategy,

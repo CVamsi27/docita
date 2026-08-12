@@ -7,10 +7,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { PartnerAuthService } from '../../core/services/partner-auth.service';
-import { bypassesSessionGuards } from '@/shared/modules/auth/auth/auth-route-metadata.util';
 
 export const PARTNER_AUTH_REQUEST_KEY = 'partnerAuth' as const;
 
@@ -27,16 +25,15 @@ export interface PartnerAuthRequestContext {
  */
 @Injectable()
 export class PartnerAuthGuard implements CanActivate {
-  constructor(
-    private readonly authService: PartnerAuthService,
-    private readonly reflector: Reflector,
-  ) {}
+  constructor(private readonly authService: PartnerAuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    if (bypassesSessionGuards(this.reflector, context)) {
-      return true;
-    }
-
+    // The partner portal is its own auth surface: the controller is marked
+    // `@Public()` so the global staff-session guards skip it, and THIS guard
+    // is the only auth on the surface. It must therefore always verify the
+    // partner token — it must not honor the public/upload-session-skip that
+    // the session guards use (that would leave the request context empty and
+    // every handler would 500).
     const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractToken(request);
     if (!token) {

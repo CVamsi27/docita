@@ -1,0 +1,145 @@
+{
+  "filters": {
+    "searchPlaceholder": "रोगी का नाम दर्ज करें",
+    "searchAriaLabel": "चालान खोजें",
+    "statusLabel": "स्थिति",
+    "allStatuses": "सभी स्थितियाँ"
+  },
+  "paymentMethods": {
+    "cash": "नकद",
+    "card": "कार्ड",
+    "upi": "UPI",
+    "online": "ऑनलाइन",
+    "netBanking": "नेट बैंकिंग",
+    "wallet": "वॉलेट"
+  },
+  "paidSummary": {
+    "paid": "भुगतान किया गया",
+    "partiallyPaid": "आंशिक भुगतान",
+    "unspecified": "अनिर्दिष्ट"
+  },
+  "table": {
+    "downloadPdfTooltip": "PDF डाउनलोड करें",
+    "emptyTitle": "कोई चालान नहीं मिला",
+    "emptyDescription": "आपके द्वारा बनाए गए चालान यहाँ दिखाई देंगे।",
+    "viewButton": "देखें",
+    "viewAriaLabel": "इनवॉइस देखें",
+    "pdfButton": "पीडीएफ़",
+    "invoiceNumberHeader": "इनवॉइस",
+    "patientHeader": "रोगी",
+    "dateHeader": "तारीख",
+    "amountHeader": "राशि",
+    "statusHeader": "स्थिति",
+    "actionsHeader": "क्रियाएँ",
+    "notAvailable": "N/A",
+    "viewDetailsTooltip": "विवरण देखें",
+    "printTooltip": "प्रिंट करें"
+  },
+  "header": {
+    "invoiceTitle": "इनवॉइस",
+    "phoneLabel": "फ़ोन:",
+    "emailLabel": "ईमेल:",
+    "dateLabel": "तारीख:",
+    "dueDateLabel": "नियत तारीख:",
+    "notAvailable": "N/A",
+    "logoAlt": "{facility} लोगो",
+    "nameFallback": "{facility} नाम"
+  },
+  "billTo": {
+    "billToTitle": "बिल प्राप्तकर्ता",
+    "paymentDetailsTitle": "भुगतान विवरण",
+    "methodLabel": "विधि:",
+    "statusLabel": "स्थिति:",
+    "unknownPatient": "अज्ञात रोगी"
+  },
+  "totalsSection": {
+    "authorizedSignature": "अधिकृत हस्ताक्षर",
+    "signatureAlt": "अधिकृत हस्ताक्षर",
+    "signaturePending": "हस्ताक्षर फ़ाइल में लंबित है",
+    "forLabel": "{name} के लिए",
+    "thankYou": "आपके व्यवसाय के लिए धन्यवाद!",
+    "generatedBy": "डॉकिटा बिलिंग वर्कस्पेस द्वारा निर्मित"
+  },
+  "formSections": {
+    "invoiceDetailsTitle": "इनवॉइस विवरण",
+    "lineItemsTitle": "लाइन आइटम",
+    "addItemButton": "आइटम जोड़ें",
+    "statusLabel": "स्थिति",
+    "statusPlaceholder": "स्थिति चुनें",
+    "statusPending": "लंबित",
+    "statusPaid": "भुगतान किया गया",
+    "statusOverdue": "अतिदेय",
+    "statusCancelled": "रद्द किया गया",
+    "notesTitle": "नोट्स",
+    "notesDescription": "इनवॉइस पर दिखाए गए वैकल्पिक नोट्स",
+    "notesPlaceholder": "नोट्स दर्ज करें…"
+  },
+  "itemsTable": {
+    "colDescription": "विवरण",
+    "itemDescriptionPlaceholder": "आइटम विवरण दर्ज करें",
+    "colQty": "मात्रा",
+    "colUnitPrice": "इकाई मूल्य",
+    "colTax": "कर उपचार",
+    "taxHealthcareExempt": "स्वास्थ्य सेवा छूट",
+    "taxTaxable": "कर योग्य",
+    "taxExempt": "छूट",
+    "taxNonGst": "गैर-GST",
+    "colGstPercent": "GST %",
+    "colHsnSac": "HSN/SAC",
+    "hsnCodePlaceholder": "HSN/SAC कोड दर्ज करें",
+    "colTotal": "कुल",
+    "emptyMessage": "अभी तक कोई आइटम नहीं जोड़ा गया",
+    "removeLineItemTooltip": "आइटम हटाएं"
+  },
+  "itemsTableReadOnly": {
+    "colDescription": "विवरण",
+    "colQty": "मात्रा",
+    "colPrice": "इकाई मूल्य",
+    "colGst": "GST",
+    "colHsnSac": "HSN/SAC",
+    "colTotal": "कुल",
+    "mobileLineMeta": "{quantity} × {unit}{tax}{hsn}",
+    "gstValue": "{percent}%",
+    "gstPercentSuffix": "GST {percent}%",
+    "hsnSuffix": "HSN/SAC {code}"
+  },
+  "paymentActivity": {
+    "loadingLabel": "भुगतान गतिविधि लोड हो रही है…",
+    "emptyTitle": "अभी तक कोई भुगतान नहीं",
+    "emptyDescription": "इस इनवॉइस के भुगतान यहां दिखाई देंगे",
+    "colDate": "तारीख",
+    "colAmount": "राशि",
+    "colSource": "स्रोत",
+    "colStatus": "स्थिति",
+    "colReference": "संदर्भ",
+    "colNotes": "नोट्स",
+    "colLink": "लिंक",
+    "openPaymentLink": "भुगतान लिंक खोलें",
+    "openLinkButton": "खोलें",
+    "paidByLabel": "{channel} द्वारा भुगतान",
+    "refLabel": "संदर्भ: {reference}"
+  },
+  "totals": {
+    "amountInWordsLabel": "शब्दों में राशि",
+    "subtotalLabel": "उप-योग",
+    "discountLabel": "छूट",
+    "taxableValueLabel": "कर योग्य मूल्य",
+    "taxLabel": "कर",
+    "documentLabel": "दस्तावेज़",
+    "totalLabel": "कुल",
+    "amountPaidLabel": "भुगतान की गई राशि",
+    "balanceDueLabel": "शेष राशि",
+    "notesLabel": "नोट्स"
+  },
+  "pageTitle": "इनवॉइस",
+  "pageDescription": "अपने क्लिनिक के इनवॉइस देखें और प्रबंधित करें।",
+  "refreshButton": "रीफ़्रेश करें",
+  "createInvoiceButton": "इनवॉइस बनाएँ",
+  "error": "हम इनवॉइस लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+  "showing": "{total} में से {filtered} इनवॉइस दिखाए जा रहे हैं",
+  "upgradeFallback": {
+    "title": "बिलिंग",
+    "description": "अपने मरीज़ों के लिए इनवॉइस और बिलिंग बनाएँ और प्रबंधित करें। यह सुविधा अनलॉक करने के लिए अपग्रेड करें।",
+    "upgradeButton": "प्लान अपग्रेड करें"
+  }
+}

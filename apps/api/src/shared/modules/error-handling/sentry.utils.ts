@@ -97,8 +97,6 @@ function scrubSentryEvent<T>(event: T): T {
   return event;
 }
 
-export { scrubSentryEvent };
-
 export function createSentryBeforeSend(
   extraBeforeSend?: NonNullable<NodeOptions['beforeSend']>,
 ): NonNullable<NodeOptions['beforeSend']> {

@@ -21,7 +21,7 @@ import 'reflect-metadata';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Gauge, register } from 'prom-client';
 
-export const CRON_HEARTBEAT_KEY = Symbol('CRON_HEARTBEAT_NAME');
+const CRON_HEARTBEAT_KEY = Symbol('CRON_HEARTBEAT_NAME');
 
 export interface ICronHeartbeatService {
   recordSuccess(name: string): Promise<void>;
@@ -29,7 +29,7 @@ export interface ICronHeartbeatService {
 }
 
 @Injectable()
-export class NoopCronHeartbeatService implements ICronHeartbeatService {
+class NoopCronHeartbeatService implements ICronHeartbeatService {
   async recordSuccess(_name: string): Promise<void> {
     /* no-op for tests */
   }

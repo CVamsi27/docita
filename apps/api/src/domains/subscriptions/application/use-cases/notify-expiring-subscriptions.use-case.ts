@@ -13,12 +13,12 @@ import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { getUtcDayBounds } from '@/shared/schedule/scheduler-date.util';
 
-export interface NotifyExpiringSubscriptionsRequest {
+interface NotifyExpiringSubscriptionsRequest {
   targetDate: Date;
   reminderType: string;
 }
 
-export type NotifyExpiringSubscriptionsResult = {
+type NotifyExpiringSubscriptionsResult = {
   reminderType: string;
   matchedSubscriptions: number;
   attemptedClinics: number;

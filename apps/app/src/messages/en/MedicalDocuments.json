@@ -1,0 +1,39 @@
+{
+  "createDialog": {
+    "title": "New Medical Document",
+    "typeLabel": "Document Type",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Title",
+    "uploadLabel": "Upload document",
+    "uploadHelper": "Optional, but recommended",
+    "mobileUploadButton": "Upload from phone",
+    "fileTypesHint": "PDF, PNG, JPG, or WebP",
+    "qrScanHint": "Scan this QR code on your phone to upload.",
+    "hideButton": "Hide",
+    "fileSelectedLabel": "File selected.",
+    "cancelButton": "Cancel",
+    "creatingButton": "Creating…",
+    "createButton": "Create"
+  },
+  "list": {
+    "loading": "Loading documents…",
+    "error": "We could not load these documents. Please try again.",
+    "emptyTitle": "No documents yet",
+    "emptyDescription": "Uploaded and generated medical documents will appear here.",
+    "title": "Medical Documents",
+    "newButton": "New"
+  },
+  "card": {
+    "viewUploadedFile": "View uploaded file",
+    "signButton": "Sign",
+    "revokeButton": "Revoke"
+  },
+  "documentTypes": {
+    "medicalCertificate": "Medical Certificate",
+    "fitnessCertificate": "Fitness Certificate",
+    "dischargeSummary": "Discharge Summary",
+    "referralLetter": "Referral Letter",
+    "sickNote": "Sick Note",
+    "other": "Others / custom"
+  }
+}

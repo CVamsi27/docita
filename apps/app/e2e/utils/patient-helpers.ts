@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { createHmac, randomUUID } from "node:crypto";
-import { APIRequestContext, Page } from "@playwright/test";
+import type { APIRequestContext, Page } from "@playwright/test";
 import {
   loginResponseSchema,
   uploadSessionCreateContractResponseSchema,
@@ -142,10 +142,6 @@ export interface UserData {
   email: string;
   clinicId: string;
   accessToken: string;
-}
-
-export interface BasicAuthUserData extends UserData {
-  role: string;
 }
 
 type SetupUserCache = Map<string, Promise<UserData>>;
@@ -321,61 +317,6 @@ async function postWithRetry(
   return lastRes;
 }
 
-/**
- * Fast auth setup for UI tests.
- *
- * Unlike `setupTestUser`, this avoids onboarding and email verification (which
- * can require DB access in some environments).
- */
-export async function setupAuthUser(
-  request: APIRequestContext,
-  requestHeaders: Record<string, string> = {},
-  options: {
-    role?: "DOCTOR" | "ADMIN" | "ADMIN_DOCTOR";
-    clinicName?: string;
-  } = {},
-): Promise<BasicAuthUserData> {
-  const uniqueId = randomUUID();
-  const email = `doctor-${uniqueId}@test.com`;
-  const password = TEST_PASSWORD;
-  const role = options.role ?? "ADMIN_DOCTOR";
-  const clinicName = options.clinicName ?? `Test Clinic ${uniqueId}`;
-  const clientIp = requestHeaders["X-Forwarded-For"] ?? createUniqueClientIp();
-  const headers = { "X-Forwarded-For": clientIp, ...requestHeaders };
-
-  const registerRes = await postWithRetry(
-    request,
-    `${API_URL}/auth/register`,
-    {
-      headers,
-      data: {
-        email,
-        password,
-        firstName: "Test",
-        lastName: "Doctor",
-        role,
-        clinicName,
-      },
-    },
-    { retries: 8, baseDelayMs: 800 },
-  );
-
-  if (!registerRes.ok()) {
-    throw new Error(`User registration failed: ${await registerRes.text()}`);
-  }
-
-  const registerData = await registerRes.json();
-  const accessToken = registerData.access_token || registerData.accessToken;
-  const user = registerData.user ?? registerData;
-
-  return {
-    id: user.id,
-    email: user.email ?? email,
-    clinicId: user.clinicId ?? "",
-    accessToken,
-    role: user.role ?? role,
-  };
-}
 
 export async function fetchPatientByApi(
   request: APIRequestContext,
@@ -401,17 +342,18 @@ async function setupTestUserImpl(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: "ESSENTIAL" | "FRONT_DESK" | "FRONT_DESK_CLINIC" | "FRONT_DESK_HOSPITAL";
+    tier?: "ESSENTIAL" | "PROFESSIONAL" | "HOSPITAL" | "ENTERPRISE";
+    planMode?: "FULL" | "FRONT_DESK" | "CORE";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
+  const planMode = options.planMode ?? "FULL";
   const isUnpaidEssentialTrial = tier === "ESSENTIAL";
 // jscpd:ignore-end
-  const isFrontDesk =
-    tier === "FRONT_DESK" ||
-    tier === "FRONT_DESK_CLINIC" ||
-    tier === "FRONT_DESK_HOSPITAL";
+  // Front Desk is mode-only (canonical tier + PlanMode FRONT_DESK) per
+  // AGENTS.md §15.8 — the legacy FRONT_DESK* tier enum values are removed.
+  const isFrontDesk = planMode === "FRONT_DESK";
   const usesTrialPayment = isUnpaidEssentialTrial || isFrontDesk;
   const onboardingAdminRole = isFrontDesk ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
@@ -420,7 +362,10 @@ async function setupTestUserImpl(
   const clinicName = `Test Clinic ${uniqueId}`;
   const clinicEmail = `clinic-${uniqueId}@test.com`;
   const signatureBuffer = Buffer.from(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=",
+    // Valid 2x2 PNG: the previous fixture decoded but was corrupt, and the
+    // API's sharp pipeline rejected it with libpng read error (400
+    // "Invalid file format or upload failed").
+    "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEUlEQVQImWPgEpH7D8IMMAYAJowE7bwlVOYAAAAASUVORK5CYII=",
     "base64",
   );
   const clientIp = requestHeaders["X-Forwarded-For"] ?? createUniqueClientIp();
@@ -566,6 +511,7 @@ async function setupTestUserImpl(
           tier,
           billingCycle: "MONTHLY",
           currency: "INR",
+          planMode,
         },
         paymentDetails,
         slaAgreement: {
@@ -735,7 +681,8 @@ export function reuseSharedFrontDeskClinicUser(
       request,
       {},
       {
-        tier: "FRONT_DESK",
+        tier: "ESSENTIAL",
+        planMode: "FRONT_DESK",
       },
     ).catch((err: unknown) => {
       sharedFrontDeskClinicUser = null;
@@ -751,11 +698,13 @@ export async function setupTestUser(
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: "ESSENTIAL" | "FRONT_DESK" | "FRONT_DESK_CLINIC" | "FRONT_DESK_HOSPITAL";
+    tier?: "ESSENTIAL" | "PROFESSIONAL" | "HOSPITAL" | "ENTERPRISE";
+    planMode?: "FULL" | "FRONT_DESK" | "CORE";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
+  const planMode = options.planMode ?? "FULL";
   const shouldCache =
 // jscpd:ignore-end
     Object.keys(requestHeaders).length === 0 && clinicType === "GENERAL";
@@ -764,17 +713,19 @@ export async function setupTestUser(
     return await setupTestUserImpl(request, requestHeaders, {
       clinicType,
       tier,
+      planMode,
     });
   }
 
   const cache = getSetupUserCache();
-  const cacheKey = `setupTestUser:GENERAL:${tier}`;
+  const cacheKey = `setupTestUser:GENERAL:${tier}:${planMode}`;
   const existing = cache.get(cacheKey);
   if (existing) return await existing;
 
   const promise = setupTestUserImpl(request, requestHeaders, {
     clinicType,
     tier,
+    planMode,
   });
   cache.set(cacheKey, promise);
   return await promise;

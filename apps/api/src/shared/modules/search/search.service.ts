@@ -3,11 +3,7 @@ import { TaggedCacheService } from '@/shared/modules/services/tagged-cache.servi
 import { SearchStrategyRegistry } from './search-strategy.registry';
 import type { SearchOptions, SearchResult } from './search.types';
 
-export type {
-  SearchEntityType,
-  SearchResult,
-  SearchOptions,
-} from './search.types';
+export type { SearchEntityType } from './search.types';
 
 @Injectable()
 export class SearchService {

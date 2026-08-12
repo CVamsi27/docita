@@ -17,6 +17,31 @@ const AUTHENTICATED_CLINIC_ROLES = [
   Role.PATIENT,
 ] as const;
 
+/**
+ * C7 (ADR-0013): the effective-permissions snapshot is read-only metadata
+ * for the staff app + INTERNAL console. Portal roles (PATIENT) are excluded —
+ * the matrix targets are staff/console surfaces. No TierGuard/RequireFeature:
+ * the payload mirrors whatever the client matrix would evaluate, including
+ * tier-blocked targets (false), so gating the endpoint itself would hide the
+ * denial information the UI needs. The global subscription guard still
+ * applies (billing-locked clinics get the standard 403).
+ */
+const EFFECTIVE_PERMISSIONS_ROLES = [
+  Role.DOCTOR,
+  Role.NURSE,
+  Role.RECEPTIONIST,
+  Role.ADMIN,
+  Role.ADMIN_DOCTOR,
+  Role.INTERNAL,
+  // LAB is a staff role with matrix targets (API_LAB_WORKSPACE / API_LABS /
+  // API_LAB_PAYMENT_VERIFICATION) — its surfaces consume the same snapshot.
+  Role.LAB,
+] as const;
+
+export function EffectivePermissionsApiAccess() {
+  return applyDecorators(Roles(...EFFECTIVE_PERMISSIONS_ROLES));
+}
+
 /** JWT session routes that skip subscription/password/email gates. */
 export function AuthSessionAccess() {
   return applyDecorators(

@@ -1,0 +1,190 @@
+{
+  "today": {
+    "askAiOverlayLabel": "on today's workspace",
+    "askAiAria": "Ask AI about today",
+    "askAiButton": "Ask AI",
+    "openQueueButton": "Open queue",
+    "viewQueueButton": "View queue",
+    "pageTitle": "Today",
+    "railHeading": "Sharing and recommendations",
+    "railLabelTips": "Tips",
+    "railLabelSharing": "Sharing",
+    "railLabelBoth": "Sharing & tips",
+    "bottomBarAria": "Next patient in queue",
+    "startNextButton": "Start next",
+    "startingButton": "Starting…",
+    "nextPatientButton": "Next patient",
+    "startNextAria": "Start next consultation: {name}",
+    "nextUpLabel": "Next up",
+    "pageDescription": "Your clinic overview for today"
+  },
+  "todayAdvisorRail": {
+    "joinRequestsCategory": "Join requests",
+    "joinRequestsHeadline": "{count, plural, one {1 pending request} other {{count} pending requests}}",
+    "joinRequestsDescription": "Approve or decline staff requesting access to your clinic.",
+    "dismissJoinRequestsLabel": "Dismiss join requests recommendation",
+    "joinRequestsAction": "Review requests",
+    "codingCategory": "Coding",
+    "codingHeadline": "{count, plural, one {1 visit pending coding} other {{count} visits pending coding}}",
+    "codingDescription": "Review completed visits that need ICD-10 or procedure coding.",
+    "dismissCodingLabel": "Dismiss pending coding recommendation",
+    "codingAction": "Open coding queue",
+    "queueCategory": "Queue",
+    "queueHeadline": "{count, plural, one {1 patient waiting} other {{count} patients waiting}}",
+    "queueDescription": "Open the consultation queue to start the next patient.",
+    "dismissQueueLabel": "Dismiss queue recommendation",
+    "queueAction": "Open queue",
+    "stackAriaLabel": "Today recommendations"
+  },
+  "loadError": "We could not load your dashboard. Please try again.",
+  "welcomeTitle": "Welcome to Docita",
+  "welcomeDescription": "Your dashboard will come to life once you start adding patients and scheduling appointments",
+  "addFirstPatient": "Add your first patient",
+  "overviewTitle": "Overview",
+  "stats": {
+    "totalPatients": "Total patients",
+    "todayAppointments": "Today's appointments",
+    "completedToday": "Completed today",
+    "inProgress": "In progress"
+  },
+  "activity": {
+    "title": "Recent activity",
+    "description": "Latest appointment updates",
+    "viewAll": "Appointments",
+    "emptyTitle": "No recent activity",
+    "emptyDescription": "New visits and updates will appear here."
+  },
+  "schedule": {
+    "tooltipToday": "Today's appointments",
+    "title": "Today's Schedule",
+    "appointmentCount": "{count} appointment{count, plural, one {} other {s}}",
+    "emptyTitle": "No appointments today",
+    "emptyDescription": "Your schedule is clear. Time to catch up or relax!",
+    "emptyAction": "Schedule visit",
+    "continueConsultation": "Continue consultation",
+    "openConsultation": "Open consultation",
+    "moreAppointments": "+{count} more appointments"
+  },
+  "alerts": {
+    "dismissAlert": "Dismiss alert"
+  },
+  "header": {
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "defaultName": "Doctor"
+  },
+  "quickActions": {
+    "opdQueue": "OPD queue",
+    "queue": "Queue",
+    "newPatient": "New Patient",
+    "patient": "Patient",
+    "schedule": "Schedule",
+    "visit": "Visit",
+    "documents": "Documents",
+    "docs": "Docs",
+    "codingQueue": "Coding queue",
+    "coding": "Coding",
+    "invoices": "Invoices",
+    "bill": "Bill",
+    "allPatients": "All Patients",
+    "patients": "Patients"
+  },
+  "patients": {
+    "title": "Recent Patients",
+    "lastUpdated": "Last updated",
+    "emptyTitle": "No patients yet",
+    "emptyDescription": "Add your first patient",
+    "emptyAction": "Add patient"
+  },
+  "stateShells": {
+    "loadError": "We could not load today's workspace. Please try again.",
+    "emptyTitle": "Start with your first patient",
+    "emptyDescription": "Add a patient or schedule a visit to see your queue and today's appointments here.",
+    "emptyAction": "Go to patients"
+  },
+  "progress": {
+    "title": "Today's Progress",
+    "appointments": "Appointments",
+    "pendingCodes": "Pending codes"
+  },
+  "upcoming": {
+    "title": "Upcoming visits",
+    "description": "Scheduled from tomorrow onward",
+    "viewAll": "Calendar",
+    "emptyTitle": "No upcoming visits",
+    "emptyDescription": "Schedule appointments to see what is next for your clinic.",
+    "emptyAction": "Schedule"
+  },
+  "advisor": {
+    "joinRequestsCategory": "Join requests",
+    "joinRequestsHeadline": "{count, plural, one {1 pending request} other {{count} pending requests}}",
+    "joinRequestsDescription": "Approve or decline staff requesting access to your clinic.",
+    "dismissLabel": "Dismiss recommendation",
+    "joinRequestsAction": "Review requests",
+    "codingCategory": "Coding",
+    "codingHeadline": "{count, plural, one {1 visit pending coding} other {{count} visits pending coding}}",
+    "codingDescription": "Review completed visits that need ICD-10 or procedure coding.",
+    "codingAction": "Open coding queue",
+    "queueCategory": "Queue",
+    "queueHeadline": "{count, plural, one {1 patient waiting} other {{count} patients waiting}}",
+    "queueDescription": "Open the consultation queue to start the next patient.",
+    "queueAction": "Open queue",
+    "stackAriaLabel": "Today recommendations"
+  },
+  "workspace": {
+    "queueTitle": "Queue",
+    "active": "Active",
+    "done": "Done",
+    "today": "Today",
+    "progress": "Today's progress",
+    "viewFullQueue": "View full queue"
+  },
+  "shortcuts": {
+    "title": "Shortcuts"
+  },
+  "followUps": {
+    "title": "Follow-ups due today",
+    "description": "Callbacks and planned reviews for today",
+    "viewAll": "Follow-ups",
+    "loading": "Loading follow-ups…",
+    "error": "We could not load follow-ups. Open the follow-ups page to retry.",
+    "emptyTitle": "No follow-ups due today",
+    "emptyDescription": "You are caught up for today.",
+    "dueDate": "Due {date}"
+  },
+  "doctorCards": {
+    "currentPatient": "Current Patient",
+    "noActiveSession": "No Active Session",
+    "inConsultation": "In consultation",
+    "startNextPatient": "Start your next patient",
+    "inProgress": "In Progress",
+    "continue": "Continue",
+    "patientsWaiting": "{count} patient(s) waiting",
+    "noPatientsInQueue": "No patients in queue",
+    "starting": "Starting…",
+    "patientFallback": "Patient",
+    "waiting": "Waiting",
+    "continueAriaLabel": "Continue consultation with {name}",
+    "startNextAriaLabel": "Start consultation with {name}"
+  },
+  "refreshControl": {
+    "updated": "Updated {time}",
+    "refreshData": "Refresh data",
+    "refresh": "Refresh"
+  },
+  "referralShare": {
+    "bookingPage": "Booking page",
+    "staffWorkspace": "Staff workspace",
+    "staffWorkspaceDescription": "For teammates joining this {facility} in Docita. Not for patients.",
+    "copied": "Copied",
+    "copyInviteText": "Copy invite text",
+    "copyInviteTooltip": "Copies the staff join code and the patient booking link in one block for email or chat.",
+    "copyJoinCodeTooltip": "Copy staff join code only ({code})",
+    "patientBooking": "Patient booking",
+    "patientBookingDescription": "Public page to request an appointment. Patients do not use the join code above.",
+    "copyInviteAriaLabel": "Copy invite text",
+    "copyJoinCodeAriaLabel": "Copy join code",
+    "copyBookingLinkAriaLabel": "Copy booking link"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "pageTitle": "Daybook",
+  "pageDescription": "End-of-day cash reconciliation — collections, payment-method breakdown, and ledger for the day.",
+  "previousDayAriaLabel": "Previous day",
+  "nextDayAriaLabel": "Next day",
+  "refreshButton": "Refresh",
+  "error": "We could not load the daybook for this day. Please try again.",
+  "collectedEyebrow": "Collected today",
+  "paidInvoiceCount": "{count} invoices paid",
+  "pendingEyebrow": "Pending",
+  "pendingHelper": "Invoices issued but not yet paid",
+  "cashOnHandEyebrow": "Cash on hand",
+  "cashOnHandHelper": "Cash payments received after cash-out",
+  "byMethodTitle": "Collected by method",
+  "ledgerTitle": "Ledger",
+  "emptyLedgerTitle": "No ledger entries yet",
+  "emptyLedgerDescription": "Payments received today will appear here",
+  "viewInvoicesAction": "View invoices",
+  "closeDayTitle": "Close the day",
+  "closeDayDescription": "Reconcile and lock today’s collections before moving to the next day",
+  "closeDayButton": "Close day"
+}

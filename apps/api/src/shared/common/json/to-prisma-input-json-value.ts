@@ -1,4 +1,10 @@
-// check-as-cast-density: allow-file — canonical Prisma InputJsonValue serialization boundary
+// check-as-cast-density: allow-file — canonical Prisma InputJsonValue
+// serialization boundary. The local JsonValue shape (which includes top-level
+// null and arrays) is not assignable to Prisma's InputJsonValue (which rejects
+// top-level null in favour of sentinels), and consumers have heterogeneous
+// field types (strict InputJsonValue vs InputJsonValue | JsonNull sentinels),
+// so no cast-free return type satisfies all — the seam cast is the only
+// uniform contract (same category as typed-http-boundary).
 import { Prisma } from '@workspace/db';
 
 type JsonLeaf = string | number | boolean | null;

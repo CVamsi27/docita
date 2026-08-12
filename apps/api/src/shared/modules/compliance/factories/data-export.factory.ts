@@ -1,6 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  DATA_EXPORT_PERSISTENCE_PORT,
+  type DataExportPersistencePort,
+} from '../ports/data-export.persistence.port';
 
 export interface ExportResult {
   exportDate: string;
@@ -14,7 +17,8 @@ export class DataExportFactory {
   private readonly logger = new Logger(DataExportFactory.name);
 
   constructor(
-    private prisma: PrismaService,
+    @Inject(DATA_EXPORT_PERSISTENCE_PORT)
+    private readonly prisma: DataExportPersistencePort,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 

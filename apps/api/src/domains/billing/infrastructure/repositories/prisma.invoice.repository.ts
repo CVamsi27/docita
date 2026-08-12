@@ -163,6 +163,14 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     };
   }
 
+  async belongsToClinic(id: string, clinicId: string): Promise<boolean> {
+    const invoice = await this.getReadClient().invoice.findFirst({
+      where: { id, ...this.invoiceOwnershipFilter(clinicId) },
+      select: { id: true },
+    });
+    return invoice !== null;
+  }
+
   async findById(
     id: string,
     clinicId: string,

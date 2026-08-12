@@ -6,8 +6,6 @@ import {
 } from './billing-cycle.policy';
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 
-export { BillingCycleEnum } from './billing-cycle.policy';
-
 export class BillingCycle {
   constructor(readonly value: BillingCycleEnum) {}
 

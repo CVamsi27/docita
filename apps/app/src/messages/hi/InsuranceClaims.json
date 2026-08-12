@@ -1,0 +1,25 @@
+{
+  "createFormSections": {
+    "presetPatientLabel": "{name} के लिए दावा बनाया जा रहा है।",
+    "readinessTitle": "चालान दावा तत्परता",
+    "readinessLoadingLabel": "क्लिनिकल कोडिंग जाँची जा रही है…",
+    "readinessReadyLabel": "यह चालान बीमा सबमिशन के लिए तैयार है।",
+    "readinessIssuesHeader": "दावा सबमिट करने से पहले इन आइटम को पूरा करें:",
+    "patientLabel": "रोगी",
+    "patientSearchPlaceholder": "रोगी खोजें…",
+    "patientLoadingPlaceholder": "लोड हो रहा है…",
+    "patientSelectPlaceholder": "रोगी चुनें",
+    "claimTypeLabel": "दावा प्रकार",
+    "claimedAmountLabel": "दावा राशि",
+    "insurerLabel": "बीमाकर्ता",
+    "insurerPlaceholder": "जैसे स्टार हेल्थ",
+    "tpaLabel": "TPA (वैकल्पिक)",
+    "tpaPlaceholder": "तृतीय-पक्ष प्रशासक",
+    "policyNumberLabel": "पॉलिसी नंबर",
+    "groupNumberLabel": "समूह नंबर (वैकल्पिक)",
+    "notesLabel": "टिप्पणियाँ (वैकल्पिक)",
+    "cancelButton": "रद्द करें",
+    "creatingLabel": "बनाया जा रहा है…",
+    "createClaimButton": "दावा बनाएँ"
+  }
+}

@@ -7,8 +7,8 @@ import process from "node:process";
 const repoRoot = process.cwd();
 
 const SCAN_ROOTS = [
-  "apps/app",
-  "apps/internal",
+  "apps/app/src",
+  "apps/internal/src",
   "apps/landing/src",
   "packages/ui/src",
 ];
@@ -23,8 +23,11 @@ const SOURCE_EXTENSIONS = new Set([
 ]);
 
 const APPROVED_TOAST_WRAPPERS = new Set([
-  "apps/app/shared/lib/errors/user-facing-errors.ts",
-  "apps/internal/shared/lib/errors/user-facing-errors.ts",
+  // Canonical wrapper: the single place that owns toast.error for user-facing
+  // errors. The app shims re-export from it (and no longer call toast.error).
+  "packages/ui/src/components/feedback/user-facing-error-toast.ts",
+  "apps/app/src/lib/errors/user-facing-errors.ts",
+  "apps/internal/src/lib/errors/user-facing-errors.ts",
 ]);
 
 const EXCLUDED_SEGMENTS = [

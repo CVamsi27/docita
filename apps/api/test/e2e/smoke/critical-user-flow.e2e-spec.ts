@@ -11,7 +11,7 @@ import {
   getPrismaInstance,
 } from '../../setup';
 import { factories, setPrismaInstance } from '../../factories';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN } from '@/domains/payments/core/ports/payment-link-provider.port';
 import {
@@ -33,7 +33,7 @@ describe('Critical User Flow (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(WhatsappService)
+      .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .overrideProvider(CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN)
       .useValue(mockPaymentLinkProvider)
@@ -61,8 +61,8 @@ describe('Critical User Flow (e2e)', () => {
   });
 
   const createAuthenticatedDoctor = async () => {
-    // Invoicing is an ESSENTIAL+ feature; 'PRO' is not a canonical ClinicTier
-    // and silently fell back to STARTER, 403ing the invoice step.
+    // Invoicing/prescription flow needs a canonical tier above STARTER;
+    // 'PRO' is not a valid ClinicTier and silently fell back to STARTER.
     const clinic = await factories.clinic({ tier: 'PROFESSIONAL' });
     const { user, plainPassword } = await factories.user({
       clinicId: clinic.id,

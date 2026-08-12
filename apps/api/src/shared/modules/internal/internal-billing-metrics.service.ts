@@ -25,69 +25,81 @@ export class InternalBillingMetricsService {
   ) {}
 
   async getMetrics() {
-    const subscriptions = await this.prisma.subscription.findMany({
-      include: {
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            tier: true,
-            referralCreditsMonths: true,
-          },
-        },
-      },
+    const now = this.clock.now();
+    const activeStatuses = [
+      SubscriptionStatus.ACTIVE,
+      SubscriptionStatus.TRIALING,
+    ];
+
+    // MRR: sum `basePriceCents` for active/trialing subscriptions, annualizing
+    // YEARLY cycles in SQL terms instead of loading every row into JS.
+    const mrrByCycle = await this.prisma.subscription.groupBy({
+      by: ['billingCycle'],
+      where: { status: { in: activeStatuses } },
+      _sum: { basePriceCents: true },
     });
+    const monthlyCents =
+      mrrByCycle.find((r) => r.billingCycle === 'MONTHLY')?._sum
+        .basePriceCents ?? 0;
+    const yearlyCents =
+      mrrByCycle.find((r) => r.billingCycle === 'YEARLY')?._sum
+        .basePriceCents ?? 0;
+    const mrrCents = monthlyCents + yearlyCents / 12;
+    const mrr = mrrCents / 100;
+    const arr = (mrrCents * 12) / 100;
 
-    const activeSubscriptions = subscriptions.filter(
-      (s) =>
-        s.status === SubscriptionStatus.ACTIVE ||
-        s.status === SubscriptionStatus.TRIALING,
-    );
+    const thirtyDaysAgo = subDays(now, 30);
+    const [totalActive, trialCount, cancelledRecently] = await Promise.all([
+      this.prisma.subscription.count({
+        where: { status: { in: activeStatuses } },
+      }),
+      this.prisma.subscription.count({
+        where: { status: SubscriptionStatus.TRIALING },
+      }),
+      this.prisma.subscription.count({
+        where: {
+          status: SubscriptionStatus.CANCELLED,
+          updatedAt: { gt: thirtyDaysAgo },
+        },
+      }),
+    ]);
 
-    const mrr = activeSubscriptions.reduce((sum, s) => {
-      const monthlyAmount =
-        s.billingCycle === 'YEARLY' ? s.basePriceCents / 12 : s.basePriceCents;
-      return sum + monthlyAmount;
-    }, 0);
-
-    const arr = mrr * 12;
-
-    const thirtyDaysAgo = subDays(this.clock.now(), 30);
-    const cancelledRecently = subscriptions.filter(
-      (s) =>
-        s.status === SubscriptionStatus.CANCELLED &&
-        new Date(s.updatedAt) > thirtyDaysAgo,
-    ).length;
-
-    const totalActive = activeSubscriptions.length;
     const churnRate =
       totalActive > 0
         ? cancelledRecently / (totalActive + cancelledRecently)
         : 0;
 
-    const subscriptionsByTier = subscriptions.reduce<Record<string, number>>(
-      (acc, s) => {
-        acc[s.plan] = (acc[s.plan] || 0) + 1;
-        return acc;
-      },
-      {},
+    const [tierGroups, statusGroups] = await Promise.all([
+      this.prisma.subscription.groupBy({
+        by: ['plan'],
+        _count: { _all: true },
+      }),
+      this.prisma.subscription.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+      }),
+    ]);
+
+    const subscriptionsByTier = Object.fromEntries(
+      tierGroups.map((g) => [g.plan, g._count._all]),
+    );
+    const subscriptionsByStatus = Object.fromEntries(
+      statusGroups.map((g) => [g.status, g._count._all]),
     );
 
-    const subscriptionsByStatus = subscriptions.reduce<Record<string, number>>(
-      (acc, s) => {
-        acc[s.status] = (acc[s.status] || 0) + 1;
-        return acc;
-      },
-      {},
-    );
+    const clinicSelect = {
+      id: true,
+      name: true,
+      email: true,
+      tier: true,
+      referralCreditsMonths: true,
+    } as const;
 
     // Shared by `expiringSubscriptions` and `gracePeriodSubscriptions` below
     // — both project the same subscription row onto the same billing-summary
     // shape, so the projection lives in one place rather than the two lists
     // drifting apart.
-    // jscpd:ignore-start
-    const toBillingSummary = (s: (typeof subscriptions)[number]) => ({
+    const toBillingSummary = (s: (typeof expiringRows)[number]) => ({
       id: s.id,
       clinicId: s.clinicId,
       tier: s.plan,
@@ -99,24 +111,26 @@ export class InternalBillingMetricsService {
       currency: s.currency,
       clinic: s.clinic,
     });
-    // jscpd:ignore-end
 
-    const sevenDaysFromNow = addDays(this.clock.now(), 7);
-    const expiringSubscriptions = subscriptions
-      .filter(
-        (s) =>
-          (s.status === SubscriptionStatus.ACTIVE ||
-            s.status === SubscriptionStatus.TRIALING) &&
-          new Date(s.currentPeriodEnd) <= sevenDaysFromNow &&
-          new Date(s.currentPeriodEnd) > this.clock.now(),
-      )
-      .map(toBillingSummary);
+    // Bounded by the 7-day window (no unbounded findMany of all rows).
+    const sevenDaysFromNow = addDays(now, 7);
+    const [expiringRows, graceRows] = await Promise.all([
+      this.prisma.subscription.findMany({
+        where: {
+          status: { in: activeStatuses },
+          currentPeriodEnd: { gt: now, lte: sevenDaysFromNow },
+        },
+        include: { clinic: { select: clinicSelect } },
+      }),
+      this.prisma.subscription.findMany({
+        where: { status: SubscriptionStatus.GRACE },
+        include: { clinic: { select: clinicSelect } },
+      }),
+    ]);
+    const expiringSubscriptions = expiringRows.map(toBillingSummary);
+    const gracePeriodSubscriptions = graceRows.map(toBillingSummary);
 
-    const gracePeriodSubscriptions = subscriptions
-      .filter((s) => s.status === SubscriptionStatus.GRACE)
-      .map(toBillingSummary);
-
-    const currentMonthStart = startOfMonth(this.clock.now());
+    const currentMonthStart = startOfMonth(now);
     const firstMonthStart = addMonths(currentMonthStart, -5);
     const nextMonthStart = addMonths(currentMonthStart, 1);
 
@@ -156,12 +170,10 @@ export class InternalBillingMetricsService {
     });
 
     return {
-      mrr: mrr / 100,
-      arr: arr / 100,
-      activeSubscriptions: activeSubscriptions.length,
-      trialSubscriptions: subscriptions.filter(
-        (s) => s.status === SubscriptionStatus.TRIALING,
-      ).length,
+      mrr,
+      arr,
+      activeSubscriptions: totalActive,
+      trialSubscriptions: trialCount,
       churnRate,
       subscriptionsByTier,
       subscriptionsByStatus,

@@ -1,0 +1,62 @@
+{
+  "pageTitle": "Prescriptions",
+  "documentHeader": {
+    "facilityLogoAlt": "Facility logo",
+    "phoneLabel": "Phone:",
+    "emailLabel": "Email:",
+    "supportLabel": "Support:",
+    "doctorPrefix": "Dr. {name}",
+    "regLabel": "Reg. No: {reg}",
+    "patientNameLabel": "Patient name",
+    "ageLabel": "Age: {age}",
+    "genderLabel": "Gender: {gender}",
+    "dateLabel": "Date"
+  },
+  "documentFooter": {
+    "signatureAlt": "Doctor signature",
+    "doctorPrefix": "Dr. {name}",
+    "regNumberLabel": "Reg. No: {reg}",
+    "digitalGeneratedLabel": "This prescription was generated digitally",
+    "poweredByLabel": "Powered by Docita — Healthcare OS",
+    "supportLabel": "Support: {email}",
+    "validityLabel": "Valid for free revisit within the printed window"
+  },
+  "medicationList": {
+    "medicationsTitle": "Medications",
+    "dosageLabel": "Dosage",
+    "frequencyLabel": "Frequency",
+    "durationLabel": "Duration",
+    "instructionsTitle": "Instructions"
+  },
+  "error": "We could not load prescriptions. Please try again.",
+  "showing": "Showing {filtered} of {total} prescriptions",
+  "filters": {
+    "searchPlaceholder": "Enter patient, diagnosis, or phone",
+    "searchAriaLabel": "Search prescriptions",
+    "from": "From",
+    "to": "To",
+    "startDatePlaceholder": "Select start date",
+    "endDatePlaceholder": "Select end date",
+    "allDaysTooltip": "Show all days (no date filter)",
+    "allDays": "All days"
+  },
+  "table": {
+    "title": "Prescriptions",
+    "emptyTitle": "No prescriptions found",
+    "emptyDescription": "Prescriptions you create will appear here.",
+    "viewButton": "View",
+    "viewAriaLabel": "View prescription",
+    "pdfButton": "PDF",
+    "downloadPdfTooltip": "Download PDF",
+    "printButton": "Print",
+    "printTooltip": "Print prescription"
+  },
+  "tableColumns": {
+    "id": "Prescription ID",
+    "patient": "Patient",
+    "diagnosis": "Diagnosis",
+    "medications": "Medications",
+    "date": "Date",
+    "actions": "Actions"
+  }
+}

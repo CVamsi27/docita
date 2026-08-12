@@ -1,9 +1,5 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { MOBILE_VIEWPORT, VIEWPORT_PRESETS } from "./viewport-presets";
-
-export { MOBILE_VIEWPORT, VIEWPORT_PRESETS };
-
 export async function expectNoHorizontalOverflow(page: Page) {
   const hasOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth + 1,

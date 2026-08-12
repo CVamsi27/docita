@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-08-06T09:05:16.208Z",
+  "channel": "chrome",
+  "samplesPerRoute": 3,
+  "routes": {
+    "/login": {
+      "LCP": 307.80000001192093,
+      "INP": 0,
+      "CLS": 0,
+      "TTFB": 2.099999964237213
+    },
+    "/book/:referralCode": {
+      "LCP": 299.89999997615814,
+      "INP": 0,
+      "CLS": 0,
+      "TTFB": 2
+    }
+  }
+}

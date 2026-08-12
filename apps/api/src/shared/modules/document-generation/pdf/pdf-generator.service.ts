@@ -11,17 +11,6 @@ import {
 import type { IPdfDocumentRenderer } from './pdf-document-renderer.interface';
 import type { InvoicePdfInput, PrescriptionPdfInput } from './pdf.types';
 import type { PDFConfig } from './pdf-config.types';
-export type { PDFContext } from './pdf.types';
-export type { PDFConfig } from './pdf-config.types';
-export type {
-  PDFClinicInfo,
-  PDFDoctorInfo,
-  PDFInvoiceItem,
-  PDFMedicationInfo,
-  PDFPatientInfo,
-  PDFDocumentType,
-  TableColumn,
-} from '@workspace/types';
 
 @Injectable()
 export class PDFGeneratorService implements IPdfDocumentRenderer {

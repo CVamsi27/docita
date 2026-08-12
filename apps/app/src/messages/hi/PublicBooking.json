@@ -1,0 +1,10 @@
+{
+  "linkUnavailableTitle": "यह लिंक अनुपलब्ध है",
+  "linkUnavailableDescription": "बुकिंग लिंक गलत या निष्क्रिय हो सकता है। सीधे क्लिनिक से संपर्क करें।",
+  "requestVisitTitle": "ऑनलाइन विज़िट का अनुरोध करें",
+  "fetchingLocation": "यह स्थान लोड हो रहा है...",
+  "loading": "स्थान लोड हो रहा है…",
+  "error": "यह बुकिंग लिंक मान्य नहीं है या स्थान अनुपलब्ध है।",
+  "unavailableTitle": "अनुपलब्ध",
+  "unavailableDescription": "बाद में पुनः प्रयास करें या सीधे स्थान से संपर्क करें।"
+}

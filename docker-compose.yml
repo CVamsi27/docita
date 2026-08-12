@@ -8,25 +8,6 @@ version: "3.8"
 # local dev equivalents.
 
 services:
-  web:
-    build:
-      context: .
-      dockerfile: apps/app/Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-    volumes:
-      - .:/app
-      - /app/node_modules
-    develop:
-      watch:
-        - action: sync
-          path: ./apps/app
-          target: /app/apps/app
-          ignore:
-            - node_modules/
-
   api:
     build:
       context: .

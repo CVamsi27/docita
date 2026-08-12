@@ -14,9 +14,8 @@ import { PublicBookingService } from '@/domains/public-booking/application/servi
 import { PublicBookingSlotsService } from '@/domains/public-booking/application/services/public-booking-slots.service';
 import { PublicBookingCreationService } from '@/domains/public-booking/application/services/public-booking-creation.service';
 import { PublicBookingSubmitService } from '@/domains/public-booking/application/services/public-booking-submit.service';
-import { TurnstileVerifyService } from '@/domains/public-booking/application/services/turnstile-verify.service';
+import { TurnstileModule } from '@/shared/modules/turnstile/turnstile.module';
 import { PublicBookingTokenService } from '@/domains/public-booking/application/services/public-booking-token.service';
-import { TurnstileSiteverifyClient } from '@/domains/public-booking/infrastructure/clients/turnstile-siteverify.client';
 
 @Module({
   imports: [
@@ -28,6 +27,7 @@ import { TurnstileSiteverifyClient } from '@/domains/public-booking/infrastructu
     AppointmentsModule,
     WhatsappModule,
     ComplianceModule,
+    TurnstileModule,
   ],
   controllers: [PublicBookingController],
   providers: [
@@ -36,8 +36,6 @@ import { TurnstileSiteverifyClient } from '@/domains/public-booking/infrastructu
     PublicBookingSlotsService,
     PublicBookingCreationService,
     PublicBookingSubmitService,
-    TurnstileSiteverifyClient,
-    TurnstileVerifyService,
     PublicBookingTokenService,
   ],
 })

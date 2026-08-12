@@ -1,1 +1,0 @@
-export { validatePhoneForCountry } from "./phone";

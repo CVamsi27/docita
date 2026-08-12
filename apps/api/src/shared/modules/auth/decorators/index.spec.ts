@@ -7,6 +7,5 @@ describe('auth decorators index', () => {
     expect(Decorators).toHaveProperty('SkipPasswordExpiry');
     expect(Decorators).toHaveProperty('SkipEmailVerification');
     expect(Decorators).toHaveProperty('RequirePatientConsent');
-    expect(Decorators).toHaveProperty('DoctorPatientScoped');
   });
 });

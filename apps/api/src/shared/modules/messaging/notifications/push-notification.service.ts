@@ -6,7 +6,7 @@ interface NotificationPayload {
   data?: Record<string, string>;
 }
 
-export type PushNotificationType =
+type PushNotificationType =
   | 'payment_received'
   | 'payment_failed'
   | 'payment_reminder'

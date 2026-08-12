@@ -38,6 +38,10 @@ const authUserSchema = userSchema
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Enter password"),
+  // Cloudflare Turnstile proof token (P5.17). Optional so local dev and
+  // non-browser clients keep working when TURNSTILE_SECRET_KEY is unset;
+  // the API rejects missing tokens only when enforcement is configured.
+  turnstileToken: z.string().min(1).optional(),
 });
 
 export const registerSchema = z.object({
@@ -57,6 +61,8 @@ export const registerSchema = z.object({
     .optional()
     .or(z.literal("")),
   role: z.enum(["ADMIN", "ADMIN_DOCTOR"]).optional(),
+  // See loginSchema.turnstileToken.
+  turnstileToken: z.string().min(1).optional(),
 });
 
 export const checkEmailSchema = z.object({

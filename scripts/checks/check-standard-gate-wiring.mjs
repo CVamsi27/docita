@@ -18,6 +18,11 @@ const requiredChecks = [
   "check:client-storage-usage",
   "check:env-vs-globalenv",
   "check:use-case-loc",
+  "check:workflow-script-refs",
+  "check:jsx-escape-literals",
+  "check:api-conformance",
+  "check:route-shadowing",
+  "check:openai-client-singleton",
 ];
 
 const violations = requiredChecks

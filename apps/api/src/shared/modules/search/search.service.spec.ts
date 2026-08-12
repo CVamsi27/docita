@@ -8,6 +8,7 @@ import {
   SEARCH_QUERY_REPOSITORY_TOKEN,
   type SearchQueryRepository,
 } from './ports/search-query.repository.port';
+import { SEARCH_STRATEGY_PERSISTENCE_PORT } from './ports/search-strategy.persistence.port';
 import { SearchStrategyRegistry } from './search-strategy.registry';
 import {
   PatientSearchStrategy,
@@ -100,6 +101,10 @@ describe('SearchService', () => {
             searchPatientsFuzzy: mockSearchPatientsFuzzy,
             searchAppointmentsFuzzy: mockSearchAppointmentsFuzzy,
           },
+        },
+        {
+          provide: SEARCH_STRATEGY_PERSISTENCE_PORT,
+          useExisting: PrismaService,
         },
         PatientSearchStrategy,
         AppointmentSearchStrategy,

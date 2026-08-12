@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { execSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 
 const trackedFiles = execSync("git ls-files", { encoding: "utf8" })
   .split("\n")
@@ -54,6 +55,49 @@ for (const file of trackedFiles) {
       violations.push({ file, reason: rule.reason });
       break;
     }
+  }
+}
+
+// Flag untracked dist/ directories in workspace packages/apps that declare no
+// build script. A build-less package cannot legitimately emit dist/, so a
+// dist/ there is stale output from a misdirected build (e.g. a tsc run with
+// the wrong cwd/outDir during the Next.js -> Vite migration). Packages with a
+// build script are excluded: their dist/ is normal output.
+const workspaceRoots = ["apps", "packages"].flatMap((dir) =>
+  existsSync(dir)
+    ? readdirSync(dir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => path.join(dir, entry.name))
+    : [],
+);
+
+for (const workspaceRoot of workspaceRoots) {
+  const packageJsonPath = path.join(workspaceRoot, "package.json");
+  if (!existsSync(packageJsonPath)) {
+    continue;
+  }
+
+  const distDir = path.join(workspaceRoot, "dist");
+  if (!existsSync(distDir)) {
+    continue;
+  }
+
+  const trackedDist = execSync(`git ls-files '${workspaceRoot}/dist'`, {
+    encoding: "utf8",
+  })
+    .split("\n")
+    .filter(Boolean);
+  if (trackedDist.length > 0) {
+    continue;
+  }
+
+  const manifest = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+  if (!manifest.scripts?.build) {
+    violations.push({
+      file: `${workspaceRoot}/dist/`,
+      reason:
+        "untracked dist/ in a package without a build script (stale misdirected output)",
+    });
   }
 }
 

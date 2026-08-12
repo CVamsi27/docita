@@ -1,0 +1,1 @@
+export { AuthPageContainer as LoginPage } from "../components/AuthPageContainer";

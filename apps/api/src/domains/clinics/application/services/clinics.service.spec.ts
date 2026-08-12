@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ClinicsService } from './clinics.service';
+import { ClinicsService } from './clinics-facade.service';
 import {
   CLINIC_PERSISTENCE_PORT,
   type ClinicPersistencePort,

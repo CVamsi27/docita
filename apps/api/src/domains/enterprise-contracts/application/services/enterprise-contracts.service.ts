@@ -10,6 +10,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { EnterpriseContractsQueryService } from './enterprise-contracts-query.service';
 import { EnterpriseContractsCommandService } from './enterprise-contracts-command.service';
 import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-invoice-command.service';
+import { EnterpriseContractTrueUpCommandService } from './enterprise-contract-true-up-command.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 /**
@@ -34,6 +35,10 @@ export class EnterpriseContractsService {
     );
     const invoiceService = new EnterpriseContractInvoiceCommandService(
       this.persistence,
+      clock,
+    );
+    const trueUpService = new EnterpriseContractTrueUpCommandService(
+      this.persistence,
       emailService,
       configService,
       clock,
@@ -42,6 +47,7 @@ export class EnterpriseContractsService {
       this.queryService,
       this.persistence,
       invoiceService,
+      trueUpService,
       clock,
     );
   }
