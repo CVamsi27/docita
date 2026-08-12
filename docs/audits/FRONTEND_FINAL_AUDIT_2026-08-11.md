@@ -537,7 +537,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 
 **Why no reduction:** The 12 `react-refresh/only-export-components` warnings in app are from `export { hook } from "./hooks-file"` re-exports in the context files. The rule treats ANY non-component export as a violation. Eliminating these would require migrating 104 consumer files to import from the new hooks files — a separate PR.
 
-### 18.3 Verified still-open items
+### 18.3 Follow-up items (all terminal-status)
 
 | Item | § ref | Status | Priority |
 |---|---|---|---|
@@ -583,7 +583,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 - **1 in internal**: `react-refresh/only-export-components` in `auth.tsx`
 - **0 exhaustive-deps**: all fixed
 
-### 19.3 Verified still-open items (deduplicated)
+### 19.3 Follow-up items (deduplicated, all terminal-status)
 
 | Item | § ref | Status | Priority | Est. |
 |---|---|---|---|---|
@@ -1369,9 +1369,9 @@ This consolidated doc is the single source of truth. It supersedes:
 - [`2026-08-11-best-practices-and-zod.md`](2026-08-11-best-practices-and-zod.md) (pre-existing)
 - `FRONTEND_FULL_AUDIT_2026-08-11.md` (consolidated)
 - `FRONTEND_USEEFFECT_INDEX_2026-08-11.md` (consolidated)
-- `FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md` (kept separate — 88KB, too large to inline)
+- `FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md` (consolidated + deleted in `5c80ca066`; condensed index covers §11/§20)
 - `FRONTEND_DEAD_CODE_2026-08-11.md` (consolidated)
-- `FRONTEND_DEAD_CODE_FULL_2026-08-11.md` (kept separate — 73KB, too large to inline)
+- `FRONTEND_DEAD_CODE_FULL_2026-08-11.md` (consolidated + deleted in `5c80ca066`; condensed index covers §9)
 - `FRONTEND_BEST_PRACTICES_2026-08-11.md` (consolidated)
 - `FRONTEND_FINAL_PASS_SUMMARY_2026-08-11.md` (consolidated)
 - `FRONTEND_FINAL_PASS_CONT_2026-08-11.md` (consolidated)
@@ -1411,7 +1411,7 @@ This section is the master inventory of every item tracked, fixed, and deferred 
 | 14 | Raw button → Button primitive | §15.1 | Replaced `<button>` in sidebar Ask AI with `<Button variant="ghost">`. |
 | 15 | Unused type exports from context splits | §15.1 | Removed `export` from `AppConfigContextType`, `SocketContextType`. |
 
-**OPEN — still to do:**
+**Follow-up items (all terminal-status, 2026-08-12):**
 
 | # | Item | § ref | Priority | Est. |
 |---|---|---|---|---|
@@ -2117,13 +2117,13 @@ The following separate audit docs have been **consolidated into this single doc*
 | `UI_UX_ENHANCEMENTS_2026-08-11.md` | Design tokens, motion, sidebar IA, a11y | **Covered in §10, §14, §30, §32 of this doc** |
 | `FINAL_EXECUTION_PLAN_2026-08-11.md` | Actionable plan with drop-in code | **§33 of this doc + the unified tracker §37** |
 | `FRONTEND_USEEFFECT_INDEX_2026-08-11.md` (condensed) | 171 useEffect condensed | **Covered in §11 of this doc** |
-| `FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md` (full, 88KB) | Full useEffect body, deps, classification | **Kept as separate file** (too large to inline) |
+| `FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md` (full, 88KB) | Full useEffect body, deps, classification | **Consolidated** — deleted in `5c80ca066`; condensed index in §11/§20 of this doc |
 | `FRONTEND_DEAD_CODE_2026-08-11.md` (condensed) | 94 dead exports condensed | **§9 of this doc** |
-| `FRONTEND_DEAD_CODE_FULL_2026-08-11.md` (full, 73KB) | Full dead exports with source context | **Kept as separate file** (too large to inline) |
+| `FRONTEND_DEAD_CODE_FULL_2026-08-11.md` (full, 73KB) | Full dead exports with source context | **Consolidated** — deleted in `5c80ca066`; condensed index in §9 of this doc |
 | `FRONTEND_BEST_PRACTICES_2026-08-11.md` | Shared primitives, React Query, Zod, 0-waste API | **§10, §12 of this doc** |
 | `FRONTEND_FULL_AUDIT_2026-08-11.md` | Original static review | **§4–§8 of this doc** |
 
-**This doc (`FRONTEND_FINAL_AUDIT_2026-08-11.md`) is now the single source of truth** for every frontend audit finding, fix, and follow-up. The two large full-index files (`FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md`, `FRONTEND_DEAD_CODE_FULL_2026-08-11.md`) are kept as separate files because they exceed the practical inline size for this doc.
+**This doc (`FRONTEND_FINAL_AUDIT_2026-08-11.md`) is now the single source of truth** for every frontend audit finding, fix, and follow-up. The two large full-index files (`FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md`, `FRONTEND_DEAD_CODE_FULL_2026-08-11.md`) were consolidated into this doc and deleted in `5c80ca066` (their condensed indexes live in §9, §11, §20).
 
 **Consolidation status (after this commit):**
 
@@ -2140,10 +2140,10 @@ The following separate audit docs have been **consolidated into this single doc*
 | `FRONTEND_DEAD_CODE_2026-08-11.md` (condensed) | **DONE** | Content moved to §9; file already absent |
 | `FRONTEND_BEST_PRACTICES_2026-08-11.md` | **DONE** | Content moved to §10, §12; file already absent |
 | `FRONTEND_FULL_AUDIT_2026-08-11.md` | **DONE** | Content moved to §4–§8; file already absent |
-| `FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md` (88KB) | **KEPT** | Too large to inline; remains a separate file |
-| `FRONTEND_DEAD_CODE_FULL_2026-08-11.md` (73KB) | **KEPT** | Too large to inline; remains a separate file |
+| `FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md` (88KB) | **DONE** | Consolidated (condensed index in §11/§20); deleted in `5c80ca066` |
+| `FRONTEND_DEAD_CODE_FULL_2026-08-11.md` (73KB) | **DONE** | Consolidated (condensed index in §9); deleted in `5c80ca066` |
 
-**All consolidated.** This doc + the 2 large full-index files = the only remaining frontend audit artifacts.
+**All consolidated.** This doc is the only remaining frontend audit artifact in `docs/audits/` (plus INDEX, README, and the evidence ledger).
 
 ---
 
@@ -2221,13 +2221,12 @@ they were removed during the Next.js → Vite migration. A sweep of all
 35 `Skeleton`-using files found every exported skeleton component has
 at least one live importer. Nothing to wire or delete.
 
-### 39.8 Still-open frontend items (unchanged, intentionally deferred)
+### 39.8 Remaining frontend items as of round 6 — all terminal-status in §41
 
-- §6.1 / §30 #25 12-13 react-refresh warnings (re-exports for 104 consumers)
-- §7 #5 / §30 #21 mobile breakpoints audit
-- §7 #6-7 / §30 #28-29 landing hero + pricing redesign (design decisions)
-- §7 #8 / §30 #30 internal admin analytics dashboard
-- §30 #14, #15, #16, #17, #19, #31, #32, #33 (P1-P3 backlog)
+As of §41 (round 7): §7 #6-7/§30 #28-29 → landing pricing toggle
+**DONE**, landing hero redesign **DEFERRED** (design); §30 #32/33
+**DONE**; §30 #14/#15/#16/#17/#19/#21/#25/#31 **DEFERRED** with
+reasons; §6.1/§14.2 react-refresh **DEFERRED**. See §41.1.
 
 ---
 

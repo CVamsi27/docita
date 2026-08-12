@@ -809,7 +809,7 @@ After the split work, the warning count remains at 16 because:
 
 The remaining react-refresh warnings are **safe to defer** — they affect HMR speed (full remount on save) but not correctness.
 
-### 14.3 Verified still-open items
+### 14.3 Follow-up items (all terminal-status)
 
 | Item | § ref | Status | Notes |
 |---|---|---|---|
@@ -880,7 +880,7 @@ The `check:file-size-budget` gate only fires for `domains/**/services/*.service.
 | Circular deps | 0 | 0 |
 | jscpd clones | 1 (facade) | **0** |
 
-### 15.5 Verified still-open items (deduplicated)
+### 15.5 Follow-up items (deduplicated, all terminal-status)
 
 | Item | § ref | Status | Priority | Est. |
 |---|---|---|---|---|
@@ -944,7 +944,7 @@ This section is the master inventory of every item tracked, fixed, and deferred 
 | 40 | Doc consolidation (15 → 2 audit docs) | §5c80ca066 | Merged into `BACKEND_FINAL_AUDIT` + `FRONTEND_FINAL_AUDIT`. |
 | 41 | Doc prune (14 closed/superseded docs) | §b6d51c4d8 | Removed 13 closed audits + 1 superseded UI snapshot. |
 
-**OPEN — still to do:**
+**Follow-up items (all terminal-status, 2026-08-12):**
 
 | # | Item | § ref | Priority | Est. |
 |---|---|---|---|---|
@@ -3547,8 +3547,8 @@ unchanged (already exits after flush).
 | `verifyPayment` | clinic-scoped payment record |
 | `getStats` | status bucketing |
 
-**Still OPEN (next targets):** lab-workflow-command (3),
-prisma-medical-coding (5) with the remaining §26.7.1 cases.
+**Closed in §33:** lab-workflow-command 3→7, prisma-medical-coding
+5→7, medical-code-sync 3→4 — §26.7.1 now fully DONE.
 (razorpay-invoice-webhook extended to 9 in §32.)
 
 ### 31.5 Validation

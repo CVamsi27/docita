@@ -4,8 +4,8 @@
 >
 > 1. **[`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md)**
 >    — Every backend finding, fix, and follow-up. 80+ gate results,
->    best-practices spot-checks, architectural observations, 7
->    PrismaService leaks, 15 minute-miss findings, 11 follow-up PRs,
+>    best-practices spot-checks, architectural observations, 5
+>    PrismaService leaks (allowlisted), 15 minute-miss findings,
 >    §17 final pass consolidating the cycle.
 >
 > 2. **[`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md)**
