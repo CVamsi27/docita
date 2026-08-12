@@ -267,7 +267,7 @@ jobs:
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
             echo "reason=invalid-credentials" >> "$GITHUB_OUTPUT"
-            echo "::warning title=Cloudflare deploys disabled::CLOUDFLARE_API_TOKEN verification failed; deploy-app/deploy-internal/deploy-landing are skipped. Regenerate the token (Edit Cloudflare Workers template) and update the CLOUDFLARE_API_TOKEN repository secret."
+            echo "::warning title=Cloudflare deploys disabled::CLOUDFLARE_API_TOKEN verification failed (HTTP 401, code 1000); deploy-app/deploy-internal/deploy-landing are skipped. Follow RB-13 in docs/operations/RUNBOOKS.md: create a new API token (Edit Cloudflare Workers template), verify it with scripts/deploy/verify-cloudflare-deploy-credentials.mjs, then update the CLOUDFLARE_API_TOKEN repository secret."
           fi
 
   deploy-app:
