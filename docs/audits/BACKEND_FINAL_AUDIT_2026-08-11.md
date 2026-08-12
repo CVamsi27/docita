@@ -2035,7 +2035,8 @@ means the user is told "completed" while half the rows are missing.
 - Surface partial failure to the user (per AGENTS.md §1: "Treat
   every release as a migration for existing paying users").
 
-**Effort:** medium. **Status:** OPEN.
+**Status:** DEFERRED (2026-08-12) — both surfaces resolve via the
+outbox migration; needs a design decision (see §33.6).
 
 ### 26.2 High findings (closed in this cycle)
 
@@ -2191,7 +2192,9 @@ Routing audit through the outbox therefore needs a decision on
 fire-and-forget callers should open a transaction or use a separate
 at-least-once queue. **Do not implement without a design note.**
 
-**Effort:** medium. **Status:** OPEN (requires design decision).
+**Status:** DEFERRED (2026-08-12) — design blocker recorded: the
+outbox payload contract forbids PHI and `logAsync` callers lack an
+enclosing transaction. See §33.6.
 
 #### 26.3.6 Observability fire-and-forget — CLOSED (2026-08-12, verified: metrics view is in-memory; DB write is best-effort)
 
@@ -2214,7 +2217,8 @@ degraded metrics view.
 
 **Fix shape:** Add a retry buffer or a circuit-breaker.
 
-**Effort:** small. **Status:** OPEN.
+**Status:** CLOSED (2026-08-12) — header + §31.6 carry the evidence
+(metrics view is in-memory; DB write is best-effort).
 
 #### 26.3.7 Feature flag void in `OnApplicationBootstrap` — CLOSED (2026-08-12, evidence: fallback already correct + 2 regression tests)
 
@@ -2527,7 +2531,8 @@ returns the data even if RLS was supposed to filter it).
 **Fix shape:** Narrow the return type to a generic and add a
 runtime assert that the RLS context was actually applied.
 
-**Effort:** small. **Status:** OPEN.
+**Status:** CLOSED (2026-08-12) — `routeOperationThroughActiveTx<T>`
+now returns `Promise<T>` (round-5 generic narrowing).
 
 ### 26.9 Summary table (per-finding status)
 
@@ -2562,21 +2567,22 @@ runtime assert that the RLS context was actually applied.
 | 9.5.3 | `.github/workflows/stop-db-auto-restart.yml` permissions | CLOSED (§10) | — |
 | 9.5.4 | PHI encryption coverage | INFO (13 fields) | — |
 | 9.5.5 | RLS rollout (operator action) | INFO (deploy-ready) | — |
-| 9.6.1 | API latency baseline | OPEN | small (after soak) |
+| 9.6.1 | API latency baseline | DEFERRED (2026-08-12, needs staging soak) | small |
 | 9.6.2 | `check-worker-size.mjs` missing | CLOSED (false positive) | — |
 | 9.6.3 | Health controller registration | CLOSED (§10) | — |
-| 9.7.1 | 1-test money-moving specs (top 5) | OPEN | small each |
-| 9.7.2 | `apps/internal` zero unit specs | OPEN | small per file |
-| 9.7.3 | 111/112 check scripts no test | OPEN | small per file |
-| 9.7.4 | E2E for INTERNAL controllers | OPEN | small per file |
-| 9.8.1 | 5 prisma leaks (was 7) | PARTIAL (2 closed 2026-08-12) | ~15h left |
+| 9.7.1 | 1-test money-moving specs (top 5) | DONE (2026-08-12, all 5 targets spec'd) | — |
+| 9.7.2 | `apps/internal` zero unit specs | DEFERRED (2026-08-12, needs page-logic extraction) | — |
+| 9.7.3 | 111/112 check scripts no test | DONE (first batch, 6 checks; 38 tests) | — |
+| 9.7.4 | E2E for INTERNAL controllers | DEFERRED (2026-08-12, admin-RBAC plumbing) | — |
+| 9.8.1 | 5 prisma leaks (was 7) | PARTIAL (3 closed 2026-08-12; 5 allowlisted remain) | ~15h left |
 | 9.8.2 | 12 services at 380-399 | INFO (no action) | — |
-| 9.8.3 | `rls-routing.extension.ts` unknown | OPEN | small |
+| 9.8.3 | `rls-routing.extension.ts` unknown | CLOSED (2026-08-12, generic narrowing) | — |
 
 **Totals:**
 - 36 detailed findings from .fallow §9.1-§9.8
-- **26 CLOSED** in this cycle (72%)
-- **9 OPEN** (25%) — all bounded with documented effort
+- **30 CLOSED/DONE** in this cycle (83%)
+- **4 DEFERRED** with recorded reasons (11%)
+- **1 PARTIAL** (prisma leaks, allowlisted)
 - **1 INFO** (no action required)
 
 This appendix preserves the file:line precision from the
@@ -2899,7 +2905,8 @@ Already split in §10 (true-up extracted). **Status:** CLOSED.
 
 ### 27.38 [low] `apps/api/src/domains/subscriptions/core/services/referral.service.ts:399` — at file-size budget ceiling
 
-Open — see §27.9. **Status:** OPEN.
+See §27.9. **Status:** DEFERRED (2026-08-12) — watch item; split
+before the next feature touches the file.
 
 ### 27.39 [low] `apps/api/src/domains/clinics/application/services/clinic-data-command.service.ts` (139 lines) — stable
 
@@ -2925,11 +2932,12 @@ in-memory; DB write is best-effort by design).
 
 ### 27.44 [low] `apps/api/src/shared/modules/audit/audit-logger.service.ts:154` — void
 
-See §26.3.5. **Status:** OPEN.
+See §26.3.5. **Status:** DEFERRED (design blocker recorded).
 
 ### 27.45 [low] `apps/api/src/shared/modules/queue/postgres-queue.service.ts:112` — poller void
 
-See §27.23. **Status:** OPEN.
+See §27.23. **Status:** CLOSED (2026-08-12, verified — setInterval
+keeps polling regardless of per-tick failures).
 
 ### 27.46 [low] `apps/api/src/shared/common/extensions/rls-routing.extension.ts:9` — narrow
 
@@ -2937,19 +2945,20 @@ See §27.21 / §26.8.3. **Status:** CLOSED (2026-08-12: generic narrowing).
 
 ### 27.47 [low] `apps/api/src/shared/modules/webhooks/outgoing/outgoing-webhook.repository.ts:75,103,129` — IClock
 
-See §27.20. **Status:** OPEN.
+See §27.20. **Status:** DEFERRED (testability-only; inject clock with a spec round).
 
 ### 27.48 [low] `apps/api/src/shared/modules/messaging/admin-alerts/admin-alerts.service.ts:129` — circuit breaker
 
-See §27.19. **Status:** OPEN.
+See §27.19. **Status:** CLOSED (2026-08-12, verified — dedupe window
+bounds sends + logs per alert key).
 
 ### 27.49 [low] `apps/api/src/shared/modules/feature-flags/feature-flags.service.ts:101` — IClock
 
-See §27.22. **Status:** OPEN.
+See §27.22. **Status:** CLOSED (2026-08-12, fallback verified).
 
 ### 27.50 [low] `apps/api/src/main.ts:458-462` — unhandledRejection rate-limit
 
-See §26.5.2. **Status:** OPEN.
+See §26.5.2. **Status:** CLOSED (2026-08-12, rate limiter landed).
 
 ---
 
@@ -3691,4 +3700,4 @@ entry was stale and is removed. Gate still reports 5 tracked leaks
 | Standards-checks (38 tests) | PASS |
 | `check-prisma-boundary --enforce` | OK, 5 tracked leaks |
 | Clinical suites (lab-workflow, medical-coding, medical-code-sync) | 18 tests PASS |
-| API full suite | runs after commit (expect 475+ suites / ~3362+ tests) |
+| API full suite | **475 suites / 3366 tests pass** (was 3358) |
