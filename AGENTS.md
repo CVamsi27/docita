@@ -393,7 +393,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - Fly.io API deployments must be driven by [`fly.toml`](fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Fly.io worker deployments must be driven by [`apps/worker/fly.toml`](apps/worker/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Staging API deployments are handled by Render auto-deploys from the `staging` branch; GitHub Actions should not add a separate deploy hook for the staging API.
-- Cloudflare frontend deployments are handled by the path-scoped [`.github/workflows/deploy-cloudflare.yml`](.github/workflows/deploy-cloudflare.yml) workflow when repository credentials verify. Keep app watch paths scoped and use Cloudflare Git integration or dashboard deploys only as the documented fallback.
+- Cloudflare frontend deployments are handled by the `deploy-app` / `deploy-internal` / `deploy-landing` jobs in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml), gated on repository Cloudflare credentials (the `gate` job runs `verify-cloudflare-deploy-credentials.mjs`). Keep app watch paths scoped and use Cloudflare Git integration or dashboard deploys only as the documented fallback.
 
 ## 11.2) CI scope and cost
 
