@@ -1287,7 +1287,7 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 
 11. **§22/§30 #11**: Add sidebar footer (Settings, Help, Theme, Plan, Ask AI) — **DONE** (per §18)
 12. **§22/§30 #12**: Add skip-to-content links in 6 layouts — **DONE**
-13. **§22/§30 #13**: Create `AskAiButton` component — **OPEN** (1h)
+13. **§22/§30 #13**: Create `AskAiButton` component — **DONE (2026-08-12)** — extracted to `apps/app/src/components/ask-ai/ask-ai-button.tsx`, sidebar footer now uses it
 14. **§22/§30 #14**: Wire `@ZodSerializerDto` on 51 controllers — **OPEN** (4h)
 15. **§22/§30 #15**: Convert 14 `apps/internal` pages to React Query — **OPEN** (4h)
 16. **§22/§30 #16**: Convert 13 settings forms to RHF `values` prop — **OPEN** (3h)
@@ -1316,7 +1316,7 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 33. **§22/§30 #33**: Promote `useEffectivePermissions` to `@workspace/data-access` — **OPEN** (2h)
 34. **§30 #34**: i18n coverage gate enforcement — **DONE (2026-08-12)** — `check:i18n-coverage` + `check:i18next-parity` both wired into verify:standard and passing
 
-**Total estimated remaining work: ~75h across 22 open items** (updated 2026-08-12: §33.1 #3, #4, §30 #18, #20, #23, #24, #26, #34 closed — see §39).
+**Total estimated remaining work: ~74h across 21 open items** (updated 2026-08-12: §33.1 #3, #4, §30 #13, #18, #20, #23, #24, #26, #34 closed — see §39).
 
 ### 33.5 Final tracker
 
@@ -2205,9 +2205,16 @@ countdown timers the useEffect index (§20) flags.
 | #24 en/hi key-parity CI check | `check:i18next-parity` in verify:standard, en 2970 = hi 2970 |
 | #34 i18n coverage gate enforcement | both i18n checks wired into verify:standard |
 
-### 39.6 Still-open frontend items (unchanged, intentionally deferred)
+### 39.6 §14.2 #4 — `AskAiButton` component — DONE
 
-- §14.2 #4 AskAiButton component (1h)
+Extracted the sidebar's inline Ask AI trigger into
+`apps/app/src/components/ask-ai/ask-ai-button.tsx` (behavior-preserving:
+still opens the command palette). The sidebar footer now renders
+`<AskAiButton />` instead of the inline `<Button>`. App check-types EXIT 0,
+app lint 0 new warnings, app suite 140 files / 726 tests pass.
+
+### 39.7 Still-open frontend items (unchanged, intentionally deferred)
+
 - §6.1 / §30 #25 12-13 react-refresh warnings (re-exports for 104 consumers)
 - §7 #5 / §30 #21 mobile breakpoints audit
 - §7 #6-7 / §30 #28-29 landing hero + pricing redesign (design decisions)
