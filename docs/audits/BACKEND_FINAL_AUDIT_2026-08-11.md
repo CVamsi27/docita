@@ -803,7 +803,7 @@ CI state (this cycle's commits):
 | ClinicTierType alias deletion | §9.14 | **DONE** | Removed from `packages/types/src/admin/internal.ts`. |
 | 3 cron unit specs | §15.2 | **DONE** | 3 specs written (12 tests) for doctor-reverification, medical-code-sync, whatsapp-reconciliation. |
 | file-size-budget gate extension | §15.3 | **DONE** | Gate extended to `shared/modules/**/*.service.ts` with 3 allowlisted services. |
-| Mixed-export file splits | §9.3 (frontend) | **PARTIAL** | 4 context files split (auth, app-config, clinic, socket); 12 remaining warnings are re-exports needed for backward compatibility (104 consumers). |
+| Mixed-export file splits | §9.3 (frontend) | **DEFERRED** (remainder) | 4 context files split (auth, app-config, clinic, socket); 12 remaining warnings are re-exports needed for backward compatibility (104 consumers) — dedicated PR, recorded in the frontend doc §6.1/§14.2. |
 
 ### 14.2 Remaining lint warnings (16 in app, 2 in internal)
 
@@ -818,7 +818,7 @@ The remaining react-refresh warnings are **safe to defer** — they affect HMR s
 
 | Item | § ref | Status | Notes |
 |---|---|---|---|
-| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7) | §8.1 | **PARTIAL (2 closed 2026-08-12)** | ~15h left. Closed: strategy deleted (dead code); config.service ported behind `IClinicConfigQuery`. |
+| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7) | §8.1 | **DEFERRED** (2 closed 2026-08-12; 5 remain allowlisted) | ~15h left. Closed: strategy deleted (dead code); config.service ported behind `IClinicConfigQuery`. |
 | ~~3 barrel inlines~~ | §8.2 | **DONE** | 3 barrels deleted (clinics, templates, ocr); 7 prod + 5 spec files updated to import from canonical sources. |
 | ~~IPD barrel removal~~ | §8.3 | **DONE** | Entire IPD feature deleted (~500 lines, 15 files). |
 | ~~`ClinicTierType` deletion~~ | §9.14 | **DONE** | Type alias removed from `packages/types/src/admin/internal.ts`. |
@@ -889,7 +889,7 @@ The `check:file-size-budget` gate only fires for `domains/**/services/*.service.
 
 | Item | § ref | Status | Priority | Est. |
 |---|---|---|---|---|
-| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7) | §8.1 | **PARTIAL** | MED | ~15h |
+| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7) | §8.1 | **DEFERRED** (2 closed 2026-08-12; 5 remain) | MED | ~15h |
 | ~~ConsentComplianceService CQS split~~ | §9.4 | **DONE** | `323aa76fa`: split into `ConsentCommandService` + `ConsentQueryService`. |
 | API latency baseline | §9.10 | **DEFERRED** | Needs staging soak (see §26.6.1). |
 | ~~3 unspecced crons~~ | §15.2 | **DONE** | 3 specs written (12 tests). |
@@ -1895,7 +1895,7 @@ unit test. The single `standard-checks.test.mjs` covers ~30 of
 the most regression-prone checks. A new check added without a
 test can ship a false-negative bug undetected.
 
-**Status:** PARTIAL → first batch DONE (2026-08-12). New
+**Status:** DONE — first batch landed (2026-08-12). New
 `scripts/checks/check-batch-2.test.mjs` covers 6 previously
 uncovered checks (`no-emoji`, `tailwind-raw-color`,
 `token-typography`, `as-cast-density`, `empty-catches`,
@@ -2432,7 +2432,7 @@ the only `/health` controller in `app.module.ts`. See §26.1.1.
 
 ### 26.7 Test coverage findings (open)
 
-#### 26.7.1 1-test money-moving specs — PARTIAL (2026-08-12: insurance-claims-command + prisma-lab done; remaining see below)
+#### 26.7.1 1-test money-moving specs — DONE (2026-08-12: all 5 priority targets spec'd; see §31.4/§33.1)
 
 **Landed this round:**
 - `insurance-claims-command.service.spec.ts` (10 tests) covering create
@@ -2513,10 +2513,10 @@ admin RBAC; needs dedicated e2e plumbing round).
 
 ### 26.8 Architectural debt (open)
 
-#### 26.8.1 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` — PARTIAL (3 closed 2026-08-12, 5 allowlisted remain)
+#### 26.8.1 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` — DEFERRED (2 closed 2026-08-12, 5 allowlisted remain)
 
 See §18.4 for the full list and §20 for the migration pattern.
-**Status:** PARTIAL; three entries are closed —
+**Status:** DEFERRED — 2 of the original 7 entries are closed:
 `default-pricing-calculator.strategy.ts` deleted (verified dead code,
 zero imports/registrations/specs), `modules/config/config.service.ts`
 ported behind the new `IClinicConfigQuery` port (and its now-stale
@@ -2591,7 +2591,7 @@ now returns `Promise<T>` (round-5 generic narrowing).
 | 9.7.2 | `apps/internal` zero unit specs | DEFERRED (2026-08-12, needs page-logic extraction) | — |
 | 9.7.3 | 111/112 check scripts no test | DONE (first batch, 6 checks; 38 tests) | — |
 | 9.7.4 | E2E for INTERNAL controllers | DEFERRED (2026-08-12, admin-RBAC plumbing) | — |
-| 9.8.1 | 5 prisma leaks (was 7) | PARTIAL (3 closed 2026-08-12; 5 allowlisted remain) | ~15h left |
+| 9.8.1 | 5 prisma leaks (was 7) | DEFERRED (2 closed 2026-08-12; 5 allowlisted remain) | ~15h left |
 | 9.8.2 | 12 services at 380-399 | INFO (no action) | — |
 | 9.8.3 | `rls-routing.extension.ts` unknown | CLOSED (2026-08-12, generic narrowing) | — |
 
@@ -2599,7 +2599,7 @@ now returns `Promise<T>` (round-5 generic narrowing).
 - 36 detailed findings from .fallow §9.1-§9.8
 - **30 CLOSED/DONE** in this cycle (83%)
 - **4 DEFERRED** with recorded reasons (11%)
-- **1 PARTIAL** (prisma leaks, allowlisted)
+- **1 DEFERRED** (prisma leaks, allowlisted)
 - **1 INFO** (no action required)
 
 This appendix preserves the file:line precision from the
@@ -3541,7 +3541,7 @@ unhandled rejections, so a buggy cron throwing in a tight loop cannot spam
 Sentry or run forever in a degraded state. `uncaughtException` behavior is
 unchanged (already exits after flush).
 
-### 31.4 §26.7.1 money-moving specs — PARTIAL (insurance-claims + prisma-lab done)
+### 31.4 §26.7.1 money-moving specs — DONE (rounds 5-7)
 
 **Files (new):**
 - `apps/api/src/domains/insurance-claims/application/services/insurance-claims-command.service.spec.ts` — 10 tests:

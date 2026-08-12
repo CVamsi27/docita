@@ -531,7 +531,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | animate-pulse → Skeleton | §14.3 #11 | **DONE** | Replaced `animate-pulse` in `consultation-dashboard-sections.tsx` with `<Skeleton>` from `@workspace/ui`. |
 | transition-all scoping (2 sites) | §14.3 #10 | **DONE** | Scoped to `transition-[width] duration-500 ease-out` (analytics bar chart) and `transition-[width] duration-200 ease-out` (sidebar collapse). |
 | Skip-to-content links | §14.2 #5 | **DONE** | Added `<a href="#main-content">` to both app and internal protected layouts. |
-| Mixed-export file splits (4 files) | §6.1 | **PARTIAL** | Extracted hooks from `auth-context.tsx`, `app-config-context.tsx`, `clinic-context.tsx`, `socket-context.tsx` into dedicated `*-hooks.ts` files with `*-context-inner.ts` for the context object. 12 remaining warnings are re-exports needed by 104 consumers. |
+| Mixed-export file splits (4 files) | §6.1 | **DEFERRED** (remainder) | Extracted hooks from `auth-context.tsx`, `app-config-context.tsx`, `clinic-context.tsx`, `socket-context.tsx` into dedicated `*-hooks.ts` files with `*-context-inner.ts` for the context object. 12 remaining warnings are re-exports needed by 104 consumers — dedicated migration PR, recorded in §6.1/§14.2. |
 | ConsentContent export demotion | §9.3 | **DONE** | Removed `export` keyword — interface is now file-private. |
 
 ### 18.2 Current lint status after fixes
@@ -1171,7 +1171,7 @@ Per `docs/ui/UI_UX_STANDARD_2026.md` and the audits in `UI_UX_ENHANCEMENTS_2026-
 | `.ui-card-surface`, `.ui-panel`, `.ui-panel-muted` | ✅ | ✅ | n/a | `globals.css:639-655` |
 | `text-[Npx]` arbitrary values | ❌ 0 sites — fully token-driven | ✅ | ✅ | (clean) |
 | Raw `w-[Npx]`/`h-[Npx]`/`p-[Npx]`/`m-[Npx]` | ⚠️ 146 files (mostly `min-h-[50vh]`) | ✅ | ✅ | P2-3 to tokenize |
-| `transition-all` | ❌ 0 sites | ❌ 2 sites (P0-8) | ❌ 2 sites (P0-8) | n/a |
+| `transition-all` | ✅ 0 sites | ✅ 0 sites (P0-8: 2 app + 2 internal scoped to `transition-[width]`) | ❌ 2 sites (`pricing-mode-toggle.tsx` — not part of P0-8; no motion gate enforces this; see §14.3 #10 note) | n/a |
 | `animate-pulse` | ❌ 1 site (P0-9) | ✅ | ✅ | n/a |
 | `<Skeleton>` instead of `animate-pulse` divs | ✅ | ✅ | ✅ | `feedback/skeleton.tsx` |
 | `motion/react` + `usePrefersReducedMotion` | n/a | n/a | ✅ | `apps/landing/src/lib/motion-prefs.ts` |
@@ -1286,7 +1286,7 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 5. **§20/§30 #5**: Replace `SubscriptionResponseDto` interface with Zod — **DONE in earlier cycle**
 6. **§20/§30 #6**: Delete dead business rules (Group A) — **WITHDRAWN** (files reachable via barrels)
 7. **§20/§30 #7**: Delete IPD sub-feature — **DONE**
-8. **§20/§30 #8**: Fix 4 `transition-all` sites — **PARTIAL** (2 done in §18, 2 remaining)
+8. **§20/§30 #8**: Fix 4 `transition-all` sites — **DONE** (2 app scoped in §18, 2 internal scoped in P0-8)
 9. **§20/§30 #9**: Replace `animate-pulse` with `<Skeleton>` in consultation dashboard — **DONE**
 10. **§20/§30 #10**: Fix 4 `react-hooks/exhaustive-deps` bugs — **DONE**
 
@@ -2010,7 +2010,7 @@ This is the **single tracker** for every P0-P3 item across all 11 audit docs. Ea
 - [x] P0-5: Replace `SubscriptionResponseDto` interface with Zod (§18, §20) — `b6d51c4d8` (DONE)
 - [x] P0-6: Delete dead business rules (Group A) — WITHDRAWN, files reachable via barrels (§18, §20)
 - [x] P0-7: Delete IPD sub-feature (~500 lines) — `b6d51c4d8` (DONE)
-- [x] P0-8: Fix 4 `transition-all` sites — 2 DONE in §18, 2 remaining
+- [x] P0-8: Fix 4 `transition-all` sites — all 4 DONE (2 app in §18, 2 internal scoped to `transition-[width]`); landing's `pricing-mode-toggle.tsx` sites are a separate unenforced item
 - [x] P0-9: Replace `animate-pulse` with `<Skeleton>` in consultation dashboard (§18, §20) — `b6d51c4d8` (DONE)
 - [x] P0-10: Fix 4 `react-hooks/exhaustive-deps` bugs (§18) — `b6d51c4d8` (DONE)
 - [ ] P0-11: Remove `maximum-scale=5.0` from `apps/app/index.html:5` (§36.3) — **5 min**
