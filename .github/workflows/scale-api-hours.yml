@@ -1,5 +1,17 @@
 name: Scale API - IST Business Hours
 
+# NOTE: This workflow is DISABLED (GitHub Actions UI: `gh workflow list` does not show it;
+# `gh api repos/CVamsi27/docita/actions/workflows/scale-api-hours.yml` reports
+# state=disabled_manually since 2026-07-26). No disabling commit, comment, or doc note exists.
+# Likely reason (inference from that day's run logs, not recorded intent): the 03:00 UTC
+# scale-up failed with "failed to launch VM: no capacity available in bom" (Fly region
+# capacity), leaving the API down during business hours.
+# Re-enable preconditions (see docs/operations/RUNBOOKS.md "RB-14: Disabled scheduled workflows"):
+#   1. Verify Fly can launch a docita-api machine in the bom region (manual
+#      `flyctl scale count 1 --app docita-api` with FLY_API_TOKEN).
+#   2. Alert-noise policy decided for scale-up failures (synthetic-monitoring.yml pages on
+#      a down API; the 3:15 UTC offset mitigates the 3:00 race but not a capacity failure).
+
 on:
   schedule:
     # 8:30 AM IST = 3:00 AM UTC — scale up to 1 machine

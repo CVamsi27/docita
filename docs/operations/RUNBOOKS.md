@@ -656,6 +656,67 @@ so deploy jobs appeared skipped without a diagnosable cause.
 
 ---
 
+## RB-14: Disabled scheduled workflows (Scale API / Synthetic monitoring)
+
+**Status** Informational record — no incident is active. Both scheduled
+workflows are disabled and no repo-side change can re-enable them; a human
+must act in the GitHub Actions UI.
+
+**Facts (verified 2026-08-13 via the GitHub API, not inferred)**
+
+- `.github/workflows/scale-api-hours.yml` (Scale API - IST Business Hours,
+  id `289989847`) reports `state=disabled_manually`.
+- `.github/workflows/synthetic-monitoring.yml` (Synthetic uptime monitoring,
+  id `285712721`) reports `state=disabled_manually`.
+- Both last ran 2026-07-26 (schedule events); neither appears in `gh
+  workflow list` (which shows active workflows only) and neither has fired
+  since. Their files are unchanged since June and remain tracked on `main`.
+- No disabling commit, comment, or doc note exists anywhere in the repo.
+
+**Likely reason (inference — no recorded intent)** The 2026-07-26 run logs
+show a failure cascade: the 03:00 UTC scale-up failed with
+`failed to launch VM: no capacity available in bom` (Fly region capacity);
+the API was therefore down during the business-hours window; every synthetic
+probe run that day failed on the down API (`api-health-live` timeouts,
+`daily-thought` HTTP 525, auto-recovery restart finding no machines). The
+most plausible reading is that someone disabled both workflows that day to
+stop the monitor paging on the broken scale-up — but this is inference, not
+documented intent.
+
+**Consequences while disabled**
+
+- No API autoscaling: the API sits at whatever machine count the last run
+  (2026-07-26 15:56Z) left, so the intended off-hours scale-to-0 is not
+  happening (quiet cost, no outage; `GET https://api.docita.work/api/v1/health`
+  returned 200 on 2026-08-13).
+- No synthetic uptime alerting: an API outage today would page nobody, and
+  RB-01's "synthetic checks green" verification gate is blind.
+
+**Re-enable preconditions (both must be met before `gh workflow enable`)**
+
+1. Fly capacity verified: confirm a `docita-api` machine can launch in the
+   `bom` region today (e.g. `flyctl scale count 1 --app docita-api` with
+   `FLY_API_TOKEN`, then back down). The `bom` no-capacity error is the
+   recorded failure class; re-enabling without this check risks repeating it.
+2. Alert-noise policy decided: confirm probes should page when a scale-up
+   fails (the monitor's 3:15 UTC offset mitigates the 3:00 UTC scale-up race
+   but not a capacity failure), or gate probe alerting to the
+   business-hours window only.
+
+**To re-enable**
+
+```bash
+gh workflow enable 289989847 --repo CVamsi27/docita   # Scale API - IST Business Hours
+gh workflow enable 285712721 --repo CVamsi27/docita   # Synthetic uptime monitoring
+gh workflow list --repo CVamsi27/docita               # confirm both active
+gh run list --repo CVamsi27/docita --workflow <id> --limit 5   # watch the next schedule trigger
+```
+
+If the next trigger fails with the `bom` capacity error again, disable both
+again and escalate to the Fly provider for region capacity.
+
+---
+
 ## Appendix: contact + escalation matrix
 
 | Role            | Channel                    | SLA              |

@@ -1,5 +1,17 @@
 name: Synthetic uptime monitoring
 
+# NOTE: This workflow is DISABLED (GitHub Actions UI: `gh workflow list` does not show it;
+# `gh api repos/CVamsi27/docita/actions/workflows/synthetic-monitoring.yml` reports
+# state=disabled_manually since 2026-07-26). No disabling commit, comment, or doc note exists.
+# Likely reason (inference from that day's run logs, not recorded intent): the API was down
+# during the 2026-07-26 business window (scale-up failed on Fly "no capacity available in
+# bom"), and every probe run that day failed on the down API
+# (api-health-live timeouts, daily-thought 525, auto-recovery restart found no machines).
+# Re-enable preconditions (see docs/operations/RUNBOOKS.md "RB-14: Disabled scheduled workflows"):
+#   1. Verify Fly can launch a docita-api machine in the bom region.
+#   2. Alert-noise policy decided: confirm probes should page on scale-up failures, or gate
+#      probe alerting to the business-hours window only.
+
 on:
   schedule:
     # IST business hours only (8:30 AM – 8:30 PM IST = 03:00–15:00 UTC), the
