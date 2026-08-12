@@ -352,7 +352,7 @@ The `// jscpd:ignore-start/end` markers in the source suppress duplication detec
 
 **Spot-check (5 files):** all legitimate (NestJS module wiring, seed upserts, PHI encryption fields, ABDM wrappers). No misuse observed. The marker discipline is the right call; removing the markers would force ~30 small refactors for zero net value.
 
-### 6.3 The 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` are a real architectural gap
+### 6.3 The `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` are a real architectural gap (7 at cycle start; 5 tracked)
 
 These aren't lint debt — they're domain services that own business logic *and* persistence in the same class. The migration cost (~20h, see §8.1) is real but bounded. The cron schedulers (outbox-relay, ephemeral-cleanup, data-retention, campaign-dispatch) all use the same `FOR UPDATE SKIP LOCKED` claim pattern, which means the migration is largely a single shared repository abstraction `ILeaseClaimingRepository.claimBatch()` that takes a model name + a SQL CTE. Extracting that abstraction first, then porting the 4 crons to use it, would deliver ~80% of the value at ~30% of the cost.
 
@@ -674,7 +674,7 @@ The `check:no-emoji` gate scans `apps/{app,internal,landing}/src` but the audit 
 
 **Priority:** NONE.
 
-### 9.13 [LOW] 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (recommended fix: follow the multi-PR plan in §8.1)
+### 9.13 [LOW] `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (7 at cycle start; 5 tracked — recommended fix: follow the multi-PR plan in §8.1)
 
 **See §8.1.** Total ~20h of work, lowest-risk first (modules/config/config.service.ts + default-pricing-calculator.strategy.ts at ~1h each).
 
@@ -705,7 +705,7 @@ The `check:no-emoji` gate scans `apps/{app,internal,landing}/src` but the audit 
 | **#216** "chore(test): remove empty test/integration and test/unit; move test-tenant-isolation.ts to docs/runbooks/" | §9.5, §9.6 | 30 min | LOW |
 | **#217** "chore(style): apply prettier auto-fix across api + worker" | §9.9 | 5 min | NONE (cosmetic) |
 | **#218** "fix(api): defensive comment on approvePrescription + delete unused ClinicTierType alias + delete unused ConsentContent export" | §9.1, §9.14, §8.4 | 15 min | LOW |
-| **#219+** "refactor(api): port the 7 KNOWN_LEGACY_PRISMA_SERVICE_LEAKS to I*Repository seams" | §8.1 | 20h | MED (multi-PR) |
+| **#219+** "refactor(api): port the 7 KNOWN_LEGACY_PRISMA_SERVICE_LEAKS to I*Repository seams" (planned; 2 closed in round 6 → 5 remain) | §8.1 | 20h | MED (multi-PR) |
 
 ---
 
@@ -776,7 +776,7 @@ CI state (this cycle's commits):
 - **Related runbook:** (planned) `docs/runbooks/graceful-shutdown.md` per §9.8; (planned) `docs/runbooks/tenant-isolation.md` per §9.5
 - **Fixed in:** PR #211 (commits `bb13fbbff`, `13a6844bb`, `e22397f9a`, `39c029391`); subsequent cycle commits through `b77eb67e7` (66 commits total in the cycle).
 - **Verified by:** `pnpm verify:standard` exit 0; API unit 3332/3332 (473 suites); invoice-abac 9/9; partner-portal 13/13; clinic-management spec 8/8; referral-conversion-credit spec 5/5; total 4568 tests across 8 runners.
-- **Open follow-ups:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (§8.1); API latency baseline (§9.10). The `ConsentComplianceService` CQS split that was originally listed here was closed in `323aa76fa`.
+- **Open follow-ups (current tip, round 7):** 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (§8.1; was 7 — 2 closed via port extraction in round 6, allowlist pruned in round 7); API latency baseline (§9.10, **DEFERRED** — needs stable staging soak). The `ConsentComplianceService` CQS split that was originally listed here was closed in `323aa76fa`.
 
 ---
 
@@ -1075,24 +1075,28 @@ The cycle's work spans **3 PRs and 20+ commits**:
 | Type / contract discipline (Zod, DTOs) | 5 | 5 | 0 | 0 |
 | Tooling (lint, gates, scripts) | 6 | 6 | 0 | 0 |
 | Documentation (audits, runbooks) | 5 | 5 | 0 | 0 |
-| **Prisma boundary (legacy leaks)** | **7** | **0** | **7** | **~20** |
+| **Prisma boundary (legacy leaks)** | **7** | **2** | **5** | **~15** |
 | **API latency baseline (operational)** | **1** | **0** | **1** | **~0.5** (after stable soak) |
 
 ### 17.3 The only remaining open items
 
-Two open items remain across the entire cycle. Both are
-intentional, tracked, and bounded:
+Two open-item classes remain across the cycle. Both are
+intentional, tracked, and bounded (state as of round 7,
+2026-08-12):
 
-1. **§8.1 — `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (7 entries,
-   ~20h).** These are domain services + cron schedulers that
+1. **§8.1 — `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (5 entries,
+   ~15h).** These are domain services + cron schedulers that
    still inject `PrismaService` directly, bypassing the
    `I*Repository` port pattern. The migration shape is
-   proven (21 services already ported in prior cycles). The
-   lowest-risk starting points are `default-pricing-calculator.strategy.ts`
-   (1h) and `modules/config/config.service.ts` (1h) — both
-   have a single call site. The highest-leverage is the
-   shared `ILeaseClaimingRepository.claimBatch()` abstraction
-   that would let the 4 cron schedulers (`outbox-relay`,
+   proven (23 services now ported — the two former
+   lowest-risk starting points, `default-pricing-calculator.strategy.ts`
+   and `modules/config/config.service.ts`, were **closed in
+   round 6**: the calculator was dead code and deleted, and
+   `config.service.ts` was ported behind the
+   `IClinicConfigQuery` seam). The highest-leverage
+   remaining move is the shared
+   `ILeaseClaimingRepository.claimBatch()` abstraction that
+   would let the 4 cron schedulers (`outbox-relay`,
    `ephemeral-store-cleanup`, `data-retention`,
    `whatsapp-campaign-dispatch`) share a single SQL
    `FOR UPDATE SKIP LOCKED` claim primitive. Building that
@@ -1109,9 +1113,14 @@ intentional, tracked, and bounded:
 
 ### 17.4 Final state — branch tip and CI
 
-**Branch tip:** `fix/app-deployment-failure@b77eb67e7` (post
+**Branch tip (as written):** `fix/app-deployment-failure@b77eb67e7` (post
 `b77eb67e7 docs(audits): §29 final pass — 44-dimension verification
 scan`; 66 commits total in the cycle).
+
+> **Current tip (round 7, 2026-08-12):** `85f4bcbea` — the branch has
+> advanced 30+ commits past `b77eb67e7` through rounds 5-7 (spec
+> extensions, port extraction, docs terminalization). See §33 for the
+> current-state record.
 
 **Commit history since the cycle began (66 commits, in reverse order):**
 - `b77eb67e7` docs(audits): §29 final pass — 44-dimension verification scan
@@ -1266,9 +1275,10 @@ auditor so the same work isn't proposed again:
   a single AWS control plane wrapper. Splitting it would
   add cross-service coordination for a single class that's
   already at the right level of cohesion.
-- **Don't refactor the 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS`
-  in one PR.** They're 7 separate refactors with different
-  risk profiles. The 20h estimate is 7 PRs, not 1.
+- **Don't refactor the `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS`
+  in one PR.** They're separate refactors with different
+  risk profiles (7 at cycle start; 5 remain). The original
+  20h estimate was for 7 PRs, not 1.
 - **Don't generate the API latency baseline before the staging
   soak is stable.** A noisy baseline will mask regressions.
   The §9.10 recommendation is intentional: wait for a
@@ -1371,24 +1381,26 @@ After the §10 round (extracted `evaluateAndAlertTrueUp` from
 - 12 services in the 300-399 range (one line under the cap; see
   .fallow §11.8 for the full hot list).
 
-### 18.4 Prisma boundary: legacy leaks (7)
+### 18.4 Prisma boundary: legacy leaks (5 tracked; was 7)
 
-The 7 entries in `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (per
-`scripts/checks/check-prisma-boundary.js:87-106`). Each is a
+The 5 entries in `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (per
+`scripts/checks/check-prisma-boundary.js`). Each is a
 domain service or cron that still injects `PrismaService` directly
 rather than going through an `I*Repository` port:
 
 | File | Surface | Migration cost |
 |---|---|---|
-| `domains/billing/strategies/default-pricing-calculator.strategy.ts` | 1 call (`prisma.discount.findUnique`) | ~1h |
-| `modules/config/config.service.ts` | 1 call (`prisma.clinic.findUnique`) | ~1h |
 | `shared/modules/messaging/admin-alerts/platform-health-alerts.scheduler.ts` | 1 raw `SELECT 1` | ~1h |
 | `shared/modules/ephemeral-store/ephemeral-store-cleanup.scheduler.ts` | 6 model delegates | ~3h |
 | `shared/modules/outbox/outbox-relay.scheduler.ts` | 1 raw CTE + 2 delegates | ~4h |
 | `shared/modules/compliance/data-retention.scheduler.ts` | 2 delegates inside `runUnrestricted` | ~4h |
 | `domains/whatsapp/whatsapp-campaign-dispatch.cron.ts` | 1 raw CTE + 4 delegates | ~6h |
 
-**Total: ~20h** (per §8.1). The 4 cron schedulers share a
+**Total: ~15h** (per §8.1; down from 7 entries / ~20h — the two
+former lowest-risk entries, `default-pricing-calculator.strategy.ts`
+(deleted: dead code) and `modules/config/config.service.ts` (ported
+behind the `IClinicConfigQuery` seam), were **closed in round 6**).
+The 4 cron schedulers share a
 `FOR UPDATE SKIP LOCKED` claim pattern; extracting
 `ILeaseClaimingRepository.claimBatch()` first delivers ~80% of
 the value at ~30% of the cost.
@@ -1717,7 +1729,7 @@ prioritize the next sprint.
 | Risk | Severity | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
 | **Stale analytics cache** (§11.1) | HIGH | High | A doctor / sales lead makes a decision on outdated data (up to 24h stale). | Add `ApplicationEvents.ANALYTICS_INVALIDATE` hook on the relevant write services. |
-| **7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS`** | MED | Med | Direct PrismaService injection bypasses the `I*Repository` mock seam; a multi-tenant refactor in the affected services is harder. | Migrate behind the port pattern per §20. |
+| **5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS`** (was 7; 2 ported/deleted in round 6) | MED | Med | Direct PrismaService injection bypasses the `I*Repository` mock seam; a multi-tenant refactor in the affected services is harder. | Migrate behind the port pattern per §20. |
 | **No API latency baseline** (§9.10) | MED | High (silent) | A p95 latency regression in a controller is undetected by `verify:standard`. | Capture a staging soak; commit the baseline artifact. |
 | **12 mixed-export file warnings** (frontend, §14.2) | LOW | High | Fast-refresh on the affected files does a full remount instead of a single-component update. | Migrate the 104 consumer imports; the warnings are re-exports for backward compat. |
 | **4 react-hooks/exhaustive-deps warnings** (frontend, §14.2) | MED | Med | Stale closures in `useMemo` / `useCallback` may cause real React correctness bugs. | Fix the dep arrays; add tests. |
@@ -3040,7 +3052,7 @@ working artifact.
 | 16 | `@ts-ignore` / `@ts-expect-error` | 0 | All 3 matches are comments. |
 | 17 | Nested try-catch | 0 | `check:empty-catches` + manual grep clean. |
 | 18 | Knip unused exports | 0 unused files, 0 unused dependencies, 0 unused type exports | 2 unused value exports in in-development app code. |
-| 19 | `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` count | 7 entries | All 7 in §18.4 with the migration template in §20. |
+| 19 | `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` count | 7 entries (5 at the current tip — 2 closed in round 6) | All 7 in §18.4 with the migration template in §20; §18.4 reflects the current 5. |
 | 20 | i18n parity | **51/51 files, 2970/2970 leaves** | The `check:i18next-parity` gate passes; an earlier `find` glob was misleading. |
 | 21 | React hooks (apps) | 253 total (121 useState, 47 useEffect, 58 useMemo, 27 useCallback) | Per FRONTEND §11 (`useEffect` index), the ratio is healthy. |
 | 22 | `Promise<unknown>` in non-test | 8 sites (down from 14 in prior round) | All at contract boundaries; legitimate `unknown` per the §10 narrowing work. |
@@ -3146,7 +3158,7 @@ elsewhere in this doc:
 - **`apps/internal` zero unit specs** (§24.3).
 - **111/112 check scripts have no test** (§24.5).
 - **1-test money-moving specs** (§24.2).
-- **The 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS`** (§8.1 + §20).
+- **5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS`** (§8.1 + §20; was 7 — 2 closed in round 6).
 - **API latency baseline** (§9.10).
 - **9 stale UI tokens** (closed in §10).
 - **3 hand-rolled currency compactors** (closed in §10).
