@@ -519,7 +519,7 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 - **Related runbook:** (none)
 - **Fixed in:** PR #211 (commits `bb13fbbff`, `13a6844bb`, `e22397f9a`, `39c029391`)
 - **Verified by:** `pnpm verify:standard` exit 0; `pnpm knip` clean; App/Internal/Worker Unit Checks all pass
-- **Open follow-ups:** 14 follow-up items in §16 (~15h for items #212-#225 plus ~30h for #226+); §18 has the full delivery log.
+- **Open follow-ups (point-in-time at audit landing):** 14 follow-up items in §16 (~15h for items #212-#225 plus ~30h for #226+); §18 has the full delivery log. **Current state (round 7):** every §16/#212-#225 item is now terminal — DONE, WITHDRAWN, or DEFERRED-with-reason (see the §41 correction table).
 
 ---
 
