@@ -1,6 +1,5 @@
 import { Global, Module } from '@nestjs/common';
 import { FeatureFlagService } from './feature-flag.service';
-import { FeatureFlagGuard } from '@/shared/modules/auth/guards/feature-flag.guard';
 import { PDFGeneratorService } from '@/shared/modules/document-generation/pdf/pdf-generator.service';
 import { PdfLayoutService } from '@/shared/modules/document-generation/pdf/pdf-layout.service';
 import { PdfHeaderService } from '@/shared/modules/document-generation/pdf/pdf-header.service';
@@ -11,7 +10,6 @@ import { InvoicePdfRenderer } from '@/shared/modules/document-generation/pdf/inv
 import { PDF_DOCUMENT_RENDERER } from '@/shared/modules/document-generation/pdf/pdf-document-renderer.interface';
 import { BasePdfService } from '@/shared/modules/document-generation/pdf/base-pdf.service';
 import { ClinicalInvoicePdfService } from '@/shared/modules/document-generation/pdf/clinical-invoice-pdf.service';
-import { ClinicScopedGuard } from '@/shared/modules/auth/decorators/clinic-scoped.decorator';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
 import { EncryptionService } from '@/shared/common/encryption.service';
@@ -36,7 +34,6 @@ import { SystemClockService } from '@/shared/modules/time/system-clock.service';
   ],
   providers: [
     FeatureFlagService,
-    FeatureFlagGuard,
     PdfLayoutService,
     PdfHeaderService,
     PdfTablesService,
@@ -46,7 +43,6 @@ import { SystemClockService } from '@/shared/modules/time/system-clock.service';
     ClinicalInvoicePdfService,
     PDFGeneratorService,
     { provide: PDF_DOCUMENT_RENDERER, useExisting: PDFGeneratorService },
-    ClinicScopedGuard,
     EncryptionService,
     CircuitBreakerRegistry,
     BasePdfService,
@@ -56,7 +52,6 @@ import { SystemClockService } from '@/shared/modules/time/system-clock.service';
   ],
   exports: [
     FeatureFlagService,
-    ClinicScopedGuard,
     EncryptionService,
     CircuitBreakerRegistry,
     ComplianceModule,
