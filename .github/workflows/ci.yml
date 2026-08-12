@@ -11,6 +11,7 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "turbo.json"
+      - "knip.json"
       - ".github/workflows/**"
   workflow_dispatch:
 
