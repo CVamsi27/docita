@@ -8,6 +8,7 @@ import { initializeSentryClient } from "@/lib/monitoring/sentry.client.config";
 import { installGlobalErrorHandler } from "@/lib/monitoring/client-error-reporter";
 import { installWebVitalsReporter } from "@/lib/monitoring/web-vitals";
 import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary";
+import { DialogStackProvider } from "@workspace/ui/components/overlay/dialog-stack";
 import { logger } from "@/lib/monitoring/logger";
 import { AuthProvider } from "@/lib/auth/auth";
 import "@workspace/ui/styles/globals.css";
@@ -38,14 +39,16 @@ createRoot(rootElement).render(
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
-            <ErrorBoundary
-              onError={(error, info) => {
-                logger.error("ErrorBoundary caught", { error, info });
-              }}
-            >
-              <App />
-            </ErrorBoundary>
-            <ToasterWrapper />
+            <DialogStackProvider>
+              <ErrorBoundary
+                onError={(error, info) => {
+                  logger.error("ErrorBoundary caught", { error, info });
+                }}
+              >
+                <App />
+              </ErrorBoundary>
+              <ToasterWrapper />
+            </DialogStackProvider>
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

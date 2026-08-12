@@ -2153,7 +2153,19 @@ degraded metrics view.
 
 **Effort:** small. **Status:** OPEN.
 
-#### 26.3.7 Feature flag void in `OnApplicationBootstrap` — OPEN
+#### 26.3.7 Feature flag void in `OnApplicationBootstrap` — CLOSED (2026-08-12, evidence: fallback already correct + 2 regression tests)
+
+**Verified behavior:** `getValue()` already falls back to the config
+`defaultValue` (`defaultValue ?? configDefault ?? false`) on DB failure,
+so a known flag like `enable_whatsapp_reminders` (default `true`) stays
+enabled and the UI does not hide features. The `onModuleInit`
+fire-and-forget is safe because reads degrade to config defaults, not
+`false`.
+
+**Landed:** 2 new tests in `feature-flag.service.spec.ts` — (1) known key
+falls back to its config default on DB outage; (2) unknown key falls back
+to `false`.
+
 
 **File:** `apps/api/src/shared/modules/services/feature-flag.service.ts:118`.
 
@@ -2258,7 +2270,7 @@ after Sentry capture.
 
 **Status:** CLOSED.
 
-#### 26.5.2 `main.ts:458-462` `unhandledRejection` does not exit — OPEN (intentional)
+#### 26.5.2 `main.ts:458-462` `unhandledRejection` does not exit — CLOSED (2026-08-12, rate limiter added)
 
 **File:** `apps/api/src/main.ts:458-462`.
 
@@ -2270,7 +2282,12 @@ but a flood of unhandled rejections (e.g. a buggy cron that throws
 **Fix shape:** Add a rate-limiter (1 alert per minute per process)
 or count-and-exit-after-N.
 
-**Effort:** small. **Status:** OPEN.
+**Landed (2026-08-12):** Rate limiter added in `main.ts` — at most
+one Sentry capture per 60s per process, and forced exit (code 1) after
+100 unhandled rejections so a buggy cron loop cannot spam Sentry or
+run forever in a degraded state.
+
+**Effort:** small. **Status:** CLOSED.
 
 #### 26.5.3 `.github/workflows/stop-db-auto-restart.yml` no `permissions:` — CLOSED in §10
 
@@ -2329,7 +2346,20 @@ the only `/health` controller in `app.module.ts`. See §26.1.1.
 
 ### 26.7 Test coverage findings (open)
 
-#### 26.7.1 1-test money-moving specs — OPEN (top 5 listed in §24.2)
+#### 26.7.1 1-test money-moving specs — PARTIAL (2026-08-12: insurance-claims-command done; remaining see below)
+
+**Landed this round:** `insurance-claims-command.service.spec.ts` (10
+tests) covering create (tenant scope, idempotency-key dedupe, patient
+clinic-membership rejection, REIMBURSEMENT invoice requirement),
+update (non-draft rejection, self-parent rejection, version-conflict),
+transition (billing claim-readiness gate before SUBMITTED, missing-claim
+404) and attachDocument (missing-doc 404, happy path).
+
+**Still OPEN (next targets):** prisma-lab.repository, razorpay-invoice-webhook
+(has 5, extend with signature-mismatch + idempotency-replay + paid-mismatch),
+lab-workflow-command (has 3), prisma-medical-coding (has 5, extend with
+partial-failure recovery).
+
 
 The 5 priority targets from .fallow §11.2 are repeated here with
 the exact test cases called out:
@@ -2392,7 +2422,14 @@ See §18.3 and .fallow §11.8 for the full hot list. **Status:**
 INFO; the next feature touching any of these files will need
 a preemptive split.
 
-#### 26.8.3 `rls-routing.extension.ts:9,29,38` `Promise<unknown>` — OPEN
+#### 26.8.3 `rls-routing.extension.ts:9,29,38` `Promise<unknown>` — CLOSED (2026-08-12, generic narrowing)
+
+`routeOperationThroughActiveTx<T>` now returns `Promise<T>` and the
+`RoutableOperation` port carries the payload type, so RLS-routed reads
+are typed end-to-end instead of degrading to `unknown`. The await result
+narrows back to `T` (the delegate mirrors the original query's shape),
+removing the only `unknown` boundary in the extension. Existing 5-test
+spec still green.
 
 **Bug:** The RLS extension types are `unknown`, which means a
 misconfigured RLS policy could silently fail-open (the wrapper
@@ -2421,7 +2458,7 @@ runtime assert that the RLS context was actually applied.
 | 9.3.8 | `in-memory-queue` `maxAttempts: 1` | CLOSED (§10) | — |
 | 9.3.5 | Audit logger fire-and-forget | OPEN | medium |
 | 9.3.6 | Observability fire-and-forget | OPEN | small |
-| 9.3.7 | Feature flag void | OPEN | small |
+| 9.3.7 | Feature flag void | CLOSED (2026-08-12: fallback verified + 2 tests) | small |
 | 9.3.8 | Prisma `$connect` void (intentional) | CLOSED (no action) | — |
 | 9.4.1 | 9 `text-[10px]` violations | CLOSED (§10) | — |
 | 9.4.2 | `console.*` in source | CLOSED (0 hits) | — |
@@ -2432,7 +2469,7 @@ runtime assert that the RLS context was actually applied.
 | 9.4.7 | `apps/worker/dist/` committed | CLOSED (gitignore) | — |
 | 9.4.8 | `payments-command.service.ts` at ceiling | INFO (no action) | — |
 | 9.5.1 | `uncaughtException` does not exit | CLOSED (§10) | — |
-| 9.5.2 | `unhandledRejection` does not exit | OPEN (intentional) | small |
+| 9.5.2 | `unhandledRejection` does not exit | CLOSED (2026-08-12: rate limiter) | small |
 | 9.5.3 | `.github/workflows/stop-db-auto-restart.yml` permissions | CLOSED (§10) | — |
 | 9.5.4 | PHI encryption coverage | INFO (13 fields) | — |
 | 9.5.5 | RLS rollout (operator action) | INFO (deploy-ready) | — |
@@ -2754,7 +2791,8 @@ See §27.27. **Status:** CLOSED.
 
 ### 27.42 [low] `apps/api/src/shared/modules/services/feature-flag.service.ts:118` — void
 
-See §27.22 / §26.3.7. **Status:** OPEN.
+See §27.22 / §26.3.7. **Status:** CLOSED (2026-08-12: fallback
+verified + 2 regression tests).
 
 ### 27.43 [low] `apps/api/src/shared/modules/observability/observability.service.ts:140` — void
 
@@ -2770,7 +2808,7 @@ See §27.23. **Status:** OPEN.
 
 ### 27.46 [low] `apps/api/src/shared/common/extensions/rls-routing.extension.ts:9` — narrow
 
-See §27.21 / §26.8.3. **Status:** OPEN.
+See §27.21 / §26.8.3. **Status:** CLOSED (2026-08-12: generic narrowing).
 
 ### 27.47 [low] `apps/api/src/shared/modules/webhooks/outgoing/outgoing-webhook.repository.ts:75,103,129` — IClock
 
@@ -3304,3 +3342,83 @@ post-§30 commit, whichever is HEAD at merge time).
 pass, fallow score 100, knip clean, jscpd 0 clones.
 
 **The cycle is closed.**
+
+---
+
+## 31. Round-5 batch — 2026-08-12 continued session (post-cycle cleanup sweep)
+
+> Executed in the same session that closed §30, to keep chipping at the OPEN
+> inventory without reopening the closed cycle. Each item below is a real
+> code/test change, validated locally (API typecheck main + spec tsconfigs,
+> affected jest suites, eslint on touched files), and cross-referenced back
+> to its original finding.
+
+### 31.1 §26.3.7 Feature flag void — CLOSED (verified + 2 regression tests)
+
+**Files:** `apps/api/src/shared/modules/services/feature-flag.service.ts`,
+`feature-flag.service.spec.ts`
+
+**What was found:** The doc's premise — "without default flags every feature
+gate returns false and the UI hides features" — is stale. `getValue()` already
+falls back to `defaultValue ?? configDefault ?? false`, so known flags keep
+their config default during a DB outage; only unknown keys degrade to `false`
+(which is correct fail-closed behavior). The `onModuleInit` fire-and-forget is
+safe because reads never depend on the seed having succeeded.
+
+**What landed:** 2 new tests pinning both behaviors:
+1. Known key (`enable_whatsapp_reminders`, default `true`) stays enabled when
+   the DB lookup rejects.
+2. Unknown key falls back to `false` when the DB lookup rejects.
+
+### 31.2 §26.8.3 rls-routing.extension.ts — CLOSED (generic narrowing)
+
+**Files:** `apps/api/src/shared/common/extensions/rls-routing.extension.ts`
+
+**What landed:** `routeOperationThroughActiveTx<T>` now returns `Promise<T>`
+with `RoutableOperation<T>` carrying the payload type, so RLS-routed reads are
+typed end-to-end. The single await result narrows back to `T` (the delegate
+mirrors the original query's return shape). No behavior change; existing
+5-test spec still green.
+
+### 31.3 §26.5.2 unhandledRejection — CLOSED (rate limiter)
+
+**File:** `apps/api/src/main.ts`
+
+**What landed:** The `unhandledRejection` handler now rate-limits Sentry
+captures to 1 per 60s per process and force-exits (code 1) after 100
+unhandled rejections, so a buggy cron throwing in a tight loop cannot spam
+Sentry or run forever in a degraded state. `uncaughtException` behavior is
+unchanged (already exits after flush).
+
+### 31.4 §26.7.1 money-moving specs — PARTIAL (insurance-claims done)
+
+**File (new):** `apps/api/src/domains/insurance-claims/application/services/insurance-claims-command.service.spec.ts` — 10 tests:
+
+| Area | Tests |
+|---|---|
+| `create` | tenant scope, idempotency-key dedupe, patient clinic-membership rejection, REIMBURSEMENT invoice requirement |
+| `update` | non-draft rejection, self-parent rejection, version-conflict → ConflictException |
+| `transition` | billing claim-readiness gate before SUBMITTED, missing claim → 404 |
+| `attachDocument` | missing doc → 404, happy path re-attach |
+
+**Still OPEN (next targets):** prisma-lab.repository (0 tests), and
+extending razorpay-invoice-webhook (5), lab-workflow-command (3),
+prisma-medical-coding (5) with the remaining §26.7.1 cases.
+
+### 31.5 Validation
+
+| Check | Result |
+|---|---|
+| API check-types (main + spec tsconfig) | EXIT 0 |
+| Affected jest suites (5 suites, insurance-claims + feature-flag + rls-routing) | 31/31 pass |
+| ESLint on touched files | 0 errors after `--fix` |
+| Hooks build | EXIT 0 |
+
+### 31.6 Still-open (unchanged, intentionally deferred)
+
+- §26.3.5 Audit logger fire-and-forget → outbox routing (medium, DPDP surface)
+- §26.3.6 Observability fire-and-forget → retry buffer/circuit breaker (small)
+- §26.1.3 Bulk-import / WhatsApp broadcast void (medium)
+- §26.7.1 remaining money-moving spec targets (prisma-lab, webhook extensions)
+- §26.8.1 7 Prisma boundary leaks (~20h)
+- §26.6.1 API latency baseline (needs staging soak)

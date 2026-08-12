@@ -1275,7 +1275,7 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 1. **§20/§30/§33.1 #1**: Wire `data-accent` and `data-density` in `theme-provider.tsx` — **DONE in this cycle (PR via §18)**
 2. **§20/§30 #2**: Add `isLoading` check to `DoctorProfileSettings` — **DONE**
 3. **§20/§30 #3**: Per-layout `ErrorBoundaryWrapper` in `apps/internal` — **OPEN** (30 min)
-4. **§20/§30 #4**: Add `VITE_SENTRY_DSN` to `apps/internal/src/vite-env.d.ts` — **OPEN** (5 min)
+4. **§20/§30 #4**: Add `VITE_SENTRY_DSN` to `apps/internal/src/vite-env.d.ts` — **DONE (2026-08-12)**
 5. **§20/§30 #5**: Replace `SubscriptionResponseDto` interface with Zod — **DONE in earlier cycle**
 6. **§20/§30 #6**: Delete dead business rules (Group A) — **WITHDRAWN** (files reachable via barrels)
 7. **§20/§30 #7**: Delete IPD sub-feature — **DONE**
@@ -1292,7 +1292,7 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 15. **§22/§30 #15**: Convert 14 `apps/internal` pages to React Query — **OPEN** (4h)
 16. **§22/§30 #16**: Convert 13 settings forms to RHF `values` prop — **OPEN** (3h)
 17. **§22/§30 #17**: Migrate 177 hardcoded strings to i18n — **OPEN** (4h)
-18. **§22/§30 #18**: Add `useTimeout` / `useInterval` to `packages/hooks/src` — **OPEN** (1h)
+18. **§22/§30 #18**: Add `useTimeout` / `useInterval` to `packages/hooks/src` — **DONE (2026-08-12)**
 19. **§22/§30 #19**: Promote list-item/detail convention to 27 contract files — **OPEN** (4h)
 20. **§22/§30 #20**: Add `usePrefersReducedMotion` audit — **OPEN** (2h)
 21. **§22/§30 #21**: Mobile breakpoints audit at 375/768/1280px — **OPEN** (4h)
@@ -1303,7 +1303,7 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 23. **§30 #23**: `no-hardcoded-jsx-text` lint rule — **OPEN** (1h)
 24. **§30 #24**: en/hi key-parity CI check — **OPEN** (30 min)
 25. **§30 #25**: Migrate remaining 12 `react-refresh/only-export-components` warnings — **OPEN** (3h)
-26. **§30 #26**: Add `<DialogStackProvider>` to `apps/internal` — **OPEN** (15 min)
+26. **§30 #26**: Add `<DialogStackProvider>` to `apps/internal` — **DONE (2026-08-12)**
 27. **§30 #27**: Audit 40 `<h1>` sites for duplicates — **DONE** (per §18)
 
 ### 33.4 P3 — Long-arc (≤1 week)
@@ -2145,3 +2145,60 @@ The following separate audit docs have been **consolidated into this single doc*
 
 **All consolidated.** This doc + the 2 large full-index files = the only remaining frontend audit artifacts.
 
+---
+
+## 39. Round-5 batch — 2026-08-12 continued session (post-consolidation quick wins)
+
+> Executed to close three small §30 items that were still OPEN. All three are
+> additive, backward-compatible changes; validated with internal/app
+> check-types and the hooks build.
+
+### 39.1 §30 #4 — `VITE_SENTRY_DSN` in `apps/internal/src/vite-env.d.ts` — DONE
+
+Added `readonly VITE_SENTRY_DSN?: string;` to the internal app's
+`ImportMetaEnv` interface. The internal app already calls
+`initializeSentryClient()` in `main.tsx` and reads the DSN at runtime
+(`@/lib/monitoring/sentry.client.config`); the type was simply missing, so
+typed reads of `import.meta.env.VITE_SENTRY_DSN` would not compile. 1-line
+additive fix.
+
+### 39.2 §30 #26 — `<DialogStackProvider>` in `apps/internal` — DONE
+
+The app mounts `DialogStackProvider` (`@workspace/ui/components/overlay/dialog-stack`)
+around its route tree; internal did not, so stacked dialogs in internal
+(e.g. nested confirmations) had no z-order manager. Wrapped internal's
+`<ErrorBoundary>` + `<ToasterWrapper>` subtree in `DialogStackProvider` in
+`apps/internal/src/main.tsx`, mirroring the app's providers.tsx wiring.
+
+### 39.3 §30 #18 — `useTimeout` / `useInterval` in `packages/hooks` — DONE
+
+Two new framework-agnostic hooks, matching the existing `useDebounce`
+convention (latest-callback ref, timer cleared on unmount / dep change,
+`null` disables):
+
+- `packages/hooks/src/use-timeout.ts` — run a callback once after `delayMs`.
+- `packages/hooks/src/use-interval.ts` — run a callback on a fixed cadence,
+  with pause support via `null`.
+
+Both exported from `packages/hooks/src/index.ts`. No existing consumer was
+using a hand-rolled timer hook (verified by grep), so there is no duplicate
+to remove yet — these are the canonical primitives for the pollers and
+countdown timers the useEffect index (§20) flags.
+
+### 39.4 Validation
+
+| Check | Result |
+|---|---|
+| `@workspace/hooks` check-types + build | EXIT 0 |
+| `@docita/internal` check-types | EXIT 0 (1 pre-existing react-refresh warning in auth.tsx) |
+| `@docita/app` check-types | EXIT 0 |
+
+### 39.5 Still-open frontend items (unchanged, intentionally deferred)
+
+- §14.2 #4 AskAiButton component (1h)
+- §6.1 / §30 #25 12-13 react-refresh warnings (re-exports for 104 consumers)
+- §7 #4 / §30 #34 i18n coverage gate enforcement
+- §7 #5 / §30 #21 mobile breakpoints audit
+- §7 #6-7 / §30 #28-29 landing hero + pricing redesign (design decisions)
+- §7 #8 / §30 #30 internal admin analytics dashboard
+- §30 #14, #15, #16, #17, #19, #20, #23, #24, #31, #32, #33 (P1-P3 backlog)
