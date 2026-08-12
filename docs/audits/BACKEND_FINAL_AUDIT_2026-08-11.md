@@ -2346,19 +2346,26 @@ the only `/health` controller in `app.module.ts`. See §26.1.1.
 
 ### 26.7 Test coverage findings (open)
 
-#### 26.7.1 1-test money-moving specs — PARTIAL (2026-08-12: insurance-claims-command done; remaining see below)
+#### 26.7.1 1-test money-moving specs — PARTIAL (2026-08-12: insurance-claims-command + prisma-lab done; remaining see below)
 
-**Landed this round:** `insurance-claims-command.service.spec.ts` (10
-tests) covering create (tenant scope, idempotency-key dedupe, patient
-clinic-membership rejection, REIMBURSEMENT invoice requirement),
-update (non-draft rejection, self-parent rejection, version-conflict),
-transition (billing claim-readiness gate before SUBMITTED, missing-claim
-404) and attachDocument (missing-doc 404, happy path).
+**Landed this round:**
+- `insurance-claims-command.service.spec.ts` (10 tests) covering create
+  (tenant scope, idempotency-key dedupe, patient clinic-membership
+  rejection, REIMBURSEMENT invoice requirement), update (non-draft
+  rejection, self-parent rejection, version-conflict), transition (billing
+  claim-readiness gate before SUBMITTED, missing-claim 404) and
+  attachDocument (missing-doc 404, happy path).
+- `prisma-lab.repository.spec.ts` (9 tests) covering findAllTests
+  (clinic filter + 1000-row truncation), findAllOrders (pagination +
+  nextCursor, status/patientId filter, invalid-status tolerance),
+  findLabQueue (lab/status filters + patient/test name mapping),
+  attachResult (RESULT_READY transition, result payload optional),
+  verifyPayment (clinic-scoped payment record) and getStats (status
+  bucketing).
 
-**Still OPEN (next targets):** prisma-lab.repository, razorpay-invoice-webhook
-(has 5, extend with signature-mismatch + idempotency-replay + paid-mismatch),
-lab-workflow-command (has 3), prisma-medical-coding (has 5, extend with
-partial-failure recovery).
+**Still OPEN (next targets):** razorpay-invoice-webhook (has 5, extend with
+signature-mismatch + idempotency-replay + paid-mismatch), lab-workflow-command
+(has 3), prisma-medical-coding (has 5, extend with partial-failure recovery).
 
 
 The 5 priority targets from .fallow §11.2 are repeated here with
@@ -3390,9 +3397,10 @@ unhandled rejections, so a buggy cron throwing in a tight loop cannot spam
 Sentry or run forever in a degraded state. `uncaughtException` behavior is
 unchanged (already exits after flush).
 
-### 31.4 §26.7.1 money-moving specs — PARTIAL (insurance-claims done)
+### 31.4 §26.7.1 money-moving specs — PARTIAL (insurance-claims + prisma-lab done)
 
-**File (new):** `apps/api/src/domains/insurance-claims/application/services/insurance-claims-command.service.spec.ts` — 10 tests:
+**Files (new):**
+- `apps/api/src/domains/insurance-claims/application/services/insurance-claims-command.service.spec.ts` — 10 tests:
 
 | Area | Tests |
 |---|---|
@@ -3401,16 +3409,27 @@ unchanged (already exits after flush).
 | `transition` | billing claim-readiness gate before SUBMITTED, missing claim → 404 |
 | `attachDocument` | missing doc → 404, happy path re-attach |
 
-**Still OPEN (next targets):** prisma-lab.repository (0 tests), and
-extending razorpay-invoice-webhook (5), lab-workflow-command (3),
-prisma-medical-coding (5) with the remaining §26.7.1 cases.
+- `apps/api/src/domains/clinical/infrastructure/persistence/prisma-lab.repository.spec.ts` — 9 tests:
+
+| Area | Tests |
+|---|---|
+| `findAllTests` | clinic filter, 1000-row truncation |
+| `findAllOrders` | pagination + nextCursor, status/patientId filter, invalid-status tolerance |
+| `findLabQueue` | lab/status filters, patient/test name mapping |
+| `attachResult` | RESULT_READY transition, optional result payload |
+| `verifyPayment` | clinic-scoped payment record |
+| `getStats` | status bucketing |
+
+**Still OPEN (next targets):** extend razorpay-invoice-webhook (5),
+lab-workflow-command (3), prisma-medical-coding (5) with the remaining
+§26.7.1 cases.
 
 ### 31.5 Validation
 
 | Check | Result |
 |---|---|
 | API check-types (main + spec tsconfig) | EXIT 0 |
-| Affected jest suites (5 suites, insurance-claims + feature-flag + rls-routing) | 31/31 pass |
+| Affected jest suites (6 suites, insurance-claims + feature-flag + rls-routing + prisma-lab) | 40/40 pass |
 | ESLint on touched files | 0 errors after `--fix` |
 | Hooks build | EXIT 0 |
 
@@ -3419,6 +3438,6 @@ prisma-medical-coding (5) with the remaining §26.7.1 cases.
 - §26.3.5 Audit logger fire-and-forget → outbox routing (medium, DPDP surface)
 - §26.3.6 Observability fire-and-forget → retry buffer/circuit breaker (small)
 - §26.1.3 Bulk-import / WhatsApp broadcast void (medium)
-- §26.7.1 remaining money-moving spec targets (prisma-lab, webhook extensions)
+- §26.7.1 remaining money-moving spec targets (razorpay webhook + lab-workflow + medical-coding extensions)
 - §26.8.1 7 Prisma boundary leaks (~20h)
 - §26.6.1 API latency baseline (needs staging soak)

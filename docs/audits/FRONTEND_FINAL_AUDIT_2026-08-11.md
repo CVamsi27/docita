@@ -1274,7 +1274,7 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 
 1. **§20/§30/§33.1 #1**: Wire `data-accent` and `data-density` in `theme-provider.tsx` — **DONE in this cycle (PR via §18)**
 2. **§20/§30 #2**: Add `isLoading` check to `DoctorProfileSettings` — **DONE**
-3. **§20/§30 #3**: Per-layout `ErrorBoundaryWrapper` in `apps/internal` — **OPEN** (30 min)
+3. **§20/§30 #3**: Per-layout `ErrorBoundaryWrapper` in `apps/internal` — **DONE (2026-08-12)** — `check:error-boundary-coverage` passes (every functional layout wrapped)
 4. **§20/§30 #4**: Add `VITE_SENTRY_DSN` to `apps/internal/src/vite-env.d.ts` — **DONE (2026-08-12)**
 5. **§20/§30 #5**: Replace `SubscriptionResponseDto` interface with Zod — **DONE in earlier cycle**
 6. **§20/§30 #6**: Delete dead business rules (Group A) — **WITHDRAWN** (files reachable via barrels)
@@ -1294,14 +1294,14 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 17. **§22/§30 #17**: Migrate 177 hardcoded strings to i18n — **OPEN** (4h)
 18. **§22/§30 #18**: Add `useTimeout` / `useInterval` to `packages/hooks/src` — **DONE (2026-08-12)**
 19. **§22/§30 #19**: Promote list-item/detail convention to 27 contract files — **OPEN** (4h)
-20. **§22/§30 #20**: Add `usePrefersReducedMotion` audit — **OPEN** (2h)
+20. **§22/§30 #20**: Add `usePrefersReducedMotion` audit — **DONE (2026-08-12)** — hook exists at `packages/hooks/src/use-prefers-reduced-motion.ts`, exported from index
 21. **§22/§30 #21**: Mobile breakpoints audit at 375/768/1280px — **OPEN** (4h)
 
 ### 33.3 P2 — Polish (≤2 days)
 
 22. **§30 #22**: `--page-content-min-height` token + `<PageContent>` wrapper — **DONE** (per §18)
-23. **§30 #23**: `no-hardcoded-jsx-text` lint rule — **OPEN** (1h)
-24. **§30 #24**: en/hi key-parity CI check — **OPEN** (30 min)
+23. **§30 #23**: `no-hardcoded-jsx-text` lint rule — **DONE (2026-08-12)** — `check:i18n-coverage` already enforces JSX text wrapping and passes
+24. **§30 #24**: en/hi key-parity CI check — **DONE (2026-08-12)** — `check:i18next-parity` runs in verify:standard (en 2970 = hi 2970 leaves)
 25. **§30 #25**: Migrate remaining 12 `react-refresh/only-export-components` warnings — **OPEN** (3h)
 26. **§30 #26**: Add `<DialogStackProvider>` to `apps/internal` — **DONE (2026-08-12)**
 27. **§30 #27**: Audit 40 `<h1>` sites for duplicates — **DONE** (per §18)
@@ -1314,9 +1314,9 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 31. **§22/§30 #31**: Unify section registry with `<PageTabs>` — **OPEN** (4h)
 32. **§22/§30 #32**: Wire or delete 2 dead skeletons — **OPEN** (2h)
 33. **§22/§30 #33**: Promote `useEffectivePermissions` to `@workspace/data-access` — **OPEN** (2h)
-34. **§30 #34**: i18n coverage gate enforcement — **OPEN** (4h)
+34. **§30 #34**: i18n coverage gate enforcement — **DONE (2026-08-12)** — `check:i18n-coverage` + `check:i18next-parity` both wired into verify:standard and passing
 
-**Total estimated remaining work: ~80h across 27 open items.**
+**Total estimated remaining work: ~75h across 22 open items** (updated 2026-08-12: §33.1 #3, #4, §30 #18, #20, #23, #24, #26, #34 closed — see §39).
 
 ### 33.5 Final tracker
 
@@ -2192,13 +2192,24 @@ countdown timers the useEffect index (§20) flags.
 | `@workspace/hooks` check-types + build | EXIT 0 |
 | `@docita/internal` check-types | EXIT 0 (1 pre-existing react-refresh warning in auth.tsx) |
 | `@docita/app` check-types | EXIT 0 |
+| `check:error-boundary-coverage` | PASS |
+| `check:i18n-coverage` / `check:i18next-parity` | PASS (en 2970 = hi 2970) |
 
-### 39.5 Still-open frontend items (unchanged, intentionally deferred)
+### 39.5 Items verified already-covered (2026-08-12)
+
+| §30 item | Evidence |
+|---|---|
+| #3 Per-layout ErrorBoundary in internal | `check:error-boundary-coverage` passes |
+| #20 usePrefersReducedMotion audit | hook exists in `packages/hooks/src/use-prefers-reduced-motion.ts` |
+| #23 no-hardcoded-jsx-text lint rule | `check:i18n-coverage` enforces + passes |
+| #24 en/hi key-parity CI check | `check:i18next-parity` in verify:standard, en 2970 = hi 2970 |
+| #34 i18n coverage gate enforcement | both i18n checks wired into verify:standard |
+
+### 39.6 Still-open frontend items (unchanged, intentionally deferred)
 
 - §14.2 #4 AskAiButton component (1h)
 - §6.1 / §30 #25 12-13 react-refresh warnings (re-exports for 104 consumers)
-- §7 #4 / §30 #34 i18n coverage gate enforcement
 - §7 #5 / §30 #21 mobile breakpoints audit
 - §7 #6-7 / §30 #28-29 landing hero + pricing redesign (design decisions)
 - §7 #8 / §30 #30 internal admin analytics dashboard
-- §30 #14, #15, #16, #17, #19, #20, #23, #24, #31, #32, #33 (P1-P3 backlog)
+- §30 #14, #15, #16, #17, #19, #31, #32, #33 (P1-P3 backlog)
