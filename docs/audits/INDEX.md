@@ -10,11 +10,22 @@
 > 2. **[`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md)**
 >    — Every frontend finding, fix, and follow-up. 16 lint warnings,
 >    94 dead exports, 171 useEffects, perfect-app scorecard (10
->    standards × 3 apps), 16 UI/UX backlog items, 15 follow-up PRs.
+>    standards × 3 apps), 16 UI/UX backlog items, 15 follow-up PRs,
+>    micro-interactions + visual polish (§35), responsive layer
+>    (§36), unified P0–P3 tracker (§37), doc consolidation map (§38).
+>    The 2026-08-12 `UI_UX_PERFECT_2026-08-12.md` and
+>    `PERFECT_RESPONSIVE_2026-08-12.md` docs were folded into §35
+>    and §36 and are no longer separate files.
 >
 > Older docs from this cycle were merged into the 2 consolidated
 > docs. The pre-2026-08-11 docs below remain in their original
 > form (they document closed or superseded work).
+>
+> Two large full-index files are intentionally kept as separate
+> files because they exceed the practical inline size for the
+> consolidated doc:
+> - [`FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md`](FRONTEND_USEEFFECT_INDEX_FULL_2026-08-11.md) (88KB) — full useEffect body + deps
+> - [`FRONTEND_DEAD_CODE_FULL_2026-08-11.md`](FRONTEND_DEAD_CODE_FULL_2026-08-11.md) (73KB) — full dead-export context
 
 ## How to use this index
 
@@ -30,7 +41,7 @@
 | Date | Doc | Status | One-line summary |
 |---|---|---|---|
 | 2026-08-11 | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) | open | Consolidated backend final pass — 80+ gate results, 3 cleanups + 2 bug fixes + Zod migration |
-| 2026-08-11 | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) | open | Consolidated frontend final pass — 16 lint, 94 dead exports, 171 useEffects, perfect-app scorecard |
+| 2026-08-12 | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §35, §36, §37, §38 | open | Consolidated frontend final pass — 16 lint, 94 dead exports, 171 useEffects, perfect-app scorecard, **micro-interactions + visual polish (§35), responsive layer (§36), unified P0–P3 tracker (§37), doc consolidation map (§38)**. `UI_UX_PERFECT_2026-08-12.md` and `PERFECT_RESPONSIVE_2026-08-12.md` were folded into this doc and are no longer separate files. |
 | 2026-08-10 | [`2026-08-10-deep-analysis.md`](2026-08-10-deep-analysis.md) | closed (all in PR #211) | Subagent full-repo deep-dive |
 | 2026-08-10 | [`2026-08-10-session-notes.md`](2026-08-10-session-notes.md) | closed | Session timeline for the #211 conflict-resolution + cleanup-branch work |
 | 2026-07-14 | [`REFERRER_MIGRATION_REVIEW_2026-07-14.md`](REFERRER_MIGRATION_REVIEW_2026-07-14.md) | closed | Referral feature migration review |
