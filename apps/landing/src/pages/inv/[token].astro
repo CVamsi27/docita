@@ -18,9 +18,11 @@ const downloadHref = resolveApiUrl(`/public/patient/inv/${encodeURIComponent(tok
   noIndex
 >
   <PatientDocumentDownload
-    title="Your invoice"
-    description="Tap below to download your invoice as a PDF. You do not need a Docita account or password."
+    title="Your invoice is ready"
+    description="Tap below to download it as a PDF. You do not need a Docita account or password."
     downloadHref={downloadHref}
     downloadLabel="Download invoice PDF"
+    recordLine="Invoice"
+    accent="info"
   />
 </MainLayout>

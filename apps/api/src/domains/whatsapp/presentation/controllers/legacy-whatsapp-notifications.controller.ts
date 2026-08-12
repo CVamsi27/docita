@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, Param, Query, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import {
   SuccessResponseDto,
   WhatsappUnreadCountResponseDto,
@@ -15,12 +15,14 @@ import { requireUserId } from '@/domains/whatsapp/presentation/controllers/legac
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappNotificationsController {
-  constructor(private readonly whatsappService: WhatsappService) {}
+  constructor(
+    private readonly staffNotificationService: StaffNotificationService,
+  ) {}
 
   @Get('notifications/unread-count')
   @ZodSerializerDto(WhatsappUnreadCountResponseDto)
   async getUnreadNotificationCount(@Req() req: Request) {
-    const count = await this.whatsappService.getUnreadNotificationCount(
+    const count = await this.staffNotificationService.getUnreadCount(
       requireUserId(req),
     );
     return { count };
@@ -32,7 +34,7 @@ export class LegacyWhatsappNotificationsController {
     @Req() req: Request,
     @Query() query?: WhatsappUnreadNotificationsQueryDto,
   ) {
-    return this.whatsappService.getUnreadNotifications(
+    return this.staffNotificationService.getUnreadNotifications(
       requireUserId(req),
       query?.limit,
     );
@@ -41,7 +43,10 @@ export class LegacyWhatsappNotificationsController {
   @Delete('notifications/:id')
   @ZodSerializerDto(SuccessResponseDto)
   async deleteNotification(@Req() req: Request, @Param('id') id: string) {
-    await this.whatsappService.deleteNotification(id, requireUserId(req));
+    await this.staffNotificationService.deleteNotification(
+      id,
+      requireUserId(req),
+    );
     return { success: true, message: 'Notification deleted' };
   }
 
@@ -49,7 +54,7 @@ export class LegacyWhatsappNotificationsController {
   @ZodSerializerDto(SuccessResponseDto)
   async deleteAllNotifications(@Req() req: Request) {
     const userId = requireUserId(req);
-    await this.whatsappService.deleteAllNotifications(
+    await this.staffNotificationService.deleteAllNotifications(
       userId,
       requireClinicId(req),
     );

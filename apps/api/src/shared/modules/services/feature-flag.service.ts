@@ -12,9 +12,9 @@ import type {
   FeatureFlagValue,
 } from '@/shared/modules/services/feature-flag.types';
 
-export type { ClinicPricingOffer, FeatureFlagConfig, FeatureFlagValue };
+export type { ClinicPricingOffer };
 
-export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
+const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
   {
     key: 'enable_whatsapp_reminders',
     defaultValue: true,

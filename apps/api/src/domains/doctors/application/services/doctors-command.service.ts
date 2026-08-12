@@ -228,18 +228,30 @@ export class DoctorsCommandService {
     );
   }
 
-  adminVerifyDoctor(doctorId: string, adminId: string, note?: string) {
+  adminVerifyDoctor(
+    doctorId: string,
+    adminId: string,
+    ticketId: string,
+    note?: string,
+  ) {
     return this.adminVerificationService.adminVerifyDoctor(
       doctorId,
       adminId,
+      ticketId,
       note,
     );
   }
 
-  adminRejectDoctor(doctorId: string, adminId: string, reason: string) {
+  adminRejectDoctor(
+    doctorId: string,
+    adminId: string,
+    ticketId: string,
+    reason: string,
+  ) {
     return this.adminVerificationService.adminRejectDoctor(
       doctorId,
       adminId,
+      ticketId,
       reason,
     );
   }

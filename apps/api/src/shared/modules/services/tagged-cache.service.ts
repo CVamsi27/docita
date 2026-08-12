@@ -4,7 +4,7 @@ import {
 } from '@/shared/common/json/parse-serialized-json.boundary';
 import { Injectable, Logger } from '@nestjs/common';
 
-export interface CacheOptions {
+interface CacheOptions {
   ttl?: number;
   tags?: string[];
 }

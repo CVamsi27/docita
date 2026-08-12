@@ -320,12 +320,6 @@ export const queryKeys = {
     patientSentMessages: (patientId: string) =>
       ["whatsapp", "sent-messages", patientId] as const,
     recentSentMessages: () => ["whatsapp", "recent-sent"] as const,
-    notifications: {
-      unreadCount: () => ["whatsapp", "notifications", "unread-count"] as const,
-      unread: (limit: number) =>
-        ["whatsapp", "notifications", "unread", limit] as const,
-      unreadPrefix: () => ["whatsapp", "notifications", "unread"] as const,
-    },
   },
   medicalCoding: {
     icd: (search: string) => ["icd-codes", search] as const,

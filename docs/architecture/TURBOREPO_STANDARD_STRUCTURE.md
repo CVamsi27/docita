@@ -42,31 +42,33 @@ Use this as the baseline across all modules to keep architecture consistent and 
 ## 2) Web App Structure (apps/app, apps/internal, apps/landing)
 
 apps/app/
-├── app/                          # App Router routes and layouts
-├── features/                     # Feature-first UI/business modules
-│   ├── patients/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── schemas/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   └── index.ts
-│   └── ...
-├── components/                   # Shared app-only presentational components
-├── hooks/                        # Cross-feature app hooks
-├── lib/                          # App runtime setup (api client, auth, config)
-├── providers/                    # React context providers
-├── styles/
-├── public/
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
+├── src/                          # Vite SPA source
+│   ├── App.tsx                   # React Router route tree (layouts + guards)
+│   ├── main.tsx                  # Browser entry (providers + router)
+│   ├── features/                 # Feature-first UI/business modules
+│   │   ├── patients/
+│   │   │   ├── components/
+│   │   │   ├── hooks/
+│   │   │   ├── lib/
+│   │   │   ├── types.ts
+│   │   │   └── index.ts
+│   │   └── ...
+│   ├── components/               # Shared app-only presentational components
+│   ├── hooks/                    # Cross-feature app hooks
+│   ├── lib/                      # App runtime setup (api client, auth, config)
+│   ├── providers/                # React context providers
+│   ├── i18n/ + messages/         # i18next init + en/hi message JSON
+│   └── test-utils/               # Test render helpers
+├── api/index.ts                  # Hono API proxy Worker (/api/* + /socket.io/*)
+├── public/                       # _headers, _redirects, branding, PWA assets
+├── dist/                         # Vite build output (gitignored)
+├── wrangler.toml                 # Cloudflare Worker + static assets config
+├── vite.config.ts
 └── package.json
 
 Guideline:
 
-- Keep domain logic in features, not in app route files.
+- Keep domain logic in features, not in route files.
 - Keep route files thin and orchestration-focused.
 
 ## 3) NestJS API Structure (apps/api)
@@ -194,7 +196,7 @@ When adopting this structure in an existing codebase:
 
 ## 9) Suggested Target Mapping for This Repository
 
-- Keep `apps/app` and `apps/internal` as Next.js apps.
+- Keep `apps/app` and `apps/internal` as Vite + React Router SPA apps (Next.js predecessors `apps/app` / `apps/internal` are being replaced — see [`PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md)).
 - Keep `apps/landing` as the primary Astro marketing app.
 - Keep apps/api as NestJS app.
 - Keep packages/db as single source of Prisma schema and DB client.
@@ -211,8 +213,8 @@ This gives a clean separation:
 
 The following baseline structure has been created to standardize app layout:
 
-- apps/app/tests/{unit,integration,e2e}
-- apps/internal/tests/{unit,integration,e2e}
+- apps/app/src (Vite SPA: App.tsx, features/, components/, hooks/, lib/, providers/, i18n/)
+- apps/internal/src (same shape)
 - apps/landing/{src,public,e2e}
 - apps/api/test/{unit,integration,e2e}
 

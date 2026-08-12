@@ -12,26 +12,14 @@ import {
   getPrismaInstance,
 } from '../../setup';
 import { factories, setPrismaInstance } from '../../factories';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import {
   listPatientsResponseSchema,
   patientResponseSchema,
 } from '@workspace/types';
 import { expectMatchesSchema } from '../../contract-assertions';
-
-async function getCsrfHeaders(server: string) {
-  const response = await request(server).get('/health').expect(200);
-  const cookies = response.get('Set-Cookie') ?? [];
-  const csrfCookie = cookies.find((cookie) => cookie.startsWith('XSRF-TOKEN='));
-  if (!csrfCookie) throw new Error('CSRF cookie was not issued by /health');
-  const token = csrfCookie.split(';')[0]?.split('=')[1];
-  if (!token) throw new Error('CSRF cookie did not contain a token');
-  return {
-    cookie: `XSRF-TOKEN=${token}`,
-    token,
-  };
-}
+import { getCsrfHeaders } from '../../csrf-helpers';
 
 describe('Patients (e2e)', () => {
   let app: INestApplication;
@@ -48,7 +36,7 @@ describe('Patients (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(WhatsappService)
+      .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .overrideProvider(CACHE_MANAGER)
       .useValue({
@@ -201,6 +189,9 @@ describe('Patients (e2e)', () => {
   describe('GET /patients/:id', () => {
     it('should get patient details', async () => {
       const patient = await factories.patient(clinicId);
+      // Assignment-pinning is on (C1 phase-2): the acting DOCTOR must have an
+      // active PatientDoctor row to read the patient.
+      await factories.patientDoctor(patient.id, doctorId, clinicId);
 
       const response = await request(app.getHttpServer())
         .get(`/patients/${patient.id}`)
@@ -223,6 +214,9 @@ describe('Patients (e2e)', () => {
   describe('PATCH /patients/:id', () => {
     it('should update patient', async () => {
       const patient = await factories.patient(clinicId);
+      // Assignment-pinning is on (C1 phase-2): the acting DOCTOR must have an
+      // active PatientDoctor row to update the patient.
+      await factories.patientDoctor(patient.id, doctorId, clinicId);
 
       await request(app.getHttpServer())
         .patch(`/patients/${patient.id}`)

@@ -20,7 +20,7 @@ const NAMED_ENTITIES: Record<string, string> = {
   copy: "\u00a9",
   reg: "\u00ae",
   trade: "\u2122",
-  hellip: "\u2026",
+  hellip: "…",
   mdash: "\u2014",
   ndash: "\u2013",
   lsquo: "\u2018",

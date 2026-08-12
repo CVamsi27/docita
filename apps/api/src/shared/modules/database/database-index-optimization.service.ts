@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 
-export interface IndexAnalysis {
+interface IndexAnalysis {
   tableName: string;
   indexName: string;
   columnNames: string[];
@@ -15,7 +15,7 @@ export interface IndexAnalysis {
   recommendation?: string;
 }
 
-export interface MissingIndexRecommendation {
+interface MissingIndexRecommendation {
   tableName: string;
   columnNames: string[];
   reason: string;

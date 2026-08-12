@@ -1,65 +1,65 @@
 {
-    "name": "@workspace/data-access",
-    "version": "0.0.0",
-    "type": "module",
-    "private": true,
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js",
-            "default": "./dist/index.js"
-        },
-        "./hooks/*": {
-            "types": "./dist/hooks/*.d.ts",
-            "import": "./dist/hooks/*.js",
-            "default": "./dist/hooks/*.js"
-        },
-        "./core/*": {
-            "types": "./dist/core/*.d.ts",
-            "import": "./dist/core/*.js",
-            "default": "./dist/core/*.js"
-        },
-        "./lib/*": {
-            "types": "./dist/lib/*.d.ts",
-            "import": "./dist/lib/*.js",
-            "default": "./dist/lib/*.js"
-        },
-        "./internal": {
-            "types": "./dist/internal/index.d.ts",
-            "import": "./dist/internal/index.js",
-            "default": "./dist/internal/index.js"
-        },
-        "./internal/*": {
-            "types": "./dist/internal/*.d.ts",
-            "import": "./dist/internal/*.js",
-            "default": "./dist/internal/*.js"
-        }
+  "name": "@workspace/data-access",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
-    "scripts": {
-        "build": "tsc -p tsconfig.json",
-        "check-types": "tsc --noEmit",
-        "dev": "tsc -p tsconfig.json --watch",
-        "clean": "rm -rf dist",
-        "test": "vitest run"
+    "./hooks/*": {
+      "types": "./dist/hooks/*.d.ts",
+      "import": "./dist/hooks/*.js",
+      "default": "./dist/hooks/*.js"
     },
-    "dependencies": {
-        "@workspace/types": "workspace:*",
-        "@workspace/utils": "workspace:*",
-        "zod": "^3.25.76"
+    "./core/*": {
+      "types": "./dist/core/*.d.ts",
+      "import": "./dist/core/*.js",
+      "default": "./dist/core/*.js"
     },
-    "peerDependencies": {
-        "@tanstack/react-query": "^5.90.10",
-        "react": "^19.2.1"
+    "./lib/*": {
+      "types": "./dist/lib/*.d.ts",
+      "import": "./dist/lib/*.js",
+      "default": "./dist/lib/*.js"
     },
-    "devDependencies": {
-        "@workspace/typescript-config": "workspace:*",
-        "@tanstack/react-query": "^5.90.10",
-        "@types/node": "^22.14.1",
-        "@types/react": "^19.2.1",
-        "react": "^19.2.1",
-        "typescript": "^5.9.2",
-        "vitest": "^4.1.10"
+    "./internal": {
+      "types": "./dist/internal/index.d.ts",
+      "import": "./dist/internal/index.js",
+      "default": "./dist/internal/index.js"
+    },
+    "./internal/*": {
+      "types": "./dist/internal/*.d.ts",
+      "import": "./dist/internal/*.js",
+      "default": "./dist/internal/*.js"
     }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@workspace/types": "workspace:*",
+    "@workspace/utils": "workspace:*",
+    "zod": "^3.25.76"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.90.10",
+    "react": "^19.2.1"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "@tanstack/react-query": "^5.90.10",
+    "@types/node": "^22.14.1",
+    "@types/react": "^19.2.1",
+    "react": "^19.2.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  }
 }

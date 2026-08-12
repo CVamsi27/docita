@@ -1,0 +1,108 @@
+{
+  "pageTitle": "Appointments",
+  "pageDescription": "Schedule, manage, and track patient appointments across your facility",
+  "patientResponse": {
+    "confirmed": "Confirmed via WhatsApp",
+    "onTheWay": "On the way (WhatsApp)",
+    "runningLate": "Running late (WhatsApp)",
+    "runningLateMinutes": "Running {count} min late (WhatsApp)",
+    "askedToReschedule": "Asked to reschedule (WhatsApp)",
+    "cancelled": "Cancelled via WhatsApp",
+    "replied": "Replied on WhatsApp"
+  },
+  "timeSlotPicker": {
+    "loadingAriaLabel": "Loading time slots",
+    "emptyMessage": "No available time slots for {date}",
+    "selectTimeTitle": "Select a time",
+    "legendSelected": "Selected",
+    "legendAvailable": "Available",
+    "legendUnavailable": "Unavailable"
+  },
+  "slotPickerFields": {
+    "findingSlots": "Finding available slots…",
+    "selectSlotPlaceholder": "Select a time slot",
+    "slotLabel": "Appointment slot",
+    "noOpenSlots": "No open slots for this doctor on this day. Try another day or adjust availability.",
+    "startTimeLabel": "Start time",
+    "endTimeLabel": "End time (optional)"
+  },
+  "followUpForm": {
+    "typeLabel": "Type",
+    "typePlaceholder": "Follow-up type",
+    "timeLabel": "Time",
+    "timePlaceholder": "Time",
+    "sendReminderLabel": "Send reminder",
+    "whenLabel": "When",
+    "whatsappNotificationLabel": "WhatsApp Notification",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Follow-up notes"
+  },
+  "page": {
+    "loading": "Loading appointments…",
+    "markDelay": "Mark Delay"
+  },
+  "delayBanner": {
+    "minutes": "min delay",
+    "clearDelay": "Clear delay"
+  },
+  "summaryBar": {
+    "appointment": "{count, plural, one {appointment} other {appointments}}"
+  },
+  "calendarView": {
+    "day": "Day",
+    "week": "Week"
+  },
+  "upgradeFallback": {
+    "title": "Appointment Scheduling",
+    "description": "Manage patient appointments with an intuitive calendar. Upgrade to Core tier to unlock this feature.",
+    "upgradeButton": "Upgrade to Core"
+  },
+  "sections": {
+    "weekViewError": "We could not load this week's appointments. Please try again."
+  },
+  "delayDialog": {
+    "title": "Mark doctor delay",
+    "description": "Let staff and the queue know the doctor is running late.",
+    "doctorLabel": "Doctor",
+    "doctorPlaceholder": "Select a doctor",
+    "durationLabel": "Delay duration",
+    "durationPlaceholder": "Select delay",
+    "reasonLabel": "Reason (optional)",
+    "reasonPlaceholder": "e.g. Running late from surgery",
+    "cancelButton": "Cancel",
+    "confirmButton": "Mark delay",
+    "errorDoctorRequired": "Please select a doctor",
+    "errorDurationRequired": "Please select a delay duration"
+  },
+  "askAiAriaLabel": "Ask AI about appointments",
+  "askAiButton": "Ask AI",
+  "newAppointmentAriaLabel": "Create new appointment",
+  "newAppointmentButton": "New appointment",
+  "searchPlaceholder": "Enter patient name or phone",
+  "searchAriaLabel": "Search appointments",
+  "cancelDialog": {
+    "title": "Cancel appointment",
+    "description": "Choose a reason so the schedule stays auditable",
+    "reasonLabel": "Reason",
+    "otherReasonLabel": "Other reason",
+    "keepButton": "Keep Appointment",
+    "cancelButton": "Cancel Appointment",
+    "errorRequired": "Select a cancellation reason",
+    "errorTooLong": "Reason is too long",
+    "errorFallback": "Enter a cancellation reason.",
+    "reasonPatientRequested": "Patient requested",
+    "reasonDoctorUnavailable": "Doctor unavailable",
+    "reasonClinicClosed": "Clinic closed",
+    "reasonDuplicate": "Duplicate booking",
+    "reasonOther": "Other / Custom"
+  },
+  "formFields": {
+    "typeLabel": "Type",
+    "typePlaceholder": "Appointment type",
+    "notesLabel": "Notes (optional)",
+    "notesPlaceholder": "Visit notes",
+    "advanceLabel": "Advance payment (optional)",
+    "paidByLabel": "Paid by",
+    "paymentMethodPlaceholder": "Payment method"
+  }
+}

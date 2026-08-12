@@ -15,7 +15,7 @@ import {
   sanitizeStorageFolder,
 } from './local-storage-path.helpers';
 
-export interface LocalStorageProviderOptions {
+interface LocalStorageProviderOptions {
   apiUrl?: string;
   rootDir?: string;
 }

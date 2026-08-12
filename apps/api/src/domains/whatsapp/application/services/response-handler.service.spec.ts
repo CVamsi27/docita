@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { Logger } from '@nestjs/common';
 import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
+import { TemplatesFacadeService as TemplatesService } from '@/shared/whatsapp/templates-facade.service';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { ResponseHandlerService } from '@/domains/whatsapp/application/services/response-handler.service';
 import { PatientResponseConfirmationService } from '@/domains/whatsapp/application/services/patient-response-confirmation.service';

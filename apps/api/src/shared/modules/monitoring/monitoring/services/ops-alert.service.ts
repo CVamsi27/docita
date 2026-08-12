@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
-export type OpsAlertPayload = {
+type OpsAlertPayload = {
   title: string;
   text: string;
   severity?: 'warn' | 'page';

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AnonymizationFactory } from './anonymization.factory';
 import { PrismaService } from '@/prisma/prisma.service';
+import { ANONYMIZATION_PERSISTENCE_PORT } from '../ports/anonymization.persistence.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('AnonymizationFactory', () => {
@@ -18,6 +19,7 @@ describe('AnonymizationFactory', () => {
       providers: [
         AnonymizationFactory,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: ANONYMIZATION_PERSISTENCE_PORT, useExisting: PrismaService },
       ],
     }).compile();
 

@@ -33,7 +33,6 @@ import { ComplianceModule } from '@/shared/modules/compliance/compliance.module'
 import { AbdmModule } from '@/domains/abdm/abdm.module';
 import { MedicalHistoryFactory } from './core/factories/medical-history.factory';
 import { VitalsFactory } from './core/factories/vitals.factory';
-import { AiModule } from '@/shared/modules/ai-core/ai.module';
 import { MEDICATION_DOSE_REPOSITORY_TOKEN } from './core/repositories/medication-dose.repository.interface';
 import {
   PATIENT_TIMELINE_REPOSITORY_TOKEN,
@@ -59,7 +58,6 @@ import {
     PrismaModule,
     AuthModule,
     AuditModule,
-    AiModule,
     ComplianceModule,
     AbdmModule,
   ],

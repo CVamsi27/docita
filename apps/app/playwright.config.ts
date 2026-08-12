@@ -33,6 +33,11 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
 
+    // The app registers a service worker in production builds (vite preview
+    // serves the built bundle); block it during E2E so cached index.html can
+    // never serve stale markup and introduce cross-test flake.
+    serviceWorkers: "block",
+
     navigationTimeout: 60000,
     actionTimeout: 30000,
   },

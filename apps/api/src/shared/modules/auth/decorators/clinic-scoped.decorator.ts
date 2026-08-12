@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — Reflect.defineMetadata return requires as cast
 import {
   BadRequestException,
   SetMetadata,
@@ -6,6 +5,7 @@ import {
   applyDecorators,
 } from '@nestjs/common';
 import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
+import { isRecord } from '@workspace/utils';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
@@ -34,10 +34,10 @@ function resolveClinicId(
   request: Record<string, unknown>,
   paramName: string,
 ): { userClinicId: string | undefined; requestedClinicId: string | undefined } {
-  const user = request.user as Record<string, unknown> | undefined;
-  const query = request.query as Record<string, unknown> | undefined;
-  const body = request.body as Record<string, unknown> | undefined;
-  const params = request.params as Record<string, unknown> | undefined;
+  const user = isRecord(request.user) ? request.user : undefined;
+  const query = isRecord(request.query) ? request.query : undefined;
+  const body = isRecord(request.body) ? request.body : undefined;
+  const params = isRecord(request.params) ? request.params : undefined;
   return {
     userClinicId: readString(user?.clinicId),
     requestedClinicId:

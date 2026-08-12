@@ -8,6 +8,9 @@ node_modules
 # jscpd duplication report output
 .jscpd-report
 
+# Freebuff desktop tooling (local conversation DB, run docs, preview logs)
+.freebuff/
+
 # pnpm store (massive)
 .pnpm-store
 .pnpm
@@ -59,8 +62,10 @@ out
 # Local upload artifacts
 /uploads
 apps/api/uploads
-/artifacts
+/artifacts/*
 !artifacts/a11y-baseline.json
+!artifacts/web-vitals-baseline.json
+!artifacts/api-latency-baseline.json
 
 # Turbo cache
 .turbo
@@ -103,8 +108,8 @@ apps/api/src/seed-admin.ts
 *.log
 *.js.map
 logs/
-!apps/internal/features/logs/
-!apps/internal/features/logs/**
+!apps/internal/src/features/logs/
+!apps/internal/src/features/logs/**
 logs/performance/*.json
 # Note: loadtest/k6/ holds the tracked k6 perf scenarios. Do not blanket-ignore
 # loadtest/ — only ignore runtime outputs the scenarios produce.

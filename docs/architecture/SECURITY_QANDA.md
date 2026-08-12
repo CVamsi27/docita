@@ -43,7 +43,7 @@
 **A:** Three layers:
 
 1. **Input sanitization** — user-facing string fields in Zod schemas use `stripHtmlTags()` as a `.transform()`. The function first decodes HTML entities (via `he.decode()` — covers all HTML4/HTML5 named entities, numeric and hex character references), then strips all remaining `<...>` tags. This prevents encoded attacks like `&lt;script&gt;` from bypassing the filter.
-2. **CSP with `strict-dynamic`** — production apps use nonce-based `script-src` with `'strict-dynamic'`, dropping `'unsafe-inline'`. All apps have CSP via `helmet()` (API) or `security-headers.ts` (Next.js, Astro).
+2. **CSP with `strict-dynamic`** — production apps use nonce-based `script-src` with `'strict-dynamic'`, dropping `'unsafe-inline'`. All apps have CSP via `helmet()` (API) or Cloudflare Worker headers (Vite SPAs), Astro (landing).
 3. **Security headers** — `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `frame-ancestors 'none'`, `Referrer-Policy: strict-origin-when-cross-origin`.
 
 **Q: What is `stripHtmlTags` and why use `he` instead of regex?**
@@ -221,7 +221,7 @@ Path traversal is blocked at multiple levels: folder names are restricted to `[a
 
 **Q: Is there frontend env validation?**
 
-**A:** Yes — `apps/app/shared/lib/config/env-schema.ts` and `apps/internal/shared/lib/config/env-schema.ts` use Zod to validate `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SOCKET_URL` (required), plus optional vars. Fails hard on the server side, gracefully degrades in the browser.
+**A:** Server-side, yes — the API validates its environment at startup via `EnvSchema.safeParse()` and exits with code 1 on invalid config. In the Vite SPA apps, public env vars are **build-time**: each app types its `import.meta.env` surface in `vite-env.d.ts` (e.g. `VITE_API_URL`, `VITE_APP_URL`, `VITE_SENTRY_DSN`) and `vite.config.ts` injects them via `define` with safe defaults (e.g. `VITE_MAIN_APP_URL` falls back to `https://app.docita.work`). Invalid/missing vars therefore surface at build/typecheck time rather than at runtime; there is no browser-side Zod env schema (the Next-era `apps/app/shared/lib/config/env-schema.ts` was removed with the Next apps).
 
 ---
 

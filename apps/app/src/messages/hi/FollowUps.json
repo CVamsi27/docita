@@ -1,0 +1,34 @@
+{
+  "pageTitle": "फॉलो-अप",
+  "pageDescription": "नियोजित मरीज़ कॉलबैक और समीक्षा विज़िट पर काम पूरा करें",
+  "appointmentsButton": "अपॉइंटमेंट",
+  "worklistTitle": "वर्कलिस्ट",
+  "viewSelectorAriaLabel": "फॉलो-अप वर्कलिस्ट दृश्य",
+  "loading": "फॉलो-अप लोड हो रहे हैं...",
+  "error": "हम फॉलो-अप लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+  "emptyTitle": "कोई खुला फॉलो-अप नहीं",
+  "emptyDescription": "चयनित दृश्य के लिए खुले फॉलो-अप यहाँ दिखाई देंगे",
+  "completeError": "हम यह फॉलो-अप पूरा नहीं कर सके। कृपया पुनः प्रयास करें।",
+  "cancelError": "हम यह फॉलो-अप रद्द नहीं कर सके। कृपया पुनः प्रयास करें।",
+  "card": {
+    "dueDate": "नियत तिथि {date}",
+    "doctor": "डॉक्टर: {name}",
+    "unassigned": "अनअसाइन्ड",
+    "completeButton": "पूरा करें",
+    "cancelButton": "रद्द करें"
+  },
+  "statusLabels": {
+    "pending": "लंबित",
+    "reminderSent": "अनुस्मारक भेजा गया",
+    "booked": "बुक किया गया",
+    "completed": "पूर्ण",
+    "cancelled": "रद्द",
+    "expired": "समाप्त"
+  },
+  "viewOptions": {
+    "overdue": "अतिदेय",
+    "today": "आज",
+    "upcoming": "आगामी",
+    "all": "सभी खुले"
+  }
+}

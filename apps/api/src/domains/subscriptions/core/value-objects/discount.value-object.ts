@@ -1,8 +1,7 @@
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import type { DiscountType } from '@workspace/types';
-export { discountTypeSchema } from '@workspace/types';
 
-export interface DiscountProps {
+interface DiscountProps {
   type: DiscountType;
   percentOff: number;
   expiresAt?: Date;

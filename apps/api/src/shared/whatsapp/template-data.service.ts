@@ -10,18 +10,6 @@ import type {
   WhatsappTemplateStatus,
 } from '@workspace/db';
 
-interface TemplateButton {
-  id: string;
-  text: string;
-  action?: string;
-}
-
-interface TemplateVariable {
-  name: string;
-  required: boolean;
-  defaultValue?: string;
-}
-
 function toNullableJsonValue(
   // jscpd:ignore-end
   value: unknown,
@@ -62,57 +50,6 @@ export class TemplateDataService {
       where: { clinicId },
       orderBy: [{ category: 'asc' }, { name: 'asc' }, { version: 'desc' }],
     });
-  }
-
-  async seedDefaultTemplates(
-    clinicId: string,
-    defaultTemplates: Record<
-      string,
-      {
-        name: string;
-        category: WhatsappTemplateCategory;
-        content: string;
-        variables: TemplateVariable[];
-        buttonType: WhatsappButtonType;
-        buttons?: TemplateButton[];
-        textFallback: string;
-      }
-    >,
-  ): Promise<void> {
-    const existingTemplates = await this.prisma.whatsappTemplate.findMany({
-      where: { clinicId },
-    });
-
-    if (existingTemplates.length > 0) {
-      this.logger.log(
-        `Clinic ${clinicId} already has templates, skipping seed`,
-      );
-      return;
-    }
-
-    const templateEntries = Object.entries(defaultTemplates);
-    for (const [_, template] of templateEntries) {
-      await this.prisma.whatsappTemplate.create({
-        data: {
-          clinicId,
-          name: template.name,
-          category: template.category,
-          content: template.content,
-          variables: JSON.parse(JSON.stringify(template.variables)),
-          buttonType: template.buttonType,
-          buttons: template.buttons
-            ? JSON.parse(JSON.stringify(template.buttons))
-            : null,
-          status: 'DRAFT',
-          isDefault: true,
-          isActive: true,
-        },
-      });
-    }
-
-    this.logger.log(
-      `Seeded ${templateEntries.length} templates for clinic ${clinicId}`,
-    );
   }
 
   async updateTemplateStatus(

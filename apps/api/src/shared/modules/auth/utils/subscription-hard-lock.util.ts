@@ -2,7 +2,7 @@
 import { SubscriptionStatus } from '@workspace/db';
 import { BILLING_ROLES } from '@workspace/types';
 
-export function isSubscriptionPastGraceDeadline(params: {
+function isSubscriptionPastGraceDeadline(params: {
   subscriptionStatus: SubscriptionStatus;
   graceUntil: Date | null | undefined;
   now?: number;
@@ -17,7 +17,7 @@ export function isSubscriptionPastGraceDeadline(params: {
   return now > new Date(params.graceUntil).getTime();
 }
 
-export function isSubscriptionPeriodLapsed(
+function isSubscriptionPeriodLapsed(
   currentPeriodEnd: Date | null | undefined,
   now: number = Date.now(),
 ): boolean {

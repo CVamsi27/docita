@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType } from '@workspace/db';
 import {
   TIER_LIMITS,
@@ -15,11 +14,17 @@ import {
   resolveTierName,
 } from '@/domains/billing/core/services/usage-tracking-tier.util';
 import { getWhatsappBillableConfig } from '@/domains/billing/core/services/pricing-helpers';
+import {
+  type IUsageRepository,
+  type SubscriptionUsageSnapshot,
+  USAGE_REPOSITORY_TOKEN,
+} from '@/domains/billing/core/repositories/usage.repository';
 
 @Injectable()
 export class UsageTrackingQueryService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(USAGE_REPOSITORY_TOKEN)
+    private readonly usageRepository: IUsageRepository,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -33,19 +38,8 @@ export class UsageTrackingQueryService {
     );
 
     const [subscription, clinic] = await Promise.all([
-      this.prisma.subscription.findUnique({
-        where: { clinicId },
-        select: {
-          plan: true,
-          includedAppointments: true,
-          includedUsers: true,
-          currency: true,
-        },
-      }),
-      this.prisma.clinic.findUnique({
-        where: { id: clinicId },
-        select: { tier: true, planMode: true },
-      }),
+      this.usageRepository.findSubscriptionSnapshot(clinicId),
+      this.usageRepository.findClinicTier(clinicId),
     ]);
 
     const counts = await this.fetchUsageCounts(
@@ -86,58 +80,31 @@ export class UsageTrackingQueryService {
       maxUsersEvent,
       maxUsersRecord,
     ] = await Promise.all([
-      this.prisma.appointment.count({
-        where: {
-          clinicId,
-          status: 'COMPLETED',
-          updatedAt: { gte: periodStart, lte: periodEnd },
-        },
-      }),
-      this.prisma.usageEvent.aggregate({
-        where: {
-          clinicId,
-          type: 'WHATSAPP_MESSAGES',
-          timestamp: { gte: periodStart, lte: periodEnd },
-        },
-        _sum: { quantity: true },
-      }),
-      this.prisma.usageEvent.aggregate({
-        where: {
-          clinicId,
-          type: 'AI_CREDITS',
-          timestamp: { gte: periodStart, lte: periodEnd },
-        },
-        _sum: { quantity: true },
-      }),
-      this.prisma.user.count({
-        where: {
-          clinicId,
-          ...(planMode === 'FRONT_DESK'
-            ? {
-                NOT: {
-                  AND: [{ role: 'DOCTOR' }, { appLoginDisabled: true }],
-                },
-              }
-            : {}),
-        },
-      }),
-      this.prisma.usageEvent.aggregate({
-        where: {
-          clinicId,
-          type: 'USERS',
-          timestamp: { gte: periodStart, lte: periodEnd },
-        },
-        _max: { quantity: true },
-      }),
-      this.prisma.usageRecord.findFirst({
-        where: {
-          clinicId,
-          type: UsageType.USERS,
-          periodStart: { gte: periodStart, lte: periodEnd },
-        },
-        orderBy: { quantity: 'desc' },
-        select: { quantity: true },
-      }),
+      this.usageRepository.countCompletedAppointments(
+        clinicId,
+        periodStart,
+        periodEnd,
+      ),
+      this.usageRepository.sumUsage(
+        clinicId,
+        UsageType.WHATSAPP_MESSAGES,
+        periodStart,
+        periodEnd,
+      ),
+      this.usageRepository.sumUsage(
+        clinicId,
+        'AI_CREDITS',
+        periodStart,
+        periodEnd,
+      ),
+      this.usageRepository.countActiveUsers(clinicId, planMode),
+      this.usageRepository.maxUsage(clinicId, 'USERS', periodStart, periodEnd),
+      this.usageRepository.findMaxUsageRecord(
+        clinicId,
+        UsageType.USERS,
+        periodStart,
+        periodEnd,
+      ),
     ]);
 
     return {
@@ -153,19 +120,14 @@ export class UsageTrackingQueryService {
   private buildUsageSummary(
     periodStart: Date,
     periodEnd: Date,
-    subscription: {
-      plan: string | null;
-      includedAppointments: number | null;
-      includedUsers: number | null;
-      currency: string | null;
-    } | null,
+    subscription: SubscriptionUsageSnapshot | null,
     counts: {
       consultations: number;
-      whatsappMessages: { _sum: { quantity: number | null } };
-      aiCredits: { _sum: { quantity: number | null } };
+      whatsappMessages: number;
+      aiCredits: number;
       activeUsers: number;
-      maxUsersEvent: { _max: { quantity: number | null } };
-      maxUsersRecord: { quantity: number } | null;
+      maxUsersEvent: number | null;
+      maxUsersRecord: number | null;
     },
   ) {
     const tierKey = resolveTierName(subscription?.plan ?? undefined);
@@ -186,17 +148,17 @@ export class UsageTrackingQueryService {
       0,
       counts.consultations - includedConsultations,
     );
-    const whatsappCurrent = counts.whatsappMessages._sum.quantity ?? 0;
+    const whatsappCurrent = counts.whatsappMessages;
     const whatsappOverage = Math.max(0, whatsappCurrent - includedWhatsapp);
-    const aiCreditsCurrent = counts.aiCredits._sum.quantity ?? 0;
+    const aiCreditsCurrent = counts.aiCredits;
     const aiCreditsOverage =
       aiCreditAllotment === null
         ? 0
         : Math.max(0, aiCreditsCurrent - includedAiCredits);
     const peakUsersInCycle = Math.max(
       counts.activeUsers,
-      counts.maxUsersEvent._max.quantity ?? 0,
-      counts.maxUsersRecord?.quantity ?? 0,
+      counts.maxUsersEvent ?? 0,
+      counts.maxUsersRecord ?? 0,
     );
     const usersOverage = Math.max(0, peakUsersInCycle - includedUsers);
     const rates = {
@@ -296,10 +258,8 @@ export class UsageTrackingQueryService {
 
   async calculateOverageCharges(clinicId: string) {
     const usage = await this.getCurrentUsage(clinicId);
-    const subscription = await this.prisma.subscription.findUnique({
-      where: { clinicId },
-      select: { currency: true },
-    });
+    const subscription =
+      await this.usageRepository.findSubscriptionSnapshot(clinicId);
 
     return {
       period: usage.period,

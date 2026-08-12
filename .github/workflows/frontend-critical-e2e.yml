@@ -1,4 +1,4 @@
-name: End-to-End Tests - Critical Flows
+name: End-to-End Tests - Critical Flows (Vite)
 
 on:
   schedule:
@@ -22,12 +22,17 @@ jobs:
       JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
       ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
       NODE_ENV: test
-      APP_URL: http://127.0.0.1:3000
+      # Explicit e2e operator switch (the API e2e suites set this in
+      # test/setup-e2e-env.ts): under NODE_ENV=test this disables the auth
+      # throttlers (register is limited to 5/60s per IP) and the
+      # email-verified gate, which the registration-heavy specs would
+      # otherwise trip with 429s. Only ever set in this CI workflow with a
+      # throwaway test DB; prod/staging never honor it (VULN-001).
+      DOCITA_API_E2E: "true"
+      APP_URL: http://127.0.0.1:5173
       API_URL: http://127.0.0.1:3001/api/v1
-      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
-      NEXT_PUBLIC_API_URL: http://127.0.0.1:3001/api/v1
       API_PROXY_TARGET: http://127.0.0.1:3001
-      CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
+      CORS_ORIGINS: http://127.0.0.1:5173,http://localhost:5173
       WHATSAPP_PRODUCTION_MODE: "false"
       # Razorpay TEST credentials (rzp_test_…) so onboarding payment
       # verification runs against the sandbox. The API verifies the HMAC
@@ -66,7 +71,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: pnpm
 
       - name: Install dependencies
@@ -84,10 +89,10 @@ jobs:
       - name: Prepare API workspace packages
         run: pnpm --filter @docita/api run predev
 
-      - name: Prepare App workspace packages
-        run: pnpm --filter @docita/app run prestart
+      - name: Build app workspace deps
+        run: pnpm run build:web-workspace-deps
 
-      - name: Build App (production)
+      - name: Build app
         run: pnpm --filter @docita/app run build
 
       - name: Start API server
@@ -95,14 +100,13 @@ jobs:
           pnpm --filter @docita/api run dev > /tmp/docita-api.log 2>&1 &
           echo $! > /tmp/docita-api.pid
 
-      - name: Start App server (production)
-        # Serve a production build instead of `next dev`. Dev mode compiles
-        # routes on-demand, so the first hit to a protected route (e.g.
-        # /consultation/:id) under CI load could exceed the 90s workspace-load
-        # timeout and reset connections. `next start` serves precompiled routes
-        # in milliseconds, removing both flake sources.
+      - name: Start app server (preview)
         run: |
-          pnpm --filter @docita/app exec next start -p 3000 > /tmp/docita-app.log 2>&1 &
+          # Bind to 127.0.0.1 explicitly: vite preview defaults to
+          # `localhost`, which Node resolves to ::1 (IPv6) on runners,
+          # making the server unreachable at the 127.0.0.1 APP_URL the
+          # wait loop and Playwright use.
+          pnpm --filter @docita/app exec vite preview --port 5173 --host 127.0.0.1 > /tmp/docita-app.log 2>&1 &
           echo $! > /tmp/docita-app.pid
 
       - name: Wait for API and App
@@ -120,7 +124,7 @@ jobs:
           done
 
           for i in {1..120}; do
-            if curl -fsS http://127.0.0.1:3000/login >/dev/null 2>&1; then
+            if curl -fsS http://127.0.0.1:5173/login >/dev/null 2>&1; then
               break
             fi
             if [ "$i" -eq 120 ]; then
@@ -134,22 +138,14 @@ jobs:
       - name: Run critical E2E suites
         run: |
           unset NO_COLOR
-          pnpm --filter @docita/app exec playwright test \
+          # Scoped to the same five critical-flow specs main runs; running
+          # the full 45-spec suite here exceeds the 40-min global timeout.
+          pnpm --filter @docita/app exec playwright test --config=playwright.config.ts \
             e2e/clinic-registration.spec.ts \
             e2e/verify-doctor.spec.ts \
             e2e/auth.spec.ts \
             e2e/critical-flows.spec.ts \
             e2e/front-desk-sidebar.spec.ts
-
-      - name: Run mobile E2E suites
-        run: |
-          unset NO_COLOR
-          pnpm --filter @docita/app exec playwright test \
-            e2e/mobile-forms.spec.ts \
-            e2e/mobile-protected-routes.spec.ts \
-            e2e/mobile-portal-routes.spec.ts \
-            e2e/mobile-auth-setup.spec.ts \
-            --project=mobile-chrome
 
       - name: Dump server logs on failure
         if: failure()

@@ -5,7 +5,7 @@ import {
   WEBHOOK_EVENT_REPOSITORY_TOKEN,
 } from '@/domains/webhooks/application/ports/webhook-event.repository.port';
 
-export interface WebhookErrorContext {
+interface WebhookErrorContext {
   clinicId?: string;
   userId?: string;
   eventType: string;

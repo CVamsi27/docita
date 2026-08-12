@@ -5,8 +5,6 @@ import { UploadsCommandService } from './uploads-command.service';
 import { UploadsQueryService } from './uploads-query.service';
 import type { CreateUploadSessionOptions } from './uploads.types';
 
-export type { CreateUploadSessionOptions };
-
 interface UploadSessionContext {
   onboardingId?: string;
   modifiedBy?: string;

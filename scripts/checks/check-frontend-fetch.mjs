@@ -7,12 +7,13 @@ import {
 } from "../lib/check-runner.mjs";
 
 const allowedPatterns = [
-  /^apps\/app\/middleware\.ts$/,
-  /^apps\/internal\/middleware\.ts$/,
   /^packages\/utils\/src\/http\/upstream-api-proxy\.ts$/,
-  /^apps\/(app|internal)\/shared\/lib\/api\//,
-  /^apps\/(app|internal)\/shared\/lib\/auth\//,
-  /^apps\/(app|internal)\/features\/[^/]+\/api\/[^/]+\.api\.ts$/,
+  // Cloudflare proxy Worker entry (server-side runtime, not browser code): the
+  // `fetch` here forwards /api/* and /socket.io/* to the upstream API host.
+  /^apps\/(app|internal)\/api\//,
+  /^apps\/(app|internal)\/src\/lib\/api\//,
+  /^apps\/(app|internal)\/src\/lib\/auth\//,
+  /^apps\/(app|internal)\/src\/features\/[^/]+\/api\/[^/]+\.api\.ts$/,
 ];
 
 const files = gitLsSourceFiles(["apps/app", "apps/internal"], {

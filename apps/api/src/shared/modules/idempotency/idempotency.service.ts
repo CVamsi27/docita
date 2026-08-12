@@ -6,8 +6,6 @@ import type { CachedIdempotencyEntry } from './idempotency.types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { isRecord } from '@workspace/utils';
 
-export type { CachedIdempotencyEntry };
-
 /**
  * Storage layer for the idempotency interceptor. Persists state in Postgres so
  * idempotency holds across multiple API replicas.

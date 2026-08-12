@@ -1,0 +1,17 @@
+{
+  "editor": {
+    "title": "Edit contract",
+    "saveButton": "Save",
+    "cancelButton": "Cancel"
+  },
+  "limits": {
+    "title": "Edit limits",
+    "saveButton": "Save",
+    "cancelButton": "Cancel"
+  },
+  "estimate": {
+    "title": "Estimate",
+    "saveButton": "Save",
+    "cancelButton": "Cancel"
+  }
+}

@@ -17,6 +17,9 @@ import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role, JoinRequestStatus } from '@workspace/db';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
+import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
+import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
+import { AllowNoClinic } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { JoinRequestService } from '@/domains/clinics/application/services/join-request.service';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { RequestWithUser } from '@/shared/common/types/common.types';
@@ -44,6 +47,9 @@ export class JoinRequestsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
   @HttpCode(200)
   async createJoinRequest(
     @Request() req: RequestWithUser,
@@ -114,6 +120,9 @@ export class JoinRequestsController {
 
   @Get('mine')
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
   async getMyJoinRequest(@Request() req: RequestWithUser) {
     const requests = await this.joinRequestService.findUserPendingRequests(
       requireAuthenticatedUserId(req),
@@ -225,6 +234,9 @@ export class JoinRequestsController {
 
   @Post(':id/withdraw')
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
   @HttpCode(200)
   async withdrawJoinRequest(
     @Request() req: RequestWithUser,

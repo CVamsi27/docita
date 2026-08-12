@@ -153,7 +153,10 @@ async function createDoctorWithSignature(
     "x-docita-e2e": "true",
   };
   const signatureBuffer = Buffer.from(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=",
+    // Valid 2x2 PNG: the previous fixture decoded but was corrupt, and the
+    // API's sharp pipeline rejected it with libpng read error (400
+    // "Invalid file format or upload failed").
+    "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEUlEQVQImWPgEpH7D8IMMAYAJowE7bwlVOYAAAAASUVORK5CYII=",
     "base64",
   );
 
@@ -547,7 +550,7 @@ test.describe("Doctor Verification Flow", () => {
       );
     }
 
-    const clinicSettingsRes = await request.get(`${API_URL}/clinic/settings`, {
+    const clinicSettingsRes = await request.get(`${API_URL}/clinics/settings`, {
       headers: {
         Authorization: `Bearer ${doctor.accessToken}`,
       },

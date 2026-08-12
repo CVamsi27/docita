@@ -1,39 +1,23 @@
-import { ClinicTier } from '@workspace/db';
+import { createZodDto } from 'nestjs-zod';
+import {
+  internalCreateAdminRequestSchema,
+  internalCreateClinicRequestSchema,
+  internalUpdateAdminRequestSchema,
+  internalUpdateClinicRequestSchema,
+} from '@workspace/types';
 
-export class InternalCreateClinicDto {
-  name!: string;
-  email!: string;
-  phone!: string;
-  address!: string;
-  adminName!: string;
-  adminEmail!: string;
-  adminPassword!: string;
-  tier?: ClinicTier;
-  type?: string;
-}
+export const InternalCreateClinicSchema = internalCreateClinicRequestSchema;
+export class InternalCreateClinicDto extends createZodDto(
+  InternalCreateClinicSchema,
+) {}
 
-export class InternalUpdateClinicDto {
-  name?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  tier?: ClinicTier;
-  type?: string;
-  active?: boolean;
-}
+export const InternalUpdateClinicSchema = internalUpdateClinicRequestSchema;
+export class InternalUpdateClinicDto extends createZodDto(
+  InternalUpdateClinicSchema,
+) {}
 
-export class CreateAdminDto {
-  clinicId!: string;
-  name!: string;
-  email!: string;
-  password!: string;
-  phoneNumber?: string;
-  adminType!: 'admin' | 'admin_doctor';
-}
+export const CreateAdminSchema = internalCreateAdminRequestSchema;
+export class CreateAdminDto extends createZodDto(CreateAdminSchema) {}
 
-export class UpdateAdminDto {
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-  adminType?: 'admin' | 'admin_doctor';
-}
+export const UpdateAdminSchema = internalUpdateAdminRequestSchema;
+export class UpdateAdminDto extends createZodDto(UpdateAdminSchema) {}

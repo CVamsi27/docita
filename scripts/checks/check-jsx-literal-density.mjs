@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * T1 (ratchet): JSX text-literal density in the two Next.js apps.
+ * T1 (ratchet): JSX text-literal density in the two Vite apps (app, internal).
  *
- * The upcoming next-intl migration (Phase 6) will wrap user-facing text in
- * t() calls and lift the strings into per-feature messages/<locale>.json files.
- * To make that migration a one-way ratchet (we never add new un-translated
- * literals) this check counts the current number of JSX text literals and
+ * Porting wraps user-facing text in t() calls via i18next. To keep the
+ * migration a one-way ratchet (we never add new un-translated literals),
+ * this check counts the current number of JSX text literals and
  * fails CI when the count grows.
  *
  * What counts as a "JSX text literal":
@@ -40,8 +39,8 @@ import process from "node:process";
 const REPO_ROOT = process.cwd();
 
 const SCAN_ROOTS = [
-  "apps/app/features",
-  "apps/internal/features",
+  "apps/app/src/features",
+  "apps/internal/src/features",
 ];
 
 const EXCLUDE_PATTERNS = [

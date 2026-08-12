@@ -6,6 +6,7 @@ import {
 } from '@workspace/types';
 import { getWhatsAppAddonPricingByCurrency } from '@workspace/utils';
 import type { SubscriptionPersistencePort } from '@/domains/subscriptions/application/ports/subscription-persistence.port';
+import { activeUsersWhereFilter } from '@/shared/common/user-where-fragments';
 
 function clinicTierToTierName(tier: ClinicTier): TierName {
   switch (tier) {
@@ -116,16 +117,7 @@ export async function gatherUsageCounts({
       },
     }),
     persistence.user.count({
-      where: {
-        clinicId,
-        ...(planMode === 'FRONT_DESK'
-          ? {
-              NOT: {
-                AND: [{ role: 'DOCTOR' }, { appLoginDisabled: true }],
-              },
-            }
-          : {}),
-      },
+      where: activeUsersWhereFilter(clinicId, planMode),
     }),
     persistence.usageEvent.aggregate({
       where: {

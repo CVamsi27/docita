@@ -39,10 +39,17 @@ export const EnvSchema = z.object({
   PORT: z.coerce.number().default(3001),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   APP_URL: z.string().min(1),
-  NEXT_PUBLIC_APP_URL: z.string().min(1),
-  NEXT_PUBLIC_API_URL: z.string().min(1),
+  /** Frontend app origin (canonical name; resolved in `createEnvToParse` with
+   *  fallback to the legacy `NEXT_PUBLIC_APP_URL` alias). */
+  FRONTEND_URL: z.string().min(1),
+  /** Frontend-facing API base URL (canonical name; resolved with fallback to
+   *  the legacy `NEXT_PUBLIC_API_URL` alias). */
+  API_PUBLIC_URL: z.string().min(1),
+  /** Legacy aliases — deprecated; removed after the compatibility rollout. */
+  NEXT_PUBLIC_APP_URL: z.string().optional(),
+  NEXT_PUBLIC_API_URL: z.string().optional(),
   /** Override for the partner self-service portal URL. Defaults to
-   *  `${NEXT_PUBLIC_APP_URL}/partner`. Set when the portal is hosted
+   *  `${FRONTEND_URL}/partner`. Set when the portal is hosted
    *  on a different subdomain. */
   PARTNER_PORTAL_URL: z.string().optional(),
   CORS_ORIGINS: z.string().min(1),

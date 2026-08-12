@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — narrowing casts for Prisma JSON fields
 import { Inject, Injectable } from '@nestjs/common';
 import { Prisma, type DatabaseControlAction } from '@workspace/db';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
@@ -12,9 +11,9 @@ export type DatabaseControlActionType =
   | 'DELETE'
   | 'RESTORE';
 
-export type DatabaseControlActionStatus = 'IN_PROGRESS' | 'SUCCESS' | 'FAILED';
+type DatabaseControlActionStatus = 'IN_PROGRESS' | 'SUCCESS' | 'FAILED';
 
-export interface NewDatabaseControlAction {
+interface NewDatabaseControlAction {
   action: DatabaseControlActionType;
   reason: string;
   actorUserId: string;
@@ -22,7 +21,7 @@ export interface NewDatabaseControlAction {
   snapshotId?: string;
 }
 
-export interface CompletedDatabaseControlAction {
+interface CompletedDatabaseControlAction {
   id: string;
   status: DatabaseControlActionStatus;
   awsRequestId?: string;
@@ -77,12 +76,56 @@ export class DatabaseControlStateRepository {
         errorMessage: completion.errorMessage ?? null,
         completedAt: completion.completedAt,
         metadata: completion.metadata
-          ? (toPrismaInputJsonValue(
-              completion.metadata,
-            ) as Prisma.InputJsonValue)
+          ? toPrismaInputJsonValue(completion.metadata)
           : Prisma.JsonNull,
       },
     });
+  }
+
+  /**
+   * Update the `errorMessage` and `completedAt` columns on a row that has
+   * already been written by `recordCompletion` (or `recordStart` for a
+   * still-IN_PROGRESS action that failed in the background wait). Used by
+   * the background `waitFor*` chains in DatabaseControlService so the
+   * UI's getState() poll reflects the real terminal state once the RDS
+   * instance finishes its lifecycle.
+   *
+   * No-op when `id` no longer exists (e.g. the row was deleted between
+   * the action starting and the background wait completing) — the
+   * background chain must not throw on a missing row.
+   */
+  async recordBackgroundCompletion(
+    id: string,
+    completion: {
+      status: 'SUCCESS' | 'FAILED';
+      errorMessage?: string;
+      completedAt: Date;
+    },
+  ): Promise<void> {
+    try {
+      await this.prisma.databaseControlAction.update({
+        where: { id },
+        data: {
+          status: completion.status,
+          errorMessage: completion.errorMessage ?? null,
+          completedAt: completion.completedAt,
+        },
+      });
+    } catch (error) {
+      // P2025 = "Record to update not found" — the action row was
+      // removed between start and background completion (e.g. a manual
+      // cleanup). Swallow so the background chain does not surface an
+      // unhandled rejection to the process exit handler.
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: unknown }).code === 'P2025'
+      ) {
+        return;
+      }
+      throw error;
+    }
   }
 
   /**

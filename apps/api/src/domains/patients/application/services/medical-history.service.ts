@@ -15,13 +15,11 @@ import {
   CreatePatientSurgicalHistoryInput,
   UpdatePatientSurgicalHistoryInput,
 } from '@workspace/types';
-import { AiService } from '@/shared/modules/ai-core/ai.service';
-import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
 import { MedicalHistoryConditionsService } from './medical-history-conditions.service';
 
 /**
  * Facade — delegates condition/allergy CRUD to MedicalHistoryConditionsService;
- * other medical-history sections use patient persistence and AI helpers.
+ * other medical-history sections use patient persistence.
  */
 @Injectable()
 export class MedicalHistoryService {
@@ -29,8 +27,6 @@ export class MedicalHistoryService {
     @Inject(PATIENT_PERSISTENCE_PORT)
     private readonly persistence: PatientPersistencePort,
     private readonly medicalHistoryFactory: MedicalHistoryFactory,
-    private readonly aiService: AiService,
-    private readonly aiFactory: AiFactory,
     private readonly conditionsService: MedicalHistoryConditionsService,
   ) {}
 
@@ -63,52 +59,6 @@ export class MedicalHistoryService {
   }
   deleteAllergy(id: string, patientId: string) {
     return this.conditionsService.deleteAllergy(id, patientId);
-  }
-
-  // ── AI summarization ─────────────────────────────────────────────────────
-
-  async summarizeMedicalHistory(patientId: string): Promise<string> {
-    const [conditions, allergies, meds] = await Promise.all([
-      this.persistence.patientMedicalCondition.findMany({
-        where: { patientId },
-        // No `take`: bounded by patientId. The AI summary is built from the
-        // full per-patient history; truncating would lose clinical context.
-      }),
-      this.persistence.patientAllergy.findMany({
-        where: { patientId },
-        // No `take`: bounded by patientId. Allergies feed the AI summary;
-        // truncation could miss safety-critical entries.
-      }),
-      this.persistence.prescription.findMany({
-        where: { patientId, approvalStatus: 'APPROVED' },
-        include: { medications: true },
-        // No `take`: bounded by (patientId, approvalStatus: APPROVED). The
-        // full approved-prescription history is summarized for the clinician.
-      }),
-    ]);
-
-    const context = {
-      conditions: conditions
-        .map((c) => `${c.conditionName} (${c.status})`)
-        .join(', '),
-      allergies: allergies
-        .map((a) => `${a.allergen} (${a.reaction})`)
-        .join(', '),
-      medications: meds
-        .flatMap((p) => p.medications.map((m) => m.name))
-        .join(', '),
-    };
-
-    const prompt = this.aiFactory.createPrompt(
-      {
-        system:
-          'You are a clinical assistant. Summarize the following patient history into a concise paragraph suitable for a doctor to read quickly.',
-        user: `Medical Conditions: {{conditions}}\nAllergies: {{allergies}}\nActive Medications: {{medications}}\n\nPlease provide a brief clinical summary.`,
-      },
-      context,
-    );
-
-    return this.aiService.generateText(prompt);
   }
 
   // ── Family history ────────────────────────────────────────────────────────

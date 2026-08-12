@@ -10,13 +10,24 @@ export interface AuditLogData {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Return shape of `AuditService.createAuditLog`. The function is
+ * private to the service, but the type is exported so callers that
+ * spy on it from a test can assert against a typed result without
+ * falling back to `Record<string, unknown>`.
+ */
+export type CreatedAuditLog = AuditLogData & {
+  id: string;
+  createdAt: Date;
+};
+
 export interface AuditLogFilter {
   clinicId?: string;
   userId?: string;
-  actionType?: string;
-  resourceType?: string;
-  startDate?: Date;
-  endDate?: Date;
-  skip?: number;
-  take?: number;
+  action?: string;
+  resource?: string;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+  page?: number;
 }

@@ -7,6 +7,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { RequiresIdempotency } from '@/shared/modules/idempotency';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import { appointmentRescheduleRequestSchema } from '@workspace/types';
 import { coerceAppointmentBoundaryInstant } from '@/domains/appointments/application/mappers/appointment-instant.mapper';
@@ -29,6 +30,7 @@ export class AppointmentsWorkflowController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
   @Patch(':id/cancel')
+  @RequirePolicy('appointment', 'update')
   @ApiOperation({ summary: 'Cancel appointment' })
   async cancel(
     @Param('id') id: string,
@@ -47,6 +49,7 @@ export class AppointmentsWorkflowController {
   }
 
   @Patch(':id/reschedule')
+  @RequirePolicy('appointment', 'update')
   @RequiresIdempotency()
   @ApiOperation({ summary: 'Reschedule appointment' })
   async reschedule(

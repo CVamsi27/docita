@@ -199,7 +199,7 @@ function HeroProductCard({
             aria-selected={state === s}
             aria-label={`Show ${s} preview`}
             onClick={() => onSelect(s)}
-            className="group flex flex-1 items-center gap-2 focus:outline-none"
+            className="group flex flex-1 items-center gap-2 rounded-md py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <span className="r2-product-rail-dot" />
             <span className="sr-only">{`Step ${i + 1}: ${s}`}</span>

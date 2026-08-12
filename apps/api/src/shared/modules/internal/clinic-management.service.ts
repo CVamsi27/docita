@@ -29,6 +29,15 @@ import {
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
 
+// Cap for cross-clinic lists; the controller clamps ?limit to 1..500 (default
+// 200). The service re-clamps so the bound holds even if called outside the
+// controller — the internal console search/filter runs client-side over the
+// returned page, so this is a documented most-recent-200 surface, not a full
+// table dump. Server-side search/pagination is the durable upgrade if the
+// console needs to reach older rows.
+const INTERNAL_LIST_MAX_LIMIT = 500;
+const INTERNAL_LIST_DEFAULT_LIMIT = 200;
+
 const CLINIC_ADMIN_SELECT = {
   id: true,
   name: true,
@@ -221,6 +230,66 @@ export class ClinicManagementService {
       select: CLINIC_ADMIN_SELECT,
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  /**
+   * P5.11 — cross-clinic admin list for the internal console. Gated by the
+   * controller-level `@InternalApiAccess()` (Role.INTERNAL); the query itself
+   * is deliberately NOT clinic-scoped because the internal portal manages all
+   * facilities. Only admin roles are returned (the users list covers the rest).
+   * Bounded: the controller clamps `limit` to 1..500 (default 200) so the
+   * cross-clinic admin table cannot grow into an unbounded findMany.
+   */
+  async getAllAdmins(options?: { limit?: number }) {
+    return this.prisma.user.findMany({
+      where: { role: { in: CLINIC_ADMIN_ROLES } },
+      select: CLINIC_ADMIN_SELECT,
+      orderBy: { createdAt: 'desc' },
+      take: Math.min(
+        options?.limit ?? INTERNAL_LIST_DEFAULT_LIMIT,
+        INTERNAL_LIST_MAX_LIMIT,
+      ),
+    });
+  }
+
+  /**
+   * P5.11 — cross-clinic users list for the internal console. Returns clinic
+   * staff (all non-INTERNAL roles) with the owning clinic name attached for
+   * the "across facilities" table. Same Role.INTERNAL gate as getAllAdmins.
+   */
+  // Cross-clinic list for the INTERNAL console (low-traffic, admin-only).
+  // Bounded: the controller clamps `limit` to 1..500 (default 200) so the
+  // platform-wide users table cannot be materialized in one request. The
+  // contract stays a plain array (matches the internal e2e spec).
+  async getAllUsers(options?: { limit?: number }) {
+    const users = await this.prisma.user.findMany({
+      where: { role: { not: Role.INTERNAL } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phoneNumber: true,
+        specialization: true,
+        qualification: true,
+        registrationNumber: true,
+        yearsOfExperience: true,
+        bio: true,
+        clinicId: true,
+        createdAt: true,
+        updatedAt: true,
+        clinic: { select: { name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: Math.min(
+        options?.limit ?? INTERNAL_LIST_DEFAULT_LIMIT,
+        INTERNAL_LIST_MAX_LIMIT,
+      ),
+    });
+    return users.map((user) => ({
+      ...user,
+      clinicName: user.clinic?.name,
+    }));
   }
 
   async createAdmin(clinicId: string, data: CreateAdminDto) {

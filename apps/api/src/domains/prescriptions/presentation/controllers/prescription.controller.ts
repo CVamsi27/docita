@@ -41,6 +41,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import {
   logClinicPhiListRead,
@@ -119,6 +120,7 @@ export class PrescriptionsController {
   }
 
   @Get(':id')
+  @RequirePolicy('prescription', 'read')
   @ZodSerializerDto(PrescriptionResponseDto)
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
     const { clinicId } = getClinicStaffRequestContext(req);
@@ -152,6 +154,7 @@ export class PrescriptionsController {
   }
 
   @Get(':id/pdf/status')
+  @RequirePolicy('prescription', 'read')
   @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   async getPdfStatus(
     @Request() req: RequestWithUser,
@@ -166,6 +169,7 @@ export class PrescriptionsController {
   }
 
   @Get(':id/pdf')
+  @RequirePolicy('prescription', 'read')
   @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   async getPdf(
     @Request() req: RequestWithUser,

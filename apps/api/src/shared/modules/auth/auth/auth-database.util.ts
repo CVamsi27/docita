@@ -1,4 +1,3 @@
-// jscpd:ignore-start
 import { isRecord } from '@workspace/utils';
 
 function readErrorMessageFields(error: unknown): {
@@ -14,20 +13,7 @@ function readErrorMessageFields(error: unknown): {
   return { code, message };
 }
 
-export function isDatabaseAuthError(error: unknown): boolean {
-  const { code, message } = readErrorMessageFields(error);
-
-  if (code === 'P1000') return true;
-
-  return (
-    message.includes('authentication failed against the database server') ||
-    message.includes('database credentials') ||
-    message.includes('password authentication failed')
-  );
-}
-
 export function isDatabaseConnectivityError(error: unknown): boolean {
-  // jscpd:ignore-end
   const { message } = readErrorMessageFields(error);
 
   return (

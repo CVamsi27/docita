@@ -26,7 +26,7 @@ import {
   PublicBookingTokenService,
   PUBLIC_BOOKING_JWT_PURPOSE,
 } from '@/domains/public-booking/application/services/public-booking-token.service';
-import { TurnstileVerifyService } from '@/domains/public-booking/application/services/turnstile-verify.service';
+import { TurnstileVerifyService } from '@/shared/modules/turnstile/turnstile-verify.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   extractBearerToken,

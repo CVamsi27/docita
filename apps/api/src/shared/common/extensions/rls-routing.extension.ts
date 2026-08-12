@@ -2,11 +2,11 @@
 import { Prisma } from '@workspace/db';
 import { activeTxStorage } from '@/shared/modules/rls/active-tx.storage';
 
-interface RoutableOperation {
+interface RoutableOperation<T> {
   model: string;
   operation: string;
   args: unknown;
-  query: (args: unknown) => Promise<unknown>;
+  query: (args: unknown) => Promise<T>;
 }
 
 /**
@@ -24,9 +24,9 @@ interface RoutableOperation {
  * - Always restores `store.tx` on the way out so sibling operations in
  *   the same request continue to be routed.
  */
-export async function routeOperationThroughActiveTx(
-  input: RoutableOperation,
-): Promise<unknown> {
+export async function routeOperationThroughActiveTx<T>(
+  input: RoutableOperation<T>,
+): Promise<T> {
   const { model, operation, args, query } = input;
   const store = activeTxStorage.getStore();
   if (!store || !store.tx) return query(args);
@@ -44,7 +44,10 @@ export async function routeOperationThroughActiveTx(
   const previousTx = tx;
   store.tx = null;
   try {
-    return await delegate[operation](args);
+    // The delegate mirrors the original query's return shape (both are the
+    // same Prisma model operation, just executed on the RLS-scoped client),
+    // so the await result narrows back to T without an escape hatch.
+    return (await delegate[operation](args)) as T;
   } finally {
     store.tx = previousTx;
   }

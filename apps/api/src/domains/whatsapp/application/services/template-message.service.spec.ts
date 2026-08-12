@@ -2,7 +2,6 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { WhatsappLogStatus } from '@workspace/db';
 import { TemplateMessageService } from './template-message.service';
 import type { WhatsappPersistencePort } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
-import type { TemplatesService } from '@/domains/whatsapp/application/services/templates.service';
 import type { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
@@ -15,7 +14,6 @@ describe('TemplateMessageService', () => {
     patient: { findFirst: patientFindFirst },
     whatsappLog: { create: whatsappLogCreate },
   } as unknown as WhatsappPersistencePort;
-  const templatesService = {} as TemplatesService;
   const sendMessage = {
     execute: sendExecute,
   } as unknown as SendMessageUseCase;
@@ -24,11 +22,7 @@ describe('TemplateMessageService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new TemplateMessageService(
-      persistence,
-      templatesService,
-      sendMessage,
-    );
+    service = new TemplateMessageService(persistence, sendMessage);
   });
 
   it('resolves the recipient from the clinic-scoped patient record', async () => {

@@ -12,6 +12,8 @@ import {
   auditLogSchema,
   internalClinicAdminListResponseSchema,
   internalClinicAdminSchema,
+  internalAdminListEntrySchema,
+  internalUserListEntrySchema,
   userSchema,
 } from '@workspace/types';
 
@@ -53,6 +55,16 @@ export class InternalClinicAdminResponseDto extends createZodDto(
   internalClinicAdminSchema,
 ) {}
 export class InternalUserResponseDto extends createZodDto(userSchema) {}
+
+/** P5.11 — cross-clinic admins list (plain array). */
+export class InternalAdminListResponseDto extends createZodDto(
+  z.array(internalAdminListEntrySchema),
+) {}
+
+/** P5.11 — cross-clinic users list (plain array, clinicName attached). */
+export class InternalUserListWithClinicResponseDto extends createZodDto(
+  z.array(internalUserListEntrySchema),
+) {}
 
 export class SuccessResponseDto extends createZodDto(
   z.object({ success: z.boolean(), message: z.string().optional() }),

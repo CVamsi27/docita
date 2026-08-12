@@ -82,6 +82,9 @@ export class PrismaFeedbackRepository implements IFeedbackRepository {
         user: { select: USER_PUBLIC_SELECT },
       },
       orderBy: { createdAt: 'desc' },
+      // Recent-most cap: a clinic's feedback list is a bounded surface and
+      // no caller paginates beyond the latest entries.
+      take: 200,
     });
   }
 
@@ -94,6 +97,7 @@ export class PrismaFeedbackRepository implements IFeedbackRepository {
         clinic: { select: CLINIC_WITH_TIER_SELECT },
       },
       orderBy: { createdAt: 'desc' },
+      ...(filters.limit ? { take: filters.limit } : {}),
     });
   }
 
@@ -114,6 +118,7 @@ export class PrismaFeedbackRepository implements IFeedbackRepository {
         clinic: { select: CLINIC_SHORT_SELECT },
       },
       orderBy: { createdAt: 'desc' },
+      take: 100,
     });
   }
 

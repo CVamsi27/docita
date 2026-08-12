@@ -6,7 +6,7 @@ import {
 import { SubscriptionOverageMeterService } from '@/domains/subscriptions/application/services/subscription-overage-meter.service';
 import { GLOBAL_BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
-export interface BillMonthlyOveragesParams {
+interface BillMonthlyOveragesParams {
   periodStart: Date;
   periodEnd: Date;
 }

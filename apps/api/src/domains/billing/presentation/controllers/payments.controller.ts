@@ -6,6 +6,8 @@ import {
   Param,
   Request,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import {
@@ -53,6 +55,7 @@ export class PaymentsController {
     });
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post(':id/send-whatsapp')
   @RequireFeature(Feature.PAYMENT_LINKS)
   @ZodSerializerDto(AnyResponseDto)

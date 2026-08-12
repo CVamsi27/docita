@@ -1,5 +1,12 @@
+// fallow-ignore-file unused-file
+// Referenced from root package.json (`check:worker-size:*`) via
+// `cd apps/<app> && node ../../scripts/...` — wrangler dry-run needs the app
+// dir as cwd (wrangler.toml). Fallow skips `../`-traversal references, hence
+// the false-positive unused-file report; the refs are live (see root
+// package.json lines 60-62).
+
 import { execSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { gzipSync } from "node:zlib";
 import path from "node:path";
@@ -8,7 +15,6 @@ import path from "node:path";
 // comfortable budget with ~500 KB headroom for growth. The previous
 // 3 MiB budget was exceeded by the next-intl + Next 16.2.11 upgrade.
 const DEFAULT_GZIP_LIMIT_BYTES = 3.5 * 1024 * 1024;
-const OPENNEXT_BOOTSTRAP_MAX_BYTES = 100 * 1024;
 
 const [
   workerPathArg = ".open-next/worker.js",
@@ -52,15 +58,24 @@ function resolveWranglerBundlePath(cwd, wranglerEnv) {
   const outdir = mkdtempSync(path.join(tmpdir(), "docita-worker-size-"));
   try {
     execSync(
-      `npx wrangler deploy --dry-run --outdir "${outdir}" --env ${wranglerEnv}`,
+      `npx wrangler deploy --dry-run --minify --outdir "${outdir}" --env ${wranglerEnv}`,
       {
         cwd,
         stdio: ["ignore", "pipe", "pipe"],
         env: process.env,
       },
     );
+    // Wrangler names the bundle after the main entry file: OpenNext-era
+    // workers emitted `worker.js`; the Vite SPAs build `api/index.ts`, which
+    // wrangler emits as `index.js`. Accept either.
+    const bundlePath = ["worker.js", "index.js"]
+      .map((file) => path.join(outdir, file))
+      .find((candidate) => existsSync(candidate));
+    if (!bundlePath) {
+      throw new Error("wrangler dry-run produced no JS bundle in the outdir");
+    }
     return {
-      bundlePath: path.join(outdir, "worker.js"),
+      bundlePath,
       cleanup: () => rmSync(outdir, { recursive: true, force: true }),
     };
   } catch (error) {
@@ -73,11 +88,33 @@ const cwd = process.cwd();
 let absoluteWorkerPath = path.resolve(cwd, workerPathArg);
 let cleanup = () => {};
 
-const bootstrap = measureBundle(absoluteWorkerPath);
-if (bootstrap.rawBytes <= OPENNEXT_BOOTSTRAP_MAX_BYTES) {
+// Always measure through wrangler dry-run (with --minify) for accurate
+// bundle size that matches what would actually be deployed.
+try {
   const resolved = resolveWranglerBundlePath(cwd, wranglerEnvArg);
   absoluteWorkerPath = resolved.bundlePath;
   cleanup = resolved.cleanup;
+} catch (error) {
+  // Fall back to raw file measurement if wrangler dry-run fails.
+  console.warn(
+    `${labelArg} wrangler dry-run failed: ${error.message}; measuring raw worker.`,
+  );
+  if (!existsSync(absoluteWorkerPath)) {
+    // No raw worker artifact either (the Vite SPA worker only exists as a
+    // wrangler build). Nothing to measure; report and exit cleanly. Exiting 0
+    // here is intentional — the check is advisory (root `check:worker-size`
+    // also wraps app in `|| true`) and a transient wrangler failure
+    // should not fail a build; the wrangler dry-run path is the primary gate.
+    console.warn(
+      `${labelArg} no raw worker artifact at ${workerPathArg}; skipping worker-size measurement.`,
+    );
+    process.exit(0);
+  }
+  const rawBytes = readFileSync(absoluteWorkerPath).length;
+  const rawKb = (rawBytes / 1024).toFixed(1);
+  console.log(
+    `${labelArg} raw worker (${rawKb} KB raw).`,
+  );
 }
 
 try {

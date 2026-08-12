@@ -1,0 +1,29 @@
+{
+  "page": {
+    "title": "Templates",
+    "description": "Note, prescription, message, and consent templates in one place."
+  },
+  "tabs": {
+    "notes": {
+      "label": "Note templates",
+      "description": "Reusable consultation note templates and SOAP scaffolds."
+    },
+    "prescriptions": {
+      "label": "Prescription templates",
+      "description": "Saved Rx blocks and medicine sets for common conditions."
+    },
+    "messages": {
+      "label": "Message templates",
+      "description": "WhatsApp and reminder templates for patient outreach."
+    },
+    "consent": {
+      "label": "Consent forms",
+      "description": "DPDP, treatment, and procedure consent forms."
+    }
+  },
+  "empty": {
+    "title": "{label} live in their existing workspace",
+    "action": "Open {label}"
+  },
+  "loading": "Loading templates…"
+}

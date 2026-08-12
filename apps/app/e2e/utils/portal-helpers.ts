@@ -5,7 +5,7 @@ import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import { API_URL, reuseSharedGeneralClinicUser } from "./patient-helpers";
 import { findRepoRoot, readRepoDatabaseUrl } from "./repo-root";
 
-export const PORTAL_E2E_OTP = "123456";
+const PORTAL_E2E_OTP = "123456";
 
 const portalVerifyOtpResponseSchema = z.object({
   access_token: z.string().optional(),
@@ -19,7 +19,7 @@ const portalVerifyOtpResponseSchema = z.object({
     .optional(),
 });
 
-export function insertPortalE2eOtp(phoneNumber: string): boolean {
+function insertPortalE2eOtp(phoneNumber: string): boolean {
   const databaseUrl = readRepoDatabaseUrl();
   if (!databaseUrl) return false;
 

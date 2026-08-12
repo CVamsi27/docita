@@ -3,7 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
-import { isDatabaseAuthError } from '@/shared/modules/auth/auth/auth-database.util';
+import { isDatabaseAuthError } from '@/shared/common/utils/is-database-auth-error';
 import { ReferralAccrualService } from '@/domains/subscriptions/application/services/referral-accrual.service';
 
 /**

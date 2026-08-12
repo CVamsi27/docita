@@ -9,7 +9,7 @@ function normalizeEmail(email: string): string {
 }
 
 /** Opaque, non-PHI key for an address (sha256 of the normalised email). */
-export function hashEmail(email: string): string {
+function hashEmail(email: string): string {
   return createHash('sha256').update(normalizeEmail(email)).digest('hex');
 }
 

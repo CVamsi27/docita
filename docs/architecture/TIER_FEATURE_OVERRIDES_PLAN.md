@@ -1,5 +1,10 @@
 # Plan: "Full without WhatsApp/AI" tier — audit + recommendation
 
+> **Historical (2026-08-02):** this audit/plan predates the Vite cutover and its
+> file paths (`apps/app/...`, `apps/internal/...`) refer to the deleted Next.js
+> apps. The feature-override capability it recommends is now implemented via
+> `PACKAGE_PRESETS` / `Clinic.features` (AGENTS.md §15.8). Kept for decision history.
+
 ## Context
 
 You asked for a third tier that gives full doctor access but blocks WhatsApp and AI features (auto-prescription, invoice push, AI assist). Before designing it, I audited the codebase against the layered authorization pattern you referenced (Plan → Feature → Override → Role → Can-do).
@@ -52,7 +57,7 @@ We just need to (a) make sure pricing/UI can express the discount, and (b) close
 
 3. **Honor overrides in the frontend tier check.** The frontend `hasFeatureAccess` path (via `permission-store` → `useFeatureAccess`) already reads overrides from the clinic payload. Verify it short-circuits the same way the backend does (single trace through `packages/utils/src/billing/tier-rules.ts` + `access-policy.ts`).
 
-4. **Pricing surface** — add a UI option in the upgrade dialog: "Professional without comms (–₹1,500/mo)" as a toggle on the Professional card, driven by `PACKAGE_PRESETS`. No new tier card. Modifies [apps/app/features/subscription/config/pricing-config.ts](apps/app/features/subscription/config/pricing-config.ts) and the upgrade flow to persist the preset's overrides into `Clinic.features` on checkout.
+4. **Pricing surface** — add a UI option in the upgrade dialog: "Professional without comms (–₹1,500/mo)" as a toggle on the Professional card, driven by `PACKAGE_PRESETS`. No new tier card. Modifies the Vite pricing surface ([apps/app/src/features/subscription/hooks/use-pricing.ts](apps/app/src/features/subscription/hooks/use-pricing.ts)) and the upgrade flow to persist the preset's overrides into `Clinic.features` on checkout.
 
 ### Part B — Close the layered-pattern gaps (medium, optional but recommended)
 
@@ -87,11 +92,10 @@ These are the ⚠️ rows in the audit. None are blocking Part A, but they pay o
 
 - **Edit:** [packages/types/src/billing/tier.ts](packages/types/src/billing/tier.ts) — add `OVERRIDABLE_FEATURES`, `PACKAGE_PRESETS`, `ClinicFeatureOverridesSchema`
 - **Edit:** [apps/api/src/shared/modules/auth/utils/clinic-feature-access.util.ts](apps/api/src/shared/modules/auth/utils/clinic-feature-access.util.ts) — Zod-parse overrides
-- **Edit:** [apps/app/features/subscription/config/pricing-config.ts](apps/app/features/subscription/config/pricing-config.ts) — add preset toggle on tier cards
-- **Edit:** [apps/app/shared/lib/stores/permission-store.ts](apps/app/shared/lib/stores/permission-store.ts) — surface overrides + presets to the frontend
-- **New:** `apps/api/src/shared/modules/auth/authorization.service.ts` (Part B)
-- **New:** `apps/api/src/shared/modules/auth/policies/*.policy.ts` (Part B)
-- **New:** `apps/app/shared/components/auth/can.tsx` (Part B)
+- **Edit:** [apps/app/src/features/subscription/hooks/use-pricing.ts](apps/app/src/features/subscription/hooks/use-pricing.ts) — add preset toggle on tier cards
+- **Edit:** [apps/app/src/lib/stores/permission-store.ts](apps/app/src/lib/stores/permission-store.ts) — surface overrides + presets to the frontend
+- **New:** `apps/api/src/shared/modules/authorization/` ABAC wiring (Part B; policies themselves live in `packages/authorization/src/policies/`)
+- **New:** `apps/app/src/components/auth/feature-gate.tsx` + `apps/app/src/hooks/use-permissions.ts` (Part B)
 
 ## Why this beats adding a new tier
 

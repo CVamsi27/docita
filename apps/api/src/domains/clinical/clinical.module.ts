@@ -32,8 +32,13 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
     WhatsAppModule,
   ],
   controllers: [
-    LabTestsController,
+    // Literal routes before parameterized ones: LabWorkflowController's
+    // `GET /clinical/lab-tests/queue` and `GET /clinical/lab-tests/labs` must
+    // win over LabTestsController's `GET /clinical/lab-tests/:id` (Express
+    // matches by registration order), so the literal-route controller
+    // registers first.
     LabWorkflowController,
+    LabTestsController,
     MedicalCodingController,
   ],
   providers: [

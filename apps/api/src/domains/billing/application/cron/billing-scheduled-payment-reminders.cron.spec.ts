@@ -22,10 +22,7 @@ describe('BillingScheduledPaymentRemindersCron', () => {
 
   it('carries the billing.scheduled-payment-reminders heartbeat name on run()', () => {
     expect(
-      getHeartbeatName(
-        BillingScheduledPaymentRemindersCron.prototype,
-        'run',
-      ),
+      getHeartbeatName(BillingScheduledPaymentRemindersCron.prototype, 'run'),
     ).toBe('billing.scheduled-payment-reminders');
   });
 

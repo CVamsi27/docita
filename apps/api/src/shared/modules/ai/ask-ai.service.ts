@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { OpenaiService } from './openai.service';
 
-export interface AskAiMessage {
+interface AskAiMessage {
   role: 'user' | 'assistant';
   content: string;
 }
 
-export interface AskAiStreamRequest {
+interface AskAiStreamRequest {
   prompt: string;
   history?: AskAiMessage[];
   scope?: {

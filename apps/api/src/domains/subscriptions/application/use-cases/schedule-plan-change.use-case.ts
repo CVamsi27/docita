@@ -15,7 +15,7 @@ import {
 } from '@/domains/subscriptions/core/value-objects';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
-export interface SchedulePlanChangeRequest {
+interface SchedulePlanChangeRequest {
   clinicId: string;
   tier: string;
   cycle: string;
@@ -23,7 +23,7 @@ export interface SchedulePlanChangeRequest {
   planMode?: string;
 }
 
-export interface SchedulePlanChangeResult {
+interface SchedulePlanChangeResult {
   scheduled: {
     tier: string;
     cycle: string;

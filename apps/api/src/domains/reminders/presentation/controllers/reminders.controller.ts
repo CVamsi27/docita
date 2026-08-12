@@ -10,6 +10,8 @@ import {
   ParseIntPipe,
   Request,
   UsePipes,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { RemindersService } from '@/domains/reminders/application/services/reminders.service';
 import { RemindersApiAccess } from '@/domains/reminders/presentation/controllers/reminders.controller.access';
@@ -63,6 +65,7 @@ export class RemindersController {
     );
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('send/:appointmentId')
   @ZodSerializerDto(ManualReminderResponseDto)
   @UsePipes(new ZodValidationPipe(sendReminderSchema))

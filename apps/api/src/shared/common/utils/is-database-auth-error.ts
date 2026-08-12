@@ -1,4 +1,3 @@
-// jscpd:ignore-start
 import { isRecord } from '@workspace/utils';
 
 export function isDatabaseAuthError(error: unknown): boolean {

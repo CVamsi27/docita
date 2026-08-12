@@ -5,7 +5,7 @@
  * templates — composing both from these constants keeps the projections
  * from drifting apart between the two send paths.
  */
-export const NOTIFICATION_PATIENT_CONTACT_SELECT = {
+const NOTIFICATION_PATIENT_CONTACT_SELECT = {
   firstName: true,
   lastName: true,
   phoneNumber: true,
@@ -23,7 +23,7 @@ export const NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT = {
   phoneNumber: true,
 } as const;
 
-export const NOTIFICATION_CLINIC_NAME_CURRENCY_SELECT = {
+const NOTIFICATION_CLINIC_NAME_CURRENCY_SELECT = {
   name: true,
   currency: true,
 } as const;

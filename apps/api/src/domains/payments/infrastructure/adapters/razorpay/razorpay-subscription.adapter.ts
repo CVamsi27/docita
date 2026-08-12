@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Razorpay SDK returns complex untyped plan/subscription records; the port narrows the surface to PaymentGatewayPlan/PaymentGatewaySubscription at the contract boundary.
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
 import {
@@ -7,6 +8,7 @@ import {
   CreatePlanRequest,
   CreateSubscriptionRequest,
   PaymentGatewaySubscription,
+  PaymentGatewayPlan,
 } from '@/domains/payments/core/ports';
 import {
   asRazorpayRecord,
@@ -176,10 +178,16 @@ export class RazorpaySubscriptionAdapter
     }
   }
 
-  async getPlan(planId: string): Promise<unknown> {
+  async getPlan(planId: string): Promise<PaymentGatewayPlan | null> {
     try {
       const razorpay = this.getClient();
-      return await this.withRazorpayTimeout(() => razorpay.plans.fetch(planId));
+      const plan = await this.withRazorpayTimeout(() =>
+        razorpay.plans.fetch(planId),
+      );
+      // The Razorpay SDK returns more fields than we surface to the
+      // application. Cast at the contract boundary and let downstream
+      // consumers read only the narrowed shape.
+      return plan as unknown as PaymentGatewayPlan;
     } catch (error) {
       // See getCustomer: null = not found; log real cause.
       this.logger.warn(

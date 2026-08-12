@@ -3,16 +3,34 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@workspace/ui/*": ["./src/*"],
-      "@workspace/types": ["../types/src/index.ts"],
-      "@workspace/types/*": ["../types/src/*"],
-      "@workspace/utils": ["../utils/src/index.ts"],
-      "@workspace/utils/*": ["../utils/src/*"],
-      "@/*": ["./src/*"]
+      "@workspace/ui/*": [
+        "./src/*"
+      ],
+      "@workspace/types": [
+        "../types/src/index.ts"
+      ],
+      "@workspace/types/*": [
+        "../types/src/*"
+      ],
+      "@workspace/utils": [
+        "../utils/src/index.ts"
+      ],
+      "@workspace/utils/*": [
+        "../utils/src/*"
+      ],
+      "@/*": [
+        "./src/*"
+      ]
     },
     "module": "esnext",
-    "moduleResolution": "Bundler"
+    "moduleResolution": "Bundler",
+    "ignoreDeprecations": "6.0"
   },
-  "include": ["."],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

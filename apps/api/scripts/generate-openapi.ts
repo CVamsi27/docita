@@ -54,12 +54,12 @@ async function main(): Promise<void> {
   const document = buildSwaggerDocument(app);
   const outPath = writeOpenApiFile(document);
   await app.close();
-  // eslint-disable-next-line no-console
-  console.log(`[openapi] wrote ${outPath}`);
+  process.stdout.write(`[openapi] wrote ${outPath}\n`);
 }
 
 main().catch((err) => {
-  // eslint-disable-next-line no-console
-  console.error("[openapi] failed:", err);
+  process.stderr.write(
+    `[openapi] failed: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}\n`,
+  );
   process.exit(1);
 });

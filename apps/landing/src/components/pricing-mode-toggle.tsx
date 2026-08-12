@@ -21,10 +21,11 @@ export function PricingModeToggle({ selectedMode, billingPeriod, onModeChange, o
             <button
               key={mode}
               type="button"
+              role="tab"
               onClick={() => onModeChange(mode)}
-              aria-pressed={active}
+              aria-selected={active}
               title={info.helpText}
-              className={cn("rounded-lg px-3.5 py-1.5 text-xs font-medium transition-all duration-200",
+              className={cn("rounded-lg px-3.5 py-1.5 text-xs font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 active
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -50,9 +51,10 @@ export function PricingModeToggle({ selectedMode, billingPeriod, onModeChange, o
             <button
               key={period}
               type="button"
+              role="tab"
               onClick={() => onBillingChange(period)}
-              aria-pressed={active}
-              className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all duration-200",
+              aria-selected={active}
+              className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 active
                   ? "bg-foreground text-background shadow-sm"
                   : "text-muted-foreground hover:text-foreground"

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-export interface MessageTemplate {
+interface MessageTemplate {
   key: string;
   name: string;
   channels: {

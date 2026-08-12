@@ -19,7 +19,7 @@ import { ClinicAbdmDashboardService } from '@/domains/clinics/application/servic
 
 class AbdmClinicDashboardDto extends createZodDto(abdmClinicDashboardSchema) {}
 
-@Controller('clinic/abdm')
+@Controller('clinics/abdm')
 @UseGuards(TierGuard)
 @RequireFeature(Feature.ABDM_INTEGRATION)
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR, Role.RECEPTIONIST)

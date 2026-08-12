@@ -8,7 +8,7 @@ import {
 import * as fs from 'fs';
 import { randomBytes } from 'crypto';
 
-export interface ImportSession {
+interface ImportSession {
   filePath: string;
   expiresAt: number;
 }

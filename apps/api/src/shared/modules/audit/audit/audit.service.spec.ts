@@ -71,7 +71,15 @@ describe('AuditService', () => {
         resourceId: 'patient-1',
       };
 
-      jest.spyOn(service, 'createAuditLog').mockResolvedValue({});
+      jest.spyOn(service, 'createAuditLog').mockResolvedValue({
+        id: 'audit-1',
+        clinicId: 'clinic-1',
+        userId: 'user-1',
+        actionType: 'PATIENT_CREATED',
+        resourceType: 'PATIENT',
+        resourceId: 'patient-1',
+        createdAt: new Date(),
+      });
 
       await service.logAction(logData);
 
@@ -107,10 +115,7 @@ describe('AuditService', () => {
         resourceId: 'patient-1',
       };
 
-      const result = (await service.createAuditLog(logData)) as Record<
-        string,
-        unknown
-      >;
+      const result = await service.createAuditLog(logData);
 
       expect(result).toBeDefined();
       expect(result.clinicId).toBe('clinic-1');
@@ -172,8 +177,8 @@ describe('AuditService', () => {
       const result = await service.getAuditLogs(
         {
           clinicId: 'clinic-1',
-          skip: 0,
-          take: 10,
+          limit: 10,
+          page: 1,
         },
         'ADMIN',
       );
@@ -181,22 +186,22 @@ describe('AuditService', () => {
       expect(Array.isArray(result)).toBe(true);
     });
 
-    it('should filter logs by action type', async () => {
+    it('should filter logs by action', async () => {
       const _mockLogs = [
         {
           id: '1',
-          actionType: 'PRESCRIPTION_CREATED',
+          action: 'PRESCRIPTION_CREATED',
           clinicId: 'clinic-1',
-          timestamp: new Date(),
+          createdAt: new Date(),
         },
       ];
 
       const result = await service.getAuditLogs(
         {
           clinicId: 'clinic-1',
-          actionType: 'PRESCRIPTION_CREATED',
-          skip: 0,
-          take: 10,
+          action: 'PRESCRIPTION_CREATED',
+          limit: 10,
+          page: 1,
         },
         'ADMIN',
       );
@@ -205,8 +210,8 @@ describe('AuditService', () => {
     });
 
     it('should filter logs by date range', async () => {
-      const startDate = new Date('2025-01-01');
-      const endDate = new Date('2025-01-31');
+      const startDate = '2025-01-01T00:00:00.000Z';
+      const endDate = '2025-01-31T23:59:59.999Z';
       const mockLogs: Array<Record<string, unknown>> = [];
 
       jest
@@ -218,8 +223,8 @@ describe('AuditService', () => {
           clinicId: 'clinic-1',
           startDate,
           endDate,
-          skip: 0,
-          take: 10,
+          limit: 10,
+          page: 1,
         },
         'ADMIN',
       );
@@ -231,8 +236,8 @@ describe('AuditService', () => {
       const result = await service.getAuditLogs(
         {
           clinicId: 'clinic-1',
-          skip: 20,
-          take: 10,
+          page: 3,
+          limit: 10,
         },
         'ADMIN',
       );
@@ -245,8 +250,8 @@ describe('AuditService', () => {
         {
           clinicId: 'clinic-1',
           userId: 'user-1',
-          skip: 0,
-          take: 10,
+          limit: 10,
+          page: 1,
         },
         'ADMIN',
       );

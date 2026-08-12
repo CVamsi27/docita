@@ -5,9 +5,20 @@
     "moduleResolution": "bundler",
     "module": "esnext",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     },
-    "types": ["astro/client", "react", "react-dom"]
+    "types": [
+      "astro/client",
+      "react",
+      "react-dom"
+    ],
+    "ignoreDeprecations": "6.0"
   },
-  "include": ["src", "astro.config.mjs", ".astro/types.d.ts"]
+  "include": [
+    "src",
+    "astro.config.mjs",
+    ".astro/types.d.ts"
+  ]
 }

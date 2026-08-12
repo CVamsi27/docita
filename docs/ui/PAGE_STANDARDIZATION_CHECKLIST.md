@@ -1,6 +1,6 @@
 # Page standardization checklist (doctor app)
 
-Use this when touching primary workflows. Goals align with [AGENTS.md](../AGENTS.md) (§8 typography hierarchy, §4 loading/error/empty) and the UI reference at `apps/app/app/(tools)/visual-test/ui-contract/page.tsx`.
+Use this when touching primary workflows. Goals align with [AGENTS.md](../AGENTS.md) (§8 typography hierarchy, §4 loading/error/empty) and the authoritative UI standard at [`docs/ui/UI_UX_STANDARD_2026.md`](UI_UX_STANDARD_2026.md).
 
 ## Patterns
 

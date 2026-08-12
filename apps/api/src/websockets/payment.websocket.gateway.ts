@@ -6,20 +6,19 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import {
-  Logger,
-  UseGuards,
-  BadRequestException as _BadRequestException,
-} from '@nestjs/common';
+import { Inject, Logger, UseGuards } from '@nestjs/common';
 import { getWebSocketCorsOrigins } from '@/shared/modules/config/app-config';
 import { WsJwtAuthGuard } from '@/shared/modules/auth/auth/ws-jwt-auth.guard';
 import {
   ClinicTier,
   Role,
   SubscriptionStatus,
-  InvoiceStatus as _InvoiceStatus,
   PaymentSessionStatus,
 } from '@workspace/db';
+import {
+  INVOICE_REPOSITORY_TOKEN,
+  type IInvoiceRepository,
+} from '@/domains/billing/core/repositories/invoice.repository';
 import { BaseWebSocketGateway } from './base-websocket.gateway';
 
 export interface PaymentUpdateData {
@@ -37,7 +36,6 @@ export interface ClinicUpdateData {
   subscriptionGraceUntil?: string | null;
 }
 
-import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({
@@ -58,7 +56,8 @@ export class PaymentWebSocketGateway
   protected readonly RATE_LIMIT_MESSAGES = 10;
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(INVOICE_REPOSITORY_TOKEN)
+    private readonly invoiceRepository: IInvoiceRepository,
     protected readonly jwtService: JwtService,
   ) {
     super();
@@ -103,17 +102,12 @@ export class PaymentWebSocketGateway
     const user = client.data.user;
 
     if (user.role !== Role.INTERNAL) {
-      const invoice = await this.prisma.invoice.findFirst({
-        where: {
-          id: invoiceId,
-          patient: {
-            clinicId: user.clinicId,
-          },
-        },
-        select: { id: true },
-      });
+      const belongsToClinic = await this.invoiceRepository.belongsToClinic(
+        invoiceId,
+        user.clinicId,
+      );
 
-      if (!invoice) {
+      if (!belongsToClinic) {
         this.logger.warn(
           `Unauthorized invoice subscription attempt: User ${user.email} (clinic: ${user.clinicId}) tried to subscribe to invoice: ${invoiceId}`,
         );

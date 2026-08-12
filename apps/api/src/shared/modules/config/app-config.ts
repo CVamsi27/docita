@@ -27,7 +27,7 @@ export function getCorsOrigins(): (string | RegExp)[] {
   }
 
   const devFallbacks: (string | RegExp)[] = [
-    env.NEXT_PUBLIC_APP_URL,
+    env.FRONTEND_URL,
     'http://localhost:3000',
     /^http:\/\/localhost:\d+$/,
     /^http:\/\/127\.0\.0\.1:\d+$/,

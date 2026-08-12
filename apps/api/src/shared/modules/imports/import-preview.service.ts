@@ -1,14 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   getErrorMessage,
-  PATIENT_FIELD_MAPPINGS,
   type ColumnMapping,
   type ImportPreview,
 } from '@workspace/utils';
 import { ImportFileParserService } from './import-file-parser.service';
 import { ImportColumnMappingService } from './import-column-mapping.service';
-
-export { PATIENT_FIELD_MAPPINGS };
 
 @Injectable()
 export class ImportPreviewService {

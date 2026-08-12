@@ -153,6 +153,14 @@ export interface IInvoiceRepository {
   findAll(
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>>;
+  /**
+   * Lean tenant-scoped existence probe used by websocket subscribe paths:
+   * true only when an invoice with `id` belongs to `clinicId` (direct
+   * clinicId — authoritative, set at creation from the patient's clinic —
+   * or legacy null-clinicId patient fallback). Avoids loading the full
+   * InvoiceDetail graph just to authorize a room join.
+   */
+  belongsToClinic(id: string, clinicId: string): Promise<boolean>;
   findById(id: string, clinicId: string): Promise<InvoiceDetail | null>;
   findByIdempotencyKey?(
     key: string,

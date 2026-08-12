@@ -11,19 +11,16 @@ import type {
   CreateWhatsappTemplateRequest,
   SendWhatsAppCustomMessageRequest,
   SendWhatsAppCustomMessageResponse,
-  StaffNotificationEntry,
   UpdateWhatsappSenderRequest,
   UpdateWhatsappTemplateRequest,
   WhatsappSenderConfigResponse,
   WhatsAppStatsDetailedResponse,
-  WhatsAppUnreadCountResponse,
 } from "@workspace/types";
 import { Feature } from "@workspace/types";
 import { queryKeys } from "../lib/query-keys-clinician";
 import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { useDataAccessContext } from "../provider/hooks";
-export type NotificationUnreadCountResponse = WhatsAppUnreadCountResponse;
 
 export const useSendPrescriptionWhatsApp = () =>
   useAPIMutation<void, { id: string }>(
@@ -38,51 +35,6 @@ export const useSendInvoiceWhatsApp = () =>
     "POST",
     { body: () => undefined },
   );
-
-export const useWhatsappUnreadNotificationCount = () => {
-  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.WHATSAPP_MESSAGING,
-  );
-  return useAPIQuery<NotificationUnreadCountResponse>(
-    queryKeys.whatsapp.notifications.unreadCount(),
-    "/whatsapp/notifications/unread-count",
-    {
-      enabled: whatsappOk,
-      refetchInterval: 30_000,
-    },
-  );
-};
-
-export const useUnreadNotifications = (limit: number = 50) => {
-  const whatsappOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.WHATSAPP_MESSAGING,
-  );
-  return useAPIQuery<StaffNotificationEntry[]>(
-    queryKeys.whatsapp.notifications.unread(limit),
-    `/whatsapp/notifications/unread?limit=${limit}`,
-    { enabled: whatsappOk },
-  );
-};
-
-export const useWhatsappDeleteNotification = () =>
-  useAPIMutation<void, { notificationId: string }>(
-    ({ notificationId }) => `/whatsapp/notifications/${notificationId}`,
-    "DELETE",
-    {
-      invalidateKeys: [
-        queryKeys.whatsapp.notifications.unreadCount(),
-        queryKeys.whatsapp.notifications.unreadPrefix(),
-      ],
-    },
-  );
-
-export const useWhatsappDeleteAllNotifications = () =>
-  useAPIMutation<void, void>("/whatsapp/notifications", "DELETE", {
-    invalidateKeys: [
-      queryKeys.whatsapp.notifications.unreadCount(),
-      queryKeys.whatsapp.notifications.unreadPrefix(),
-    ],
-  });
 
 export const useResendPrescriptionWhatsApp = (id: string) =>
   useAPIMutation<void, void>(`/whatsapp/resend-prescription/${id}`, "POST");

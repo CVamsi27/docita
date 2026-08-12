@@ -46,6 +46,23 @@ export interface PaymentGatewaySubscription {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Narrowed shape of a Razorpay plan record. The provider SDK returns
+ * more fields (notes, created_at, etc.) but the application only
+ * reads the ones below. Callers that need a fuller shape should
+ * extend this interface with their own fields.
+ */
+export interface PaymentGatewayPlan {
+  id: string;
+  amount: number;
+  currency: string;
+  interval: number;
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  productId?: string;
+  active: boolean;
+  metadata?: Record<string, unknown>;
+}
+
 export interface ISubscriptionProvider extends IPaymentGateway {
   createCustomer(
     request: CreateCustomerRequest,
@@ -57,7 +74,7 @@ export interface ISubscriptionProvider extends IPaymentGateway {
   ): Promise<PaymentGatewayCustomer>;
 
   createPlan(request: CreatePlanRequest): Promise<{ planId: string }>;
-  getPlan(planId: string): Promise<unknown>;
+  getPlan(planId: string): Promise<PaymentGatewayPlan | null>;
 
   createSubscription(
     request: CreateSubscriptionRequest,

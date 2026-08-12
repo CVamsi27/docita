@@ -67,7 +67,7 @@ export const useMarkNotificationRead = () =>
 
 export const useDeleteNotification = () =>
   useAPIMutation<void, { id: string }>(
-    (vars) => `/staff-notifications/delete/${vars.id}`,
+    (vars) => `/staff-notifications/${vars.id}`,
     "DELETE",
     {
       body: () => undefined,
@@ -81,7 +81,7 @@ export const useDeleteNotification = () =>
 // jscpd:ignore-end
 
 export const useDeleteAllNotifications = () =>
-  useAPIMutation<void, void>("/staff-notifications/delete-all", "DELETE", {
+  useAPIMutation<void, void>("/staff-notifications", "DELETE", {
     invalidateKeys: [
       queryKeys.notifications.all(),
       queryKeys.notifications.listAll(),

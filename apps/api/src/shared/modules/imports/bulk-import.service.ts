@@ -10,9 +10,6 @@ import type {
   BulkImportJobData,
 } from './bulk-import.types';
 
-export type { BulkImportEntityType };
-export type { BulkImportAuditContext, BulkImportJobData };
-
 /**
  * Facade — bulk import job start, status, and CSV templates.
  */

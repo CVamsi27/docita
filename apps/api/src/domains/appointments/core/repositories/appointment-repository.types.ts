@@ -1,5 +1,8 @@
 import type { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import type { DentalChartData } from '@workspace/types';
+import type { PaginatedResult } from '@/shared/common/repositories/base-repository.types';
+
+export type { PaginatedResult };
 
 export interface AppointmentListItem {
   id?: string;
@@ -47,11 +50,4 @@ export interface AppointmentSearchParams {
   page?: number;
   sortOrder?: 'asc' | 'desc';
   limit?: number;
-}
-
-export interface PaginatedResult<T> {
-  items: T[];
-  nextCursor?: string;
-  hasMore: boolean;
-  count: number;
 }

@@ -9,6 +9,7 @@ import { AuthMfaOrchestratorService } from './auth-mfa-orchestrator.service';
 import { AuthRegistrationController } from './auth-registration.controller';
 import { AuthLoginController } from './auth-login.controller';
 import { AuthPasswordController } from './auth-password.controller';
+import { AuthEffectivePermissionsController } from './auth-effective-permissions.controller';
 import { AuthSessionController } from './auth-session.controller';
 import { AuthMfaController } from './auth-mfa.controller';
 import { AuthVerificationController } from './auth-verification.controller';
@@ -28,6 +29,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { DefaultPasswordPolicy } from './policies/password.policy';
+import { TurnstileModule } from '@/shared/modules/turnstile/turnstile.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 import { ConsentGuard } from '@/shared/modules/auth/guards/consent.guard';
 import { PatientDoctorGuard } from '@/shared/modules/auth/guards/patient-doctor.guard';
@@ -54,6 +56,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
     UsersModule,
     forwardRef(() => ClinicsModule),
     EmailModule,
+    TurnstileModule,
     JwtModule.registerAsync({
       imports: [AppConfigModule],
       inject: [AppConfigService],
@@ -102,6 +105,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
     AuthRegistrationController,
     AuthLoginController,
     AuthPasswordController,
+    AuthEffectivePermissionsController,
     AuthSessionController,
     AuthMfaController,
     AuthVerificationController,

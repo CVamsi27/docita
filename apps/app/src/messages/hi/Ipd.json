@@ -1,0 +1,57 @@
+{
+  "dashboard": {
+    "wardOverviewDescription": "वार्ड के अनुसार वर्तमान बिस्तर अधिभोग",
+    "totalBeds": "कुल बेड",
+    "admitted": "भर्ती",
+    "dischargesToday": "आज की छुट्टी",
+    "wards": "वार्ड",
+    "wardOverview": "वार्ड अवलोकन",
+    "noWards": "अभी कोई वार्ड कॉन्फ़िगर नहीं है",
+    "floor": "फ़्लोर {floor}",
+    "occupancy": "{occupied}/{total} भरे",
+    "occupied": "भरे हुए"
+  },
+  "admissionModal": {
+    "title": "रोगी को भर्ती करें",
+    "description": "रोगी को वार्ड में भर्ती करने के लिए विवरण भरें।",
+    "errorPatientId": "रोगी ID आवश्यक है",
+    "errorBed": "बेड आवश्यक है",
+    "errorDoctor": "डॉक्टर आवश्यक है",
+    "errorDiagnosis": "निदान आवश्यक है"
+  },
+  "admissionFormFields": {
+    "wardLabel": "वार्ड",
+    "selectWard": "वार्ड चुनें",
+    "bedLabel": "बेड",
+    "selectBed": "बेड चुनें",
+    "attendingDoctorLabel": "उपचार करने वाले डॉक्टर",
+    "selectDoctor": "डॉक्टर चुनें",
+    "diagnosisLabel": "निदान",
+    "notesLabel": "नोट्स",
+    "bedLabelTemplate": "{ward} / कमरा {room} / बेड {bed}"
+  },
+  "admissionForm": {
+    "title": "नई भर्ती",
+    "description": "रोगी को वार्ड में भर्ती करें",
+    "patientIdLabel": "रोगी ID / MRN",
+    "patientIdPlaceholder": "रोगी ID दर्ज करें या खोजें...",
+    "wardLabel": "वार्ड",
+    "selectWard": "वार्ड चुनें",
+    "bedLabel": "बेड",
+    "selectBed": "बेड चुनें",
+    "attendingDoctorLabel": "उपचार करने वाले डॉक्टर",
+    "selectDoctor": "डॉक्टर चुनें",
+    "diagnosisLabel": "निदान / कारण",
+    "diagnosisPlaceholder": "निदान या भर्ती का कारण दर्ज करें",
+    "notesLabel": "नोट्स",
+    "notesPlaceholder": "अतिरिक्त नोट्स (वैकल्पिक)",
+    "admitting": "भर्ती हो रहा है...",
+    "admitPatient": "रोगी को भर्ती करें",
+    "optionGeneralWard": "सामान्य वार्ड",
+    "optionIcu": "ICU",
+    "optionPrivateRoom": "निजी कमरा",
+    "optionBed101": "बेड 101",
+    "optionBed102": "बेड 102",
+    "optionBed103": "बेड 103"
+  }
+}

@@ -1,13 +1,10 @@
 import { Module, forwardRef } from '@nestjs/common';
 import {
-  WhatsappService,
-  TemplatesService as _TemplatesService,
   WhatsappResendService,
   SystemEventsService,
   ApprovalService,
   MessagingService,
   TemplateMessageService,
-  WhatsappWebhookService,
   ResponseHandlerService,
   WhatsAppWebhookIngressService,
   PatientAppointmentResolverService,
@@ -27,12 +24,10 @@ import { WHATSAPP_CLIENT_TOKEN } from '@/domains/whatsapp/application/ports/what
 import {
   LegacyWhatsappTemplatesController,
   LegacyWhatsappSendController,
-  LegacyWhatsappSettingsController,
   LegacyWhatsappResendController,
   LegacyWhatsappLogsController,
   LegacyWhatsappApprovalController,
   LegacyWhatsappNotificationsController,
-  LegacyWhatsappWebhookController,
   StaffNotificationController,
 } from '@/domains/whatsapp/presentation/controllers';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -52,18 +47,15 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
   controllers: [
     LegacyWhatsappTemplatesController,
     LegacyWhatsappSendController,
-    LegacyWhatsappSettingsController,
     LegacyWhatsappResendController,
     LegacyWhatsappLogsController,
     LegacyWhatsappApprovalController,
     LegacyWhatsappNotificationsController,
     StaffNotificationController,
-    LegacyWhatsappWebhookController,
   ],
   providers: [
     { provide: WHATSAPP_PERSISTENCE_PORT, useExisting: PrismaService },
     TemplatesFacadeService,
-    { provide: 'TemplatesService', useClass: TemplatesFacadeService },
 
     WhatsappResendService,
     SystemEventsService,
@@ -71,14 +63,11 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     MessagingService,
     TemplateMessageService,
 
-    WhatsappService,
-
     WhatsappClientAdapter,
     {
       provide: WHATSAPP_CLIENT_TOKEN,
       useExisting: WhatsappClientAdapter,
     },
-    WhatsappWebhookService,
     HandleWebhookUseCase,
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
@@ -98,14 +87,12 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     StaffNotificationListener,
   ],
   exports: [
-    WhatsappService,
     TemplatesFacadeService,
     WhatsappClientAdapter,
     {
       provide: WHATSAPP_CLIENT_TOKEN,
       useExisting: WhatsappClientAdapter,
     },
-    WhatsappWebhookService,
     WhatsAppWebhookIngressService,
     ResponseHandlerService,
     PatientAppointmentResolverService,

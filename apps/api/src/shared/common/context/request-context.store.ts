@@ -5,7 +5,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
  * (a.k.a. x-correlation-id / x-request-id) attached to the inbound HTTP
  * request. Anything that runs inside the request lifecycle — including
  * EventEmitter2 `@OnEvent` handlers triggered synchronously from a request
- * path — can read the id via `getCorrelationId()` without having to be
+ * path — can read the id via the stored context without having to be
  * passed the Express `Request`.
  *
  * Async work that *outlives* the request (scheduled jobs, cron, worker
@@ -43,14 +43,6 @@ export function runWithRequestContext<T>(
   fn: () => T,
 ): T {
   return store.run(context, fn);
-}
-
-/**
- * Returns the correlation id for the current request, or `undefined` if
- * called outside an HTTP request scope.
- */
-export function getCorrelationId(): string | undefined {
-  return store.getStore()?.correlationId;
 }
 
 export function getRequestQueryCounterContext():

@@ -13,10 +13,8 @@ import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import type { UserWithoutPassword } from './auth.types';
-import {
-  isDatabaseAuthError,
-  isDatabaseConnectivityError,
-} from './auth-database.util';
+import { isDatabaseAuthError } from '@/shared/common/utils/is-database-auth-error';
+import { isDatabaseConnectivityError } from './auth-database.util';
 
 @Injectable()
 export class CredentialValidationService {

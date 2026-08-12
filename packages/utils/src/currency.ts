@@ -175,3 +175,34 @@ export function formatRateWithCurrency(
     maximumFractionDigits: Math.max(baseDigits, 2),
   }).format(amount);
 }
+
+/**
+ * Compact currency formatter for analytics cards ("₹1.2L", "$2.5M"). The
+ * `Intl.NumberFormat` `notation: "compact"` mode is the canonical solution
+ * and gives locale-correct suffixes (L = lakh in en-IN, M in en-US, etc.)
+ * without the hand-rolled `value / 1000` math that loses precision and
+ * breaks for sub-1K values.
+ *
+ * Caller passes the raw amount (e.g. monthly revenue in rupees, not
+ * thousands). Falls back to the regular `formatCurrency` for sub-1K
+ * values so the output stays readable on the analytics card.
+ */
+export function formatCompactCurrency(
+  amount: number,
+  options: FormatCurrencyOptions = {},
+): string {
+  if (!Number.isFinite(amount)) return formatCurrency(0, options);
+  const currency = normalizeCurrency(options.currency) ?? DEFAULT_CURRENCY;
+  const locale = options.locale ?? getCurrencyLocale(currency);
+
+  if (Math.abs(amount) < 1_000) {
+    return formatCurrency(amount, { ...options, currency, locale });
+  }
+
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(amount);
+}

@@ -7,18 +7,12 @@ import {
   sendWhatsAppCustomMessageResponseSchema,
   successResponseSchema,
   updateWhatsappTemplateRequestSchema,
-  whatsappDefaultTemplatesResponseSchema,
-  whatsappMessageProviderResponseSchema,
   whatsappStatsDetailedResponseSchema,
-  whatsappTemplateListResponseSchema,
   whatsappUnreadCountResponseSchema,
   whatsappUnreadNotificationsQuerySchema,
   whatsappUnreadNotificationsResponseSchema,
 } from '@workspace/types';
 
-export class WhatsappTemplateListResponseDto extends createZodDto(
-  whatsappTemplateListResponseSchema,
-) {}
 export class ClinicWhatsappTemplateResponseDto extends createZodDto(
   clinicWhatsappTemplateSchema,
 ) {}
@@ -33,12 +27,6 @@ export class UpdateWhatsappTemplateDto extends createZodDto(
 ) {}
 export class SendWhatsappCustomMessageResponseDto extends createZodDto(
   sendWhatsAppCustomMessageResponseSchema,
-) {}
-export class WhatsappDefaultTemplatesResponseDto extends createZodDto(
-  whatsappDefaultTemplatesResponseSchema,
-) {}
-export class WhatsappMessageResponseDto extends createZodDto(
-  whatsappMessageProviderResponseSchema,
 ) {}
 export class WhatsappStatsResponseDto extends createZodDto(
   whatsappStatsDetailedResponseSchema,

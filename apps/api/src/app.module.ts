@@ -4,7 +4,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
-import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { SharedModule } from './shared/shared.module';
 import { PatientsModule } from './domains/patients/patients.module';
@@ -64,6 +63,7 @@ import { PasswordExpiredGuard } from './shared/modules/auth/guards/password-expi
 import { EmailVerifiedGuard } from './shared/modules/auth/guards/email-verified.guard';
 import { UserRateLimitGuard } from './shared/modules/auth/guards/user-rate-limit.guard';
 import { E2EThrottlerGuard } from './shared/modules/auth/guards/e2e-throttler.guard';
+import { PolicyGuard } from './shared/modules/auth/guards/policy.guard';
 import { CsrfInterceptor } from './shared/common/interceptors/csrf.interceptor';
 import { RateLimitInterceptor } from './shared/common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/common/interceptors/timeout.interceptor';
@@ -153,6 +153,14 @@ import { getClientIp } from '@/shared/common/http/client-ip';
     CustomFieldsModule,
     AnalyticsModule,
     RemindersModule,
+    // The clinician-facing /clinics/settings, /clinics/members and
+    // /clinics/search-for-join literals live in ClinicsModule's controllers
+    // array BEFORE ClinicsController (see clinics.module.ts) so they win over
+    // its /clinics/:id routes. Cross-module import order does NOT control
+    // Express registration here: the AuthModule forwardRef cycle pulls
+    // ClinicsModule into the Nest container before ClinicsSettingsModule is
+    // scanned, so reordering this array cannot fix shadowing. Keep the
+    // literal controllers in the same module as the :id controller.
     ClinicsModule,
     ClinicsOnboardingModule,
     ClinicsSettingsModule,
@@ -179,7 +187,6 @@ import { getClientIp } from '@/shared/common/http/client-ip';
     PublicBookingModule,
     AbdmModule,
   ],
-  controllers: [AppController],
   providers: [
     // Global pipeline order (first registered runs first on inbound request):
     // Guards: throttle → JWT → tenant → tenant rate limit → roles → subscription →
@@ -225,6 +232,10 @@ import { getClientIp } from '@/shared/common/http/client-ip';
     {
       provide: APP_GUARD,
       useClass: UserRateLimitGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PolicyGuard,
     },
 
     {

@@ -11,7 +11,7 @@ import {
   getPrismaInstance,
 } from '../../setup';
 import { factories, setPrismaInstance } from '../../factories';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { ConsentType, ConsentStatus } from '@workspace/db';
 
@@ -31,7 +31,7 @@ describe('Compliance (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(WhatsappService)
+      .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .compile();
 

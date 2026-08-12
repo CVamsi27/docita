@@ -1,0 +1,57 @@
+{
+  "dashboard": {
+    "totalBeds": "Total Beds",
+    "admitted": "Admitted",
+    "dischargesToday": "Discharges Today",
+    "wards": "Wards",
+    "wardOverview": "Ward Overview",
+    "wardOverviewDescription": "Real-time occupancy for each ward",
+    "noWards": "No wards configured yet",
+    "floor": "Floor {floor}",
+    "occupancy": "{occupied}/{total} occupied",
+    "occupied": "Occupied"
+  },
+  "admissionModal": {
+    "title": "Admit Patient",
+    "description": "Fill in the details to admit a patient to a ward.",
+    "errorPatientId": "Patient ID is required",
+    "errorBed": "Bed is required",
+    "errorDoctor": "Doctor is required",
+    "errorDiagnosis": "Diagnosis is required"
+  },
+  "admissionFormFields": {
+    "wardLabel": "Ward",
+    "selectWard": "Select ward",
+    "bedLabel": "Bed",
+    "selectBed": "Select bed",
+    "attendingDoctorLabel": "Attending Doctor",
+    "selectDoctor": "Select doctor",
+    "diagnosisLabel": "Diagnosis",
+    "notesLabel": "Notes",
+    "bedLabelTemplate": "{ward} / Room {room} / Bed {bed}"
+  },
+  "admissionForm": {
+    "title": "New Admission",
+    "description": "Admit a patient to a ward",
+    "patientIdLabel": "Patient ID / MRN",
+    "patientIdPlaceholder": "Enter patient ID or search...",
+    "wardLabel": "Ward",
+    "selectWard": "Select ward",
+    "bedLabel": "Bed",
+    "selectBed": "Select bed",
+    "attendingDoctorLabel": "Attending Doctor",
+    "selectDoctor": "Select doctor",
+    "diagnosisLabel": "Diagnosis / Reason",
+    "diagnosisPlaceholder": "Enter diagnosis or reason for admission",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Additional notes (optional)",
+    "admitting": "Admitting...",
+    "admitPatient": "Admit Patient",
+    "optionGeneralWard": "General Ward",
+    "optionIcu": "ICU",
+    "optionPrivateRoom": "Private Room",
+    "optionBed101": "Bed 101",
+    "optionBed102": "Bed 102",
+    "optionBed103": "Bed 103"
+  }
+}

@@ -1,5 +1,5 @@
 // Facade for the request-user helpers. The implementation lives in the
-// focused per-concern files; this module preserves the previous import
-// surface so existing consumers don't change.
+// focused per-concern files; this module re-exports getAuthenticatedUserId.
+// getMonitoringUserContext lives in ./monitoring-user-context and its
+// consumers import it from there directly.
 export { getAuthenticatedUserId } from './request-user-id';
-export { getMonitoringUserContext } from './monitoring-user-context';

@@ -12,7 +12,6 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { getWebSocketCorsOrigins } from '@/shared/modules/config/app-config';
 import { WsJwtAuthGuard } from '@/shared/modules/auth/auth/ws-jwt-auth.guard';
-import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { StaffNotificationType, NotificationPriority } from '@workspace/db';
 import { BaseWebSocketGateway } from './base-websocket.gateway';
@@ -50,7 +49,6 @@ export class NotificationsGateway
   protected readonly RATE_LIMIT_MESSAGES = 20;
 
   constructor(
-    private readonly prisma: PrismaService,
     protected readonly jwtService: JwtService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {

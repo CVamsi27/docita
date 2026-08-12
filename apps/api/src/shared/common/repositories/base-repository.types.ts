@@ -8,7 +8,7 @@ export interface PaginatedResult<T> {
   items: T[];
   hasMore: boolean;
   nextCursor?: string;
-  count?: number;
+  count: number;
 }
 
 export interface WhereClauseOptions {

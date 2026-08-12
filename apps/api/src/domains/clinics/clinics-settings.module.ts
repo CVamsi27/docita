@@ -1,5 +1,4 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { ClinicSettingsController } from './presentation/controllers/clinic-settings.controller';
 import { ClinicSettingsService } from './application/services/clinic-settings.service';
 import { ClinicSettingsQueryService } from './application/services/clinic-settings-query.service';
 import { ClinicSettingsCommandService } from './application/services/clinic-settings-command.service';
@@ -19,7 +18,7 @@ import { ClinicAbdmController } from './presentation/controllers/clinic-abdm.con
     forwardRef(() => ClinicsModule),
     ClinicsStaffModule,
   ],
-  controllers: [ClinicSettingsController, ClinicAbdmController],
+  controllers: [ClinicAbdmController],
   providers: [
     { provide: CLINIC_PERSISTENCE_PORT, useExisting: PrismaService },
     ClinicSettingsService,

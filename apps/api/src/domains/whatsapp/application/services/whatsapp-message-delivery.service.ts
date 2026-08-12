@@ -17,7 +17,7 @@ import {
 import { isRecord } from '@workspace/utils';
 import { buildMetaTemplateComponents } from '@/shared/whatsapp/whatsapp-template-components.util';
 
-export interface DeliverWhatsappMessageInput {
+interface DeliverWhatsappMessageInput {
   clinicId: string;
   recipientPhone: string;
   clinicName: string;
@@ -28,7 +28,7 @@ export interface DeliverWhatsappMessageInput {
   variables: Record<string, string>;
 }
 
-export interface DeliveredWhatsappMessage {
+interface DeliveredWhatsappMessage {
   externalId: string;
   finalContent: string;
   sender: ResolvedWhatsappSender;

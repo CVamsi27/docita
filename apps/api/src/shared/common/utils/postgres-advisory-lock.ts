@@ -1,4 +1,4 @@
-import { PrismaService } from '@/prisma/prisma.service';
+import { type PrismaDelegatePort } from '@/shared/modules/database/prisma-delegate.port';
 
 function lockId(name: string): number {
   let hash = 0;
@@ -10,7 +10,7 @@ function lockId(name: string): number {
 }
 
 export async function withAdvisoryLock<T>(
-  prisma: PrismaService,
+  prisma: PrismaDelegatePort,
   lockName: string,
   fn: () => Promise<T>,
   _timeoutMs = 5_000,
@@ -34,7 +34,7 @@ export async function withAdvisoryLock<T>(
  * a real Prisma client + Postgres session.
  */
 export type WithAdvisoryLock<T> = (
-  prisma: PrismaService,
+  prisma: PrismaDelegatePort,
   lockName: string,
   fn: () => Promise<T>,
   timeoutMs?: number,

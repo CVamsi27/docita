@@ -62,7 +62,7 @@ const SCHEDULED_PROBE_RETRY_DELAY_MS = 5_000;
 const LATENCY_TARGETS_MS = {
   // Fly autostart from GitHub Actions (non-Mumbai) can exceed 2s on a warm machine.
   "api-health-live": 5_000,
-  // App origin cold starts (OpenNext on Cloudflare) can exceed 3s from CI runners.
+  // Static-asset edge origin can be cold from CI runners; allow slack.
   "daily-thought": 5_000,
   "staff-login": 5_000,
 };
@@ -118,7 +118,7 @@ async function assertApiHealthLiveResponse(response, latencyMs) {
  * Shared retry loop for the simple GET-and-assert probes (`api-health-live`,
  * `daily-thought`): fetch with a timeout, run the probe-specific assertion,
  * and retry with backoff until `SCHEDULED_PROBE_ATTEMPTS` is exhausted. Both
- * probes need this because Fly autostart / OpenNext cold starts can fail the
+ * probes need this because Fly autostart or a cold edge origin can fail the
  * first request of a cycle — only the URL and response assertion differ.
  */
 async function runRetryableGetProbe(probeName, url, assertResponse) {
@@ -192,10 +192,10 @@ async function assertDailyThoughtResponse(response, latencyMs) {
 }
 
 async function probeDailyThought() {
-  // The app origin (OpenNext on Cloudflare) and the API behind it can cold
-  // start from a non-warm CI runner, so the first request of a scheduled cycle
-  // can time out while the platform wakes. Retry like api-health-live so a
-  // cold start warms the path instead of paging.
+  // The edge origin and the Fly API behind it can be cold from a non-warm CI
+  // runner, so the first request of a scheduled cycle can time out while the
+  // platform wakes. Retry like api-health-live so a cold start warms the
+  // path instead of paging.
   return runProbe("daily-thought", () =>
     runRetryableGetProbe(
       "daily-thought",

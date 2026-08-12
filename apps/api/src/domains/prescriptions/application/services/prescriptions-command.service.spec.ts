@@ -3,9 +3,9 @@ import { BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { IClinicUsagePort } from '@/domains/billing/application/ports';
 import type { IPrescriptionRepository } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
+import type { CreatePrescriptionCommand } from '@/domains/prescriptions/core/repositories/prescription-commands';
 import type { PrescriptionPdfOrchestratorService } from './prescription-pdf-orchestrator.service';
 import { PrescriptionsCommandService } from './prescriptions-command.service';
-import type { CreatePrescriptionParams } from './prescription-create.type';
 
 describe('PrescriptionsCommandService — controlled substances by modality', () => {
   const findDoctorComplianceMock =
@@ -42,7 +42,7 @@ describe('PrescriptionsCommandService — controlled substances by modality', ()
     {} as PrescriptionPdfOrchestratorService,
   );
 
-  const baseParams = (medicationName: string): CreatePrescriptionParams => ({
+  const baseParams = (medicationName: string): CreatePrescriptionCommand => ({
     appointmentId: 'appt-1',
     patientId: 'pat-1',
     doctorId: 'doc-1',

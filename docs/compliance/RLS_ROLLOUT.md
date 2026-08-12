@@ -101,6 +101,21 @@ After a clean staging dry-run plus 24h of soak with no policy errors:
 3. Watch `pg_stat_activity` and Sentry for `permission denied for table` /
    `new row violates row-level security policy` errors.
 
+
+## App-plane dual: ABAC policies
+
+The RLS policies are the **data-plane** backstop (tenant row isolation via
+`tenant_isolation` + `app.current_clinic_id`). The ABAC layer in
+[`ADR-0013`](../architecture/decisions/0013-abac.md) and
+[`ABAC_MIGRATION_PLAN.md`](../analysis/ABAC_MIGRATION_PLAN.md) is the
+**app-plane** dual: object-level, context-aware decisions (ownership,
+assignment, author-of-record, tenant discipline for 404/no-disclosure) that
+run after the RBAC/tier/tenant guards and before RLS. The two planes are
+independent and both stay in force — a policy decision is not an RLS bypass
+and vice versa (break-the-glass audits and bypasses RLS intentionally, as
+documented in ADR-0013 C1). See the [`ABAC_RETIREMENT_LEDGER.md`](../analysis/ABAC_RETIREMENT_LEDGER.md)
+for the legacy-guard decisions.
+
 ## Rollback
 
 Set `RLS_ENABLED=false` and roll the API. The policies remain in place

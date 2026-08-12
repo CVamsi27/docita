@@ -1,0 +1,22 @@
+{
+  "editTitle": "Edit allergy",
+  "editDescription": "Update the allergen, severity, type, and reaction.",
+  "allergenLabel": "Allergen",
+  "severityLabel": "Severity",
+  "severityMild": "Mild",
+  "severityModerate": "Moderate",
+  "severitySevere": "Severe",
+  "severityLifeThreatening": "Life-Threatening (Anaphylaxis Risk)",
+  "typeLabel": "Type",
+  "typeDrug": "Drug/medication",
+  "typeFood": "Food",
+  "typeEnvironmental": "Environmental (pollen, dust)",
+  "typeLatex": "Latex",
+  "typeInsect": "Insect stings/bites",
+  "typeContrast": "Contrast dye",
+  "typeOther": "Other",
+  "reactionLabel": "Reaction",
+  "reactionPlaceholder": "Reaction",
+  "cancel": "Cancel",
+  "save": "Save changes"
+}

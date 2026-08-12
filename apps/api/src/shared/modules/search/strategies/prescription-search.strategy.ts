@@ -1,14 +1,20 @@
 import { getPatientFullName } from '@workspace/utils';
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
 import type { SearchResult } from '../search.types';
 import type { ISearchStrategy } from './search-strategy.interface';
+import {
+  SEARCH_STRATEGY_PERSISTENCE_PORT,
+  type SearchStrategyPersistencePort,
+} from '../ports/search-strategy.persistence.port';
 
 @Injectable()
 export class PrescriptionSearchStrategy implements ISearchStrategy {
   readonly entityType = 'prescription' as const;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(SEARCH_STRATEGY_PERSISTENCE_PORT)
+    private readonly prisma: SearchStrategyPersistencePort,
+  ) {}
 
   async search(
     clinicId: string,

@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — Prisma.JsonValue is a wide union; narrowing before spread adds noise at the boundary.
 /**
  * Transactional outbox.
  *
@@ -11,7 +10,9 @@
  */
 import { Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
+import { isRecord } from '@workspace/utils';
 import type { Prisma } from '@workspace/db';
+import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import type { IOutboxService, OutboxAppend } from './outbox.interface';
 
 @Injectable()
@@ -29,14 +30,14 @@ export class OutboxService implements IOutboxService {
           aggregateType: event.aggregateType ?? null,
           aggregateId: event.aggregateId ?? null,
           clinicId: event.clinicId,
-          payload: event.payload as Prisma.InputJsonValue,
+          payload: toPrismaInputJsonValue(event.payload),
           idempotencyKey: event.idempotencyKey ?? null,
         },
       });
     } catch (error) {
       // P2002 on idempotencyKey means a previous emit for the same logical
       // event has already been recorded. Treat as a no-op so retries are safe.
-      const code = (error as { code?: string } | null)?.code;
+      const code = isRecord(error) ? error.code : undefined;
       if (event.idempotencyKey && code === 'P2002') {
         this.logger.debug(
           `[outbox] duplicate idempotencyKey ${event.idempotencyKey} for ${event.eventName} — already recorded`,

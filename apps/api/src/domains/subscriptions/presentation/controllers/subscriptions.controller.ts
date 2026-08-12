@@ -22,6 +22,7 @@ import {
 } from '@/domains/billing/application/ports';
 import { ClinicTier } from '@/domains/subscriptions/core/value-objects';
 import { RequestWithUser } from '@/shared/common/types/common.types';
+import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import {
   SubscriptionActivateLegacyRequestDto,
   SubscriptionCancelRequestDto,
@@ -60,9 +61,10 @@ export class SubscriptionsController {
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Get('current')
   async getCurrent(@Request() req: RequestWithUser) {
-    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     return subscriptionCurrentResponseSchema.parse(
-      await this.queryService.getSubscriptionDetails(req.user.clinicId),
+      await this.queryService.getSubscriptionDetails(
+        getClinicStaffRequestContext(req).clinicId,
+      ),
     );
   }
 
@@ -70,8 +72,9 @@ export class SubscriptionsController {
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Get('usage')
   async getCurrentUsage(@Request() req: RequestWithUser) {
-    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
-    const usage = await this.clinicUsage.getCurrentUsage(req.user.clinicId);
+    const usage = await this.clinicUsage.getCurrentUsage(
+      getClinicStaffRequestContext(req).clinicId,
+    );
     return currentUsageSchema.parse(JSON.parse(JSON.stringify(usage)));
   }
 
@@ -82,9 +85,8 @@ export class SubscriptionsController {
     @Request() req: RequestWithUser,
     @Body() body: SubscriptionCheckoutRequestDto,
   ) {
-    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     return this.createCheckoutUseCase.execute({
-      clinicId: req.user.clinicId,
+      clinicId: getClinicStaffRequestContext(req).clinicId,
       tier: body.tier,
       cycle: body.cycle,
       referrals: body.referrals,
@@ -97,9 +99,8 @@ export class SubscriptionsController {
     @Request() req: RequestWithUser,
     @Body() body: SubscriptionCancelRequestDto,
   ) {
-    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     return this.cancelSubscriptionUseCase.execute({
-      clinicId: req.user.clinicId,
+      clinicId: getClinicStaffRequestContext(req).clinicId,
       reason: body.reason,
     });
   }
@@ -110,12 +111,11 @@ export class SubscriptionsController {
     @Request() req: RequestWithUser,
     @Body() body: SubscriptionActivateLegacyRequestDto,
   ) {
-    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     const normalizedBillingCycle: 'MONTHLY' | 'YEARLY' =
       body.cycle === 'YEARLY' ? 'YEARLY' : 'MONTHLY';
 
     return this.createSubscriptionUseCase.execute({
-      clinicId: req.user.clinicId,
+      clinicId: getClinicStaffRequestContext(req).clinicId,
       plan: ClinicTier.fromString(body.tier).value,
       billingCycle: normalizedBillingCycle,
       currentPeriodStart: this.clock.now(),

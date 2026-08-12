@@ -315,6 +315,17 @@
   pointer-events: none;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* header height + breathing room */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 html,
 body {
   max-width: 100%;
@@ -1720,7 +1731,7 @@ canvas {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.625rem 0.875rem 0.875rem;
+  padding: 0.375rem 0.875rem 0.625rem;
   border-top: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
 }
 

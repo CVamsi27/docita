@@ -65,6 +65,7 @@ export class InternalSupportController {
     @Query('minRating') minRating?: string,
     @Query('maxRating') maxRating?: string,
     @Query('search') search?: string,
+    @Query('limit') limit?: string,
   ) {
     return this.feedbackService.findAll({
       status: parseFeedbackStatusFilter(status),
@@ -75,6 +76,7 @@ export class InternalSupportController {
       minRating: parsePaginationInt(minRating, { min: 1, max: 5 }),
       maxRating: parsePaginationInt(maxRating, { min: 1, max: 5 }),
       search,
+      limit: parsePaginationInt(limit, { min: 1, max: 500 }) ?? 200,
     });
   }
 

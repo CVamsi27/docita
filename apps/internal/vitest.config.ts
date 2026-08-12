@@ -1,17 +1,20 @@
-import { configDefaults, defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react";
-import { buildAppVitestConfig } from "../../vitest.shared.config";
+import { defineConfig } from "vitest/config";
+import path from "path";
+
+const __dirname = import.meta.dirname;
 
 export default defineConfig({
-  plugins: [react()],
-  ...buildAppVitestConfig({
-    rootDir: __dirname,
-    coverageInclude: [
-      "app/page.tsx",
-      "app/(protected)/dashboard/page.tsx",
-      "features/users/users.utils.ts",
-    ],
-    defaultExclude: configDefaults.exclude,
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@workspace/ui": path.resolve(__dirname, "../../packages/ui/src"),
+      "@workspace/types": path.resolve(__dirname, "../../packages/types/src"),
+    },
+  },
+  test: {
+    globals: true,
+    environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
-  }),
+    include: ["src/**/*.test.{ts,tsx}"],
+  },
 });

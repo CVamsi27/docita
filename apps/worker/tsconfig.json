@@ -2,12 +2,19 @@
   "extends": "@workspace/typescript-config/nestjs.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "rootDir": "../",
     "outDir": "./dist",
     "esModuleInterop": true,
     "paths": {
-      "@/*": ["../api/src/*"]
+      "@/*": [
+        "../api/src/*"
+      ]
     },
-    "types": ["node", "jest", "multer"],
+    "types": [
+      "node",
+      "jest",
+      "multer"
+    ],
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
@@ -15,8 +22,16 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": true,
     "strictBindCallApply": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "ignoreDeprecations": "6.0"
   },
-  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"],
-  "include": ["src/**/*.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*.spec.ts"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ]
 }

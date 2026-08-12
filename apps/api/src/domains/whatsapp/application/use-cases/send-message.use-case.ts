@@ -11,7 +11,7 @@ import { WhatsAppMessage } from '@/domains/whatsapp/core/entities/whatsapp-messa
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { WhatsappMessageDeliveryService } from '@/domains/whatsapp/application/services/whatsapp-message-delivery.service';
 
-export interface SendMessageRequest {
+interface SendMessageRequest {
   clinicId: string;
   recipientPhone: string;
   templateName?: string;

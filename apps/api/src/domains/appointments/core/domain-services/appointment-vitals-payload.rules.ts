@@ -50,7 +50,7 @@ export function cleanVitalsPayload(
   };
 }
 
-export interface VitalsNumericMetricDefinition {
+interface VitalsNumericMetricDefinition {
   key: string;
   label: string;
   unit?: string;

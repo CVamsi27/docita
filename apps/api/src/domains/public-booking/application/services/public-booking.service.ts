@@ -15,14 +15,14 @@ import {
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
 import { SlotGenerationService } from '@/domains/doctors/application/services/slot-generation.service';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
-import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
+import { ConsentCommandService } from '@/shared/modules/compliance/consent-command.service';
 import { AppointmentRequestService } from '@/domains/appointments/application/services/appointment-request.service';
 import {
   WHATSAPP_CLIENT_TOKEN,
   type IWhatsAppClient,
 } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 import { PublicBookingTokenService } from '@/domains/public-booking/application/services/public-booking-token.service';
-import { TurnstileVerifyService } from '@/domains/public-booking/application/services/turnstile-verify.service';
+import { TurnstileVerifyService } from '@/shared/modules/turnstile/turnstile-verify.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { PublicBookingSlotsService } from './public-booking-slots.service';
 import { PublicBookingCreationService } from './public-booking-creation.service';
@@ -51,7 +51,7 @@ export class PublicBookingService {
     private readonly bookingTokenService: PublicBookingTokenService,
     private readonly turnstile: TurnstileVerifyService,
     private readonly appConfig: AppConfigService,
-    private readonly dpdpService: DPDPComplianceService,
+    private readonly consentCompliance: ConsentCommandService,
     @Inject(CLOCK_PORT) clock: IClock,
   ) {
     this.slots = new PublicBookingSlotsService(
@@ -75,7 +75,7 @@ export class PublicBookingService {
       bookingTokenService,
       turnstile,
       appConfig,
-      dpdpService,
+      consentCompliance,
       this.slots,
     );
   }

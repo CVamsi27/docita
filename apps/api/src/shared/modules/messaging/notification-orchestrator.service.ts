@@ -3,14 +3,14 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { IMessageChannel, SendMessageResult } from './channels';
 import { MessageTemplateService } from './templates';
 
-export interface NotificationRequest {
+interface NotificationRequest {
   templateKey: string;
   recipientId: string;
   channels: string[];
   variables?: Record<string, unknown>;
 }
 
-export interface NotificationResult {
+interface NotificationResult {
   templateKey: string;
   recipientId: string;
   results: SendMessageResult[];

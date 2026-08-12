@@ -13,7 +13,7 @@ import {
   getPrismaInstance,
 } from '../../setup';
 import { factories, setPrismaInstance } from '../../factories';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { signE2eAccessToken } from '../../e2e-auth-token';
 
@@ -37,7 +37,7 @@ describe('Front desk tier (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
-      .overrideProvider(WhatsappService)
+      .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .compile();
 
@@ -58,8 +58,7 @@ describe('Front desk tier (e2e)', () => {
     await resetDatabase();
 
     // Front Desk is a plan mode on a canonical tier, not a DB tier enum value
-    // (legacy FRONT_DESK tier was removed). The clinical mutation guard keys
-    // off clinic.planMode === FRONT_DESK via MODE_BLOCKED_FEATURES.
+    // (legacy FRONT_DESK tier was removed — AGENTS.md §15.8).
     const clinic = await factories.clinic({
       tier: 'ESSENTIAL',
       planMode: 'FRONT_DESK',
