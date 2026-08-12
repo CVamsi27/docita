@@ -14,7 +14,8 @@ Browser ── app.docita.work / internal.docita.work
             ▼
    Cloudflare Worker (docita-app / docita-internal)
    ├── Static Assets (dist/)  → index.html + hashed /assets/*
-   ├── _redirects             → SPA fallback (/* → /index.html 200)
+   │                          → SPA fallback via not_found_handling = "single-page-application"
+   ├── _redirects             → intentionally empty (see comment in public/_redirects)
    ├── _headers               → security headers for static responses
    └── Hono proxy (api/index.ts)
        ├── /api/v1/*          → upstream /api/v1/* (path-scoped proxy)
