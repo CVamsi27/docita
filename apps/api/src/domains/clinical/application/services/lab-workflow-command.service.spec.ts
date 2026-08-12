@@ -147,6 +147,82 @@ describe('LabWorkflowCommandService', () => {
     expect(workflowRepository.verifyPayment).not.toHaveBeenCalled();
   });
 
+  it('throws 404 when the order belongs to another clinic (tenant guard)', async () => {
+    const otherClinicOrder = new LabOrder(
+      'order-1',
+      'patient-1',
+      'test-1',
+      LabTestOrderStatus.ORDERED,
+      'clinic-2',
+    );
+    orderRepository.findOrderById.mockResolvedValue(otherClinicOrder);
+
+    await expect(
+      service.verifyPayment('order-1', 'clinic-1', {
+        method: 'CASH',
+        verifiedBy: 'staff-1',
+      }),
+    ).rejects.toThrow('Lab order not found');
+    expect(workflowRepository.verifyPayment).not.toHaveBeenCalled();
+  });
+
+  it('throws 404 when the order does not exist', async () => {
+    orderRepository.findOrderById.mockResolvedValue(null);
+
+    await expect(
+      service.verifyPayment('order-missing', 'clinic-1', {
+        method: 'CASH',
+        verifiedBy: 'staff-1',
+      }),
+    ).rejects.toThrow('Lab order not found');
+  });
+
+  it('throws 400 when releasing a result with no uploaded file', async () => {
+    workflowRepository.findReleaseContext.mockResolvedValue({
+      id: 'order-1',
+      clinicId: 'clinic-1',
+      status: LabTestOrderStatus.RESULT_READY,
+      resultUrl: null,
+      paidAt: new Date('2026-07-01T09:00:00.000Z'),
+      testName: 'CBC',
+      clinicName: 'Docita Clinic',
+      patient: {
+        id: 'patient-1',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        phoneNumber: null,
+      },
+    });
+
+    await expect(service.releaseResult('order-1', 'clinic-1')).rejects.toThrow(
+      'Upload a result before releasing it to the patient',
+    );
+    expect(workflowRepository.markReleased).not.toHaveBeenCalled();
+  });
+
+  it('throws 400 when releasing a result before payment is verified', async () => {
+    workflowRepository.findReleaseContext.mockResolvedValue({
+      id: 'order-1',
+      clinicId: 'clinic-1',
+      status: LabTestOrderStatus.RESULT_READY,
+      resultUrl: 'lab-results/order-1.pdf',
+      paidAt: null,
+      testName: 'CBC',
+      clinicName: 'Docita Clinic',
+      patient: {
+        id: 'patient-1',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        phoneNumber: null,
+      },
+    });
+
+    await expect(service.releaseResult('order-1', 'clinic-1')).rejects.toThrow(
+      'Verify payment before releasing results to the patient',
+    );
+    expect(workflowRepository.markReleased).not.toHaveBeenCalled();
+  });
+
   it('records payment but skips release when no result has been uploaded yet', async () => {
     const orderWithoutResult = new LabOrder(
       'order-1',

@@ -53,23 +53,31 @@ docs"). The prior set was:
 
 For prior-audit content, see the consolidated docs' `Tracker` sections.
 
-## Open follow-ups ranked by severity (as of `52a7284bd`)
+## Open follow-ups ranked by severity (as of round-7, 2026-08-12 — all terminal-status)
 
-| Severity | Finding | Doc | Est. effort |
+> Status values: **DONE** (fixed + verified), **CLOSED** (verified not-a-bug / stale),
+> **WITHDRAWN** (premise invalid), **DEFERRED** (recorded decision with reason).
+> No row is left as bare OPEN.
+
+| Severity | Finding | Doc | Status / Est. effort |
 |---|---|---|---|
-| MED | 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7; 2 closed 2026-08-12) | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §8.1 | ~15h (next: `platform-health-alerts.scheduler.ts` at ~1h) |
-| LOW | API latency baseline (operational) | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §9.10 | ~30 min (after stable staging soak) |
-| LOW | 12 mixed-export file warnings (re-exports) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §14.2 | 4h (migrate 104 consumers) |
+| MED | 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7; 2 code-fixed + allowlist pruned 2026-08-12) | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §8.1 | DEFERRED — allowlisted schedulers/crons; each a dedicated migration PR (~15h total) |
+| LOW | API latency baseline (operational) | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §9.10 | DEFERRED — needs stable staging soak |
+| LOW | Analytics cache invalidation | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §24.1 | DEFERRED — key shapes heterogeneous; needs key-factory/event design + product sign-off |
+| LOW | `apps/internal` unit specs (0 today) | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §24.3 | DEFERRED — needs page-logic extraction; dedicated round |
+| LOW | E2E for INTERNAL controllers | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §24.4 | DEFERRED — behind admin RBAC; dedicated round |
+| LOW | Bulk-import / WhatsApp void + audit→outbox | [`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md) §26.1.3/§26.3.5 | DEFERRED — outbox design decision (payload forbids PHI) |
+| LOW | 12 mixed-export file warnings (re-exports) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §14.2 | DEFERRED — mechanical churn for 104 consumers (4h) |
 | ~~LOW~~ | ~~4 react-hooks/exhaustive-deps warnings~~ | **DONE** (0 remain) | — |
 | ~~LOW~~ | ~~2 internal mixed-export + exhaustive-deps warnings~~ | **DONE** (1 react-refresh warning remains) | — |
-| LOW | Mobile breakpoints audit (every page at 375/768/1280) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #5 | 4h |
-| LOW | Landing page hero redesign | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #6 | 8h |
-| LOW | Landing pricing page (interactive tier toggle) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #7 | 6h |
-| LOW | Internal admin analytics dashboard | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #8 | 16h |
-| LOW | Image opt (Cloudflare Polish + WebP/AVIF) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #9 | 2h |
-| LOW | Reduced-motion audit | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #10 | 2h |
+| LOW | Mobile breakpoints audit (every page at 375/768/1280) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #5 | DEFERRED — audit round (4h) |
+| LOW | Landing page hero redesign | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #6 | DEFERRED — design/product decision (8h) |
+| ~~LOW~~ | ~~Landing pricing page (interactive tier toggle)~~ | **DONE** (2026-08-12; `role=tab` + `aria-selected` pinned by a11y spec) | — |
+| LOW | Internal admin analytics dashboard | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #8 | DEFERRED — design/product decision (16h) |
+| LOW | Image opt (Cloudflare Polish + WebP/AVIF) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #9 | DEFERRED — infra/product (2h) |
+| ~~LOW~~ | ~~Reduced-motion audit~~ | **DONE** via `use-prefers-reduced-motion` hook | — |
 
-**Total open:** ~53h across ~11 items (all LOW or MED; nothing HIGH or CRITICAL).
+**Total deferred:** ~45h across 12 items (all LOW/MED, each with a recorded reason and a suggested round).
 
 Closed in this cycle (per the consolidated docs' §16.1):
 ConsentComplianceService CQS split, ClinicContextGuard consolidation,

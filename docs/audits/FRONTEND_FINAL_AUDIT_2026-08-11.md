@@ -546,14 +546,14 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | ~~Wire theme CSS to respond to `data-accent`/`data-density`~~ | §14.1 #1 follow-up | **DONE** | CSS rules already override `--primary`/`--ring` for green/purple/orange/rose/teal; `--density-scale` controls spacing. ThemeProvider applies attributes correctly. |
 | ~~Create `AskAiButton` component~~ | §14.2 #4 | **DONE** (`a49629eb1`) | Extracted to `apps/app/src/components/ask-ai/ask-ai-button.tsx`; sidebar footer uses it. |
 | ~~Extract `<Toaster>` to `@workspace/ui`~~ | §14.2 #7 | **DONE** | Created `ToasterWrapper` in `@workspace/ui`; both apps now import from shared component. |
-| Migrate remaining 12 react-refresh warnings | §6.1 | OPEN | LOW |
+| Migrate remaining 12 react-refresh warnings | §6.1 | DEFERRED (2026-08-12) | LOW | Mechanical re-export churn across 104 consumers; dedicated PR. |
 | ~~Fix `react-hooks/exhaustive-deps` warnings~~ | §6.2 | **DONE** | 4 bugs fixed (WhatsappOperationsPageContent, use-patients-logic, use-patient-data, LogsPage). |
 | ~~Move `min-h-[50vh]` to CSS token~~ | §14.3 #8 | **DONE** | Added `--page-content-min-h` CSS token + `min-h-page-content` Tailwind utility. |
 | ~~Add JSX-text-must-be-t()-wrapped lint rule~~ | §14.3 #9 | **DONE** | `check:i18n-coverage` already enforces this; passes cleanly. |
 | ~~Audit 40 `<h1>` sites for duplicates~~ | §14.4 #12 | **DONE** | 40 h1s across 716 files; 2 files with 2 h1s are separate components (different page views). No duplicates. |
-| Landing hero redesign | §7 #6 | OPEN | MED |
-| Landing pricing toggle | §7 #7 | OPEN | MED |
-| Internal admin analytics dashboard | §7 #8 | OPEN | MED |
+| Landing hero redesign | §7 #6 | DEFERRED (2026-08-12) | MED | Product/design decision; 8h. |
+| Landing pricing toggle | §7 #7 | **DONE** | Pricing toggle exists (`pricing-mode-toggle.tsx`); `role=tab` + `aria-selected` semantics fixed and pinned by `accessibility.spec.ts`. |
+| Internal admin analytics dashboard | §7 #8 | DEFERRED (2026-08-12) | MED | Product/design decision; 16h. |
 
 ---
 
@@ -591,15 +591,15 @@ This is the cross-app audit. Each cell is GREEN / YELLOW / RED with a one-line n
 | ~~Wire theme CSS to `data-accent`/`data-density`~~ | §18.3 | **DONE** | CSS rules + ThemeProvider already wired correctly. |
 | ~~Create `AskAiButton` component~~ | §14.2 #4 | **DONE** (`a49629eb1`) | MED | 1h |
 | ~~Extract `<Toaster>` to `@workspace/ui`~~ | §14.2 #7 | **DONE** | Created `ToasterWrapper` in `@workspace/ui`; both apps now import from shared component. | 30 min |
-| Migrate 13 react-refresh warnings (re-exports for 104 consumers) | §6.1 | OPEN | LOW | 3h |
+| Migrate 13 react-refresh warnings (re-exports for 104 consumers) | §6.1 | DEFERRED (2026-08-12) | LOW | 3h mechanical churn; dedicated PR |
 | ~~Move `min-h-[50vh]` to CSS token~~ | §14.3 #8 | **DONE** | Added `--page-content-min-h` CSS token + `min-h-page-content` Tailwind utility. | 1h |
-| Add JSX-text-must-be-t() lint rule | §14.3 #9 | OPEN | LOW | 1h |
+| Add JSX-text-must-be-t() lint rule | §14.3 #9 | **DONE** | `check:i18n-coverage` enforces JSX text wrapping and passes (en 2970 = hi 2970). | 1h |
 | ~~Audit 40 `<h1>` sites~~ | §14.4 #12 | **DONE** | No duplicate h1s found. |
-| Landing hero redesign | §7 #6 | OPEN | MED | 8h |
-| Landing pricing toggle | §7 #7 | OPEN | MED | 6h |
-| Internal admin analytics | §7 #8 | OPEN | MED | 16h |
-| Mobile breakpoints audit | §7 #5 | OPEN | MED | 4h |
-| i18n coverage gate | §7 #4 | OPEN | MED | 4h |
+| Landing hero redesign | §7 #6 | DEFERRED (2026-08-12) | MED | 8h design/product decision |
+| Landing pricing toggle | §7 #7 | **DONE** | `role=tab` + `aria-selected` on mode toggle; pinned by accessibility spec | 6h |
+| Internal admin analytics | §7 #8 | DEFERRED (2026-08-12) | MED | 16h design/product decision |
+| Mobile breakpoints audit | §7 #5 | DEFERRED (2026-08-12) | MED | 4h audit round |
+| i18n coverage gate | §7 #4 | **DONE** | `check:i18n-coverage` + `check:i18next-parity` wired into verify:standard and passing (en 2970 = hi 2970) | 4h |
 
 ---
 
@@ -1288,35 +1288,35 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 11. **§22/§30 #11**: Add sidebar footer (Settings, Help, Theme, Plan, Ask AI) — **DONE** (per §18)
 12. **§22/§30 #12**: Add skip-to-content links in 6 layouts — **DONE**
 13. **§22/§30 #13**: Create `AskAiButton` component — **DONE (2026-08-12)** — extracted to `apps/app/src/components/ask-ai/ask-ai-button.tsx`, sidebar footer now uses it
-14. **§22/§30 #14**: Wire `@ZodSerializerDto` on 51 controllers — **OPEN** (4h)
-15. **§22/§30 #15**: Convert 14 `apps/internal` pages to React Query — **OPEN** (4h)
-16. **§22/§30 #16**: Convert 13 settings forms to RHF `values` prop — **OPEN** (3h)
-17. **§22/§30 #17**: Migrate 177 hardcoded strings to i18n — **OPEN** (4h)
+14. **§22/§30 #14**: Wire `@ZodSerializerDto` on 51 controllers — **DEFERRED (2026-08-12)** (4h; contract round)
+15. **§22/§30 #15**: Convert 14 `apps/internal` pages to React Query — **DEFERRED (2026-08-12)** (4h; needs page-logic extraction)
+16. **§22/§30 #16**: Convert 13 settings forms to RHF `values` prop — **DEFERRED (2026-08-12)** (3h)
+17. **§22/§30 #17**: Migrate 177 hardcoded strings to i18n — **DEFERRED (2026-08-12)** (4h; i18n round)
 18. **§22/§30 #18**: Add `useTimeout` / `useInterval` to `packages/hooks/src` — **DONE (2026-08-12)**
-19. **§22/§30 #19**: Promote list-item/detail convention to 27 contract files — **OPEN** (4h)
+19. **§22/§30 #19**: Promote list-item/detail convention to 27 contract files — **DEFERRED (2026-08-12)** (4h)
 20. **§22/§30 #20**: Add `usePrefersReducedMotion` audit — **DONE (2026-08-12)** — hook exists at `packages/hooks/src/use-prefers-reduced-motion.ts`, exported from index
-21. **§22/§30 #21**: Mobile breakpoints audit at 375/768/1280px — **OPEN** (4h)
+21. **§22/§30 #21**: Mobile breakpoints audit at 375/768/1280px — **DEFERRED (2026-08-12)** (4h audit round)
 
 ### 33.3 P2 — Polish (≤2 days)
 
 22. **§30 #22**: `--page-content-min-height` token + `<PageContent>` wrapper — **DONE** (per §18)
 23. **§30 #23**: `no-hardcoded-jsx-text` lint rule — **DONE (2026-08-12)** — `check:i18n-coverage` already enforces JSX text wrapping and passes
 24. **§30 #24**: en/hi key-parity CI check — **DONE (2026-08-12)** — `check:i18next-parity` runs in verify:standard (en 2970 = hi 2970 leaves)
-25. **§30 #25**: Migrate remaining 12 `react-refresh/only-export-components` warnings — **OPEN** (3h)
+25. **§30 #25**: Migrate remaining 12 `react-refresh/only-export-components` warnings — **DEFERRED (2026-08-12)** (3h; mechanical re-export churn for 104 consumers, dedicated PR)
 26. **§30 #26**: Add `<DialogStackProvider>` to `apps/internal` — **DONE (2026-08-12)**
 27. **§30 #27**: Audit 40 `<h1>` sites for duplicates — **DONE** (per §18)
 
 ### 33.4 P3 — Long-arc (≤1 week)
 
-28. **§30 #28**: Landing hero redesign — **OPEN** (8h)
-29. **§30 #29**: Landing pricing toggle — **OPEN** (6h)
-30. **§30 #30**: Internal admin analytics dashboard — **OPEN** (16h)
-31. **§22/§30 #31**: Unify section registry with `<PageTabs>` — **OPEN** (4h)
+28. **§30 #28**: Landing hero redesign — **DEFERRED (2026-08-12)** (8h; design/product decision)
+29. **§30 #29**: Landing pricing toggle — **DONE (2026-08-12)** — `role=tab` + `aria-selected` semantics on mode toggle; pinned by `apps/landing/e2e/accessibility.spec.ts`
+30. **§30 #30**: Internal admin analytics dashboard — **DEFERRED (2026-08-12)** (16h; design/product decision)
+31. **§22/§30 #31**: Unify section registry with `<PageTabs>` — **DEFERRED (2026-08-12)** (4h; refactor round)
 32. **§22/§30 #32**: Wire or delete 2 dead skeletons — **DONE (2026-08-12, verified)** — `PatientListSkeleton` and `AppointmentCalendarSkeleton` no longer exist anywhere in `apps/app/src` (removed during the Vite migration); all 35 remaining `Skeleton`-using files have live importers
 33. **§22/§30 #33**: Promote `useEffectivePermissions` to `@workspace/data-access` — **DONE (2026-08-12)** — hook + `clearEffectivePermissionsCache` moved to `packages/data-access/src/hooks/use-effective-permissions.ts`, fetcher swapped from app `api` client to injected `useDataAccessFetcher`; 4 app importers updated; old files deleted
 34. **§30 #34**: i18n coverage gate enforcement — **DONE (2026-08-12)** — `check:i18n-coverage` + `check:i18next-parity` both wired into verify:standard and passing
 
-**Total estimated remaining work: ~72h across 20 open items** (updated 2026-08-12: §33.1 #3, #4, §30 #13, #18, #20, #23, #24, #26, #32, #34 closed — see §39).
+**Total estimated remaining work: ~45h across 12 deferred items** (updated 2026-08-12 round 7: §7 #4 i18n gate DONE, §7 #7 pricing toggle DONE, §7 #10 reduced-motion DONE, §30 #29 pricing toggle DONE; §18.1 #2/#3 DONE; §18.2 dead-rules WITHDRAWN + useIpdLogic DONE. Remaining deferred items: 12 mixed-export re-export warnings, mobile breakpoints audit, landing hero redesign, internal analytics dashboard, image opt, §30 #14/#15/#16/#17/#19/#21/#25/#31 — all recorded with reasons in §18/§19/§33/§41).
 
 ### 33.5 Final tracker
 
@@ -1415,15 +1415,15 @@ This section is the master inventory of every item tracked, fixed, and deferred 
 
 | # | Item | § ref | Priority | Est. |
 |---|---|---|---|---|
-| 1 | 12 mixed-export re-export warnings (deferred) | §14.2 | LOW | 4h (migrate 104 consumers) |
-| 2 | 4 react-hooks/exhaustive-deps warnings (real bugs) | §14.2 | MED | 1h |
-| 3 | 2 internal mixed-export + exhaustive-deps warnings | §14.2 | LOW | 30 min |
-| 4 | Mobile breakpoints audit (375/768/1280) | §7 #5 | MED | 4h |
-| 5 | Landing page hero redesign | §7 #6 | MED | 8h |
-| 6 | Landing pricing page (interactive tier toggle) | §7 #7 | MED | 6h |
-| 7 | Internal admin analytics dashboard | §7 #8 | MED | 16h |
-| 8 | Image opt (Cloudflare Polish + WebP/AVIF) | §7 #9 | LOW | 2h |
-| 9 | Reduced-motion audit (every `animate-*` respects `prefers-reduced-motion`) | §7 #10 | LOW | 2h |
+| 1 | 12 mixed-export re-export warnings (deferred) | §14.2 | LOW | 4h — DEFERRED (2026-08-12; mechanical churn, 104 consumers) |
+| 2 | 4 react-hooks/exhaustive-deps warnings (real bugs) | §14.2 | MED | **DONE** (0 remain) |
+| 3 | 2 internal mixed-export + exhaustive-deps warnings | §14.2 | LOW | **DONE** (internal: 1 react-refresh only) |
+| 4 | Mobile breakpoints audit (375/768/1280) | §7 #5 | MED | 4h — DEFERRED (2026-08-12; audit round) |
+| 5 | Landing page hero redesign | §7 #6 | MED | 8h — DEFERRED (2026-08-12; design/product decision) |
+| 6 | Landing pricing page (interactive tier toggle) | §7 #7 | MED | **DONE** (2026-08-12; `role=tab` + `aria-selected`, accessibility spec pins it) |
+| 7 | Internal admin analytics dashboard | §7 #8 | MED | 16h — DEFERRED (2026-08-12; design/product decision) |
+| 8 | Image opt (Cloudflare Polish + WebP/AVIF) | §7 #9 | LOW | 2h — DEFERRED (2026-08-12; infra/product) |
+| 9 | Reduced-motion audit (every `animate-*` respects `prefers-reduced-motion`) | §7 #10 | LOW | 2h — DONE via `use-prefers-reduced-motion` hook + audit (see §30 #20) |
 | 10 | H1 audit (40 sites, no duplicates found this pass) | §7 #12 | CLOSED | 0 (verified) |
 | 11 | Toaster config extract to `@workspace/ui` | §14.2 #7 | DONE (in `172e141cd`) | 30 min |
 | 12 | `--page-content-min-h` token + `<PageContent>` wrapper | §14.3 #8 | DONE (in `172e141cd`) | 1h |
@@ -1440,8 +1440,8 @@ This section is the master inventory of every item tracked, fixed, and deferred 
 | 1 superseded UI snapshot | DONE | 50 KB | (this commit, b6d51c4d8) |
 | **Total removed this cycle** | | **~500 lines + 15 docs** | |
 | | | | |
-| Dead `features/*/rules/*.ts` exports (33 fns) | OPEN | ~150 | §9.1 |
-| `useIpdLogic` + IPD barrel | OPEN | 200 | §8.3 / §9.2 |
+| Dead `features/*/rules/*.ts` exports (33 fns) | **WITHDRAWN** (2026-08-12, knip-verified) | ~150 | §9.1 |
+| `useIpdLogic` + IPD barrel | **DONE** | 200 | §8.3 / §9.2 (IPD feature deleted) |
 | `ConsentContent` export | DONE | 1 | §8.4 / §14.1 |
 
 ### 18.3 Gate results — final
@@ -2264,3 +2264,38 @@ at least one live importer. Nothing to wire or delete.
 | App check-types | EXIT 0 |
 | Data-access check-types | EXIT 0 |
 | App lint | 13 warnings, 0 errors (all pre-existing react-refresh) |
+
+---
+
+## 41. Round-7 batch — 2026-08-12 (docs-terminalization: every OPEN row resolved to DONE / DEFERRED-with-reason)
+
+### 41.1 Statuses updated this round
+
+| Row | Was | Now | Evidence |
+|---|---|---|---|
+| §18.1 #2 (exhaustive-deps) | OPEN | **DONE** | App lint: 13 warnings, 0 exhaustive-deps |
+| §18.1 #3 (internal warnings) | OPEN | **DONE** | Internal: 1 react-refresh warning only |
+| §18.1 #6 (landing pricing toggle) | OPEN | **DONE** | `pricing-mode-toggle.tsx` uses `role=tab` + `aria-selected`; pinned by `apps/landing/e2e/accessibility.spec.ts` |
+| §18.1 #9 (reduced-motion audit) | OPEN | **DONE** | `use-prefers-reduced-motion` hook in `packages/hooks`; audit gate `check:a11y-budget:enforce` passes |
+| §19.3 i18n coverage gate (§7 #4) | OPEN | **DONE** | `check:i18n-coverage` + `check:i18next-parity` in verify:standard, green (en 2970 = hi 2970) |
+| §19.3 JSX-text lint rule (§14.3 #9) | OPEN | **DONE** | `check:i18n-coverage` enforces JSX text wrapping |
+| §18.2 dead rules exports (33 fns) | OPEN | **WITHDRAWN** | knip clean (2026-08-12 run); files reachable via barrel re-exports |
+| §18.2 `useIpdLogic` + IPD barrel | OPEN | **DONE** | IPD feature deleted; zero references remain |
+| §30 #14/#15/#16/#17/#19/#21/#25/#31 | OPEN | **DEFERRED** (reason recorded per row) | Dedicated rounds: contract, React Query, RHF, i18n, mobile audit, react-refresh churn, PageTabs |
+| §30 #28 (landing hero), #30 (internal analytics) | OPEN | **DEFERRED** (design/product decision) | 8h / 16h design work; needs product sign-off |
+| §6.1/§14.2 react-refresh (13 warnings) | OPEN | **DEFERRED** | Mechanical re-export churn for 104 consumers; dedicated PR |
+
+### 41.2 Terminal-state accounting (frontend doc)
+
+- **DONE / WITHDRAWN / CLOSED:** all rows in §18.1, §18.2, §18.3, §19.3, §33.x trackers
+- **DEFERRED with explicit reason:** 12 items (all bounded, none ambiguous)
+- **No OPEN row remains without a terminal status** in the frontend doc.
+
+### 41.3 Validation (round 7)
+
+| Check | Result |
+|---|---|
+| App check-types | EXIT 0 |
+| App lint | 13 warnings (all pre-existing react-refresh), 0 errors |
+| Internal + landing typechecks | EXIT 0 |
+| knip | clean |

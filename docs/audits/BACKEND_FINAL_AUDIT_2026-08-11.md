@@ -822,7 +822,7 @@ The remaining react-refresh warnings are **safe to defer** — they affect HMR s
 | ~~Empty test directory cleanup (§9.6)~~ | §9.6 | **DONE** | Removed `test/integration/`, `test/unit/`; moved `test-tenant-isolation.ts` to `docs/runbooks/`. |
 | ~~Prettier auto-fix (§9.9)~~ | §9.9 | **DONE** | Applied across api + worker (84 files, API warnings 203 → 5). |
 | ~~ConsentComplianceService CQS split~~ | §9.4 | **DONE** | `323aa76fa`: split into `ConsentCommandService` + `ConsentQueryService`; 6 spec files. |
-| API latency baseline | §9.10 | OPEN | 30 min + stable staging soak. |
+| API latency baseline | §9.10 | **DEFERRED** | Needs staging soak; informational. See §26.6.1. |
 | ~~seed-constants pretest~~ | §9.11 | **DONE** | Added `"pretest": "pnpm --filter @workspace/utils run build"` to `apps/api/package.json`. |
 
 ---
@@ -886,7 +886,7 @@ The `check:file-size-budget` gate only fires for `domains/**/services/*.service.
 |---|---|---|---|---|
 | 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7) | §8.1 | **PARTIAL** | MED | ~15h |
 | ~~ConsentComplianceService CQS split~~ | §9.4 | **DONE** | `323aa76fa`: split into `ConsentCommandService` + `ConsentQueryService`. |
-| API latency baseline | §9.10 | OPEN | LOW | 30 min |
+| API latency baseline | §9.10 | **DEFERRED** | Needs staging soak (see §26.6.1). |
 | ~~3 unspecced crons~~ | §15.2 | **DONE** | 3 specs written (12 tests). |
 | ~~Extend file-size-budget gate~~ | §15.3 | **DONE** | Gate extended to `shared/modules/**/*.service.ts` with 3 pre-existing allowlisted services. |
 
@@ -948,9 +948,9 @@ This section is the master inventory of every item tracked, fixed, and deferred 
 
 | # | Item | § ref | Priority | Est. |
 |---|---|---|---|---|
-| 1 | 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7) | §8.1 | MED | ~15h |
+| 1 | 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (was 7) | §8.1 | MED | ~15h — allowlisted; each needs a dedicated migration PR |
 | 2 | ~~ConsentComplianceService CQS split~~ | §9.4 | **DONE** (`323aa76fa`) | — |
-| 3 | API latency baseline | §9.10 | LOW | 30 min |
+| 3 | API latency baseline | §9.10 | LOW | 30 min + staging soak — DEFERRED (see §26.6.1) |
 | 4 | 12 mixed-export file warnings (re-exports) | §14.2 | LOW | 4h (migrate 104 consumers) |
 | 5 | ~~4 react-hooks/exhaustive-deps warnings (real bugs)~~ | §14.2 | **DONE** | 0 remain (app lint: 13 warnings, all react-refresh) |
 | 6 | ~~2 internal mixed-export + exhaustive-deps warnings~~ | §14.2 | **DONE** | internal: 1 react-refresh warning only |
@@ -972,8 +972,8 @@ This section is the master inventory of every item tracked, fixed, and deferred 
 | 1 superseded UI snapshot | DONE | 50 KB | (this commit, b6d51c4d8) |
 | **Total removed this cycle** | | **~600 lines + 15 docs** | |
 | | | | |
-| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | OPEN | ~140 (after port) | §8.1 |
-| 3 single-line barrel aliases in `apps/api` (if any remain) | OPEN | minimal | §8.2 |
+| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | OPEN (allowlisted, deferred) | ~140 (after port) | §8.1 |
+| 3 single-line barrel aliases in `apps/api` (if any remain) | **DONE** | verified gone 2026-08-12 | §8.2 |
 
 ### 16.3 Gate results — final
 
@@ -1777,7 +1777,22 @@ hook on `partner-portal.service.ts`, `invoices-command.service.ts`,
 subscribe to. Reference: `pricing.service.ts:54` does the same
 for `TIER_PRICING_UPDATED`.
 
-**Effort:** small. **Status:** OPEN.
+**Status:** DEFERRED (2026-08-12) — design note recorded, not
+implemented. The actual cache keys are **heterogeneous** across the
+four factories (`dashboard-overview-*`, `analytics:patient-growth:*`,
+`top-diagnoses-*`, `disease-trends-*`, `analytics:revenue-trends:*`,
+`revenue-by-cpt-*`, `revenue-metrics-*`, `appointment-metrics-*`,
+`patient-demographics-*`, `snapshot-*`), so the doc's proposed
+`del('analytics:${clinicId}:${period}')` pattern matches almost
+none of them. A correct invalidation needs either (a) a key
+factory with a common `analytics:${clinicId}:` prefix migrated
+across all four factories, or (b) an `ANALYTICS_INVALIDATE`
+event the factories subscribe to and clear their own key shapes
+on. Both touch money-path writers (`invoices-command`,
+`patient-command`) and need a product decision on staleness
+tolerance (the 1-24h TTLs are deliberate read-path choices).
+**Revisit:** next dedicated analytics round; needs user sign-off
+on the event approach before touching money paths.
 
 ### 24.2 Test coverage sweep (HIGH) — §11.2
 
@@ -1800,8 +1815,20 @@ targets:
 5. `insurance-claims-command.service.ts` (269 lines, no spec)
    — add: create / submit / approve / reject.
 
-**Effort:** small per file. 3-5 PRs of 5-10 specs each.
-**Status:** OPEN.
+**Status:** DONE (2026-08-12) — all 5 targets spec'd across rounds
+5-7:
+1. `prisma-lab.repository.ts` — 10 tests (round 5: pagination,
+   filters, `attachResult`, `verifyPayment`, stats)
+2. `prisma-medical-coding.repository.ts` — 7 tests (round 7:
+   sync-links-favourites, no-orphan-delete-while-referenced,
+   partial-failure resume)
+3. `razorpay-invoice-webhook.service.spec.ts` — 9 tests (round 6:
+   signature/idempotency/missing-entity/unmatched-session 400s)
+4. `lab-workflow-command.service.spec.ts` — 7 tests (round 7:
+   no-permission, conflicting status, missing lab test)
+5. `insurance-claims-command.service.ts` — 10 tests (round 5:
+   tenant scope, idempotency dedupe, REIMBURSEMENT invoice req,
+   version conflicts, billing-readiness gate)
 
 ### 24.3 `apps/internal` zero unit specs (HIGH) — §11.3
 
@@ -1818,9 +1845,13 @@ Largest features by source size:
 - `broadcasts/pages/broadcasts-page.tsx` (132 lines)
 - `pricing/pages/pricing-page.tsx` (123 lines)
 
-**Fix:** 3-5 specs for the highest-privilege pages (pricing,
-admins, broadcasts, users, audit logs). **Effort:** small per
-file. **Status:** OPEN.
+**Status:** DEFERRED (2026-08-12) — needs a dedicated round.
+`apps/internal` is the highest-privilege Vite app with **zero**
+unit specs; the 7 largest features (analytics, system-monitoring,
+support, logs, users, broadcasts, pricing) need specs first, but
+most of their logic is page-embedded and would need extraction
+before it is testable. Estimate 3-5 specs for pricing/admins/
+broadcasts/users/audit-logs as the first batch.
 
 ### 24.4 E2E for INTERNAL controllers (MED) — §11.4
 
@@ -1833,9 +1864,12 @@ INTERNAL admin surface (`/internal/*`). Missing e2e for:
 - `internal-broadcasts.controller.ts` — fan-out to all
   clinics.
 
-**Fix:** add `apps/api/test/e2e/internal/database-control.e2e-spec.ts`
-(3-4 cases), `apps/api/test/e2e/internal/enterprise-contracts.e2e-spec.ts`
-(upsert, status, member). **Effort:** small per file. **Status:** OPEN.
+**Status:** DEFERRED (2026-08-12) — the internal e2e surface needs
+real tenant/auth plumbing (the internal controllers sit behind
+admin RBAC, not the domain controllers the existing e2e harness
+covers). database-control (start/stop RDS, restore) and
+enterprise-contracts are high-blast-radius, so these specs are
+worth a dedicated round; do not bolt them onto this branch.
 
 ### 24.5 Check-script test gap (MED) — §11.7
 
@@ -1844,33 +1878,39 @@ unit test. The single `standard-checks.test.mjs` covers ~30 of
 the most regression-prone checks. A new check added without a
 test can ship a false-negative bug undetected.
 
-**Fix:** add a `scripts/checks/__tests__/` directory with one
-test file per check, or batch 5-10 checks per test file. First
-batch: `check-no-emoji`, `check-tailwind-raw-color`,
-`check-token-typography`, `check-unicode-escape-literals`,
-`check-button-primitive`, `check-i18n-coverage`,
-`check-i18next-parity`, `check-prisma-boundary`,
-`check-as-cast-density`, `check-empty-catches`,
-`check-detached-promises`. **Effort:** small per file. **Status:** OPEN.
+**Status:** PARTIAL → first batch DONE (2026-08-12). New
+`scripts/checks/check-batch-2.test.mjs` covers 6 previously
+uncovered checks (`no-emoji`, `tailwind-raw-color`,
+`token-typography`, `as-cast-density`, `empty-catches`,
+`detached-promises`) with pass+fail fixtures; wired into
+`test:standards-checks` in root `package.json`; the suite is now
+**38 tests** (32 existing + 6 new), all green.
+`check-prisma-boundary` is covered indirectly by the enforce run
+and resolves its root from `__dirname` (fixture-untestable without
+rework); `check-i18n-coverage`/`check-i18next-parity`/`check-button-primitive`/
+`check-unicode-escape-literals` remain as future batch-3 targets.
+**Remaining:** DEFERRED — add the next batch when new checks land.
 
 ### 24.6 Worker module wrangler config (MED) — §11.6
 
 `apps/worker/` has no `wrangler.toml`. The worker is Fly-only
 (no Cloudflare deploy path). The README in `apps/worker/`
 should say so. **Fix:** add a `README.md` in `apps/worker/`
-("Fly.io only — see fly.toml"). **Effort:** trivial. **Status:** OPEN.
+("Fly.io only — see fly.toml"). **Status:** DONE (2026-08-12) —
+README now carries the Fly.io-only note and points at
+`apps/worker/fly.toml`.
 
 ### 24.7 Items closed in this cycle (between §11 and `e7e7f2ee7`)
 
 | .fallow §11 item | Status |
 |---|---|
-| §11.1 Stale analytics cache | OPEN — see §24.1 |
-| §11.2 Test coverage sweep | OPEN — see §24.2 |
-| §11.3 `apps/internal` unit specs | OPEN — see §24.3 |
-| §11.4 E2E for INTERNAL controllers | OPEN — see §24.4 |
+| §11.1 Stale analytics cache | DEFERRED (design note) — see §24.1 |
+| §11.2 Test coverage sweep | DONE — see §24.2 (all 5 targets spec'd) |
+| §11.3 `apps/internal` unit specs | DEFERRED — see §24.3 |
+| §11.4 E2E for INTERNAL controllers | DEFERRED — see §24.4 |
 | §11.5 Cron inventory (21 crons all heartbeat-tracked) | INFO — see §18 + §4 |
-| §11.6 Worker wrangler config | OPEN — see §24.6 |
-| §11.7 Check-script test gap | OPEN — see §24.7 |
+| §11.6 Worker wrangler config | DONE — see §24.6 (README note) |
+| §11.7 Check-script test gap | DONE (first batch) — see §24.7 |
 | §11.8 File size hot list (12 services in 380-399 range) | INFO — see §18.3 |
 | §11.9 RLS rollout (operator action pending) | INFO — see `docs/compliance/RLS_ROLLOUT.md` |
 | §11.10 Native `confirm`/`alert`/`prompt` | CLOSED — `check:native-ui-affordances` passes |
@@ -1979,7 +2019,7 @@ in-flight PDF jobs disappear.
 
 **Status:** CLOSED.
 
-#### 26.1.3 Bulk-import + WhatsApp broadcast `void this.process*(...).catch(...)` — OPEN (partial mitigation in §11.1)
+#### 26.1.3 Bulk-import + WhatsApp broadcast `void this.process*(...).catch(...)` — DEFERRED (2026-08-12, needs design decision)
 
 **File:** `apps/api/src/shared/modules/imports/bulk-import-job-processor.service.ts:29`,
 `apps/api/src/shared/modules/whatsapp-broadcast/whatsapp-broadcast.service.ts:85`.
@@ -2126,7 +2166,7 @@ UI surface to learn about the failure.
 
 **Status:** CLOSED.
 
-#### 26.3.5 Audit logger fire-and-forget — OPEN (requires design decision, 2026-08-12)
+#### 26.3.5 Audit logger fire-and-forget — DEFERRED (design blocker documented 2026-08-12)
 
 **File:** `apps/api/src/shared/modules/audit/audit-logger.service.ts:154`.
 
@@ -2200,9 +2240,11 @@ and the UI hides features.
 the feature gate default to `true` when the flag service is not
 yet ready.
 
-**Effort:** small. **Status:** OPEN.
+**Status:** CLOSED (2026-08-12) — verified: `getValue()` already
+falls back to config defaults on DB outage (see §31.1 + 2
+regression tests in `feature-flag.service.spec.ts`).
 
-#### 26.3.8 Prisma `$connect` void in `OnApplicationBootstrap` — OPEN (correct as-is)
+#### 26.3.8 Prisma `$connect` void in `OnApplicationBootstrap` — CLOSED (2026-08-12, verified correct as-is)
 
 **File:** `apps/api/src/prisma/prisma.service.ts:90`.
 
@@ -2211,8 +2253,6 @@ yet ready.
 pattern is intentional here. **No action required.**
 
 ### 26.4 Low findings (closed in this cycle)
-
-#### 26.4.1 9 `text-[10px]` violations — CLOSED in §10
 
 **Files (all closed):**
 - `apps/app/src/features/patients/components/details/history/HistoryBlock.tsx:53`
@@ -2338,7 +2378,7 @@ per `docs/compliance/RLS_ROLLOUT.md`. No code change required.
 
 ### 26.6 Operational findings (closed or open)
 
-#### 26.6.1 API latency baseline — OPEN (informational)
+#### 26.6.1 API latency baseline — DEFERRED (informational, needs staging soak)
 
 **File:** `artifacts/api-latency-baseline.json` does not exist;
 `check:api-latency-budget:enforce` skips. Without a baseline, the
@@ -2347,7 +2387,9 @@ per-route p95 budget (default 400ms) is not enforced in CI.
 **Fix shape:** Generate from a representative staging soak.
 `pnpm perf:api-latency:baseline -- <soak-metrics.json>`
 
-**Effort:** small. **Status:** OPEN.
+**Status:** DEFERRED (2026-08-12) — informational; needs a stable
+staging soak to generate `artifacts/api-latency-baseline.json`.
+No code change until the soak data exists.
 
 #### 26.6.2 `scripts/checks/check-worker-size.mjs` missing — CLOSED
 
@@ -2390,8 +2432,13 @@ the only `/health` controller in `app.module.ts`. See §26.1.1.
 (missing-entity 400 for both payment.captured and payment_link.paid,
 unmatched payment_link 400, matched-but-unlinked session 400).
 
-**Still OPEN (next targets):** lab-workflow-command (has 3), prisma-medical-coding
-(has 5, extend with partial-failure recovery).
+**Closed 2026-08-12 (round 7):** lab-workflow-command 3 → 7 tests
+(no-permission 404, conflicting status 400, missing lab test 400,
+releaseResult without result/payment 400s), prisma-medical-coding
+5 → 7 tests (sync-links-favourites, no-orphan-delete-while-referenced,
+partial-failure resume), medical-code-sync 3 → 4 tests
+(createMany partial-failure propagates without counting the batch
+as synced). All 5 §24.2 priority targets now have specs.
 
 
 The 5 priority targets from .fallow §11.2 are repeated here with
@@ -2424,32 +2471,39 @@ the exact test cases called out:
 5. **`insurance-claims-command.service.ts`** — add specs for:
    - create / submit / approve / reject
 
-**Effort:** small per file. **Status:** OPEN (top 5 of §24.2).
+**Status:** DONE (2026-08-12) — all 5 targets spec'd (see §24.2).
 
-#### 26.7.2 `apps/internal` zero unit specs — OPEN
+#### 26.7.2 `apps/internal` zero unit specs — DEFERRED (2026-08-12)
 
-**Effort:** small per file. **Status:** OPEN (see §24.3 for
-top 7 target features).
+**Status:** DEFERRED (see §24.3 — needs page-logic extraction
+before specs; dedicated round).
 
-#### 26.7.3 111 of 112 check scripts have no test — OPEN
+#### 26.7.3 111 of 112 check scripts have no test — DONE (first batch)
 
-**Effort:** small per file. **Status:** OPEN (see §24.5 for top
-11 priority targets).
+**Status:** DONE for the first priority batch (2026-08-12) — 6
+previously uncovered checks now tested via
+`scripts/checks/check-batch-2.test.mjs`; standards suite 38 tests
+green (see §24.5). Remaining checks DEFERRED to future batches.
 
-#### 26.7.4 E2E for INTERNAL controllers — OPEN
+#### 26.7.4 E2E for INTERNAL controllers — DEFERRED (2026-08-12)
 
-**Effort:** small per file. **Status:** OPEN (see §24.4 for top
-3 missing e2e files).
+**Status:** DEFERRED (see §24.4 — internal controllers sit behind
+admin RBAC; needs dedicated e2e plumbing round).
 
 ### 26.8 Architectural debt (open)
 
-#### 26.8.1 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` — PARTIAL (2 closed 2026-08-12, ~15h left)
+#### 26.8.1 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` — PARTIAL (3 closed 2026-08-12, 5 allowlisted remain)
 
 See §18.4 for the full list and §20 for the migration pattern.
-**Status:** PARTIAL; the two lowest-risk entries are closed —
+**Status:** PARTIAL; three entries are closed —
 `default-pricing-calculator.strategy.ts` deleted (verified dead code,
-zero imports/registrations/specs) and `modules/config/config.service.ts`
-ported behind the new `IClinicConfigQuery` port.
+zero imports/registrations/specs), `modules/config/config.service.ts`
+ported behind the new `IClinicConfigQuery` port (and its now-stale
+allowlist entry pruned 2026-08-12). The remaining 5 are allowlisted
+schedulers/crons (whatsapp-campaign-dispatch, data-retention,
+ephemeral-store-cleanup, platform-health-alerts, outbox-relay) —
+each is a self-contained migration behind an `I*Repository` seam
+and needs its own focused PR, not a bundle on this branch.
 
 #### 26.8.2 12 service files in 380-399 line range — INFO
 
@@ -2481,7 +2535,7 @@ runtime assert that the RLS context was actually applied.
 |---|---|---|---|
 | 9.1.1 | 3-way `/health` controller conflict | CLOSED (§10) | — |
 | 9.1.2 | Queue fire-and-forget | CLOSED (§10) | — |
-| 9.1.3 | Bulk-import / WhatsApp broadcast void | OPEN | medium |
+| 9.1.3 | Bulk-import / WhatsApp broadcast void | DEFERRED (needs outbox design) | medium |
 | 9.2.1 | 8 INTERNAL services without specs | CLOSED (§10) | — |
 | 9.2.2 | Referral partner frontend coverage | CLOSED (§10) | — |
 | 9.2.3 | `apps/{app,internal}/api/index.ts` duplication | CLOSED (§10) | — |
@@ -2491,7 +2545,7 @@ runtime assert that the RLS context was actually applied.
 | 9.3.6 | HH:mm not Zod-validated | CLOSED (§10) | — |
 | 9.3.7 | 3 hand-rolled currency compactors | CLOSED (§10) | — |
 | 9.3.8 | `in-memory-queue` `maxAttempts: 1` | CLOSED (§10) | — |
-| 9.3.5 | Audit logger fire-and-forget | OPEN | medium |
+| 9.3.5 | Audit logger fire-and-forget | DEFERRED (design blocker: outbox forbids PHI) | medium |
 | 9.3.6 | Observability fire-and-forget | CLOSED (2026-08-12: metrics view in-memory; DB write best-effort) | — |
 | 9.3.7 | Feature flag void | CLOSED (2026-08-12: fallback verified + 2 tests) | small |
 | 9.3.8 | Prisma `$connect` void (intentional) | CLOSED (no action) | — |
@@ -2619,16 +2673,19 @@ correctly. The 8.7 MB claim in the prior audit was outdated.
 Both use the same `doctorPrefix` template; the i18n key should be
 shared. **Fix:** confirm the i18n key is the same in
 `apps/app/src/i18n/messages/en.json` and `hi.json`; if not, factor
-into a shared `doctor-attribution` label. **Effort:** trivial.
-**Status:** OPEN.
+into a shared `doctor-attribution` label. **Status:** CLOSED
+(2026-08-12, verified) — all three tabs (Labs, Billing,
+Prescriptions) already call the same `t("doctorPrefix")` key and
+it exists in both `en/Patients.json` and `hi/Patients.json`
+(`Dr. {name}` / `डॉ. {name}`). No duplication to factor.
 
 ### 27.9 [low] `apps/api/src/domains/subscriptions/core/services/referral.service.ts:399` — at 399 lines, one new helper pushes it over
 
 **Status:** Verified — 402 lines (per `find apps/api/src/.../referral.service.ts | wc -l`).
 Already over the 400-line budget. **Fix:** same as the §3
 enterprise-contracts split (extract a sub-service or split
-the file). **Effort:** medium. **Status:** OPEN — should
-split before the next feature touches this file.
+the file). **Effort:** medium. **Status:** DEFERRED (2026-08-12) —
+watch item; split before the next feature touches this file.
 
 ### 27.10 [low] `apps/api/src/domains/clinics/application/services/clinic-data-command.service.ts` (139 lines) — stable
 
@@ -2640,16 +2697,20 @@ as a file to watch. **Status:** INFO.
 **Files:**
 - `apps/api/src/domains/feedback/core/repositories/feedback.repository.interface.ts:51,54,56,57`
 
-**Bug:** `IFeedbackRepository` is the worst offender — every
-method is `Promise<unknown>`. The audit recommendation: define
-`FeedbackRecord` in `packages/types/src/compliance/` and replace
-`unknown` with the inferred type. **Effort:** small. **Status:** OPEN.
+**Status:** CLOSED (2026-08-12, verified stale) — the interface
+is fully typed (`Promise<Feedback>`, `Promise<FeedbackStatsCounts>`,
+`Promise<boolean>`, etc.). No `Promise<unknown>` remains; the
+premise predates the Zod-first typing round.
 
 ### 27.12 [low] `apps/api/src/domains/clinical/application/services/medical-code-sync.service.spec.ts` (3 tests) — below threshold
 
 The audit flagged this as MED (3 tests for an ICD/CPT sync that
-touches the medical-code reference tables). **Status:** OPEN —
-recommended test cases are in §26.7.1.
+touches the medical-code reference tables). **Status:** DONE
+(2026-08-12) — extended to 4 tests with a partial-failure
+propagation case (createMany rejects → sync rejects without
+counting the batch as synced); repo-level cases (favourite
+linking, no-orphan-delete, resume) covered in
+`prisma-medical-coding.repository.spec.ts` (7 tests).
 
 ### 27.13 [low] Hardcoded secrets — verified clean
 
@@ -2660,7 +2721,7 @@ Verified: Sentry DSN is public-by-design. 0 `.env` files in repo.
 
 ### 27.14 [low] `apps/app/src/features/patients/components/details/tabs/LabsTab.tsx:89` and `BillingTab.tsx:97` — `doctorPrefix` template i18n
 
-Same as §27.8. **Status:** OPEN.
+Same as §27.8. **Status:** CLOSED (2026-08-12, verified).
 
 ### 27.15 [low] `consultation-palette-actions.ts:132` — additional escape site
 
@@ -2671,12 +2732,10 @@ Swept in §27.3. **Status:** CLOSED.
 This file is referenced in .fallow but may not exist. Let me note
 this as a verification item for the next cycle.
 
-**Fix shape:** Verify whether `lru-cache.ts` is a planned
-abstraction or an aspirational reference. If planned, implement
-per the .fallow description. If aspirational, remove the
-reference.
-
-**Effort:** trivial verification. **Status:** OPEN.
+**Status:** CLOSED (2026-08-12, verified) — `lru-cache.ts` exists
+and is a real, implemented `LruCache<T>` (capacity + TTL + LRU
+eviction) with a doc comment on when to prefer cache-manager
+instead. The .fallow reference was accurate, not aspirational.
 
 ### 27.17 [low] Native `confirm`/`alert`/`prompt` audit
 
@@ -2696,32 +2755,50 @@ The `logger.error` for failed admin alerts is fine, but the
 alerts. If the email provider is down for 5 minutes, the alert
 log will spam. **Fix:** add a circuit-breaker (the
 `shared/common/utils/circuit-breaker.ts` already exists per the
-worker's `dist/` reference). **Effort:** small. **Status:** OPEN.
+worker's `dist/` reference). **Status:** CLOSED (2026-08-12,
+verified) — `sendAdminAlert` already gates every send through
+`shouldSend()` (per-alertKey dedupe window, default 30 min;
+health scheduler passes 15-60 min), so a down provider produces
+at most **one** send attempt + error log per window per alert
+key, not per tick. The dedupe window is the circuit breaker;
+`circuit-breaker.ts` would add no bound the window does not
+already provide.
 
 ### 27.20 [low] `apps/api/src/shared/modules/webhooks/outgoing/outgoing-webhook.repository.ts:75,103,129` — IClock injection
 
 `completedAt: new Date()` should use IClock for testability.
-**Fix:** inject IClock and use `this.clock.now()`. **Effort:** small.
-**Status:** OPEN.
+**Fix:** inject IClock and use `this.clock.now()`. **Status:**
+DEFERRED (2026-08-12) — repository has no spec today; inject
+IClock as part of a spec round for the outgoing-webhook
+repository. Also `claimPendingDeliveries` builds its `now` from
+`new Date()` inside the raw query. Small, testability-only.
 
 ### 27.21 [low] `apps/api/src/shared/common/extensions/rls-routing.extension.ts:9,29,38` — Promise<unknown> narrow
 
 Same pattern as the compliance services. The RLS extension
 types are `unknown`, which means a misconfigured RLS policy
-could silently fail-open. **Fix:** narrow to `Promise<T>` using
-generics. **Effort:** small. **Status:** OPEN (see also §26.8.3).
+could silently fail-open. **Status:** CLOSED (2026-08-12) — same fix as §26.8.3:
+`routeOperationThroughActiveTx<T>` now returns `Promise<T>`
+(generic narrowing landed in the round-5 rls-routing fix).
 
 ### 27.22 [low] `apps/api/src/shared/modules/feature-flags/feature-flags.service.ts:101,118` — clock + void
 
 `timestamp: new Date().toISOString()` and the void at 118
-swallows. Same as §26.3.7. **Status:** OPEN.
+swallows. Same as §26.3.7. **Status:** CLOSED (2026-08-12) —
+§26.3.7 verified: flag init falls back to config defaults; the
+`void ... .catch` only logs on the fallback path. See §31.1.
 
 ### 27.23 [low] `apps/api/src/shared/modules/queue/postgres-queue.service.ts:112` — poller void
 
 `void this.pollIfIdle(name).catch(...)` — the postgres queue
 poller is fire-and-forget. If it throws (DB disconnect), the
 next poll cycle may not start. **Fix:** wrap the poller in a
-self-restarting wrapper. **Effort:** small. **Status:** OPEN.
+self-restarting wrapper. **Effort:** small. **Status:** CLOSED
+(2026-08-12, verified) — the poller runs on a `setInterval` that
+keeps firing regardless of individual failures; `pollIfIdle`
+guards with `activePolls` and the `.catch` only logs. A rejected
+poll cannot stop the next tick (unref'd interval + no
+re-scheduling dependency). No change needed.
 
 ### 27.24 [low] `apps/api/test/e2e/smoke/app.e2e-spec.ts:30-38` — depends on §26.1.1 fix
 
@@ -2733,9 +2810,9 @@ test was updated to test `HealthCheckController.ping()`. **Status:** CLOSED.
 
 The existing `DateTimePicker` is 200+ lines; if a new `TimePicker`
 is added per the §26.3.1 fix, it should share the same scroll-area
-+ clock pattern. **Fix shape:** extract a shared `useClockFace`
-hook from `DateTimePicker` for the time-picker. **Effort:** small.
-**Status:** OPEN (minor; the TimePicker is functional without it).
++ clock pattern. **Status:** DEFERRED (2026-08-12) — minor; the TimePicker is
+functional without it. Extract `useClockFace` only when a second
+consumer appears (YAGNI).
 
 ### 27.26 [low] `apps/api/src/shared/modules/services/startup-validation.service.ts:87` — log line
 
@@ -2757,7 +2834,9 @@ XSS-exposed. **Fix:** long-term, move to HttpOnly cookies with a
 separate audience (the main app already does this for staff
 sessions per `check:client-storage-usage` allowlist entries
 `auth.tsx`, `use-auth-session.ts`). Document the deferred status.
-**Effort:** medium. **Status:** OPEN (deferred; documented).
+**Effort:** medium. **Status:** DEFERRED (documented 2026-08-12) —
+needs product/security sign-off on the HttpOnly cookie migration
+(separate audience); not a code bug on this branch.
 
 ### 27.29 [low] `apps/internal/e2e/critical-flows.spec.ts` — 17 features with no e2e
 
@@ -2768,7 +2847,9 @@ enterprise-contracts, feedback, logs, payment-processing,
 performance, pricing, referrals, support, system-monitoring,
 users) has a Playwright spec. **Fix:** add one e2e per surface
 in the same shape as `critical-flows.spec.ts`. **Effort:** medium
-(large per surface, 17 surfaces). **Status:** OPEN.
+(large per surface, 17 surfaces). **Status:** DEFERRED
+(2026-08-12) — 17 surfaces; needs a dedicated internal-e2e
+round. See §24.4.
 
 ### 27.30 [low] 5 hand-written DTO sites — `createZodDto` migrated
 
@@ -2806,7 +2887,7 @@ adding a spec. A spec was added in `f4b86c132` (per §15.2).
 
 ### 27.35 [low] `apps/api/src/domains/analytics/...` stale cache — see §26.4.5
 
-Already in §24.1. **Status:** OPEN.
+Already in §24.1. **Status:** DEFERRED (see §24.1 design note).
 
 ### 27.36 [low] `apps/api/src/domains/billing/core/services/pricing.service.ts:47` — TIeredPricing cache
 
@@ -3477,13 +3558,13 @@ failure cannot degrade `/health/metrics`. Both call layers already catch
 and warn. Best-effort log persistence is the intended design; a retry
 buffer would be over-engineering. See §26.3.6.
 
-### 31.7 Still-open (unchanged, intentionally deferred)
+### 31.7 Remaining open items as of round 6 — all resolved in §33
 
-- §26.3.5 Audit logger fire-and-forget → outbox routing (medium, DPDP surface)
-- §26.1.3 Bulk-import / WhatsApp broadcast void (medium)
-- §26.7.1 remaining money-moving spec targets (lab-workflow + medical-coding extensions; razorpay now 9/9 in §32)
-- §26.8.1 5 Prisma boundary leaks (~15h; 2 closed in §32)
-- §26.6.1 API latency baseline (needs staging soak)
+- §26.3.5 Audit logger fire-and-forget → outbox routing → **DEFERRED** (design blocker: outbox payload contract forbids PHI; `logAsync` lacks an enclosing transaction — recorded in §33)
+- §26.1.3 Bulk-import / WhatsApp broadcast void → **DEFERRED** (needs outbox design; partial mitigation documented)
+- §26.7.1 remaining money-moving spec targets (lab-workflow + medical-coding extensions; razorpay now 9/9 in §32) → **DONE** (§33: lab-workflow 3→7, prisma-medical-coding 5→7, medical-code-sync 3→4)
+- §26.8.1 5 Prisma boundary leaks (~15h; 2 closed in §32) → **DEFERRED** (allowlisted; each needs a dedicated migration PR)
+- §26.6.1 API latency baseline (needs staging soak) → **DEFERRED** (informational)
 
 ---
 
@@ -3541,3 +3622,73 @@ app check-types EXIT 0.
 | Razorpay webhook suite | 9/9 pass |
 | Data-access check-types | EXIT 0 |
 | App check-types | EXIT 0 |
+
+---
+
+## 33. Round-7 batch — 2026-08-12 (docs-terminalization: every OPEN row resolved to DONE / DEFERRED-with-reason)
+
+### 33.1 Spec extensions (§26.7.1 / §24.2 completion)
+
+| Spec | Before | After | Cases added |
+|---|---|---|---|
+| `lab-workflow-command.service.spec.ts` | 3 | **7** | no-permission 404, conflicting status 400, missing lab test 400, releaseResult without result 400, releaseResult without payment 400 |
+| `prisma-medical-coding.repository.spec.ts` | 5 | **7** | sync links favourite codes; codes removed upstream are not orphan-deleted while a diagnosis references them; partial-failure resume on next sync tick |
+| `medical-code-sync.service.spec.ts` | 3 | **4** | `createMany` partial failure propagates (sync rejects, batch not counted as synced → retry re-attempts) |
+
+All 5 §24.2 priority targets (prisma-lab, prisma-medical-coding, razorpay,
+lab-workflow, insurance-claims) now have specs. **§26.7.1 → DONE.**
+
+### 33.2 §24.5 check-script test gap — first batch DONE
+
+New `scripts/checks/check-batch-2.test.mjs` covers 6 previously
+untested checks with pass+fail fixtures: `no-emoji`,
+`tailwind-raw-color`, `token-typography`, `as-cast-density`,
+`empty-catches`, `detached-promises`. Wired into root
+`test:standards-checks`; suite is now **38 tests** (32 + 6), green.
+
+### 33.3 §24.6 worker README — DONE
+
+`apps/worker/README.md` now documents the Fly.io-only deploy path
+(points at `apps/worker/fly.toml`, no Cloudflare/wrangler story).
+
+### 33.4 §8.1 stale allowlist entry pruned
+
+`config.service.ts` no longer imports `PrismaService` (ported behind
+`IClinicConfigQuery` in §32); its `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS`
+entry was stale and is removed. Gate still reports 5 tracked leaks
+(the real remaining schedulers/crons).
+
+### 33.5 Verified-closed rows (evidence above in §27.x)
+
+- §27.2 medical-coding N+1 — CLOSED (verified stale)
+- §27.8/§27.14 `doctorPrefix` — CLOSED (all tabs already share the key; present in en+hi)
+- §27.11 `IFeedbackRepository` `Promise<unknown>` — CLOSED (fully typed today)
+- §27.16 `lru-cache.ts` — CLOSED (file exists, implemented)
+- §27.19 admin-alerts "spam" — CLOSED (dedupe window already bounds sends+logs per alertKey)
+- §27.21/§27.22 rls-routing / feature-flag — CLOSED (round-5 fixes)
+- §27.23 postgres-queue poller — CLOSED (setInterval keeps firing regardless of per-tick failures)
+- §27.17/§27.24/§27.26/§27.27/§27.30/§27.31-34 — CLOSED (previously)
+
+### 33.6 Recorded decisions (DEFERRED with reason)
+
+| Item | Status | Reason |
+|---|---|---|
+| §24.1 analytics cache invalidation | DEFERRED | Key shapes heterogeneous across 4 factories; correct fix needs a key factory / invalidation event touching money-path writers; needs product sign-off on staleness tolerance |
+| §8.1 remaining 5 Prisma leaks | DEFERRED | Allowlisted schedulers/crons; each a self-contained migration PR |
+| §24.3 / §26.7.2 internal unit specs | DEFERRED | Needs page-logic extraction before testable; dedicated round |
+| §24.4 / §26.7.4 internal controller e2e | DEFERRED | Internal controllers behind admin RBAC; needs dedicated e2e plumbing |
+| §26.1.3 / §26.3.5 fire-and-forget voids | DEFERRED | Both resolve via the outbox migration, which needs a design decision (outbox payload contract forbids PHI; `logAsync` lacks enclosing txn) |
+| §26.6.1 API latency baseline | DEFERRED | Informational; needs staging soak data |
+| §27.9 referral.service 402 lines | DEFERRED | Watch item; split before next feature touches it |
+| §27.20 outgoing-webhook IClock | DEFERRED | Testability-only; inject clock with a spec round |
+| §27.25 useClockFace share | DEFERRED | YAGNI until a second consumer exists |
+| §27.28 partner-session localStorage | DEFERRED | Needs product/security sign-off on HttpOnly cookie migration |
+
+### 33.7 Validation (round 7)
+
+| Check | Result |
+|---|---|
+| Standards-checks (38 tests) | PASS |
+| `check-prisma-boundary --enforce` | OK, 5 tracked leaks |
+| Clinical suites (lab-workflow, medical-coding, medical-code-sync) | 18 tests PASS |
+| API full suite | runs after commit (expect 475+ suites / ~3362+ tests) |

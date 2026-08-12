@@ -17,13 +17,19 @@ This folder keeps the audit coverage ledger required by
 
 ```
 docs/audits/
-├── BACKEND_FINAL_AUDIT_2026-08-11.md      # consolidated backend final pass (17 sections)
-├── FRONTEND_FINAL_AUDIT_2026-08-11.md     # consolidated frontend final pass (38 sections)
+├── BACKEND_FINAL_AUDIT_2026-08-11.md      # consolidated backend final pass (33 sections)
+├── FRONTEND_FINAL_AUDIT_2026-08-11.md     # consolidated frontend final pass (41 sections)
 ├── INDEX.md                              # history index + open-findings ranking
 ├── README.md                             # this file
 └── evidence/
     └── 2026-05-audit-coverage.md         # ledger required by check:audit-coverage
 ```
+
+> Status convention (2026-08-12): every finding row is terminal — **DONE**
+> (fixed + verified), **CLOSED** (verified not-a-bug / stale),
+> **WITHDRAWN** (premise invalid), or **DEFERRED** (recorded decision
+> with reason). Round-7 batches are recorded as §33 (backend) and §41
+> (frontend) of the consolidated docs.
 
 The `evidence/` directory intentionally keeps only the single file
 required by `check:audit-coverage.mjs`. Prior structure-audit and

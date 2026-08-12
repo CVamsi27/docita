@@ -179,6 +179,23 @@ describe('MedicalCodeSyncService', () => {
     expect(updateCommonCptCodesMock).not.toHaveBeenCalled();
   });
 
+  it('propagates a partial-failure (createMany rejects) without marking the batch as synced', async () => {
+    const syncError = new Error('DB write failed');
+    streamIcdCodesMock.mockImplementation(async (onBatch) => {
+      await onBatch([buildIcdCode('E11.9', 'T2DM', 'Endocrine')]);
+      throw syncError;
+    });
+    findExistingIcdCodesMock.mockResolvedValue([]);
+    createCommonIcdCodesMock.mockRejectedValue(syncError);
+
+    await expect(service.syncCommonIcdCodes()).rejects.toThrow(
+      'DB write failed',
+    );
+    // The failing batch must not be counted as synced, so a retry re-attempts
+    // the same codes on the next tick (no silent partial state).
+    expect(createCommonIcdCodesMock).toHaveBeenCalledTimes(1);
+  });
+
   it('syncs both ICD and CPT code sets together', async () => {
     streamIcdCodesMock.mockImplementation(async (onBatch) => {
       await onBatch([

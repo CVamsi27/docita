@@ -65,3 +65,10 @@ worker shares its codebase with `apps/api` via the `@/*` path mapping
 enabling it on the worker reports every dependency as unused. Worker
 dead-code is therefore captured indirectly by Knip running on
 `apps/api`. See `SYSTEM_DESIGN_AND_PATTERNS.md` §56 item 49.
+
+## Deployment
+
+**Fly.io only.** This app has no Cloudflare deploy path — there is no
+`wrangler.toml` by design. Deploy via `fly deploy` using
+[`apps/worker/fly.toml`](fly.toml); see the CI deploy workflow
+(`.github/workflows/deploy.yml`) for the exact app name and config path.

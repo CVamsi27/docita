@@ -87,8 +87,6 @@ const coveredLayerPatterns = [
 const KNOWN_LEGACY_PRISMA_SERVICE_LEAKS = new Set([
   // WhatsApp — campaign dispatch cron; migrate behind whatsapp repository.
   'apps/api/src/domains/whatsapp/whatsapp-campaign-dispatch.cron.ts',
-  // Legacy top-level modules/ — app config reads clinic settings.
-  'apps/api/src/modules/config/config.service.ts',
   // Shared compliance — retention scheduler.
   'apps/api/src/shared/modules/compliance/data-retention.scheduler.ts',
   // Shared ephemeral-store — cleanup scheduler.
