@@ -1,5 +1,11 @@
 # Backend Final Audit — 2026-08-11
 
+> **AUDIT CYCLE COMPLETE (2026-08-12).** Every finding in this doc has
+> a terminal status: DONE / CLOSED (verified not-a-bug) / WITHDRAWN /
+> DEFERRED-with-reason. There are no pending or open rows. The 5
+> allowlisted Prisma scheduler leaks and the API latency baseline are
+> recorded decisions with documented estimates — see §8.1/§9.10.
+>
 > **Status:** Consolidated backend final-pass audit on
 > `fix/app-deployment-failure` at `323aa76fa` (post
 > `323aa76fa refactor(compliance): split ConsentComplianceService into Command/Query (CQS)`).

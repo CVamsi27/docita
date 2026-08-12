@@ -53,7 +53,12 @@ docs"). The prior set was:
 
 For prior-audit content, see the consolidated docs' `Tracker` sections.
 
-## Deferred follow-ups ranked by severity (as of round-7, 2026-08-12 — all terminal-status)
+## Remaining product decisions / backlog (as of round-7, 2026-08-12 — audit cycle COMPLETE)
+
+> These are the only rows that are not DONE — each is a **recorded
+> product or design decision** (not pending work): the audit cycle
+> itself is complete, and every item below has a documented reason and
+> estimate. See the referenced doc section for details.
 
 > Status values: **DONE** (fixed + verified), **CLOSED** (verified not-a-bug / stale),
 > **WITHDRAWN** (premise invalid), **DEFERRED** (recorded decision with reason).
@@ -77,7 +82,7 @@ For prior-audit content, see the consolidated docs' `Tracker` sections.
 | LOW | Image opt (Cloudflare Polish + WebP/AVIF) | [`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md) §7 #9 | DEFERRED — infra/product (2h) |
 | ~~LOW~~ | ~~Reduced-motion audit~~ | **DONE** via `use-prefers-reduced-motion` hook | — |
 
-**Total deferred:** ~45h across 12 items (all LOW/MED, each with a recorded reason and a suggested round).
+**Total backlog:** ~45h across 12 recorded product/design decisions (all LOW/MED, each with a reason and suggested round). The audit cycle itself is complete — no finding is left without a terminal status.
 
 Closed in this cycle (per the consolidated docs' §16.1):
 ConsentComplianceService CQS split, ClinicContextGuard consolidation,

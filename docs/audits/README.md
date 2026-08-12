@@ -1,5 +1,9 @@
 # Audits
 
+> **AUDIT CYCLE COMPLETE (2026-08-12).** The 2026-08-11/12 audit cycle
+> is consolidated into 2 docs, and every finding is terminal — DONE /
+> CLOSED / WITHDRAWN / DEFERRED-with-reason. No pending or open rows.
+>
 > **The 2026-08-11/12 audit cycle is consolidated into 2 docs:**
 >
 > 1. **[`BACKEND_FINAL_AUDIT_2026-08-11.md`](BACKEND_FINAL_AUDIT_2026-08-11.md)**

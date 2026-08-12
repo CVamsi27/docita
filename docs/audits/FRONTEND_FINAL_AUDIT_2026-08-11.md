@@ -1,5 +1,12 @@
 # Frontend Final Audit — 2026-08-11
 
+> **AUDIT CYCLE COMPLETE (2026-08-12).** Every finding in this doc has
+> a terminal status: DONE / CLOSED (verified not-a-bug) / WITHDRAWN /
+> DEFERRED-with-reason. There are no pending or open rows. The deferred
+> items (react-refresh churn, mobile audit, landing hero, internal
+> analytics, image opt) are recorded decisions with documented
+> estimates — see §6.1/§7/§18/§41.
+>
 > **Status:** Consolidated frontend final-pass audit on
 > `fix/app-deployment-failure` at `39c029391`. All `verify:standard`
 > checks pass; the new `check:no-emoji` and `check:tailwind-raw-color`
