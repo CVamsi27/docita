@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Hono } from "hono";
 import { createCloudflareApiProxy } from "./cloudflare-api-proxy.js";
 
@@ -120,7 +120,10 @@ describe("createCloudflareApiProxy", () => {
   });
 
   it("falls back to https://api.docita.work when no backend is configured", async () => {
-    const fetchMock = vi.fn(async () => new Response("ok", { status: 200 }));
+    const fetchMock = vi.fn(async (input) => {
+      const url = typeof input === "string" ? input : input.url;
+      return new Response(`upstream:${new URL(url).pathname}`, { status: 200 });
+    });
     globalThis.fetch = fetchMock as typeof fetch;
 
     const app = createCloudflareApiProxy({ app: new Hono() });
