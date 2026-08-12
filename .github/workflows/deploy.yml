@@ -90,7 +90,10 @@ jobs:
             echo "DATABASE_URL secret is required."
             exit 1
           fi
-          if ! pg_isready --dbname="$DATABASE_URL" --timeout=10; then
+          # pg_isready (libpq) rejects non-libpq URI params (e.g. schema=public)
+          # that Prisma accepts, so strip everything but sslmode for the probe.
+          PROBE_URL=$(node -e "const u=new URL(process.env.DATABASE_URL); const ssl=u.searchParams.get('sslmode'); u.search=''; if (ssl) u.searchParams.set('sslmode', ssl); process.stdout.write(u.toString())")
+          if ! pg_isready --dbname="$PROBE_URL" --timeout=10; then
             echo "::error title=Production RDS unreachable::GitHub-hosted runners cannot reach the production RDS endpoint (egress timeout). Add GitHub Actions runner egress to the RDS security group, or run migrations from a network with RDS access (e.g. a Fly machine). See RB-12 in docs/operations/RUNBOOKS.md."
             exit 1
           fi
