@@ -82,6 +82,19 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Mask database URL in logs
         run: echo "::add-mask::${{ secrets.DATABASE_URL }}"
+      - name: Check production database connectivity
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret is required."
+            exit 1
+          fi
+          if ! pg_isready --dbname="$DATABASE_URL" --timeout=10; then
+            echo "::error title=Production RDS unreachable::GitHub-hosted runners cannot reach the production RDS endpoint (egress timeout). Add GitHub Actions runner egress to the RDS security group, or run migrations from a network with RDS access (e.g. a Fly machine). See RB-12 in docs/operations/RUNBOOKS.md."
+            exit 1
+          fi
+          echo "Production database reachable."
       - name: Pre-migration RDS snapshot
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

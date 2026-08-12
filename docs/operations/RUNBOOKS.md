@@ -504,6 +504,58 @@ RB-01 against `--app docita-worker --config apps/worker/fly.toml`.
 
 ---
 
+## RB-12: Deploy blocked — GitHub runner cannot reach production RDS
+
+**Trigger** `.github/workflows/deploy.yml` `migrate-db` ("Apply Prisma
+Migrations") fails with `pg_dump: connection ... timed out`, or the
+fast-fail pre-check errors with "Production RDS unreachable". API and
+worker deploys are skipped for the run.
+
+**Severity** SEV-2 — production deploys are blocked; the running apps keep
+serving, but no API/worker release can land until this is resolved.
+
+**Root cause** The migration job runs on GitHub-hosted runners, which have
+no network path to the production RDS endpoint (public DNS
+`***.rds.amazonaws.com`, port 5432 — egress times out). This is an
+infrastructure/network restriction, not a code defect: no workflow
+restructuring can make the job succeed from runner egress.
+
+**Actions**
+
+1. Confirm the exact error:
+   `gh run view <run-id> --log-failed` and look for
+   `pg_dump: ... Connection timed out` or the "Production RDS unreachable"
+   pre-check error.
+2. Fix the network path (operator action in the AWS console — pick one):
+   - Add GitHub Actions runner egress to the RDS security group. GitHub
+     publishes the current runner IP ranges at <https://api.github.com/meta>
+     (`actions` key); add them to the RDS security group inbound rule for
+     port 5432. Ranges rotate over time, so prefer (b) or (c) as the
+     durable fix.
+   - Run migrations from a network that already reaches RDS today (the
+     production Fly app connects to RDS on every request) — e.g. a one-off
+     Fly machine carrying the migration tooling, or a bastion inside the
+     same VPC.
+   - Move the `migrate-db` job to a self-hosted runner inside the VPC.
+3. Restore the pre-migration snapshot path: confirm the production
+   environment has `RDS_INSTANCE_ID`, `AWS_ACCESS_KEY_ID`,
+   `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION` secrets set, and that the
+   `SKIP_RDS_SNAPSHOT` repository/environment variable is not `true`. The
+   snapshot step was skipping in the failing runs, so no labeled
+   pre-deploy snapshot existed as a rollback target.
+4. Re-run the failed workflow (or push a new commit to `main`) and watch
+   `migrate-db` → `api-startup-smoke` → `deploy-api` / `deploy-worker`.
+
+**Verification** `migrate-db` logs "Production database reachable", the
+pre-migration snapshot step creates a labeled `pre-deploy-<sha>` snapshot,
+and `deploy-api` / `deploy-worker` complete green.
+
+**Postmortem** Capture the network change that caused the regression, the
+snapshot-skip configuration, and the deploy gap. Incident history: first
+failure 2026-08-09; last successful deploy 2026-07-29.
+
+---
+
 ## Appendix: contact + escalation matrix
 
 | Role            | Channel                    | SLA              |
