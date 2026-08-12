@@ -556,6 +556,106 @@ failure 2026-08-09; last successful deploy 2026-07-29.
 
 ---
 
+## RB-13: Deploy blocked — Cloudflare credentials invalid (`CLOUDFLARE_API_TOKEN`)
+
+**Trigger** `.github/workflows/deploy.yml` gate job "Check Cloudflare deploy
+credentials" prints `reason=invalid-credentials` (or the warning annotation
+"Cloudflare deploys disabled"), and `deploy-app` / `deploy-internal` /
+`deploy-landing` are skipped with "Skipped — gate disabled". The live sites
+keep serving (the Cloudflare Git integration deploys independently), but the
+GitHub Actions `--env production` deploy path is off.
+
+**Severity** SEV-3 — no customer-visible impact while the Git integration
+handles frontend deploys; only the production-flag deploy path is degraded.
+Escalate to SEV-2 if frontend releases must land through GitHub Actions (e.g.
+the Git integration is disabled or an emergency revert needs the production
+env).
+
+**Root cause** The gate runs
+`scripts/deploy/verify-cloudflare-deploy-credentials.mjs` and fails it. The
+verifier performs four checks against the Cloudflare API
+(`https://api.cloudflare.com/client/v4`):
+
+1. `GET /user/tokens/verify` — the token must exist and be active.
+2. `GET /accounts/{CLOUDFLARE_ACCOUNT_ID}` — the token must be scoped to the
+   account id in `CLOUDFLARE_ACCOUNT_ID`.
+3. `GET /zones?name=docita.work&status=active` — the token must be able to
+   list the `docita.work` zone.
+4. `GET /zones/{zoneId}/workers/routes` — the token must be able to read
+   Workers routes on that zone (required for `custom_domain` routes in
+   `wrangler.toml`).
+
+Observed failure signature: `CLOUDFLARE_API_TOKEN verification failed (HTTP
+401, code 1000)` — Cloudflare's `code 1000` is "unknown error" surfaced here
+when the token is revoked/expired/invalid, so `/user/tokens/verify` itself
+fails on step 1. Any of the four checks failing produces `enabled=false` and
+skips the three frontend deploy jobs for the run.
+
+**Actions**
+
+1. Confirm the failure signature:
+   ```bash
+   gh run view <run-id> --repo CVamsi27/docita --log-failed | grep -iE "cloudflare|401|1000"
+   gh run view <run-id> --repo CVamsi27/docita --job <gate-job-id> --log | grep reason=
+   # expect: reason=invalid-credentials (token/account check failed)
+   # or:     reason=missing-secrets (one of the two secrets is unset)
+   ```
+2. If `reason=missing-secrets`, set both secrets and stop here:
+   ```bash
+   gh secret set CLOUDFLARE_API_TOKEN --repo CVamsi27/docita
+   gh secret set CLOUDFLARE_ACCOUNT_ID --repo CVamsi27/docita
+   ```
+3. If `reason=invalid-credentials`, create a new token in the Cloudflare
+   dashboard (dash.cloudflare.com → My Profile → API Tokens → Create Token):
+   - Use the **Edit Cloudflare Workers** template, which grants
+     `Account:Workers Scripts:Edit`, `Account:Workers KV Storage:Edit`, and
+     `Zone:Workers Routes:Edit` — the permissions the verifier's four checks
+     require (account access, zone list, Workers routes).
+   - Scope it to the **Workers account** matching `CLOUDFLARE_ACCOUNT_ID`
+     (the failing runs used account `36b68ff6beddbabaad448ba50cdbdab0`)
+     and, for the zone permission, to `docita.work`. Do not use a
+     Global API Key; a scoped API token is required.
+   - If a template does not cover the exact scope, create a custom token with
+     at least: `Account > Workers Scripts > Edit`, `Zone > Workers Routes >
+     Edit`, and `Zone > Zone > Read` (or account-level access to
+     `docita.work`).
+4. Verify the token locally before setting the secret:
+   ```bash
+   CLOUDFLARE_API_TOKEN="<new-token>" \
+   CLOUDFLARE_ACCOUNT_ID="<account-id>" \
+   node scripts/deploy/verify-cloudflare-deploy-credentials.mjs
+   # expect: "Cloudflare deploy credentials verified (token, account, zone Workers routes)."
+   ```
+5. Update the repository secret:
+   ```bash
+   gh secret set CLOUDFLARE_API_TOKEN --repo CVamsi27/docita
+   ```
+   (rotate via the dashboard only if the old token may have leaked; the
+   verifier rejects expired/revoked tokens on the next run.)
+6. Re-run the failed workflow (or push a new commit to `main`) and watch the
+   gate: `gh run view <run-id>` — the gate must print
+   `reason=ready`, then `deploy-app` / `deploy-internal` / `deploy-landing`
+   run with `--env production` instead of skipping.
+
+**Verification**
+
+- The gate job logs `reason=ready` and the annotation is absent.
+- `deploy-app`, `deploy-internal`, `deploy-landing` complete green and the
+  deployment shows the `--env production` bindings (`NODE_ENV=production`,
+  `VITE_APP_URL=https://app.docita.work`, etc.).
+- Smoke both sites after the deploy: deep links return 200 and the security
+  headers from `apps/*/public/_headers` are served (see `pnpm
+  check:app-security-headers`).
+
+**Postmortem** Capture which check failed (token verify / account / zone /
+routes), the Cloudflare error code (1000 for revoked/expired), when the token
+last rotated, and whether any deploy gap existed between the Git integration
+and the `--env production` path. Incident history: token invalid (HTTP 401,
+code 1000) as of 2026-08-12; the gate previously produced no visible reason,
+so deploy jobs appeared skipped without a diagnosable cause.
+
+---
+
 ## Appendix: contact + escalation matrix
 
 | Role            | Channel                    | SLA              |
