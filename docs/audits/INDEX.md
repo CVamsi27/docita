@@ -42,7 +42,7 @@ docs"). The prior set was:
 | 2026-08-10 | `2026-08-10-deep-analysis.md` | closed (all in PR #211) | Subagent full-repo deep-dive |
 | 2026-08-10 | `2026-08-10-session-notes.md` | closed | Session timeline for the #211 conflict-resolution + cleanup-branch work |
 | 2026-07-14 | `REFERRER_MIGRATION_REVIEW_2026-07-14.md` | closed | Referral feature migration review |
-| 2026-07-13 | `UI_UX_AUDIT_2026-07-13.md` + `UI_UX_PATIENTS_VISIT_COLUMN_SPEC_2026-07-13.md` | open (superseded by 2026-08-11) | UI/UX standard + patients visit column spec |
+| 2026-07-13 | `UI_UX_AUDIT_2026-07-13.md` + `UI_UX_PATIENTS_VISIT_COLUMN_SPEC_2026-07-13.md` | superseded by 2026-08-11 | UI/UX standard + patients visit column spec |
 | 2026-06-11 | `COMPLIANCE_LEDGER_2026-06-11.md` | closed (DPDP / RLS gates now pass) | DPDP / RLS coverage |
 | 2026-06-10 | `2026-06-10-full-repo-audit.md` | closed | Round 1 of repo-wide audit |
 | 2026-06-02 | `FULL_APPLICATION_FLOW_AUDIT_2026-06-02.md` | closed | Feature-flow walkthrough |
@@ -53,7 +53,7 @@ docs"). The prior set was:
 
 For prior-audit content, see the consolidated docs' `Tracker` sections.
 
-## Open follow-ups ranked by severity (as of round-7, 2026-08-12 — all terminal-status)
+## Deferred follow-ups ranked by severity (as of round-7, 2026-08-12 — all terminal-status)
 
 > Status values: **DONE** (fixed + verified), **CLOSED** (verified not-a-bug / stale),
 > **WITHDRAWN** (premise invalid), **DEFERRED** (recorded decision with reason).

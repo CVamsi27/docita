@@ -1195,7 +1195,7 @@ Per `docs/ui/UI_UX_STANDARD_2026.md` and the audits in `UI_UX_ENHANCEMENTS_2026-
 | `<img>` always has `alt` | ✅ 13/13 | n/a | n/a | n/a |
 | `usePrefersReducedMotion` respect | ✅ via `@workspace/hooks` | n/a | ✅ | n/a |
 
-**Net:** 35 GREEN, 7 partial/missing, 0 RED. The 7 gaps are all in §16 PR list.
+**Net:** 35 GREEN, 7 partial/missing, 0 RED (point-in-time snapshot of the audit's scoring). The 7 ⚠️ rows are all resolved since — §16/§18/§30 record the closures (e.g. the h1-duplicate row is verified-fine per §14.4). No RED rows existed.
 
 ---
 
@@ -1997,7 +1997,7 @@ The `100dvh` fix is the most impactful — iOS Safari's URL bar hides when scrol
 
 This is the **single tracker** for every P0-P3 item across all 11 audit docs. Each item has:
 - **§ ref** — which doc/section it lives in
-- **Status** — DONE / OPEN / WITHDRAWN
+- **Status** — DONE / CLOSED / WITHDRAWN / DEFERRED (terminal convention; round-7 rows are annotated per §41)
 - **Est.** — effort estimate
 - **PR/branch** — when committed
 
@@ -2241,11 +2241,13 @@ reasons; §6.1/§14.2 react-refresh **DEFERRED**. See §41.1.
 
 ### 40.1 Stale tracker rows corrected
 
-> The `Before` column shows the **stale status that predated the fix**;
-> every row is resolved (the `After` column is authoritative). None of
-> these are live OPEN items.
+> This table documents rows that were **incorrectly marked OPEN in an
+> earlier revision** and were corrected in round 6/7. The `Before`
+> column is the stale text, the `After` column is the authoritative
+> current status. **None of these are live OPEN items — every row is
+> resolved.**
 
-| Row | Before | After |
+| Row | Stale status before correction | Corrected status |
 |---|---|---|
 | §18.3 `AskAiButton` | OPEN | **DONE** (`a49629eb1`) — extraction landed in round 5; the §18.3/§19.3 tables never caught up |
 | §19.3 `AskAiButton` | OPEN | **DONE** (`a49629eb1`) |

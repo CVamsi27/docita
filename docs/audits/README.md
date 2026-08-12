@@ -7,7 +7,7 @@
 > 2. **[`FRONTEND_FINAL_AUDIT_2026-08-11.md`](FRONTEND_FINAL_AUDIT_2026-08-11.md)**
 >    — Every frontend finding, fix, and follow-up.
 >
-> See [`INDEX.md`](INDEX.md) for the full history + open findings by severity.
+> See [`INDEX.md`](INDEX.md) for the full history + deferred findings by severity.
 
 Quality gates live in `pnpm verify:standard` (see root `package.json`).
 This folder keeps the audit coverage ledger required by
@@ -19,7 +19,7 @@ This folder keeps the audit coverage ledger required by
 docs/audits/
 ├── BACKEND_FINAL_AUDIT_2026-08-11.md      # consolidated backend final pass (33 sections)
 ├── FRONTEND_FINAL_AUDIT_2026-08-11.md     # consolidated frontend final pass (41 sections)
-├── INDEX.md                              # history index + open-findings ranking
+├── INDEX.md                              # history index + deferred-findings ranking
 ├── README.md                             # this file
 └── evidence/
     └── 2026-05-audit-coverage.md         # ledger required by check:audit-coverage

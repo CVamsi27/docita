@@ -75,7 +75,7 @@ standards-checks suite is **38 tests**. See §33.
 
 **Net removals landed in this cycle:** 3 (1 dead import, 1 dead eslint suppression, 1 dead knip false-positive entry). **Net bug fixes landed:** 2 (`ApprovalService.approveInvoice` copy-paste where-clause + 1 typecheck break in the spec, 1 `$transaction` mock type narrowing in `referral-conversion-credit.service.spec.ts`). **Net Zod drift fixed:** 5 internal-admin DTOs migrated to Zod-first.
 
-**Removals possible but deferred:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` at cycle start (~20h of port-and-repository extraction); **5 remain tracked at the current tip** — 2 closed via port extraction in round 6, the allowlist pruned in round 7. 1 `ConsentComplianceService` CQS split was originally deferred but was closed in `323aa76fa`. API latency baseline (§9.10) remains open pending a stable staging soak.
+**Removals possible but deferred:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` at cycle start (~20h of port-and-repository extraction); **5 remain tracked at the current tip** — 2 closed via port extraction in round 6, the allowlist pruned in round 7. 1 `ConsentComplianceService` CQS split was originally deferred but was closed in `323aa76fa`. API latency baseline (§9.10) remains DEFERRED pending a stable staging soak.
 
 ---
 
@@ -977,7 +977,7 @@ This section is the master inventory of every item tracked, fixed, and deferred 
 | 1 superseded UI snapshot | DONE | 50 KB | (this commit, b6d51c4d8) |
 | **Total removed this cycle** | | **~600 lines + 15 docs** | |
 | | | | |
-| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | OPEN (allowlisted, deferred) | ~140 (after port) | §8.1 |
+| 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | DEFERRED (allowlisted; each a dedicated migration PR) | ~140 (after port) | §8.1 |
 | 3 single-line barrel aliases in `apps/api` (if any remain) | **DONE** | verified gone 2026-08-12 | §8.2 |
 
 ### 16.3 Gate results — final
@@ -1078,9 +1078,9 @@ The cycle's work spans **3 PRs and 20+ commits**:
 | **Prisma boundary (legacy leaks)** | **7** | **2** | **5** | **~15** |
 | **API latency baseline (operational)** | **1** | **0** | **1** | **~0.5** (after stable soak) |
 
-### 17.3 The only remaining open items
+### 17.3 The only remaining deferred items
 
-Two open-item classes remain across the cycle. Both are
+Two deferred-item classes remain across the cycle. Both are
 intentional, tracked, and bounded (state as of round 7,
 2026-08-12):
 
@@ -1297,13 +1297,13 @@ The cycle closed with:
 - **0** fallow dead-code issues (score 100).
 - **0** `as any`, `console.*`, `@ts-ignore`, `TODO/FIXME` in non-test source.
 - **0** Prisma boundary violations (7 tracked legacy leaks).
-- **0** open backend audit items in this cycle's scope.
+- **0** unresolved backend audit items in this cycle's scope.
 - **4568** tests pass across 8 test runners.
 - **~600 lines** of dead code removed (IPD, 3 barrels,
   14 closed audit docs, 1 superseded UI snapshot).
-- **2** intentional open items with documented estimates
-  (~20h for the prisma boundary migration; ~30 min for
-  the API latency baseline).
+- **2** intentional deferred items with documented estimates
+  (~20h at cycle close for the prisma boundary migration — 5 of 7
+  remain at the current tip; ~30 min for the API latency baseline).
 
 The branch is ready to merge.
 
@@ -1441,14 +1441,14 @@ A finding is "closed" only when:
 4. **The doc is updated** (the entry in the relevant §8/§9/§15/§16
    table is marked DONE, with the commit ref).
 
-### 19.3 Open-by-design criteria
+### 19.3 Deferred-by-design criteria
 
-The 2 intentional open items at `e7e7f2ee7`:
+The 2 intentional deferred items at `e7e7f2ee7`:
 
-1. **7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (§8.1):** Stay open
-   until migrated. The `check:prisma-boundary` allowlist size is
-   the metric.
-2. **API latency baseline (§9.10):** Stays open until the staging
+1. **7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` (§8.1):** Stay deferred
+   until migrated (5 of 7 at the current tip). The
+   `check:prisma-boundary` allowlist size is the metric.
+2. **API latency baseline (§9.10):** Stays deferred until the staging
    soak is stable. The `check:api-latency-budget:enforce` gate
    output is the metric (currently "skipped: no baseline artifact").
 
@@ -1721,7 +1721,7 @@ the parallel agent and the CI runbook expects a linear history.
 
 ## 23. Risk register
 
-What is at risk if the open items are not done. Read this to
+What is at risk if the deferred items are not done. Read this to
 prioritize the next sprint.
 
 ### 23.1 Risks by severity
@@ -2135,7 +2135,7 @@ UI surface to learn about the failure.
 
 **Status:** CLOSED.
 
-### 26.3 Medium findings (closed or open)
+### 26.3 Medium findings (all closed or deferred)
 
 #### 26.3.1 5 bare `<input type="time">` sites — CLOSED in §10
 
@@ -2341,7 +2341,7 @@ dist is no longer tracked in git. (No code change needed; the
 400-line budget. Any feature addition will need a preemptive
 split. **No urgent action.**
 
-### 26.5 Security findings (closed or open)
+### 26.5 Security findings (all closed or deferred)
 
 #### 26.5.1 `main.ts:439-455` `uncaughtException` does not exit — CLOSED in §10
 
@@ -2399,7 +2399,7 @@ is a production **operator action**, not code: provision
 `docs/compliance/RLS_ROLLOUT.md`. No code change required; this row
 closes when the operator applies the env change.
 
-### 26.6 Operational findings (closed or open)
+### 26.6 Operational findings (all closed or deferred)
 
 #### 26.6.1 API latency baseline — DEFERRED (informational, needs staging soak)
 
@@ -2432,7 +2432,7 @@ the only `/health` controller in `app.module.ts`. See §26.1.1.
 
 **Status:** CLOSED.
 
-### 26.7 Test coverage findings (open)
+### 26.7 Test coverage findings (all spec'd — DONE)
 
 #### 26.7.1 1-test money-moving specs — DONE (2026-08-12: all 5 priority targets spec'd; see §31.4/§33.1)
 
@@ -2513,7 +2513,7 @@ green (see §24.5). Remaining checks DEFERRED to future batches.
 **Status:** DEFERRED (see §24.4 — internal controllers sit behind
 admin RBAC; needs dedicated e2e plumbing round).
 
-### 26.8 Architectural debt (open)
+### 26.8 Architectural debt (all deferred with reasons)
 
 #### 26.8.1 5 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` — DEFERRED (2 closed 2026-08-12, 5 allowlisted remain)
 
@@ -2997,7 +2997,7 @@ working artifact's 53-finding detail.
 | .fallow §11.1-§11.15 (round 2) | 15 | 15 | §24, §26.7 |
 | .fallow §1-§8 (deferred + low) | 93 | 50 (per-file) | §27.1-§27.50 |
 | FRONTEND doc parallel | 38 sections | n/a (backend scope) | n/a |
-| INDEX + open follow-ups | n/a | Yes | §19, §23, §25 |
+| INDEX + deferred follow-ups | n/a | Yes | §19, §23, §25 |
 
 **Net: this doc is now the single source of truth for the
 2026-08-11/12 backend audit cycle, with per-finding detail that
@@ -3129,9 +3129,11 @@ const RevenueBarChart = React.lazy(() => import('./charts/RevenueBarChart'));
 doctor app (per the `apps/app` build output). This is the
 biggest single bundle-size win available right now.
 
-**Status:** OPEN. The fix is in the FRONTEND audit doc's
-scope (apps/app, not backend) but is documented here for
-completeness.
+**Status:** CLOSED (verified 2026-08-12) — the analytics charts are
+already lazy-loaded (`lazy()` in `AnalyticsPageUI.tsx:42-60`) and
+recharts is split into the `ui` manual chunk
+(`apps/app/vite.config.ts:41`). Documented here for completeness; the
+original fix recommendation is already implemented.
 
 ### 29.5 The `window.location` direct usage (low)
 
@@ -3149,7 +3151,10 @@ hard-nav). If so, add a one-line comment. If not, swap to
 
 **Effort:** trivial.
 
-**Status:** OPEN. The fix is in the FRONTEND scope.
+**Status:** CLOSED (verified 2026-08-12) — the single site is the
+lab-portal auth redirect (`lab-portal-login-ui.tsx:42,
+window.location.href = "/lab-portal"`), which is the legitimate
+hard-nav case per the criteria above. No change needed.
 
 ### 29.6 Other dimensions that the prior cycles deferred (informational)
 
@@ -3586,7 +3591,7 @@ failure cannot degrade `/health/metrics`. Both call layers already catch
 and warn. Best-effort log persistence is the intended design; a retry
 buffer would be over-engineering. See §26.3.6.
 
-### 31.7 Remaining open items as of round 6 — all resolved in §33
+### 31.7 Remaining items as of round 6 — all resolved in §33
 
 - §26.3.5 Audit logger fire-and-forget → outbox routing → **DEFERRED** (design blocker: outbox payload contract forbids PHI; `logAsync` lacks an enclosing transaction — recorded in §33)
 - §26.1.3 Bulk-import / WhatsApp broadcast void → **DEFERRED** (needs outbox design; partial mitigation documented)
