@@ -2,7 +2,7 @@
 
 > **AUDIT CYCLE COMPLETE (2026-08-12).** Every finding in this doc has
 > a terminal status: DONE / CLOSED (verified not-a-bug) / WITHDRAWN /
-> DEFERRED-with-reason. There are no pending or open rows. The 5
+> DEFERRED-with-reason. There are no open rows. The 5
 > allowlisted Prisma scheduler leaks and the API latency baseline are
 > recorded decisions with documented estimates — see §8.1/§9.10.
 >
@@ -81,7 +81,7 @@ standards-checks suite is **38 tests**. See §33.
 
 **Net removals landed in this cycle:** 3 (1 dead import, 1 dead eslint suppression, 1 dead knip false-positive entry). **Net bug fixes landed:** 2 (`ApprovalService.approveInvoice` copy-paste where-clause + 1 typecheck break in the spec, 1 `$transaction` mock type narrowing in `referral-conversion-credit.service.spec.ts`). **Net Zod drift fixed:** 5 internal-admin DTOs migrated to Zod-first.
 
-**Removals possible but deferred:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` at cycle start (~20h of port-and-repository extraction); **5 remain tracked at the current tip** — 2 closed via port extraction in round 6, the allowlist pruned in round 7. 1 `ConsentComplianceService` CQS split was originally deferred but was closed in `323aa76fa`. API latency baseline (§9.10) remains DEFERRED pending a stable staging soak.
+**Removals possible but deferred:** 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` at cycle start (~20h of port-and-repository extraction); **5 remain tracked at the current tip** — 2 closed via port extraction in round 6, the allowlist pruned in round 7. 1 `ConsentComplianceService` CQS split was originally deferred but was closed in `323aa76fa`. API latency baseline (§9.10) remains DEFERRED — it needs a stable staging soak to baseline.
 
 ---
 

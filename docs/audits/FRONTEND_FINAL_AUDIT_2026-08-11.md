@@ -2,7 +2,7 @@
 
 > **AUDIT CYCLE COMPLETE (2026-08-12).** Every finding in this doc has
 > a terminal status: DONE / CLOSED (verified not-a-bug) / WITHDRAWN /
-> DEFERRED-with-reason. There are no pending or open rows. The deferred
+> DEFERRED-with-reason. There are no open rows. The deferred
 > items (react-refresh churn, mobile audit, landing hero, internal
 > analytics, image opt) are recorded decisions with documented
 > estimates — see §6.1/§7/§18/§41.
@@ -687,7 +687,7 @@ The static count: **170 useEffects in `apps/app/src` + `apps/internal/src`** (1 
 
 | File | useEffects | Why |
 |---|---:|---|
-| `apps/app/src/features/consultation/workspace/consultation-leave-navigation-effects.ts` | 6 | Coordinated state machine: history-trap reset (3 effects for mount/cleanup/readOnly), popstate listener, capture-phase click listener, pending URL scroll. All 6 documented in the file as a coordinated state machine. |
+| `apps/app/src/features/consultation/workspace/consultation-leave-navigation-effects.ts` | 6 | Coordinated state machine: history-trap reset (3 effects for mount/cleanup/readOnly), popstate listener, capture-phase click listener, queued URL scroll. All 6 documented in the file as a coordinated state machine. |
 | `apps/app/src/hooks/use-phone-signature-qr-flow.ts` | 6 | Multi-stage phone signature flow: autoStart guard, polling resume, initial upload check, persistence sync, mount ref. 6 effects is a lot but the flow has 6 distinct lifecycle moments. |
 | `apps/app/src/features/setup/components/onboarding/forms/use-onboarding-draft.ts` | 4 | Onboarding draft autosave: hydrate from localStorage on mount, watch both forms for changes (2 subscriptions), persist on each change. |
 | `apps/app/src/features/setup/components/onboarding/address-picker/use-clinic-address-picker.ts` | 4 | Address picker: reset on open, reset ref on close, auto-geolocate on open, debounced address search. |

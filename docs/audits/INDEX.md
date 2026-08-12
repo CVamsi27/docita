@@ -56,7 +56,7 @@ For prior-audit content, see the consolidated docs' `Tracker` sections.
 ## Remaining product decisions / backlog (as of round-7, 2026-08-12 — audit cycle COMPLETE)
 
 > These are the only rows that are not DONE — each is a **recorded
-> product or design decision** (not pending work): the audit cycle
+> product or design decision** (not open work): the audit cycle
 > itself is complete, and every item below has a documented reason and
 > estimate. See the referenced doc section for details.
 

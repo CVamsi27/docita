@@ -2,7 +2,7 @@
 
 > **AUDIT CYCLE COMPLETE (2026-08-12).** The 2026-08-11/12 audit cycle
 > is consolidated into 2 docs, and every finding is terminal — DONE /
-> CLOSED / WITHDRAWN / DEFERRED-with-reason. No pending or open rows.
+> CLOSED / WITHDRAWN / DEFERRED-with-reason. No open rows remain.
 >
 > **The 2026-08-11/12 audit cycle is consolidated into 2 docs:**
 >
