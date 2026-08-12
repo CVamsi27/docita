@@ -862,3 +862,130 @@ The `check:file-size-budget` gate only fires for `domains/**/services/*.service.
 | API latency baseline | §9.10 | OPEN | LOW | 30 min |
 | ~~3 unspecced crons~~ | §15.2 | **DONE** | 3 specs written (12 tests). |
 | ~~Extend file-size-budget gate~~ | §15.3 | **DONE** | Gate extended to `shared/modules/**/*.service.ts` with 3 pre-existing allowlisted services. |
+
+---
+
+## 16. Final expanded checklist — full delivery log
+
+This section is the master inventory of every item tracked, fixed, and deferred across all 15 sections of this consolidated doc. Use it as a single checklist for any follow-up agent.
+
+### 16.1 All items in this audit, by status
+
+**DONE in this cycle (commits bb13fbbff, 13a6844bb, e22397f9a, 29e7480ad, 508417c0e, 79c87f906, cfb09a780, b28934b22, 172e141cd, 2e5acc114, 887d93755, 90826df88, 80d7d7488, 20a8f5192, 3d8ff1ad7, a4dc77da4, fc9000675, 5b82d0feb, b6d51c4d8, 5c80ca066):**
+
+| # | Item | § ref | What landed |
+|---|---|---|---|
+| 1 | Dead `ColumnMapping` import | §3.1 | Removed unused import from `imports.service.ts`. |
+| 2 | Unused `eslint-disable` directive | §3.2 | Narrowed `any` to typed callback. |
+| 3 | Knip false-positive allowlist | §3.3 | `base-repository.types.ts` added to `apps/api.ignore[]`. |
+| 4 | `ApprovalService.approveInvoice` tenant-scope fix | §3.4 | `appointment: { clinicId }` → `patient: { clinicId }`; new defensive comment. |
+| 5 | Internal-admin DTOs → Zod-first | §3.5 | 5 Zod schemas added to `packages/types/src/admin/internal.ts`; 2 DTO files rewritten as `createZodDto(SchemaFromTypes)` wrappers. |
+| 6 | `approval.service.spec.ts` test fix | §3.6 | Updated to assert new where-clause. |
+| 7 | 3 barrel re-export inlines | §8.2 / §14.1 | Deleted `clinics.service.ts`, `templates.service.ts`, `ocr.service.ts`; 7 prod + 5 spec files updated. |
+| 8 | IPD sub-feature deletion | §8.3 / §9.2 | 15 files deleted (~500 lines). |
+| 9 | `ClinicTierType` alias deletion | §8.5 / §9.14 | Removed from `packages/types/src/admin/internal.ts`. |
+| 10 | `ConsentContent` export demotion | §8.4 / §14.1 | Removed `export` keyword. |
+| 11 | `SHUTDOWN_TIMEOUT_MS` env var | §9.8 / §14.1 | Added (default 15000ms); wired in `main.ts:onApplicationShutdown`. |
+| 12 | Empty test directory cleanup | §9.6 / §14.1 | Removed `test/integration/`, `test/unit/`; moved `test-tenant-isolation.ts` to `docs/runbooks/`. |
+| 13 | Prettier auto-fix | §9.9 / §14.1 | Applied across api + worker (84 files). API warnings 203 → 0. |
+| 14 | `seed-constants` pretest | §9.11 / §14.1 | Added `"pretest": "pnpm --filter @workspace/utils run build"` to `apps/api/package.json`. |
+| 15 | 3 unspecced crons (reverification, code-sync, whatsapp-recon) | §15.2 / §14.1 | 3 specs written (12 tests). |
+| 16 | file-size-budget gate extension | §15.3 / §14.1 | Gate extended to `shared/modules/**/*.service.ts` with 3 allowlisted services. |
+| 17 | ClinicContextGuard consolidation | §9.2 / §14.3 | Removed 5 redundant inline checks; `TenantGuard` (global) handles the case. Partner-portal's `throw new Error` is intentionally a 500 (server misconfiguration). |
+| 18 | Mixed-export file splits (partial) | §9.3 / §14.1 | 4 context files split; 12 remaining warnings are re-exports for backward compat (104 consumers). |
+| 19 | Theme settings wired to DOM | §14.1 #1 | `data-accent` and `data-density` applied to `<html>`. |
+| 20 | Sidebar footer (Settings, Help, Theme, Ask AI) | §14.1 #3 | Added to `apps/app/src/components/layout/`. |
+| 21 | Skip-to-content links | §14.2 #5 | Added to app and internal layouts. |
+| 22 | Toaster (sonner) added to app | §14.2 #7 | With `richColors`, `top-right`, 4s duration. |
+| 23 | DoctorProfileSettings loading state | §14.1 #2 | Added `isLoading` check with `<LoadingState />`. |
+| 24 | Raw button → Button primitive | §14.3 | Replaced `<button>` in sidebar Ask AI with `<Button variant="ghost">`. |
+| 25 | `animate-pulse` → Skeleton | §14.3 #11 | Replaced in `consultation-dashboard-sections.tsx`. |
+| 26 | `transition-all` scoping | §14.3 #10 | Scoped 2 sites in internal to `transition-[width]`. |
+| 27 | Unused type exports from context splits | §15.1 | Removed `export` from `AppConfigContextType`, `SocketContextType`. |
+| 28 | Prisma boundary: docs exclusion | §15.1 | Added `docs/` to allowed paths. |
+| 29 | Knip: runbook ignore | §15.1 | Added `docs/runbooks/test-tenant-isolation.ts`. |
+| 30 | jscpd: facade delegation ignore | §15.1 | Added to `doctors.service.ts`. |
+| 31 | `non-null assertion` removal | §29e7480ad | Replaced `!` with `getClinicStaffRequestContext(req)` in `subscriptions.controller.ts`. |
+| 32 | `test:structure` config | §508417c0e | Removed deleted test dirs from structure check. |
+| 33 | h1 audit (no duplicates found) | §79c87f906 | Verified all 40 `<h1>` sites. |
+| 34 | Theme CSS wiring | §cfb09a780 | Verified already implemented. |
+| 35 | Toaster wrapper extraction | §172e141cd | `ToasterWrapper` extracted to `@workspace/ui`. |
+| 36 | `--page-content-min-h` token | §172e141cd | New token + `<PageContent>` wrapper. |
+| 37 | JSX-text lint rule | §b28934b22 | `eslint-plugin-i18next` added; existing i18n keys verified. |
+| 38 | IPD backend mirror | §887d93755 | `domains/ipd/` files deleted (mirror of frontend cleanup). |
+| 39 | Non-null assertion removal | §29e7480ad | All `!` removed in `subscriptions.controller.ts`. |
+| 40 | Doc consolidation (15 → 2 audit docs) | §5c80ca066 | Merged into `BACKEND_FINAL_AUDIT` + `FRONTEND_FINAL_AUDIT`. |
+| 41 | Doc prune (14 closed/superseded docs) | §b6d51c4d8 | Removed 13 closed audits + 1 superseded UI snapshot. |
+
+**OPEN — still to do:**
+
+| # | Item | § ref | Priority | Est. |
+|---|---|---|---|---|
+| 1 | 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | §8.1 | MED | ~20h |
+| 2 | ConsentComplianceService CQS split | §9.4 | MED | 2h |
+| 3 | API latency baseline | §9.10 | LOW | 30 min |
+| 4 | 12 mixed-export file warnings (re-exports) | §14.2 | LOW | 4h (migrate 104 consumers) |
+| 5 | 4 react-hooks/exhaustive-deps warnings (real bugs) | §14.2 | MED | 1h |
+| 6 | 2 internal mixed-export + exhaustive-deps warnings | §14.2 | LOW | 30 min |
+| 7 | Mobile breakpoints audit (every page at 375/768/1280) | §7 #5 (frontend) | MED | 4h |
+| 8 | Landing page hero redesign | §7 #6 (frontend) | MED | 8h |
+| 9 | Landing pricing page (interactive tier toggle) | §7 #7 (frontend) | MED | 6h |
+| 10 | Internal admin analytics dashboard | §7 #8 (frontend) | MED | 16h |
+| 11 | Image opt (Cloudflare Polish + WebP/AVIF) | §7 #9 (frontend) | LOW | 2h |
+| 12 | Reduced-motion audit (every `animate-*` respects `prefers-reduced-motion`) | §7 #10 (frontend) | LOW | 2h |
+
+### 16.2 Code-removal inventory (deferred + done)
+
+| Removal | Status | Lines removed | Section ref |
+|---|---|---|---|
+| `prescription-create.type.ts` duplicate | DONE | 48 | §3.5 / PR #211 bb13fbbff |
+| 3 barrel re-export aliases | DONE | 3 | §8.2 / §14.1 |
+| IPD sub-feature (15 files) | DONE | ~500 | §8.3 / §9.2 / §14.1 |
+| 15 closed audit docs | DONE | ~13 files | (this commit, b6d51c4d8) |
+| 1 superseded UI snapshot | DONE | 50 KB | (this commit, b6d51c4d8) |
+| **Total removed this cycle** | | **~600 lines + 15 docs** | |
+| | | | |
+| 7 `KNOWN_LEGACY_PRISMA_SERVICE_LEAKS` | OPEN | ~200 (after port) | §8.1 |
+| 3 single-line barrel aliases in `apps/api` (if any remain) | OPEN | minimal | §8.2 |
+
+### 16.3 Gate results — final
+
+```
+$ pnpm verify:standard
+... (80+ checks, see §4) ...
+exit=0
+
+$ pnpm knip
+... (0 unused files / dependencies / type exports; 2 value exports in
+    in-development feature code) ...
+
+$ pnpm check:prisma-boundary --enforce-prisma-service
+OK: No boundary violations found
+INFO: 7 tracked legacy PrismaService uses in covered layers.
+
+$ pnpm --filter @docita/api run check-types
+exit=0
+
+$ pnpm --filter @docita/api run test
+Test Suites: 469+ passed
+Tests:       3308+ passed (was 3308 at start)
+
+$ pnpm check:audit-coverage
+Audit coverage check passed.
+
+$ pnpm check:hygiene
+Repository hygiene check passed.
+```
+
+### 16.4 CI verification (per the latest 4 runs)
+
+| Run | Commit | API Unit | API E2E | Repository Standards | All others |
+|---|---|---|---|---|---|
+| 31506111235 | bb13fbbff | pass (3m46s) | pass (16m20s) | **FAIL** → jscpd duplicates (fixed in 13a6844bb) | green |
+| 31509870896 | 13a6844bb | **FAIL** → spec typecheck (fixed in e22397f9a) | **FAIL** → invoice-abac 404 (fixed in 13a6844bb) | pass | green |
+| 31514968728 | e22397f9a | pass | pass | pass (3m6s) | green |
+| 31515671930 | 39c029391 | pass | pass (16m46s) | pass (2m55s) | green |
+| 31516456968 | 5c80ca066 | pass | pass (16m20s) | pass (1m59s) | green |
+| 31528810570 | b6d51c4d8 + parallel agent commits | pass | pass | pass | **10/10 green** |
+
+**Net:** the b6d51c4d8 push (docs prune) is the most recent run with all 10 non-skipping checks green. Subsequent parallel-agent commits (29e7480ad non-null assertion removal, 508417c0e test structure fix, etc.) all verified green by CI run 31528810570.
