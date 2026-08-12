@@ -3,24 +3,20 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Consent, ConsentStatus, ConsentType } from '@workspace/db';
 import { DpdpAuditEmitter } from './dpdp-audit.emitter';
-import { isRecord } from '@workspace/utils';
 import type {
   ConsentRecord,
   DpdpNoticeConsentInput,
 } from './dpdp-compliance.types';
 
-function getRequireConsentBeforeSending(value: unknown): boolean | undefined {
-  if (!isRecord(value)) {
-    return undefined;
-  }
-
-  const consentFlag = value.requireConsentBeforeSending;
-  return typeof consentFlag === 'boolean' ? consentFlag : undefined;
-}
-
+/**
+ * Write-side of the consent surface (CQS split, see
+ * docs/audits/BACKEND_FINAL_AUDIT_2026-08-11.md §9.4). All consent
+ * mutations (record / withdraw / set-marketing / set-dpdp-notice) live
+ * here. Read-side lives in `ConsentQueryService`.
+ */
 @Injectable()
-export class ConsentComplianceService {
-  private readonly logger = new Logger(ConsentComplianceService.name);
+export class ConsentCommandService {
+  private readonly logger = new Logger(ConsentCommandService.name);
 
   constructor(
     private readonly prisma: PrismaService,
@@ -166,24 +162,6 @@ export class ConsentComplianceService {
     return consent;
   }
 
-  async hasValidConsent(
-    patientId: string,
-    clinicId: string,
-    consentType: ConsentType,
-  ): Promise<boolean> {
-    const consent = await this.prisma.consent.findFirst({
-      where: {
-        patientId,
-        clinicId,
-        consentType,
-        status: ConsentStatus.ACTIVE,
-        OR: [{ validUntil: null }, { validUntil: { gte: this.clock.now() } }],
-      },
-    });
-
-    return !!consent;
-  }
-
   /**
    * DPDP granular purpose consent for MARKETING — kept as a first-class,
    * versioned, withdrawable Consent record (not just a boolean). Granting records
@@ -285,43 +263,5 @@ export class ConsentComplianceService {
       );
     }
     return { active: false };
-  }
-
-  async getConsentHistory(
-    patientId: string,
-    clinicId: string,
-  ): Promise<Consent[]> {
-    return this.prisma.consent.findMany({
-      where: {
-        patientId,
-        clinicId,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-  }
-
-  async validateWhatsAppConsent(
-    patientId: string,
-    clinicId: string,
-  ): Promise<boolean> {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { whatsappAutomation: true },
-    });
-
-    const requireConsentBeforeSending = getRequireConsentBeforeSending(
-      clinic?.whatsappAutomation,
-    );
-
-    if (!requireConsentBeforeSending) return true;
-
-    const patient = await this.prisma.patient.findUnique({
-      where: { id: patientId },
-      select: { whatsappConsent: true, whatsappConsentAt: true },
-    });
-
-    return patient?.whatsappConsent || false;
   }
 }

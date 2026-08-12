@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DpdpAuditEmitter } from './dpdp-audit.emitter';
-import { ConsentComplianceService } from './consent-compliance.service';
+import { ConsentCommandService } from './consent-command.service';
+import { ConsentQueryService } from './consent-query.service';
 import { DataSubjectRequestService } from './data-subject-request.service';
 import { ConsentController } from './consent.controller';
 import { ConsentPdfService } from './consent-pdf.service';
@@ -28,7 +29,8 @@ import { ArchivalService } from './archival.service';
       useExisting: PrismaService,
     },
     DpdpAuditEmitter,
-    ConsentComplianceService,
+    ConsentCommandService,
+    ConsentQueryService,
     DataSubjectRequestService,
     AnonymizationFactory,
     DataExportFactory,
@@ -36,7 +38,8 @@ import { ArchivalService } from './archival.service';
     ConsentPdfService,
   ],
   exports: [
-    ConsentComplianceService,
+    ConsentCommandService,
+    ConsentQueryService,
     DataSubjectRequestService,
     ArchivalService,
   ],

@@ -20,7 +20,7 @@ import { Gender, Role } from '@workspace/db';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
-import { ConsentComplianceService } from '@/shared/modules/compliance/consent-compliance.service';
+import { ConsentCommandService } from '@/shared/modules/compliance/consent-command.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 
 describe('PatientsController (Authorization)', () => {
@@ -89,7 +89,7 @@ describe('PatientsController (Authorization)', () => {
           },
         },
         {
-          provide: ConsentComplianceService,
+          provide: ConsentCommandService,
           useValue: { recordDpdpNoticeConsent: jest.fn() },
         },
         {

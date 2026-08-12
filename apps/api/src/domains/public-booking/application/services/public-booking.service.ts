@@ -15,7 +15,7 @@ import {
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
 import { SlotGenerationService } from '@/domains/doctors/application/services/slot-generation.service';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
-import { ConsentComplianceService } from '@/shared/modules/compliance/consent-compliance.service';
+import { ConsentCommandService } from '@/shared/modules/compliance/consent-command.service';
 import { AppointmentRequestService } from '@/domains/appointments/application/services/appointment-request.service';
 import {
   WHATSAPP_CLIENT_TOKEN,
@@ -51,7 +51,7 @@ export class PublicBookingService {
     private readonly bookingTokenService: PublicBookingTokenService,
     private readonly turnstile: TurnstileVerifyService,
     private readonly appConfig: AppConfigService,
-    private readonly consentCompliance: ConsentComplianceService,
+    private readonly consentCompliance: ConsentCommandService,
     @Inject(CLOCK_PORT) clock: IClock,
   ) {
     this.slots = new PublicBookingSlotsService(

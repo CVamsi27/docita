@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { IPatientPortalRepository } from '@/domains/patient-portal/core/repositories/patient-portal.repository.interface';
-import type { ConsentComplianceService } from '@/shared/modules/compliance/consent-compliance.service';
+import type { ConsentCommandService } from '@/shared/modules/compliance/consent-command.service';
+import type { ConsentQueryService } from '@/shared/modules/compliance/consent-query.service';
 import { PatientPortalCommandService } from './patient-portal-command.service';
 import type { PatientPortalContextService } from './patient-portal-context.service';
 
@@ -30,19 +31,22 @@ describe('PatientPortalCommandService — DPDP data-subject requests', () => {
   } as unknown as PatientPortalContextService;
 
   const setDpdpNoticeConsentMock =
-    jest.fn<ConsentComplianceService['setDpdpNoticeConsent']>();
+    jest.fn<ConsentCommandService['setDpdpNoticeConsent']>();
   const hasValidConsentMock =
-    jest.fn<ConsentComplianceService['hasValidConsent']>();
-  const consentCompliance = {
+    jest.fn<ConsentQueryService['hasValidConsent']>();
+  const consentCommand = {
     setDpdpNoticeConsent: setDpdpNoticeConsentMock,
+  } as unknown as ConsentCommandService;
+  const consentQuery = {
     hasValidConsent: hasValidConsentMock,
-  } as unknown as ConsentComplianceService;
+  } as unknown as ConsentQueryService;
 
   const service = new PatientPortalCommandService(
     repository,
     contextService,
     { now: () => NOW },
-    consentCompliance,
+    consentCommand,
+    consentQuery,
   );
 
   beforeEach(() => {

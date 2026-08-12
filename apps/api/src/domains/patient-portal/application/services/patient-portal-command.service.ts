@@ -13,7 +13,8 @@ import { PatientPortalContextService } from './patient-portal-context.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { ConsentType } from '@workspace/db';
 import { DPDP_NOTICE_VERSION } from '@workspace/types';
-import { ConsentComplianceService } from '@/shared/modules/compliance/consent-compliance.service';
+import { ConsentCommandService } from '@/shared/modules/compliance/consent-command.service';
+import { ConsentQueryService } from '@/shared/modules/compliance/consent-query.service';
 
 @Injectable()
 export class PatientPortalCommandService {
@@ -24,7 +25,8 @@ export class PatientPortalCommandService {
     private readonly repository: IPatientPortalRepository,
     private readonly contextService: PatientPortalContextService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
-    private readonly consentCompliance: ConsentComplianceService,
+    private readonly consentCommand: ConsentCommandService,
+    private readonly consentQuery: ConsentQueryService,
   ) {}
 
   async updateProfile(
@@ -86,7 +88,7 @@ export class PatientPortalCommandService {
     // Marketing consent as a first-class, auditable DPDP purpose (Stage 3).
     let marketingConsent: boolean;
     if (data.marketingConsent !== undefined) {
-      const result = await this.consentCompliance.setMarketingConsent({
+      const result = await this.consentCommand.setMarketingConsent({
         patientId,
         clinicId,
         granted: data.marketingConsent,
@@ -95,7 +97,7 @@ export class PatientPortalCommandService {
       });
       marketingConsent = result.active;
     } else {
-      marketingConsent = await this.consentCompliance.hasValidConsent(
+      marketingConsent = await this.consentQuery.hasValidConsent(
         patientId,
         clinicId,
         ConsentType.MARKETING,
@@ -106,7 +108,7 @@ export class PatientPortalCommandService {
     // consent (previously this flag was accepted by the API and dropped).
     let dataStorageConsent: boolean;
     if (data.dataStorageConsent !== undefined) {
-      const result = await this.consentCompliance.setDpdpNoticeConsent({
+      const result = await this.consentCommand.setDpdpNoticeConsent({
         patientId,
         clinicId,
         granted: data.dataStorageConsent,
@@ -116,7 +118,7 @@ export class PatientPortalCommandService {
       });
       dataStorageConsent = result.active;
     } else {
-      dataStorageConsent = await this.consentCompliance.hasValidConsent(
+      dataStorageConsent = await this.consentQuery.hasValidConsent(
         patientId,
         clinicId,
         ConsentType.DPDP_NOTICE,

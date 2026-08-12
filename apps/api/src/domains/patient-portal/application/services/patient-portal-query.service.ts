@@ -6,7 +6,7 @@ import {
 import { PatientPortalContextService } from './patient-portal-context.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { ConsentType } from '@workspace/db';
-import { ConsentComplianceService } from '@/shared/modules/compliance/consent-compliance.service';
+import { ConsentQueryService } from '@/shared/modules/compliance/consent-query.service';
 
 function sumOutstandingInvoiceTotals(invoices: unknown[]): number {
   let sum = 0;
@@ -28,7 +28,7 @@ export class PatientPortalQueryService {
     private readonly repository: IPatientPortalRepository,
     private readonly contextService: PatientPortalContextService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
-    private readonly consentCompliance: ConsentComplianceService,
+    private readonly consentQuery: ConsentQueryService,
   ) {}
 
   async getDashboard(userId: string) {
@@ -187,12 +187,12 @@ export class PatientPortalQueryService {
     const { patientId, clinicId } =
       await this.contextService.getPatientContext(userId);
     const patient = await this.repository.getPatientProfile(patientId);
-    const dataStorageConsent = await this.consentCompliance.hasValidConsent(
+    const dataStorageConsent = await this.consentQuery.hasValidConsent(
       patientId,
       clinicId,
       ConsentType.DPDP_NOTICE,
     );
-    const marketingConsent = await this.consentCompliance.hasValidConsent(
+    const marketingConsent = await this.consentQuery.hasValidConsent(
       patientId,
       clinicId,
       ConsentType.MARKETING,

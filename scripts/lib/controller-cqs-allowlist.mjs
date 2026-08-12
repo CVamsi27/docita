@@ -34,11 +34,5 @@ export const CONTROLLER_CQS_ALLOWLIST = new Set([
   "WhatsappResendService",
   /** WhatsApp template-message route: single mutation `handleSendCustomMessage`. */
   "TemplateMessageService",
-  /** Consent compliance: `recordConsent` / `withdrawConsent` / `setMarketingConsent` /
-   * `setDpdpNoticeConsent` (writes) plus `hasValidConsent` / `getConsentHistory` /
-   * `validateWhatsAppConsent` (reads). Mixed CQS behind a single DPDP consent surface.
-   * The 2026-08 facade-removal refactor (19535755b) promoted the previously-wrapped
-   * `DPDPComplianceService` use-cases into this class; splitting into
-   * `ConsentCommandService` + `ConsentQueryService` is tracked as a follow-up. */
-  "ConsentComplianceService",
 ]);
+

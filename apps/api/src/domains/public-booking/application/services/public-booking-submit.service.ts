@@ -17,7 +17,7 @@ import {
   type PublicBookingPersistencePort,
 } from '@/domains/public-booking/application/ports/public-booking-persistence.port';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
-import { ConsentComplianceService } from '@/shared/modules/compliance/consent-compliance.service';
+import { ConsentCommandService } from '@/shared/modules/compliance/consent-command.service';
 import { AppointmentRequestService } from '@/domains/appointments/application/services/appointment-request.service';
 import { PublicBookingTokenService } from '@/domains/public-booking/application/services/public-booking-token.service';
 import { TurnstileVerifyService } from '@/shared/modules/turnstile/turnstile-verify.service';
@@ -41,7 +41,7 @@ export class PublicBookingSubmitService {
     private readonly bookingTokenService: PublicBookingTokenService,
     private readonly turnstile: TurnstileVerifyService,
     private readonly appConfig: AppConfigService,
-    private readonly consentCompliance: ConsentComplianceService,
+    private readonly consentCompliance: ConsentCommandService,
     private readonly slotsService: PublicBookingSlotsService,
   ) {}
 
