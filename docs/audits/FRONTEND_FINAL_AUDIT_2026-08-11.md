@@ -1363,7 +1363,7 @@ This plan supersedes §7, §14, §15, §16 and consolidates every P0-P3 task fro
 - [ ] P3-34: i18n coverage gate (4h)
 ```
 
-**7 done, 27 open. Total remaining: ~80h.**
+**7 done, 27 open. Total remaining: ~80h.** <!-- point-in-time snapshot at §33.5; see §41 (round 7) for the current terminal-state accounting — every row now resolves to DONE / WITHDRAWN / DEFERRED-with-reason -->
 
 ---
 

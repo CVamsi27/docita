@@ -739,7 +739,7 @@ $ pnpm knip
 
 $ pnpm check:prisma-boundary --enforce-prisma-service
 OK: No boundary violations found
-INFO: 7 tracked legacy PrismaService uses in covered layers.
+INFO: 7 tracked legacy PrismaService uses in covered layers.  <!-- point-in-time transcript; 5 tracked at the current tip (rounds 6-7) -->
 
 $ pnpm --filter @docita/api run check-types
 exit=0
@@ -993,7 +993,7 @@ $ pnpm knip
 
 $ pnpm check:prisma-boundary --enforce-prisma-service
 OK: No boundary violations found
-INFO: 7 tracked legacy PrismaService uses in covered layers.
+INFO: 7 tracked legacy PrismaService uses in covered layers.  <!-- point-in-time transcript; 5 tracked at the current tip (rounds 6-7) -->
 
 $ pnpm --filter @docita/api run check-types
 exit=0
@@ -1929,7 +1929,7 @@ README now carries the Fly.io-only note and points at
 | §11.6 Worker wrangler config | DONE — see §24.6 (README note) |
 | §11.7 Check-script test gap | DONE (first batch) — see §24.7 |
 | §11.8 File size hot list (12 services in 380-399 range) | INFO — see §18.3 |
-| §11.9 RLS rollout (operator action pending) | INFO — see `docs/compliance/RLS_ROLLOUT.md` |
+| §11.9 RLS rollout | INFO — code DONE (gate green); operator env action remains — see `docs/compliance/RLS_ROLLOUT.md` |
 | §11.10 Native `confirm`/`alert`/`prompt` | CLOSED — `check:native-ui-affordances` passes |
 | §11.11 8 `Promise<unknown>` sites remaining | CLOSED — all are correct at contract boundaries |
 | §11.12 `as any` / `@ts-ignore` | CLOSED — 0 in non-test source |
@@ -2387,15 +2387,17 @@ run forever in a degraded state.
 
 **Status:** No action required.
 
-#### 26.5.5 RLS rollout (operator action pending) — INFO
+#### 26.5.5 RLS rollout — CODE DONE (operator env action remains) — INFO
 
 **Files:** `scripts/checks/check-rls-rollout-readiness.mjs` passes
 (migration + RlsService + routing extension + interceptor wiring
-+ env docs all present).
++ env docs all present) — verified 2026-08-12.
 
-**Status:** The RLS rollout is pending the **operator action**:
-provision `DATABASE_URL` as `docita_app` and set `RLS_ENABLED=true`
-per `docs/compliance/RLS_ROLLOUT.md`. No code change required.
+**Status:** The **code side is DONE** (gate green). The remaining step
+is a production **operator action**, not code: provision
+`DATABASE_URL` as `docita_app` and set `RLS_ENABLED=true` per
+`docs/compliance/RLS_ROLLOUT.md`. No code change required; this row
+closes when the operator applies the env change.
 
 ### 26.6 Operational findings (closed or open)
 
