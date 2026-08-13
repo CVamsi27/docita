@@ -12,13 +12,25 @@ env:
 
 jobs:
   api-e2e-tests:
-    name: API E2E Tests
+    name: API E2E Tests (${{ matrix.shard }}/${{ matrix.total }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 1
+            total: 2
+          - shard: 2
+            total: 2
     env:
       PGHOST: localhost
       PGPORT: "5434"
       PGUSER: docita
       PGPASSWORD: password
+      # The suite runs single-process (jest --runInBand) and OOM'd at the
+      # default 2GB Node heap (`FATAL ERROR: Ineffective mark-compacts near
+      # heap limit`, exit 134). Give each shard a 4GB heap.
+      NODE_OPTIONS: --max-old-space-size=4096
     services:
       postgres:
         image: postgres:16-alpine
@@ -56,7 +68,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
         run: pnpm db:deploy
-      - name: Run API E2E Tests
+      - name: Run API E2E Tests (shard ${{ matrix.shard }}/${{ matrix.total }})
         env:
           DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
           JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
@@ -67,4 +79,4 @@ jobs:
           NEXT_PUBLIC_API_URL: http://localhost:3001/api
           CORS_ORIGINS: http://localhost:3000
           WHATSAPP_PRODUCTION_MODE: "false"
-        run: pnpm --filter @docita/api run test:e2e
+        run: pnpm --filter @docita/api run test:e2e:shard ${{ matrix.shard }}/${{ matrix.total }}
