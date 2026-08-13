@@ -40,7 +40,7 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 > runs in its own job. 5 visual spec files were dropped at port-or-drop
 > (2026-08-02) because the Next dev-tools fixtures they snapshotted are not
 > ported (tools is an intentional shell). See
-> [`PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md) §Phase 8/9.
+> [ADR 0012](../architecture/decisions/0012-replace-nextjs-with-vite-spa.md) for the port record.
 
 #### Doctor app testing matrix
 

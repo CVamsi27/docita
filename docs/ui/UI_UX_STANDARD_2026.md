@@ -173,7 +173,7 @@ Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind b
 
 ## 7. Test contract (per page)
 
-Every page in `apps/app` must have a Playwright spec under `apps/app/e2e/` (pending the E2E port — see [`PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md)) that asserts at minimum:
+Every page in `apps/app` must have a Playwright spec under `apps/app/e2e/` that asserts at minimum:
 
 1. `PageHeader` title is visible.
 2. Primary action is reachable by keyboard (`Tab` to focus, `Enter` to activate).

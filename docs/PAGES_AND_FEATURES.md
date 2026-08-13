@@ -2,8 +2,9 @@
 
 > **Generated: 2026-08-02** · Scope: `apps/app` (clinician app) + `apps/internal` (admin/staff portal)
 > This regenerated inventory supersedes the 2026-06-19 Next.js version (see the archive note at the bottom).
-> The **authoritative port status** (per-feature COMPLETE/SHELL/MISSING, phases, gates) lives in
-> [`PORTING_PLAN_APP_VITE.md`](PORTING_PLAN_APP_VITE.md); this document is the route/feature map.
+> The **authoritative port status** tracker was the working plan `PORTING_PLAN_APP_VITE.md` (not carried into the
+> tree; cutover completed 2026-08-10 — see [ADR 0012](architecture/decisions/0012-replace-nextjs-with-vite-spa.md));
+> this document is the route/feature map.
 
 ## Executive Summary
 
@@ -12,8 +13,9 @@
 | `apps/app` | 95 (incl. settings/portal sub-routes) | 44 | 653 passing (122 files) | 45 spec files (~1,048 tests) | green (`build` + `build:cloudflare`) |
 | `apps/internal` | 19 | 17 | 52 passing | 3 spec files (44 tests) | green (`build` + `build:cloudflare`) |
 
-Feature port state (2026-08-02, from the porting plan): **38/46 COMPLETE, 8 SHELL, 3 MISSING**. The remaining
-long tail is tracked phase-by-phase in [`PORTING_PLAN_APP_VITE.md`](PORTING_PLAN_APP_VITE.md) §Phases 6/9.
+Feature port state (point-in-time 2026-08-02, from the porting plan): **38/46 COMPLETE, 8 SHELL, 3 MISSING**.
+The cutover completed 2026-08-10 (see [ADR 0012](architecture/decisions/0012-replace-nextjs-with-vite-spa.md));
+the per-phase tracker was the working plan and was not carried into the tree.
 
 ---
 
@@ -195,10 +197,10 @@ Feature directories (17): `admins` `analytics` `audits` `billing` `broadcasts` `
 
 ## Part 3 — Port status & thin surfaces
 
-- **Authoritative per-feature status** (COMPLETE / SHELL / MISSING by phase): [`PORTING_PLAN_APP_VITE.md`](PORTING_PLAN_APP_VITE.md) — 2026-08-02 state is **38/46 COMPLETE, 8 SHELL, 3 MISSING**.
+- **Port status**: the working plan's 2026-08-02 point-in-time snapshot was **38/46 COMPLETE, 8 SHELL, 3 MISSING**; the cutover completed 2026-08-10 (see [ADR 0012](architecture/decisions/0012-replace-nextjs-with-vite-spa.md)) and the plan was not carried into the tree.
 - **Thin surfaces in the live tree** (1–2 production files; not necessarily shells — e.g. `today` is a thin page composing fully-ported dashboard sections): `billing-locked`, `errors` (not-found pages), `pharmacy`, `profile`, `referrals`, `templates`, `tools` (intentional dev-tools shell), `upgrade`.
 - **Dropped at port-or-drop review (2026-08-02)**: `imports/excel`, `imports/ocr`, `feedback` (as a client feature; internal keeps an admin feedback page), `guided-tour`. Their placeholder routes were removed.
-- **Dead code removed**: the Next-era apps are staged for deletion on this branch; build-blocking migration residue in `packages/data-access` (speculative blob-download hooks) was removed 2026-08-02 (REPO_GAPS §J item 11).
+- **Dead code removed**: the Next-era apps were deleted at the 2026-08-10 cutover; build-blocking migration residue in `packages/data-access` (speculative blob-download hooks) was removed 2026-08-02 (REPO_GAPS §J item 11).
 
 ---
 
@@ -213,7 +215,7 @@ Feature directories (17): `admins` `analytics` `audits` `billing` `broadcasts` `
 | internal unit tests | 52/52 |
 | `pnpm check:i18next-parity` | en 1,885 = hi 1,885 leaves (exact parity) |
 | Production builds (`build` + `build:cloudflare`) | both apps green |
-| E2E (Playwright) | app 45 spec files / ~1,048 tests; internal 3 spec files / 44 tests — needs a CI run with Postgres to close checklist item 3 |
+| E2E (Playwright) | app 45 spec files / ~1,048 tests; internal 3 spec files / 44 tests — needs a CI run with Postgres |
 
 ---
 
@@ -223,4 +225,4 @@ The previous **2026-06-19 Next.js inventory** (apps/app 47 routes, apps/internal
 
 - [`docs/FUTURE_FEATURE_REQUIREMENTS.md`](FUTURE_FEATURE_REQUIREMENTS.md) — missing-pages roadmap (telemedicine, e-prescription, imaging, etc.)
 - [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX_STANDARD_2026.md) — the authoritative UI/UX contract
-- [`docs/PORTING_PLAN_APP_VITE.md`](PORTING_PLAN_APP_VITE.md) — port phases, decisions, and the cutover checklist
+- [ADR 0012](architecture/decisions/0012-replace-nextjs-with-vite-spa.md) — the port decision and cutover record (the working plan `PORTING_PLAN_APP_VITE.md` was not carried into the tree)

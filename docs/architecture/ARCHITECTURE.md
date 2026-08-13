@@ -8,10 +8,9 @@ Docita is a Turborepo monorepo for a healthcare SaaS product handling PHI
 (Protected Health Information). Deployed on Fly.io (API + worker) and
 Cloudflare (Vite SPA apps with static assets + a tiny Hono proxy Worker).
 
-> **Migration in progress:** the Next.js apps (`apps/app`, `apps/internal`) are
-> being replaced by `apps/app` / `apps/internal` (Vite + React Router
-> v7). Until cutover, the old apps are still the deployment source. See
-> [`PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md).
+> **Migration complete:** the Next.js predecessors were replaced by the Vite +
+> React Router SPAs (`apps/app`, `apps/internal`); cutover completed
+> 2026-08-10 (see [ADR 0012](decisions/0012-replace-nextjs-with-vite-spa.md)).
 
 ---
 

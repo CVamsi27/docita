@@ -196,7 +196,7 @@ When adopting this structure in an existing codebase:
 
 ## 9) Suggested Target Mapping for This Repository
 
-- Keep `apps/app` and `apps/internal` as Vite + React Router SPA apps (Next.js predecessors `apps/app` / `apps/internal` are being replaced — see [`PORTING_PLAN_APP_VITE.md`](../PORTING_PLAN_APP_VITE.md)).
+- Keep `apps/app` and `apps/internal` as Vite + React Router SPA apps (the Next.js predecessors were replaced at the 2026-08-10 cutover — see [ADR 0012](decisions/0012-replace-nextjs-with-vite-spa.md)).
 - Keep `apps/landing` as the primary Astro marketing app.
 - Keep apps/api as NestJS app.
 - Keep packages/db as single source of Prisma schema and DB client.
