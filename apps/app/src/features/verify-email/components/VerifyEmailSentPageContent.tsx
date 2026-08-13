@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { useAuth, VERIFICATION_EMAIL_STATUS_STORAGE_KEY } from "@/lib/auth/auth-context";
+import { useAuth } from "@/lib/auth/auth-context";
+import { VERIFICATION_EMAIL_STATUS_STORAGE_KEY } from "@/lib/auth/auth-context-helpers";
 import { logger } from "@/lib/monitoring/logger";
 import { resendVerificationEmail } from "@/features/auth";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";

@@ -3,7 +3,7 @@ import { ConsultationShell } from "@/features/consultation/workspace/Consultatio
 import { ConsultationPageHeaderUI } from "@/features/consultation/components/ConsultationPageHeaderUI";
 import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
 import { ConsultationLeaveDialog } from "@/features/consultation/components/ConsultationLeaveDialog";
-import { ConsultationVitalsProvider } from "@/features/consultation/workspace/consultation-vitals-context";
+import { ConsultationVitalsProvider } from "@/features/consultation/workspace/consultation-vitals-provider";
 import { ConsultationLeaveNavigationProvider } from "@/features/consultation/workspace/consultation-leave-navigation-context";
 import type { ConsultationSaveHandles } from "@/features/consultation/workspace/use-consultation-leave-navigation";
 import { formatChiefComplaintSummary, getPatientFullName } from "@workspace/utils";

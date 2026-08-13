@@ -2,7 +2,7 @@
 
 import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { AuthProvider } from "@/lib/auth/auth-context";
+import { AuthProvider } from "@/lib/auth/auth-provider";
 import { ConsentBanner } from "@/features/patient-portal/components/navigation/consent-banner";
 import { PatientAuthGuard } from "@/features/patient-portal/components/auth/patient-auth-guard";
 import { PortalNav } from "@/features/patient-portal/components/navigation/portal-nav";

@@ -11,7 +11,8 @@ import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary"
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { ChevronLeft, ChevronRight, Command } from "lucide-react";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
-import { useProtectedWorkspaceAccess, useSidebarAutoCollapse, WorkspaceLoadingSkeleton } from "@/components/layout/layout-sections";
+import { useProtectedWorkspaceAccess, useSidebarAutoCollapse } from "@/components/layout/use-workspace-access";
+import { WorkspaceLoadingSkeleton } from "@/components/layout/workspace-loading-skeleton";
 import { BackButton } from "@/components/navigation/back-button";
 import { CommandPalette } from "@/components/navigation/command-palette";
 import { AskAiOverlay } from "@/components/ask-ai/ask-ai-overlay";

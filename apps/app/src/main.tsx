@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router";
 import { HelmetProvider } from "react-helmet-async";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { DataAccessBridge } from "@/providers/data-access-bridge";
-import { AuthProvider } from "@/lib/auth/auth-context";
+import { AuthProvider } from "@/lib/auth/auth-provider";
 import { AppProviders } from "@/components/layout/providers";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { SocketProvider } from "@/lib/socket";

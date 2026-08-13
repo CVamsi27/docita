@@ -10,7 +10,7 @@ import { installWebVitalsReporter } from "@/lib/monitoring/web-vitals";
 import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary";
 import { DialogStackProvider } from "@workspace/ui/components/overlay/dialog-stack";
 import { logger } from "@/lib/monitoring/logger";
-import { AuthProvider } from "@/lib/auth/auth";
+import { AuthProvider } from "@/lib/auth/auth-provider";
 import "@workspace/ui/styles/globals.css";
 import App from "./App";
 
