@@ -28,7 +28,7 @@ Replace `apps/app` and `apps/internal` (Next.js 16 App Router, OpenNext on Cloud
 
 - Positive: bundle well under 1 MB gzip; static assets served from edge with immutable caching; no OpenNext/Sentry-server/next-intl baggage; `check-worker-size.mjs` stays meaningful for the tiny proxy Worker.
 - Negative: full feature port (368 of ~1,967 app files as of 2026-07-31); Playwright E2E suite (50 + 2 specs) not yet ported; some Next-specific affordances (middleware route guards, CSP nonce) must be reimplemented as React Router guards + static `_headers`.
-- Follow-up work: complete `PORTING_PLAN_APP_VITE.md` phases 1-9; only delete the Next.js apps when the cutover checklist (plan §Cutover) passes.
+- Follow-up work (completed 2026-08-10): the working plan `PORTING_PLAN_APP_VITE.md` phases 1-9 were finished on the port branch and the plan was not carried into the tree; the Next.js predecessors were deleted at cutover.
 
 ## References
 

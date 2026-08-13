@@ -1,6 +1,6 @@
 # 0002: Deploy apps/app and apps/internal on Cloudflare via OpenNext
 
-- **Status**: superseded by [0012](./0012-replace-nextjs-with-vite-spa.md) (2026-07-31 — the Next.js apps are being replaced by `apps/app-vite` / `apps/internal-vite`, Vite SPAs with static assets + a tiny Hono proxy Worker. Cloudflare remains the host; see [`PORTING_PLAN_APP_VITE.md`](../../PORTING_PLAN_APP_VITE.md).)
+- **Status**: superseded by [0012](./0012-replace-nextjs-with-vite-spa.md) (2026-07-31 — the Next.js apps were replaced by Vite SPAs (work names `apps/app-vite` / `apps/internal-vite`, renamed to `apps/app` / `apps/internal` at cutover) with static assets + a tiny Hono proxy Worker; Cloudflare remains the host. Cutover completed 2026-08-10.)
 - **Date**: 2025-10-12
 - **Deciders**: platform
 - **Tags**: frontend, infra
