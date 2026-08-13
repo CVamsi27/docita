@@ -239,6 +239,7 @@ test("standard gate wiring check requires all mandatory standards checks", () =>
     "check:route-shadowing",
     "check:openai-client-singleton",
     "check:workflow-staleness",
+    "check:workspace-resolution",
   ];
   expectFail(
     runCheck(
@@ -1572,5 +1573,98 @@ test("unicode escape literal check fails on UI backslash-u escapes and passes on
       "check-unicode-escape-literals.mjs",
       ["--enforce"],
     ),
+  );
+});
+
+test("workspace-resolution check fails when a config surface drops a src alias", () => {
+  // Recreates the #237 alias-gap class: tsconfig/vite alias all packages to
+  // src, but vitest aliases only ui+types — so utils/data-access imports
+  // would resolve via node_modules -> dist in tests, which CI no longer
+  // builds for app/internal. The check must fail.
+  const tsconfig = JSON.stringify({
+    compilerOptions: {
+      paths: {
+        "@workspace/ui": ["../../packages/ui/src/index"],
+        "@workspace/ui/*": ["../../packages/ui/src/*"],
+        "@workspace/utils": ["../../packages/utils/src/index"],
+        "@workspace/utils/*": ["../../packages/utils/src/*"],
+        "@workspace/data-access": ["../../packages/data-access/src/index"],
+        "@workspace/data-access/*": ["../../packages/data-access/src/*"],
+      },
+    },
+  });
+  const vite = `import path from "path";\nexport default {\n  resolve: {\n    alias: {\n      "@workspace/ui": path.resolve(__dirname, "../../packages/ui/src"),\n      "@workspace/utils": path.resolve(__dirname, "../../packages/utils/src"),\n      "@workspace/data-access": path.resolve(__dirname, "../../packages/data-access/src"),\n    },\n  },\n};\n`;
+  const vitestMissingAliases = `import path from "path";\nexport default {\n  resolve: {\n    alias: {\n      "@workspace/ui": path.resolve(__dirname, "../../packages/ui/src"),\n    },\n  },\n};\n`;
+  const fixture = {
+    "apps/internal/tsconfig.json": tsconfig,
+    "apps/internal/vite.config.ts": vite,
+    "apps/internal/vitest.config.ts": vitestMissingAliases,
+    "apps/internal/src/features/demo/page.tsx":
+      `import { usePatients } from "@workspace/data-access";\nexport function Page() { return null; }\n`,
+  };
+  expectFail(
+    runCheck(makeGitFixture(fixture), "check-workspace-resolution.mjs"),
+  );
+});
+
+test("workspace-resolution check passes when every surface src-aliases the imports", () => {
+  // App/internal style: all config surfaces alias the package to src, so no
+  // CI build is required (post-#236 app-quality/internal-quality build
+  // nothing).
+  const tsconfig = JSON.stringify({
+    compilerOptions: {
+      paths: {
+        "@workspace/ui": ["../../packages/ui/src/index"],
+        "@workspace/ui/*": ["../../packages/ui/src/*"],
+        "@workspace/utils": ["../../packages/utils/src/index"],
+        "@workspace/utils/*": ["../../packages/utils/src/*"],
+        "@workspace/data-access": ["../../packages/data-access/src/index"],
+        "@workspace/data-access/*": ["../../packages/data-access/src/*"],
+      },
+    },
+  });
+  const allAliases = (pkg) =>
+    `"@workspace/${pkg}": path.resolve(__dirname, "../../packages/${pkg}/src"),`;
+  const vite = `import path from "path";\nexport default {\n  resolve: {\n    alias: {\n      ${allAliases("ui")}\n      ${allAliases("utils")}\n      ${allAliases("data-access")}\n    },\n  },\n};\n`;
+  const fixture = {
+    "apps/internal/tsconfig.json": tsconfig,
+    "apps/internal/vite.config.ts": vite,
+    "apps/internal/vitest.config.ts": vite,
+    "apps/internal/src/features/demo/page.tsx":
+      `import { usePatients } from "@workspace/data-access";\nimport { cn } from "@workspace/utils";\nexport function Page() { return null; }\n`,
+  };
+  expectPass(
+    runCheck(makeGitFixture(fixture), "check-workspace-resolution.mjs"),
+  );
+});
+
+test("workspace-resolution check passes when the package dist is CI-built", () => {
+  // API style: no @workspace aliases in tsconfig (resolves via node_modules
+  // -> dist), but the package is built by the app's quality job per the
+  // hardcoded CI_BUILT map (fixture has no ci.yml, so the map stands alone).
+  const fixture = {
+    "apps/api/tsconfig.json": JSON.stringify({ compilerOptions: {} }),
+    "apps/api/src/domains/demo/demo.service.ts":
+      `import { PrismaClient } from "@workspace/db";\nexport class DemoService { constructor(private db: PrismaClient) {} }\n`,
+  };
+  expectPass(
+    runCheck(makeGitFixture(fixture), "check-workspace-resolution.mjs"),
+  );
+});
+
+test("workspace-resolution check fails when an app imports an unbuilt package", () => {
+  // apps/landing builds only types/utils/hooks/ui; importing data-access must
+  // fail (no src aliases in landing's surfaces, no CI build for it).
+  const fixture = {
+    "apps/landing/tsconfig.json": JSON.stringify({
+      compilerOptions: { paths: { "@/*": ["src/*"] } },
+    }),
+    "apps/landing/astro.config.mjs":
+      `import { defineConfig } from "astro/config";\nexport default defineConfig({ vite: { resolve: { alias: { "@": "./src" } } } });\n`,
+    "apps/landing/src/pages/demo.astro":
+      `import { usePatients } from "@workspace/data-access";\n---\n`,
+  };
+  expectFail(
+    runCheck(makeGitFixture(fixture), "check-workspace-resolution.mjs"),
   );
 });
