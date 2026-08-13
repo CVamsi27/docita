@@ -20,6 +20,7 @@ Map your concern to a script, then `Read` it to see the pattern:
 | Frontend feature/shared structure                                   | [`check-frontend-structure.mjs`](check-frontend-structure.mjs)                                   |
 | Feature boundary imports                                            | [`check-feature-boundaries.mjs`](check-feature-boundaries.mjs)                                   |
 | Workspace package boundary imports                                  | [`check-package-boundaries.mjs`](check-package-boundaries.mjs)                                   |
+| `@workspace/*` imports resolve to src or a CI-built dist             | [`check-workspace-resolution.mjs`](check-workspace-resolution.mjs)                               |
 | Module-level config initialization                                  | [`check-module-scope-config.mjs`](check-module-scope-config.mjs)                                 |
 | External SDK use in application layer                               | [`check-external-sdk-in-application.mjs`](check-external-sdk-in-application.mjs)                 |
 | **Repository / CQS / facade**                                       |                                                                                                  |
