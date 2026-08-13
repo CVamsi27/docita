@@ -55,6 +55,11 @@ jobs:
     needs: changes
     if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
+    # actions: read lets check:workflow-staleness query workflow run history
+    # inside verify:standard on every PR (its observability backstop).
+    permissions:
+      actions: read
+      contents: read
     steps:
       - uses: actions/checkout@v7
 
