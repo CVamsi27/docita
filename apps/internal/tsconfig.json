@@ -59,7 +59,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.tsx"
+    "src/**/*.tsx",
+    "api/**/*.ts"
   ],
   "exclude": [
     "node_modules",

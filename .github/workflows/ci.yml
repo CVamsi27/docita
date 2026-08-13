@@ -242,15 +242,24 @@ jobs:
         run: pnpm --filter @docita/app run test -- --changed=origin/main
 
       - name: Build app for Cloudflare
-        if: github.event_name == 'workflow_dispatch'
+        # M2: run on every app PR, not just dispatch. The RB-13 credential
+        # gate has been skipping Cloudflare deploys, so the deploy-time
+        # wrangler bundle (apps/app/api/index.ts) was never verified.
         run: pnpm --filter @docita/app run build:cloudflare
 
+      - name: Smoke-bundle Hono worker (wrangler dry-run)
+        # Hard gate on the worker bundle: wrangler compiles
+        # apps/app/api/index.ts and fails on build errors, exercising the
+        # same wrangler.toml + tsconfig resolution a real deploy uses —
+        # without Cloudflare credentials (dry-run is API-free). The cap
+        # check below exits 0 if wrangler itself fails (advisory), so this
+        # step is the actual bundle gate.
+        working-directory: apps/app
+        run: pnpm exec wrangler deploy --dry-run --env production
+
       - name: Enforce apps/app worker bundle cap
-        if: github.event_name == 'workflow_dispatch'
-        # The build:cloudflare:base script already runs the check
-        # internally and fails the build on overage. This step is
-        # an explicit re-run so the gate is visible in the CI
-        # workflow summary.
+        # M2: enforce the gzip budget on PRs too (wrangler dry-run + gzip
+        # measurement; fails the build on overage).
         run: pnpm check:worker-size:app
 
   internal-quality:
@@ -290,12 +299,17 @@ jobs:
         run: pnpm --filter @docita/internal run test -- --changed=origin/main
 
       - name: Build internal for Cloudflare
-        if: github.event_name == 'workflow_dispatch'
+        # M2: run on every internal PR, not just dispatch (see the app job
+        # for the RB-13 rationale).
         run: pnpm --filter @docita/internal run build:cloudflare
 
+      - name: Smoke-bundle Hono worker (wrangler dry-run)
+        # Hard gate on the worker bundle (mirrors the app job above).
+        working-directory: apps/internal
+        run: pnpm exec wrangler deploy --dry-run --env production
+
       - name: Enforce apps/internal worker bundle cap
-        if: github.event_name == 'workflow_dispatch'
-        # Mirrors the apps/app gate above.
+        # M2: enforce the gzip budget on PRs too (mirrors the app gate).
         run: pnpm check:worker-size:internal
 
   landing-quality:
