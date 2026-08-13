@@ -7,6 +7,36 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@workspace/types": [
+        "../../packages/types/src/index"
+      ],
+      "@workspace/types/*": [
+        "../../packages/types/src/*"
+      ],
+      "@workspace/ui": [
+        "../../packages/ui/src/index"
+      ],
+      "@workspace/ui/*": [
+        "../../packages/ui/src/*"
+      ],
+      "@workspace/utils": [
+        "../../packages/utils/src/index"
+      ],
+      "@workspace/utils/*": [
+        "../../packages/utils/src/*"
+      ],
+      "@workspace/hooks": [
+        "../../packages/hooks/src/index"
+      ],
+      "@workspace/hooks/*": [
+        "../../packages/hooks/src/*"
+      ],
+      "@workspace/data-access": [
+        "../../packages/data-access/src/index"
+      ],
+      "@workspace/data-access/*": [
+        "../../packages/data-access/src/*"
       ]
     },
     "types": [

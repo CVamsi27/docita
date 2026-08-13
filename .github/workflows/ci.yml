@@ -348,6 +348,15 @@ jobs:
       - name: Typecheck landing
         run: pnpm --filter @docita/landing run check-types
 
+      - name: Build landing
+        # R1: the astro build was never exercised in CI (landing-quality ran
+        # lint + check-types only, and the RB-13 credential gate skips
+        # deploy-landing), so an unresolvable @workspace/* import in
+        # contact-inquiry-form.tsx shipped 2026-08-09 with no signal. The
+        # prebuild (build:web-workspace-deps) provisions the workspace dists
+        # first, so this step also validates the clean-checkout build path.
+        run: pnpm --filter @docita/landing run build
+
   worker-quality:
     name: Worker Unit Checks
     needs: changes
