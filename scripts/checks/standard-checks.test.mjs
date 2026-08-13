@@ -238,6 +238,7 @@ test("standard gate wiring check requires all mandatory standards checks", () =>
     "check:api-conformance",
     "check:route-shadowing",
     "check:openai-client-singleton",
+    "check:workflow-staleness",
   ];
   expectFail(
     runCheck(

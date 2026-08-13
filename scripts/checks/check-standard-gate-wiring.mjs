@@ -23,6 +23,7 @@ const requiredChecks = [
   "check:api-conformance",
   "check:route-shadowing",
   "check:openai-client-singleton",
+  "check:workflow-staleness",
 ];
 
 const violations = requiredChecks
