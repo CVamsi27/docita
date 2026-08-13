@@ -104,11 +104,12 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
+        # The root postinstall already runs `pnpm db:generate`, so no
+        # separate Prisma generate step is needed here.
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma Client
-        run: pnpm db:generate
-
+      # The API tsconfig resolves @workspace/* via node_modules package
+      # exports -> dist (no path aliases), so check-types needs these built.
       - name: Build API workspace dependencies
         run: |
           pnpm --filter @workspace/types run build
@@ -179,9 +180,8 @@ jobs:
           node-version: 22.22.0
           cache: "pnpm"
       - name: Install dependencies
+        # Root postinstall already runs `pnpm db:generate`.
         run: pnpm install --frozen-lockfile
-      - name: Generate Prisma Client
-        run: pnpm db:generate
       - name: Run Database Migrations
         env:
           DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
@@ -220,10 +220,10 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
+        # app tsconfig/vite resolve @workspace/* to package src directly, so
+        # no workspace build step is needed for lint/typecheck/tests. The
+        # Cloudflare build step below uses the same vite src aliases.
         run: pnpm install --frozen-lockfile
-
-      - name: Build app workspace dependencies
-        run: pnpm run build:web-workspace-deps
 
       - name: Lint app
         run: pnpm --filter @docita/app run lint
@@ -269,15 +269,9 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
+        # internal tsconfig/vite resolve @workspace/* to package src directly,
+        # so no workspace build step is needed for lint/typecheck/tests.
         run: pnpm install --frozen-lockfile
-
-      - name: Build internal workspace dependencies
-        run: |
-          pnpm --filter @workspace/types run build
-          pnpm --filter @workspace/utils run build
-          pnpm --filter @workspace/hooks run build
-          pnpm --filter @workspace/ui run build
-          pnpm --filter @workspace/data-access run build
 
       - name: Lint internal
         run: pnpm --filter @docita/internal run lint
@@ -356,17 +350,10 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
+        # Root postinstall already runs `pnpm db:generate` (no live DB needed
+        # for generate), so the previous DATABASE_URL-gated generate step is
+        # redundant and removed.
         run: pnpm install --frozen-lockfile
-
-      - name: Generate Prisma Client
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -z "$DATABASE_URL" ]; then
-            echo "DATABASE_URL secret is required."
-            exit 1
-          fi
-          pnpm --filter @workspace/db run db:generate
 
       - name: Lint worker package
         run: pnpm --filter @docita/worker run lint

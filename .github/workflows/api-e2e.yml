@@ -61,9 +61,8 @@ jobs:
           node-version: 22.22.0
           cache: "pnpm"
       - name: Install dependencies
+        # Root postinstall already runs `pnpm db:generate`.
         run: pnpm install --frozen-lockfile
-      - name: Generate Prisma Client
-        run: pnpm db:generate
       - name: Run Database Migrations
         env:
           DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
