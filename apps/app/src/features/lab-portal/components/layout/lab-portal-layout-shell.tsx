@@ -1,5 +1,5 @@
 import { useLocation } from "react-router";
-import { AuthProvider } from "@/lib/auth/auth-context";
+import { AuthProvider } from "@/lib/auth/auth-provider";
 import { LabAuthGuard } from "@/features/lab-portal/components/auth/lab-auth-guard";
 
 export function LabPortalLayoutShell({ children }: { children: React.ReactNode }) {

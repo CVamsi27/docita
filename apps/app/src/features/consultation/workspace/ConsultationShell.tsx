@@ -3,7 +3,7 @@ import { useLocalStorage } from "@workspace/hooks";
 import { type Appointment, type PatientWithMedicalHistory } from "@workspace/types";
 import { resolveClinicTypeFeatures } from "@/features/consultation/lib/resolve-clinic-type-features";
 import { CommandPalette } from "@/features/consultation/workspace/chrome/CommandPalette";
-import { ConsultationWorkspaceProvider } from "@/features/consultation/workspace/consultation-workspace-context";
+import { ConsultationWorkspaceProvider } from "@/features/consultation/workspace/consultation-workspace-provider";
 import { useConsultationShell } from "@/features/consultation/workspace/shell/use-consultation-shell";
 import { ConsultationLeftRail } from "@/features/consultation/workspace/shell/ConsultationLeftRail";
 import { ConsultationMainPanel } from "@/features/consultation/workspace/shell/ConsultationMainPanel";

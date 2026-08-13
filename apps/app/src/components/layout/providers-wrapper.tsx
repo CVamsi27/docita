@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ClinicProvider } from "@/lib/contexts/clinic-context";
+import { ClinicProvider } from "@/lib/contexts/clinic-provider";
 
 interface ProvidersWrapperProps {
   children: ReactNode;

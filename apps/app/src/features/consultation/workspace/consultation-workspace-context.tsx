@@ -1,29 +1,17 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext } from "react";
 import type { ClinicTypeFeatures } from "@workspace/types";
 import type {
   ConsultationSection,
   ConsultationWorkspaceSectionId,
 } from "@/features/consultation/workspace/consultation-section-registry";
 
-interface ConsultationWorkspaceContextValue {
+export interface ConsultationWorkspaceContextValue {
   clinicFeatures: ClinicTypeFeatures;
   sections: ConsultationSection[];
 }
 
-const ConsultationWorkspaceContext =
+export const ConsultationWorkspaceContext =
   createContext<ConsultationWorkspaceContextValue | null>(null);
-
-export function ConsultationWorkspaceProvider({
-  clinicFeatures,
-  sections,
-  children,
-}: ConsultationWorkspaceContextValue & { children: ReactNode }) {
-  return (
-    <ConsultationWorkspaceContext.Provider value={{ clinicFeatures, sections }}>
-      {children}
-    </ConsultationWorkspaceContext.Provider>
-  );
-}
 
 export function useConsultationWorkspace(): ConsultationWorkspaceContextValue {
   const ctx = useContext(ConsultationWorkspaceContext);
