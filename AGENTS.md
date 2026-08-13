@@ -29,7 +29,7 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 > `apps/internal` (formerly `apps/app-vite` / `apps/internal-vite`; renamed
 > 2026-08-06, package names `@docita/app` / `@docita/internal`). All frontend
 > work lands in `apps/app` / `apps/internal` per
-> [`docs/PORTING_PLAN_APP_VITE.md`](docs/PORTING_PLAN_APP_VITE.md).
+> [ADR 0012](docs/architecture/decisions/0012-replace-nextjs-with-vite-spa.md).
 - Shared packages:
   - `packages/types` (Zod schemas, source of truth)
   - `packages/data-access` (API clients + React Query)
@@ -808,7 +808,7 @@ These rules complement the sections above; they apply to every change set regard
 
 - One change set = one concern: a feature, a bug, or a refactor — never mixed. A PR that fixes a bug while refactoring unrelated code, or ports a feature while renaming shared modules, is returned to the author.
 - Refactors that touch more than a few files beyond the change's surface belong in their own PR (and count against the §11.3 branch cap like any other PR).
-- The porting migration is the single documented exception: it lands as one coherent branch/PR series per [`docs/PORTING_PLAN_APP_VITE.md`](docs/PORTING_PLAN_APP_VITE.md), but individual commits inside it still stay focused per surface.
+- The porting migration is the single documented exception: it lands as one coherent branch/PR series per [ADR 0012](docs/architecture/decisions/0012-replace-nextjs-with-vite-spa.md), but individual commits inside it still stay focused per surface.
 
 ### 16.4 Production incidents: revert-first
 
