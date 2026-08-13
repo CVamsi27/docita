@@ -11,7 +11,7 @@ import { SocketProvider } from "@/lib/socket";
 import { initializeSentryClient } from "@/lib/monitoring/sentry.client.config";
 import { installGlobalErrorHandler } from "@/lib/monitoring/client-error-reporter";
 import { installWebVitalsReporter } from "@/lib/monitoring/web-vitals";
-import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
+import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary";
 import { PwaRegister } from "@/components/pwa/pwa-register";
 import { I18nProvider } from "@/i18n/provider";
 import App from "./App";
@@ -37,9 +37,9 @@ createRoot(rootElement).render(
                 <I18nProvider>
                   <AppProviders>
                     <SocketProvider>
-                      <ErrorBoundaryWrapper>
+                      <ErrorBoundary>
                         <App />
-                      </ErrorBoundaryWrapper>
+                      </ErrorBoundary>
                       <PwaRegister />
                     </SocketProvider>
                   </AppProviders>
