@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppPageScaffold, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, PageHeader } from "@workspace/ui/components";
-import { Activity, Calendar, DollarSign, Download, TrendingUp, Users } from "lucide-react";
+import { Calendar, Download } from "lucide-react";
 import { toast } from "sonner";
 import type { InternalAnalyticsData, InternalBillingMetrics } from "@workspace/data-access/internal";
 import { downloadInternalAnalyticsExport } from "@workspace/data-access/internal";
 import { API_URL } from "@/lib/api/api-config";
 import { internalSession } from "@/lib/auth/session";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { formatCurrency, formatCompactCurrency } from "@/lib/formatters";
+import { formatCurrency } from "@/lib/formatters";
 import { apiGet } from "@/lib/api/api-client";
 import { BillingOverviewCards } from "../components/analytics-billing-cards";
 import { MetricCardsGrid } from "../components/analytics-metric-cards";
+import { buildMetrics } from "../lib/analytics-helpers";
 
 type Period = "daily" | "weekly" | "monthly";
 
@@ -21,55 +22,6 @@ const PERIOD_LABELS: Record<Period, string> = {
 };
 
 const PERIODS: Period[] = ["daily", "weekly", "monthly"];
-
-function formatChange(value: number | undefined | null): string | undefined {
-  if (!value) return undefined;
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
-
-function resolveTrend(value: number | undefined | null): "up" | "down" | "neutral" {
-  if (!value) return "neutral";
-  return value > 0 ? "up" : "down";
-}
-
-function buildMetrics(data: InternalAnalyticsData | null) {
-  const icons = {
-    revenue: <DollarSign className="h-6 w-6" />,
-    appointments: <Activity className="h-6 w-6" />,
-    patients: <Users className="h-6 w-6" />,
-    invoice: <TrendingUp className="h-6 w-6" />,
-  };
-  return [
-    {
-      title: "Total Revenue",
-      value: data ? formatCompactCurrency(data.revenue || 0) : formatCompactCurrency(0),
-      change: formatChange(data?.revenueChange),
-      trend: resolveTrend(data?.revenueChange),
-      icon: icons.revenue,
-    },
-    {
-      title: "Appointments",
-      value: String(data?.appointments || 0),
-      change: formatChange(data?.appointmentsChange),
-      trend: resolveTrend(data?.appointmentsChange),
-      icon: icons.appointments,
-    },
-    {
-      title: "New Patients",
-      value: String(data?.newPatients || 0),
-      change: formatChange(data?.patientsChange),
-      trend: resolveTrend(data?.patientsChange),
-      icon: icons.patients,
-    },
-    {
-      title: "Avg Invoice Value",
-      value: data ? formatCurrency(data.avgInvoiceValue || 0) : formatCurrency(0),
-      change: formatChange(data?.invoiceValueChange),
-      trend: resolveTrend(data?.invoiceValueChange),
-      icon: icons.invoice,
-    },
-  ];
-}
 
 export function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>("monthly");
