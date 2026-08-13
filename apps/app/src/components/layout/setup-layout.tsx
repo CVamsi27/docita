@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 import { Helmet } from "react-helmet-async";
-import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
+import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary";
 
 export function SetupLayout() {
   return (
@@ -8,9 +8,9 @@ export function SetupLayout() {
       <Helmet>
         <title>Setup - Docita</title>
       </Helmet>
-      <ErrorBoundaryWrapper>
+      <ErrorBoundary>
         <Outlet />
-      </ErrorBoundaryWrapper>
+      </ErrorBoundary>
     </>
   );
 }

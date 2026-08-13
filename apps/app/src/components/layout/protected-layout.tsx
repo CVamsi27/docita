@@ -7,7 +7,7 @@ import { TopBarActions } from "@/components/layout/top-bar-actions";
 import { openCommandPaletteFromUi } from "@/components/layout/command-palette-launcher";
 import { Button, ResizableHandle, ResizablePanel, ResizablePanelGroup, SymbolTooltip } from "@workspace/ui/components";
 import type { ImperativePanelHandle } from "@workspace/ui/components/layout/resizable";
-import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
+import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { ChevronLeft, ChevronRight, Command } from "lucide-react";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
@@ -54,7 +54,7 @@ function ProtectedMainArea({ isConsultationDetailRoute }: { isConsultationDetail
   return (
     <>
       <main id="main-content" className={`${mainClassName} animate-fade-up`} aria-label="Main content">
-        <ErrorBoundaryWrapper><Outlet /></ErrorBoundaryWrapper>
+        <ErrorBoundary><Outlet /></ErrorBoundary>
       </main>
     </>
   );

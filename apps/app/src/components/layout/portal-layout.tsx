@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 import { Helmet } from "react-helmet-async";
-import { ErrorBoundaryWrapper } from "@/components/errors/error-boundary";
+import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary";
 import { PortalLayoutShell } from "@/features/patient-portal/components/layout/portal-layout-shell";
 
 export function PortalLayout() {
@@ -10,9 +10,9 @@ export function PortalLayout() {
         <title>Patient Portal - Docita</title>
       </Helmet>
       <PortalLayoutShell>
-        <ErrorBoundaryWrapper>
+        <ErrorBoundary>
           <Outlet />
-        </ErrorBoundaryWrapper>
+        </ErrorBoundary>
       </PortalLayoutShell>
     </>
   );
