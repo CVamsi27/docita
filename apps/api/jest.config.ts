@@ -18,6 +18,7 @@ const config: Config = {
     'src/domains/dashboard/application/services/dashboard.service.ts',
     'src/domains/billing/core/utils/invoice-item-resolution.ts',
     'src/domains/appointments/application/types/appointment-access-context.ts',
+    'src/domains/public-booking/application/services/**/*.ts',
     'src/shared/common/prisma/active-user.filter.ts',
     'src/shared/modules/auth/auth/{auth.service.ts,clinic-auth-cache.service.ts,jwt.strategy.ts}',
     'src/shared/modules/auth/guards/{roles.guard.ts}',
