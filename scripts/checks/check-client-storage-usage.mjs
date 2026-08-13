@@ -54,9 +54,9 @@ const ALLOWLIST = new Set([
   "apps/app/src/lib/auth/e2e-session-token.ts",
   "apps/app/src/lib/auth/login-lockout-storage.ts",
   "apps/app/src/lib/auth/safe-return-path.ts",
-  "apps/app/src/lib/contexts/clinic-context.tsx",
+  "apps/app/src/lib/contexts/clinic-provider.tsx", // selectedClinicId persistence (moved from clinic-context.tsx in the react-refresh split)
   "apps/app/src/lib/monitoring/sentry.client.config.ts",
-  "apps/internal/src/lib/auth/auth.tsx",
+  "apps/internal/src/lib/auth/auth-provider.tsx", // internal session/token storage (moved from auth.tsx in the react-refresh split)
   "apps/internal/src/lib/auth/use-auth-session.ts",
 ]);
 
