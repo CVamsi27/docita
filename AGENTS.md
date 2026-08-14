@@ -409,7 +409,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 
 - **`main`** is the **canonical branch** for production-bound code. All releases are cut from here (tags or deploy from `main`).
 - **`staging` is a PR-protected branch, not an automated mirror of `main`.** No `main` → `staging` sync automation exists in this repo: no workflow under `.github/workflows/` and no script under `scripts/` moves the `staging` ref. The active **Staging ruleset** (enforcement `active`, targets `refs/heads/staging`) requires `pull_request` and blocks `creation`, `deletion`, and `non_fast_forward` pushes, so `staging` can only change through a **pull request into `staging`**.
-- **`staging` has drifted from `main`** (as of 2026-08-12: `origin/staging` at `80e8e01ef`, 746 commits ahead of and 4 behind `main`). It is **not** an integration line, and the staging environment does **not** currently validate the same code as `main` — verify the branch tip before drawing conclusions from staging results.
+- **`staging` drifted from `main`** (2026-08-12: `origin/staging` at `80e8e01ef`, 746 commits ahead of and 4 behind `main` — the frozen pre-cutover codebase) and was **mirrored back onto main's tree on 2026-08-14** via PR #253 (`origin/staging` at `7f866d94c`; `git diff origin/staging origin/main` is empty). Staging remains **not** an integration line — verify the branch tip before drawing conclusions from staging results.
 
 ### Never commit on `main` or `staging`
 
