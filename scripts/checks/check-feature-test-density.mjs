@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Θ1/Θ2/Θ4: each app feature folder should include at least one colocated test (ratchet allowlist).
+ * Ratchet: each app feature folder must include at least one colocated test.
  *
  * Scans apps/app and apps/internal feature folders. A feature without a
  * colocated .test/.spec file is a finding unless it is listed in that app's
@@ -17,7 +17,6 @@ const TEST_FILE_RE = /\.(spec|test)\.(ts|tsx)$/;
 
 const APP_CONFIGS = [
   {
-    label: "apps/app/src/features",
     dir: path.join(process.cwd(), "apps/app/src/features"),
     allowlistPath: path.join(
       process.cwd(),
@@ -25,7 +24,6 @@ const APP_CONFIGS = [
     ),
   },
   {
-    label: "apps/internal/src/features",
     dir: path.join(process.cwd(), "apps/internal/src/features"),
     allowlistPath: path.join(
       process.cwd(),
@@ -58,8 +56,9 @@ for (const config of APP_CONFIGS) {
 
     const featureDir = path.join(config.dir, entry.name);
     if (!walkForTests(featureDir)) {
+      const relDir = path.relative(process.cwd(), config.dir);
       findings.push(
-        `${config.label}/${entry.name}: no .test/.spec files (add tests or remove allowlist entry)`,
+        `${relDir}/${entry.name}: no .test/.spec files (add tests or remove allowlist entry)`,
       );
     }
   }
