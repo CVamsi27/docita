@@ -9,6 +9,7 @@ import { installGlobalErrorHandler } from "@/lib/monitoring/client-error-reporte
 import { installWebVitalsReporter } from "@/lib/monitoring/web-vitals";
 import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary";
 import { DialogStackProvider } from "@workspace/ui/components/overlay/dialog-stack";
+import { ThemeProvider } from "@/components/layout/theme-provider";
 import { logger } from "@/lib/monitoring/logger";
 import { AuthProvider } from "@/lib/auth/auth-provider";
 import "@workspace/ui/styles/globals.css";
@@ -38,18 +39,20 @@ createRoot(rootElement).render(
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <AuthProvider>
-            <DialogStackProvider>
-              <ErrorBoundary
-                onError={(error, info) => {
-                  logger.error("ErrorBoundary caught", { error, info });
-                }}
-              >
-                <App />
-              </ErrorBoundary>
-              <ToasterWrapper />
-            </DialogStackProvider>
-          </AuthProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <DialogStackProvider>
+                <ErrorBoundary
+                  onError={(error, info) => {
+                    logger.error("ErrorBoundary caught", { error, info });
+                  }}
+                >
+                  <App />
+                </ErrorBoundary>
+                <ToasterWrapper />
+              </DialogStackProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
