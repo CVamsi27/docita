@@ -12,3 +12,15 @@ process.env.TZ = "UTC";
 if (typeof Element !== "undefined" && !Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
 }
+
+// Radix primitives (e.g. Select popovers) measure layout with ResizeObserver,
+// which jsdom does not implement. Provide a no-op global. Mirrors
+// apps/app/vitest.setup.ts.
+if (typeof globalThis.ResizeObserver === "undefined") {
+  class ResizeObserverMock {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver;
+}
