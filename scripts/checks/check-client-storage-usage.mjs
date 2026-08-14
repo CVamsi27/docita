@@ -58,6 +58,7 @@ const ALLOWLIST = new Set([
   "apps/app/src/lib/monitoring/sentry.client.config.ts",
   "apps/internal/src/lib/auth/auth-provider.tsx", // internal session/token storage (moved from auth.tsx in the react-refresh split)
   "apps/internal/src/lib/auth/use-auth-session.ts",
+  "apps/internal/src/components/layout/theme-provider.tsx", // theme preference (docita-internal-theme, legacy docita-theme migration), no PHI — same class as the app's appearance-store persist
 ]);
 
 const TEST_FILE_RE = /\.(?:spec|test)\.[jt]sx?$/;

@@ -24,6 +24,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components";
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
+import { useAppTheme } from "@/components/layout/theme-context";
 
 const navItems = [
   { section: "Overview", items: [
@@ -60,6 +62,7 @@ export function ProtectedLayout() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { logout } = useAuth();
+  const { resolvedTheme, setTheme } = useAppTheme();
 
   return (
     <>
@@ -110,7 +113,15 @@ export function ProtectedLayout() {
             </div>
           ))}
         </nav>
-        <div className="border-t p-2">
+        <div className="border-t p-2 space-y-1">
+          <div className="flex items-center gap-1 px-1">
+            <ThemeToggle
+              resolvedTheme={resolvedTheme}
+              onToggle={() =>
+                setTheme(resolvedTheme === "dark" ? "light" : "dark")
+              }
+            />
+          </div>
           <Button
             type="button"
             variant="ghost"
