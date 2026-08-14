@@ -408,13 +408,13 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 ### Roles
 
 - **`main`** is the **canonical branch** for production-bound code. All releases are cut from here (tags or deploy from `main`).
-- **`staging` is a replica of `main`**: the **same tree** (identical files at the branch tip) as `main`. It is **not** an integration line. The staging environment exists to validate **the same code that is on `main`**.
-- **All feature/hotfix work lands in `main` via pull request.** After merge, automation **fast-forwards** `staging` to the exact `main` commit so `staging` continuously mirrors `main` (no sync PRs).
+- **`staging` is a PR-protected branch, not an automated mirror of `main`.** No `main` → `staging` sync automation exists in this repo: no workflow under `.github/workflows/` and no script under `scripts/` moves the `staging` ref. The active **Staging ruleset** (enforcement `active`, targets `refs/heads/staging`) requires `pull_request` and blocks `creation`, `deletion`, and `non_fast_forward` pushes, so `staging` can only change through a **pull request into `staging`**.
+- **`staging` has drifted from `main`** (as of 2026-08-12: `origin/staging` at `80e8e01ef`, 746 commits ahead of and 4 behind `main`). It is **not** an integration line, and the staging environment does **not** currently validate the same code as `main` — verify the branch tip before drawing conclusions from staging results.
 
 ### Never commit on `main` or `staging`
 
 - Do **not** commit, cherry-pick, or push directly on `main` or `staging`.
-- Do **not** use `staging` as a place to land work. `staging` exists only as an automated mirror of `main`.
+- Do **not** use `staging` as a place to land work. `staging` changes only via PR into `staging` (ruleset-protected; no sync automation exists).
 
 ### Start every change from `main`
 
@@ -427,19 +427,19 @@ Open a **pull request into `main`**. Consolidation or umbrella branches must sti
 
 ### Staging environment
 
-- After merges to `main`, automation keeps `staging` in sync by moving the `staging` branch ref to the exact `main` commit.
-- Validate the staging environment against `staging` knowing it should match `main` (barring sync lag or blocked required checks).
+- To mirror `main` onto `staging`, open a PR into `staging` (the ruleset forbids direct pushes and blocks `non_fast_forward`, so no fast-forward automation can bypass the `pull_request` rule). Keep such PRs to pure fast-forwards of `main` so `staging` never becomes an integration line.
+- Validate the staging environment against `staging` knowing its tip may lag or diverge from `main`; compare `git rev-parse origin/staging` with `origin/main` before trusting staging results.
 
 ### Hotfixes
 
-Use a branch from **up-to-date `main`**, merge via PR **into `main`**, and let the `main` → `staging` sync automation update staging.
+Use a branch from **up-to-date `main`**, merge via PR **into `main`**, then update `staging` with a fast-forward PR into `staging` (no sync automation exists).
 
 ### Concurrent branch / PR cap (mandatory)
 
 Keep the repository lean. At any moment, the remote must contain **at most**:
 
 - `main` (canonical)
-- `staging` (automated mirror of `main`)
+- `staging` (PR-protected; updated via PR into `staging` — no sync automation)
 - **two** in-flight feature/hotfix branches with open pull requests
 
 Rules:
