@@ -14,6 +14,38 @@
     <link rel="preconnect" href="https://api.docita.work" crossorigin="anonymous" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Nunito:wght@500;600;700&display=swap" rel="stylesheet" />
     <title>Docita - Healthcare OS</title>
+    <script>
+      // Apply persisted appearance before first paint to avoid a flash of the
+      // wrong theme. Mirrors applyThemeToDOM in theme-provider.tsx; keep both
+      // in sync when the appearance model changes.
+      (function () {
+        try {
+          var raw = localStorage.getItem("docita-appearance");
+          if (!raw) return;
+          var parsed = JSON.parse(raw);
+          var state = parsed.state || {};
+          var theme = state.theme || "system";
+          var primaryColor = state.primaryColor || "blue";
+          var compactMode = state.compactMode === true;
+          var dark =
+            theme === "dark" ||
+            (theme === "system" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var root = document.documentElement;
+          root.classList.toggle("dark", dark);
+          root.setAttribute("data-theme", dark ? "dark" : "light");
+          if (primaryColor && primaryColor !== "blue") {
+            root.setAttribute("data-accent", primaryColor);
+          } else {
+            root.removeAttribute("data-accent");
+          }
+          root.setAttribute(
+            "data-density",
+            compactMode ? "compact" : "comfortable",
+          );
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body class="app-shell-bg font-sans bg-background text-foreground antialiased overflow-x-hidden">
     <div id="root"></div>
