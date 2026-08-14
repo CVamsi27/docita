@@ -53,9 +53,10 @@ export type AnalyticsPeriod = z.infer<typeof AnalyticsPeriod>;
 export type AnalyticsGroupBy = z.infer<typeof AnalyticsGroupBy>;
 
 export type DiseaseTrend = z.infer<typeof DiseaseTrendSchema> & {
-  disease?: string; 
-  count?: number; 
-  percentage?: number; 
+  disease?: string;
+  count?: number;
+  percentage?: number;
+  icdCode?: { code: string; description: string; category: string };
 };
 
 export type AnalyticsOverview = z.infer<typeof OverviewStatsSchema> & {

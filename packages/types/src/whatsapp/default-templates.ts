@@ -10,6 +10,8 @@ export const whatsappDefaultTemplateCategorySchema = z.enum([
   'MARKETING',
   'STAFF_NOTIFICATION',
   'AUTHENTICATION',
+  'ONBOARDING',
+  'PARTNER',
 ]);
 
 export const whatsappDefaultTemplateVariableSchema = z.object({
@@ -55,6 +57,13 @@ export const whatsappDefaultTemplateButtonTypeSchema = z.enum([
   'NONE',
 ]);
 
+export const whatsappDefaultTemplateHeaderTypeSchema = z.enum([
+  'NONE',
+  'DOCUMENT',
+  'IMAGE',
+  'VIDEO',
+]);
+
 export const whatsappDefaultTemplateDefinitionSchema = z.object({
   name: z.string(),
   category: whatsappDefaultTemplateCategorySchema,
@@ -64,6 +73,16 @@ export const whatsappDefaultTemplateDefinitionSchema = z.object({
   buttons: z.array(whatsappDefaultTemplateButtonSchema).optional(),
   /** Named variable sent as the dynamic suffix for a Meta URL button (not a body placeholder). */
   buttonUrlVariable: z.string().optional(),
+  /**
+   * Header type for templates that carry a document/image/video attachment
+   * (e.g. `partner_welcome_v1` ships a 1-page showcase PDF as the header
+   * document). Defaults to `NONE` so existing template entries don't need
+   * a touch.
+   */
+  headerType: whatsappDefaultTemplateHeaderTypeSchema.optional(),
+  /** Required when `headerType` is `DOCUMENT` / `IMAGE` / `VIDEO` — the
+   *  filename the recipient sees. URL is supplied at send time. */
+  headerDocumentFilename: z.string().optional(),
   textFallback: z.string(),
 });
 
@@ -80,6 +99,9 @@ export type WhatsAppDefaultTemplateVariable = z.infer<
 >;
 export type WhatsAppDefaultTemplateButton = z.infer<
   typeof whatsappDefaultTemplateButtonSchema
+>;
+export type WhatsAppDefaultTemplateHeaderType = z.infer<
+  typeof whatsappDefaultTemplateHeaderTypeSchema
 >;
 export type WhatsAppDefaultTemplateDefinition = z.infer<
   typeof whatsappDefaultTemplateDefinitionSchema

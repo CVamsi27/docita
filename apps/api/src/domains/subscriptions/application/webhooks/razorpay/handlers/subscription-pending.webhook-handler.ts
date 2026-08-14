@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   ISubscriptionRepository,
@@ -14,6 +14,7 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 @Injectable()
 export class SubscriptionPendingWebhookHandler implements RazorpayWebhookEventHandler {
   readonly event = 'subscription.pending';
+  private readonly logger = new Logger(SubscriptionPendingWebhookHandler.name);
 
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
@@ -38,7 +39,15 @@ export class SubscriptionPendingWebhookHandler implements RazorpayWebhookEventHa
       try {
         subscription.enterPastDue(graceUntil, now);
         await this.subscriptionRepo.save(subscription);
-      } catch {
+      } catch (error) {
+        // Domain save failed (e.g. optimistic concurrency, version
+        // mismatch). Fall back to a raw status flip so the clinic still
+        // gets the past-due signal — but log the original cause so
+        // Sentry / log search can flag the underlying issue.
+        this.logger.error(
+          `Domain save for past-due transition failed for clinic ${clinicId}; falling back to markClinicPastDue`,
+          error instanceof Error ? error.stack : String(error),
+        );
         await this.subscriptionRepo.markClinicPastDue(clinicId, graceUntil);
       }
 

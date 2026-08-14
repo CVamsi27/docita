@@ -78,6 +78,18 @@ export interface IMedicationDoseRepository {
     where: Prisma.MedicationDoseWhereInput,
   ): Promise<DoseAdherenceStat[]>;
 
+  /**
+   * Batched adherence lookup: one round-trip returns a row per
+   * (medicationId, status) tuple for the matching filter, so the caller
+   * can compute per-medication adherence in a single pass instead of
+   * firing one groupBy per medication. See
+   * `medication-dose-query.service.getActiveMedications` for the use
+   * case (was previously an O(meds) N+1 on patient-snapshot loads).
+   */
+  groupDosesByMedicationAndStatus(
+    where: Prisma.MedicationDoseWhereInput,
+  ): Promise<Array<{ medicationId: string; status: string; count: number }>>;
+
   createManyDoses(
     data: Array<Prisma.MedicationDoseUncheckedCreateInput>,
   ): Promise<{ count: number }>;

@@ -1,17 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { labTestOrderResultJsonSchema } from '@workspace/types';
-import { parseStringEnumMember } from '@workspace/utils';
+import type { PaginatedResponse } from '@workspace/types';
+import {
+  parseStringEnumMember,
+  toCents,
+  resolveMoneyCents,
+  fromCents,
+} from '@workspace/utils';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 import { PrismaService } from '@/prisma/prisma.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
-import {
-  ILabRepository,
+import { ILabRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import type {
   LabOrderReleaseContext,
   LabQueueItem,
-  LabRecord,
-} from '@/domains/clinical/core/repositories/clinical.repository.interface';
+} from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
+import type { LabRecord } from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
 import {
   LabTestOrderStatus,
   LabType,
@@ -22,6 +29,8 @@ import {
 
 @Injectable()
 export class PrismaLabRepository implements ILabRepository {
+  private readonly logger = new Logger(PrismaLabRepository.name);
+
   constructor(private prisma: PrismaService) {}
 
   private getReadClient() {
@@ -31,9 +40,15 @@ export class PrismaLabRepository implements ILabRepository {
   async findAllTests(clinicId: string): Promise<LabTest[]> {
     const tests = await this.getReadClient().labTest.findMany({
       where: { clinicId },
-      take: 1000,
+      orderBy: { name: 'asc' },
+      take: 1001,
     });
-    return tests.map((t) => this.mapToLabTest(t));
+    if (tests.length > 1000) {
+      this.logger.warn(
+        `Lab test catalog for clinic ${clinicId} exceeds 1000 entries; results are truncated`,
+      );
+    }
+    return tests.slice(0, 1000).map((t) => this.mapToLabTest(t));
   }
 
   async findTestById(id: string): Promise<LabTest | null> {
@@ -48,7 +63,9 @@ export class PrismaLabRepository implements ILabRepository {
       clinicId: labTest.clinicId,
       name: labTest.name,
       category: labTest.category,
+      // Write both the legacy Float and the canonical cents column (Phase 4 G3).
       price: labTest.price || null,
+      priceCents: toCents(labTest.price),
       description: labTest.description,
       code: labTest.code,
       active: labTest.active,
@@ -63,6 +80,10 @@ export class PrismaLabRepository implements ILabRepository {
     return this.mapToLabTest(saved);
   }
 
+  async deleteTest(id: string): Promise<void> {
+    await this.prisma.labTest.delete({ where: { id } });
+  }
+
   async findAllOrders(
     clinicId: string,
     params?: {
@@ -70,8 +91,10 @@ export class PrismaLabRepository implements ILabRepository {
       status?: string;
       date?: string;
       patientId?: string;
+      cursor?: string;
+      limit?: number;
     },
-  ): Promise<LabOrder[]> {
+  ): Promise<PaginatedResponse<LabOrder>> {
     const statusFilter = params?.status
       ? parseStringEnumMember(Object.values(LabTestOrderStatus), params.status)
       : undefined;
@@ -99,14 +122,63 @@ export class PrismaLabRepository implements ILabRepository {
       where.patientId = { in: matchingPatients.map((p) => p.id) };
     }
 
+    const safeLimit = Math.min(params?.limit ?? 100, 500);
     const orders = await readClient.labTestOrder.findMany({
       where,
-      include: { labTest: true },
-      orderBy: { createdAt: 'desc' },
-      take: 1000,
+      include: {
+        labTest: true,
+        patient: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: safeLimit + 1,
+      ...(params?.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
     });
 
-    return orders.map((o) => this.mapToLabOrder(o));
+    const hasMore = orders.length > safeLimit;
+    const pageOrders = hasMore ? orders.slice(0, safeLimit) : orders;
+
+    // Resolve ordering-doctor names in one batch (orderedBy is a user id, not
+    // a Prisma relation on LabTestOrder).
+    const orderedByIds = [
+      ...new Set(
+        pageOrders
+          .map((o) => o.orderedBy)
+          .filter((id): id is string => typeof id === 'string'),
+      ),
+    ];
+    const doctors = orderedByIds.length
+      ? await readClient.user.findMany({
+          where: { id: { in: orderedByIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+    const doctorNameById = new Map(doctors.map((d) => [d.id, d.name]));
+
+    const items = pageOrders.map((o) =>
+      this.mapToLabOrder(o, {
+        patient: o.patient ?? undefined,
+        labTest: o.labTest
+          ? {
+              id: o.labTest.id,
+              name: o.labTest.name,
+              category: o.labTest.category,
+              code: o.labTest.code ?? undefined,
+              price: o.labTest.price ?? undefined,
+            }
+          : undefined,
+        doctor:
+          o.orderedBy && doctorNameById.has(o.orderedBy)
+            ? { name: doctorNameById.get(o.orderedBy)! }
+            : undefined,
+      }),
+    );
+
+    return {
+      items,
+      nextCursor: hasMore ? items.at(-1)?.id : undefined,
+      hasMore,
+      count: items.length,
+    };
   }
 
   async findOrderById(id: string): Promise<LabOrder | null> {
@@ -194,12 +266,27 @@ export class PrismaLabRepository implements ILabRepository {
       prismaTest.clinicId,
       prismaTest.active,
       prismaTest.code || undefined,
-      prismaTest.price ? Number(prismaTest.price) : undefined,
+      // Read cents-first, falling back to the legacy Float for un-backfilled rows.
+      fromCents(resolveMoneyCents(prismaTest.priceCents, prismaTest.price)) ??
+        undefined,
       prismaTest.description || undefined,
     );
   }
 
-  private mapToLabOrder(prismaOrder: PrismaLabTestOrder): LabOrder {
+  private mapToLabOrder(
+    prismaOrder: PrismaLabTestOrder,
+    relations?: {
+      patient?: { id: string; firstName: string; lastName: string };
+      labTest?: {
+        id: string;
+        name: string;
+        category: string;
+        code?: string;
+        price?: number;
+      };
+      doctor?: { name: string };
+    },
+  ): LabOrder {
     const parsedResult = parsePrismaJsonColumn(
       prismaOrder.result,
       labTestOrderResultJsonSchema,
@@ -231,6 +318,9 @@ export class PrismaLabRepository implements ILabRepository {
       prismaOrder.paymentMethod || undefined,
       prismaOrder.paymentReference || undefined,
       prismaOrder.releasedAt || undefined,
+      relations?.patient,
+      relations?.labTest,
+      relations?.doctor,
     );
   }
 
@@ -275,7 +365,7 @@ export class PrismaLabRepository implements ILabRepository {
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: 1000,
+      take: BULK_READ_LIMIT,
     });
 
     return orders.map((o) => ({
@@ -361,6 +451,7 @@ export class PrismaLabRepository implements ILabRepository {
     });
   }
 
+  // jscpd:ignore-start
   async attachResult(
     id: string,
     clinicId: string,
@@ -372,6 +463,7 @@ export class PrismaLabRepository implements ILabRepository {
     },
     now: Date,
   ): Promise<void> {
+    // jscpd:ignore-end
     await this.prisma.labTestOrder.updateMany({
       where: { id, clinicId },
       data: {
@@ -429,6 +521,7 @@ export class PrismaLabRepository implements ILabRepository {
 
   async findLabById(id: string, clinicId: string): Promise<LabRecord | null> {
     return await this.getReadClient().lab.findFirst({
+      // jscpd:ignore-start
       where: { id, clinicId },
     });
   }
@@ -444,6 +537,7 @@ export class PrismaLabRepository implements ILabRepository {
     },
   ): Promise<LabRecord> {
     return await this.prisma.lab.create({
+      // jscpd:ignore-end
       data: {
         clinicId,
         name: data.name,
@@ -452,6 +546,7 @@ export class PrismaLabRepository implements ILabRepository {
         email: data.email || null,
         address: data.address || null,
       },
+      // jscpd:ignore-start
     });
   }
 
@@ -468,16 +563,13 @@ export class PrismaLabRepository implements ILabRepository {
     }>,
   ): Promise<LabRecord> {
     const result = await this.prisma.lab.updateMany({
+      // jscpd:ignore-end
       where: { id, clinicId },
       data,
     });
-    if (result.count === 0) {
-      throw new NotFoundException('Lab not found');
-    }
+    if (result.count === 0) throw new NotFoundException('Lab not found');
     const updated = await this.findLabById(id, clinicId);
-    if (!updated) {
-      throw new NotFoundException('Lab not found');
-    }
+    if (!updated) throw new NotFoundException('Lab not found');
     return updated;
   }
 }

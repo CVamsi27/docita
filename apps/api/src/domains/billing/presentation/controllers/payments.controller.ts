@@ -6,6 +6,8 @@ import {
   Param,
   Request,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import {
@@ -53,12 +55,12 @@ export class PaymentsController {
     });
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post(':id/send-whatsapp')
   @RequireFeature(Feature.PAYMENT_LINKS)
   @ZodSerializerDto(AnyResponseDto)
   async sendWhatsApp(@Param('id') id: string, @Request() req: RequestWithUser) {
-    const { clinicId } = getBillingRequestContext(req);
-    await this.paymentsService.verifySessionOwnership(id, clinicId);
+    const clinicId = await this.resolveClinicAndVerify(req, id);
     return this.paymentsService.sendPaymentLinkWhatsApp(id, clinicId);
   }
 
@@ -69,8 +71,16 @@ export class PaymentsController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ) {
-    const { clinicId } = getBillingRequestContext(req);
-    await this.paymentsService.verifySessionOwnership(id, clinicId);
+    const clinicId = await this.resolveClinicAndVerify(req, id);
     return this.paymentsService.getPaymentSession(id, clinicId);
+  }
+
+  private async resolveClinicAndVerify(
+    req: RequestWithUser,
+    sessionId: string,
+  ) {
+    const { clinicId } = getBillingRequestContext(req);
+    await this.paymentsService.verifySessionOwnership(sessionId, clinicId);
+    return clinicId;
   }
 }

@@ -13,6 +13,7 @@ import { OnboardingWorkflowService } from './onboarding-workflow.service';
 import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 import { PAYMENT_GATEWAY_TOKEN } from '@/domains/subscriptions/application/ports';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import {
   beforeEach,
@@ -234,6 +235,9 @@ describe('OnboardingService', () => {
         ) => Promise<{ verified: boolean; amountCents: number }>
       >(),
   };
+  const mockEventEmitter = {
+    emit: jest.fn<(...args: unknown[]) => boolean>().mockReturnValue(true),
+  };
 
   beforeEach(async () => {
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
@@ -258,6 +262,7 @@ describe('OnboardingService', () => {
         },
         { provide: UploadsService, useValue: mockUploadsService },
         { provide: OnboardingPaymentService, useValue: mockPaymentService },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
         { provide: PAYMENT_GATEWAY_TOKEN, useValue: mockPaymentGateway },
         { provide: CLOCK_PORT, useValue: { now: () => new Date() } },
       ],
@@ -541,6 +546,155 @@ describe('OnboardingService', () => {
           billingCycle: BillingCycle.MONTHLY,
         }),
         starterData.paymentDetails,
+      );
+    });
+
+    it('emits CLINIC_ONBOARDED with the referral payload when planSelection.referralCode is present', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
+      const dataWithCode = {
+        ...completeData,
+        planSelection: {
+          ...completeData.planSelection,
+          referralCode: 'WELCOME10',
+        },
+      };
+
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+        },
+      }));
+
+      const result = await service.completeOnboarding(
+        onboardingId,
+        dataWithCode,
+        '127.0.0.1',
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('clinic.onboarded', {
+        clinicId: 'clinic_123',
+        clinicEmail: 'test@clinic.com',
+        referralCode: 'WELCOME10',
+      });
+    });
+
+    it('trims whitespace from the referral code before emitting', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
+      const dataWithCode = {
+        ...completeData,
+        planSelection: {
+          ...completeData.planSelection,
+          referralCode: '  WELCOME10  ',
+        },
+      };
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+        },
+      }));
+
+      await service.completeOnboarding(onboardingId, dataWithCode, '127.0.0.1');
+
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+        'clinic.onboarded',
+        expect.objectContaining({ referralCode: 'WELCOME10' }),
+      );
+    });
+
+    it('skips the CLINIC_ONBOARDED emit when planSelection.referralCode is missing', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+        },
+      }));
+
+      const result = await service.completeOnboarding(
+        onboardingId,
+        completeData,
+        '127.0.0.1',
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('emits even if no listener is registered (in-process bus, no throw)', async () => {
+      // The emit is fire-and-forget from onboarding's POV — if subscriptions
+      // isn't loaded (or its listener throws), onboarding must still succeed.
+      // The non-fatal guarantee is in the listener (ReferralService wraps
+      // captureReferralAtSignup in a try/catch); here we just verify the emit
+      // itself doesn't throw.
+      const { onboardingId } = await service.initializeOnboarding();
+      const dataWithCode = {
+        ...completeData,
+        planSelection: {
+          ...completeData.planSelection,
+          referralCode: 'WELCOME10',
+        },
+      };
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+        },
+      }));
+
+      const result = await service.completeOnboarding(
+        onboardingId,
+        dataWithCode,
+        '127.0.0.1',
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.clinicId).toBe('clinic_123');
+      expect(mockEventEmitter.emit).toHaveBeenCalled();
+    });
+
+    it('passes a null clinicEmail in the payload when clinic details omit one', async () => {
+      const { onboardingId } = await service.initializeOnboarding();
+      const dataNoEmail = {
+        ...completeData,
+        clinicDetails: {
+          ...completeData.clinicDetails,
+          email: '',
+        },
+        planSelection: {
+          ...completeData.planSelection,
+          referralCode: 'WELCOME10',
+        },
+      };
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+        },
+      }));
+
+      await service.completeOnboarding(onboardingId, dataNoEmail, '127.0.0.1');
+
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+        'clinic.onboarded',
+        expect.objectContaining({ clinicEmail: null }),
       );
     });
   });

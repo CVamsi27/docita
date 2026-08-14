@@ -1,0 +1,5 @@
+# SPA fallback is handled natively by wrangler.toml:
+#   [assets] not_found_handling = "single-page-application"
+# Do not add "/*  /index.html  200" here — Cloudflare's _redirects validator
+# rejects that catch-all as an infinite loop (workers-sdk#11824), which
+# blocks every deploy of this Worker.

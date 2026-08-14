@@ -121,6 +121,7 @@ export function useInternalTenantScopeDiagnostics(
   });
 }
 
+// jscpd:ignore-start
 export function useInternalMonitoringWebVitals(
   windowHours = 24,
   options?: Omit<
@@ -180,6 +181,7 @@ export function useInternalMonitoringSecuritySummary(
     ...options,
   });
 }
+// jscpd:ignore-end
 
 export function useInternalMonitoringQueueHealth(
   options?: Omit<

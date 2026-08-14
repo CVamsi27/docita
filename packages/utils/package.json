@@ -2,6 +2,7 @@
   "name": "@workspace/utils",
   "version": "0.0.0",
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,10 +16,20 @@
       "types": "./dist/http/upstream-api-proxy.d.ts",
       "import": "./dist/http/upstream-api-proxy.js",
       "require": "./dist/http/upstream-api-proxy.cjs"
+    },
+    "./http/cloudflare-api-proxy": {
+      "types": "./dist/http/cloudflare-api-proxy.d.ts",
+      "import": "./dist/http/cloudflare-api-proxy.js",
+      "require": "./dist/http/cloudflare-api-proxy.cjs"
+    },
+    "./runtime/esbuild-helper-bootstrap": {
+      "types": "./dist/runtime/esbuild-helper-bootstrap.d.ts",
+      "import": "./dist/runtime/esbuild-helper-bootstrap.js",
+      "require": "./dist/runtime/esbuild-helper-bootstrap.cjs"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/http/upstream-api-proxy.ts --format cjs,esm --dts",
+    "build": "tsup src/index.ts src/http/upstream-api-proxy.ts src/http/cloudflare-api-proxy.ts src/runtime/esbuild-helper-bootstrap.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "lint": "eslint src/",
     "check-types": "tsc --noEmit",
@@ -29,8 +40,10 @@
     "@workspace/typescript-config": "workspace:*",
     "eslint": "^9.17.0",
     "tsup": "^8.0.1",
-    "typescript": "5.7.3",
-    "vitest": "^4.1.8"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10",
+    "@types/node": "^22.14.1",
+    "hono": "^4.7.7"
   },
   "dependencies": {
     "@workspace/types": "workspace:^",
@@ -38,5 +51,13 @@
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "tailwind-merge": "^2.3.0"
+  },
+  "peerDependencies": {
+    "hono": "^4.7.7"
+  },
+  "peerDependenciesMeta": {
+    "hono": {
+      "optional": true
+    }
   }
 }

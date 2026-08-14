@@ -1,6 +1,7 @@
 ---
 import MainLayout from "@/layouts/main-layout.astro";
 import { ContactInquiryForm } from "@/components/contact-inquiry-form";
+import { SUPPORT_EMAIL } from "@workspace/types";
 
 const faqs = [
   {
@@ -61,7 +62,7 @@ const faqs = [
               </p>
               <p>
                 <strong class="text-foreground">Customer support:</strong>
-                <a class="ml-2 text-primary hover:underline" href="mailto:support@docita.work">support@docita.work</a>
+                <a class="ml-2 text-primary hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
               </p>
             </div>
           </article>
@@ -79,12 +80,12 @@ const faqs = [
             <h2 class="ui-section-title text-[var(--fs-2xl)]">Quick links</h2>
             <ul class="mt-4 space-y-2 ui-helper-text">
               <li>
-                <a class="transition-colors hover:text-foreground" href="mailto:support@docita.work?subject=Clinic%20Setup%20Request">
+                <a class="transition-colors hover:text-foreground" href={`mailto:${SUPPORT_EMAIL}?subject=Clinic%20Setup%20Request`}>
                   Request clinic setup
                 </a>
               </li>
               <li>
-                <a class="transition-colors hover:text-foreground" href="mailto:support@docita.work?subject=Technical%20Support">
+                <a class="transition-colors hover:text-foreground" href={`mailto:${SUPPORT_EMAIL}?subject=Technical%20Support`}>
                   Technical Support
                 </a>
               </li>

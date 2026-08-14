@@ -6,7 +6,11 @@
 
 Docita is a Turborepo monorepo for a healthcare SaaS product handling PHI
 (Protected Health Information). Deployed on Fly.io (API + worker) and
-Cloudflare Workers (Next.js apps via OpenNext).
+Cloudflare (Vite SPA apps with static assets + a tiny Hono proxy Worker).
+
+> **Migration complete:** the Next.js predecessors were replaced by the Vite +
+> React Router SPAs (`apps/app`, `apps/internal`); cutover completed
+> 2026-08-10 (see [ADR 0012](decisions/0012-replace-nextjs-with-vite-spa.md)).
 
 ---
 
@@ -14,10 +18,12 @@ Cloudflare Workers (Next.js apps via OpenNext).
 
 ```mermaid
 flowchart LR
-  Browser --> AppNext["apps/app\nNext.js"] & Internal["apps/internal\nNext.js"] & Landing["apps/landing\nAstro"]
-  AppNext & Internal --> DA["packages/data-access"] --> API["apps/api\nNestJS"]
+  Browser --> App["apps/app\nVite SPA"] & Internal["apps/internal\nVite SPA"] & Landing["apps/landing\nAstro"]
+  App & Internal --> DA["packages/data-access"] --> API["apps/api\nNestJS"]
+  App & Internal --> Proxy["Hono proxy Worker\n/api/* + /socket.io/*"]
+  Proxy --> API
   Landing --> UI["packages/ui"]
-  AppNext & Internal --> UI
+  App & Internal --> UI
 
   API --> DB["packages/db\nPrisma"] --> PG[("PostgreSQL")]
   API --> R2["Cloudflare R2"]
@@ -34,8 +40,8 @@ flowchart LR
 | App | Framework | Port | Purpose |
 |-----|-----------|------|---------|
 | `apps/api` | NestJS 11 | 3001 | REST API, WebSockets, scheduled jobs, queue |
-| `apps/app` | Next.js 15 | 3000 | Clinic staff portal (patients, appointments, billing) |
-| `apps/internal` | Next.js 15 | 3002 | Internal super-admin tooling |
+| `apps/app` | Vite 6 + React Router 7 | 3000 | Clinic staff portal (patients, appointments, billing) |
+| `apps/internal` | Vite 6 + React Router 7 | 3002 | Internal super-admin tooling |
 | `apps/landing` | Astro | 3003 | Public marketing site |
 | `apps/worker` | NestJS context | — | Queue consumer; shares `apps/api/src/` via tsconfig alias |
 
@@ -46,7 +52,7 @@ flowchart LR
 | Package | Contents |
 |---------|----------|
 | `packages/types` | Zod schemas for all API request/response contracts — the single source of truth shared by frontend and backend |
-| `packages/data-access` | Axios API clients, React Query query-key factories, typed hooks — the only layer allowed to call the API from Next.js |
+| `packages/data-access` | Axios API clients, React Query query-key factories, typed hooks — the only layer allowed to call the API from the frontend apps |
 | `packages/ui` | Radix UI + Tailwind presentational primitives (no business logic) |
 | `packages/hooks` | Shared React hooks (debounce, media queries, etc.) |
 | `packages/utils` | Pure utility functions, date helpers, formatters |
@@ -59,7 +65,7 @@ flowchart LR
 
 ```
 Browser
-  → Next.js App (RSC / client component)
+  → Vite SPA (React client component)
     → packages/data-access (React Query + Axios)
       → apps/api HTTP controller  (JWT auth guard, RBAC, tenant guard)
         → Service / Use-case
@@ -100,7 +106,7 @@ In production the API sets `ENABLE_SCHEDULERS=false` and the worker sets it
 | Razorpay | Payment links, subscriptions, webhook verification |
 | WhatsApp Business API (Meta) | Appointment reminders, OTP, broadcast messages |
 | ZeptoMail | Transactional email (welcome, OTP, invoice) |
-| Sentry | Error tracking + performance tracing (API + Next.js) |
+| Sentry | Error tracking + performance tracing (API + Vite SPAs) |
 | OpenAI GPT-4 | AI-assisted features (chief complaint parsing, etc.) |
 | Cloudflare Turnstile | Bot protection on the public booking form |
 

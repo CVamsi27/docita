@@ -2,31 +2,26 @@
 import { SubscriptionStatus } from '@workspace/db';
 import { BILLING_ROLES } from '@workspace/types';
 
-export function isSubscriptionPastGraceDeadline(params: {
+function isSubscriptionPastGraceDeadline(params: {
   subscriptionStatus: SubscriptionStatus;
   graceUntil: Date | null | undefined;
   now?: number;
 }): boolean {
-  if (!params.graceUntil) {
-    return false;
-  }
+  if (!params.graceUntil) return false;
   if (
     params.subscriptionStatus !== SubscriptionStatus.GRACE &&
     params.subscriptionStatus !== SubscriptionStatus.PAST_DUE
-  ) {
+  )
     return false;
-  }
   const now = params.now ?? Date.now();
   return now > new Date(params.graceUntil).getTime();
 }
 
-export function isSubscriptionPeriodLapsed(
+function isSubscriptionPeriodLapsed(
   currentPeriodEnd: Date | null | undefined,
   now: number = Date.now(),
 ): boolean {
-  if (!currentPeriodEnd) {
-    return false;
-  }
+  if (!currentPeriodEnd) return false;
   const endMs = new Date(currentPeriodEnd).getTime();
   return Number.isFinite(endMs) && now >= endMs;
 }
@@ -40,9 +35,7 @@ export function isRenewalUnpaidWithOutstandingPending(params: {
   subscriptionCurrentPeriodEnd: Date | null | undefined;
   now?: number;
 }): boolean {
-  if (!params.hasOutstandingPendingPayment) {
-    return false;
-  }
+  if (!params.hasOutstandingPendingPayment) return false;
   return isSubscriptionPeriodLapsed(
     params.subscriptionCurrentPeriodEnd,
     params.now,

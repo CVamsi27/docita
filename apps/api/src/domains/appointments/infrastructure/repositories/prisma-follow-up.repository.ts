@@ -6,6 +6,22 @@ import {
   FollowUpWithRelations,
 } from '@/domains/appointments/core/repositories/follow-up.repository.interface';
 
+// Shared by `findForClinic`, `findUpcoming`, and `findForAppointment` — all
+// three project the same patient/doctor summary fields onto follow-up rows
+// (the set `FollowUpWithRelations` declares), so the relation shape lives in
+// one place rather than the three queries drifting apart.
+const FOLLOW_UP_RELATIONS_INCLUDE = {
+  patient: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      phoneNumber: true,
+    },
+  },
+  doctor: { select: { id: true, name: true } },
+} satisfies Prisma.FollowUpInclude;
+
 @Injectable()
 export class PrismaFollowUpRepository implements IFollowUpRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -40,17 +56,7 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
 
     const rows = await this.getReadClient().followUp.findMany({
       where,
-      include: {
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
-        },
-        doctor: { select: { id: true, name: true } },
-      },
+      include: FOLLOW_UP_RELATIONS_INCLUDE,
       orderBy: { scheduledDate: 'asc' },
       take: params.take,
     });
@@ -68,17 +74,7 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
         status: { in: ['PENDING', 'REMINDER_SENT'] },
         scheduledDate: { gte: from, lte: to },
       },
-      include: {
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
-        },
-        doctor: { select: { id: true, name: true } },
-      },
+      include: FOLLOW_UP_RELATIONS_INCLUDE,
       orderBy: { scheduledDate: 'asc' },
       take: 50,
     });
@@ -88,17 +84,7 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
   async findForAppointment(appointmentId: string, clinicId: string) {
     const rows = await this.getReadClient().followUp.findMany({
       where: { appointmentId, clinicId },
-      include: {
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
-        },
-        doctor: { select: { id: true, name: true } },
-      },
+      include: FOLLOW_UP_RELATIONS_INCLUDE,
       orderBy: { createdAt: 'desc' },
     });
     return rows satisfies FollowUpWithRelations[];

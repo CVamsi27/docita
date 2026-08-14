@@ -11,6 +11,7 @@ import { ApplyPlanChangeWithoutPaymentUseCase } from '@/domains/subscriptions/ap
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import { createFixedClockMock } from '@/test-utils';
+import { CheckoutPaymentOrderService } from '@/domains/subscriptions/application/services/checkout-payment-order.service';
 
 describe('CreateCheckoutUseCase', () => {
   const clock = createFixedClockMock();
@@ -101,19 +102,29 @@ describe('CreateCheckoutUseCase', () => {
   const featureFlagService = {
     getClinicPricingOffer: jest.fn(async () => null),
   } as unknown as FeatureFlagService;
+  const referralService = {
+    getRedeemableReferralDiscountCents: jest.fn(async () => 0),
+  } as unknown as import('@/domains/subscriptions/core/services/referral.service').ReferralService;
 
   let useCase: CreateCheckoutUseCase;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new CreateCheckoutUseCase(
+    const checkoutPaymentOrder = new CheckoutPaymentOrderService(
       subscriptionRepo,
       clinicOps,
       paymentGateway,
+      configService,
+    );
+    useCase = new CreateCheckoutUseCase(
+      subscriptionRepo,
+      clinicOps,
       checkoutPricing,
+      checkoutPaymentOrder,
       applyPlanChangeWithoutPayment,
       configService,
       featureFlagService,
+      referralService,
     );
   });
 
@@ -143,6 +154,26 @@ describe('CreateCheckoutUseCase', () => {
       clinicId: 'clinic-1',
       keepOrderId: 'order_existing',
     });
+  });
+
+  it('applies a redeemable referral discount to the first-checkout amount', async () => {
+    findReusablePendingCheckoutMock.mockResolvedValue(null);
+    (
+      referralService.getRedeemableReferralDiscountCents as unknown as jest.MockedFunction<
+        () => Promise<number>
+      >
+    ).mockResolvedValueOnce(24975); // 25% of 99900
+
+    const result = await useCase.execute({
+      clinicId: 'clinic-1',
+      tier: 'ESSENTIAL',
+      cycle: 'MONTHLY',
+    });
+
+    expect(result.amountCents).toBe(74925);
+    expect(subscriptionRepo.savePayment).toHaveBeenCalledWith(
+      expect.objectContaining({ amountCents: 74925 }),
+    );
   });
 
   it('expires older duplicate pending checkouts after creating a new order', async () => {

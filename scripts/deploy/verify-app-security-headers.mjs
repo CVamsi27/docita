@@ -15,23 +15,22 @@ const requiredHeaders = [
 
 const checks = [
   {
-    label: "App",
-    middlewarePath: "apps/app/middleware.ts",
-    headersPath: "apps/app/shared/lib/security/security-headers.ts",
-    applyToken: "SECURITY_HEADERS",
-  },
-  {
-    label: "Internal",
-    middlewarePath: "apps/internal/middleware.ts",
-    headersPath: "apps/internal/shared/lib/security/security-headers.ts",
-    applyToken: "applyInternalSecurityHeaders",
-  },
-  {
     label: "Landing",
     middlewarePath: "apps/landing/src/middleware.ts",
-    headersPath: "apps/landing/src/lib/security-headers.ts",
+    headersPaths: [
+      "apps/landing/src/lib/security-headers.ts",
+      "packages/utils/src/security-headers.ts",
+    ],
     applyToken: "applyLandingSecurityHeaders",
   },
+];
+
+// Cloudflare static-app `public/_headers` files. These are the only
+// header source for the Vite SPA apps (their /api/* + /socket.io/*
+// traffic is proxied by the Hono Worker, which sets its own headers).
+const headerFileChecks = [
+  { label: "App (app)", path: "apps/app/public/_headers" },
+  { label: "Internal (internal)", path: "apps/internal/public/_headers" },
 ];
 
 const failures = [];
@@ -41,9 +40,8 @@ for (const check of checks) {
     path.join(repoRoot, check.middlewarePath),
     "utf8",
   );
-  const headers = fs.readFileSync(
-    path.join(repoRoot, check.headersPath),
-    "utf8",
+  const headerSources = check.headersPaths.map((p) =>
+    fs.readFileSync(path.join(repoRoot, p), "utf8"),
   );
 
   if (!middleware.includes(check.applyToken)) {
@@ -53,11 +51,32 @@ for (const check of checks) {
   }
 
   const missing = requiredHeaders.filter(
-    (header) => !middleware.includes(header) && !headers.includes(header),
+    (header) =>
+      !middleware.includes(header) &&
+      !headerSources.some((s) => s.includes(header)),
   );
 
   for (const header of missing) {
     failures.push(`${check.label}: missing required header ${header}.`);
+  }
+}
+
+for (const check of headerFileChecks) {
+  const filePath = path.join(repoRoot, check.path);
+  if (!fs.existsSync(filePath)) {
+    failures.push(`${check.label}: ${check.path} is missing.`);
+    continue;
+  }
+  const content = fs.readFileSync(filePath, "utf8");
+  // Match real header lines only — a header name mentioned in a
+  // comment (e.g. "we intentionally omit CSP here") must not
+  // satisfy the check.
+  const headerLines = content.replace(/\/\*[\s\S]*?\*\//g, "");
+  const missing = requiredHeaders.filter(
+    (header) => !headerLines.includes(header),
+  );
+  for (const header of missing) {
+    failures.push(`${check.label}: ${check.path} missing required header ${header}.`);
   }
 }
 

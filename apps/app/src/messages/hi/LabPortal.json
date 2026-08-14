@@ -1,0 +1,15 @@
+{
+  "pageTitle": "लैब पोर्टल",
+  "loginPageTitle": "लैब पोर्टल लॉगिन",
+  "eyebrow": "लैब पोर्टल",
+  "loginTitle": "लैब तकनीशियन लॉगिन",
+  "loginDescription": "वर्कस्पेस तक पहुंचने के लिए अपने लैब क्रेडेंशियल दर्ज करें।",
+  "email": "ईमेल",
+  "emailPlaceholder": "lab@example.com",
+  "password": "पासवर्ड",
+  "passwordPlaceholder": "अपना पासवर्ड दर्ज करें",
+  "signingIn": "साइन इन हो रहा है…",
+  "signIn": "साइन इन करें",
+  "invalidCredentials": "अमान्य क्रेडेंशियल",
+  "loginFailed": "लॉगिन विफल"
+}

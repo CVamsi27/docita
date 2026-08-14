@@ -13,7 +13,7 @@ const RESOLVED_CACHE_TTL_MS = 30_000;
 const ALL_CACHE_KEY = 'feature-flags:all';
 const ALL_CACHE_TTL_MS = 30_000;
 
-export interface FeatureFlagContext {
+interface FeatureFlagContext {
   clinicId?: string | null;
   userId?: string | null;
 }

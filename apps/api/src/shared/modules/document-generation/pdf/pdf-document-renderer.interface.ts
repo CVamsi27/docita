@@ -1,14 +1,6 @@
 import type { InvoicePdfInput, PrescriptionPdfInput } from './pdf.types';
 import type { PDFConfig } from './pdf-config.types';
 
-export type {
-  PDFClinicInfo,
-  PDFDoctorInfo,
-  PDFPatientInfo,
-  PDFMedicationInfo,
-  PDFInvoiceItem,
-} from './pdf.types';
-
 /**
  * Strategy contract for PDF document generation (prescription, invoice, …).
  *

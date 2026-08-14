@@ -43,9 +43,7 @@ export function toTemplateVariables(
   value: Prisma.JsonValue | null,
 ): TemplateVariable[] | undefined {
   const parsed = parsePrismaJsonColumn(value, whatsappTemplateVariablesSchema);
-  if (!parsed?.length) {
-    return undefined;
-  }
+  if (!parsed?.length) return undefined;
 
   return parsed
     .filter((item) => item.name.length > 0)
@@ -60,9 +58,7 @@ export function toTemplateButtons(
   value: Prisma.JsonValue | null,
 ): TemplateButton[] | undefined {
   const parsed = parsePrismaJsonColumn(value, whatsappTemplateButtonsSchema);
-  if (!parsed?.length) {
-    return undefined;
-  }
+  if (!parsed?.length) return undefined;
 
   return parsed
     .filter((item) => item.id.length > 0 && item.text.length > 0)
@@ -76,9 +72,7 @@ export function toTemplateButtons(
 export function toTemplateVariablesInput(
   value: TemplateVariable[] | undefined,
 ): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
-  if (!value || value.length === 0) {
-    return Prisma.JsonNull;
-  }
+  if (!value || value.length === 0) return Prisma.JsonNull;
 
   return value.map(
     (item): TemplateVariableJson => ({
@@ -92,9 +86,7 @@ export function toTemplateVariablesInput(
 export function toTemplateButtonsInput(
   value: TemplateButton[] | undefined,
 ): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
-  if (!value || value.length === 0) {
-    return Prisma.JsonNull;
-  }
+  if (!value || value.length === 0) return Prisma.JsonNull;
 
   return value.map(
     (item): TemplateButtonJson => ({

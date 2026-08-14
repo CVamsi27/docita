@@ -1,23 +1,23 @@
-import {
-  Inject,
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Subscription } from '@/domains/subscriptions/core/entities';
 import { SubscriptionMapper } from '@/domains/subscriptions/infrastructure/mappers/subscription.mapper';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Role, SubscriptionStatus } from '@workspace/db';
 import { parseStringEnumMember } from '@workspace/utils';
-
-const SUBSCRIPTION_STATUS_VALUES = Object.values(SubscriptionStatus);
+import { BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
+import {
+  ConflictDomainError,
+  NotFoundDomainError,
+} from '@/shared/common/errors/domain.errors';
 import type {
   SubscriptionBillingContact,
   SubscriptionExpiryReminderCandidate,
   SubscriptionGraceDeadlineReminderCandidate,
   SubscriptionReminderCreateInput,
 } from '@/domains/subscriptions/application/ports/subscription.repository.port';
+
+const SUBSCRIPTION_STATUS_VALUES = Object.values(SubscriptionStatus);
 
 @Injectable()
 export class PrismaSubscriptionCoreRepository {
@@ -31,146 +31,20 @@ export class PrismaSubscriptionCoreRepository {
   }
 
   async save(subscription: Subscription): Promise<void> {
-    try {
-      const data = SubscriptionMapper.toPersistence(subscription);
-      const existing = await this.prisma.subscription.findUnique({
-        where: { id: subscription.id },
-        select: { version: true },
-      });
+    // Domain rule (optimistic concurrency) is the only thing this method
+    // owns. Infrastructure errors propagate to AllExceptionsFilter which
+    // maps Prisma's structured errors to proper HTTP responses.
+    const data = SubscriptionMapper.toPersistence(subscription);
+    const existing = await this.prisma.subscription.findUnique({
+      where: { id: subscription.id },
+      select: { version: true },
+    });
 
-      if (existing) {
-        if (existing.version !== subscription.version) {
-          throw new BadRequestException(
-            'Subscription was modified by another user. Please refresh and try again.',
-          );
-        }
-
-        await this.prisma.subscription.update({
-          where: { id: subscription.id },
-          data: {
-            ...data,
-            version: { increment: 1 },
-          },
-        });
-        return;
-      }
-
-      await this.prisma.subscription.create({
-        data: data,
-      });
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException(
-        `Failed to save subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
-  }
-
-  async findById(id: string): Promise<Subscription | null> {
-    try {
-      const prismaSubscription =
-        await this.getReadClient().subscription.findUnique({
-          where: { id },
-        });
-
-      if (!prismaSubscription) {
-        return null;
-      }
-
-      return SubscriptionMapper.toDomain(prismaSubscription);
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to find subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
-  }
-
-  async findByClinicId(clinicId: string): Promise<Subscription | null> {
-    try {
-      const prismaSubscription =
-        await this.getReadClient().subscription.findUnique({
-          where: { clinicId },
-        });
-
-      if (!prismaSubscription) {
-        return null;
-      }
-
-      return SubscriptionMapper.toDomain(prismaSubscription);
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to find subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
-  }
-
-  async findByStatus(status: string): Promise<Subscription[]> {
-    try {
-      const prismaSubscriptions =
-        await this.getReadClient().subscription.findMany({
-          where: {
-            status:
-              parseStringEnumMember(SUBSCRIPTION_STATUS_VALUES, status) ??
-              SubscriptionStatus.ACTIVE,
-          },
-          take: 1000,
-        });
-
-      return prismaSubscriptions.map((s) => SubscriptionMapper.toDomain(s));
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to find subscriptions: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
-  }
-
-  async findApproachingRenewal(daysThreshold: number): Promise<Subscription[]> {
-    try {
-      const now = this.clock.now();
-      const renewalDate = new Date(now);
-      renewalDate.setDate(renewalDate.getDate() + daysThreshold);
-
-      const prismaSubscriptions =
-        await this.getReadClient().subscription.findMany({
-          where: {
-            currentPeriodEnd: {
-              lte: renewalDate,
-              gte: now,
-            },
-            status: 'ACTIVE',
-          },
-          take: 1000,
-        });
-
-      return prismaSubscriptions.map((s) => SubscriptionMapper.toDomain(s));
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to find approaching renewals: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
-  }
-
-  async update(subscription: Subscription): Promise<void> {
-    try {
-      const existing = await this.prisma.subscription.findUnique({
-        where: { id: subscription.id },
-      });
-
-      if (!existing) {
-        throw new NotFoundException(
-          `Subscription ${subscription.id} not found`,
-        );
-      }
-
-      if (existing.version !== subscription.version) {
-        throw new BadRequestException(
+    if (existing) {
+      if (existing.version !== subscription.version)
+        throw new ConflictDomainError(
           'Subscription was modified by another user. Please refresh and try again.',
         );
-      }
-
-      const data = SubscriptionMapper.toPersistence(subscription);
 
       await this.prisma.subscription.update({
         where: { id: subscription.id },
@@ -179,17 +53,92 @@ export class PrismaSubscriptionCoreRepository {
           version: { increment: 1 },
         },
       });
-    } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
-      throw new BadRequestException(
-        `Failed to update subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      return;
+    }
+
+    await this.prisma.subscription.create({
+      data: data,
+    });
+  }
+
+  private async findUniqueSubscription(
+    where: { id: string } | { clinicId: string },
+  ): Promise<Subscription | null> {
+    const prismaSubscription =
+      await this.getReadClient().subscription.findUnique({ where });
+
+    if (!prismaSubscription) return null;
+
+    return SubscriptionMapper.toDomain(prismaSubscription);
+  }
+
+  async findById(id: string): Promise<Subscription | null> {
+    return this.findUniqueSubscription({ id });
+  }
+
+  async findByClinicId(clinicId: string): Promise<Subscription | null> {
+    return this.findUniqueSubscription({ clinicId });
+  }
+
+  async findByStatus(status: string): Promise<Subscription[]> {
+    const prismaSubscriptions =
+      await this.getReadClient().subscription.findMany({
+        where: {
+          status:
+            parseStringEnumMember(SUBSCRIPTION_STATUS_VALUES, status) ??
+            SubscriptionStatus.ACTIVE,
+        },
+        take: BULK_READ_LIMIT,
+      });
+
+    return prismaSubscriptions.map((s) => SubscriptionMapper.toDomain(s));
+  }
+
+  async findApproachingRenewal(daysThreshold: number): Promise<Subscription[]> {
+    const now = this.clock.now();
+    const renewalDate = new Date(now);
+    renewalDate.setDate(renewalDate.getDate() + daysThreshold);
+
+    const prismaSubscriptions =
+      await this.getReadClient().subscription.findMany({
+        where: {
+          currentPeriodEnd: {
+            lte: renewalDate,
+            gte: now,
+          },
+          status: SubscriptionStatus.ACTIVE,
+        },
+        take: BULK_READ_LIMIT,
+      });
+
+    return prismaSubscriptions.map((s) => SubscriptionMapper.toDomain(s));
+  }
+
+  async update(subscription: Subscription): Promise<void> {
+    const existing = await this.prisma.subscription.findUnique({
+      where: { id: subscription.id },
+    });
+
+    if (!existing) {
+      throw new NotFoundDomainError(
+        `Subscription ${subscription.id} not found`,
       );
     }
+
+    if (existing.version !== subscription.version)
+      throw new ConflictDomainError(
+        'Subscription was modified by another user. Please refresh and try again.',
+      );
+
+    const data = SubscriptionMapper.toPersistence(subscription);
+
+    await this.prisma.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        ...data,
+        version: { increment: 1 },
+      },
+    });
   }
 
   async markClinicPastDue(clinicId: string, graceUntil: Date): Promise<void> {
@@ -256,6 +205,21 @@ export class PrismaSubscriptionCoreRepository {
     };
   }
 
+  private getReminderInclude() {
+    return {
+      clinic: {
+        include: {
+          users: {
+            where: {
+              role: { in: ['ADMIN' as const, 'ADMIN_DOCTOR' as const] },
+            },
+            select: { email: true, name: true },
+          },
+        },
+      },
+    };
+  }
+
   async findExpiryReminderCandidates(params: {
     startOfDay: Date;
     endOfDay: Date;
@@ -265,17 +229,8 @@ export class PrismaSubscriptionCoreRepository {
         currentPeriodEnd: { gte: params.startOfDay, lte: params.endOfDay },
         status: { in: ['ACTIVE', 'TRIALING'] },
       },
-      take: 1000,
-      include: {
-        clinic: {
-          include: {
-            users: {
-              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },
-              select: { email: true, name: true },
-            },
-          },
-        },
-      },
+      take: BULK_READ_LIMIT,
+      include: this.getReminderInclude(),
     });
   }
 
@@ -290,17 +245,8 @@ export class PrismaSubscriptionCoreRepository {
           in: [SubscriptionStatus.GRACE, SubscriptionStatus.PAST_DUE],
         },
       },
-      take: 1000,
-      include: {
-        clinic: {
-          include: {
-            users: {
-              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },
-              select: { email: true, name: true },
-            },
-          },
-        },
-      },
+      take: BULK_READ_LIMIT,
+      include: this.getReminderInclude(),
     });
   }
 
@@ -332,25 +278,16 @@ export class PrismaSubscriptionCoreRepository {
   }
 
   async delete(id: string): Promise<void> {
-    try {
-      const subscription = await this.prisma.subscription.findUnique({
-        where: { id },
-      });
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { id },
+    });
 
-      if (!subscription) {
-        throw new NotFoundException(`Subscription ${id} not found`);
-      }
-
-      await this.prisma.subscription.delete({
-        where: { id },
-      });
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new BadRequestException(
-        `Failed to delete subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+    if (!subscription) {
+      throw new NotFoundDomainError(`Subscription ${id} not found`);
     }
+
+    await this.prisma.subscription.delete({
+      where: { id },
+    });
   }
 }

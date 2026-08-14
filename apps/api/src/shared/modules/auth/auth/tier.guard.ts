@@ -37,23 +37,18 @@ export class TierGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    if (requiredTier === undefined && requiredFeature === undefined) {
+    if (requiredTier === undefined && requiredFeature === undefined)
       return true;
-    }
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
     if (!user || !user.clinicId) {
-      if (user?.role === Role.INTERNAL) {
-        return true;
-      }
+      if (user?.role === Role.INTERNAL) return true;
       throw forbiddenProblem('NO_CLINIC', 'User not associated with a clinic');
     }
 
-    if (user.role === Role.INTERNAL) {
-      return true;
-    }
+    if (user.role === Role.INTERNAL) return true;
 
     let auth;
     try {

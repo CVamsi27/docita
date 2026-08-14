@@ -17,9 +17,7 @@ export class PatientPortalContextService {
   async getPatientContext(userId: string) {
     const patient = await this.repository.findPatientByUserId(userId);
 
-    if (!patient) {
-      throw new UnauthorizedException('Patient not found');
-    }
+    if (!patient) throw new UnauthorizedException('Patient not found');
 
     return {
       patient,

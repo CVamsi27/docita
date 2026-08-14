@@ -20,7 +20,6 @@ export class PrismaDoctorDelayRepository implements IDoctorDelayRepository {
     const now = this.clock.now();
     const endOfDay = new Date(now);
     endOfDay.setHours(23, 59, 59, 999);
-
     const [delay, affectedIds] = await this.prisma.$transaction(async (tx) => {
       await tx.doctorDelay.updateMany({
         where: {
@@ -30,7 +29,6 @@ export class PrismaDoctorDelayRepository implements IDoctorDelayRepository {
         },
         data: { isActive: false, clearedAt: now },
       });
-
       const newDelay = await tx.doctorDelay.create({
         data: {
           clinicId: command.clinicId,
@@ -40,7 +38,6 @@ export class PrismaDoctorDelayRepository implements IDoctorDelayRepository {
           markedById: command.markedById,
         },
       });
-
       const upcoming = await tx.appointment.findMany({
         where: {
           clinicId: command.clinicId,
@@ -55,28 +52,27 @@ export class PrismaDoctorDelayRepository implements IDoctorDelayRepository {
           originalStartTime: true,
         },
         orderBy: { startTime: 'asc' },
+        // No `take`: bounded by (clinicId, doctorId, today, active status).
+        // We are explicitly shifting every remaining appointment in the day,
+        // so the full set must be read; capping would silently drop shifts.
       });
 
       const shiftMs = command.delayMinutes * 60 * 1000;
-      const ids: string[] = [];
-
-      for (const appt of upcoming) {
-        const newStart = new Date(appt.startTime.getTime() + shiftMs);
-        const newEnd = new Date(appt.endTime.getTime() + shiftMs);
-        await tx.appointment.update({
-          where: { id: appt.id },
-          data: {
-            startTime: newStart,
-            endTime: newEnd,
-            originalStartTime: appt.originalStartTime ?? appt.startTime,
-          },
-        });
-        ids.push(appt.id);
-      }
-
+      const ids = upcoming.map((appt) => appt.id);
+      await Promise.all(
+        upcoming.map((appt) =>
+          tx.appointment.update({
+            where: { id: appt.id },
+            data: {
+              startTime: new Date(appt.startTime.getTime() + shiftMs),
+              endTime: new Date(appt.endTime.getTime() + shiftMs),
+              originalStartTime: appt.originalStartTime ?? appt.startTime,
+            },
+          }),
+        ),
+      );
       return [newDelay, ids];
     });
-
     return { delay, affectedAppointmentIds: affectedIds };
   }
 
@@ -109,6 +105,9 @@ export class PrismaDoctorDelayRepository implements IDoctorDelayRepository {
     return this.prisma.doctorDelay.findMany({
       where: { clinicId, isActive: true },
       orderBy: { markedAt: 'desc' },
+      // No `take`: bounded by (clinicId, isActive: true). Active delays per
+      // clinic are a small control-plane set, and the caller (UI banner) needs
+      // the full set to render the in-clinic delay board.
     });
   }
 }

@@ -3,7 +3,7 @@ import {
   API_URL,
   loginUser,
   setupTestUser,
-  UserData,
+  type UserData,
 } from "./utils/patient-helpers";
 
 async function openConsultationEditor(page: Page, id: string) {

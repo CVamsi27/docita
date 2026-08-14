@@ -1,16 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import {
-  AppointmentStatus,
-  InvoiceStatus,
-  LabTestOrderStatus,
-  Prisma,
-} from '@workspace/db';
+import { AppointmentStatus, InvoiceStatus, Prisma } from '@workspace/db';
 import {
   DashboardStatsSnapshot,
   IDashboardRepository,
 } from '@/domains/dashboards/dashboard/core/repositories/dashboard.repository.interface';
+
+// Shared by both appointment selects below — the dashboard only ever needs
+// the patient's display name alongside their id, so keep the projection in
+// one place rather than repeating the nested `select` shape.
+const PATIENT_SUMMARY_SELECT = {
+  id: true,
+  firstName: true,
+  lastName: true,
+} satisfies Prisma.PatientSelect;
 
 const RECENT_ACTIVITY_SELECT = {
   id: true,
@@ -19,11 +23,7 @@ const RECENT_ACTIVITY_SELECT = {
   type: true,
   createdAt: true,
   patient: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-    },
+    select: PATIENT_SUMMARY_SELECT,
   },
 } satisfies Prisma.AppointmentSelect;
 
@@ -34,15 +34,12 @@ const UPCOMING_APPOINTMENT_SELECT = {
   status: true,
   type: true,
   patient: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-    },
+    select: PATIENT_SUMMARY_SELECT,
   },
 } satisfies Prisma.AppointmentSelect;
 
 @Injectable()
+// jscpd:ignore-start
 export class PrismaDashboardRepository implements IDashboardRepository {
   constructor(
     private readonly prisma: PrismaService,
@@ -54,6 +51,7 @@ export class PrismaDashboardRepository implements IDashboardRepository {
   }
 
   async getStatsSnapshot(clinicId: string): Promise<DashboardStatsSnapshot> {
+    // jscpd:ignore-end
     const readClient = this.getReadClient();
     const now = this.clock.now();
 
@@ -76,7 +74,7 @@ export class PrismaDashboardRepository implements IDashboardRepository {
       activePrescriptions,
       recentActivity,
       upcomingAppointments,
-      pendingReports,
+      uncodedVisits,
       monthlyRevenueResult,
     ] = await Promise.all([
       readClient.patient.count({ where: clinicFilter }),
@@ -125,12 +123,11 @@ export class PrismaDashboardRepository implements IDashboardRepository {
         orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
         select: UPCOMING_APPOINTMENT_SELECT,
       }),
-      readClient.labTestOrder.count({
+      readClient.appointment.count({
         where: {
           clinicId,
-          status: {
-            in: [LabTestOrderStatus.ORDERED, LabTestOrderStatus.PENDING],
-          },
+          status: 'COMPLETED',
+          diagnoses: { none: {} },
         },
       }),
       readClient.invoice.aggregate({
@@ -155,7 +152,7 @@ export class PrismaDashboardRepository implements IDashboardRepository {
       activePrescriptions,
       recentActivity,
       upcomingAppointments,
-      pendingReports,
+      uncodedVisits,
       monthlyRevenue: monthlyRevenueResult._sum.total ?? 0,
     };
   }

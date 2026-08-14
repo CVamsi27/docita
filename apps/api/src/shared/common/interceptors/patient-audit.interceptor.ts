@@ -201,9 +201,7 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest<Request>();
     const { user, method, url, params, query, body } = request;
 
-    if (!user) {
-      return next.handle();
-    }
+    if (!user) return next.handle();
 
     return next.handle().pipe(
       tap({

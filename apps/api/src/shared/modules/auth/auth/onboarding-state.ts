@@ -12,9 +12,7 @@ interface UserOnboardingState {
 export function resolveOnboardingStepForAuth(
   user: UserOnboardingState,
 ): OnboardingStep | undefined {
-  if (user.clinicId) {
-    return OnboardingStep.COMPLETED;
-  }
+  if (user.clinicId) return OnboardingStep.COMPLETED;
 
   return user.onboardingStep ?? undefined;
 }

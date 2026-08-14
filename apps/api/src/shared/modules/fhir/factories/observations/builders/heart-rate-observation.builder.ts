@@ -7,9 +7,7 @@ import type {
 
 export class HeartRateObservationBuilder implements IFhirObservationBuilder {
   build(vital: VitalWithRelations, context: VitalObservationContext) {
-    if (!vital.pulse) {
-      return [];
-    }
+    if (!vital.pulse) return [];
 
     return [
       buildQuantityVitalObservation({

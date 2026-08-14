@@ -24,6 +24,7 @@ import {
   UpdateInvoiceRequest,
   invoicePaymentActivityResponseSchema,
   invoiceResponseSchema,
+  collectionsByModeResponseSchema,
   subscriptionBillingPaymentHistoryResponseSchema,
   subscriptionBillingPreviewResponseSchema,
   subscriptionBillingStatusResponseSchema,
@@ -127,6 +128,31 @@ export const useInvoicePaymentActivity = (
   );
 };
 
+export const useCollectionsByModeReport = (
+  range: { from: string; to: string },
+  options?: { enabled?: boolean },
+) => {
+  const invoicingOk = useDataAccessContext().isTierFeatureEnabled(
+    Feature.INVOICING,
+  );
+  return useAPIQueryValidated(
+    queryKeys.invoices.collectionsByMode(range.from, range.to),
+    withQueryString("/invoices/reports/collections-by-mode", {
+      from: range.from,
+      to: range.to,
+    }),
+    collectionsByModeResponseSchema,
+    {
+      enabled:
+        invoicingOk &&
+        Boolean(range.from && range.to) &&
+        (options?.enabled ?? true),
+      staleTime: 60_000,
+    },
+  );
+};
+
+// jscpd:ignore-start
 export interface InvoiceClaimReadiness {
   invoiceId: string;
   appointmentId: string | null;
@@ -142,6 +168,7 @@ export interface InvoiceClaimReadiness {
 }
 
 export const useInvoiceClaimReadiness = (invoiceId: string) => {
+  // jscpd:ignore-end
   const invoicingOk = useDataAccessContext().isTierFeatureEnabled(
     Feature.INVOICING,
   );

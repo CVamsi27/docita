@@ -2,7 +2,7 @@ import { getPatientFullName } from '@workspace/utils';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { SystemEventsService } from '@/domains/whatsapp/application/services/system-events.service';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import {
   WHATSAPP_PERSISTENCE_PORT,
@@ -20,7 +20,7 @@ export class WhatsappEventListener {
   private readonly logger = new Logger(WhatsappEventListener.name);
 
   constructor(
-    private readonly whatsappService: WhatsappService,
+    private readonly systemEventsService: SystemEventsService,
     private readonly staffNotificationService: StaffNotificationService,
     @Inject(WHATSAPP_PERSISTENCE_PORT)
     private readonly persistence: WhatsappPersistencePort,
@@ -32,7 +32,7 @@ export class WhatsappEventListener {
       `Prescription created event received for ${event.prescriptionId} in clinic ${event.clinicId}`,
     );
     try {
-      await this.whatsappService.sendPrescriptionSystem(
+      await this.systemEventsService.sendPrescriptionSystem(
         event.prescriptionId,
         event.clinicId,
       );
@@ -50,7 +50,7 @@ export class WhatsappEventListener {
       `Invoice generated event received for ${event.invoiceId} in clinic ${event.clinicId}`,
     );
     try {
-      await this.whatsappService.sendInvoiceSystem(
+      await this.systemEventsService.sendInvoiceSystem(
         event.invoiceId,
         event.clinicId,
       );
@@ -68,7 +68,7 @@ export class WhatsappEventListener {
       `Payment captured event received for invoice ${event.invoiceId} in clinic ${event.clinicId}`,
     );
     try {
-      await this.whatsappService.sendPaymentConfirmation(
+      await this.systemEventsService.sendPaymentConfirmation(
         event.invoiceId,
         event.clinicId,
       );
@@ -118,7 +118,7 @@ export class WhatsappEventListener {
       `Appointment created event received for ${event.appointmentId} in clinic ${event.clinicId}`,
     );
     try {
-      await this.whatsappService.sendAppointmentConfirmation(
+      await this.systemEventsService.sendAppointmentConfirmation(
         event.appointmentId,
         event.clinicId,
       );
@@ -135,19 +135,25 @@ export class WhatsappEventListener {
     this.logger.log(
       `Doctor delay marked: ${event.delayMinutes}min for doctor ${event.doctorId}, notifying ${event.affectedAppointmentIds.length} patients`,
     );
-    for (const appointmentId of event.affectedAppointmentIds) {
-      try {
-        await this.whatsappService.sendAppointmentDelayNotification(
+    // Each appointment is independent (separate phone, separate template
+    // send, separate outbound log). Run them in parallel so a slow
+    // WhatsApp API call on one appointment does not block the others;
+    // allSettled keeps a single failure from dropping the rest.
+    const results = await Promise.allSettled(
+      event.affectedAppointmentIds.map((appointmentId) =>
+        this.systemEventsService.sendAppointmentDelayNotification(
           appointmentId,
           event.clinicId,
           event.delayMinutes,
-        );
-      } catch (error) {
-        this.logger.error(
-          `Failed to send delay WhatsApp for appointment ${appointmentId}`,
-          error,
-        );
-      }
+        ),
+      ),
+    );
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length > 0) {
+      this.logger.error(
+        `Doctor delay notification: ${failures.length} of ${results.length} appointment(s) failed`,
+        failures.map((f) => f.reason).join('\n'),
+      );
     }
   }
 
@@ -158,7 +164,7 @@ export class WhatsappEventListener {
         `Appointment cancelled event received for ${event.appointmentId}`,
       );
       try {
-        await this.whatsappService.sendAppointmentUpdate(
+        await this.systemEventsService.sendAppointmentUpdate(
           event.appointmentId,
           event.clinicId,
           'CANCELLED',
@@ -182,7 +188,7 @@ export class WhatsappEventListener {
         `Appointment rescheduled event received for ${event.appointmentId}`,
       );
       try {
-        await this.whatsappService.sendAppointmentUpdate(
+        await this.systemEventsService.sendAppointmentUpdate(
           event.appointmentId,
           event.clinicId,
           'RESCHEDULED',

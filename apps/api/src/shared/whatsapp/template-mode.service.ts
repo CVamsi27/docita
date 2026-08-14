@@ -22,9 +22,8 @@ export class TemplateModeService {
   }
 
   getMessageForMode(resolved: ResolvedTemplate): string {
-    if (this.useProductionMode && resolved.metaTemplateId) {
+    if (this.useProductionMode && resolved.metaTemplateId)
       return resolved.content;
-    }
     return resolved.textFallback;
   }
 

@@ -125,9 +125,7 @@ export class SubscriptionsBillingMutationController {
   ) {
     const parsed =
       subscriptionBillingScheduleChangeRequestSchema.safeParse(rawBody);
-    if (!parsed.success) {
-      throw new BadRequestException(parsed.error.message);
-    }
+    if (!parsed.success) throw new BadRequestException(parsed.error.message);
     const body = parsed.data;
     const clinicId = requireBillingClinicId(req);
     return this.schedulePlanChangeUseCase.execute({

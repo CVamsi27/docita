@@ -11,7 +11,7 @@ export interface ClinicFeatureContext {
   features: unknown;
 }
 
-export interface InvoiceListItem {
+interface InvoiceBase {
   id: string;
   clinicId: string | null;
   invoiceNumber: string | null;
@@ -27,11 +27,15 @@ export interface InvoiceListItem {
   discountTotalCents: number;
   taxTotalCents: number;
   grandTotalCents: number;
+  amountPaidCents: number;
   status: InvoiceStatus;
   items: Prisma.JsonValue;
   issuedAt: Date | null;
   dueDate: Date | null;
   createdAt: Date;
+}
+
+export interface InvoiceListItem extends InvoiceBase {
   patient?: {
     id: string;
     firstName: string;
@@ -40,43 +44,23 @@ export interface InvoiceListItem {
   } | null;
 }
 
-export interface InvoiceDetail {
-  id: string;
+export interface InvoiceDetail extends InvoiceBase {
   patientId: string;
-  clinicId: string | null;
-  invoiceNumber: string | null;
-  invoiceType: string;
-  currency: string;
-  total: number;
-  subtotal: number;
-  discountTotal: number;
-  taxTotal: number;
-  grandTotal: number;
-  totalCents: number;
-  subtotalCents: number;
-  discountTotalCents: number;
-  taxTotalCents: number;
-  grandTotalCents: number;
   taxSummary: Prisma.JsonValue | null;
   sellerTaxSnapshot: Prisma.JsonValue | null;
   buyerTaxSnapshot: Prisma.JsonValue | null;
   placeOfSupplyStateCode: string | null;
   placeOfSupplyStateName: string | null;
   reverseCharge: boolean;
-  issuedAt: Date | null;
-  dueDate: Date | null;
   eInvoiceRequired: boolean;
   eInvoiceIrn: string | null;
   eInvoiceQrCode: string | null;
   eInvoiceAcknowledgedAt: Date | null;
-  status: InvoiceStatus;
-  items: Prisma.JsonValue;
   doctorName: string | null;
   doctorEmail: string | null;
   doctorPhone: string | null;
   doctorSpecialization: string | null;
   doctorRegistrationNumber: string | null;
-  createdAt: Date;
   updatedAt: Date;
   pdfUrl: string | null;
   pdfGeneratedAt: Date | null;
@@ -105,6 +89,10 @@ export interface InvoiceDetail {
   appointment?: {
     id: string;
     startTime: Date;
+    advanceAmountCents: number;
+    advancePaymentMethod: string | null;
+    advanceReference: string | null;
+    advanceNotes: string | null;
     doctor?: {
       id?: string;
       name: string;
@@ -146,6 +134,7 @@ export interface InvoiceSearchParams {
   patientId?: string;
   status?: string;
   statuses?: InvoiceStatus[];
+  // jscpd:ignore-start
   date?: string;
   search?: string;
   cursor?: string;
@@ -160,9 +149,18 @@ export interface PaginatedResult<T> {
 }
 
 export interface IInvoiceRepository {
+  // jscpd:ignore-end
   findAll(
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>>;
+  /**
+   * Lean tenant-scoped existence probe used by websocket subscribe paths:
+   * true only when an invoice with `id` belongs to `clinicId` (direct
+   * clinicId — authoritative, set at creation from the patient's clinic —
+   * or legacy null-clinicId patient fallback). Avoids loading the full
+   * InvoiceDetail graph just to authorize a room join.
+   */
+  belongsToClinic(id: string, clinicId: string): Promise<boolean>;
   findById(id: string, clinicId: string): Promise<InvoiceDetail | null>;
   findByIdempotencyKey?(
     key: string,

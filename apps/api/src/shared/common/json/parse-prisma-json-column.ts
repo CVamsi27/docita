@@ -5,8 +5,6 @@ export function parsePrismaJsonColumn<T>(
   value: unknown,
   schema: z.ZodType<T>,
 ): T | undefined {
-  if (value === null || value === undefined) {
-    return undefined;
-  }
+  if (value === null || value === undefined) return undefined;
   return schema.parse(value);
 }

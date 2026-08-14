@@ -57,18 +57,15 @@ export class PatientImportStrategy implements IImportStrategy {
     clinicId: string,
     audit: ImportStrategyAuditContext,
   ): Promise<void> {
-    if (!audit.dpdpNoticeVersion) {
+    if (!audit.dpdpNoticeVersion)
       throw new Error('Missing DPDP attestation context for patient import');
-    }
 
     const mapped = mapImportRowToPatientData(row);
     const duplicate = await this.duplicateDetector.checkForDuplicates(
       mapped,
       clinicId,
     );
-    if (duplicate.isDuplicate) {
-      throw new DuplicateImportError(duplicate.reason);
-    }
+    if (duplicate.isDuplicate) throw new DuplicateImportError(duplicate.reason);
 
     await this.patientPersistence.importSinglePatient(mapped, clinicId, {
       ipAddress: audit.ipAddress,

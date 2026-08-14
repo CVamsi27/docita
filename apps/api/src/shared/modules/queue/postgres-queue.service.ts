@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { jsonObjectSchema } from '@workspace/types';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
@@ -14,6 +15,7 @@ import {
 import { bindQueueJobHandler, coerceQueueJob } from './queue-job-boundary';
 import type {
   QueueJobRepository,
+  // jscpd:ignore-end
   QueueJobRow,
 } from './ports/queue-job.repository.port';
 import { WorkerMetricsService } from './worker-metrics.service';

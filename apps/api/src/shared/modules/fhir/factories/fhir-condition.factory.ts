@@ -16,8 +16,26 @@ type DiagnosisWithRelations = Diagnosis & {
   };
 };
 
+type FhirCoding = { system: string; code: string; display: string };
+
 @Injectable()
 export class FhirConditionFactory {
+  /**
+   * Builds the `{ coding: [{ system, code, display }] }` shape shared by
+   * `clinicalStatus`, `verificationStatus`, `severity`, and (wrapped in an
+   * array) `category` across both condition and diagnosis FHIR resources —
+   * keeping the single-coding envelope in one place avoids the four call
+   * sites drifting on structure while their `system`/`code`/`display`
+   * values legitimately differ.
+   */
+  private buildCodingBlock(
+    system: string,
+    code: string,
+    display: string,
+  ): { coding: FhirCoding[] } {
+    return { coding: [{ system, code, display }] };
+  }
+
   createFromConditions(
     conditions: MedicalConditionWithRelations[],
   ): FhirCondition[] {
@@ -31,37 +49,18 @@ export class FhirConditionFactory {
       const fhirCondition: FhirCondition = {
         resourceType: 'Condition',
         id: condition.id,
-        clinicalStatus: {
-          coding: [
-            {
-              system:
-                'http://terminology.hl7.org/CodeSystem/condition-clinical',
-              code: this.mapConditionStatus(condition.status),
-              display: condition.status,
-            },
-          ],
-        },
-        verificationStatus: {
-          coding: [
-            {
-              system:
-                'http://terminology.hl7.org/CodeSystem/condition-ver-status',
-              code: 'confirmed',
-              display: 'Confirmed',
-            },
-          ],
-        },
+        clinicalStatus: this.buildCodingBlock(
+          'http://terminology.hl7.org/CodeSystem/condition-clinical',
+          this.mapConditionStatus(condition.status),
+          condition.status,
+        ),
+        verificationStatus: this.buildVerificationStatus(),
         category: [
-          {
-            coding: [
-              {
-                system:
-                  'http://terminology.hl7.org/CodeSystem/condition-category',
-                code: this.mapConditionCategory(condition.conditionType),
-                display: condition.conditionType,
-              },
-            ],
-          },
+          this.buildCodingBlock(
+            'http://terminology.hl7.org/CodeSystem/condition-category',
+            this.mapConditionCategory(condition.conditionType),
+            condition.conditionType,
+          ),
         ],
         code: {
           coding: [],
@@ -88,15 +87,11 @@ export class FhirConditionFactory {
       }
 
       if (condition.severity) {
-        fhirCondition.severity = {
-          coding: [
-            {
-              system: 'http://snomed.info/sct',
-              code: this.mapSeverityCode(condition.severity),
-              display: condition.severity,
-            },
-          ],
-        };
+        fhirCondition.severity = this.buildCodingBlock(
+          'http://snomed.info/sct',
+          this.mapSeverityCode(condition.severity),
+          condition.severity,
+        );
       }
 
       if (condition.notes) {
@@ -121,41 +116,18 @@ export class FhirConditionFactory {
       fhirConditions.push({
         resourceType: 'Condition',
         id: diagnosis.id,
-        clinicalStatus: {
-          coding: [
-            {
-              system:
-                'http://terminology.hl7.org/CodeSystem/condition-clinical',
-              code: 'active',
-              display: 'Active',
-            },
-          ],
-        },
-        verificationStatus: {
-          coding: [
-            {
-              system:
-                'http://terminology.hl7.org/CodeSystem/condition-ver-status',
-              code: 'confirmed',
-              display: 'Confirmed',
-            },
-          ],
-        },
+        clinicalStatus: this.buildCodingBlock(
+          'http://terminology.hl7.org/CodeSystem/condition-clinical',
+          'active',
+          'Active',
+        ),
+        verificationStatus: this.buildVerificationStatus(),
         category: [
-          {
-            coding: [
-              {
-                system:
-                  'http://terminology.hl7.org/CodeSystem/condition-category',
-                code: diagnosis.isPrimary
-                  ? 'problem-list-item'
-                  : 'encounter-diagnosis',
-                display: diagnosis.isPrimary
-                  ? 'Problem List Item'
-                  : 'Encounter Diagnosis',
-              },
-            ],
-          },
+          this.buildCodingBlock(
+            'http://terminology.hl7.org/CodeSystem/condition-category',
+            diagnosis.isPrimary ? 'problem-list-item' : 'encounter-diagnosis',
+            diagnosis.isPrimary ? 'Problem List Item' : 'Encounter Diagnosis',
+          ),
         ],
         code: {
           coding: [
@@ -174,6 +146,14 @@ export class FhirConditionFactory {
       });
     }
     return fhirConditions;
+  }
+
+  private buildVerificationStatus(): FhirCondition['verificationStatus'] {
+    return this.buildCodingBlock(
+      'http://terminology.hl7.org/CodeSystem/condition-ver-status',
+      'confirmed',
+      'Confirmed',
+    );
   }
 
   private mapConditionStatus(status: string): string {

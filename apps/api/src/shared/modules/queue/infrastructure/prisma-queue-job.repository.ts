@@ -9,6 +9,20 @@ import type {
 export class PrismaQueueJobRepository implements QueueJobRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Runs an RLS-bypassed raw query that returns a row array — shared by
+   * `claimNextWaitingJob`, `recoverStaleActiveToDelayed`, and
+   * `recoverStaleActiveToFailed`, which only differ in the `UPDATE ...
+   * RETURNING` statement they execute. Keeping the bypass comment and
+   * empty-array fallback in one place avoids the three drifting apart.
+   */
+  private async runUnrestrictedRows<T>(
+    query: () => Promise<T[]>,
+  ): Promise<T[]> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
+    return (await this.prisma.runUnrestricted(query)) ?? [];
+  }
+
   async findRecentCompletedByIdempotency(
     name: string,
     idempotencyKey: string,
@@ -31,25 +45,22 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
   }
 
   async claimNextWaitingJob(name: string): Promise<QueueJobRow[]> {
-    return (
-      // RLS-BYPASS: background queue workers run without per-request clinic session
-      (await this.prisma.runUnrestricted(
-        async () =>
-          this.prisma.$queryRaw<QueueJobRow[]>`
-            UPDATE "QueueJob"
-            SET status = 'ACTIVE', "processedAt" = NOW(), "updatedAt" = NOW()
-            WHERE id = (
-              SELECT id FROM "QueueJob"
-              WHERE name = ${name}
-                AND status IN ('WAITING', 'DELAYED')
-                AND ("delayedUntil" IS NULL OR "delayedUntil" <= NOW())
-              ORDER BY priority DESC, "createdAt" ASC
-              LIMIT 1
-              FOR UPDATE SKIP LOCKED
-            )
-            RETURNING *
-          `,
-      )) ?? []
+    return this.runUnrestrictedRows(
+      () =>
+        this.prisma.$queryRaw<QueueJobRow[]>`
+        UPDATE "QueueJob"
+        SET status = 'ACTIVE', "processedAt" = NOW(), "updatedAt" = NOW()
+        WHERE id = (
+          SELECT id FROM "QueueJob"
+          WHERE name = ${name}
+            AND status IN ('WAITING', 'DELAYED')
+            AND ("delayedUntil" IS NULL OR "delayedUntil" <= NOW())
+          ORDER BY priority DESC, "createdAt" ASC
+          LIMIT 1
+          FOR UPDATE SKIP LOCKED
+        )
+        RETURNING *
+      `,
     );
   }
 
@@ -58,24 +69,21 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
     staleBefore: Date,
     delayedUntil: Date,
   ): Promise<Array<{ id: string }>> {
-    return (
-      // RLS-BYPASS: background queue workers run without per-request clinic session
-      (await this.prisma.runUnrestricted(
-        async () =>
-          this.prisma.$queryRaw<Array<{ id: string }>>`
-            UPDATE "QueueJob"
-            SET status = 'DELAYED',
-                "attemptsMade" = "attemptsMade" + 1,
-                "failedReason" = NULL,
-                "delayedUntil" = ${delayedUntil},
-                "updatedAt" = NOW()
-            WHERE name = ${name}
-              AND status = 'ACTIVE'
-              AND "processedAt" < ${staleBefore}
-              AND "attemptsMade" < "maxAttempts"
-            RETURNING id
-          `,
-      )) ?? []
+    return this.runUnrestrictedRows(
+      () =>
+        this.prisma.$queryRaw<Array<{ id: string }>>`
+        UPDATE "QueueJob"
+        SET status = 'DELAYED',
+            "attemptsMade" = "attemptsMade" + 1,
+            "failedReason" = NULL,
+            "delayedUntil" = ${delayedUntil},
+            "updatedAt" = NOW()
+        WHERE name = ${name}
+          AND status = 'ACTIVE'
+          AND "processedAt" < ${staleBefore}
+          AND "attemptsMade" < "maxAttempts"
+        RETURNING id
+      `,
     );
   }
 
@@ -83,22 +91,19 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
     name: string,
     staleBefore: Date,
   ): Promise<Array<{ id: string }>> {
-    return (
-      // RLS-BYPASS: background queue workers run without per-request clinic session
-      (await this.prisma.runUnrestricted(
-        async () =>
-          this.prisma.$queryRaw<Array<{ id: string }>>`
-            UPDATE "QueueJob"
-            SET status = 'FAILED',
-                "failedReason" = 'Recovered stale ACTIVE job after timeout',
-                "updatedAt" = NOW()
-            WHERE name = ${name}
-              AND status = 'ACTIVE'
-              AND "processedAt" < ${staleBefore}
-              AND "attemptsMade" >= "maxAttempts"
-            RETURNING id
-          `,
-      )) ?? []
+    return this.runUnrestrictedRows(
+      () =>
+        this.prisma.$queryRaw<Array<{ id: string }>>`
+        UPDATE "QueueJob"
+        SET status = 'FAILED',
+            "failedReason" = 'Recovered stale ACTIVE job after timeout',
+            "updatedAt" = NOW()
+        WHERE name = ${name}
+          AND status = 'ACTIVE'
+          AND "processedAt" < ${staleBefore}
+          AND "attemptsMade" >= "maxAttempts"
+        RETURNING id
+      `,
     );
   }
 

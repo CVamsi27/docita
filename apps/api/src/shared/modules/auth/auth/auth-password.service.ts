@@ -30,12 +30,11 @@ export class AuthPasswordService {
     // (@Throttle + IpRateLimitGuard); this just keeps malformed bodies from
     // generating noise in the user table query plan.
     const trimmed = (email ?? '').trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed))
       return {
         message:
           'If an account with that email exists, a reset link has been sent.',
       };
-    }
     // RLS-BYPASS: auth resolves users before clinic tenant context is established
     return this.prisma.runUnrestricted(async () => {
       const user = await this.prisma.user.findUnique({
@@ -50,18 +49,13 @@ export class AuthPasswordService {
             'If an account with that email exists, a reset link has been sent.',
         };
       }
-
       const token = nanoid(64);
       const expiresAt = new Date(
         this.clock.now().getTime() + AUTH_CONSTANTS.PASSWORD_RESET_TTL_MS,
       );
-
       await this.prisma.user.update({
         where: { id: user.id },
-        data: {
-          passwordResetToken: token,
-          passwordResetExpiresAt: expiresAt,
-        },
+        data: { passwordResetToken: token, passwordResetExpiresAt: expiresAt },
       });
 
       const emailResult = await this.emailService
@@ -74,15 +68,12 @@ export class AuthPasswordService {
           return { success: false as const, error: 'send_failed' };
         });
 
-      if (!emailResult.success) {
+      if (!emailResult.success)
         this.logger.warn('Password reset email provider rejected send', {
           userId: user.id,
           error: emailResult.error ?? 'unknown',
         });
-      } else {
-        this.logger.log('Password reset email sent', { userId: user.id });
-      }
-
+      else this.logger.log('Password reset email sent', { userId: user.id });
       return {
         message:
           'If an account with that email exists, a reset link has been sent.',
@@ -106,9 +97,8 @@ export class AuthPasswordService {
         },
       });
 
-      if (!user) {
+      if (!user)
         throw new BadRequestException('Invalid or expired reset token');
-      }
 
       this.passwordPolicy.validate(newPassword);
 
@@ -162,17 +152,14 @@ export class AuthPasswordService {
       },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+    if (!user) throw new UnauthorizedException('User not found');
 
     const passwordMatch = await bcrypt.compare(
       data.currentPassword,
       user.password,
     );
-    if (!passwordMatch) {
+    if (!passwordMatch)
       throw new UnauthorizedException('Current password is incorrect');
-    }
 
     this.passwordPolicy.validate(data.newPassword);
 

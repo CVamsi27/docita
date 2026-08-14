@@ -126,12 +126,17 @@ export const usePatientConsentSettings = () =>
     whatsappConsentAt: string | null;
     isFirstLogin: boolean;
     dataStorageConsent: boolean;
+    marketingConsent?: boolean;
   }>(queryKeys.patientPortal.consent(), "/patient-portal/consent");
 
 export const useUpdatePatientConsent = () =>
   useAPIMutation<
     Record<string, unknown>,
-    { whatsappConsent?: boolean; dataStorageConsent?: boolean }
+    {
+      whatsappConsent?: boolean;
+      dataStorageConsent?: boolean;
+      marketingConsent?: boolean;
+    }
   >("/patient-portal/consent", "PATCH");
 
 export const useRequestDataDeletion = () =>
@@ -161,6 +166,18 @@ export const usePortalMetricCategories = () =>
     "/patient-portal/metrics/categories",
   );
 
+function buildParams(
+  entries: [string, string | number | undefined][],
+): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of entries) {
+    if (value !== undefined) params.set(key, String(value));
+  }
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+// jscpd:ignore-start
 export const usePortalMetricHistory = (filters?: {
   definitionId?: string;
   categoryId?: string;
@@ -168,22 +185,23 @@ export const usePortalMetricHistory = (filters?: {
   to?: string;
   limit?: number;
 }) => {
-  const params = new URLSearchParams();
-  if (filters?.definitionId) params.set("definitionId", filters.definitionId);
-  if (filters?.categoryId) params.set("categoryId", filters.categoryId);
-  if (filters?.from) params.set("from", filters.from);
-  if (filters?.to) params.set("to", filters.to);
-  if (filters?.limit) params.set("limit", String(filters.limit));
-  const query = params.toString();
+  const query = buildParams([
+    ["definitionId", filters?.definitionId],
+    ["categoryId", filters?.categoryId],
+    ["from", filters?.from],
+    ["to", filters?.to],
+    ["limit", filters?.limit],
+  ]);
   return useAPIQuery<{
     total: number;
     timeline: Record<string, unknown>[];
     byCategory: Record<string, Record<string, unknown>[]>;
   }>(
     queryKeys.patientPortal.metrics.history(filters),
-    `/patient-portal/metrics/history${query ? `?${query}` : ""}`,
+    `/patient-portal/metrics/history${query}`,
   );
 };
+// jscpd:ignore-end
 
 export const usePortalSelectedMetrics = () =>
   useAPIQuery<Record<string, unknown>[]>(
@@ -238,19 +256,19 @@ export const usePortalVitalsHistory = (filters?: {
   to?: string;
   limit?: number;
 }) => {
-  const params = new URLSearchParams();
-  if (filters?.categoryId) params.set("categoryId", filters.categoryId);
-  if (filters?.from) params.set("from", filters.from);
-  if (filters?.to) params.set("to", filters.to);
-  if (filters?.limit) params.set("limit", String(filters.limit));
-  const query = params.toString();
+  const query = buildParams([
+    ["categoryId", filters?.categoryId],
+    ["from", filters?.from],
+    ["to", filters?.to],
+    ["limit", filters?.limit],
+  ]);
   return useAPIQuery<{
     total: number;
     timeline: Record<string, unknown>[];
     byCategory: Record<string, Record<string, unknown>[]>;
   }>(
     queryKeys.patientPortal.metrics.vitalsHistory(filters),
-    `/patient-portal/metrics/vitals-history${query ? `?${query}` : ""}`,
+    `/patient-portal/metrics/vitals-history${query}`,
   );
 };
 
@@ -261,17 +279,19 @@ export const usePortalTimeline = (filters?: {
   limit?: number;
   offset?: number;
 }) => {
-  const params = new URLSearchParams();
-  if (filters?.eventTypes?.length)
-    params.set("eventTypes", filters.eventTypes.join(","));
-  if (filters?.from) params.set("from", filters.from);
-  if (filters?.to) params.set("to", filters.to);
-  if (filters?.limit) params.set("limit", String(filters.limit));
-  if (filters?.offset) params.set("offset", String(filters.offset));
-  const query = params.toString();
+  const eventTypesStr = filters?.eventTypes?.length
+    ? filters.eventTypes.join(",")
+    : undefined;
+  const query = buildParams([
+    ["eventTypes", eventTypesStr],
+    ["from", filters?.from],
+    ["to", filters?.to],
+    ["limit", filters?.limit],
+    ["offset", filters?.offset],
+  ]);
   return useAPIQuery<PatientTimelineResponse>(
     queryKeys.patientPortal.timeline.list(filters),
-    `/patient-portal/timeline${query ? `?${query}` : ""}`,
+    `/patient-portal/timeline${query}`,
   );
 };
 
@@ -295,15 +315,14 @@ export const usePortalDoseHistory = (filters?: {
   limit?: number;
   offset?: number;
 }) => {
-  const params = new URLSearchParams();
-  if (filters?.prescriptionId)
-    params.set("prescriptionId", filters.prescriptionId);
-  if (filters?.from) params.set("from", filters.from);
-  if (filters?.to) params.set("to", filters.to);
-  if (filters?.status) params.set("status", filters.status);
-  if (filters?.limit) params.set("limit", String(filters.limit));
-  if (filters?.offset) params.set("offset", String(filters.offset));
-  const query = params.toString();
+  const query = buildParams([
+    ["prescriptionId", filters?.prescriptionId],
+    ["from", filters?.from],
+    ["to", filters?.to],
+    ["status", filters?.status],
+    ["limit", filters?.limit],
+    ["offset", filters?.offset],
+  ]);
   return useAPIQuery<{
     doses: Record<string, unknown>[];
     total: number;
@@ -311,7 +330,7 @@ export const usePortalDoseHistory = (filters?: {
     offset: number;
   }>(
     queryKeys.patientPortal.medications.doses.list(filters),
-    `/patient-portal/medications/doses${query ? `?${query}` : ""}`,
+    `/patient-portal/medications/doses${query}`,
   );
 };
 

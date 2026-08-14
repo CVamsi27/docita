@@ -32,7 +32,7 @@ export function Breadcrumbs({
   const visible =
     items.length <= maxVisible
       ? items
-      : [items[0]!, { label: "\u2026" } as BreadcrumbItem, ...items.slice(-2)];
+      : [items[0]!, { label: "…" } as BreadcrumbItem, ...items.slice(-2)];
 
   return (
     <nav aria-label="Breadcrumb" className={cn("min-w-0", className)}>

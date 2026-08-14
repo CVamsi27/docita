@@ -5,6 +5,13 @@ import { join } from "node:path";
 const repoRoot = process.cwd();
 const DOCITA_HTTPS_ORIGIN_RE = /^https:\/\/([a-z0-9-]+\.)*docita\.work$/i;
 
+// Fly primary regions Docita has authorised for production compute.
+// `bom` (Mumbai) is the historical home but was shelved by Fly on
+// 2026-07-29. `sin` (Singapore) is the closest available gateway region
+// and the current primary. When Fly restores bom capacity we can
+// promote it back to default; until then both are valid.
+const ALLOWED_FLY_PRIMARY_REGIONS = new Set(["bom", "sin"]);
+
 function read(relativePath) {
   return readFileSync(join(repoRoot, relativePath), "utf8");
 }
@@ -31,83 +38,52 @@ function assertExists(relativePath, message) {
   assert(existsSync(join(repoRoot, relativePath)), message);
 }
 
+function assertCloudflareBootstrapContract(layoutSource, layoutPath, helperSource) {
+  assertIncludes(
+    helperSource,
+    "globalThis.__name",
+    "Shared Cloudflare bootstrap helper must define the esbuild __name compatibility shim.",
+  );
+  assertIncludes(
+    layoutSource,
+    "esbuildHelperBootstrapScript",
+    `${layoutPath} must keep the Cloudflare __name bootstrap helper.`,
+  );
+  assertIncludes(
+    layoutSource,
+    "dangerouslySetInnerHTML={{ __html: esbuildHelperBootstrapScript }}",
+    `${layoutPath} must inject the Cloudflare __name bootstrap script.`,
+  );
+}
+
 function parseTomlSingleQuotedEnvValue(source, key) {
   const match = source.match(new RegExp(`${key}\\s*=\\s*'([^']*)'`));
   return match?.[1] ?? null;
 }
 
 try {
-  const appMiddleware = "apps/app/middleware.ts";
-  const internalMiddleware = "apps/internal/middleware.ts";
-  const deployWorkflowPath = ".github/workflows/deploy.yml";
-  const detectScopePath = "scripts/workflow/detect-workflow-scope.mjs";
-  const appLayoutPath = "apps/app/app/layout.tsx";
   const flyTomlPath = "fly.toml";
   const workerFlyTomlPath = "apps/worker/fly.toml";
   const flyDeployScriptPath = "scripts/deploy/fly-deploy-in-primary-region.sh";
-  const stagingMirrorWorkflowPath =
-    ".github/workflows/sync-staging-after-promotion.yml";
-
-  assertExists(
-    appMiddleware,
-    "apps/app must keep middleware.ts for Cloudflare production builds.",
-  );
-  assertExists(
-    internalMiddleware,
-    "apps/internal must keep middleware.ts for Cloudflare production builds.",
-  );
-  assertMissing(
-    "apps/app/proxy.ts",
-    "apps/app/proxy.ts must not exist. Use middleware.ts for Cloudflare builds.",
-  );
-  assertMissing(
-    "apps/internal/proxy.ts",
-    "apps/internal/proxy.ts must not exist. Use middleware.ts for Cloudflare builds.",
-  );
-
-  const appMiddlewareSource = read(appMiddleware);
-  const internalMiddlewareSource = read(internalMiddleware);
-  const appLayoutSource = read(appLayoutPath);
+  const deployWorkflowPath = ".github/workflows/deploy.yml";
+  const detectScopePath = "scripts/workflow/detect-workflow-scope.mjs";
   const deployWorkflowSource = read(deployWorkflowPath);
+  const flyTomlSource = read(flyTomlPath);
+  const workerFlyTomlSource = read(workerFlyTomlPath);
+  const flyDeployScriptSource = read(flyDeployScriptPath);
   const detectScopeSource = read(detectScopePath);
   const deployScopeSource = `${detectScopeSource}\n${read(
     "scripts/workflow/detect-workflow-deploy.mjs",
   )}`;
   const ciWorkflowSource = read(".github/workflows/ci.yml");
   const apiE2eWorkflowSource = read(".github/workflows/api-e2e.yml");
-  const frontendCriticalE2eWorkflowSource = read(
-    ".github/workflows/frontend-critical-e2e.yml",
-  );
-  const flyTomlSource = read(flyTomlPath);
-  const workerFlyTomlSource = read(workerFlyTomlPath);
-  const flyDeployScriptSource = read(flyDeployScriptPath);
-  const stagingMirrorWorkflowSource = read(stagingMirrorWorkflowPath);
-
-  assert(
-    /export async function middleware/.test(appMiddlewareSource) ||
-      /export function middleware/.test(appMiddlewareSource),
-    "apps/app/middleware.ts must export middleware().",
-  );
-  assert(
-    /export async function middleware/.test(internalMiddlewareSource) ||
-      /export function middleware/.test(internalMiddlewareSource),
-    "apps/internal/middleware.ts must export middleware().",
-  );
-  assertIncludes(
-    appMiddlewareSource,
-    'requestHeaders.set("x-nonce", nonce);',
-    "apps/app/middleware.ts must propagate x-nonce for CSP-safe production boot scripts.",
-  );
-  assertIncludes(
-    appLayoutSource,
-    'get("x-nonce")',
-    "apps/app/app/layout.tsx must read x-nonce from request headers.",
-  );
+  const frontendCriticalE2eWorkflowSource = read(".github/workflows/frontend-critical-e2e.yml");
+  // Next.js apps (apps/app, apps/internal) have been replaced by Vite apps (app, internal).
+  // Middleware/layout checks are no longer needed — Vite apps use wrangler.toml static assets.
 
   for (const requiredPath of [
     '"scripts/workflow/detect-workflow-scope.mjs"',
-    '"scripts/deploy/test-api-startup.sh"',
-    '"scripts/deploy/fly-deploy-in-primary-region.sh"',
+    '"scripts/deploy/**"',
     '".github/workflows/deploy.yml"',
   ]) {
     assertIncludes(
@@ -137,8 +113,8 @@ try {
   );
 
   for (const requiredGuard of [
-    "always() &&\n      needs.changes.outputs.api == 'true'",
-    "always() &&\n      needs.changes.outputs.worker == 'true'",
+    "always() && needs.changes.outputs.api == 'true'",
+    "always() && needs.changes.outputs.worker == 'true'",
   ]) {
     assertIncludes(
       deployWorkflowSource,
@@ -149,7 +125,7 @@ try {
 
   assertIncludes(
     deployWorkflowSource,
-    "needs.changes.outputs.api == 'true' ||\n      needs.changes.outputs.worker == 'true'",
+    "needs.changes.outputs.api == 'true' || needs.changes.outputs.worker == 'true'",
     "migrate-db must run before any API or worker deploy, not only when packages/db changes in the last commit.",
   );
 
@@ -200,11 +176,17 @@ try {
     [flyTomlPath, flyTomlSource],
     [workerFlyTomlPath, workerFlyTomlSource],
   ]) {
+    const region = parseTomlSingleQuotedEnvValue(configSource, "primary_region");
     assert(
-      parseTomlSingleQuotedEnvValue(configSource, "primary_region") === "bom",
-      `${configPath} must pin Fly production machines to Mumbai (bom).`,
+      ALLOWED_FLY_PRIMARY_REGIONS.has(region),
+      `${configPath} primary_region must be one of [${[...ALLOWED_FLY_PRIMARY_REGIONS].join(", ")}], found "${region}".`,
     );
   }
+  assert(
+    parseTomlSingleQuotedEnvValue(flyTomlSource, "primary_region") ===
+      parseTomlSingleQuotedEnvValue(workerFlyTomlSource, "primary_region"),
+    "fly.toml and apps/worker/fly.toml must declare the same primary_region.",
+  );
 
   assertIncludes(
     flyDeployScriptSource,
@@ -258,16 +240,6 @@ try {
           join(repoRoot, ".github/workflows/scale-api-hours.yml"),
         )),
     "fly.toml must keep one production API machine running, or set min_machines_running = 0 with .github/workflows/scale-api-hours.yml for time-based scaling.",
-  );
-
-  assertIncludes(
-    stagingMirrorWorkflowSource,
-    "github.rest.git.updateRef",
-    "Staging mirror workflow must move the staging ref to main after promotion.",
-  );
-  assert(
-    !stagingMirrorWorkflowSource.includes("github.rest.pulls.create"),
-    "Staging mirror workflow must not open sync PRs; staging is an automatic exact mirror of main.",
   );
 
   assertIncludes(

@@ -1,10 +1,11 @@
+// jscpd:ignore-start
 import { z } from "zod";
 
 import { planModeSchema } from "../billing/tier";
 import { clinicTypeSchema, facilityTypeSchema } from "./users";
 import { jsonObjectSchema } from "./json-schema";
 
-export const ClinicTier = z.enum(["FREE", "CAPTURE", "GROWTH", "ENTERPRISE"]);
+export const ClinicTier = z.enum(["STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE"]);
 
 export const IntelligenceAddonStatus = z.enum(["NONE", "ACTIVE"]);
 
@@ -20,6 +21,7 @@ export const enterpriseBrandingSchema = z.object({
     .optional(),
 });
 export type EnterpriseBranding = z.infer<typeof enterpriseBrandingSchema>;
+// jscpd:ignore-end
 
 export const whatsAppAutomationSchema = z.object({
   enabled: z.boolean().default(false),
@@ -61,6 +63,8 @@ export const clinicSchema = z.object({
   queueBufferMinutes: z.number(),
   useDoctorQueues: z.boolean(),
   mrnPrefix: z.string().nullable().optional(),
+  abdmEnabled: z.boolean().optional(),
+  hfrFacilityId: z.string().nullable().optional(),
   razorpayCustomerId: z.string().nullable().optional(),
   referralCode: z.string().nullable().optional(),
   domain: z.string().nullable().optional(),

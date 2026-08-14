@@ -1,4 +1,5 @@
-import { expect, Page, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { DPDP_NOTICE_VERSION } from "@workspace/types";
 import { API_URL, loginUser, setupTestUser } from "./utils/patient-helpers";
 import { expectPageHeader, expectRoute } from "./utils/ui-contracts";

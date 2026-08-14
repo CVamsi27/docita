@@ -24,9 +24,9 @@ export class EphemeralStoreCleanupScheduler {
   async purgeExpiredRows(): Promise<void> {
     const now = this.clock.now();
     try {
-      let idempotencyTotal = 0;
-      let webhookTotal = 0;
-      let onboardingTotal = 0;
+      let idempotencyTotal = 0,
+        webhookTotal = 0,
+        onboardingTotal = 0;
       for (let i = 0; i < 20; i += 1) {
         // check-n-plus-1: allow — batched purge; each round depends on prior deleteMany
         const stale = await this.prisma.apiHttpIdempotencyRecord.findMany({
@@ -81,9 +81,7 @@ export class EphemeralStoreCleanupScheduler {
       }
     } catch (error) {
       this.logger.error(
-        `Ephemeral store cleanup failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
+        `Ephemeral store cleanup failed: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

@@ -43,9 +43,7 @@ export class AppointmentMetricDefinitionService {
       });
     }
 
-    if (definitionConfigByKey.size === 0) {
-      return new Map();
-    }
+    if (definitionConfigByKey.size === 0) return new Map();
 
     const definitionKeys = Array.from(definitionConfigByKey.keys());
     const categoryKey = input.categoryKey.trim().toLowerCase();
@@ -82,6 +80,9 @@ export class AppointmentMetricDefinitionService {
         where,
         select: { id: true, key: true },
         orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
+        // No `take`: bounded by (clinicId, key ∈ definitionKeys). The caller
+        // supplies a small fixed key set; the result keys are then matched
+        // against it, so truncating would lose rows we need to upsert.
       });
 
     const definitionIdsByKey = new Map<string, string>();
@@ -100,9 +101,7 @@ export class AppointmentMetricDefinitionService {
         data: missingDefinitionKeys
           .map((definitionKey) => {
             const config = definitionConfigByKey.get(definitionKey);
-            if (!config) {
-              return null;
-            }
+            if (!config) return null;
 
             return {
               clinicId: input.clinicId,
@@ -127,6 +126,8 @@ export class AppointmentMetricDefinitionService {
           where,
           select: { id: true, key: true },
           orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
+          // No `take`: same (clinicId, key ∈ definitionKeys) bound as the
+          // first read; row count cannot grow between the two reads.
         });
 
       for (const definition of refreshedDefinitions) {

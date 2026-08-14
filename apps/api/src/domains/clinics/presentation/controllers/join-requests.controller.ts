@@ -17,6 +17,9 @@ import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role, JoinRequestStatus } from '@workspace/db';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
+import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
+import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
+import { AllowNoClinic } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { JoinRequestService } from '@/domains/clinics/application/services/join-request.service';
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { RequestWithUser } from '@/shared/common/types/common.types';
@@ -44,6 +47,9 @@ export class JoinRequestsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
   @HttpCode(200)
   async createJoinRequest(
     @Request() req: RequestWithUser,
@@ -56,18 +62,15 @@ export class JoinRequestsController {
       clinicId: dto.clinicId,
     });
 
-    if (user.clinicId) {
+    if (user.clinicId)
       throw new BadRequestException('Already associated with a clinic');
-    }
 
     const existing = await this.joinRequestService.findPending(
       user.id,
       dto.clinicId,
     );
 
-    if (existing) {
-      throw new ConflictException('Join request already pending');
-    }
+    if (existing) throw new ConflictException('Join request already pending');
 
     const request = await this.joinRequestService.create({
       userId: user.id,
@@ -117,14 +120,15 @@ export class JoinRequestsController {
 
   @Get('mine')
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
   async getMyJoinRequest(@Request() req: RequestWithUser) {
     const requests = await this.joinRequestService.findUserPendingRequests(
       requireAuthenticatedUserId(req),
     );
 
-    if (requests.length === 0) {
-      return null;
-    }
+    if (requests.length === 0) return null;
 
     return requests[0];
   }
@@ -153,9 +157,8 @@ export class JoinRequestsController {
     const userName = req.user?.name ?? 'Clinic staff';
     const request = await this.joinRequestService.findById(requestId);
 
-    if (!request || request.clinicId !== clinicId) {
+    if (!request || request.clinicId !== clinicId)
       throw new NotFoundException('Request not found');
-    }
 
     await this.joinRequestService.approve(
       requestId,
@@ -198,9 +201,8 @@ export class JoinRequestsController {
     const userName = req.user?.name ?? 'Clinic staff';
     const request = await this.joinRequestService.findById(requestId);
 
-    if (!request || request.clinicId !== clinicId) {
+    if (!request || request.clinicId !== clinicId)
       throw new NotFoundException('Request not found');
-    }
 
     await this.joinRequestService.reject(
       requestId,
@@ -232,6 +234,9 @@ export class JoinRequestsController {
 
   @Post(':id/withdraw')
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
   @HttpCode(200)
   async withdrawJoinRequest(
     @Request() req: RequestWithUser,

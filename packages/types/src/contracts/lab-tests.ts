@@ -6,6 +6,7 @@ import {
   labTypeSchema,
 } from "../operations/lab-tests";
 import { markInvoicePaidPaymentMethodSchema } from "./billing";
+import { paginatedResponseSchema } from "../api/api-response";
 
 export const labTestResponseSchema = labTestSchema;
 export const labTestOrderResponseSchema = labTestOrderSchema;
@@ -20,6 +21,10 @@ export const createLabTestRequestSchema = z.object({
   price: z.number().optional(),
   description: z.string().optional(),
 });
+
+export const updateLabTestRequestSchema = createLabTestRequestSchema
+  .omit({ clinicId: true })
+  .partial();
 
 export const createLabTestOrderRequestSchema = z.object({
   patientId: z.string(),
@@ -43,7 +48,12 @@ export const listLabTestOrdersQuerySchema = z.object({
   search: z.string().optional(),
   status: z.string().optional(),
   date: z.string().optional(),
+  cursor: z.string().optional(),
+  limit: z.coerce.number().int().positive().max(500).optional(),
 });
+
+export const listLabTestOrdersResponseSchema =
+  paginatedResponseSchema(labTestOrderSchema);
 
 export const labStatsQuerySchema = z.object({
   clinicId: z.string().optional(),
@@ -107,6 +117,7 @@ export type LabTestOrderContractResponse = z.infer<
   typeof labTestOrderResponseSchema
 >;
 export type CreateLabTestRequest = z.infer<typeof createLabTestRequestSchema>;
+export type UpdateLabTestRequest = z.infer<typeof updateLabTestRequestSchema>;
 export type CreateLabTestOrderRequest = z.infer<
   typeof createLabTestOrderRequestSchema
 >;
@@ -115,4 +126,7 @@ export type UpdateLabTestOrderRequest = z.infer<
 >;
 export type ListLabTestOrdersContractQuery = z.infer<
   typeof listLabTestOrdersQuerySchema
+>;
+export type ListLabTestOrdersResponse = z.infer<
+  typeof listLabTestOrdersResponseSchema
 >;

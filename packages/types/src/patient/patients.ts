@@ -94,10 +94,9 @@ export const patientSchema = z.object({
     .transform(stripHtmlTags),
   clinicId: z.string().optional(),
 
-  race: z.string().max(50).optional(),
-  ethnicity: z.string().max(50).optional(),
+  // DPDP data minimization: race/ethnicity/maritalStatus are not required for
+  // clinical care and were never persisted — removed from the collection surface.
   preferredLanguage: z.string().max(50).optional(),
-  maritalStatus: z.string().max(50).optional(),
 
   isolationStatus: isolationStatusSchema.default("NONE"),
   fallRisk: z.boolean().default(false),
@@ -105,6 +104,11 @@ export const patientSchema = z.object({
   insuranceProvider: z.string().max(100).optional(),
   insurancePolicyNumber: z.string().max(100).optional(),
   insuranceGroupNumber: z.string().max(100).optional(),
+
+  abhaAddress: z.string().max(64).nullable().optional(),
+  abhaNumber: z.string().max(14).nullable().optional(),
+  abhaKycName: z.string().max(100).nullable().optional(),
+  abhaVerifiedAt: z.string().or(z.date()).nullable().optional(),
 
   emergencyContactName: z.string().max(100).optional(),
   emergencyContactPhone: z.string().max(20).optional(),

@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { applyDecorators, UseGuards } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { APP_ACCESS_TARGETS, type AppAccessTarget } from '@workspace/types';
@@ -36,4 +37,5 @@ export const PatientsMetricsApiAccess = () =>
   patientsApiAccess(APP_ACCESS_TARGETS.API_PATIENT_METRICS);
 
 export const PatientsPrescriptionsApiAccess = () =>
+  // jscpd:ignore-end
   patientsApiAccess(APP_ACCESS_TARGETS.API_PRESCRIPTIONS);

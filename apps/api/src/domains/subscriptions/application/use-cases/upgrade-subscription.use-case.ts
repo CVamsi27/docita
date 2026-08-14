@@ -42,9 +42,7 @@ export class UpgradeSubscriptionUseCase {
     }
 
     const canChange = this.validationService.canChangePlan(subscription);
-    if (!canChange.allowed) {
-      throw new BadRequestException(canChange.reason);
-    }
+    if (!canChange.allowed) throw new BadRequestException(canChange.reason);
 
     const newTier = ClinicTier.fromString(dto.newPlan);
 

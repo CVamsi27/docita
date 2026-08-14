@@ -4,7 +4,7 @@ import { execSync } from "node:child_process";
 import process from "node:process";
 
 const enforce = process.argv.includes("--enforce");
-const LEGACY_HOOK_DIR = "apps/app/shared/hooks/api";
+const LEGACY_HOOK_DIR = "apps/app/src/shared/hooks/api";
 
 const files = execSync(`git ls-files "${LEGACY_HOOK_DIR}"`, {
   encoding: "utf8",

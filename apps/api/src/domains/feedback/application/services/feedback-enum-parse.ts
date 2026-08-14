@@ -14,9 +14,7 @@ export function parseFeedbackCategory(
 export function parseFeedbackCategoryFilter(
   value: string | undefined,
 ): FeedbackCategory | undefined {
-  if (!value) {
-    return undefined;
-  }
+  if (!value) return undefined;
   const parsed = feedbackCategorySchema.safeParse(value);
   return parsed.success ? parsed.data : undefined;
 }
@@ -24,17 +22,13 @@ export function parseFeedbackCategoryFilter(
 export function parseFeedbackStatusFilter(
   value: string | undefined,
 ): FeedbackStatus | undefined {
-  if (!value) {
-    return undefined;
-  }
+  if (!value) return undefined;
   const parsed = feedbackStatusSchema.safeParse(value);
   return parsed.success ? parsed.data : undefined;
 }
 
 export function parseFeedbackStatus(value: string): FeedbackStatus {
   const parsed = feedbackStatusSchema.safeParse(value);
-  if (!parsed.success) {
-    throw parsed.error;
-  }
+  if (!parsed.success) throw parsed.error;
   return parsed.data;
 }

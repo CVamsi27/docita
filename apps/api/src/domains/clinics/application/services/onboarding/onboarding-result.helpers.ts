@@ -14,9 +14,7 @@ export function buildValidationFailureResult(
 ): OnboardingResult | null {
   const validation =
     validationService.validateOnboardingCompletion(completeData);
-  if (validation.valid) {
-    return null;
-  }
+  if (validation.valid) return null;
   return {
     success: false,
     clinicId: '',

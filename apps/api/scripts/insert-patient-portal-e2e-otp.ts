@@ -3,9 +3,7 @@ import prisma from '@workspace/db';
 
 function readPhoneNumber(): string {
   const raw = process.env.PORTAL_E2E_PHONE?.trim();
-  if (!raw) {
-    throw new Error('PORTAL_E2E_PHONE is required');
-  }
+  if (!raw) throw new Error('PORTAL_E2E_PHONE is required');
 
   const digits = raw.replace(/\D/g, '');
   if (digits.length === 10) {

@@ -31,8 +31,18 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['../../.env', '.env'],
+      // Mirrors apps/api/src/app.module.ts: load `.env.production` (the canonical
+      // prod env) before any fallback files. Worker process needs the same env
+      // resolution as the API.
+      envFilePath: [
+        '.env.production',
+        '.env.development',
+        '.env.test',
+        '../../.env',
+        '.env',
+      ],
     }),
+    // jscpd:ignore-start
     AppConfigModule,
     LoggerModule.forRootAsync({
       imports: [AppConfigModule],
@@ -45,6 +55,7 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
       }),
     }),
     CacheConfigModule,
+    // jscpd:ignore-end
     ...(ENABLE_SCHEDULERS ? [ScheduleModule.forRoot()] : []),
     EventsModule,
     PrismaWorkerModule,

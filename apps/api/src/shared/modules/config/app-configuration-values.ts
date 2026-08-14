@@ -5,12 +5,10 @@ import {
 } from './app-config-url.helpers';
 
 export function getSharedCookieDomainFromConfig(config: EnvConfig) {
-  if (config.NODE_ENV !== 'production') {
-    return undefined;
-  }
+  if (config.NODE_ENV !== 'production') return undefined;
 
-  const frontendHostname = parseHostname(config.NEXT_PUBLIC_APP_URL);
-  const apiHostname = parseHostname(config.NEXT_PUBLIC_API_URL);
+  const frontendHostname = parseHostname(config.FRONTEND_URL);
+  const apiHostname = parseHostname(config.API_PUBLIC_URL);
   const appHostname = parseHostname(config.APP_URL);
   const frontendApiDomain = resolveSharedCookieDomain(
     [frontendHostname, apiHostname].filter((hostname): hostname is string =>
@@ -29,21 +27,26 @@ export function getSharedCookieDomainFromConfig(config: EnvConfig) {
 }
 
 export function shouldBypassGuardForE2eConfig({
-  isProduction,
+  nodeEnv,
   apiE2eEnabled,
   e2eHeaderValue,
 }: {
-  isProduction: boolean;
+  nodeEnv: string;
   apiE2eEnabled: boolean;
   e2eHeaderValue: string | undefined;
 }) {
-  if (isProduction) {
-    return false;
-  }
-  if (apiE2eEnabled) {
-    return true;
-  }
-  return e2eHeaderValue === 'true';
+  // Production and staging are internet-facing: never honor an attacker-set
+  // header, and never allow the DOCITA_API_E2E switch to open a full bypass
+  // (security-review VULN-001 — the header alone must not disable the auth
+  // rate limiters / email-verified gate on a deployed environment).
+  if (nodeEnv === 'production' || nodeEnv === 'staging') return false;
+  // DOCITA_API_E2E=true is the explicit operator switch; the e2e suites set
+  // it in test/setup-e2e-env.ts. Local dev can opt in deliberately.
+  if (apiE2eEnabled) return true;
+  // The x-docita-e2e header is honored ONLY under `test`, where the API
+  // e2e suite runs (api-e2e.yml sets NODE_ENV=test).
+  if (nodeEnv === 'test') return e2eHeaderValue === 'true';
+  return false;
 }
 
 export function getEmailSenderDomainFromEmail(from: string) {
@@ -68,18 +71,13 @@ export function getJwtSecretFromConfig({
   workerEntrypoint: string;
   workerPlaceholderSecret: string;
 }) {
-  if (jwtSecret) {
-    return jwtSecret;
-  }
-  if (workerEntrypoint === 'worker') {
-    return workerPlaceholderSecret;
-  }
+  if (jwtSecret) return jwtSecret;
+  if (workerEntrypoint === 'worker') return workerPlaceholderSecret;
   throw new Error('JWT_SECRET is required for API runtime');
 }
 
 export function getRequiredRedisUrl(redisUrl: string | undefined) {
-  if (!redisUrl) {
+  if (!redisUrl)
     throw new Error('REDIS_URL is required when CACHE_BACKEND=redis');
-  }
   return redisUrl;
 }

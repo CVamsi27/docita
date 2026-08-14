@@ -1,16 +1,21 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InvariantViolationError } from '@/shared/common/errors/domain.errors';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import { ClinicPricingOffer } from '@/shared/modules/services/feature-flag.service';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { isRecord } from '@workspace/utils';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 
 const PRICING_OFFER_FLAG = 'clinic_pricing_offer';
 
 @Injectable()
 export class InternalPricingAdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly events: EventEmitter2,
+  ) {}
 
   private parseOfferValue(
     value: Prisma.JsonValue | null,
@@ -25,9 +30,7 @@ export class InternalPricingAdminService {
         ? raw.percentOff
         : 0;
 
-    if (percentOff <= 0) {
-      return null;
-    }
+    if (percentOff <= 0) return null;
 
     return {
       title: typeof raw.title === 'string' ? raw.title : '',
@@ -71,10 +74,14 @@ export class InternalPricingAdminService {
     for (const key of allowed) {
       if (key in data) update[key] = data[key];
     }
-    return this.prisma.tierPricing.update({
+    const updated = await this.prisma.tierPricing.update({
       where: { id: tierId },
       data: update,
     });
+    // Bust the in-process tier cache in PricingService so the change is
+    // visible to the next request rather than waiting for the 5-min TTL.
+    this.events.emit(ApplicationEvents.TIER_PRICING_UPDATED, { tierId });
+    return updated;
   }
 
   async getPricingOffers() {
@@ -89,13 +96,9 @@ export class InternalPricingAdminService {
     return offers
       .map((offer) => {
         const parsed = this.parseOfferValue(offer.value);
-        if (!parsed) {
-          return null;
-        }
+        if (!parsed) return null;
 
-        if (!offer.clinicId) {
-          return null;
-        }
+        if (!offer.clinicId) return null;
 
         return {
           id: offer.id,
@@ -150,11 +153,10 @@ export class InternalPricingAdminService {
         });
 
     const record = await persist;
-    if (!record.clinicId) {
+    if (!record.clinicId)
       throw new InvariantViolationError(
         'Pricing offer feature flag must have a clinicId',
       );
-    }
     return {
       id: record.id,
       clinicId: record.clinicId,

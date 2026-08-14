@@ -1,7 +1,12 @@
 #!/usr/bin/env node
-// Verifies the three Sentry PHI scrubbers stay in parity until the
+// Verifies Sentry PHI scrubbers stay in parity until the
 // `@workspace/utils` shared scrubber becomes canonical.
 // SYSTEM_DESIGN_AND_PATTERNS.md §56 item 45.
+//
+// Note: apps/internal previously had its own re-export barrel
+// (sentry-phi-redactor.ts) which was removed in the ponytail audit
+// (dead code, 0 imports). Re-add to FILES if a new scrubber is
+// introduced there.
 
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -12,8 +17,9 @@ const REPO_ROOT = join(__dirname, "..", "..");
 
 const FILES = [
   "packages/utils/src/monitoring/phi-scrubber.ts",
-  "apps/app/shared/lib/monitoring/sentry-phi-redactor.ts",
-  "apps/internal/shared/lib/monitoring/sentry-phi-redactor.ts",
+  // apps/app has been replaced by apps/app; the sentry-phi-redactor.ts
+  // file was a transitional barrel that was already confirmed dead code in
+  // the ponytail audit. The canonical scrubber remains @workspace/utils.
 ];
 
 function extractSet(label, source) {

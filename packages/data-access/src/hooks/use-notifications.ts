@@ -44,10 +44,13 @@ export const useUnreadNotificationCount = (enabled: boolean = true) =>
     whatsappUnreadCountResponseSchema,
     {
       enabled,
-      refetchInterval: 10000,
+      // Realtime updates arrive via the notifications WebSocket gateway
+      // (socket handlers invalidate this key); polling is only a fallback.
+      refetchInterval: 60000,
     },
   );
 
+// jscpd:ignore-start
 export const useMarkNotificationRead = () =>
   useAPIMutation<void, { id: string }>(
     (vars) => `/staff-notifications/mark-read/${vars.id}`,
@@ -64,7 +67,7 @@ export const useMarkNotificationRead = () =>
 
 export const useDeleteNotification = () =>
   useAPIMutation<void, { id: string }>(
-    (vars) => `/staff-notifications/delete/${vars.id}`,
+    (vars) => `/staff-notifications/${vars.id}`,
     "DELETE",
     {
       body: () => undefined,
@@ -75,9 +78,10 @@ export const useDeleteNotification = () =>
       ],
     },
   );
+// jscpd:ignore-end
 
 export const useDeleteAllNotifications = () =>
-  useAPIMutation<void, void>("/staff-notifications/delete-all", "DELETE", {
+  useAPIMutation<void, void>("/staff-notifications", "DELETE", {
     invalidateKeys: [
       queryKeys.notifications.all(),
       queryKeys.notifications.listAll(),

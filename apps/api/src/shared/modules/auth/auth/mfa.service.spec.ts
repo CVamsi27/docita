@@ -19,7 +19,7 @@ jest.mock('otplib', () => ({
   verify: jest.fn(),
 }));
 
-/** Satisfies `mfaHashedBackupCodeSchema` min length in tests. */
+/** Bcrypt-shaped hash at or above the persisted backup-code min length. */
 const MOCK_BCRYPT_HASH =
   '$2b$10$abcdefghijklmnopqrstuvwx.yz012345678901234567890';
 

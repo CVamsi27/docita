@@ -7,7 +7,5 @@ export async function verifyMedicationDosePatientAccess(
   patientId: string,
 ): Promise<void> {
   const found = await repository.verifyPatientAccess(patientId, clinicId);
-  if (!found) {
-    throw new NotFoundException('Patient not found');
-  }
+  if (!found) throw new NotFoundException('Patient not found');
 }

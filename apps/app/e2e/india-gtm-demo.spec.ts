@@ -1,4 +1,5 @@
-import { APIRequestContext, expect, Page, test } from "@playwright/test";
+import type { APIRequestContext, Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { z } from "zod";
 import {
   API_URL,

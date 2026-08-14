@@ -1,0 +1,52 @@
+name: Stop DB - Auto-Restart Guard
+
+# Explicit minimum permissions: the workflow only reads AWS credentials
+# and calls describe-db-instances / stop-db-instance. It does not write
+# to the repository, comment on issues, or push to packages — so the
+# default `read-all` is too broad. This is the documented GitHub Actions
+# posture: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+permissions:
+  contents: read
+
+on:
+  schedule:
+    # RDS auto-restarts exactly 7 days after every stop, so the restart
+    # day/time drifts each cycle. A 6-hourly check catches it within
+    # ~6 hours regardless of when it comes up.
+    - cron: "10 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: stop-db-guard
+  cancel-in-progress: false
+
+jobs:
+  check-and-stop:
+    name: Stop RDS if running
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check DB status
+        id: status
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          STATUS=$(aws rds describe-db-instances \
+            --db-instance-identifier "${{ secrets.RDS_INSTANCE_ID }}" \
+            --query 'DBInstances[0].DBInstanceStatus' \
+            --output text 2>&1)
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          echo "Instance ${{ secrets.RDS_INSTANCE_ID }} status: $STATUS"
+
+      - name: Stop RDS instance
+        if: steps.status.outputs.status == 'available'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          echo "DB instance is running - stopping it now"
+          aws rds stop-db-instance \
+            --db-instance-identifier "${{ secrets.RDS_INSTANCE_ID }}"
+          echo "Stop command issued"

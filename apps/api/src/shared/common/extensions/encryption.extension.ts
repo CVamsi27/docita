@@ -44,9 +44,7 @@ export const createEncryptionExtension = (
             ['create', 'update', 'upsert', 'createMany'].includes(operation)
           ) {
             const typedArgs = toPatientExtensionArgs(args);
-            if (!typedArgs) {
-              return query(args);
-            }
+            if (!typedArgs) return query(args);
             if (typedArgs.data) {
               if (Array.isArray(typedArgs.data)) {
                 typedArgs.data = typedArgs.data.map(

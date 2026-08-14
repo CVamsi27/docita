@@ -86,9 +86,7 @@ export class AuditEventListener {
     ];
 
     for (const field of idFields) {
-      if (typeof payload[field] === 'string') {
-        return payload[field];
-      }
+      if (typeof payload[field] === 'string') return payload[field];
     }
 
     return undefined;

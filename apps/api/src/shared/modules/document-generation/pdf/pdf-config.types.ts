@@ -1,11 +1,11 @@
 import type PDFDocument from 'pdfkit';
 import type {
   PDFClinicInfo,
-  PDFContext,
   PDFDoctorInfo,
   PDFDocumentType,
   PDFPatientInfo,
-} from './pdf.types';
+} from '@workspace/types';
+import type { PDFContext } from './pdf.types';
 import type { PdfLayoutService } from './pdf-layout.service';
 
 /**

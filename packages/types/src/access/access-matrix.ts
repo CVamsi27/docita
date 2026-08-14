@@ -165,8 +165,6 @@ export const APP_ACCESS_TARGETS = {
   PAGE_PRESCRIPTIONS: "page.prescriptions",
   PAGE_LAB_TESTS: "page.lab-tests",
   /** Lab technician workspace: queue of assigned orders, sample receipt, result upload. */
-  PAGE_LAB_WORKSPACE: "page.lab-workspace",
-  PAGE_VACCINES: "page.vaccines",
   PAGE_INVOICES: "page.invoices",
   PAGE_INSURANCE_CLAIMS: "page.insurance-claims",
   /** Front-desk cash / POS / UPI recording (not payment links or subscription billing). */
@@ -177,6 +175,7 @@ export const APP_ACCESS_TARGETS = {
   PAGE_INVENTORY: "page.inventory",
   PAGE_DOCUMENTS: "page.documents",
   PAGE_ANALYTICS: "page.analytics",
+  PAGE_REPORTS: "page.reports",
   PAGE_CODING_QUEUE: "page.coding-queue",
   PAGE_IMPORT: "page.import",
   PAGE_WHATSAPP: "page.whatsapp",
@@ -222,6 +221,18 @@ export const APP_ACCESS_TARGETS = {
 
 export type AppAccessTarget =
   (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
+
+/**
+ * Canonical tier→feature sentinels used to evaluate matrix tier requirements
+ * via `hasFeatureAccess` (single source — shared by the client `canAccessTarget`
+ * fallback and the server `computeEffectivePermissions` snapshot mirror).
+ */
+export const TIER_SENTINEL_FEATURES: Partial<Record<Tier, Feature>> = {
+  [Tier.STARTER]: Feature.BASIC_PATIENT_MANAGEMENT,
+  [Tier.ESSENTIAL]: Feature.INVOICING,
+  [Tier.PROFESSIONAL]: Feature.WHATSAPP_OWN_NUMBER,
+  [Tier.HOSPITAL]: Feature.WHATSAPP_MANAGED_NUMBER,
+};
 
 const DASHBOARD_ROLES: UserRole[] = [
   "ADMIN",
@@ -304,16 +315,6 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     },
     feature: Feature.LAB_TESTS,
   },
-  [APP_ACCESS_TARGETS.PAGE_LAB_WORKSPACE]: {
-    read: { roles: ["LAB"] },
-    feature: Feature.LAB_TESTS,
-  },
-  [APP_ACCESS_TARGETS.PAGE_VACCINES]: {
-    read: {
-      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE", "RECEPTIONIST"],
-    },
-    feature: Feature.VACCINE_TRACKING,
-  },
   [APP_ACCESS_TARGETS.PAGE_INVOICES]: {
     read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.INVOICING,
@@ -344,6 +345,10 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.DOCUMENT_ARCHIVAL,
   },
   [APP_ACCESS_TARGETS.PAGE_ANALYTICS]: {
+    read: { roles: ANALYTICS_ROLES },
+    feature: Feature.BASIC_ANALYTICS,
+  },
+  [APP_ACCESS_TARGETS.PAGE_REPORTS]: {
     read: { roles: ANALYTICS_ROLES },
     feature: Feature.BASIC_ANALYTICS,
   },

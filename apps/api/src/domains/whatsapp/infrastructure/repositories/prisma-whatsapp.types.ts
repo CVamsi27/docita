@@ -19,9 +19,20 @@ export type PrismaWhatsAppMessageRecord = {
   createdAt: Date;
   conversation: {
     clinicId: string;
-    patientId: string;
+    patientId: string | null;
+    patient?: { phoneNumber: string | null } | null;
   };
 };
+
+export const MESSAGE_WITH_CONVERSATION_INCLUDE = {
+  conversation: {
+    include: {
+      patient: { select: { phoneNumber: true } },
+    },
+  },
+} as const;
+
+export type PrismaWhatsAppMessageWithConversation = PrismaWhatsAppMessageRecord;
 
 export type PrismaWhatsAppTemplateRecord = {
   id: string;
@@ -42,12 +53,12 @@ export interface PrismaWhatsAppReadClient {
   whatsappMessage: {
     findUnique(args: {
       where: { id: string };
-      include: { conversation: true };
-    }): Promise<PrismaWhatsAppMessageRecord | null>;
+      include: typeof MESSAGE_WITH_CONVERSATION_INCLUDE;
+    }): Promise<PrismaWhatsAppMessageWithConversation | null>;
     findFirst(args: {
       where: { providerMsgId: string };
-      include: { conversation: true };
-    }): Promise<PrismaWhatsAppMessageRecord | null>;
+      include: typeof MESSAGE_WITH_CONVERSATION_INCLUDE;
+    }): Promise<PrismaWhatsAppMessageWithConversation | null>;
   };
   patient: {
     findUnique(args: {

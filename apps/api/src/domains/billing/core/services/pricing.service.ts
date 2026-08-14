@@ -1,8 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import {
   TIER_PRICING_REPOSITORY_TOKEN,
   ITierPricingRepository,
 } from '@/domains/billing/core/repositories/tier-pricing.repository';
+import { TierPricing } from '@workspace/db';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import {
   TIER_PRICING,
   TIER_LIMITS,
@@ -21,7 +24,6 @@ import {
   getWhatsAppAddonPricingByCurrency,
 } from '@workspace/utils';
 import {
-  isLegacyDbPricingTier,
   mapDbTierStringToCanonicalTier,
   mapPricingTierInputToTierName,
   readNumber,
@@ -29,6 +31,8 @@ import {
   SUPPORTED_PRICING_CURRENCIES,
   toPricingTierPayload,
 } from './pricing-helpers';
+
+const TIER_PRICING_CACHE_TTL_MS = 5 * 60 * 1000;
 
 @Injectable()
 export class PricingService {
@@ -38,6 +42,31 @@ export class PricingService {
   ) {}
 
   private readonly supportedCurrencies = SUPPORTED_PRICING_CURRENCIES;
+
+  private cachedTiers: { data: TierPricing[]; expiry: number } | null = null;
+
+  /**
+   * Invalidate the in-process tier cache when a tier pricing row is written,
+   * so an INTERNAL operator editing tier pricing sees the change reflected
+   * on the next request without waiting for the TTL. Emitted by
+   * tierPricingRepository.create/update and the INTERNAL seed script.
+   */
+  @OnEvent(ApplicationEvents.TIER_PRICING_UPDATED)
+  invalidateTierCache(): void {
+    this.cachedTiers = null;
+  }
+
+  private async getActiveTiers(): Promise<TierPricing[]> {
+    if (this.cachedTiers && Date.now() < this.cachedTiers.expiry) {
+      return this.cachedTiers.data;
+    }
+    const tiers = await this.tierPricingRepo.findManyActive();
+    this.cachedTiers = {
+      data: tiers,
+      expiry: Date.now() + TIER_PRICING_CACHE_TTL_MS,
+    };
+    return tiers;
+  }
 
   private resolveCurrency(currency?: string): SupportedCurrency {
     return resolveCurrency(this.supportedCurrencies, currency);
@@ -52,31 +81,15 @@ export class PricingService {
   async getPricingConfig(currency?: string) {
     const validCurrency = this.resolveCurrency(currency);
 
-    const currencyConfig = PRICING_CURRENCY_CONFIG[validCurrency];
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const referralRewards = REFERRAL_REWARDS_BY_CURRENCY[validCurrency];
 
-    const dbTiers = await this.tierPricingRepo.findManyActive();
+    const dbTiers = await this.getActiveTiers();
 
     if (dbTiers.length > 0) {
-      const canonicalTiers = dbTiers.filter(
-        (t) => !isLegacyDbPricingTier(t.tier),
-      );
-
-      return {
-        currency: {
-          code: validCurrency,
-          symbol: currencyConfig.symbol,
-          name: currencyConfig.name,
-        },
-        supportedCurrencies: Object.entries(PRICING_CURRENCY_CONFIG).map(
-          ([code, cfg]) => ({
-            code,
-            symbol: cfg.symbol,
-            name: cfg.name,
-          }),
-        ),
-        tiers: canonicalTiers.map((tier) => {
+      return this.buildPricingResponse(
+        validCurrency,
+        dbTiers.map((tier) => {
           const canonicalTier = mapDbTierStringToCanonicalTier(tier.tier);
           const monthlyPrice =
             canonicalTier === 'ENTERPRISE'
@@ -96,14 +109,33 @@ export class PricingService {
             features: tier.features,
           });
         }),
-        discounts: {
-          annualPercent: ANNUAL_DISCOUNT_PERCENT,
-          semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
-          referralCredits: referralRewards.ESSENTIAL,
-        },
-      };
+        referralRewards.ESSENTIAL,
+      );
     }
 
+    return this.buildPricingResponse(
+      validCurrency,
+      PUBLISHED_PLAN_LADDER.map((tier) =>
+        this.toPricingTierPayload({
+          tier,
+          validCurrency,
+          monthly: tierPricing[tier].monthly,
+          yearly: tierPricing[tier].yearly,
+          includedAppointments: TIER_LIMITS[tier].appointments ?? 0,
+          includedUsers: TIER_LIMITS[tier].users ?? 1,
+          features: TIER_FEATURES[tier],
+        }),
+      ),
+      referralRewards.ESSENTIAL,
+    );
+  }
+
+  private buildPricingResponse<T>(
+    validCurrency: SupportedCurrency,
+    tiers: T[],
+    referralCredits: number,
+  ) {
+    const currencyConfig = PRICING_CURRENCY_CONFIG[validCurrency];
     return {
       currency: {
         code: validCurrency,
@@ -117,21 +149,11 @@ export class PricingService {
           name: cfg.name,
         }),
       ),
-      tiers: PUBLISHED_PLAN_LADDER.map((tier) =>
-        this.toPricingTierPayload({
-          tier,
-          validCurrency,
-          monthly: tierPricing[tier].monthly,
-          yearly: tierPricing[tier].yearly,
-          includedAppointments: TIER_LIMITS[tier].appointments ?? 0,
-          includedUsers: TIER_LIMITS[tier].users ?? 1,
-          features: TIER_FEATURES[tier],
-        }),
-      ),
+      tiers,
       discounts: {
         annualPercent: ANNUAL_DISCOUNT_PERCENT,
         semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
-        referralCredits: referralRewards.ESSENTIAL,
+        referralCredits,
       },
     };
   }

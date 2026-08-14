@@ -34,9 +34,7 @@ export class PrismaRetryInterceptor implements NestInterceptor {
               return throwError(() => error);
             }
             attemptCount++;
-            if (attemptCount > MAX_RETRIES) {
-              return throwError(() => error);
-            }
+            if (attemptCount > MAX_RETRIES) return throwError(() => error);
             const delayMs = Math.min(
               BASE_DELAY_MS * Math.pow(2, attemptCount - 1),
               2000,
@@ -64,12 +62,9 @@ export class PrismaRetryInterceptor implements NestInterceptor {
   }
 
   private isTransientPrismaError(error: unknown): boolean {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError)
       return TRANSIENT_ERROR_CODES.has(error.code);
-    }
-    if (error instanceof Prisma.PrismaClientInitializationError) {
-      return true;
-    }
+    if (error instanceof Prisma.PrismaClientInitializationError) return true;
     if (
       error instanceof Error &&
       (error.message.includes('Connection acquired') ||

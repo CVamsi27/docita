@@ -6,6 +6,17 @@ export type SubscriptionBillingContact = {
   phoneNumber: string | null;
 };
 
+// Shared by `updatePaymentStatus` and `updatePaymentStatusById` — both accept
+// the same optional gateway-callback fields when transitioning a payment's
+// status, differing only in how the target payment is looked up.
+export type SubscriptionPaymentStatusDetails = {
+  paymentId?: string;
+  signature?: string;
+  subscriptionId?: string;
+  invoiceUrl?: string;
+  invoiceNumber?: string;
+};
+
 export type SubscriptionReminderRecipient = {
   email: string | null;
   name: string | null;
@@ -82,25 +93,13 @@ export interface ISubscriptionRepository {
   updatePaymentStatus(
     orderId: string,
     status: string,
-    details?: {
-      paymentId?: string;
-      signature?: string;
-      subscriptionId?: string;
-      invoiceUrl?: string;
-      invoiceNumber?: string;
-    },
+    details?: SubscriptionPaymentStatusDetails,
   ): Promise<void>;
   updatePaymentStatusById(
     clinicId: string,
     paymentId: string,
     status: string,
-    details?: {
-      paymentId?: string;
-      signature?: string;
-      subscriptionId?: string;
-      invoiceUrl?: string;
-      invoiceNumber?: string;
-    },
+    details?: SubscriptionPaymentStatusDetails,
   ): Promise<void>;
   findPaymentsByClinicId(clinicId: string, limit: number): Promise<unknown[]>;
   findPaymentById(clinicId: string, paymentId: string): Promise<unknown | null>;

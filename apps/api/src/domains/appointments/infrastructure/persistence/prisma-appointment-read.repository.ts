@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IAppointmentReadRepository,
@@ -83,101 +83,98 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
       ];
     }
 
-    try {
-      const readClient = this.getReadClient();
-      const listInclude = {
-        patient: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phoneNumber: true,
-          },
+    // Infrastructure errors propagate to AllExceptionsFilter, which
+    // maps Prisma's structured errors (P2002, connection issues, …) to
+    // proper HTTP responses and routes 5xx to Sentry.
+    const readClient = this.getReadClient();
+    const listInclude = {
+      patient: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          phoneNumber: true,
         },
-        doctor: {
-          select: { id: true, name: true },
+      },
+      doctor: {
+        select: { id: true, name: true },
+      },
+      reminders: {
+        orderBy: { createdAt: 'desc' as const },
+        take: 1,
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          sentAt: true,
+          error: true,
+          createdAt: true,
         },
-        reminders: {
-          orderBy: { createdAt: 'desc' as const },
-          take: 1,
-          select: {
-            id: true,
-            type: true,
-            status: true,
-            sentAt: true,
-            error: true,
-            createdAt: true,
-          },
+      },
+      responses: {
+        orderBy: { createdAt: 'desc' as const },
+        take: 1,
+        select: {
+          id: true,
+          responseType: true,
+          responseTime: true,
+          delayMinutes: true,
+          patientMessage: true,
         },
-        responses: {
-          orderBy: { createdAt: 'desc' as const },
-          take: 1,
-          select: {
-            id: true,
-            responseType: true,
-            responseTime: true,
-            delayMinutes: true,
-            patientMessage: true,
-          },
-        },
-      };
+      },
+    };
 
-      if (page !== undefined) {
-        const normalizedPage = Math.max(1, page);
-        const skip = (normalizedPage - 1) * limit;
-        const resolvedSortOrder = sortOrder ?? 'desc';
-        const orderBy = [
-          { startTime: resolvedSortOrder },
-          { id: resolvedSortOrder },
-        ] as const;
-
-        const [total, items] = await Promise.all([
-          readClient.appointment.count({ where }),
-          readClient.appointment.findMany({
-            where,
-            skip,
-            take: limit,
-            orderBy: [...orderBy],
-            include: listInclude,
-          }),
-        ]);
-
-        return {
-          items: items.map((item) => AppointmentMapper.toListItem(item)),
-          hasMore: skip + items.length < total,
-          count: total,
-        };
-      }
+    if (page !== undefined) {
+      const normalizedPage = Math.max(1, page);
+      const skip = (normalizedPage - 1) * limit;
+      const resolvedSortOrder = sortOrder ?? 'desc';
+      const orderBy = [
+        { startTime: resolvedSortOrder },
+        { id: resolvedSortOrder },
+      ] as const;
 
       const [total, items] = await Promise.all([
         readClient.appointment.count({ where }),
         readClient.appointment.findMany({
           where,
-          take: limit + 1,
-          cursor: cursor ? { id: cursor } : undefined,
-          skip: cursor ? 1 : 0,
-          orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
+          skip,
+          take: limit,
+          orderBy: [...orderBy],
           include: listInclude,
         }),
       ]);
 
-      const hasMore = items.length > limit;
-      const resultItems = hasMore ? items.slice(0, limit) : items;
-      const nextCursor = hasMore
-        ? resultItems[resultItems.length - 1].id
-        : undefined;
-
       return {
-        items: resultItems.map((item) => AppointmentMapper.toListItem(item)),
-        nextCursor,
-        hasMore,
+        items: items.map((item) => AppointmentMapper.toListItem(item)),
+        hasMore: skip + items.length < total,
         count: total,
       };
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to find appointments: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
     }
+
+    const [total, items] = await Promise.all([
+      readClient.appointment.count({ where }),
+      readClient.appointment.findMany({
+        where,
+        take: limit + 1,
+        cursor: cursor ? { id: cursor } : undefined,
+        skip: cursor ? 1 : 0,
+        orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
+        include: listInclude,
+      }),
+    ]);
+
+    const hasMore = items.length > limit;
+    const resultItems = hasMore ? items.slice(0, limit) : items;
+    const nextCursor = hasMore
+      ? resultItems[resultItems.length - 1].id
+      : undefined;
+
+    return {
+      items: resultItems.map((item) => AppointmentMapper.toListItem(item)),
+      nextCursor,
+      hasMore,
+      count: total,
+    };
   }
 
   async findById(id: string, clinicId: string): Promise<Appointment | null> {
@@ -210,9 +207,7 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
   ): Promise<Appointment[]> {
     const pickerDateStr = formatUtcInstantAsClinicPickerIso(date, timezone);
     const bounds = getClinicLocalDayUtcBounds(pickerDateStr, timezone);
-    if (!bounds) {
-      return [];
-    }
+    if (!bounds) return [];
 
     const items = await this.getReadClient().appointment.findMany({
       where: {

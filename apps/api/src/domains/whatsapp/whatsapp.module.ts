@@ -6,12 +6,14 @@ import { SendMessageUseCase } from './application/use-cases/send-message.use-cas
 import { HandleWebhookUseCase } from './application/use-cases/handle-webhook.use-case';
 import { WhatsAppQueryService } from './application/services/whatsapp-query.service';
 import { WhatsAppAutomationService } from './application/services/whatsapp-automation.service';
+import { WhatsappMessageDeliveryService } from './application/services/whatsapp-message-delivery.service';
 import { WhatsappSenderResolver } from './application/services/whatsapp-sender-resolver.service';
 import { WhatsappSenderSettingsService } from './application/services/whatsapp-sender-settings.service';
-import { WHATSAPP_REPOSITORY_TOKEN } from './application/ports/whatsapp.repository.port';
-import { PrismaWhatsAppRepository } from './infrastructure/repositories/prisma-whatsapp.repository';
-import { PrismaWhatsAppMessageRepository } from './infrastructure/repositories/prisma-whatsapp-message.repository';
-import { PrismaWhatsAppTemplateRepository } from './infrastructure/repositories/prisma-whatsapp-template.repository';
+import {
+  WHATSAPP_OPERATIONS_REPOSITORY_TOKEN,
+  WHATSAPP_REPOSITORY_TOKEN,
+} from './application/ports/whatsapp.repository.port';
+import { WHATSAPP_REPOSITORY_PROVIDERS } from './infrastructure/repositories/whatsapp-repository.providers';
 import { WhatsAppController } from './presentation/controllers/whatsapp.controller';
 import { WhatsAppWebhookController } from './presentation/controllers/whatsapp-webhook.controller';
 import { WhatsappSenderController } from './presentation/controllers/whatsapp-sender.controller';
@@ -24,6 +26,8 @@ import { MetaGraphPhoneProfileClient } from './infrastructure/clients/meta-graph
 import { PrismaWhatsappOperationsRepository } from './infrastructure/repositories/prisma-whatsapp-operations.repository';
 import { WhatsappOperationsService } from './application/services/whatsapp-operations.service';
 import { WhatsappOperationsController } from './presentation/controllers/whatsapp-operations.controller';
+import { WHATSAPP_CLIENT_PROVIDERS } from './infrastructure/clients/whatsapp-client.providers';
+import { WHATSAPP_CLIENT_TOKEN } from './application/ports/whatsapp-client.port';
 
 @Global()
 @Module({
@@ -46,18 +50,19 @@ import { WhatsappOperationsController } from './presentation/controllers/whatsap
     HandleWebhookUseCase,
     WhatsAppQueryService,
     WhatsAppAutomationService,
+    WhatsappMessageDeliveryService,
     WhatsappSenderResolver,
     MetaGraphPhoneProfileClient,
     WhatsappSenderSettingsService,
     TemplateResolverService,
-    PrismaWhatsAppMessageRepository,
-    PrismaWhatsAppTemplateRepository,
+    ...WHATSAPP_REPOSITORY_PROVIDERS,
     PrismaWhatsappOperationsRepository,
-    WhatsappOperationsService,
     {
-      provide: WHATSAPP_REPOSITORY_TOKEN,
-      useClass: PrismaWhatsAppRepository,
+      provide: WHATSAPP_OPERATIONS_REPOSITORY_TOKEN,
+      useExisting: PrismaWhatsappOperationsRepository,
     },
+    WhatsappOperationsService,
+    ...WHATSAPP_CLIENT_PROVIDERS,
   ],
   exports: [
     SendMessageUseCase,
@@ -68,6 +73,7 @@ import { WhatsappOperationsController } from './presentation/controllers/whatsap
     WHATSAPP_REPOSITORY_TOKEN,
     WhatsappTemplatesModule,
     TemplateResolverService,
+    WHATSAPP_CLIENT_TOKEN,
   ],
 })
 export class WhatsAppModule {}

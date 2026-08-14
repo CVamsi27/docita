@@ -45,9 +45,8 @@ export class LeaveCommandService {
   ) {
     const start = new Date(data.startDate);
     const end = new Date(data.endDate);
-    if (end < start) {
+    if (end < start)
       throw new BadRequestException('End date must be on or after start date');
-    }
 
     const leaveType = parseLeaveType(data.leaveType);
     const leave = await this.leaveRepository.createLeave({
@@ -71,9 +70,8 @@ export class LeaveCommandService {
       throw new ForbiddenException('Access denied');
     // Block self-approval: an admin who is also the leave's owner cannot
     // approve their own request.
-    if (leave.staffId === approverId) {
+    if (leave.staffId === approverId)
       throw new ForbiddenException('You cannot approve your own leave');
-    }
     if (leave.status !== 'PENDING') {
       throw new BadRequestException(
         `Cannot approve a leave in ${leave.status} status`,
@@ -148,9 +146,8 @@ export class LeaveCommandService {
     if (!leave) throw new NotFoundException('Leave request not found');
     if (leave.clinicId !== clinicId)
       throw new ForbiddenException('Access denied');
-    if (leave.staffId === approverId) {
+    if (leave.staffId === approverId)
       throw new ForbiddenException('You cannot reject your own leave');
-    }
     if (leave.status !== 'PENDING') {
       throw new BadRequestException(
         `Cannot reject a leave in ${leave.status} status`,
@@ -217,8 +214,25 @@ export class LeaveCommandService {
           leave.startDate,
           leave.endDate,
         );
-        for (const timeOff of timeOffs) {
-          await this.availabilityScheduleService.deleteTimeOff(timeOff.id);
+        // Time-off rows are independent deletes; parallelize so a slow row
+        // does not block the rest. allSettled keeps a single failure
+        // from dropping the others.
+        const results = await Promise.allSettled(
+          timeOffs.map((timeOff) =>
+            this.availabilityScheduleService.deleteTimeOff(timeOff.id),
+          ),
+        );
+        const failures = results.filter((r) => r.status === 'rejected');
+        if (failures.length > 0) {
+          this.logger.warn(
+            `Could not remove ${failures.length} of ${results.length} DoctorTimeOff row(s) for cancelled leave`,
+            {
+              leaveId,
+              errors: failures.map((f) =>
+                f.reason instanceof Error ? f.reason.message : String(f.reason),
+              ),
+            },
+          );
         }
       } catch (err) {
         this.logger.warn('Could not remove DoctorTimeOff for cancelled leave', {

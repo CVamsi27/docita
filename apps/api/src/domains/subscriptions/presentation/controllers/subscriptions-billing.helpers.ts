@@ -4,9 +4,7 @@ import { RequestWithUser } from '@/shared/common/types/common.types';
 
 export function requireBillingClinicId(req: RequestWithUser): string {
   const clinicId = req.user?.clinicId;
-  if (!clinicId) {
-    throw new BadRequestException('Clinic ID not found');
-  }
+  if (!clinicId) throw new BadRequestException('Clinic ID not found');
   return clinicId;
 }
 

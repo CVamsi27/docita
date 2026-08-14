@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PATIENT_FIELD_MAPPINGS } from '@workspace/utils';
 import type { ExcelRow, MappedPatientData } from './import-types';
-import type { TabularRow } from './import-file-parser.service';
+import type { TabularRow } from './import-types';
 import { ImportFileParserService } from './import-file-parser.service';
 
 function isPatientMappingField(

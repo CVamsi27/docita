@@ -27,7 +27,7 @@ export function getCorsOrigins(): (string | RegExp)[] {
   }
 
   const devFallbacks: (string | RegExp)[] = [
-    env.NEXT_PUBLIC_APP_URL,
+    env.FRONTEND_URL,
     'http://localhost:3000',
     /^http:\/\/localhost:\d+$/,
     /^http:\/\/127\.0\.0\.1:\d+$/,
@@ -81,8 +81,6 @@ export function validateEnv(): EnvConfig {
 
 export function getEnv(): EnvConfig {
   const cached = EnvConfigStore.getCached();
-  if (cached) {
-    return cached;
-  }
+  if (cached) return cached;
   return validateEnv();
 }

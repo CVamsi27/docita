@@ -4,7 +4,6 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { ClinicTier, ClinicType } from '@workspace/db';
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
@@ -22,33 +21,11 @@ import {
   toInputJsonValue,
   toRecord,
 } from './clinic-data.helpers';
-
-interface CreateClinicData {
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
-  logo?: string;
-  tier?: ClinicTier;
-  type?: ClinicType;
-  settings?: unknown;
-}
-
-interface UpdateClinicData {
-  name?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  logo?: string;
-  tier?: ClinicTier;
-  type?: ClinicType;
-  settings?: unknown;
-}
-
-interface JoinClinicData {
-  clinicCode?: string;
-  clinicEmail?: string;
-}
+import type {
+  CreateClinicData,
+  JoinClinicData,
+  UpdateClinicData,
+} from './clinic-data.types';
 
 @Injectable()
 export class ClinicDataCommandService {
@@ -126,31 +103,26 @@ export class ClinicDataCommandService {
   async joinClinicForUser(userId: string, data: JoinClinicData) {
     const user = await this.repository.findUserForJoin(userId);
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    if (!user) throw new NotFoundException('User not found');
 
-    if (user.clinicId) {
+    if (user.clinicId)
       throw new BadRequestException('User is already associated with a clinic');
-    }
 
     const normalizedCode = data.clinicCode?.trim().toUpperCase();
     const normalizedEmail = data.clinicEmail?.trim().toLowerCase();
 
-    if (!normalizedCode && !normalizedEmail) {
+    if (!normalizedCode && !normalizedEmail)
       throw new BadRequestException('clinicCode or clinicEmail is required');
-    }
 
     const clinic = await this.repository.findClinicByCodeOrEmail(
       normalizedCode,
       normalizedEmail,
     );
 
-    if (!clinic) {
+    if (!clinic)
       throw new NotFoundException(
         'No active clinic found for provided details',
       );
-    }
 
     await this.repository.joinClinic(userId, clinic.id, user.role);
 

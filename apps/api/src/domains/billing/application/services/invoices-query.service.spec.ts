@@ -16,7 +16,10 @@ describe('InvoicesQueryService', () => {
     findPatientContext: jest.Mock;
     findClinicFeatureContext: jest.Mock;
   };
-  let paymentSessionRepository: { findByInvoiceId: jest.Mock };
+  let paymentSessionRepository: {
+    findByInvoiceId: jest.Mock;
+    findSettledByClinicInRange: jest.Mock;
+  };
   let claimValidationService: jest.Mocked<ClaimValidationService>;
   let storageProvider: jest.Mocked<StorageProvider>;
   let storedFileUrlResolver: jest.Mocked<
@@ -33,7 +36,10 @@ describe('InvoicesQueryService', () => {
       findClinicFeatureContext: jest.fn(),
     };
 
-    paymentSessionRepository = { findByInvoiceId: jest.fn() };
+    paymentSessionRepository = {
+      findByInvoiceId: jest.fn(),
+      findSettledByClinicInRange: jest.fn(),
+    };
 
     claimValidationService = Object.create(
       ClaimValidationService.prototype,
@@ -96,9 +102,9 @@ describe('InvoicesQueryService', () => {
   describe('findAll', () => {
     it('should list invoices for a clinic with invoicing feature', async () => {
       (repository.findClinicFeatureContext as jest.Mock).mockResolvedValueOnce({
-        tier: 'PRO',
+        tier: 'ESSENTIAL',
         intelligenceAddon: false,
-        features: ['INVOICING'],
+        features: {},
       } as never);
       const invoices = [{ id: 'inv-1' }, { id: 'inv-2' }];
       repository.findAll.mockResolvedValueOnce(invoices as never);
@@ -160,6 +166,70 @@ describe('InvoicesQueryService', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0].id).toBe('sess-1');
+    });
+  });
+
+  describe('getCollectionsByMode', () => {
+    it('groups settled payments by channel and totals them', async () => {
+      paymentSessionRepository.findSettledByClinicInRange.mockResolvedValueOnce(
+        [
+          {
+            provider: 'manual',
+            amount: 5000,
+            currency: 'INR',
+            meta: { channel: 'CASH' },
+          },
+          {
+            provider: 'manual',
+            amount: 3000,
+            currency: 'INR',
+            meta: { channel: 'UPI_QR' },
+          },
+          {
+            provider: 'manual',
+            amount: 2000,
+            currency: 'INR',
+            meta: { channel: 'CASH' },
+          },
+          // Razorpay capture with no channel → bucketed as online
+          {
+            provider: 'razorpay',
+            amount: 1000,
+            currency: 'INR',
+            meta: null,
+          },
+        ] as never,
+      );
+
+      const result = await service.getCollectionsByMode('clinic-1', {
+        from: '2026-06-01',
+        to: '2026-06-08',
+      });
+
+      expect(result.totalCents).toBe(11000);
+      expect(result.count).toBe(4);
+      // Sorted by amount desc: CASH 7000, UPI 3000, online 1000
+      expect(result.byMode.map((row) => row.mode)).toEqual([
+        'CASH',
+        'UPI_QR',
+        'OTHER_ONLINE',
+      ]);
+      const cash = result.byMode.find((row) => row.mode === 'CASH');
+      expect(cash).toEqual({
+        mode: 'CASH',
+        label: 'Cash',
+        count: 2,
+        amountCents: 7000,
+      });
+    });
+
+    it('rejects an inverted date range', async () => {
+      await expect(
+        service.getCollectionsByMode('clinic-1', {
+          from: '2026-06-08',
+          to: '2026-06-01',
+        }),
+      ).rejects.toThrow();
     });
   });
 });

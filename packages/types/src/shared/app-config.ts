@@ -5,6 +5,7 @@
  * These are plain TypeScript interfaces (no Zod) because they represent
  * UI-facing option lists whose shape is already validated at the API layer.
  */
+import type { FacilityTypeType } from "./users";
 
 export interface SelectOption {
   value: string;
@@ -66,7 +67,7 @@ export interface ClinicSettings {
   appointmentDuration: number;
   appointmentType?: string;
   clinicType?: string;
-  facilityLabel?: "CLINIC" | "HOSPITAL";
+  facilityLabel?: FacilityTypeType;
   sidebarNavOrder?: unknown;
 }
 

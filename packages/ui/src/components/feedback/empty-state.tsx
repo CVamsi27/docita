@@ -6,6 +6,7 @@ import { ChevronRight, LucideIcon } from "lucide-react";
 
 import { DocitaLoadingIndicator } from "./docita-loading-indicator";
 
+// jscpd:ignore-start
 export interface EmptyStateProps {
   icon: LucideIcon;
 
@@ -21,6 +22,7 @@ export interface EmptyStateProps {
 
   className?: string;
 }
+// jscpd:ignore-end
 
 export function EmptyState({
   icon: Icon,
@@ -36,7 +38,7 @@ export function EmptyState({
         className,
       )}
     >
-      <div className="mx-auto flex size-16 items-center justify-center rounded-lg border border-border/70 bg-muted/40">
+      <div className="mx-auto flex size-16 items-center justify-center rounded-lg border border-border/70 bg-muted/40 transition-transform duration-300 hover:scale-105">
         <Icon className="h-8 w-8 text-muted-foreground/50" />
       </div>
       <div className="ui-copy-stack">
@@ -59,6 +61,7 @@ export function EmptyState({
   );
 }
 
+// jscpd:ignore-start
 export interface SectionHeaderProps {
   icon: LucideIcon;
 
@@ -74,6 +77,7 @@ export interface SectionHeaderProps {
 
   className?: string;
 }
+// jscpd:ignore-end
 
 export function SectionHeader({
   icon: Icon,
@@ -90,7 +94,7 @@ export function SectionHeader({
       )}
     >
       <div className="flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-transform duration-200 hover:scale-110">
           <Icon className="h-5 w-5" />
         </div>
         <div className="ui-copy-stack">

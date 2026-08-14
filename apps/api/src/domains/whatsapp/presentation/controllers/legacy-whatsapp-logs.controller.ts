@@ -1,34 +1,23 @@
-import { Controller, Get, Param, Query, Req } from '@nestjs/common';
+import { Controller, Get, Param, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { ZodSerializerDto } from 'nestjs-zod';
 import type { ClinicWhatsappSentMessage } from '@workspace/types';
-import { WhatsappService } from '@/domains/whatsapp/application/services/whatsapp-clinic-facade.service';
+import { getPatientFullName } from '@workspace/utils';
+import { MessagingService } from '@/domains/whatsapp/application/services/messaging.service';
 import {
   ClinicWhatsappSentMessageListResponseDto,
-  WhatsappLogListResponseDto,
-  WhatsappLogsQueryDto,
   WhatsappStatsResponseDto,
 } from '@/domains/whatsapp/presentation/dto/whatsapp-response.dto';
 import { LegacyWhatsappClinicAccess } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.access';
-import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/legacy-whatsapp-clinic.helpers';
+import { requireClinicId } from '@/domains/whatsapp/presentation/controllers/require-clinic-id';
 
 const PATIENT_SENT_MESSAGES_LIMIT = 50;
+const CLINIC_RECENT_SENT_LIMIT = 100;
 
 @Controller('whatsapp')
 @LegacyWhatsappClinicAccess()
 export class LegacyWhatsappLogsController {
-  constructor(private readonly whatsappService: WhatsappService) {}
-
-  @Get('logs')
-  @ZodSerializerDto(WhatsappLogListResponseDto)
-  async getLogs(@Req() req: Request, @Query() query?: WhatsappLogsQueryDto) {
-    const clinicId = requireClinicId(req);
-    return this.whatsappService.getLogs(clinicId, {
-      limit: query?.limit,
-      patientId: query?.patientId,
-      type: query?.type,
-    });
-  }
+  constructor(private readonly messagingService: MessagingService) {}
 
   /**
    * Outbound-only sent-message history for a single patient. One-way send log
@@ -42,7 +31,7 @@ export class LegacyWhatsappLogsController {
     @Param('patientId') patientId: string,
   ): Promise<ClinicWhatsappSentMessage[]> {
     const clinicId = requireClinicId(req);
-    const rows = await this.whatsappService.getLogs(clinicId, {
+    const rows = await this.messagingService.getLogs(clinicId, {
       patientId,
       limit: PATIENT_SENT_MESSAGES_LIMIT,
     });
@@ -56,9 +45,34 @@ export class LegacyWhatsappLogsController {
     }));
   }
 
+  /**
+   * Clinic-wide outbound sent-message history (no inbound / conversation
+   * threading). Powers the WhatsApp "Sent" tab in the main clinician app.
+   * Readable by every role with WhatsApp access.
+   */
+  @Get('recent-sent')
+  @ZodSerializerDto(ClinicWhatsappSentMessageListResponseDto)
+  async getRecentSentMessages(
+    @Req() req: Request,
+  ): Promise<ClinicWhatsappSentMessage[]> {
+    const clinicId = requireClinicId(req);
+    const rows = await this.messagingService.getLogs(clinicId, {
+      limit: CLINIC_RECENT_SENT_LIMIT,
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      message: row.message,
+      type: row.type,
+      status: row.status,
+      phoneNumber: row.phoneNumber,
+      createdAt: row.createdAt,
+      patientName: getPatientFullName(row.patient) || undefined,
+    }));
+  }
+
   @Get('stats')
   @ZodSerializerDto(WhatsappStatsResponseDto)
   async getStats(@Req() req: Request) {
-    return this.whatsappService.getWhatsappStats(requireClinicId(req));
+    return this.messagingService.getWhatsappStats(requireClinicId(req));
   }
 }

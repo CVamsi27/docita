@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { PrismaService } from '@/prisma/prisma.service';
-import { UsageType, ClinicTier, Role } from '@workspace/db';
+import { UsageType } from '@workspace/db';
 import {
   TIER_LIMITS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
@@ -15,11 +14,17 @@ import {
   resolveTierName,
 } from '@/domains/billing/core/services/usage-tracking-tier.util';
 import { getWhatsappBillableConfig } from '@/domains/billing/core/services/pricing-helpers';
+import {
+  type IUsageRepository,
+  type SubscriptionUsageSnapshot,
+  USAGE_REPOSITORY_TOKEN,
+} from '@/domains/billing/core/repositories/usage.repository';
 
 @Injectable()
 export class UsageTrackingQueryService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(USAGE_REPOSITORY_TOKEN)
+    private readonly usageRepository: IUsageRepository,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -28,7 +33,26 @@ export class UsageTrackingQueryService {
   }
 
   async getCurrentUsage(clinicId: string) {
-    const now = this.clock.now();
+    const { periodStart, periodEnd } = this.resolveBillingPeriod(
+      this.clock.now(),
+    );
+
+    const [subscription, clinic] = await Promise.all([
+      this.usageRepository.findSubscriptionSnapshot(clinicId),
+      this.usageRepository.findClinicTier(clinicId),
+    ]);
+
+    const counts = await this.fetchUsageCounts(
+      clinicId,
+      periodStart,
+      periodEnd,
+      clinic?.tier,
+      clinic?.planMode,
+    );
+    return this.buildUsageSummary(periodStart, periodEnd, subscription, counts);
+  }
+
+  private resolveBillingPeriod(now: Date) {
     const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const periodEnd = new Date(
       now.getFullYear(),
@@ -38,22 +62,16 @@ export class UsageTrackingQueryService {
       59,
       59,
     );
+    return { periodStart, periodEnd };
+  }
 
-    const subscription = await this.prisma.subscription.findUnique({
-      where: { clinicId },
-      select: {
-        plan: true,
-        includedAppointments: true,
-        includedUsers: true,
-        currency: true,
-      },
-    });
-
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { tier: true },
-    });
-
+  private async fetchUsageCounts(
+    clinicId: string,
+    periodStart: Date,
+    periodEnd: Date,
+    clinicTier: string | undefined,
+    planMode: string | null | undefined,
+  ) {
     const [
       consultations,
       whatsappMessages,
@@ -62,62 +80,60 @@ export class UsageTrackingQueryService {
       maxUsersEvent,
       maxUsersRecord,
     ] = await Promise.all([
-      this.prisma.appointment.count({
-        where: {
-          clinicId,
-          status: 'COMPLETED',
-          updatedAt: { gte: periodStart, lte: periodEnd },
-        },
-      }),
-      this.prisma.usageEvent.aggregate({
-        where: {
-          clinicId,
-          type: 'WHATSAPP_MESSAGES',
-          timestamp: { gte: periodStart, lte: periodEnd },
-        },
-        _sum: { quantity: true },
-      }),
-      this.prisma.usageEvent.aggregate({
-        where: {
-          clinicId,
-          type: 'AI_CREDITS',
-          timestamp: { gte: periodStart, lte: periodEnd },
-        },
-        _sum: { quantity: true },
-      }),
-      this.prisma.user.count({
-        where: {
-          clinicId,
-          ...(clinic?.tier === ClinicTier.FRONT_DESK
-            ? {
-                NOT: {
-                  AND: [{ role: Role.DOCTOR }, { appLoginDisabled: true }],
-                },
-              }
-            : {}),
-        },
-      }),
-      this.prisma.usageEvent.aggregate({
-        where: {
-          clinicId,
-          type: 'USERS',
-          timestamp: { gte: periodStart, lte: periodEnd },
-        },
-        _max: { quantity: true },
-      }),
-      this.prisma.usageRecord.findFirst({
-        where: {
-          clinicId,
-          type: UsageType.USERS,
-          periodStart: { gte: periodStart, lte: periodEnd },
-        },
-        orderBy: { quantity: 'desc' },
-        select: { quantity: true },
-      }),
+      this.usageRepository.countCompletedAppointments(
+        clinicId,
+        periodStart,
+        periodEnd,
+      ),
+      this.usageRepository.sumUsage(
+        clinicId,
+        UsageType.WHATSAPP_MESSAGES,
+        periodStart,
+        periodEnd,
+      ),
+      this.usageRepository.sumUsage(
+        clinicId,
+        'AI_CREDITS',
+        periodStart,
+        periodEnd,
+      ),
+      this.usageRepository.countActiveUsers(clinicId, planMode),
+      this.usageRepository.maxUsage(clinicId, 'USERS', periodStart, periodEnd),
+      this.usageRepository.findMaxUsageRecord(
+        clinicId,
+        UsageType.USERS,
+        periodStart,
+        periodEnd,
+      ),
     ]);
 
-    const tierKey = resolveTierName(subscription?.plan);
-    const resolvedCurrency = this.resolveCurrency(subscription?.currency);
+    return {
+      consultations,
+      whatsappMessages,
+      aiCredits,
+      activeUsers,
+      maxUsersEvent,
+      maxUsersRecord,
+    };
+  }
+
+  private buildUsageSummary(
+    periodStart: Date,
+    periodEnd: Date,
+    subscription: SubscriptionUsageSnapshot | null,
+    counts: {
+      consultations: number;
+      whatsappMessages: number;
+      aiCredits: number;
+      activeUsers: number;
+      maxUsersEvent: number | null;
+      maxUsersRecord: number | null;
+    },
+  ) {
+    const tierKey = resolveTierName(subscription?.plan ?? undefined);
+    const resolvedCurrency = this.resolveCurrency(
+      subscription?.currency ?? undefined,
+    );
     const tierLimits = TIER_LIMITS[tierKey];
     const includedConsultations =
       subscription?.includedAppointments ?? tierLimits.appointments ?? 0;
@@ -130,19 +146,19 @@ export class UsageTrackingQueryService {
     const aiCreditRate = 0;
     const consultationOverage = Math.max(
       0,
-      consultations - includedConsultations,
+      counts.consultations - includedConsultations,
     );
-    const whatsappCurrent = whatsappMessages._sum.quantity ?? 0;
+    const whatsappCurrent = counts.whatsappMessages;
     const whatsappOverage = Math.max(0, whatsappCurrent - includedWhatsapp);
-    const aiCreditsCurrent = aiCredits._sum.quantity ?? 0;
+    const aiCreditsCurrent = counts.aiCredits;
     const aiCreditsOverage =
       aiCreditAllotment === null
         ? 0
         : Math.max(0, aiCreditsCurrent - includedAiCredits);
     const peakUsersInCycle = Math.max(
-      activeUsers,
-      maxUsersEvent._max.quantity ?? 0,
-      maxUsersRecord?.quantity ?? 0,
+      counts.activeUsers,
+      counts.maxUsersEvent ?? 0,
+      counts.maxUsersRecord ?? 0,
     );
     const usersOverage = Math.max(0, peakUsersInCycle - includedUsers);
     const rates = {
@@ -179,7 +195,7 @@ export class UsageTrackingQueryService {
     );
     const meters = {
       consultations: {
-        current: consultations,
+        current: counts.consultations,
         included: includedConsultations,
         overage: consultationOverage,
       },
@@ -201,12 +217,9 @@ export class UsageTrackingQueryService {
     };
 
     return {
-      period: {
-        start: periodStart,
-        end: periodEnd,
-      },
+      period: { start: periodStart, end: periodEnd },
       usage: {
-        consultations,
+        consultations: counts.consultations,
         users: peakUsersInCycle,
         whatsappMessages: whatsappCurrent,
         aiCredits: aiCreditsCurrent,
@@ -228,7 +241,10 @@ export class UsageTrackingQueryService {
       total,
       meters,
       warnings: {
-        consultations: buildUsageWarning(consultations, includedConsultations),
+        consultations: buildUsageWarning(
+          counts.consultations,
+          includedConsultations,
+        ),
         users: buildUsageWarning(peakUsersInCycle, includedUsers),
         whatsappMessages: buildUsageWarning(whatsappCurrent, includedWhatsapp),
         aiCredits:
@@ -236,16 +252,14 @@ export class UsageTrackingQueryService {
             ? { percentUsed: 0, threshold: null }
             : buildUsageWarning(aiCreditsCurrent, includedAiCredits),
       },
-      tier: resolveClinicTierPlan(subscription?.plan),
+      tier: resolveClinicTierPlan(subscription?.plan ?? undefined),
     };
   }
 
   async calculateOverageCharges(clinicId: string) {
     const usage = await this.getCurrentUsage(clinicId);
-    const subscription = await this.prisma.subscription.findUnique({
-      where: { clinicId },
-      select: { currency: true },
-    });
+    const subscription =
+      await this.usageRepository.findSubscriptionSnapshot(clinicId);
 
     return {
       period: usage.period,

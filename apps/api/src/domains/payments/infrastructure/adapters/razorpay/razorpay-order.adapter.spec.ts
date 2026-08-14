@@ -22,12 +22,8 @@ describe('RazorpayOrderAdapter.capturePayment', () => {
       ConfigService.prototype,
     ) as ConfigService;
     configService.get = ((propertyPath: string) => {
-      if (propertyPath === 'RAZORPAY_KEY_ID') {
-        return 'rzp_test_key';
-      }
-      if (propertyPath === 'RAZORPAY_KEY_SECRET') {
-        return 'rzp_test_secret';
-      }
+      if (propertyPath === 'RAZORPAY_KEY_ID') return 'rzp_test_key';
+      if (propertyPath === 'RAZORPAY_KEY_SECRET') return 'rzp_test_secret';
       return undefined;
     }) as ConfigService['get'];
 

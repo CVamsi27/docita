@@ -12,9 +12,12 @@ export function createEnvToParse(source: NodeJS.ProcessEnv) {
   envToParse.META_BUSINESS_ACCOUNT_ID ??=
     envToParse.WHATSAPP_BUSINESS_ACCOUNT_ID;
 
-  if (envToParse.NODE_ENV !== 'test') {
-    return envToParse;
-  }
+  // Compatibility-safe alias resolution: canonical names win, legacy
+  // NEXT_PUBLIC_* aliases keep working until the rollout is complete.
+  envToParse.FRONTEND_URL ??= envToParse.NEXT_PUBLIC_APP_URL;
+  envToParse.API_PUBLIC_URL ??= envToParse.NEXT_PUBLIC_API_URL;
+
+  if (envToParse.NODE_ENV !== 'test') return envToParse;
 
   envToParse.DATABASE_URL ??=
     'postgresql://docita:docita@localhost:5434/docita_test';
@@ -22,8 +25,8 @@ export function createEnvToParse(source: NodeJS.ProcessEnv) {
   envToParse.ENCRYPTION_KEY ??=
     '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
   envToParse.APP_URL ??= 'http://localhost:3001';
-  envToParse.NEXT_PUBLIC_APP_URL ??= 'http://localhost:3000';
-  envToParse.NEXT_PUBLIC_API_URL ??= 'http://localhost:3001/api';
+  envToParse.FRONTEND_URL ??= 'http://localhost:3000';
+  envToParse.API_PUBLIC_URL ??= 'http://localhost:3001/api';
   envToParse.CORS_ORIGINS ??= 'http://localhost:3000';
   envToParse.ENABLE_SCHEDULERS ??= 'true';
   envToParse.QUEUE_BACKEND ??= 'memory';
@@ -41,8 +44,8 @@ export function assertDocitaOnlyPublicOrigins(
 
   assertDocitaCorsOrigins(config.CORS_ORIGINS);
   assertDocitaUrl('APP_URL', config.APP_URL);
-  assertDocitaUrl('NEXT_PUBLIC_APP_URL', config.NEXT_PUBLIC_APP_URL);
-  assertDocitaUrl('NEXT_PUBLIC_API_URL', config.NEXT_PUBLIC_API_URL);
+  assertDocitaUrl('FRONTEND_URL', config.FRONTEND_URL);
+  assertDocitaUrl('API_PUBLIC_URL', config.API_PUBLIC_URL);
 }
 
 export function writeSchemaValidationFailure(
@@ -81,6 +84,38 @@ export function assertRuntimeSecretRequirements(
   assertJwtSecret(config, runningAsWorker);
   assertRazorpaySecrets(config, runningAsWorker);
   assertDurableWorkerQueue(config, runningAsWorker);
+  assertTurnstileSecret(config, runningAsWorker);
+}
+
+/**
+ * Fail-closed bot-check (security-review VULN-002): TurnstileVerifyService
+ * no-ops when TURNSTILE_SECRET_KEY is unset. On an internet-facing API that
+ * would silently disable the login/register bot-check (P5.17) while the UI
+ * still renders the widget — the rate limiter + lockout are the only
+ * remaining layer. The worker serves no HTTP auth surface, so it is exempt.
+ */
+function assertTurnstileSecret(
+  config: z.infer<typeof EnvSchema>,
+  runningAsWorker: boolean,
+) {
+  const requiresTurnstile =
+    !runningAsWorker &&
+    (config.NODE_ENV === 'production' || config.NODE_ENV === 'staging');
+  if (!requiresTurnstile) {
+    return;
+  }
+  if (config.TURNSTILE_SECRET_KEY) {
+    return;
+  }
+
+  process.stderr.write('\nAPI environment validation failed.\n');
+  process.stderr.write('Please fix the following environment variables:\n');
+  process.stderr.write(
+    '  - TURNSTILE_SECRET_KEY: Required in staging/production (without it the\n' +
+      '    login/register bot-check silently disables)\n',
+  );
+  process.stderr.write('\n');
+  process.exit(1);
 }
 
 function assertDocitaCorsOrigins(corsOriginsValue: string) {

@@ -1,0 +1,18 @@
+{
+  "pageTitle": "प्रोफ़ाइल",
+  "pageDescription": "अपनी प्रोफ़ाइल और खाता सेटिंग प्रबंधित करें",
+  "userPlaceholder": "डॉ. उपयोगकर्ता",
+  "emailPlaceholder": "doctor@clinic.com",
+  "sections": {
+    "personalInformation": "व्यक्तिगत जानकारी",
+    "personalInformationDesc": "नाम, ईमेल, फ़ोन",
+    "security": "सुरक्षा",
+    "securityDesc": "पासवर्ड, टू-फैक्टर प्रमाणीकरण",
+    "notifications": "सूचनाएँ",
+    "notificationsDesc": "ईमेल और पुश प्राथमिकताएँ",
+    "appearance": "दिखावट",
+    "appearanceDesc": "थीम और डिस्प्ले सेटिंग",
+    "devices": "डिवाइस",
+    "devicesDesc": "कनेक्टेड डिवाइस प्रबंधित करें"
+  }
+}

@@ -7,17 +7,22 @@ import {
 } from '@nestjs/common';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthCheckController {
-  constructor(private observability: ObservabilityService) {}
+  constructor(
+    private observability: ObservabilityService,
+    private configService: AppConfigService,
+  ) {}
 
   @Public()
   @Get()
-  ping(): { status: 'ok'; timestamp: string } {
+  ping(): { status: 'ok'; timestamp: string; version: string } {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
+      version: this.configService.getAppVersion(),
     };
   }
 
@@ -58,9 +63,7 @@ export class HealthCheckController {
       timestamp: new Date().toISOString(),
     };
 
-    if (!ready) {
-      throw new ServiceUnavailableException(body);
-    }
+    if (!ready) throw new ServiceUnavailableException(body);
 
     return body;
   }

@@ -1,14 +1,19 @@
 # Deployment Strategy
 
+> **Vite SPA apps (`apps/app`, `apps/internal`)**: see
+> [`CLOUDFLARE_VITE_DEPLOYMENT.md`](./CLOUDFLARE_VITE_DEPLOYMENT.md) for the
+> focused Cloudflare strategy (topology, caching, proxy contract, CI flow,
+> rollback, failure modes).
+
 ## Current Production Stack
 
 - Frontend
-  - `apps/app`: Cloudflare Workers (OpenNext)
-  - `apps/internal`: Cloudflare Workers (OpenNext)
+  - `apps/app`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
+  - `apps/internal`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
   - `apps/landing`: Cloudflare Workers (Astro)
 - Backend
-  - `apps/api`: Fly.io (Mumbai — `bom` region), 2 GB RAM, shared CPU
-  - `docita-worker` (Fly app): `apps/worker` Nest entry (imports `apps/api` worker modules), background jobs and crons
+  - `apps/api`: Fly.io (Singapore — `sin` region since 2026-07-29; was `bom` Mumbai), 2 GB RAM, shared CPU
+  - `docita-worker` (Fly app): `apps/worker` Nest entry (imports `apps/api` worker modules), background jobs and crons (same `sin` region)
 - Database
   - AWS RDS PostgreSQL — `ap-south-1` (Mumbai), `db.t4g.micro`
 - Cache / Background Work
@@ -16,7 +21,7 @@
 - Object Storage
   - Cloudflare R2 (`STORAGE_PROVIDER=r2`)
 
-All backend infrastructure is co-located in Mumbai for Indian data residency (DPDP compliance).
+Backend infrastructure is co-located in Singapore (`sin` region) for low-latency API responses; the database remains in Mumbai (`ap-south-1`) for DPDP compliance.
 
 ## Operational Rules
 
@@ -25,11 +30,11 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 - Use `DATABASE_URL` from AWS RDS for API runtime (set via `fly secrets set DATABASE_URL=...`).
 - Runtime baseline is Node `22.12.x` for local, CI, and Docker builds.
 - Keep API health checks on `GET /api/health/live`.
-- Keep frontend `NEXT_PUBLIC_API_URL` pointed to the Fly.io app URL.
+- Keep frontend `VITE_API_URL` pointed to the Fly.io app URL. In production the proxy Worker uses `API_PROXY_TARGET` to forward `/api/*` and `/socket.io/*` to the backend. The API process reads its own public URLs from `FRONTEND_URL` / `API_PUBLIC_URL` (legacy `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_API_URL` aliases still accepted during the compatibility rollout).
 - Keep `ENABLE_SCHEDULERS=false` on the API and `ENABLE_SCHEDULERS=true` on the worker once the split is live.
-- Keep each Worker entry bundle within the deployed Cloudflare plan limit: 3 MB gzip on Workers Free and 10 MB gzip on Workers Paid. `apps/app` production and staging builds keep the default 3 MB gzip guard so they remain deployable without relying on the paid-size allowance. Use `node scripts/checks/check-worker-size.mjs` after OpenNext builds.
+- Keep each Worker entry bundle within the deployed Cloudflare plan limit: 3 MB gzip on Workers Free and 10 MB gzip on Workers Paid. The Vite SPA apps serve static assets from Cloudflare edge and only ship the tiny Hono proxy Worker (`apps/app/api/index.ts`, `apps/internal/api/index.ts`) — no OpenNext runtime. Use `node scripts/checks/check-worker-size.mjs` after builds.
 - Deploy order: run DB migrations first, then deploy API and worker, then deploy frontends.
-- Keep `open-next.config.ts` and `wrangler.toml` in sync for Next.js frontend apps.
+- Keep `wrangler.toml` (static assets dir, `main = "api/index.ts"`) and `vite.config.ts` in sync for the Vite frontend apps.
 - Keep `astro.config.mjs` and `wrangler.toml` in sync for `apps/landing`.
 - Keep API autostop enabled for the initial low-traffic phase so Fly can scale request-serving machines to zero when idle.
 - Keep the API at 2 GB until the worker has been healthy in parallel and we have live RSS measurements that support a safe reduction to 1.5 GB.
@@ -69,12 +74,12 @@ fly ssh console
 ```
 
 Fly-specific notes:
-- The Fly API deployment uses [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and [`apps/api/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/api/Dockerfile).
-- The Fly worker deployment uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml) and [`apps/worker/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/Dockerfile) (no HTTP service; runs `dist/worker/src/main.js` in the image). For local runs against production-like settings, use `apps/worker/.env.production` (gitignored), not `apps/api/.env.production`.
-- GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
+- The Fly API deployment uses [`fly.toml`](../../fly.toml) and [`apps/api/Dockerfile`](../../apps/api/Dockerfile).
+- The Fly worker deployment uses [`apps/worker/fly.toml`](../../apps/worker/fly.toml) and [`apps/worker/Dockerfile`](../../apps/worker/Dockerfile) (no HTTP service; runs `dist/worker/src/main.js` in the image). For local runs against production-like settings, use `apps/worker/.env.production` (gitignored), not `apps/api/.env.production`.
+- GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](../../fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
 - For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret.
-- The worker app uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml), builds from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
-- Keep `auto_stop_machines = "suspend"` and `min_machines_running = 1` for the production API. The always-available floor avoids clinician-facing wake timeouts while additional capacity can still suspend when idle.
+- The worker app uses [`apps/worker/fly.toml`](../../apps/worker/fly.toml), builds from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
+- Keep `auto_stop_machines = "suspend"` and `min_machines_running = 0` for the production API. Scale-to-zero saves cost during off-hours; cold starts are bounded by synthetic probes which wake the app.
 - Do not scale the no-service worker to zero unless scheduler and queue wake-up behavior has a separate trigger; it does not receive HTTP traffic that Fly can use for autostart.
 - Verify the API image locally before infra changes with:
 
@@ -115,6 +120,45 @@ Manual migration:
 DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 ```
 
+## Data Migrations (Backfill-Only)
+
+Schema migrations (DDL) are applied automatically. **Data migrations** that rewrite existing rows are a separate concern — they ship as the same `prisma migrate deploy` artifact but are *safe to defer* and *idempotent on re-run*.
+
+### `20260715100000_normalize_patient_phone_to_e164` — Patient phone to E.164
+
+Backfill that rewrites legacy bare-10-digit Indian mobile numbers on `Patient.phoneNumber` to E.164 (`+91XXXXXXXXXX`). Shipped with the read-side tolerant-lookup fix in [`prisma-patient.repository.ts`](../../apps/api/src/domains/patients/infrastructure/persistence/prisma-patient.repository.ts) and the write-side normalization in [`patient.mapper.ts`](../../apps/api/src/domains/patients/infrastructure/mappers/patient.mapper.ts) so new and old data resolve identically.
+
+**Properties:**
+- Idempotent: the `WHERE "phoneNumber" ~ '^\d{10}$'` predicate matches only bare-10-digit rows, so re-running is a no-op once normalized.
+- Scope: only live rows (`"deletedAt" IS NULL`) — soft-deleted rows stay on the retention/anonymization path untouched.
+- Concurrency: bumps `"version"` and `"updatedAt"` on every rewritten row, so any in-flight optimistic-concurrency update built from the pre-migration row will be rejected with a version mismatch. This is the desired behavior — the next write from the client re-reads and re-normalizes.
+- India-only: the regex `^\d{10}$` only matches Indian mobile numbers. International numbers (US `+1…`, etc.) are not affected.
+
+**Run order:** the read-side tolerant lookup (`{ in: phoneMatchCandidates(phone) }`) makes the API code-level fix land without the data migration. Deploy the code first, then run the data migration whenever convenient — there is no tight coupling.
+
+**Dry-run first (recommended):**
+```sql
+SELECT COUNT(*) FROM "Patient"
+  WHERE "phoneNumber" ~ '^\d{10}$' AND "deletedAt" IS NULL;
+```
+
+If the count is unexpectedly large (e.g. > 100k), pause and confirm scope before running.
+
+**Post-migration verify:**
+```sql
+-- Should be 0 once the migration lands
+SELECT COUNT(*) FROM "Patient"
+  WHERE "phoneNumber" ~ '^\d{10}$' AND "deletedAt" IS NULL;
+
+-- Spot-check: 1-2% of clinics with patients should show a mix of
+-- +91…, 91…, and bare 10-digit; after the migration all should be +91…
+SELECT "clinicId", "phoneNumber"
+  FROM "Patient"
+  WHERE "deletedAt" IS NULL
+  ORDER BY "updatedAt" DESC
+  LIMIT 20;
+```
+
 ## Frontend Quick Guide
 
 - Build `apps/app` with `pnpm build:app:cloudflare`.
@@ -122,7 +166,9 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - Build `apps/landing` with `pnpm build:landing:cloudflare`.
 - Preview each Worker locally with the matching `preview:*:cloudflare` script.
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.
-- Frontend production deploys run through the path-scoped [`deploy-cloudflare.yml`](../../.github/workflows/deploy-cloudflare.yml) workflow when repository credentials verify. Cloudflare Git integration or dashboard deploys remain the fallback.
+- Frontend production deploys run through the path-scoped Cloudflare jobs in [`deploy.yml`](../../.github/workflows/deploy.yml) when repository credentials verify. Cloudflare Git integration or dashboard deploys remain the fallback.
+- The Vite SPA build outputs static assets to `dist/` plus `_headers`/`_redirects`; `wrangler deploy` ships both the assets and the proxy Worker (`main = "api/index.ts"`) in one command.
+- The root `pnpm build` is a compile gate. Deploy through the `deploy:*:cloudflare` scripts, which run `build:*:cloudflare` (for landing this also applies the Astro manifest-injection patch that Cloudflare deploys require — a plain-build `dist/` is not deployable).
 
 ## Release Gates
 
@@ -133,12 +179,16 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - `docker build -f apps/api/Dockerfile -t docita-api-verify .`
 - `docker build -f apps/worker/Dockerfile -t docita-worker-verify .`
 
+For each release, record the evidence (commit, CI run, test counts, E2E/a11y/perf
+artifacts, deploy IDs, migration, smoke results, rollback rehearsal, post-release
+health) in [`RELEASE_EVIDENCE_CHECKLIST.md`](RELEASE_EVIDENCE_CHECKLIST.md).
+
 ## Post-merge production checklist (API + worker)
 
 After merging to `main` and before or right after Fly deploys:
 
 1. **`docita-api`**: set `ENABLE_SCHEDULERS=false` (Fly `[env]` or `fly secrets` as you prefer). Confirms HTTP API does not run `@Cron` handlers.
-2. **`docita-worker`**: set `ENABLE_SCHEDULERS=true` and `QUEUE_BACKEND=postgres` (already in [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml)); align secrets with `apps/worker/.env.production` locally for smoke tests only—**never commit** that file.
+2. **`docita-worker`**: set `ENABLE_SCHEDULERS=true` and `QUEUE_BACKEND=postgres` (already in [`apps/worker/fly.toml`](../../apps/worker/fly.toml)); align secrets with `apps/worker/.env.production` locally for smoke tests only—**never commit** that file.
 3. **Observe**: queue depth (`QueueJob` counts by status/name), `PdfJob` completion rate, worker logs for cron start lines, API RSS after the API scheduler flag is off.
 
 ## Optional next: scheduler-only modules (does this affect the main API?)
@@ -172,7 +222,7 @@ Production API deploys from GitHub Actions use **Fly.io blue-green** (`flyctl de
 
 This gives near-instant rollback via `fly releases rollback` without a separate green environment. The worker has no HTTP service and continues to use a rolling deploy (`--ha=false`).
 
-After each API deploy, **synthetic uptime probes** run automatically (`pnpm monitor:synthetic`). Failures block the deploy job and emit a Sentry event when `SENTRY_DSN` is configured. Scheduled probes also run every 5 minutes via `.github/workflows/synthetic-monitoring.yml`.
+After each API deploy, **synthetic uptime probes** run automatically (`pnpm monitor:synthetic`). Failures block the deploy job and emit a Sentry event when `SENTRY_DSN` is configured. Scheduled probes run 3x/day during IST business hours via [`.github/workflows/synthetic-monitoring.yml`](../../.github/workflows/synthetic-monitoring.yml) — see [`SYNTHETIC_MONITORING.md`](./SYNTHETIC_MONITORING.md) for the full alerting matrix including Fly auto-recovery.
 
 ## Row-level security (production)
 
@@ -205,8 +255,8 @@ Notes:
 
 ### Frontend (Cloudflare Workers)
 
-Production frontend deploys can run from GitHub Actions via
-[`.github/workflows/deploy-cloudflare.yml`](../../.github/workflows/deploy-cloudflare.yml)
+Production frontend deploys can run from GitHub Actions via the Cloudflare jobs in
+[`deploy.yml`](../../.github/workflows/deploy.yml)
 when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets are
 set and pass [`scripts/deploy/verify-cloudflare-deploy-credentials.mjs`](../../scripts/deploy/verify-cloudflare-deploy-credentials.mjs)
 (token verify, account scope, and `Zone > Workers Routes` read access on

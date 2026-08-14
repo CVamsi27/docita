@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { AppointmentSchedulingRulesService } from './appointment-scheduling-rules.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { APPOINTMENT_PERSISTENCE_PORT } from '@/domains/appointments/application/ports/appointment-persistence.port';
 import { AppointmentStatus } from '@workspace/db';
 import { clockPortTestProvider, createMutableClockMock } from '@/test-utils';
 
@@ -12,7 +13,7 @@ describe('AppointmentSchedulingRulesService', () => {
     appointment: {
       findMany: jest.fn<(args: unknown) => Promise<unknown[]>>(),
       findUnique: jest.fn<() => Promise<unknown>>(),
-      count: jest.fn<() => Promise<number>>(),
+      count: jest.fn<(args: unknown) => Promise<number>>(),
     },
     clinic: {
       findUnique: jest.fn<() => Promise<{ timezone: string } | null>>(),
@@ -33,6 +34,10 @@ describe('AppointmentSchedulingRulesService', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: APPOINTMENT_PERSISTENCE_PORT,
+          useExisting: PrismaService,
         },
         clockPortTestProvider(createMutableClockMock()),
       ],
@@ -329,6 +334,28 @@ describe('AppointmentSchedulingRulesService', () => {
 
       expect(result.available).toBe(false);
       expect(result.slots).toBe(0);
+    });
+
+    it('should count overlapping appointments using overlap predicate', async () => {
+      mockPrismaService.appointment.count.mockResolvedValueOnce(2);
+
+      const date = new Date(Date.now() + 86400000);
+
+      await service.validateSlotAvailability(
+        'doctor-1',
+        'clinic-1',
+        date,
+        'morning',
+      );
+
+      expect(mockPrismaService.appointment.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            startTime: expect.objectContaining({ lt: expect.any(Date) }),
+            endTime: expect.objectContaining({ gt: expect.any(Date) }),
+          }),
+        }),
+      );
     });
   });
 

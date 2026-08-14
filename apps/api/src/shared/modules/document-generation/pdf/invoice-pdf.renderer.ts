@@ -3,6 +3,7 @@ import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { PdfLayoutService } from './pdf-layout.service';
 import type { InvoicePdfInput } from './pdf.types';
 import type { PDFConfig } from './pdf-config.types';
+import { appendPdfPoweredByDocita } from './pdf-branding';
 
 @Injectable()
 export class InvoicePdfRenderer {
@@ -88,9 +89,11 @@ export class InvoicePdfRenderer {
           }
         },
       ],
-      footerText: data.clinic.gstin
-        ? `GSTIN: ${data.clinic.gstin} | This is a computer-generated invoice.`
-        : 'This is a computer-generated invoice.',
+      footerText: appendPdfPoweredByDocita(
+        data.clinic.gstin
+          ? `GSTIN: ${data.clinic.gstin} | This is a computer-generated invoice.`
+          : 'This is a computer-generated invoice.',
+      ),
     };
   }
 }

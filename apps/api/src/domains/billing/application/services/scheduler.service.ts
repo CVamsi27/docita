@@ -16,6 +16,7 @@ import {
 } from '@/domains/billing/core/repositories/payment-session.repository';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { isRecord } from '@workspace/utils';
+import { GLOBAL_BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
 interface PaymentReminderConfig {
   enabled: boolean;
@@ -51,6 +52,10 @@ export class SchedulerService {
           id: true,
           settings: true,
         },
+        // Guardrail: safety-net cap so an unbounded active-clinic list can
+        // never fan out an unbounded reminder batch; paging loudly at the
+        // cap is preferred to silent truncation at the DB default.
+        take: GLOBAL_BULK_READ_LIMIT,
       });
 
       await Promise.allSettled(
@@ -120,9 +125,7 @@ export class SchedulerService {
     });
 
     const targetInvoices = result.items.filter((invoice) => {
-      if (!invoice.dueDate) {
-        return false;
-      }
+      if (!invoice.dueDate) return false;
       const dueDate = new Date(invoice.dueDate);
       return dueDate >= start && dueDate <= end;
     });

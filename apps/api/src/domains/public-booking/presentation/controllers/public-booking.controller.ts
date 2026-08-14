@@ -42,9 +42,7 @@ export class PublicBookingController {
     @Query() query: Record<string, unknown>,
   ) {
     const parsed = publicBookingSlotsQuerySchema.safeParse(query);
-    if (!parsed.success) {
-      throw new BadRequestException('Invalid slot query');
-    }
+    if (!parsed.success) throw new BadRequestException('Invalid slot query');
     return this.publicBookingService.listSlots(referralCode, parsed.data);
   }
 

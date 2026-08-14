@@ -4,8 +4,9 @@ import {
   type SubscriptionPersistencePort,
 } from '@/domains/subscriptions/application/ports/subscription-persistence.port';
 import { SubscriptionOverageMeterService } from '@/domains/subscriptions/application/services/subscription-overage-meter.service';
+import { GLOBAL_BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
-export interface BillMonthlyOveragesParams {
+interface BillMonthlyOveragesParams {
   periodStart: Date;
   periodEnd: Date;
 }
@@ -34,6 +35,12 @@ export class BillMonthlyOveragesUseCase {
           includedAppointments: true,
           includedUsers: true,
         },
+        // Capped: monthly cron iterates every active/trialing subscription.
+        // Dropping a subscription here means silently not billing its
+        // overages for the period — unacceptable. The cap is a guardrail
+        // well above current scale; if it ever fires the per-clinic
+        // failure loop surfaces it loudly.
+        take: GLOBAL_BULK_READ_LIMIT,
       });
 
       this.logger.log(

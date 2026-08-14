@@ -18,9 +18,11 @@ const downloadHref = resolveApiUrl(`/public/patient/rx/${encodeURIComponent(toke
   noIndex
 >
   <PatientDocumentDownload
-    title="Your prescription"
-    description="Tap below to download your prescription as a PDF. You do not need a Docita account or password."
+    title="Your prescription is ready"
+    description="Tap below to download it as a PDF. You do not need a Docita account or password."
     downloadHref={downloadHref}
     downloadLabel="Download prescription PDF"
+    recordLine="Prescription"
+    accent="primary"
   />
 </MainLayout>

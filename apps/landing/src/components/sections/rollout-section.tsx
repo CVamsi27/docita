@@ -5,11 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
 
-import {
-  landingFadeUpVariants,
-  landingInViewViewport,
-  landingStaggerContainer,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
 
 interface Milestone {
   marker: string;
@@ -23,7 +19,7 @@ const MILESTONES: Milestone[] = [
     marker: "Day 0 · Discovery",
     title: "Walk the current workflow",
     detail:
-      "We map how the clinic actually runs today: registers, Excel sheets, prescription PDFs, and WhatsApp habits. Nothing is asked to change yet.",
+      "We map how your practice actually runs today: registers, Excel sheets, prescription PDFs, and WhatsApp habits. Nothing is asked to change yet.",
     artifacts: [
       "Workflow walkthrough call",
       "Records sample (CSV / scans)",
@@ -34,7 +30,7 @@ const MILESTONES: Milestone[] = [
     marker: "Day 2 · First workflow live",
     title: "Queue + records + prescriptions",
     detail:
-      "We import the patient list, set up the doctor templates, and the clinic runs its first OPD day on Docita. Old register remains a safety net for the first week.",
+      "We import the patient list, set up the doctor templates, and your practice runs its first day on Docita. The old register remains a safety net for the first week.",
     artifacts: [
       "Patient list imported (CSV review)",
       "Prescription template configured",
@@ -56,7 +52,7 @@ const MILESTONES: Milestone[] = [
     marker: "Week 2 · Hand-off",
     title: "Clinic runs Docita unaided",
     detail:
-      "Reception, doctors, and admin each have their own day-to-day flow. Office hours support stays available, but the clinic owns the rhythm.",
+      "Reception, doctors, and admin each have their own day-to-day flow. Office hours support stays available, but your team owns the rhythm.",
     artifacts: [
       "Role-based access reviewed",
       "Backup + export configured",

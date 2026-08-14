@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
-export interface PoolConfig {
+interface PoolConfig {
   min: number;
   max: number;
   idleTimeoutMillis: number;

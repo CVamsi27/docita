@@ -29,7 +29,7 @@ API_PROXY_TARGET = "https://api.docita.work"
 PUBLIC_ENABLE_LIVE_LANDING_DATA = "true"
 
 [observability]
-enabled = false
+enabled = true
 head_sampling_rate = 1
 
 [observability.logs]

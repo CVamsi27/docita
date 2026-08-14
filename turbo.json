@@ -4,35 +4,63 @@
   "globalEnv": [
     "NODE_ENV",
     "ANALYZE",
-    "NEXT_RUNTIME",
     "DATABASE_URL",
     "JWT_SECRET",
+    "ABDM_BASE_URL",
+    "ABDM_CALLBACK_SECRET",
+    "ABDM_CLIENT_ID",
+    "ABDM_CLIENT_SECRET",
+    "ABDM_ABHA_BASE_URL",
+    "ABDM_ABHA_PUBLIC_KEY",
     "API_PROXY_TARGET",
     "API_URL",
     "APP_URL",
     "PUBLIC_API_URL",
     "PUBLIC_APP_URL",
     "PUBLIC_ANALYTICS_URL",
+    "PUBLIC_ENABLE_LIVE_LANDING_DATA",
+    "FRONTEND_URL",
+    "API_PUBLIC_URL",
     "NEXT_PUBLIC_API_URL",
     "NEXT_PUBLIC_APP_URL",
-    "NEXT_PUBLIC_SOCKET_URL",
     "ENABLE_SCHEDULERS",
+    "TURNSTILE_SECRET_KEY",
+    "VITE_API_URL",
+    "VITE_APP_URL",
+    "VITE_MAIN_APP_URL",
+    "VITE_SOCKET_URL",
+    "VITE_AI_ENABLED",
+    "VITE_GOOGLE_MAPS_API_KEY",
+    "VITE_TURNSTILE_SITE_KEY",
+    "VITE_RAZORPAY_KEY_ID",
+    "VITE_SENTRY_DSN",
+    "VITE_WHATSAPP_SUPPORT_NUMBER",
+    "ZEPTOMAIL_WEBHOOK_SECRET",
+    "GRIEVANCE_CONTACT_EMAIL",
     "CI",
     "DOCITA_CLOUDFLARE",
     "DOCITA_ENV",
     "PLAYWRIGHT_TEST_BASE_URL",
     "API_HEALTH_URL",
     "SKIP_SERVER",
-    "RUN_VISUAL_REGRESSION",
-    "NEXT_PUBLIC_ENABLE_VISUAL_TESTS",
-    "NEXT_PUBLIC_ENABLE_TOOLS",
-    "RAZORPAY_KEY_SECRET"
+    "RAZORPAY_KEY_SECRET",
+    "PARTNER_PORTAL_URL",
+    "DATABASE_CONTROL_ENABLED",
+    "DATABASE_CONTROL_ALLOWED_ENV",
+    "DATABASE_CONTROL_AWS_REGION",
+    "DATABASE_CONTROL_RDS_INSTANCE_ID",
+    "DATABASE_CONTROL_ALERT_EMAIL",
+    "DATABASE_CONTROL_DEPLOY_GUARD",
+    "DATABASE_CONTROL_COOLDOWN_SECONDS",
+    "AWS_REGION",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY"
   ],
   "tasks": {
     "build": {
       "dependsOn": ["^build", "check-types", "lint"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
+      "outputs": ["dist/**", "build/**"],
       "env": [
         "NODE_ENV",
         "API_URL",
@@ -42,7 +70,6 @@
         "PUBLIC_ANALYTICS_URL",
         "NEXT_PUBLIC_API_URL",
         "NEXT_PUBLIC_APP_URL",
-        "NEXT_PUBLIC_SOCKET_URL",
         "ENABLE_SCHEDULERS",
         "CI",
         "SENTRY_ORG",
@@ -54,8 +81,43 @@
         "SKIP_SERVER"
       ]
     },
-    "db:generate": {
-      "cache": false
+    "@docita/app#build": {
+      "dependsOn": ["^build", "^check-types"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"],
+      "env": [
+        "NODE_ENV",
+        "VITE_API_URL",
+        "VITE_APP_URL",
+        "VITE_SOCKET_URL",
+        "VITE_SENTRY_DSN",
+        "VITE_AI_ENABLED",
+        "VITE_API_TARGET",
+        "CI"
+      ]
+    },
+    "@docita/app#dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "@docita/internal#build": {
+      "dependsOn": ["^build", "^check-types"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"],
+      "env": [
+        "NODE_ENV",
+        "VITE_API_URL",
+        "VITE_APP_URL",
+        "VITE_MAIN_APP_URL",
+        "VITE_SENTRY_DSN",
+        "CI"
+      ]
+    },
+    "@docita/internal#dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
     },
     "lint": {
       "dependsOn": ["^lint"],
@@ -69,7 +131,6 @@
         "PUBLIC_ANALYTICS_URL",
         "NEXT_PUBLIC_API_URL",
         "NEXT_PUBLIC_APP_URL",
-        "NEXT_PUBLIC_SOCKET_URL",
         "ENABLE_SCHEDULERS",
         "CI",
         "DOCITA_CLOUDFLARE",

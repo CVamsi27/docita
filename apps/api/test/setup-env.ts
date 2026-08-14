@@ -18,12 +18,11 @@ const isProdLikeHost =
   /\brds\.amazonaws\.com\b/i.test(dbUrl) ||
   /\bdocita-prod\b/i.test(dbUrl) ||
   /[?&]application_name=prod/i.test(dbUrl);
-if (process.env.NODE_ENV === 'production' || isProdLikeHost) {
+if (process.env.NODE_ENV === 'production' || isProdLikeHost)
   throw new Error(
     'Refusing to run tests with NODE_ENV=production or against a prod-looking DATABASE_URL. ' +
       'Tests must use apps/api/.env.test.',
   );
-}
 
 validateEnv();
 
@@ -39,7 +38,6 @@ const shouldSuppressTestErrorLog = (message: string): boolean =>
   message.includes('[InvoiceEventsListener] Failed to create payment link') ||
   message.includes('[MetricsService] Failed to record metric') ||
   message.includes('[MetricsService] Error: DB Error') ||
-  message.includes('[AiService] OpenAI API call failed') ||
   message.includes('AuthenticationError: 401 Incorrect API key provided') ||
   message.includes('invalid_api_key') ||
   message.includes('APIConnectionError: Connection error') ||
@@ -54,13 +52,10 @@ const stringifyLogArgs = (args: readonly unknown[]): string =>
         typeof arg === 'string' ||
         typeof arg === 'number' ||
         typeof arg === 'boolean'
-      ) {
+      )
         return String(arg);
-      }
 
-      if (arg === null) {
-        return 'null';
-      }
+      if (arg === null) return 'null';
 
       try {
         return JSON.stringify(arg);
@@ -123,13 +118,10 @@ console.error = (
         typeof arg === 'string' ||
         typeof arg === 'number' ||
         typeof arg === 'boolean'
-      ) {
+      )
         return String(arg);
-      }
 
-      if (arg === null) {
-        return 'null';
-      }
+      if (arg === null) return 'null';
 
       try {
         return JSON.stringify(arg);

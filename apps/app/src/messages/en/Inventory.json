@@ -1,0 +1,26 @@
+{
+  "filters": {
+    "searchPlaceholder": "Enter inventory",
+    "searchAriaLabel": "Search inventory",
+    "categoryPlaceholder": "Category",
+    "allCategories": "All categories",
+    "stockPlaceholder": "Stock Status",
+    "allStatus": "All status",
+    "lowCritical": "Low & Critical",
+    "inStock": "In stock"
+  },
+  "itemDetails": {
+    "skuLabel": "SKU: {sku}",
+    "notAvailable": "N/A",
+    "purchasePriceLabel": "Purchase Price",
+    "sellingPriceLabel": "Selling Price",
+    "minQuantityLabel": "Min. Quantity",
+    "expiryDateLabel": "Expiry Date",
+    "recentMovementsTitle": "Recent movements",
+    "noMovementsRecorded": "No movements recorded yet",
+    "tableTypeHeader": "Type",
+    "tableQtyHeader": "Qty",
+    "tableDateHeader": "Date",
+    "tableNotesHeader": "Notes"
+  }
+}

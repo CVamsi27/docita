@@ -7,6 +7,7 @@ import {
 } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { isRecord } from '@workspace/utils';
 import {
+  APPOINTMENT_CONTEXT_INCLUDE,
   toAppointmentContext,
   type AppointmentContext,
 } from './patient-response.types';
@@ -44,9 +45,7 @@ export class PatientAppointmentResolverService {
     const fromContext = await this.resolveFromReplyContext(
       params.contextProviderMessageId,
     );
-    if (fromContext) {
-      return fromContext;
-    }
+    if (fromContext) return fromContext;
 
     return this.resolveFromPatientPhone(params.phoneNumber);
   }
@@ -54,9 +53,7 @@ export class PatientAppointmentResolverService {
   private async resolveFromReplyContext(
     providerMessageId: string | undefined,
   ): Promise<AppointmentContext | null> {
-    if (!providerMessageId) {
-      return null;
-    }
+    if (!providerMessageId) return null;
 
     const log = await this.persistence.whatsappLog.findFirst({
       where: { providerMessageId },
@@ -68,9 +65,7 @@ export class PatientAppointmentResolverService {
     const appointmentId = this.readAppointmentIdFromLogRequest(
       log?.requestBody,
     );
-    if (!appointmentId) {
-      return null;
-    }
+    if (!appointmentId) return null;
 
     return this.loadAppointmentContext(appointmentId);
   }
@@ -80,9 +75,7 @@ export class PatientAppointmentResolverService {
       return null;
     }
     const direct = requestBody.appointmentId;
-    if (typeof direct === 'string' && direct.length > 0) {
-      return direct;
-    }
+    if (typeof direct === 'string' && direct.length > 0) return direct;
     const variables = requestBody.variables;
     if (!isRecord(variables)) {
       return null;
@@ -97,15 +90,11 @@ export class PatientAppointmentResolverService {
     phoneNumber: string,
   ): Promise<AppointmentContext | null> {
     const phoneVariants = this.buildPhoneVariants(phoneNumber);
-
     const patient = await this.persistence.patient.findFirst({
       where: { phoneNumber: { in: phoneVariants } },
       select: { id: true },
     });
-
-    if (!patient) {
-      return null;
-    }
+    if (!patient) return null;
 
     const now = this.clock.now();
     const windowStart = new Date(now.getTime() - LOOKBACK_MS);
@@ -118,29 +107,17 @@ export class PatientAppointmentResolverService {
         status: { in: ACTIVE_STATUSES },
       },
       orderBy: { startTime: 'asc' },
-      include: {
-        patient: true,
-        doctor: true,
-        clinic: true,
-      },
+      include: { patient: true, doctor: true, clinic: true },
     });
 
-    if (candidates.length === 0) {
-      return null;
-    }
-
-    if (candidates.length === 1) {
-      return toAppointmentContext(candidates[0]);
-    }
+    if (candidates.length === 0) return null;
+    if (candidates.length === 1) return toAppointmentContext(candidates[0]);
 
     const reminderCutoff = new Date(now.getTime() - REMINDER_LINK_WINDOW_MS);
     const candidateIds = candidates.map((row) => row.id);
 
     const recentLogs = await this.persistence.whatsappLog.findMany({
-      where: {
-        patientId: patient.id,
-        createdAt: { gte: reminderCutoff },
-      },
+      where: { patientId: patient.id, createdAt: { gte: reminderCutoff } },
       orderBy: { createdAt: 'desc' },
       take: 50,
       select: { requestBody: true, createdAt: true },
@@ -150,9 +127,7 @@ export class PatientAppointmentResolverService {
       const linkedId = this.readAppointmentIdFromLogRequest(log.requestBody);
       if (linkedId && candidateIds.includes(linkedId)) {
         const match = candidates.find((row) => row.id === linkedId);
-        if (match) {
-          return toAppointmentContext(match);
-        }
+        if (match) return toAppointmentContext(match);
       }
     }
 
@@ -177,16 +152,10 @@ export class PatientAppointmentResolverService {
   ): Promise<AppointmentContext | null> {
     const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
-      include: {
-        patient: true,
-        doctor: true,
-        clinic: true,
-      },
+      include: APPOINTMENT_CONTEXT_INCLUDE,
     });
 
-    if (!appointment) {
-      return null;
-    }
+    if (!appointment) return null;
 
     return toAppointmentContext(appointment);
   }

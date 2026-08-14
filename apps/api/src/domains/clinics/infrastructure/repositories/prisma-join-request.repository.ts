@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { JoinRequestStatus, Role } from '@workspace/db';
+import { JoinRequestStatus, Prisma, Role } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IJoinRequestRepository,
@@ -21,6 +21,19 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
     private readonly prisma: PrismaService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
+
+  /**
+   * Shared by `reject` and `withdraw` — both end their transaction by
+   * sending the requesting user back to the path-selection step, so the
+   * onboarding-reset write (and its target step) stays in one place rather
+   * than the two outcomes drifting apart.
+   */
+  private resetUserToChoosePath(tx: Prisma.TransactionClient, userId: string) {
+    return tx.user.update({
+      where: { id: userId },
+      data: { onboardingStep: 'CHOOSE_PATH' },
+    });
+  }
 
   private getReadClient() {
     return this.prisma.getReadClient();
@@ -152,10 +165,7 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
         },
       });
 
-      await tx.user.update({
-        where: { id: input.userId },
-        data: { onboardingStep: 'CHOOSE_PATH' },
-      });
+      await this.resetUserToChoosePath(tx, input.userId);
     });
   }
 
@@ -167,10 +177,7 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
         data: { status: 'WITHDRAWN', respondedAt: now },
       });
 
-      await tx.user.update({
-        where: { id: input.userId },
-        data: { onboardingStep: 'CHOOSE_PATH' },
-      });
+      await this.resetUserToChoosePath(tx, input.userId);
     });
   }
 

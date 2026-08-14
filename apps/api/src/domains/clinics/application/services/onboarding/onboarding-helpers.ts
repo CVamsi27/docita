@@ -66,17 +66,13 @@ export async function uploadSlaSignature(
     where: { id: sessionId },
   });
 
-  if (!session) {
-    throw new NotFoundException('Signature session not found');
-  }
-  if (session.expiresAt < now) {
+  if (!session) throw new NotFoundException('Signature session not found');
+  if (session.expiresAt < now)
     throw new BadRequestException(
       'This signature link has expired. Please generate a new link from onboarding.',
     );
-  }
-  if (session.status === 'uploaded' && session.fileUrl) {
+  if (session.status === 'uploaded' && session.fileUrl)
     throw new BadRequestException('This signature link has already been used.');
-  }
 
   const updated = await uploadsService.updateSession(sessionId, file, {
     onboardingId,
@@ -108,9 +104,8 @@ export async function getSlaSignatureSessionStatus(
     where: { id: sessionId },
   });
   if (!session) throw new NotFoundException('Signature session not found');
-  if (session.purpose !== UploadSessionPurpose.GENERAL) {
+  if (session.purpose !== UploadSessionPurpose.GENERAL)
     throw new NotFoundException('Signature session not found');
-  }
   return {
     status: session.status,
     uploaded: session.status === 'uploaded' || !!session.fileUrl,

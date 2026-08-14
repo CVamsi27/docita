@@ -1,4 +1,4 @@
-import { PrismaService } from '@/prisma/prisma.service';
+import { type PrismaDelegatePort } from '@/shared/modules/database/prisma-delegate.port';
 
 function lockId(name: string): number {
   let hash = 0;
@@ -10,7 +10,7 @@ function lockId(name: string): number {
 }
 
 export async function withAdvisoryLock<T>(
-  prisma: PrismaService,
+  prisma: PrismaDelegatePort,
   lockName: string,
   fn: () => Promise<T>,
   _timeoutMs = 5_000,
@@ -22,9 +22,27 @@ export async function withAdvisoryLock<T>(
     >`
       SELECT pg_try_advisory_xact_lock(${id}) AS pg_try_advisory_xact_lock
     `;
-    if (!acquired[0]?.pg_try_advisory_xact_lock) {
-      return null;
-    }
+    if (!acquired[0]?.pg_try_advisory_xact_lock) return null;
     return fn();
   });
 }
+
+/**
+ * Function shape exported for test-time injection. The service that
+ * uses this lock takes a `WithAdvisoryLock<T>` parameter so it can
+ * be swapped for an in-process stub under jest without spinning up
+ * a real Prisma client + Postgres session.
+ */
+export type WithAdvisoryLock<T> = (
+  prisma: PrismaDelegatePort,
+  lockName: string,
+  fn: () => Promise<T>,
+  timeoutMs?: number,
+) => Promise<T | null>;
+
+/**
+ * DI token for the advisory-lock helper. Services that need a
+ * Postgres-level cross-process lock inject `WITH_ADVISORY_LOCK_TOKEN`
+ * so they can be stubbed under jest without module-level mocking.
+ */
+export const WITH_ADVISORY_LOCK_TOKEN = 'WithAdvisoryLock';

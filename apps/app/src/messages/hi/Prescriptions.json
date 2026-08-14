@@ -1,0 +1,62 @@
+{
+  "documentHeader": {
+    "facilityLogoAlt": "सुविधा लोगो",
+    "phoneLabel": "फ़ोन:",
+    "emailLabel": "ईमेल:",
+    "supportLabel": "सहायता:",
+    "doctorPrefix": "डॉ. {name}",
+    "regLabel": "पंजी. संख्या: {reg}",
+    "patientNameLabel": "रोगी का नाम",
+    "ageLabel": "आयु: {age}",
+    "genderLabel": "लिंग: {gender}",
+    "dateLabel": "तारीख"
+  },
+  "documentFooter": {
+    "signatureAlt": "डॉक्टर का हस्ताक्षर",
+    "doctorPrefix": "डॉ. {name}",
+    "regNumberLabel": "पंजी. संख्या: {reg}",
+    "digitalGeneratedLabel": "यह नुस्खा डिजिटल रूप से बनाया गया था",
+    "poweredByLabel": "Docita — हेल्थकेयर OS द्वारा संचालित",
+    "supportLabel": "सहायता: {email}",
+    "validityLabel": "मुद्रित विंडो के भीतर मुफ्त पुनः आगमन के लिए मान्य"
+  },
+  "medicationList": {
+    "medicationsTitle": "दवाएं",
+    "dosageLabel": "खुराक",
+    "frequencyLabel": "आवृत्ति",
+    "durationLabel": "अवधि",
+    "instructionsTitle": "निर्देश"
+  },
+  "table": {
+    "viewAriaLabel": "नुस्खा देखें",
+    "viewButton": "देखें",
+    "downloadPdfTooltip": "PDF डाउनलोड करें",
+    "pdfButton": "PDF",
+    "printTooltip": "नुस्खा प्रिंट करें",
+    "printButton": "प्रिंट",
+    "title": "प्रिस्क्रिप्शन",
+    "emptyTitle": "कोई प्रिस्क्रिप्शन नहीं मिला",
+    "emptyDescription": "आपके द्वारा बनाए गए प्रिस्क्रिप्शन यहाँ दिखाई देंगे।"
+  },
+  "tableColumns": {
+    "id": "प्रिस्क्रिप्शन आईडी",
+    "patient": "रोगी",
+    "diagnosis": "निदान",
+    "medications": "दवाइयाँ",
+    "date": "तारीख",
+    "actions": "क्रियाएँ"
+  },
+  "pageTitle": "प्रिस्क्रिप्शन",
+  "error": "हम प्रिस्क्रिप्शन लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+  "showing": "{total} में से {filtered} प्रिस्क्रिप्शन दिखाए जा रहे हैं",
+  "filters": {
+    "searchPlaceholder": "मरीज़, निदान या फ़ोन दर्ज करें",
+    "searchAriaLabel": "प्रिस्क्रिप्शन खोजें",
+    "from": "से",
+    "to": "तक",
+    "startDatePlaceholder": "आरंभ तिथि चुनें",
+    "endDatePlaceholder": "समाप्ति तिथि चुनें",
+    "allDaysTooltip": "सभी दिन दिखाएँ (कोई तिथि फ़िल्टर नहीं)",
+    "allDays": "सभी दिन"
+  }
+}

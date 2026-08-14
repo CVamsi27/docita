@@ -1,22 +1,8 @@
 /** Internal portal monitoring/health API shapes (until dedicated Zod contracts exist). */
 
-export interface InternalHealthCheckResult {
-  status: "healthy" | "unhealthy" | "degraded";
-  timestamp: string;
-  uptime: number;
-  version: string;
-  checks: {
-    database: { status: string; latency?: number; error?: string };
-    memory: {
-      status: string;
-      heapUsed: number;
-      heapTotal: number;
-      rss: number;
-      heapUsagePercent: number;
-    };
-    cpu: { status: string; user: number; system: number };
-  };
-}
+import type { ApiHealthCheckResult } from "@workspace/types";
+
+export type InternalHealthCheckResult = ApiHealthCheckResult;
 
 export interface InternalSystemHealth {
   uptime: number;

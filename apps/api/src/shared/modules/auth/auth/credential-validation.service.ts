@@ -13,10 +13,8 @@ import { forbiddenProblem } from '@/shared/common/errors/forbidden-problem';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import type { UserWithoutPassword } from './auth.types';
-import {
-  isDatabaseAuthError,
-  isDatabaseConnectivityError,
-} from './auth-database.util';
+import { isDatabaseAuthError } from '@/shared/common/utils/is-database-auth-error';
+import { isDatabaseConnectivityError } from './auth-database.util';
 
 @Injectable()
 export class CredentialValidationService {
@@ -30,9 +28,7 @@ export class CredentialValidationService {
   ) {}
 
   async checkEmailExists(email: string): Promise<boolean> {
-    if (this.emailLookupDisabled) {
-      return false;
-    }
+    if (this.emailLookupDisabled) return false;
 
     try {
       // RLS-BYPASS: auth resolves users before clinic tenant context is established
@@ -93,16 +89,13 @@ export class CredentialValidationService {
         where: { email, deletedAt: null },
       });
 
-      if (!user) {
-        return null;
-      }
+      if (!user) return null;
 
-      if (user.appLoginDisabled) {
+      if (user.appLoginDisabled)
         throw forbiddenProblem(
           'APP_LOGIN_DISABLED',
           'This profile cannot sign in to the app.',
         );
-      }
 
       await this.assertClinicTierAllowsRole(user.clinicId, user.role);
 

@@ -10,42 +10,29 @@ export class FhirImmunizationFactory {
         resourceType: 'Immunization',
         id: imm.id,
         status: 'completed',
-        vaccineCode: {
-          coding: [],
-          text: imm.vaccineName,
-        },
+        vaccineCode: { coding: [], text: imm.vaccineName },
         patient: { reference: `Patient/${imm.patientId}` },
         occurrenceDateTime: imm.administeredDate.toISOString(),
         recorded: imm.createdAt.toISOString(),
       };
-
-      if (imm.cvxCode) {
+      if (imm.cvxCode)
         fhirImmunization.vaccineCode.coding.push({
           system: 'http://hl7.org/fhir/sid/cvx',
           code: imm.cvxCode,
           display: imm.vaccineName,
         });
-      }
-
-      if (imm.ndcCode) {
+      if (imm.ndcCode)
         fhirImmunization.vaccineCode.coding.push({
           system: 'http://hl7.org/fhir/sid/ndc',
           code: imm.ndcCode,
           display: imm.vaccineName,
         });
-      }
-
-      if (imm.lotNumber) {
-        fhirImmunization.lotNumber = imm.lotNumber;
-      }
-
-      if (imm.expirationDate) {
+      if (imm.lotNumber) fhirImmunization.lotNumber = imm.lotNumber;
+      if (imm.expirationDate)
         fhirImmunization.expirationDate = imm.expirationDate
           .toISOString()
           .split('T')[0];
-      }
-
-      if (imm.site) {
+      if (imm.site)
         fhirImmunization.site = {
           coding: [
             {
@@ -55,9 +42,7 @@ export class FhirImmunizationFactory {
             },
           ],
         };
-      }
-
-      if (imm.route) {
+      if (imm.route)
         fhirImmunization.route = {
           coding: [
             {
@@ -67,8 +52,6 @@ export class FhirImmunizationFactory {
             },
           ],
         };
-      }
-
       return fhirImmunization;
     });
   }

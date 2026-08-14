@@ -63,37 +63,29 @@ describe("@workspace/types access contracts", () => {
     );
   });
 
-  it("maps clinic DB tier strings consistently including legacy values", () => {
+  it("maps clinic DB tier strings consistently", () => {
     expect(mapClinicTierDbStringToAccessTier("STARTER")).toBe(Tier.STARTER);
     expect(mapClinicTierDbStringToAccessTier("ESSENTIAL")).toBe(Tier.ESSENTIAL);
-    expect(mapClinicTierDbStringToAccessTier("FRONT_DESK")).toBe(
-      Tier.ESSENTIAL,
-    );
-    expect(mapClinicTierDbStringToAccessTier("FRONT_DESK_CLINIC")).toBe(
+    expect(mapClinicTierDbStringToAccessTier("PROFESSIONAL")).toBe(
       Tier.PROFESSIONAL,
     );
-    expect(mapClinicTierDbStringToAccessTier("FRONT_DESK_HOSPITAL")).toBe(
-      Tier.HOSPITAL,
+    expect(mapClinicTierDbStringToAccessTier("HOSPITAL")).toBe(Tier.HOSPITAL);
+    expect(mapClinicTierDbStringToAccessTier("ENTERPRISE")).toBe(
+      Tier.ENTERPRISE,
     );
-    expect(mapClinicTierDbStringToAccessTier("CORE")).toBe(Tier.ESSENTIAL);
-    expect(mapClinicTierDbStringToAccessTier("PLUS")).toBe(Tier.ESSENTIAL);
-    expect(mapClinicTierDbStringToAccessTier("CAPTURE")).toBe(Tier.STARTER);
-    expect(mapClinicTierDbStringToAccessTier("FREE")).toBe(Tier.STARTER);
     expect(mapClinicTierDbStringToAccessTier("UNKNOWN_TIER")).toBe(
       Tier.STARTER,
     );
   });
 
-  it("maps DB tier strings to billing TierName including FRONT_DESK", () => {
-    expect(mapDbClinicTierStringToTierName("FRONT_DESK")).toBe("ESSENTIAL");
-    expect(mapDbClinicTierStringToTierName("FRONT_DESK_CLINIC")).toBe(
+  it("maps DB tier strings to billing TierName", () => {
+    expect(mapDbClinicTierStringToTierName("STARTER")).toBe("STARTER");
+    expect(mapDbClinicTierStringToTierName("ESSENTIAL")).toBe("ESSENTIAL");
+    expect(mapDbClinicTierStringToTierName("PROFESSIONAL")).toBe(
       "PROFESSIONAL",
     );
-    expect(mapDbClinicTierStringToTierName("FRONT_DESK_HOSPITAL")).toBe(
-      "HOSPITAL",
-    );
-    expect(mapDbClinicTierStringToTierName("ESSENTIAL")).toBe("ESSENTIAL");
-    expect(mapDbClinicTierStringToTierName("CORE")).toBe("ESSENTIAL");
+    expect(mapDbClinicTierStringToTierName("HOSPITAL")).toBe("HOSPITAL");
+    expect(mapDbClinicTierStringToTierName("ENTERPRISE")).toBe("ENTERPRISE");
   });
 
   it("resolves plan mode from tier and planMode column", () => {
@@ -101,7 +93,8 @@ describe("@workspace/types access contracts", () => {
     expect(resolveClinicPlanMode("PROFESSIONAL", "FRONT_DESK")).toBe(
       "FRONT_DESK",
     );
-    expect(resolveClinicPlanMode("FRONT_DESK", "FULL")).toBe("FRONT_DESK");
+    expect(resolveClinicPlanMode("PROFESSIONAL", "CORE")).toBe("CORE");
+    expect(resolveClinicPlanMode("ESSENTIAL", null)).toBe("FULL");
     expect(isFrontDeskPlanMode("ESSENTIAL", "FRONT_DESK")).toBe(true);
     expect(isFrontDeskPlanMode("ESSENTIAL", "FULL")).toBe(false);
   });

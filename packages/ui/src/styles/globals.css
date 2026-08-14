@@ -127,6 +127,8 @@
   --lh-relaxed: 1.625;
   --tracking-tight: 0;
   --tracking-normal: 0;
+  /* Page content minimum height for empty/loading states */
+  --page-content-min-h: 50vh;
   --tracking-wide: 0.01em;
   --fw-regular: 400;
   --fw-medium: 500;
@@ -768,5 +770,68 @@ html.dark[data-accent="slate"] {
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+}
+
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Live status pulse animation */
+@keyframes live-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}.animate-live-pulse {
+  animation: live-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Form validation shake animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 50%, 90% { transform: translateX(-2px); }
+  30%, 70% { transform: translateX(2px); }
+}
+
+[data-shake] {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Page entrance fade-up animation */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.3s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skeleton]::after {
+    animation: none !important;
+  }
+  .animate-live-pulse {
+    animation: none !important;
+  }
+  [data-shake] {
+    animation: none !important;
+  }
+  .animate-fade-up {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loginUser, setupTestUser, UserData } from "./utils/patient-helpers";
+import { loginUser, setupTestUser, type UserData } from "./utils/patient-helpers";
 import { expectProtectedWorkspaceLoaded } from "./utils/ui-contracts";
 
 async function expectWorkspaceAfterDevRecovery(
@@ -31,7 +31,6 @@ const NAV_SMOKE_ROUTES: { path: string }[] = [
   { path: "/whatsapp" },
   { path: "/inbox" },
   { path: "/inventory" },
-  { path: "/vaccines" },
   { path: "/referrals" },
   { path: "/documents" },
   { path: "/analytics" },

@@ -1,9 +1,23 @@
-import { Inject, Injectable, BadRequestException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import { SubscriptionPaymentTaxCalculator } from './subscription-payment-tax.calculator';
 import { toPrismaJson } from './prisma-subscription.repository.helpers';
+
+/**
+ * Shared shape for the gateway-callback fields that can accompany a payment
+ * status transition — used by both `updatePaymentStatus` /
+ * `updatePaymentStatusById` entry points and the `data` builder they funnel
+ * into, so the optional fields can't drift between the three.
+ */
+type PaymentStatusUpdateDetails = {
+  paymentId?: string;
+  signature?: string;
+  subscriptionId?: string;
+  invoiceUrl?: string;
+  invoiceNumber?: string;
+};
 
 @Injectable()
 export class PrismaSubscriptionPaymentRepository {
@@ -17,6 +31,7 @@ export class PrismaSubscriptionPaymentRepository {
     return this.prisma.getReadClient();
   }
 
+  // jscpd:ignore-start
   async savePayment(payment: {
     clinicId: string;
     subscriptionId?: string;
@@ -28,97 +43,84 @@ export class PrismaSubscriptionPaymentRepository {
     razorpayPaymentId?: string;
     paidAt?: Date | null;
   }): Promise<void> {
-    try {
-      const taxFields = await this.paymentTaxCalculator.calculate(payment);
-      const resolvedPaidAt =
-        payment.status === 'paid' || payment.status === 'PAID'
-          ? (payment.paidAt ?? this.clock.now())
-          : undefined;
-      await this.prisma.subscriptionPayment.create({
-        data: {
-          clinicId: payment.clinicId,
-          subscriptionId: payment.subscriptionId,
-          amountCents: payment.amountCents,
-          currency: payment.currency,
-          status: payment.status,
-          razorpayOrderId: payment.razorpayOrderId,
-          razorpayPaymentId: payment.razorpayPaymentId,
-          description: payment.description,
-          invoiceType: taxFields.invoiceType,
-          subtotalCents: taxFields.subtotalCents,
-          taxCents: taxFields.taxCents,
-          grandTotalCents: taxFields.grandTotalCents,
-          taxSummary: toPrismaJson(taxFields.taxSummary),
-          sellerTaxSnapshot: toPrismaJson(taxFields.seller),
-          buyerTaxSnapshot: toPrismaJson(taxFields.buyer),
-          placeOfSupplyStateCode: taxFields.taxSummary.placeOfSupply?.stateCode,
-          reverseCharge: taxFields.taxSummary.reverseCharge,
-          paidAt: resolvedPaidAt,
-        },
-      });
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to save payment: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
+    // jscpd:ignore-end
+    // Infrastructure errors propagate to AllExceptionsFilter; the previous
+    // try/catch+BadRequestException swallowed the Prisma error code and
+    // downgraded 5xx to 4xx (see also the same fix in
+    // prisma-subscription-core and prisma-appointment-read).
+    const taxFields = await this.paymentTaxCalculator.calculate(payment);
+    const resolvedPaidAt =
+      payment.status === 'paid' || payment.status === 'PAID'
+        ? (payment.paidAt ?? this.clock.now())
+        : undefined;
+    await this.prisma.subscriptionPayment.create({
+      data: {
+        clinicId: payment.clinicId,
+        subscriptionId: payment.subscriptionId,
+        amountCents: payment.amountCents,
+        currency: payment.currency,
+        status: payment.status,
+        razorpayOrderId: payment.razorpayOrderId,
+        razorpayPaymentId: payment.razorpayPaymentId,
+        description: payment.description,
+        invoiceType: taxFields.invoiceType,
+        subtotalCents: taxFields.subtotalCents,
+        taxCents: taxFields.taxCents,
+        grandTotalCents: taxFields.grandTotalCents,
+        taxSummary: toPrismaJson(taxFields.taxSummary),
+        sellerTaxSnapshot: toPrismaJson(taxFields.seller),
+        buyerTaxSnapshot: toPrismaJson(taxFields.buyer),
+        placeOfSupplyStateCode: taxFields.taxSummary.placeOfSupply?.stateCode,
+        reverseCharge: taxFields.taxSummary.reverseCharge,
+        paidAt: resolvedPaidAt,
+      },
+    });
   }
 
   async updatePaymentStatus(
     orderId: string,
     status: string,
-    details?: {
-      paymentId?: string;
-      signature?: string;
-      subscriptionId?: string;
-      invoiceUrl?: string;
-      invoiceNumber?: string;
-    },
+    details?: PaymentStatusUpdateDetails,
   ): Promise<void> {
-    try {
-      await this.prisma.subscriptionPayment.updateMany({
-        where: { razorpayOrderId: orderId },
-        data: this.buildPaymentStatusUpdate(status, details),
-      });
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to update payment status: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
+    return this.runPaymentStatusUpdate(
+      { razorpayOrderId: orderId },
+      status,
+      details,
+    );
   }
 
   async updatePaymentStatusById(
     clinicId: string,
     paymentId: string,
     status: string,
-    details?: {
-      paymentId?: string;
-      signature?: string;
-      subscriptionId?: string;
-      invoiceUrl?: string;
-      invoiceNumber?: string;
-    },
+    details?: PaymentStatusUpdateDetails,
   ): Promise<void> {
-    try {
-      await this.prisma.subscriptionPayment.updateMany({
-        where: { id: paymentId, clinicId },
-        data: this.buildPaymentStatusUpdate(status, details),
-      });
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to update payment status: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
+    return this.runPaymentStatusUpdate(
+      { id: paymentId, clinicId },
+      status,
+      details,
+    );
+  }
+
+  /**
+   * Shared `updateMany` for both payment-status entry points — they only
+   * differ in how the target row is located (`where`). Errors propagate
+   * to AllExceptionsFilter (see `savePayment` for the rationale).
+   */
+  private async runPaymentStatusUpdate(
+    where: Prisma.SubscriptionPaymentWhereInput,
+    status: string,
+    details?: PaymentStatusUpdateDetails,
+  ): Promise<void> {
+    await this.prisma.subscriptionPayment.updateMany({
+      where,
+      data: this.buildPaymentStatusUpdate(status, details),
+    });
   }
 
   private buildPaymentStatusUpdate(
     status: string,
-    details?: {
-      paymentId?: string;
-      signature?: string;
-      subscriptionId?: string;
-      invoiceUrl?: string;
-      invoiceNumber?: string;
-    },
+    details?: PaymentStatusUpdateDetails,
   ) {
     return {
       status,

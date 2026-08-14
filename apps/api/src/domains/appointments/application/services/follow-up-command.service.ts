@@ -29,11 +29,7 @@ export class FollowUpCommandService {
   }
 
   async book(id: string, clinicId: string, bookedAppointmentId: string) {
-    const followUp = await this.followUpRepository.findByIdAndClinic(
-      id,
-      clinicId,
-    );
-    if (!followUp) throw new NotFoundException('Follow-up not found');
+    await this.getFollowUpOrThrow(id, clinicId);
 
     return this.followUpRepository.update(id, {
       status: 'BOOKED',
@@ -42,20 +38,21 @@ export class FollowUpCommandService {
   }
 
   async complete(id: string, clinicId: string) {
-    const followUp = await this.followUpRepository.findByIdAndClinic(
-      id,
-      clinicId,
-    );
-    if (!followUp) throw new NotFoundException('Follow-up not found');
+    await this.getFollowUpOrThrow(id, clinicId);
     return this.followUpRepository.update(id, { status: 'COMPLETED' });
   }
 
   async cancel(id: string, clinicId: string) {
+    await this.getFollowUpOrThrow(id, clinicId);
+    return this.followUpRepository.update(id, { status: 'CANCELLED' });
+  }
+
+  private async getFollowUpOrThrow(id: string, clinicId: string) {
     const followUp = await this.followUpRepository.findByIdAndClinic(
       id,
       clinicId,
     );
     if (!followUp) throw new NotFoundException('Follow-up not found');
-    return this.followUpRepository.update(id, { status: 'CANCELLED' });
+    return followUp;
   }
 }

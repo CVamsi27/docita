@@ -6,13 +6,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
-import { AuditService, AuditLogFilter } from './audit.service';
+import { AuditService } from './audit.service';
 import {
   AuditLogsApiAccess,
   AuditSummaryApiAccess,
 } from '@/shared/modules/audit/audit/audit.controller.access';
-import { AnyAuditResponseDto } from './dto/audit.dto';
+import { AuditLogFilterDto, AuditLogListResponseDto } from './dto/audit.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
 
 @Controller('audit-logs')
 @AuditLogsApiAccess()
@@ -20,16 +21,15 @@ export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
-  @ZodSerializerDto(AnyAuditResponseDto)
+  @RequirePolicy('audit-log', 'read')
+  @ZodSerializerDto(AuditLogListResponseDto)
   async getAuditLogs(
     @Req()
     req: ExpressRequest & { user: { clinicId?: string; role?: string } },
-    @Query() filter: AuditLogFilter,
+    @Query() filter: AuditLogFilterDto,
   ) {
     const userRole = req.user?.role;
-    if (!userRole) {
-      throw new UnauthorizedException('User role is required');
-    }
+    if (!userRole) throw new UnauthorizedException('User role is required');
     const userClinicId = req.user?.clinicId;
 
     if (userRole !== 'INTERNAL' && userClinicId) {
@@ -46,14 +46,14 @@ export class AuditSummaryController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get('recent')
+  @RequirePolicy('audit-log', 'read')
   async getRecentAuditLogs(
     @Req() req: ExpressRequest & { user?: { clinicId?: string } },
     @Query('limit') limit?: string,
   ) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new UnauthorizedException('Clinic context is required');
-    }
 
     return this.auditService.getRecentAuditSummary(
       clinicId,

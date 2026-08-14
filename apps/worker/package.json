@@ -4,21 +4,22 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prebuild": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
+    "prebuild": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/authorization run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
     "build": "nest build",
-    "predev": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
+    "predev": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/authorization run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
     "start": "nest start",
-    "prestart": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
+    "prestart": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/authorization run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
     "dev": "nest start --watch",
     "start:prod": "node dist/worker/src/main.js",
     "lint": "eslint \"src/**/*.ts\"",
-    "precheck-types": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
+    "precheck-types": "pnpm --filter @workspace/types run build && pnpm --filter @workspace/authorization run build && pnpm --filter @workspace/auth run build && pnpm --filter @workspace/utils run build && pnpm --filter @workspace/db run build",
     "check-types": "tsc --noEmit",
     "test": "NODE_NO_WARNINGS=1 jest --config jest.config.cjs --passWithNoTests",
     "test:ci": "jest --ci --passWithNoTests"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1053.0",
+    "@workspace/authorization": "workspace:*",
     "@aws-sdk/s3-request-presigner": "^3.1053.0",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.1.18",
@@ -49,11 +50,10 @@
     "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
-    "multer": "^2.1.1",
+    "multer": "^2.2.0",
     "nanoid": "^3.3.7",
     "nestjs-pino": "^4.5.0",
     "nestjs-zod": "^5.1.1",
-    "openai": "^6.10.0",
     "otplib": "^13.4.0",
     "papaparse": "^5.5.3",
     "passport": "^0.7.0",
@@ -73,7 +73,7 @@
   "devDependencies": {
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
-    "@nestjs/testing": "^11.1.18",
+    "@nestjs/schematics": "^11.0.9",
     "@types/multer": "^2.0.0",
     "@types/node": "^22.10.7",
     "@workspace/typescript-config": "workspace:*",
@@ -84,7 +84,8 @@
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
     "ts-jest": "^29.2.5",
-    "typescript": "5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.20.0",
+    "@types/jest": "^29.5.12"
   }
 }

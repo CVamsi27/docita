@@ -3,11 +3,7 @@ import { TaggedCacheService } from '@/shared/modules/services/tagged-cache.servi
 import { SearchStrategyRegistry } from './search-strategy.registry';
 import type { SearchOptions, SearchResult } from './search.types';
 
-export type {
-  SearchEntityType,
-  SearchResult,
-  SearchOptions,
-} from './search.types';
+export type { SearchEntityType } from './search.types';
 
 @Injectable()
 export class SearchService {
@@ -22,9 +18,7 @@ export class SearchService {
   async search(options: SearchOptions): Promise<SearchResult[]> {
     const { clinicId, query, types = ['all'], limit = 20 } = options;
 
-    if (!query || query.length < 2) {
-      return [];
-    }
+    if (!query || query.length < 2) return [];
 
     const normalizedQuery = query.trim().replace(/\s+/g, ' ');
     const normalizedQueryLower = normalizedQuery.toLowerCase();
@@ -48,9 +42,7 @@ export class SearchService {
     );
 
     const allResults = strategyResults.flatMap((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      }
+      if (result.status === 'fulfilled') return result.value;
       this.logger.warn(
         `Search strategy failed for type ${searchTypes[index]}: ${
           result.reason instanceof Error
@@ -60,13 +52,11 @@ export class SearchService {
       );
       return [];
     });
-
     const sorted = allResults
       .sort((a, b) => {
         const scoreA = a.relevanceScore ?? 0;
         const scoreB = b.relevanceScore ?? 0;
         if (scoreB !== scoreA) return scoreB - scoreA;
-
         const aExact = a.title.toLowerCase().includes(normalizedQueryLower);
         const bExact = b.title.toLowerCase().includes(normalizedQueryLower);
         if (aExact && !bExact) return -1;
@@ -74,12 +64,10 @@ export class SearchService {
         return 0;
       })
       .slice(0, limit);
-
     await this.cacheService.set(cacheKey, sorted, {
       ttl: this.searchCacheTtl,
       tags: [`search:${clinicId}`],
     });
-
     return sorted;
   }
 

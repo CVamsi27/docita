@@ -61,9 +61,7 @@ export class ImportsPatientsController {
   @UseInterceptors(FileInterceptor('file', spreadsheetImportUploadOptions))
   @ZodSerializerDto(ImportPreviewResponseDto)
   async previewImport(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
+    if (!file) throw new BadRequestException('File is required');
 
     try {
       await assertAllowedImportFileSignature(file);
@@ -117,9 +115,7 @@ export class ImportsPatientsController {
     @Body() body: { dpdpAttestation?: string },
     @Request() req: ImportsAuthRequest,
   ) {
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
+    if (!file) throw new BadRequestException('File is required');
     let parsedAttestation: unknown;
     try {
       parsedAttestation = body.dpdpAttestation

@@ -14,7 +14,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const REPO_ROOT = join(__dirname, "..", "..");
+const REPO_ROOT = process.env.DOCITA_CHECK_ROOT ?? join(__dirname, "..", "..");
 
 const ENV_FILES = [
   ".env.example",
@@ -55,7 +55,7 @@ const ALLOWLIST = new Set([
   "META_APP_SECRET",
   "META_VERIFY_TOKEN",
   "META_BUSINESS_ACCOUNT_ID",
-  "OPENAI_API_KEY",
+  "AI_API_KEY",
   "OPENAI_MODEL",
   "AI_REQUEST_TIMEOUT",
   "AI_CACHE_ENABLED",
@@ -101,8 +101,6 @@ const ALLOWLIST = new Set([
   "NEXT_PUBLIC_RAZORPAY_KEY_ID",
   "NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER",
   "NEXT_PUBLIC_CLINIC_NAME",
-  "NEXT_PUBLIC_ENABLE_TOOLS",
-  "NEXT_PUBLIC_ENABLE_VISUAL_TESTS",
 ]);
 
 function parseEnvKeys(text) {
@@ -158,8 +156,9 @@ async function main() {
     return;
   }
 
+  const enforce = process.argv.includes("--enforce");
   console.warn(
-    `[env-vs-globalenv] ADVISORY: ${missing.length} env vars in .env.example files are not in turbo.json globalEnv / task env:`,
+    `[env-vs-globalenv] ${enforce ? "FAILED" : "ADVISORY"}: ${missing.length} env vars in .env.example files are not in turbo.json globalEnv / task env:`,
   );
   for (const key of missing.sort()) {
     console.warn(`  - ${key}`);
@@ -167,6 +166,7 @@ async function main() {
   console.warn(
     "Add to turbo.json#globalEnv (build cache invalidation) or extend the ALLOWLIST in this script if the var is read at process start only.",
   );
+  if (enforce) process.exit(1);
 }
 
 main().catch((err) => {

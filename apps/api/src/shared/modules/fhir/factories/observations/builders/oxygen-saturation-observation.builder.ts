@@ -7,9 +7,7 @@ import type {
 
 export class OxygenSaturationObservationBuilder implements IFhirObservationBuilder {
   build(vital: VitalWithRelations, context: VitalObservationContext) {
-    if (!vital.spo2) {
-      return [];
-    }
+    if (!vital.spo2) return [];
 
     return [
       buildQuantityVitalObservation({

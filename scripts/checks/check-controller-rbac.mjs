@@ -1,32 +1,26 @@
 #!/usr/bin/env node
 
-import { execSync } from "node:child_process";
 import fs from "node:fs";
-import path from "node:path";
-import process from "node:process";
+import {
+  gitLsSourceFiles,
+  reportFindingsAndExit,
+} from "../lib/check-runner.mjs";
 
-const repoRoot = process.cwd();
 const routeDecorator = /^\s*@(Get|Post|Put|Patch|Delete|All)\b/;
 const authDecorator =
-  /^\s*@(Public|Roles|RequireFeature|RequireFeatureFlag|UseGuards|SkipSubscriptionCheck)\b/;
-/** Composite *Access() decorators apply Roles/Guards via applyDecorators. */
-const classPosturePattern =
-  /@(Roles|Public|UseGuards)\b|@\w+Access\s*\(/;
+  /^\s*@(Public|Roles|RequireFeature|UseGuards|SkipSubscriptionCheck)\b/;
+const classPosturePattern = /@(Roles|Public|UseGuards)\b|@\w+Access\s*\(/;
 const classLine = /^\s*export\s+class\s+\w+Controller\b/;
 
-const files = execSync("git ls-files apps/api/src", {
-  cwd: repoRoot,
-  encoding: "utf8",
-})
-  .split("\n")
-  .filter((file) => file.endsWith(".controller.ts"));
+const files = gitLsSourceFiles(["apps/api/src"], {
+  include: [/\.controller\.ts$/],
+});
 
 const violations = [];
 
 for (const file of files) {
-  const absolutePath = path.join(repoRoot, file);
-  if (!fs.existsSync(absolutePath)) continue;
-  const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+  if (!fs.existsSync(file)) continue;
+  const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
   let classHasAuth = false;
   const decoratorBuffer = [];
   const classHeaderBuffer = [];
@@ -54,13 +48,12 @@ for (const file of files) {
         authDecorator.test(decorator),
       );
       if (!classHasAuth && !methodHasAuth) {
-        violations.push({
-          file,
-          line: index + 1,
-          route: decoratorBuffer.find((decorator) =>
-            routeDecorator.test(decorator),
-          ),
-        });
+        const route = decoratorBuffer.find((decorator) =>
+          routeDecorator.test(decorator),
+        );
+        violations.push(
+          `${file}:${index + 1} ${route?.trim() ?? "route handler"} lacks controller or method auth posture`,
+        );
       }
     }
 
@@ -70,14 +63,6 @@ for (const file of files) {
   });
 }
 
-if (violations.length > 0) {
-  console.error("Controller RBAC posture check failed.\n");
-  for (const violation of violations) {
-    console.error(
-      `- ${violation.file}:${violation.line} ${violation.route?.trim() ?? "route handler"} lacks controller or method auth posture`,
-    );
-  }
-  process.exit(1);
-}
-
-console.log("Controller RBAC posture check passed.");
+reportFindingsAndExit("Controller RBAC posture check", violations, {
+  failAlways: true,
+});

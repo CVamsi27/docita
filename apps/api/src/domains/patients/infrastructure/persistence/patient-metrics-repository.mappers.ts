@@ -1,68 +1,16 @@
-import { MetricRecordSource, Prisma } from '@workspace/db';
+import { Prisma } from '@workspace/db';
 import {
   MetricCategoryRow,
   MetricDefinitionRow,
-  MetricRecordRow,
   MetricSelectionRow,
 } from '@/domains/patients/core/repositories/patient-metrics.repository.interface';
+import { MetricRecordRow } from '@/domains/patients/core/repositories/patient-metrics-repository.types';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import { assertTypedJsonValue } from '@/shared/common/json/parse-serialized-json.boundary';
 import { patientMetricValueJsonSchema } from '@workspace/types';
 
-type MetricCategorySource = {
-  id: string;
-  key: string;
-  name: string;
-  description: string | null;
-  order: number;
-  isSystem: boolean;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  metricDefinitions: Array<{
-    id: string;
-    key: string;
-    label: string;
-    isTrackedByDefault: boolean;
-  }>;
-};
-
-type MetricHistoryRecordSource = {
-  id: string;
-  clinicId: string;
-  patientId: string;
-  definitionId: string;
-  appointmentId: string | null;
-  recordedAt: Date;
-  recordedById: string | null;
-  source: MetricRecordSource;
-  notes: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  definition: {
-    category: {
-      key: string;
-    };
-  };
-  values: Array<{
-    id: string;
-    metricRecordId: string;
-    valueString: string | null;
-    valueNumber: number | null;
-    valueBoolean: boolean | null;
-    valueDate: Date | null;
-    valueJson: Prisma.JsonValue;
-    optionId: string | null;
-    option: {
-      id: string;
-      value: string;
-      label: string;
-    } | null;
-  }>;
-};
-
 export function mapMetricCategoryRow(
-  category: MetricCategorySource,
+  category: MetricCategoryRow,
 ): MetricCategoryRow {
   return {
     id: category.id,
@@ -118,9 +66,7 @@ export function mapMetricDefinitionRow(
   };
 }
 
-export function mapMetricRecordRow(
-  record: MetricHistoryRecordSource,
-): MetricRecordRow {
+export function mapMetricRecordRow(record: MetricRecordRow): MetricRecordRow {
   return {
     id: record.id,
     clinicId: record.clinicId,

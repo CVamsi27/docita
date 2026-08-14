@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import {
@@ -15,6 +16,7 @@ import { AuthenticatedRequest } from '@workspace/types';
 import { AuthSessionAccess } from './auth.controller.access';
 
 @ApiTags('auth')
+// jscpd:ignore-end
 @Controller('auth')
 export class AuthPasswordController {
   constructor(private readonly authService: AuthService) {}

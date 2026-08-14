@@ -1,22 +1,24 @@
 #!/usr/bin/env node
 // Verifies that every Prisma*Repository class is injected via a string
 // token (e.g., `@Inject('IXRepository')`) rather than a concrete-class
-// constructor parameter type — that's the convention that lets us swap
-// implementations for tests and future migrations.
-//
-// SYSTEM_DESIGN_AND_PATTERNS.md §28.4 item 30.
+// constructor parameter type.
 
-import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import process from "node:process";
+import {
+  gitLsSourceFiles,
+  reportFindingsAndExit,
+} from "../lib/check-runner.mjs";
 
-const ROOT = "apps/api/src/domains";
-const files = execSync(`git ls-files '${ROOT}'`, { encoding: "utf8" })
-  .split("\n")
-  .filter(Boolean)
-  .filter((f) => /\.module\.ts$/.test(f));
+const files = gitLsSourceFiles(["apps/api/src/domains"], {
+  include: [/\.module\.ts$/],
+});
 
 const advisories = [];
+const REPOSITORY_CLASS_RE = /\bPrisma[A-Z][A-Za-z]*Repository\b/g;
+const TOKEN_PROVIDER_RE =
+  /\{[^{}]*\bprovide\s*:\s*([^,\n}]+)[^{}]*\b(?:useClass|useExisting)\s*:\s*(Prisma[A-Z][A-Za-z]*Repository)\b[^{}]*\}/gs;
+const CONCRETE_PROVIDER_RE =
+  /\{[^{}]*\bprovide\s*:\s*(Prisma[A-Z][A-Za-z]*Repository)\b[^{}]*\b(?:useClass|useExisting)\s*:\s*\1\b[^{}]*\}/s;
 
 for (const file of files) {
   let source;
@@ -25,32 +27,36 @@ for (const file of files) {
   } catch {
     continue;
   }
-  // Heuristic: a provider entry that lists a Prisma*Repository class
-  // SHOULD also declare a useClass/provide pair with a string token.
-  const repoClassMatches = [...source.matchAll(/Prisma[A-Z][A-Za-z]*Repository/g)];
-  if (repoClassMatches.length === 0) continue;
-  const hasTokenizedProvider = /provide:\s*['"]I[A-Z][A-Za-z]*Repository['"]/.test(
-    source,
+  const repoClasses = new Set(
+    [...source.matchAll(REPOSITORY_CLASS_RE)].map((match) => match[0]),
   );
-  if (!hasTokenizedProvider) {
+  if (repoClasses.size === 0) continue;
+
+  const tokenizedRepoClasses = new Set();
+  for (const match of source.matchAll(TOKEN_PROVIDER_RE)) {
+    const provideToken = match[1]?.trim() ?? "";
+    const repoClass = match[2];
+    if (!repoClass || CONCRETE_PROVIDER_RE.test(match[0])) continue;
+    if (
+      /^['"]I[A-Z][A-Za-z]*Repository['"]$/.test(provideToken) ||
+      /^[A-Z][A-Z0-9_]*REPOSITORY_TOKEN$/.test(provideToken)
+    ) {
+      tokenizedRepoClasses.add(repoClass);
+    }
+  }
+
+  const unboundRepoClasses = [...repoClasses].filter(
+    (repoClass) => !tokenizedRepoClasses.has(repoClass),
+  );
+  if (unboundRepoClasses.length > 0) {
     advisories.push(
-      `${file}: declares Prisma*Repository but no string-token provider (\`provide: 'I*Repository'\`)`,
+      `${file}: ${unboundRepoClasses.join(", ")} lack token providers`,
     );
   }
 }
 
-if (advisories.length === 0) {
-  process.stdout.write("[repository-di-tokens] OK\n");
-  process.exit(0);
-}
-
-process.stderr.write(
-  `[repository-di-tokens] ${advisories.length} advisory finding(s):\n`,
-);
-for (const finding of advisories) {
-  process.stderr.write(`  - ${finding}\n`);
-}
-process.stderr.write(
-  "Add a provider like `{ provide: 'IXRepository', useClass: PrismaXRepository }` so consumers can `@Inject('IXRepository')` instead of binding to the concrete class.\n",
-);
-process.exit(0); // advisory
+reportFindingsAndExit("repository-di-tokens", advisories, {
+  advisory: !process.argv.includes("--enforce"),
+  extraMessage:
+    "Add a provider like `{ provide: X_REPOSITORY_TOKEN, useClass: PrismaXRepository }` or `{ provide: 'IXRepository', useClass: PrismaXRepository }` so consumers can inject an abstraction instead of a concrete class.",
+});

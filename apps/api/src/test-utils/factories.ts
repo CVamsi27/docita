@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import type { InventoryItem } from '../domains/inventory/core/entities/inventory-item.entity';
 
 export function createMockPatient(
   overrides?: Partial<{
@@ -186,42 +187,8 @@ export function createMockInvoice(
 }
 
 export function createMockInventoryItem(
-  overrides?: Partial<{
-    id: string;
-    clinicId: string;
-    name: string;
-    category: string;
-    sku: string | null;
-    quantity: number;
-    minQuantity: number;
-    unit: string;
-    purchasePrice: number | null;
-    sellingPrice: number | null;
-    expiryDate: Date | null;
-    batchNumber: string | null;
-    supplier: string | null;
-    active: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-  }>,
-): {
-  id: string;
-  clinicId: string;
-  name: string;
-  category: string;
-  sku: string | null;
-  quantity: number;
-  minQuantity: number;
-  unit: string;
-  purchasePrice: number | null;
-  sellingPrice: number | null;
-  expiryDate: Date | null;
-  batchNumber: string | null;
-  supplier: string | null;
-  active: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-} {
+  overrides?: Partial<InventoryItem>,
+): InventoryItem {
   return {
     id: faker.string.alphanumeric(24),
     clinicId: faker.string.alphanumeric(24),

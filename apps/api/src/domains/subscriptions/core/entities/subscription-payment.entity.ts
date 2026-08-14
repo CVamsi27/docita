@@ -67,12 +67,10 @@ export class SubscriptionPayment {
   }
 
   private validate(): void {
-    if (this.amountCents < 0) {
+    if (this.amountCents < 0)
       throw new InvariantViolationError('Payment amount cannot be negative');
-    }
-    if (this.creditsApplied < 0) {
+    if (this.creditsApplied < 0)
       throw new InvariantViolationError('Credits applied cannot be negative');
-    }
   }
 
   getStatus(): PaymentStatusEnum {

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import type { ConsentType } from '@workspace/db';
 
-export interface DpdpAuditContext {
+interface DpdpAuditContext {
   userId: string;
   clinicId: string;
   resourceType: string;

@@ -114,9 +114,7 @@ export const useBulkImportJobStatus = (jobId: string | null) =>
           status === "COMPLETED" ||
           status === "FAILED" ||
           status === "PARTIALLY_COMPLETED"
-        ) {
-          return false;
-        }
+        ) return false;
         return 1000;
       },
     },

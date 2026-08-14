@@ -165,9 +165,8 @@ export class BulkImportJobProcessorService {
 
       try {
         const validation = strategy.validate(row);
-        if (!validation.valid) {
+        if (!validation.valid)
           throw new Error(validation.error ?? 'Row validation failed');
-        }
 
         await strategy.import(row, clinicId, auditContext);
         successCount++;

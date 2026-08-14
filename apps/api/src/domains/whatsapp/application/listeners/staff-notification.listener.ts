@@ -10,9 +10,8 @@ import { StaffNotificationService } from '@/domains/whatsapp/application/service
 
 /**
  * Bridges already-fired domain events into the staff in-app notification
- * system. Domain services that don't yet emit events (prescriptions, payment
- * webhooks, consultation lifecycle, appointment status changes) need to start
- * emitting before listeners can be added here.
+ * system. WhatsApp and billing usage-tracking consume the same events
+ * alongside this listener.
  */
 @Injectable()
 export class StaffNotificationListener {

@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CLINIC_PERSISTENCE_PORT,
   type ClinicPersistencePort,
@@ -46,6 +47,7 @@ import type {
   OnboardingCreationMarkers,
 } from './onboarding.types';
 import { isFrontDeskPlanMode } from '@workspace/types';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 
 /**
  * Facade — delegates checkout, progress, and compliance to onboarding specialists;
@@ -66,6 +68,7 @@ export class OnboardingService {
     private complianceService: OnboardingComplianceService,
     private uploadsService: UploadsService,
     private paymentService: OnboardingPaymentService,
+    private eventEmitter: EventEmitter2,
     @Inject(PAYMENT_GATEWAY_TOKEN)
     private paymentGateway: IPaymentGateway,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
@@ -86,9 +89,8 @@ export class OnboardingService {
 
   async getTrialEligibility(onboardingId: string, email: string) {
     const sessionData = await this.dataService.getSessionData(onboardingId);
-    if (!sessionData) {
+    if (!sessionData)
       throw new BadRequestException('Onboarding session not found or expired');
-    }
     return {
       eligible: !(await hasPriorSubscriptionForEmail(this.persistence, email)),
     };
@@ -96,9 +98,8 @@ export class OnboardingService {
 
   async createSlaSignatureSession(onboardingId: string) {
     const sessionData = await this.dataService.getSessionData(onboardingId);
-    if (!sessionData) {
+    if (!sessionData)
       throw new BadRequestException('Onboarding session not found or expired');
-    }
     return createSlaSignatureSession(onboardingId, this.uploadsService);
   }
 
@@ -157,9 +158,8 @@ export class OnboardingService {
     ipAddress?: string,
   ): Promise<OnboardingResult> {
     const sessionData = await this.dataService.getSessionData(onboardingId);
-    if (!sessionData) {
+    if (!sessionData)
       throw new BadRequestException('Onboarding session not found or expired');
-    }
 
     const created: OnboardingCreationMarkers = {};
 
@@ -185,6 +185,8 @@ export class OnboardingService {
         completeData,
         onboardingId,
       );
+
+      this.emitClinicOnboarded(result.clinic.id, completeData);
 
       this.logger.log(
         `Onboarding completed successfully for clinic: ${result.clinic.id}`,
@@ -346,6 +348,37 @@ export class OnboardingService {
       tx,
       clinicId,
       weeklyRows,
+    );
+  }
+
+  /**
+   * Announce the just-completed onboarding to other modules. The subscriptions
+   * module subscribes (via ReferralService.handleClinicOnboarded) to capture
+   * any referrer code from planSelection.referralCode.
+   *
+   * The event is emitted AFTER the onboarding transaction commits and AFTER the
+   * compliance log, so listeners run against a stable clinic record. The
+   * `referralCode` payload is the only one we need for the current consumer;
+   * extend this interface if a future listener needs more.
+   */
+  private emitClinicOnboarded(
+    clinicId: string,
+    completeData: CompleteOnboardingDto,
+  ): void {
+    const referralCode = completeData.planSelection.referralCode?.trim();
+    if (!referralCode) return;
+
+    this.eventEmitter.emit(
+      // allow-direct-emit: post-commit in-process fan-out to the subscriptions
+      // referral listener. Migration to outbox requires the onboarding tx to
+      // participate in the surrounding transaction, which is deferred (same
+      // pattern as appointment.created / invoice.generated).
+      ApplicationEvents.CLINIC_ONBOARDED,
+      {
+        clinicId,
+        clinicEmail: completeData.clinicDetails.email?.trim() || null,
+        referralCode,
+      },
     );
   }
 }

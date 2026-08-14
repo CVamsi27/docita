@@ -10,12 +10,9 @@ export function coerceAppointmentDate(
   candidate: unknown,
   fallback: Date,
 ): Date {
-  if (candidate === undefined || candidate === null) {
+  if (candidate === undefined || candidate === null)
     return new Date(fallback.getTime());
-  }
-  if (candidate instanceof Date) {
-    return new Date(candidate.getTime());
-  }
+  if (candidate instanceof Date) return new Date(candidate.getTime());
   if (typeof candidate === 'string' || typeof candidate === 'number') {
     const parsed = new Date(candidate);
     if (!Number.isNaN(parsed.getTime())) {

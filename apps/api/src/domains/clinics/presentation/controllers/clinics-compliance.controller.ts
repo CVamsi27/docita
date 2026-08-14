@@ -11,7 +11,7 @@ import {
   BadRequestException,
   UsePipes,
 } from '@nestjs/common';
-import { ClinicsService } from '@/domains/clinics/application/services/clinics.service';
+import { ClinicsService } from '@/domains/clinics/application/services/clinics-facade.service';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import {
@@ -39,11 +39,10 @@ export class ClinicsComplianceController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ) {
-    if (req.user?.clinicId !== id) {
+    if (req.user?.clinicId !== id)
       throw new ForbiddenException(
         'You can only view compliance for your own clinic',
       );
-    }
 
     return this.clinicsService.getComplianceSummary(id);
   }
@@ -60,9 +59,8 @@ export class ClinicsComplianceController {
       ? dataSubjectRequestStatusSchema.safeParse(status)
       : undefined;
 
-    if (parsedStatus && !parsedStatus.success) {
+    if (parsedStatus && !parsedStatus.success)
       throw new BadRequestException('Invalid request status');
-    }
 
     return this.clinicsService.listDataSubjectRequests(id, parsedStatus?.data);
   }

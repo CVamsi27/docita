@@ -35,9 +35,8 @@ export class TemplatesController {
     @Request() req: RequestWithUser,
     @Body() createTemplateDto: CreateTemplateDto,
   ) {
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new ForbiddenException('Clinic ID not found');
-    }
     return this.templatesService.create({
       ...createTemplateDto,
       clinicId: req.user.clinicId,
@@ -50,9 +49,8 @@ export class TemplatesController {
     @Query() query?: ListTemplatesQueryDto,
   ) {
     const { search, speciality } = query ?? {};
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new ForbiddenException('Clinic ID not found');
-    }
     return this.templatesService.findAll({
       search,
       speciality,
@@ -62,9 +60,8 @@ export class TemplatesController {
 
   @Get(':id')
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new ForbiddenException('Clinic ID not found');
-    }
     const template = await this.templatesService.findOne(id);
     if (!template || template.clinicId !== req.user.clinicId) {
       throw new NotFoundException(`Template with ID ${id} not found`);
@@ -79,9 +76,8 @@ export class TemplatesController {
     @Param('id') id: string,
     @Body() updateTemplateDto: UpdateTemplateDto,
   ) {
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new ForbiddenException('Clinic ID not found');
-    }
     const template = await this.templatesService.findOne(id);
     if (!template || template.clinicId !== req.user.clinicId) {
       throw new NotFoundException(`Template with ID ${id} not found`);
@@ -91,9 +87,8 @@ export class TemplatesController {
 
   @Delete(':id')
   async remove(@Request() req: RequestWithUser, @Param('id') id: string) {
-    if (!req.user?.clinicId) {
+    if (!req.user?.clinicId)
       throw new ForbiddenException('Clinic ID not found');
-    }
     const template = await this.templatesService.findOne(id);
     if (!template || template.clinicId !== req.user.clinicId) {
       throw new NotFoundException(`Template with ID ${id} not found`);

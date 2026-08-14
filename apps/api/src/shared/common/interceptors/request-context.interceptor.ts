@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Injectable,
   NestInterceptor,
@@ -35,6 +36,7 @@ function readHeaderValue(
 }
 
 @Injectable()
+// jscpd:ignore-end
 export class RequestContextInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<Request>();

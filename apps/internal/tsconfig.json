@@ -1,39 +1,73 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
+    "target": "ES2021",
+    "lib": [
+      "ES2021",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
     "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "noEmit": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@/components/*": ["./shared/components/*"],
-      "@/hooks/*": ["./shared/hooks/*"],
-      "@/lib/*": ["./shared/lib/*"],
-      "@workspace/ui/*": ["../../packages/ui/src/*"],
-      "@workspace/types": ["../../packages/types/src/index.ts"]
-    }
+      "@/*": [
+        "./src/*"
+      ],
+      "@workspace/types": [
+        "../../packages/types/src/index"
+      ],
+      "@workspace/types/*": [
+        "../../packages/types/src/*"
+      ],
+      "@workspace/ui": [
+        "../../packages/ui/src/index"
+      ],
+      "@workspace/ui/*": [
+        "../../packages/ui/src/*"
+      ],
+      "@workspace/utils": [
+        "../../packages/utils/src/index"
+      ],
+      "@workspace/utils/*": [
+        "../../packages/utils/src/*"
+      ],
+      "@workspace/hooks": [
+        "../../packages/hooks/src/index"
+      ],
+      "@workspace/hooks/*": [
+        "../../packages/hooks/src/*"
+      ],
+      "@workspace/data-access": [
+        "../../packages/data-access/src/index"
+      ],
+      "@workspace/data-access/*": [
+        "../../packages/data-access/src/*"
+      ]
+    },
+    "ignoreDeprecations": "6.0",
+    "types": [
+      "node"
+    ]
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "api/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
 }

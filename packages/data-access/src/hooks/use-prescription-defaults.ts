@@ -13,11 +13,11 @@ export interface PrescriptionDefaults {
 export const usePrescriptionDefaults = () =>
   useAPIQuery<PrescriptionDefaults>(
     queryKeys.clinic.prescriptionDefaults(),
-    "/clinic/prescription-defaults",
+    "/clinics/prescription-defaults",
   );
 
 export const useUpdatePrescriptionDefaults = () =>
   useAPIMutation<{ success: boolean }, Partial<PrescriptionDefaults>>(
-    "/clinic/prescription-defaults",
+    "/clinics/prescription-defaults",
     "PUT",
   );

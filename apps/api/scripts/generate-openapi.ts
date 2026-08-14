@@ -15,18 +15,21 @@
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
+import type { INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { SwaggerModule, DocumentBuilder, type OpenAPIObject } from "@nestjs/swagger";
 import { AppModule } from "../src/app.module";
 
-async function main(): Promise<void> {
+function setOpenApiEnv(): void {
   process.env.OPENAPI_GEN = "1";
   process.env.NODE_ENV = process.env.NODE_ENV ?? "production";
+}
 
-  const app = await NestFactory.create(AppModule, {
-    logger: false,
-  });
+async function createApp(): Promise<INestApplication> {
+  return NestFactory.create(AppModule, { logger: false });
+}
 
+function buildSwaggerDocument(app: INestApplication): OpenAPIObject {
   const builder = new DocumentBuilder()
     .setTitle("Docita API")
     .setDescription("Generated from Zod schemas via nestjs-zod.")
@@ -34,19 +37,29 @@ async function main(): Promise<void> {
     .addBearerAuth()
     .build();
 
-  const document = SwaggerModule.createDocument(app, builder);
+  return SwaggerModule.createDocument(app, builder);
+}
 
+function writeOpenApiFile(document: OpenAPIObject): string {
   const repoRoot = join(__dirname, "..", "..", "..");
   const outPath = join(repoRoot, "docs/api/openapi.json");
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, JSON.stringify(document, null, 2) + "\n");
+  return outPath;
+}
+
+async function main(): Promise<void> {
+  setOpenApiEnv();
+  const app = await createApp();
+  const document = buildSwaggerDocument(app);
+  const outPath = writeOpenApiFile(document);
   await app.close();
-  // eslint-disable-next-line no-console
-  console.log(`[openapi] wrote ${outPath}`);
+  process.stdout.write(`[openapi] wrote ${outPath}\n`);
 }
 
 main().catch((err) => {
-  // eslint-disable-next-line no-console
-  console.error("[openapi] failed:", err);
+  process.stderr.write(
+    `[openapi] failed: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}\n`,
+  );
   process.exit(1);
 });

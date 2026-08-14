@@ -29,9 +29,7 @@ export const threadMessageSelect = {
 } as const;
 
 export function extractMessageBody(message: WebhookMessage): string {
-  if (message.type === 'text') {
-    return message.text?.body?.trim() || '[text]';
-  }
+  if (message.type === 'text') return message.text?.body?.trim() || '[text]';
 
   if (message.type === 'interactive') {
     const reply =
@@ -43,13 +41,12 @@ export function extractMessageBody(message: WebhookMessage): string {
     return reply?.trim() || '[interactive]';
   }
 
-  if (message.type === 'button') {
+  if (message.type === 'button')
     return (
       message.button?.text?.trim() ||
       message.button?.payload?.trim() ||
       '[button]'
     );
-  }
 
   return `[${message.type}]`;
 }

@@ -28,9 +28,8 @@ export class InternalWhatsappSenderController {
   constructor(private readonly senderSettings: WhatsappSenderSettingsService) {}
 
   private actorId(req: RequestWithUser): string {
-    if (!req.user?.id) {
+    if (!req.user?.id)
       throw new UnauthorizedException('Internal admin identity missing');
-    }
     return req.user.id;
   }
 

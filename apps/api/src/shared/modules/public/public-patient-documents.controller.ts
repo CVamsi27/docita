@@ -19,22 +19,16 @@ export class PublicPatientDocumentsController {
     private readonly publicPatientDocuments: PublicPatientDocumentsService,
   ) {}
 
-  @Get('rx/:token/pdf')
-  @Public()
-  async getPrescriptionPdf(
-    @Param('token') token: string,
-    @Req() req: Request,
-    @Res() res: Response,
+  private async handlePdfResponse(
+    res: Response,
+    serviceCall: () => Promise<{
+      contentType: string;
+      filename: string;
+      buffer: Buffer;
+    }>,
   ): Promise<void> {
-    const ipAddress = req.ip ?? req.socket?.remoteAddress ?? 'unknown';
-    const userAgent = req.headers?.['user-agent'] ?? 'unknown';
-
     try {
-      const result = await this.publicPatientDocuments.getPrescriptionPdf(
-        token,
-        ipAddress,
-        userAgent,
-      );
+      const result = await serviceCall();
 
       setPrivateNoStoreHeaders(res);
       res.set({
@@ -64,6 +58,24 @@ export class PublicPatientDocumentsController {
     }
   }
 
+  @Get('rx/:token/pdf')
+  @Public()
+  async getPrescriptionPdf(
+    @Param('token') token: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    const ipAddress = req.ip ?? req.socket?.remoteAddress ?? 'unknown';
+    const userAgent = req.headers?.['user-agent'] ?? 'unknown';
+    await this.handlePdfResponse(res, () =>
+      this.publicPatientDocuments.getPrescriptionPdf(
+        token,
+        ipAddress,
+        userAgent,
+      ),
+    );
+  }
+
   @Get('inv/:token/pdf')
   @Public()
   async getInvoicePdf(
@@ -73,40 +85,9 @@ export class PublicPatientDocumentsController {
   ): Promise<void> {
     const ipAddress = req.ip ?? req.socket?.remoteAddress ?? 'unknown';
     const userAgent = req.headers?.['user-agent'] ?? 'unknown';
-
-    try {
-      const result = await this.publicPatientDocuments.getInvoicePdf(
-        token,
-        ipAddress,
-        userAgent,
-      );
-
-      setPrivateNoStoreHeaders(res);
-      res.set({
-        'Content-Type': result.contentType,
-        'Content-Disposition': `attachment; filename="${result.filename}"`,
-        'Content-Length': result.buffer.length,
-      });
-      res.end(result.buffer);
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        res.status(HttpStatus.BAD_REQUEST).json({
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: error.message,
-        });
-        return;
-      }
-
-      if (error instanceof NotFoundException) {
-        res.status(HttpStatus.NOT_FOUND).json({
-          statusCode: HttpStatus.NOT_FOUND,
-          message: error.message,
-        });
-        return;
-      }
-
-      throw error;
-    }
+    await this.handlePdfResponse(res, () =>
+      this.publicPatientDocuments.getInvoicePdf(token, ipAddress, userAgent),
+    );
   }
 
   @Get('pay/:token')

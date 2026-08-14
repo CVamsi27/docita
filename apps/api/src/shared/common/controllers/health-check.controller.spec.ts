@@ -3,6 +3,7 @@ import { ServiceUnavailableException } from '@nestjs/common';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { HealthCheckController } from './health-check.controller';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 describe('HealthCheckController', () => {
   let controller: HealthCheckController;
@@ -13,6 +14,10 @@ describe('HealthCheckController', () => {
     getMetricsSummary: jest.fn<() => unknown>(),
   };
 
+  const mockConfigService = {
+    getAppVersion: jest.fn(() => '1.2.3'),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HealthCheckController],
@@ -21,6 +26,10 @@ describe('HealthCheckController', () => {
           provide: ObservabilityService,
           useValue: mockObservabilityService,
         },
+        {
+          provide: AppConfigService,
+          useValue: mockConfigService,
+        },
       ],
     }).compile();
 
@@ -28,11 +37,12 @@ describe('HealthCheckController', () => {
     jest.clearAllMocks();
   });
 
-  it('returns ping payload', () => {
+  it('returns ping payload with version', () => {
     const result = controller.ping();
 
     expect(result.status).toBe('ok');
     expect(typeof result.timestamp).toBe('string');
+    expect(result.version).toBe('1.2.3');
   });
 
   it('returns liveness payload', async () => {

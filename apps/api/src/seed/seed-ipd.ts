@@ -56,6 +56,7 @@ export async function seedIpd(
           roomNumber: room.number,
           type: room.type,
           charges: room.charges,
+          chargesCents: Math.round(room.charges * 100),
         },
         create: {
           id: room.id,
@@ -64,6 +65,7 @@ export async function seedIpd(
           roomNumber: room.number,
           type: room.type,
           charges: room.charges,
+          chargesCents: Math.round(room.charges * 100),
         },
       }),
     ),

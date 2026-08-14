@@ -19,11 +19,11 @@ describe('PublicPatientDocumentsService', () => {
   const tokenService = createTokenService();
   const storageProvider = { getObject: jest.fn() };
   const prescriptionPdfOrchestrator = { generatePDF: jest.fn() };
-  const invoicesQueryService = {
+  const invoicesService = {
     generatePDF: jest.fn(),
     findOne: jest.fn(),
+    uploadAndPersist: jest.fn(),
   };
-  const invoicesCommandService = { uploadAndPersist: jest.fn() };
 
   let service: PublicPatientDocumentsService;
 
@@ -34,8 +34,7 @@ describe('PublicPatientDocumentsService', () => {
       tokenService,
       storageProvider as never,
       prescriptionPdfOrchestrator as never,
-      invoicesQueryService as never,
-      invoicesCommandService as never,
+      invoicesService as never,
     );
   });
 
@@ -178,18 +177,18 @@ describe('PublicPatientDocumentsService', () => {
         clinicId: 'clinic-2',
         appointment: null,
       });
-      invoicesQueryService.generatePDF.mockResolvedValue(
+      invoicesService.generatePDF.mockResolvedValue(
         Buffer.from('generated-invoice'),
       );
-      invoicesQueryService.findOne.mockResolvedValue({ id: 'inv-456' });
+      invoicesService.findOne.mockResolvedValue({ id: 'inv-456' });
 
       const result = await service.getInvoicePdf(token, ipAddress, userAgent);
 
-      expect(invoicesQueryService.generatePDF).toHaveBeenCalledWith(
+      expect(invoicesService.generatePDF).toHaveBeenCalledWith(
         'inv-456',
         'clinic-2',
       );
-      expect(invoicesCommandService.uploadAndPersist).toHaveBeenCalledWith(
+      expect(invoicesService.uploadAndPersist).toHaveBeenCalledWith(
         'inv-456',
         'clinic-2',
         expect.any(Buffer),

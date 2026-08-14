@@ -15,9 +15,7 @@ import * as bcrypt from 'bcrypt';
 let prisma: PrismaClient;
 
 function normalizeRole(role: unknown): Role {
-  if (role === 'STAFF') {
-    return Role.RECEPTIONIST;
-  }
+  if (role === 'STAFF') return Role.RECEPTIONIST;
 
   switch (role) {
     case Role.DOCTOR:
@@ -35,25 +33,24 @@ function normalizeRole(role: unknown): Role {
 
 function normalizeClinicTier(tier: unknown): ClinicTier {
   switch (tier) {
-    case 'CAPTURE':
-      return ClinicTier.STARTER;
-    case 'CORE':
-    case 'PLUS':
-      return ClinicTier.ESSENTIAL;
-    case 'PRO':
-    case 'CLINIC':
-      return ClinicTier.PROFESSIONAL;
     case ClinicTier.STARTER:
     case ClinicTier.ESSENTIAL:
-    case ClinicTier.FRONT_DESK:
-    case ClinicTier.FRONT_DESK_CLINIC:
-    case ClinicTier.FRONT_DESK_HOSPITAL:
     case ClinicTier.PROFESSIONAL:
     case ClinicTier.HOSPITAL:
     case ClinicTier.ENTERPRISE:
       return tier;
+    case undefined:
+    case null:
+      // Explicit default: a missing tier means STARTER.
+      return ClinicTier.STARTER;
     default:
-      return ClinicTier.ESSENTIAL;
+      // Fail loudly on non-canonical tier strings instead of silently
+      // degrading to STARTER — a typo'd tier used to paper over four e2e
+      // suite failures and hid gating bugs in tests.
+      throw new Error(
+        `Invalid ClinicTier "${String(tier)}" passed to factories.clinic. ` +
+          `Expected one of: ${Object.values(ClinicTier).join(', ')}.`,
+      );
   }
 }
 
@@ -213,6 +210,36 @@ export const factories = {
         type: 'whatsapp',
         status: 'pending',
         ...overrides,
+      },
+    });
+  },
+
+  patientDoctor: async (
+    patientId: string,
+    doctorId: string,
+    clinicId: string,
+  ) => {
+    return prisma.patientDoctor.create({
+      data: { patientId, doctorId, clinicId },
+    });
+  },
+
+  labTestOrder: async (patientId: string, clinicId: string) => {
+    const labTest = await prisma.labTest.create({
+      data: {
+        clinicId,
+        name: 'Complete Blood Count',
+        category: 'HEMATOLOGY',
+      },
+    });
+    return prisma.labTestOrder.create({
+      data: {
+        clinicId,
+        patientId,
+        labTestId: labTest.id,
+        // orderedBy is a free-form string in the schema (no relation);
+        // these ABAC specs only exercise clinic-scoped read access.
+        orderedBy: 'factory-default-doctor',
       },
     });
   },

@@ -28,6 +28,8 @@ describe('PrescriptionsService', () => {
     jest.fn<IPrescriptionRepository['findPatientWithAllergies']>();
   const findDoctorComplianceMock =
     jest.fn<IPrescriptionRepository['findDoctorCompliance']>();
+  const findAppointmentTypeMock =
+    jest.fn<IPrescriptionRepository['findAppointmentType']>();
 
   const repository: IPrescriptionRepository = {
     findAll: findAllMock,
@@ -37,6 +39,7 @@ describe('PrescriptionsService', () => {
     delete: deleteMock,
     findPatientWithAllergies: findPatientWithAllergiesMock,
     findDoctorCompliance: findDoctorComplianceMock,
+    findAppointmentType: findAppointmentTypeMock,
   };
 
   const pdfService = Object.create(

@@ -4,7 +4,7 @@ import {
 } from '@/shared/common/json/parse-serialized-json.boundary';
 import { Injectable, Logger } from '@nestjs/common';
 
-export interface CacheOptions {
+interface CacheOptions {
   ttl?: number;
   tags?: string[];
 }
@@ -22,9 +22,7 @@ export class TaggedCacheService {
   private getEntry(key: string) {
     const entry = this.store.get(key);
 
-    if (!entry) {
-      return null;
-    }
+    if (!entry) return null;
 
     if (entry.expiresAt !== null && entry.expiresAt <= Date.now()) {
       this.removeKey(key);

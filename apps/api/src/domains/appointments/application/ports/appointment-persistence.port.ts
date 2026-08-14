@@ -5,6 +5,7 @@ type AppointmentPersistenceKey =
   | 'appointment'
   | 'clinic'
   | 'diagnosis'
+  | 'doctorTimeOff'
   | 'metricCategory'
   | 'metricDefinition'
   | 'patientMetricRecord'

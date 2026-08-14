@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { createHmac, randomUUID } from "node:crypto";
-import { APIRequestContext, Page } from "@playwright/test";
+import type { APIRequestContext, Page } from "@playwright/test";
 import {
   loginResponseSchema,
   uploadSessionCreateContractResponseSchema,
@@ -13,10 +13,14 @@ import { findRepoRoot, requireRepoDatabaseUrl } from "./repo-root";
 const e2eLoginTokenFallbackSchema = z.object({
   access_token: z.string().optional(),
   accessToken: z.string().optional(),
+  refresh_token: z.string().optional(),
+  refreshToken: z.string().optional(),
   data: z
     .object({
       access_token: z.string().optional(),
       accessToken: z.string().optional(),
+      refresh_token: z.string().optional(),
+      refreshToken: z.string().optional(),
     })
     .optional(),
 });
@@ -26,25 +30,37 @@ function readAccessTokenFromLoginResponse(
   fallback: string,
 ): string {
   const direct = loginResponseSchema.safeParse(raw);
-  if (direct.success) {
-    return direct.data.access_token;
-  }
+  if (direct.success) return direct.data.access_token;
 
   const loose = e2eLoginTokenFallbackSchema.safeParse(raw);
-  if (loose.success) {
-    return (
+  if (loose.success) return (
       loose.data.access_token ??
       loose.data.accessToken ??
       loose.data.data?.access_token ??
       loose.data.data?.accessToken ??
       fallback
     );
-  }
 
   return fallback;
 }
 
+function readRefreshTokenFromLoginResponse(raw: unknown): string | null {
+  const loose = e2eLoginTokenFallbackSchema.safeParse(raw);
+  if (!loose.success) return null;
+
+  return (
+    loose.data.refresh_token ??
+    loose.data.refreshToken ??
+    loose.data.data?.refresh_token ??
+    loose.data.data?.refreshToken ??
+    null
+  );
+}
+
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
+const APP_ORIGIN = new URL(
+  process.env["APP_URL"] || "http://127.0.0.1:3000",
+).origin;
 export const TEST_PASSWORD = "Test@123456";
 /** Valid 15-char GSTIN for paid INR onboarding in E2E (not a real taxpayer ID). */
 const E2E_PAID_PLAN_GSTIN = "29AABCU9603R1ZX";
@@ -70,11 +86,9 @@ async function createTestPaymentDetails(
   razorpaySignature: string;
 }> {
   const keySecret = process.env["RAZORPAY_KEY_SECRET"];
-  if (!keySecret) {
-    throw new Error(
+  if (!keySecret) throw new Error(
       "RAZORPAY_KEY_SECRET (test secret) is required to complete paid-plan onboarding in E2E",
     );
-  }
 
   const checkoutRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/checkout`,
@@ -130,10 +144,6 @@ export interface UserData {
   accessToken: string;
 }
 
-export interface BasicAuthUserData extends UserData {
-  role: string;
-}
-
 type SetupUserCache = Map<string, Promise<UserData>>;
 
 let setupUserCache: SetupUserCache | undefined;
@@ -174,18 +184,12 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
     return null;
   }
 
-  if (!output) {
-    return null;
-  }
+  if (!output) return null;
 
   const parsed = e2eVerificationUserSchema.safeParse(JSON.parse(output));
-  if (!parsed.success) {
-    return null;
-  }
+  if (!parsed.success) return null;
 
-  if (parsed.data.emailVerified) {
-    return null;
-  }
+  if (parsed.data.emailVerified) return null;
 
   return parsed.data.emailVerificationToken ?? null;
 }
@@ -313,61 +317,6 @@ async function postWithRetry(
   return lastRes;
 }
 
-/**
- * Fast auth setup for UI tests.
- *
- * Unlike `setupTestUser`, this avoids onboarding and email verification (which
- * can require DB access in some environments).
- */
-export async function setupAuthUser(
-  request: APIRequestContext,
-  requestHeaders: Record<string, string> = {},
-  options: {
-    role?: "DOCTOR" | "ADMIN" | "ADMIN_DOCTOR";
-    clinicName?: string;
-  } = {},
-): Promise<BasicAuthUserData> {
-  const uniqueId = randomUUID();
-  const email = `doctor-${uniqueId}@test.com`;
-  const password = TEST_PASSWORD;
-  const role = options.role ?? "ADMIN_DOCTOR";
-  const clinicName = options.clinicName ?? `Test Clinic ${uniqueId}`;
-  const clientIp = requestHeaders["X-Forwarded-For"] ?? createUniqueClientIp();
-  const headers = { "X-Forwarded-For": clientIp, ...requestHeaders };
-
-  const registerRes = await postWithRetry(
-    request,
-    `${API_URL}/auth/register`,
-    {
-      headers,
-      data: {
-        email,
-        password,
-        firstName: "Test",
-        lastName: "Doctor",
-        role,
-        clinicName,
-      },
-    },
-    { retries: 8, baseDelayMs: 800 },
-  );
-
-  if (!registerRes.ok()) {
-    throw new Error(`User registration failed: ${await registerRes.text()}`);
-  }
-
-  const registerData = await registerRes.json();
-  const accessToken = registerData.access_token || registerData.accessToken;
-  const user = registerData.user ?? registerData;
-
-  return {
-    id: user.id,
-    email: user.email ?? email,
-    clinicId: user.clinicId ?? "",
-    accessToken,
-    role: user.role ?? role,
-  };
-}
 
 export async function fetchPatientByApi(
   request: APIRequestContext,
@@ -387,18 +336,25 @@ export async function fetchPatientByApi(
   }
 }
 
+// jscpd:ignore-start
 async function setupTestUserImpl(
   request: APIRequestContext,
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: "ESSENTIAL" | "FRONT_DESK" | "FRONT_DESK_CLINIC" | "FRONT_DESK_HOSPITAL";
+    tier?: "ESSENTIAL" | "PROFESSIONAL" | "HOSPITAL" | "ENTERPRISE";
+    planMode?: "FULL" | "FRONT_DESK" | "CORE";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
+  const planMode = options.planMode ?? "FULL";
   const isUnpaidEssentialTrial = tier === "ESSENTIAL";
-  const isFrontDesk = tier === "FRONT_DESK" || tier === "FRONT_DESK_CLINIC" || tier === "FRONT_DESK_HOSPITAL";
+// jscpd:ignore-end
+  // Front Desk is mode-only (canonical tier + PlanMode FRONT_DESK) per
+  // AGENTS.md §15.8 — the legacy FRONT_DESK* tier enum values are removed.
+  const isFrontDesk = planMode === "FRONT_DESK";
+  const usesTrialPayment = isUnpaidEssentialTrial || isFrontDesk;
   const onboardingAdminRole = isFrontDesk ? "ADMIN" : "ADMIN_DOCTOR";
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
@@ -406,7 +362,10 @@ async function setupTestUserImpl(
   const clinicName = `Test Clinic ${uniqueId}`;
   const clinicEmail = `clinic-${uniqueId}@test.com`;
   const signatureBuffer = Buffer.from(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=",
+    // Valid 2x2 PNG: the previous fixture decoded but was corrupt, and the
+    // API's sharp pipeline rejected it with libpng read error (400
+    // "Invalid file format or upload failed").
+    "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEUlEQVQImWPgEpH7D8IMMAYAJowE7bwlVOYAAAAASUVORK5CYII=",
     "base64",
   );
   const clientIp = requestHeaders["X-Forwarded-For"] ?? createUniqueClientIp();
@@ -490,9 +449,7 @@ async function setupTestUserImpl(
     uploadSessionCreateContractResponseSchema.safeParse(
       await signatureSessionRes.json(),
     );
-  if (!signatureSessionParsed.success) {
-    throw new Error("SLA signature session response was invalid");
-  }
+  if (!signatureSessionParsed.success) throw new Error("SLA signature session response was invalid");
   const signatureSession = signatureSessionParsed.data;
   const signatureSessionId = signatureSession.id;
   const signatureUploadSecret = signatureSession.uploadSecret;
@@ -520,11 +477,10 @@ async function setupTestUserImpl(
     );
   }
 
-  // Paid plans require a verified Razorpay payment. Create a real test order
-  // via the checkout endpoint and sign it with the test secret; the API's
-  // rzp_test_ path verifies the HMAC and reads the amount from the order
-  // (a real payment object can't be minted without the Checkout UI).
-  const paymentDetails = isUnpaidEssentialTrial
+  // Paid-plan E2E fixtures create a real test order and sign it with the test
+  // secret. Sidebar/front-desk fixtures exercise workspace access, so keep
+  // them on the deterministic trial path instead of requiring Razorpay.
+  const paymentDetails = usesTrialPayment
     ? { skipPayment: true }
     : await createTestPaymentDetails(request, onboardingId, {
         headers: authHeaders(accessToken),
@@ -544,7 +500,7 @@ async function setupTestUserImpl(
           address: "123 History Street, Hyderabad",
           type: clinicType,
           website: "",
-          gstin: isUnpaidEssentialTrial ? "" : E2E_PAID_PLAN_GSTIN,
+          gstin: usesTrialPayment ? "" : E2E_PAID_PLAN_GSTIN,
         },
         adminAccount: {
           name: "Dr. History",
@@ -555,6 +511,7 @@ async function setupTestUserImpl(
           tier,
           billingCycle: "MONTHLY",
           currency: "INR",
+          planMode,
         },
         paymentDetails,
         slaAgreement: {
@@ -590,9 +547,7 @@ async function setupTestUserImpl(
   }
   const userFromComplete = completeData.user ?? registerData.user;
   const clinicId = userFromComplete.clinicId || completeData.clinicId;
-  if (!clinicId) {
-    throw new Error("Onboarding completion did not return a clinicId");
-  }
+  if (!clinicId) throw new Error("Onboarding completion did not return a clinicId");
 
   // Guarantee the onboarding admin is email-verified. The pre-onboarding token
   // round-trip can race under load and silently skip, which then bounces the
@@ -726,7 +681,8 @@ export function reuseSharedFrontDeskClinicUser(
       request,
       {},
       {
-        tier: "FRONT_DESK",
+        tier: "ESSENTIAL",
+        planMode: "FRONT_DESK",
       },
     ).catch((err: unknown) => {
       sharedFrontDeskClinicUser = null;
@@ -736,36 +692,40 @@ export function reuseSharedFrontDeskClinicUser(
   return sharedFrontDeskClinicUser;
 }
 
+// jscpd:ignore-start
 export async function setupTestUser(
   request: APIRequestContext,
   requestHeaders: Record<string, string> = {},
   options: {
     clinicType?: ClinicType;
-    tier?: "ESSENTIAL" | "FRONT_DESK" | "FRONT_DESK_CLINIC" | "FRONT_DESK_HOSPITAL";
+    tier?: "ESSENTIAL" | "PROFESSIONAL" | "HOSPITAL" | "ENTERPRISE";
+    planMode?: "FULL" | "FRONT_DESK" | "CORE";
   } = {},
 ): Promise<UserData> {
   const clinicType = options.clinicType ?? "GENERAL";
   const tier = options.tier ?? "ESSENTIAL";
+  const planMode = options.planMode ?? "FULL";
   const shouldCache =
+// jscpd:ignore-end
     Object.keys(requestHeaders).length === 0 && clinicType === "GENERAL";
 
   if (!shouldCache) {
     return await setupTestUserImpl(request, requestHeaders, {
       clinicType,
       tier,
+      planMode,
     });
   }
 
   const cache = getSetupUserCache();
-  const cacheKey = `setupTestUser:GENERAL:${tier}`;
+  const cacheKey = `setupTestUser:GENERAL:${tier}:${planMode}`;
   const existing = cache.get(cacheKey);
-  if (existing) {
-    return await existing;
-  }
+  if (existing) return await existing;
 
   const promise = setupTestUserImpl(request, requestHeaders, {
     clinicType,
     tier,
+    planMode,
   });
   cache.set(cacheKey, promise);
   return await promise;
@@ -776,9 +736,6 @@ export async function loginUser(
   user: UserData,
   options: { role?: string } = {},
 ) {
-  // Keep non-production browser API traffic outside rate-limit budgets during route sweeps.
-  await page.setExtraHTTPHeaders({ "x-docita-e2e": "true" });
-
   const sessionUser = {
     id: user.id,
     email: user.email,
@@ -786,9 +743,7 @@ export async function loginUser(
     clinicId: user.clinicId,
   };
 
-  // Cookie-first auth: log in through the app's same-origin /api/v1 proxy so
-  // httpOnly access_token + refresh_token cookies attach to the app origin.
-  const loginRes = await page.request.post("/api/v1/auth/login", {
+  const loginRes = await page.request.post(`${API_URL}/auth/login`, {
     headers: { "x-docita-e2e": "true" },
     data: { email: user.email, password: TEST_PASSWORD },
   });
@@ -798,10 +753,30 @@ export async function loginUser(
     );
   }
 
-  const accessToken = readAccessTokenFromLoginResponse(
-    await loginRes.json(),
-    user.accessToken,
-  );
+  const loginData = await loginRes.json();
+  const accessToken = readAccessTokenFromLoginResponse(loginData, user.accessToken);
+  const refreshToken = readRefreshTokenFromLoginResponse(loginData);
+
+  await page.context().addCookies([
+    {
+      name: "access_token",
+      value: accessToken,
+      url: `${APP_ORIGIN}/`,
+      httpOnly: true,
+      sameSite: "Lax" as const,
+    },
+    ...(refreshToken
+      ? [
+          {
+            name: "refresh_token",
+            value: refreshToken,
+            url: `${APP_ORIGIN}/api/v1/auth/`,
+            httpOnly: true,
+            sameSite: "Lax" as const,
+          },
+        ]
+      : []),
+  ]);
 
   await page.addInitScript(
     ({

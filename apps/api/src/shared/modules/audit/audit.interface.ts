@@ -50,6 +50,8 @@ export enum AuditAction {
   API_KEY_CREATED = 'API_KEY_CREATED',
   API_KEY_DELETED = 'API_KEY_DELETED',
   API_KEY_ROTATED = 'API_KEY_ROTATED',
+
+  DOCTOR_VERIFICATION_OVERRIDDEN = 'DOCTOR_VERIFICATION_OVERRIDDEN',
 }
 
 export interface AuditLogEntry {
@@ -75,7 +77,9 @@ export interface AuditLogEntry {
  */
 export interface AuditTransactionClient {
   auditLog: {
-    create: (args: { data: Record<string, unknown> }) => Promise<unknown>;
+    create: (args: {
+      data: Record<string, unknown>;
+    }) => Promise<{ id: string }>;
   };
 }
 

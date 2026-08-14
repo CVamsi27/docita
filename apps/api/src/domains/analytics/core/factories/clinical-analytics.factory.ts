@@ -6,99 +6,83 @@ import { BaseAnalyticsFactory } from './base-analytics.factory';
 @Injectable()
 export class ClinicalAnalyticsFactory extends BaseAnalyticsFactory {
   async getTopDiagnoses(clinicId: string, limit: number = 10) {
-    const cacheKey = `top-diagnoses-${clinicId}-${limit}`;
-    const cached =
-      await this.cacheManager.get<{ diagnosis: string; count: number }[]>(
-        cacheKey,
-      );
-    if (cached) return cached;
-
-    const readClient = this.getReadClient();
-
-    const rows = await readClient.$queryRaw<
-      Array<{ diagnosis: string; count: number }>
-    >`
-      SELECT word AS diagnosis, COUNT(*)::int AS count
-      FROM (
-        SELECT unnest(regexp_split_to_array(lower(trim(observations)), '\\s+')) AS word
-        FROM "Appointment"
-        WHERE "clinicId" = ${clinicId}
-          AND observations IS NOT NULL
-          AND observations <> ''
-      ) words
-      WHERE length(word) > 4
-      GROUP BY word
-      ORDER BY count DESC
-      LIMIT ${limit}
-    `;
-
-    await this.cacheManager.set(
-      cacheKey,
-      rows,
-      this.configService.getAnalyticsCacheTtl() * 1000,
+    return this.getCachedOrFetch(
+      `top-diagnoses-${clinicId}-${limit}`,
+      async () => {
+        const readClient = this.getReadClient();
+        return readClient.$queryRaw<
+          Array<{ diagnosis: string; count: number }>
+        >`
+          SELECT word AS diagnosis, COUNT(*)::int AS count
+          FROM (
+            SELECT unnest(regexp_split_to_array(lower(trim(observations)), '\\s+')) AS word
+            FROM "Appointment"
+            WHERE "clinicId" = ${clinicId}
+              AND observations IS NOT NULL
+              AND observations <> ''
+          ) words
+          WHERE length(word) > 4
+          GROUP BY word
+          ORDER BY count DESC
+          LIMIT ${limit}
+        `;
+      },
     );
-
-    return rows;
   }
 
   async getDiseaseTrends(clinicId: string, startDate?: Date, endDate?: Date) {
-    const cacheKey = `disease-trends-${clinicId}-${startDate?.toISOString()}-${endDate?.toISOString()}`;
-    const cachedResult =
-      await this.cacheManager.get<DiseaseTrendPoint[]>(cacheKey);
+    return this.getCachedOrFetch(
+      `disease-trends-${clinicId}-${startDate?.toISOString()}-${endDate?.toISOString()}`,
+      async () => {
+        const where: Prisma.DiagnosisWhereInput = {
+          appointment: { clinicId },
+        };
 
-    if (cachedResult) {
-      return cachedResult;
-    }
+        this.addDateRangeFilter(where, startDate, endDate);
 
-    const where: Prisma.DiagnosisWhereInput = {
-      appointment: { clinicId },
-    };
+        const readClient = this.getReadClient();
 
-    this.addDateRangeFilter(where, startDate, endDate);
+        const diagnoses = await readClient.diagnosis.groupBy({
+          by: ['icdCodeId'],
+          where,
+          _count: {
+            id: true,
+          },
+          orderBy: {
+            _count: {
+              id: 'desc',
+            },
+          },
+          take: 50,
+        });
 
-    const readClient = this.getReadClient();
+        const icdCodeIds = diagnoses
+          .map((d) => d.icdCodeId)
+          .filter((id): id is string => typeof id === 'string');
 
-    const diagnoses = await readClient.diagnosis.groupBy({
-      by: ['icdCodeId'],
-      where,
-      _count: {
-        id: true,
+        const icdCodes = await readClient.icdCode.findMany({
+          where: { id: { in: icdCodeIds } },
+        });
+
+        const icdCodeMap = new Map(icdCodes.map((code) => [code.id, code]));
+
+        return diagnoses.map((d): DiseaseTrendPoint => {
+          const icdCodeId = typeof d.icdCodeId === 'string' ? d.icdCodeId : '';
+          const core = icdCodeMap.get(icdCodeId);
+          return {
+            icdCode: core
+              ? {
+                  code: core.code,
+                  description: core.description,
+                  category: core.category,
+                }
+              : undefined,
+            count: d._count.id,
+          };
+        });
       },
-      orderBy: {
-        _count: {
-          id: 'desc',
-        },
-      },
-      take: 50,
-    });
-
-    const icdCodeIds = diagnoses
-      .map((d) => d.icdCodeId)
-      .filter((id): id is string => typeof id === 'string');
-
-    const icdCodes = await readClient.icdCode.findMany({
-      where: { id: { in: icdCodeIds } },
-    });
-
-    const icdCodeMap = new Map(icdCodes.map((code) => [code.id, code]));
-
-    const result: DiseaseTrendPoint[] = diagnoses.map((d) => {
-      const icdCodeId = typeof d.icdCodeId === 'string' ? d.icdCodeId : '';
-      const core = icdCodeMap.get(icdCodeId);
-      return {
-        icdCode: core
-          ? {
-              code: core.code,
-              description: core.description,
-              category: core.category,
-            }
-          : undefined,
-        count: d._count.id,
-      };
-    });
-
-    await this.cacheManager.set(cacheKey, result, 86400000);
-    return result;
+      86400000,
+    );
   }
 
   async getDiseaseTrendsByCategory(
@@ -128,7 +112,6 @@ export class ClinicalAnalyticsFactory extends BaseAnalyticsFactory {
     groupBy: 'day' | 'week' | 'month' = 'month',
   ) {
     const readClient = this.getReadClient();
-
     // Build a period expression that matches toTimeSeriesBucketKey output:
     //   day   -> 'YYYY-MM-DD'
     //   week  -> 'YYYY-MM-DD' of the Sunday that starts the week
@@ -313,30 +296,42 @@ export class ClinicalAnalyticsFactory extends BaseAnalyticsFactory {
   }
 
   async getTopConditions(clinicId: string, limit: number = 10) {
-    const cacheKey = `top-conditions-${clinicId}-${limit}`;
-    const cached = await this.cacheManager.get<TopCondition[]>(cacheKey);
+    return this.getCachedOrFetch(
+      `top-conditions-${clinicId}-${limit}`,
+      async () => {
+        const readClient = this.getReadClient();
+
+        const conditions = await readClient.patientMedicalCondition.groupBy({
+          by: ['conditionName'],
+          where: { patient: { clinicId } },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: limit,
+        });
+
+        return conditions.map(
+          (c): TopCondition => ({
+            condition: c.conditionName,
+            count: c._count.id,
+            percentage: 0,
+          }),
+        );
+      },
+    );
+  }
+
+  private async getCachedOrFetch<T>(
+    cacheKey: string,
+    factory: () => Promise<T>,
+    ttlMs?: number,
+  ): Promise<T> {
+    const cached = await this.cacheManager.get<T>(cacheKey);
     if (cached) return cached;
-
-    const readClient = this.getReadClient();
-
-    const conditions = await readClient.patientMedicalCondition.groupBy({
-      by: ['conditionName'],
-      where: { patient: { clinicId } },
-      _count: { id: true },
-      orderBy: { _count: { id: 'desc' } },
-      take: limit,
-    });
-
-    const result = conditions.map((c) => ({
-      condition: c.conditionName,
-      count: c._count.id,
-      percentage: 0,
-    }));
-
+    const result = await factory();
     await this.cacheManager.set(
       cacheKey,
       result,
-      this.configService.getAnalyticsCacheTtl() * 1000,
+      ttlMs ?? this.configService.getAnalyticsCacheTtl() * 1000,
     );
     return result;
   }

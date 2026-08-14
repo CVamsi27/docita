@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 
-export interface IndexAnalysis {
+interface IndexAnalysis {
   tableName: string;
   indexName: string;
   columnNames: string[];
@@ -15,7 +15,7 @@ export interface IndexAnalysis {
   recommendation?: string;
 }
 
-export interface MissingIndexRecommendation {
+interface MissingIndexRecommendation {
   tableName: string;
   columnNames: string[];
   reason: string;
@@ -175,17 +175,14 @@ export class DatabaseIndexOptimizationService {
   ): string | undefined {
     const sizeInMB = this.parseSizeToMB(indexSize);
 
-    if (scanCount === 0 && sizeInMB > 10) {
+    if (scanCount === 0 && sizeInMB > 10)
       return 'Consider dropping this unused index to save storage';
-    }
 
-    if (scanCount < 10 && sizeInMB > 50) {
+    if (scanCount < 10 && sizeInMB > 50)
       return 'Rarely used large index - consider dropping';
-    }
 
-    if (scanCount > 10000) {
+    if (scanCount > 10000)
       return 'High-use index - ensure it is well-maintained';
-    }
 
     return undefined;
   }
@@ -199,9 +196,8 @@ export class DatabaseIndexOptimizationService {
 
   private parseIndexColumns(indexName: string): string[] {
     const parts = indexName.split('_');
-    if (parts.length > 2) {
+    if (parts.length > 2)
       return parts.slice(2).map((p) => p.replace(/(_idx|_index)$/, ''));
-    }
     return [indexName];
   }
 

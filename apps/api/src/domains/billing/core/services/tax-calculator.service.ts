@@ -71,11 +71,10 @@ export class TaxCalculatorService {
       buyer,
       input.placeOfSupply,
     );
-    if (hasPotentialTaxableSupply && !placeOfSupply.stateCode) {
+    if (hasPotentialTaxableSupply && !placeOfSupply.stateCode)
       throw new InvariantViolationError(
         'Place of supply state is required for taxable invoices',
       );
-    }
     const currency = input.currency ?? DEFAULT_TAX_CURRENCY;
 
     const lineResults = input.items.map((item) =>

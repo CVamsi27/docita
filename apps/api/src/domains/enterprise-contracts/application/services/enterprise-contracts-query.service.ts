@@ -53,6 +53,10 @@ export class EnterpriseContractsQueryService {
       this.persistence.enterpriseContract.findMany({
         orderBy: { updatedAt: 'desc' },
         include: { members: true },
+        // Capped: this is the admin-overview list. Enterprise contracts are
+        // an internal-portal surface with a small global population; 500 is
+        // a guardrail well above realistic scale and below table-size.
+        take: 500,
       }),
     );
   }
@@ -102,6 +106,9 @@ export class EnterpriseContractsQueryService {
       this.persistence.enterpriseContractRevision.findMany({
         where: { contractId },
         orderBy: { effectiveDate: 'desc' },
+        // No `take`: bounded by contractId. A single contract accumulates a
+        // small number of revisions over its lifetime; the UI shows the full
+        // history.
       }),
     );
   }
@@ -113,6 +120,10 @@ export class EnterpriseContractsQueryService {
         where: { contractId },
         orderBy: { createdAt: 'desc' },
         include: { subscriptionPayment: true },
+        // Capped: bounded by contractId. Even multi-year contracts emit a
+        // small finite invoice stream; 500 is a guardrail against runaway
+        // billing-cycle scheduling.
+        take: 500,
       }),
     );
   }
@@ -123,6 +134,8 @@ export class EnterpriseContractsQueryService {
       this.persistence.enterpriseTrueUpAlert.findMany({
         where: { contractId },
         orderBy: { alertedAt: 'desc' },
+        // No `take`: bounded by contractId. True-up alerts are deduped to
+        // roughly one per calendar month per contract — a small finite set.
       }),
     );
   }
@@ -135,9 +148,8 @@ export class EnterpriseContractsQueryService {
     contractId: string,
   ): Promise<EnterpriseContractEstimate | null> {
     const contract = await this.getByContractId(contractId);
-    if (!contract || contract.status !== EnterpriseContractStatus.ACTIVE) {
+    if (!contract || contract.status !== EnterpriseContractStatus.ACTIVE)
       return null;
-    }
 
     const memberIds = this.activeMemberClinicIds(contract);
     if (memberIds.length === 0) return null;

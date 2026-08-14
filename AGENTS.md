@@ -13,15 +13,23 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 
 - Monorepo: Turborepo + pnpm workspaces.
 - Runtime baseline:
-  - Node.js `>=22.12.0`
+  - Node.js `>=22.22.0`
   - Package manager: **pnpm only** (`pnpm@10.30.3`)
   - Do not use npm or yarn in this repo.
 - Apps:
   - `apps/api` (NestJS)
   - `apps/worker` (NestJS background worker)
-  - `apps/app` (Next.js main app)
-  - `apps/internal` (Next.js internal)
+  - `apps/app` (Vite + React Router SPA — main clinician app)
+  - `apps/internal` (Vite + React Router SPA — internal admin portal)
   - `apps/landing` (Astro marketing)
+
+> **Frontend migration note (updated 2026-08-06):** the migration to the Vite
+> SPAs is complete. The Next.js predecessors (`apps/app`, `apps/internal`)
+> were deleted, and the Vite SPAs now use the canonical names `apps/app` /
+> `apps/internal` (formerly `apps/app-vite` / `apps/internal-vite`; renamed
+> 2026-08-06, package names `@docita/app` / `@docita/internal`). All frontend
+> work lands in `apps/app` / `apps/internal` per
+> [ADR 0012](docs/architecture/decisions/0012-replace-nextjs-with-vite-spa.md).
 - Shared packages:
   - `packages/types` (Zod schemas, source of truth)
   - `packages/data-access` (API clients + React Query)
@@ -44,31 +52,21 @@ docita/
 │   │           ├── common/   legacy generic utilities migrated from src/common/ (interceptors, pipes, builders, ...)
 │   │           ├── schedule/, services/
 │   ├── worker/               NestJS background worker (shares infra with api)
-│   ├── app/                  Next.js - main clinician app
-│   │   ├── app/              App Router routes
-│   │   ├── features/<feature>/{components,hooks,rules,lib,api,index.ts}
-│   │   ├── providers/        app-level React providers (query, navigation)
-│   │   ├── types/            ambient declarations + barrel re-export of @workspace/types
-│   │   ├── test/             test-helper render() wrapper
-│   │   └── shared/           non-feature code reused across features
-│   │       ├── components/   common/{auth,buttons,dialogs,inputs,i18n,loaders,monitoring,navigation,pwa}/ + a few loose primitives
-│   │       ├── hooks/        generic hooks + api/ subfolder of data-access hook aggregators
-│   │       └── lib/          grouped by concern (see below)
-│   │           ├── auth/            auth-context, session, fetch-with-session, browser-session/request, csrf, safe-return-path, permissions
-│   │           ├── contexts/        app-config, clinic, socket, tier-config providers
-│   │           ├── api/             api-client + error handler + config + core + query-keys/hooks + react-query-config + optimistic-updates + network-error
-│   │           ├── monitoring/      logger, client-error-reporting, sentry.client.config, sentry-phi-redactor
-│   │           ├── security/        security-headers
-│   │           ├── access-control/  policy engine + routes (extends existing decorators/rules)
-│   │           ├── subscription/    lockout + settings-path
-│   │           ├── errors/          error-parser + user-facing-errors
-│   │           ├── formatters/, validation/, rules/, services/, stores/, types/, i18n/, http/, constants/, utils/
-│   │           └── (root)           branding, config, tier-config, support-contact, url, utils, plus a few feature-helper files
-│   ├── internal/             Next.js - admin/internal dashboard (same shape as app)
-│   │   ├── app/
-│   │   ├── features/
-│   │   ├── providers/
-│   │   └── shared/{components,hooks,lib{auth,api,monitoring,errors,formatters,stores}}
+│   ├── app/             Vite + React Router SPA - main clinician app
+│   │   ├── src/
+│   │   │   ├── App.tsx       React Router route tree (layouts + guards)
+│   │   │   ├── main.tsx      browser entry (providers + router)
+│   │   │   ├── features/<feature>/{components,hooks,lib,types.ts,index.ts}
+│   │   │   ├── components/   shared app-only presentational components
+│   │   │   ├── hooks/        cross-feature app hooks
+│   │   │   ├── lib/          app runtime setup (api, auth, config, ...)
+│   │   │   ├── providers/    app-level React providers (query, navigation)
+│   │   │   ├── i18n/ + messages/   i18next init + en/hi message JSON
+│   │   │   └── test-utils/   test-helper render() wrapper
+│   │   ├── api/index.ts      Hono API proxy Worker (/api/* + /socket.io/*)
+│   │   ├── public/           _headers, _redirects, branding, PWA assets
+│   │   └── wrangler.toml     Cloudflare Worker + static assets config
+│   ├── internal/        Vite + React Router SPA - admin/internal dashboard (same shape as app)
 │   └── landing/              Astro marketing site
 ├── packages/
 │   ├── auth/                 access + token semantics (tests in __tests__/)
@@ -108,14 +106,13 @@ Import-path conventions for `apps/app` and `apps/internal`:
 
 | Alias | Resolves to |
 |---|---|
-| `@/components/...` | `apps/<app>/shared/components/...` |
-| `@/hooks/...`      | `apps/<app>/shared/hooks/...` |
-| `@/lib/...`        | `apps/<app>/shared/lib/...` |
-| `@/features/...`   | `apps/<app>/features/...` |
-| `@/app/...`        | `apps/<app>/app/...` |
+| `@/components/...` | `apps/<app>/src/components/...` |
+| `@/hooks/...`      | `apps/<app>/src/hooks/...` |
+| `@/lib/...`        | `apps/<app>/src/lib/...` |
+| `@/features/...`   | `apps/<app>/src/features/...` |
 | `@workspace/...`   | shared workspace packages |
 
-The `shared/` folder is the home for **non-feature** code reused across features (theme toggles, generic dialogs, app-wide logger, etc.). New work belongs in a feature; only put code in `shared/` when at least two features need it.
+The `components/` folder is the home for **non-feature** code reused across features (theme toggles, generic dialogs, app-wide logger, etc.). New work belongs in a feature; only put code in `components/` when at least two features need it.
 
 ## 3) Non-Negotiable Architecture Rules
 
@@ -166,14 +163,14 @@ The `shared/` folder is the home for **non-feature** code reused across features
 - Prefer `@workspace/ui` components over ad-hoc duplicates.
 - Use React Query for server state.
 - Use React Hook Form + Zod for forms.
-- In Next.js apps, use Next.js navigation APIs (`Link`, `router.push`) for internal routing.
+- In Vite SPA apps, use React Router navigation APIs (`Link`, `useNavigate`) for internal routing.
 - In Astro pages, prefer native anchors for static routes and hydrate React islands only when interactivity is required.
 - Always handle loading, error, and empty states.
 - Keep components accessible and keyboard-friendly.
 - Never import `@prisma/client` or `@workspace/db` in frontend code.
-- For `apps/app` Cloudflare builds, keep the route guard file as `middleware.ts`; Next 16 may warn about the newer `proxy` convention, but this deployment path does not use it.
+- Route guards live in React Router layouts/guards (`src/App.tsx` tree); `/api/*` and `/socket.io/*` traffic is proxied by the Hono Worker (`apps/<app>/api/index.ts`). Do not reintroduce Next.js `middleware.ts` or `proxy.ts` files.
 - For browser-side web-vitals or client-error telemetry in `apps/app` and `apps/internal`, do not post directly from the browser to `https://api.docita.work` or any other cross-origin API URL. Use a same-origin app/internal route proxy, or first update and verify the API CORS allowlist for the exact production origin. Telemetry failures must be non-blocking and must not create console noise for clinicians.
-- Do not remove Cloudflare/OpenNext runtime shims such as the `globalThis.__name` bootstrap in `apps/app/app/layout.tsx` unless the matching production Cloudflare artifact and local preview prove the helper is no longer needed. The check must include `build:cloudflare:production`, an artifact search for `__name`/telemetry URLs, and a browser or Playwright smoke of the affected production route.
+- Verify Cloudflare proxy Worker changes with `build:cloudflare:production`, an artifact search for telemetry URLs, and a browser or Playwright smoke of the affected production route.
 
 ### 4.1 Import path standards
 
@@ -396,7 +393,7 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 - Fly.io API deployments must be driven by [`fly.toml`](fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Fly.io worker deployments must be driven by [`apps/worker/fly.toml`](apps/worker/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Staging API deployments are handled by Render auto-deploys from the `staging` branch; GitHub Actions should not add a separate deploy hook for the staging API.
-- Cloudflare frontend deployments are handled by the path-scoped [`.github/workflows/deploy-cloudflare.yml`](.github/workflows/deploy-cloudflare.yml) workflow when repository credentials verify. Keep app watch paths scoped and use Cloudflare Git integration or dashboard deploys only as the documented fallback.
+- Cloudflare frontend deployments are handled by the `deploy-app` / `deploy-internal` / `deploy-landing` jobs in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml), gated on repository Cloudflare credentials (the `gate` job runs `verify-cloudflare-deploy-credentials.mjs`). Keep app watch paths scoped and use Cloudflare Git integration or dashboard deploys only as the documented fallback.
 
 ## 11.2) CI scope and cost
 
@@ -411,13 +408,13 @@ The Origin-inspired standard in [`docs/ui/UI_UX_STANDARD_2026.md`](docs/ui/UI_UX
 ### Roles
 
 - **`main`** is the **canonical branch** for production-bound code. All releases are cut from here (tags or deploy from `main`).
-- **`staging` is a replica of `main`**: the **same tree** (identical files at the branch tip) as `main`. It is **not** an integration line. The staging environment exists to validate **the same code that is on `main`**.
-- **All feature/hotfix work lands in `main` via pull request.** After merge, automation **fast-forwards** `staging` to the exact `main` commit so `staging` continuously mirrors `main` (no sync PRs).
+- **`staging` is a PR-protected branch, not an automated mirror of `main`.** No `main` → `staging` sync automation exists in this repo: no workflow under `.github/workflows/` and no script under `scripts/` moves the `staging` ref. The active **Staging ruleset** (enforcement `active`, targets `refs/heads/staging`) requires `pull_request` and blocks `creation`, `deletion`, and `non_fast_forward` pushes, so `staging` can only change through a **pull request into `staging`**.
+- **`staging` has drifted from `main`** (as of 2026-08-12: `origin/staging` at `80e8e01ef`, 746 commits ahead of and 4 behind `main`). It is **not** an integration line, and the staging environment does **not** currently validate the same code as `main` — verify the branch tip before drawing conclusions from staging results.
 
 ### Never commit on `main` or `staging`
 
 - Do **not** commit, cherry-pick, or push directly on `main` or `staging`.
-- Do **not** use `staging` as a place to land work. `staging` exists only as an automated mirror of `main`.
+- Do **not** use `staging` as a place to land work. `staging` changes only via PR into `staging` (ruleset-protected; no sync automation exists).
 
 ### Start every change from `main`
 
@@ -430,19 +427,19 @@ Open a **pull request into `main`**. Consolidation or umbrella branches must sti
 
 ### Staging environment
 
-- After merges to `main`, automation keeps `staging` in sync by moving the `staging` branch ref to the exact `main` commit.
-- Validate the staging environment against `staging` knowing it should match `main` (barring sync lag or blocked required checks).
+- To mirror `main` onto `staging`, open a PR into `staging` (the ruleset forbids direct pushes and blocks `non_fast_forward`, so no fast-forward automation can bypass the `pull_request` rule). Keep such PRs to pure fast-forwards of `main` so `staging` never becomes an integration line.
+- Validate the staging environment against `staging` knowing its tip may lag or diverge from `main`; compare `git rev-parse origin/staging` with `origin/main` before trusting staging results.
 
 ### Hotfixes
 
-Use a branch from **up-to-date `main`**, merge via PR **into `main`**, and let the `main` → `staging` sync automation update staging.
+Use a branch from **up-to-date `main`**, merge via PR **into `main`**, then update `staging` with a fast-forward PR into `staging` (no sync automation exists).
 
 ### Concurrent branch / PR cap (mandatory)
 
 Keep the repository lean. At any moment, the remote must contain **at most**:
 
 - `main` (canonical)
-- `staging` (automated mirror of `main`)
+- `staging` (PR-protected; updated via PR into `staging` — no sync automation)
 - **two** in-flight feature/hotfix branches with open pull requests
 
 Rules:
@@ -453,6 +450,22 @@ Rules:
 - **Consolidation rule.** If more than two open PRs ever accumulate (for example via automation, codex runs, or split work), merge them into a single consolidation branch (`consolidation/<scope>-<YYYY-MM-DD>`) following the procedure in [`docs/operations/BRANCH_CONSOLIDATION_PLAYBOOK.md`](docs/operations/BRANCH_CONSOLIDATION_PLAYBOOK.md), then close the originals with a comment pointing at the consolidation PR. Do not let the count drift back above two.
 - **Exceptions.** The temporary cap may be exceeded only for: (a) an active consolidation operation that itself reduces the count back to ≤ 2, or (b) an in-progress release cut where a release branch is briefly open alongside the next feature branch. Both exceptions are time-bounded — do not normalise them.
 - **Agents must check the count before pushing a new branch.** Run `gh pr list --state open --json number,headRefName --jq 'length'` (excluding `main`/`staging` infra PRs); if the count is already 2, do not open another PR until one closes.
+
+### Local git hooks (husky)
+
+The repo uses [husky 9](https://typicode.github.io/husky/) for local git hooks. Hooks live in `.husky/` and are auto-installed via the `prepare` script in `package.json` (runs on `pnpm install`).
+
+- **`pre-commit`** — runs `pnpm lint` (≈ 70 ms with turbo cache). Catches lint regressions on staged files. Fast by design.
+- **`pre-push`** — runs the cheap subset of `verify:standard` that catches the regression classes we have already hit (jscpd clones, missing i18n namespaces, broken gate wiring) without paying the full ~6 min cost:
+- `pnpm lint`
+- `pnpm check:duplication` (jscpd)
+  - `pnpm check:standard-gate-wiring`
+  - `pnpm test:standards-checks`
+  - Total ≈ 30–40 s on a warm cache.
+
+The full `pnpm verify:standard` is the project's CI merge gate. To bypass locally (e.g. for a WIP push to a feature branch), use `git push --no-verify`. Never bypass on `main` or `staging`.
+
+When adding new standards checks to `verify:standard`, ask: "is this fast enough to add to the pre-push subset too?" If yes, also add it to `.husky/pre-push` and document the runtime budget in the comment block.
 
 ## 12) Design Principles, Patterns, and Performance
 
@@ -479,7 +492,7 @@ These principles are mandatory for every change. Apply them pragmatically; do no
 - Zod schemas live once in `packages/types` and are reused via `z.infer` everywhere. Never hand-redefine the same shape in API DTOs and frontend forms.
 - API clients and React Query hooks live once in `packages/data-access`. Apps must consume them, not re-roll `fetch` calls.
 - UI primitives live once in `@workspace/ui`. Do not introduce app-local duplicates of `EmptyState`, `BackButton`, navigation chrome, etc.; remove duplicates when you find them (see `docs/ui/UI_UX_STANDARD_2026.md` §8).
-- Tokens live once in `packages/ui/src/styles/globals.css` and are mirrored by `packages/ui/src/design-tokens.ts`. Do not redefine spacing, radius, or color in app code.
+- Tokens live once in `packages/ui/src/styles/globals.css`. Do not redefine spacing, radius, or color in app code.
 - Repository mappers live once per aggregate inside `packages/db` / API repositories; do not duplicate Prisma-to-domain mapping in services.
 
 ### 12.4 Patterns
@@ -520,7 +533,9 @@ pnpm dev
 pnpm build
 pnpm lint
 pnpm test
+pnpm test:app          # app unit tests (root; the API E2E suite is below)
 pnpm audit:app
+pnpm audit:app:public       # public routes only (no authenticated session needed)
 pnpm audit:internal
 pnpm audit:landing
 pnpm check:hygiene
@@ -530,8 +545,16 @@ pnpm check:circular           # reports import cycles per app/package (warn mode
 pnpm check:circular:enforce   # fails on any cycle; baseline is 0 (2026-05)
 pnpm check:prisma-boundary
 pnpm check:colors
+pnpm check:i18next-parity
+pnpm check:query-key-factory
+pnpm check:standard-gate-wiring
+pnpm check:button-primitive        # raw <button> in features/components of Vite apps (Phase 15)
+pnpm check:i18n-coverage           # every Vite feature uses useTranslation (Phase 11/15)
+pnpm check:error-boundary-coverage # functional layouts wrap content in ErrorBoundary (Phase 13/15)
+pnpm check:zod-interface-parity    # no feature interfaces duplicating packages/types Zod schemas (Phase 9/15)
 pnpm db:generate
 pnpm db:migrate
+pnpm db:guardrail
 pnpm --filter @workspace/db run db:migrate:dry-run
 pnpm --filter @workspace/db run db:migrate:safe
 pnpm --filter @docita/api run test:e2e
@@ -539,6 +562,8 @@ pnpm --filter @docita/worker run check-types
 pnpm perf:baseline
 pnpm perf:budget:warn
 pnpm perf:budget:enforce
+pnpm perf:route-budgets
+pnpm monitor:synthetic       # scheduled synthetic probes, run manually for a point-in-time check
 ```
 
 ## 14) Agent Final Checklist
@@ -546,6 +571,7 @@ pnpm perf:budget:enforce
 Before finalizing changes:
 
 - Work is on a **branch created from `main`** (after pull), not on `main` or `staging` directly; PRs target **`main`**.
+- §16 operational rules checked: no new dependency without a consumer + rationale; aliases/env synced across `vite.config.ts` ↔ `tsconfig.json` ↔ `turbo.json` ↔ `wrangler.toml`; change set stays focused on one concern; nothing that degrades production ships without a revert path.
 - **Branch cap respected**: no more than two open feature/hotfix PRs exist after this work is pushed. If opening this PR would push the count to three, land or close an existing one first (or fold the work into an existing open PR). After merge, the remote branch is deleted.
 - Architecture/layer boundaries are respected.
 - HTTP handlers and clients share Zod-defined shapes; payloads omit unused fields.
@@ -582,14 +608,14 @@ When this file says to follow existing patterns, use these concrete references b
 - **Controller posture**: every route declares `@Public`, `@Roles`, `@RequireFeature`, or inherits an explicit controller-level posture. Enforced by `scripts/checks/check-controller-rbac.mjs`.
 - **DTOs**: schemas originate in `packages/types` and API DTOs wrap them with `createZodDto`.
 - **Persistence**: repositories isolate Prisma access and map database rows to application/domain objects.
-- **Tier/feature gates**: never compare `Tier.INTELLIGENCE` or `Tier.FRONT_DESK` numerically. Use `hasFeatureAccess`, `getMinimumTierForFeature`, and the feature guards. Front Desk clinical blocking uses `isFrontDeskTier(clinic.tier)` only (§15.8) — not a `workspaceProfile` setting.
+- **Tier/feature gates**: never compare `Tier.INTELLIGENCE` or `Tier.FRONT_DESK` numerically. Use `hasFeatureAccess`, `getMinimumTierForFeature`, and the feature guards. Front Desk clinical blocking uses `isFrontDeskPlanMode(clinic.tier, clinic.planMode)` (§15.8) — not a `workspaceProfile` setting.
 - **Pure rules/calculators**: keep deterministic business math free of NestJS decorators and dependency injection.
 
 ### 15.2 Frontend Patterns
 
-- **Feature layout**: `apps/app/features/<feature>/{components,hooks,rules,lib,types,index.ts}` with public imports through `index.ts`.
-- **Non-feature code** (shared across features) lives in `apps/<app>/shared/{components,hooks,lib}` and is reached via `@/components/...`, `@/hooks/...`, `@/lib/...` (the aliases now resolve into `shared/`). Promote into `packages/ui`, `packages/hooks`, or `packages/utils` once a second app needs it.
-- **Per-domain data hooks** live in `packages/data-access/src/hooks/` (e.g. `useAppointments`, `usePatients`, `useBillingHistory`). The package owns the React Query wrappers; the app injects the session-aware fetcher via `<DataAccessProvider>` (mounted by `apps/app/providers/data-access-bridge.tsx`). Add new data hooks here, not in app-local API hook folders. App-only composition (auth, locale, toasts) belongs in `apps/app/features/<feature>/hooks/` (e.g. `features/subscription/hooks/use-pricing.ts`, `features/patients/hooks/use-patient-history.ts`). The legacy `apps/app/shared/hooks/api/` directory must stay deleted (`check:legacy-app-api-hooks`).
+- **Feature layout**: `apps/<app>/src/features/<feature>/{components,hooks,lib,types.ts,index.ts}` with public imports through `index.ts`.
+- **Non-feature code** (shared across features) lives in `apps/<app>/src/components`, `apps/<app>/src/hooks`, `apps/<app>/src/lib` and is reached via `@/components/...`, `@/hooks/...`, `@/lib/...`. Promote into `packages/ui`, `packages/hooks`, or `packages/utils` once a second app needs it.
+- **Per-domain data hooks** live in `packages/data-access/src/hooks/` (e.g. `useAppointments`, `usePatients`, `useBillingHistory`). The package owns the React Query wrappers; the app injects the session-aware fetcher via `<DataAccessProvider>` (mounted by `apps/app/src/providers/react-query-provider.tsx`). Add new data hooks here, not in app-local API hook folders. App-only composition (auth, locale, toasts) belongs in `apps/<app>/src/features/<feature>/hooks/`. The legacy `apps/app/shared/hooks/api/` directory must stay deleted (`check:legacy-app-api-hooks`).
 - **Pages**: route files compose feature shells; business logic belongs in feature components/hooks.
 - **Data fetching**: feature code consumes `packages/data-access` hooks or approved app API wrappers. Inline `fetch` in client features is blocked by `scripts/checks/check-frontend-fetch.mjs`.
 - **State**: React Query for server state, established stores for cross-cutting client state, and local state only for view-local behavior.
@@ -644,7 +670,7 @@ Split or extract when **responsibility**, **pattern fit**, or **duplication** de
 - `XCommandService` / `XQueryService` (+ optional calculator) registered in the domain module.
 - Facade `XService` may remain for stable constructor/DI compatibility; must delegate (`check:facade-delegation`).
 
-**Line-count backstop (automation only):** `pnpm check:file-size-budget` fails API `*.service.ts` and `apps/app/features/**` files above **400** lines (tests excluded). `pnpm audit:structure` may **advise** splits (e.g. feature components >400 lines, controllers >260, route pages >180). Passing the backstop does **not** prove SOLID; failing it means split or document an exception in the PR.
+**Line-count backstop (automation only):** `pnpm check:file-size-budget` fails API `*.service.ts` and `apps/app/src/features/**` files above **400** lines (tests excluded). `pnpm audit:structure` may **advise** splits (e.g. feature components >400 lines, controllers >260, route pages >180). Passing the backstop does **not** prove SOLID; failing it means split or document an exception in the PR.
 
 **Imports:** cross-directory imports use `@/` or `@workspace/...`. Sibling `./` imports are allowed; parent `../` is ESLint-banned.
 
@@ -663,6 +689,7 @@ Each pattern below points at a canonical example to copy from when introducing a
 | Template method | [`apps/api/src/shared/modules/document-generation/pdf/pdf-generator.service.ts`](apps/api/src/shared/modules/document-generation/pdf/pdf-generator.service.ts) |
 | Anti-corruption layer | [`apps/api/src/shared/common/repositories/base.repository.ts`](apps/api/src/shared/common/repositories/base.repository.ts) (Prisma error translation) |
 | Outbox (proposed) | See ADR [`docs/architecture/decisions/0010-transactional-outbox.md`](docs/architecture/decisions/0010-transactional-outbox.md) |
+| Resource policy (ABAC) | Pure per-resource policies in [`packages/authorization`](packages/authorization) (`AbacPolicy` implementations, e.g. `patient`, `appointment`, `prescription`, `invoice`, `lab-order`, `audit-log`) evaluated by the global `PolicyGuard` via `@RequirePolicy(resource, action)` + per-resource resolvers (`apps/api/src/shared/modules/auth/authorization/resolvers/`). Layered on top of RBAC/tier/tenant (never a replacement — see ADR-0013 + the retirement ledger). |
 
 ### 15.7 Frontend Component Architecture
 
@@ -670,27 +697,27 @@ Each shape below has a canonical example to copy from. The frontmatter cites the
 
 | Shape | Canonical example |
 | --- | --- |
-| Page shell (`AppPageScaffold → PageHeader → DataState → Content`) | Any page under [`apps/app/app/(protected)/`](apps/app/app/(protected)/) |
-| Feature folder layout | [`apps/app/features/patients/`](apps/app/features/patients/) (`components/`, `hooks/`, `rules/`, `lib/`, `index.ts`) |
-| Colocation rule for types | [`apps/app/features/patients/types.ts`](apps/app/features/patients/) (feature-local types) vs `packages/types` (shared) |
-| Draft pattern (localStorage with expiry) | [`apps/app/features/onboarding/components/forms/use-onboarding-draft.ts`](apps/app/features/onboarding/components/forms/use-onboarding-draft.ts) |
-| Sections file (`*-sections.tsx`) | Any feature using the split, e.g. `apps/app/features/<feature>/components/<feature>-sections.tsx` |
-| Helpers file (`*-helpers.ts`) | Any feature using the split, e.g. `apps/app/features/<feature>/lib/<feature>-helpers.ts` |
+| Page shell (`AppPageScaffold → PageHeader → DataState → Content`) | Any page under `apps/app/src/features/<feature>/pages/` (e.g. [`apps/app/src/features/appointments/pages/`](apps/app/src/features/appointments/pages/)) |
+| Feature folder layout | [`apps/app/src/features/patients/`](apps/app/src/features/patients/) (`components/`, `pages/`, `hooks/`, `lib/` as needed) |
+| Colocation rule for types | `apps/app/src/features/<feature>/types.ts` (feature-local types) vs `packages/types` (shared) |
+| Draft pattern (localStorage with expiry) | Legacy ref (until ported): `git show HEAD:apps/app/features/onboarding/components/forms/use-onboarding-draft.ts` |
+| Sections file (`*-sections.tsx`) | `apps/app/src/features/<feature>/components/*-sections.tsx`, e.g. [`ConsultationDetailPageSections.tsx`](apps/app/src/features/consultation/components/ConsultationDetailPageSections.tsx) |
+| Helpers file (`*-helpers.ts`) | `apps/app/src/features/<feature>/lib/` (or `hooks/`) `*-helpers.ts`, e.g. [`billing-subscription-helpers.ts`](apps/app/src/features/subscription/components/billing-subscription-helpers.ts) |
 | Per-domain data hook | [`packages/data-access/src/hooks/use-patients.ts`](packages/data-access/src/hooks/use-patients.ts) |
 | Page-level loading/error/empty | `DataState` from [`packages/ui/src/components/data-display/data-state.tsx`](packages/ui/src/components/data-display/data-state.tsx) |
 
 ### 15.8 Tier/Feature Gating Contract (critical)
 
-- `Tier.INTELLIGENCE` and `Tier.FRONT_DESK` are **never** compared with `>=`. Use the `hasIntelligence` flag or `hasFeatureAccess(Feature.X)`.
+- `Tier.INTELLIGENCE` is **never** compared with `>=`. Use the `hasIntelligence` flag or `hasFeatureAccess(Feature.X)`.
 - All 56 `Feature` enum values map to tiers via `FEATURE_TIER_MAP`. Both backend (`assertClinicHasFeatureOrThrow`) and frontend (`<FeatureGate>`) derive from this single source of truth.
-- **Front Desk is tier-only.** A clinic on the Front Desk billed SKU has `clinic.tier === Tier.FRONT_DESK`. There is no `settings.workspaceProfile`, workspace-mode picker, or plan→profile resolver — onboarding and billing set the tier directly.
-- **Canonical Front Desk helpers** (all in `@workspace/types`): `isFrontDeskTier(tier)`; `FRONT_DESK_BLOCKED_FEATURES` for `@RequireFeature` / `hasFeatureAccess` denials; `FRONT_DESK_BLOCKED_ACCESS_TARGETS` and `shouldDenyAccessForFrontDeskTier` for route/API access policy. Prefer these helpers over ad-hoc `tier === "FRONT_DESK"` checks at call sites.
+- **Front Desk is mode-only.** A clinic on the Front Desk billed SKU has `planMode === "FRONT_DESK"` (with a canonical clinical tier). The legacy `FRONT_DESK`, `FRONT_DESK_CLINIC`, `FRONT_DESK_HOSPITAL` DB tier enum values have been removed — all clinics use canonical tiers (STARTER → ENTERPRISE) plus a `PlanMode` column.
+- **Canonical Front Desk helpers** (all in `@workspace/types`): `isFrontDeskPlanMode(tier, planMode)` for runtime checks; `FRONT_DESK_BLOCKED_FEATURES` for `@RequireFeature` / `hasFeatureAccess` denials; `FRONT_DESK_BLOCKED_ACCESS_TARGETS` and `shouldDenyAccessForFrontDeskMode(tier, planMode)` for route/API access policy. Prefer these helpers over ad-hoc `planMode === "FRONT_DESK"` checks at call sites. `isFrontDeskTier` is retained but deprecated — callers should migrate to `isFrontDeskPlanMode`.
 - **Removed symbols** (do not reintroduce): `workspaceProfile`, `isFrontDeskClinicMode`, `isFrontDeskWorkspace`, `resolveWorkspaceProfileForPlan`, `WorkspaceModeCard`, `WorkspaceSelector`. `pnpm check:workspace-profile-gating` fails the build if they appear outside migration SQL and [`scripts/checks/check-workspace-profile-gating.mjs`](scripts/checks/check-workspace-profile-gating.mjs) (historical script name).
-- **Tier × PlanMode is the canonical plan model.** Every billed plan is the combination of a {@link TierName} (Starter → Enterprise) and a `PlanMode` (`FULL` / `FRONT_DESK` / `CORE`). The published ladder is the **5 clinical tiers only**; legacy `FRONT_DESK`, `FRONT_DESK_CLINIC`, `FRONT_DESK_HOSPITAL` DB enum values are kept (additive lock) but auto-mapped to `(clinical tier, mode=FRONT_DESK)` by `mapDbClinicTierToTierAndMode` — UI surfaces never select them directly.
+- **Tier × PlanMode is the canonical plan model.** Every billed plan is the combination of a {@link TierName} (Starter → Enterprise) and a `PlanMode` (`FULL` / `FRONT_DESK` / `CORE`). The published ladder is the **5 clinical tiers only**. UI surfaces select `(tier, mode)` pairs; `mapDbClinicTierToTierAndMode` resolves persisted values at read time.
 - **Mode-driven feature blocks** live in `MODE_BLOCKED_FEATURES` (`packages/types/src/billing/tier.ts`): `FRONT_DESK` blocks clinical features; `CORE` blocks WhatsApp + AI; `FULL` blocks nothing. `hasFeatureAccess(tier, feature, hasIntelligence, overrides, mode)` evaluates the mode block **before** override/tier checks so a customer cannot bypass the toggle with a stale override. `assertClinicHasFeatureOrThrow` does the same on the backend.
 - **Per-clinic overrides remain as fine-grained custom packages**: boolean toggles in `Clinic.features` constrained by `OVERRIDABLE_FEATURES`/`clinicFeatureOverridesSchema`, used by `PACKAGE_PRESETS`. Overrides are subordinate to mode — they only matter for features the mode hasn't already blocked.
 - **Pricing per (tier, mode)**: `applyModeToPricing(base, mode)` multiplies base monthly/yearly by `PLAN_MODE_INFO[mode].pricingMultiplier` (FULL=1, FRONT_DESK=0.7, CORE=0.8). `Custom` tiers (Enterprise) pass through unchanged.
-- **`PUBLISHED_PLAN_LADDER` is the 5-tier clinical ladder.** Never re-add `FRONT_DESK`, `FRONT_DESK_CLINIC`, or `FRONT_DESK_HOSPITAL` to it. Use `getAvailableModesForTier(tier)` to gate the mode toggle (Starter is FULL-only).
+- **`PUBLISHED_PLAN_LADDER` is the 5-tier clinical ladder.** Never re-add `FRONT_DESK`, `FRONT_DESK_CLINIC`, or `FRONT_DESK_HOSPITAL` to it. Use `getAvailableModesForTier(tier)` to gate the mode toggle (Starter is FULL-only). The `ClinicTier` Prisma enum contains only STARTER, ESSENTIAL, PROFESSIONAL, HOSPITAL, ENTERPRISE.
 - See [docs/product/CUSTOM_PACKAGES.md](docs/product/CUSTOM_PACKAGES.md) for the mode catalogue and how sales/admin pick (tier, mode) at signup.
 
 ### 15.9 Import Discipline
@@ -726,7 +753,7 @@ Mechanical checks catch **boundary violations**; they do not fully enforce SOLID
 | **Data access (frontend)** | `pnpm check:frontend-fetch`, `pnpm check:legacy-app-api-hooks` | No inline client `fetch`; legacy app API hook dir stays gone |
 | **SSOT composition** | `pnpm check:patient-name-ssot` | Patient display names route through `getPatientFullName()` instead of inline recomposition |
 | **Feature / package boundaries** | `pnpm check:feature-boundaries`, `pnpm check:package-boundaries` | Imports stay inside feature and package rules |
-| **Tier / feature gating** | `pnpm check:tier-comparisons`, `pnpm check:workspace-profile-gating` | No numeric tier compares; blocks legacy `workspaceProfile` symbols; tier-only Front Desk via `isFrontDeskTier` |
+| **Tier / feature gating** | `pnpm check:tier-comparisons`, `pnpm check:workspace-profile-gating` | No numeric tier compares; blocks legacy `workspaceProfile` symbols; Front Desk mode-only via `isFrontDeskPlanMode` |
 | **RBAC** | `pnpm check:controller-rbac` | Controller auth posture declared |
 | **Tenant / RLS** | `pnpm check:auth-tenant-safety`, `pnpm check:rls-rollout-readiness` | Tenant-safe auth; RLS rollout config |
 | **Dependency CVEs** | `pnpm audit --audit-level=high` (CI: `security-audit`) + `google/osv-scanner-action` reusable workflow (CI: `osv-scan`) | npm registry advisories + OSV cross-ecosystem database. Both gated on `dependencies` scope. OSV runs PR-only and fails on **new** vulnerabilities only. |
@@ -748,12 +775,49 @@ These patterns were established during the SSOT cleanup sweep. Follow them for n
 | **Appointment status mapper** | `appointments/infrastructure/mappers/appointment.mapper.ts` — exports `PRISMA_TO_DOMAIN_STATUS`, `DOMAIN_TO_PRISMA_STATUS`, `APPOINTMENT_STATUS_TO_PRISMA`, `parseAppointmentStatus` | Single canonical mapper; all 4 maps live in one file |
 | **Invoice status model** | 5 states only: `PENDING`, `PARTIALLY_PAID`, `PAID`, `OVERDUE`, `CANCELLED` | The 9-state domain model (`DRAFT`, `ISSUED`, `SENT`, `VIEWED`, `CREDIT_MEMO`) was dead code — do not reintroduce |
 | **Invoice status labels** | `INVOICE_STATUS_LABELS` in `packages/types/src/billing/invoices.ts` | 5 entries matching the 5-state model |
-| **Claim status labels** | `CLAIM_STATUS_LABELS`, `CLAIM_TYPE_LABELS`, `CLAIM_STATUS_TRANSITIONS`, `CLAIM_STATUS_TONE` in `packages/types/src/billing/insurance-claims.ts` | Centralized from `apps/app/features/insurance-claims/lib/claim-display.ts`; app now re-exports from types |
+| **Claim status labels** | `CLAIM_STATUS_LABELS`, `CLAIM_TYPE_LABELS`, `CLAIM_STATUS_TRANSITIONS`, `CLAIM_STATUS_TONE` in `packages/types/src/billing/insurance-claims.ts` | Centralized from the legacy Next app (`apps/app/features/insurance-claims/lib/claim-display.ts`, deleted); app re-exports from types |
 | **Discount type** | `discountTypeSchema` in `packages/types/src/billing/tier.ts` (Zod enum); 11 values | The old API domain `DiscountType` (PROMOTIONAL-only) was a 1-value enum that caused `discountTypeFromStored()` to silently drop non-promotional discounts. Always import from `@workspace/types`. |
 | **Prescription status** | `prescriptionStatusSchema` in `packages/types/src/clinical/medications.ts` | Values: `ACTIVE`, `COMPLETED` |
 | **Facility type labels** | Use `facilityTypeSchema.options` from `@workspace/types` instead of `["CLINIC", "HOSPITAL"]` | Rather than duplicating the list of facility types, read them from the canonical Zod schema. |
 | **Email validation** | `isValidEmail()` in `@workspace/utils` | Single regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`. Do not define additional email validators. |
 | **Phone validation** | `validatePhoneForCountry()` in `@/lib/validation/phone` | Uses `react-phone-number-input` for country-aware validation via `isPossiblePhoneNumber()`, `parsePhoneNumber()`, and `getCountryCallingCode()`. Validates against the clinic's `operatingCountryCode` (defaults to `"IN"`). Always country-aware; never use India-only regex patterns. |
-| **Support email** | `SUPPORT_EMAIL` = `"support@docita.work"` in both `apps/app/shared/lib/constants/support-contact.ts` and `apps/api/src/shared/common/constants/support-contact.constants.ts` | Do not hardcode the email string elsewhere; import the constant. |
+| **Support email** | `SUPPORT_EMAIL` = `"support@docita.work"` in `apps/app/src/lib/constants/support-contact.ts` and `apps/api/src/shared/common/constants/support-contact.constants.ts` | Do not hardcode the email string elsewhere; import the constant. |
 | **Tier string comparisons** | Variables typed as `TierName` (string union) from `@workspace/types` are canonical | `Tier` enum is **numeric** (STARTER=0, ESSENTIAL=1, etc.), never compare strings against `Tier.STARTER`. Use `TierName` type for string comparisons, `getTierName(Tier.STARTER)` for enum→string conversion, or `ClinicTier.STARTER` from `@workspace/db` for Prisma writes. Prefer typed helpers like `isFrontDeskTier()` over ad-hoc `=== "FRONT_DESK"` checks. |
-| **Front Desk tier check** | `isFrontDeskTier(tier)` from `@workspace/types` | Always use the helper — never inline `=== 'FRONT_DESK'` alone, as there are three Front Desk tier variants. |
+| **Front Desk tier check** | `isFrontDeskPlanMode(tier, planMode)` from `@workspace/types` | Always use the helper — never inline `planMode === 'FRONT_DESK''` alone. |
+
+## 16) Repo-wide Operational Rules
+
+These rules complement the sections above; they apply to every change set regardless of surface.
+
+### 16.1 Dependency policy
+
+- Internal packages use the `workspace:*` protocol only — never pin a version of `@workspace/*` in a package manifest; the lockfile resolves them.
+- No new dependency (runtime or dev) without a consumer in the same change set and a one-line rationale in the PR description. `pnpm knip` enforces unused deps; the rationale covers why the standard library or an existing workspace package is insufficient.
+- One library per concern area: one form library (react-hook-form), one toast surface (`@workspace/ui` toast/sonner), one date/time handling approach, one HTTP client. Duplicate libraries found during review are removed, not kept alongside.
+- Lockfile changes go through `pnpm install` only — never hand-edit `pnpm-lock.yaml`. CI installs with `--frozen-lockfile`; a dirty lockfile in a PR is a blocking error.
+- Run `pnpm audit --audit-level=high` locally before pushing dependency-manifest changes (CI gates on the same).
+
+### 16.2 Config sync rule (aliases, env, turbo, wrangler)
+
+- App import aliases are defined in exactly two places that must stay in sync: `vite.config.ts` (`resolve.alias`) and `tsconfig.json` (`paths`). Adding an alias to one without the other breaks `dev` or `check-types` — change both in the same commit.
+- When adding a build-time variable to a Vite app: add it to the app's `.env.example` (with the `VITE_` prefix), to `turbo.json` task `env` passthrough, and to `wrangler.toml` `[env.*.vars]` if the production Worker needs it. A var missing from `.env.example` or turbo `env` is a review blocker.
+- Domain names, Worker names, and environment names live in `wrangler.toml` only; CI and docs read them from there (see §11.1) — do not duplicate them in workflow files.
+- The root `pnpm.overrides` pins for `react` / `react-dom` (19.2.8) must stay in lockstep with the exact `react`/`react-dom` manifest pins in `apps/app`, `apps/internal`, and `apps/landing` — a React patch release requires bumping all four in the same commit (the override forces a single React tree; drifting pins split react-hook-form type identity).
+
+### 16.3 Focused change sets
+
+- One change set = one concern: a feature, a bug, or a refactor — never mixed. A PR that fixes a bug while refactoring unrelated code, or ports a feature while renaming shared modules, is returned to the author.
+- Refactors that touch more than a few files beyond the change's surface belong in their own PR (and count against the §11.3 branch cap like any other PR).
+- The porting migration is the single documented exception: it lands as one coherent branch/PR series per [ADR 0012](docs/architecture/decisions/0012-replace-nextjs-with-vite-spa.md), but individual commits inside it still stay focused per surface.
+
+### 16.4 Production incidents: revert-first
+
+- Any deploy that degrades production (errors, latency, data risk) is rolled back immediately — fix-forward is only acceptable when the fix is proven in staging and the revert path is blocked.
+- Migrations must remain reversible (`pnpm check:migration-reversibility` gates); a destructive migration with no rollback script is a blocking review error.
+- After an incident, the learning goes into `docs/operations/RUNBOOKS/` (or a tracked issue) in the same change set that ships the fix — never into an untracked note. The hotfix branch is deleted after merge per §11.3.
+
+### 16.5 External provider resilience
+
+- Every outbound call to a third-party service (payments, WhatsApp, AI, storage, SMS) must have: an explicit timeout, retry with backoff and jitter where the provider permits idempotent retry, and graceful degradation so the clinical flow stays usable when the provider is down. `check-external-http-timeouts` and `check-job-idempotency` enforce the mechanical parts.
+- Honor provider rate limits with client-side backoff and queue bounds; do not retry unboundedly or buffer work in memory. Provider outages follow the runbooks (e.g. `cloudflare-upstream-timeout`, `openai-rate-limit`, `razorpay-outage`).
+- Never log provider API keys, tokens, or request bodies containing PHI in error paths (see §6, §7.1).

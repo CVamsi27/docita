@@ -51,9 +51,8 @@ export class WhatsAppBroadcastService {
     createdBy?: string,
   ): Promise<WhatsAppBroadcastJobSummary> {
     const normalizedRecipients = this.normalizeRecipients(input.recipients);
-    if (normalizedRecipients.length === 0) {
+    if (normalizedRecipients.length === 0)
       throw new BadRequestException('At least one valid recipient is required');
-    }
     if (normalizedRecipients.length > MAX_RECIPIENTS) {
       throw new BadRequestException(
         `Recipient count exceeds the maximum of ${MAX_RECIPIENTS}`,
@@ -113,9 +112,7 @@ export class WhatsAppBroadcastService {
       },
     });
 
-    if (!job) {
-      throw new NotFoundException('Broadcast job not found');
-    }
+    if (!job) throw new NotFoundException('Broadcast job not found');
 
     return {
       ...this.toSummary(job),

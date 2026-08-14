@@ -26,12 +26,12 @@ describe("upstream-api-proxy", () => {
 
   it("builds upstream paths with query strings", () => {
     const url = buildUpstreamApiUrl(
-      ["clinic", "settings"],
-      "https://app.docita.work/api/v1/clinic/settings?foo=1",
+      ["clinics", "settings"],
+      "https://app.docita.work/api/v1/clinics/settings?foo=1",
       "https://api.docita.work/api/v1",
     );
 
-    expect(url).toBe("https://api.docita.work/api/v1/clinic/settings?foo=1");
+    expect(url).toBe("https://api.docita.work/api/v1/clinics/settings?foo=1");
   });
 
   it("extracts path segments from /api/v1 requests", () => {

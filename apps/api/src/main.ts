@@ -20,6 +20,7 @@ import {
   isDevelopment,
 } from './shared/modules/config/app-config';
 import { AppConfigService } from './shared/modules/config/app-configuration.service';
+import { buildAppConfigService } from './shared/modules/config/app-config.builder';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import compression from 'compression';
 import helmet from 'helmet';
@@ -37,7 +38,7 @@ interface CloseableServer {
 }
 
 const config = validateEnv();
-const appConfigService = new AppConfigService();
+const appConfigService = buildAppConfigService();
 
 if (!isDevelopment()) {
   const originList = getCorsOrigins();
@@ -329,9 +330,7 @@ function configureGlobalMiddleware(app: INestApplication): PrismaService {
   app.use(
     compression({
       filter: (req, res) => {
-        if (req.headers['x-no-compression']) {
-          return false;
-        }
+        if (req.headers['x-no-compression']) return false;
         return compression.filter(req, res);
       },
       level: 6,
@@ -412,6 +411,8 @@ function registerShutdownHandlers(
 ): void {
   const observabilityService = app.get(ObservabilityService);
 
+  const shutdownTimeoutMs = Number(process.env.SHUTDOWN_TIMEOUT_MS) || 15_000;
+
   const gracefulShutdown = () => {
     server.close(async () => {
       await observabilityService.flush(5000);
@@ -423,7 +424,7 @@ function registerShutdownHandlers(
 
     setTimeout(() => {
       process.exit(1);
-    }, 15000);
+    }, shutdownTimeoutMs);
   };
 
   process.on('SIGTERM', gracefulShutdown);
@@ -431,14 +432,52 @@ function registerShutdownHandlers(
 }
 
 function registerExceptionTelemetry(): void {
+  // Rate-limit unhandled-rejection telemetry: a buggy cron that throws in a
+  // tight loop (e.g. 1000 rejections in a minute) would otherwise spam Sentry
+  // with thousands of events. At most one capture per 60s is sent; after a
+  // large burst the process exits so the platform can restart it clean.
+  let lastRejectionCaptureAt = 0;
+  let unhandledRejectionCount = 0;
+  const REJECTION_CAPTURE_INTERVAL_MS = 60_000;
+  const MAX_UNHANDLED_REJECTIONS_BEFORE_EXIT = 100;
+
   process.on('unhandledRejection', (reason) => {
-    Sentry.captureException(
-      reason instanceof Error ? reason : new Error(String(reason)),
-    );
+    unhandledRejectionCount += 1;
+    const now = Date.now();
+    if (now - lastRejectionCaptureAt >= REJECTION_CAPTURE_INTERVAL_MS) {
+      lastRejectionCaptureAt = now;
+      Sentry.captureException(
+        reason instanceof Error ? reason : new Error(String(reason)),
+      );
+    }
+    if (unhandledRejectionCount >= MAX_UNHANDLED_REJECTIONS_BEFORE_EXIT) {
+      process.stderr.write(
+        `Too many unhandled rejections (${unhandledRejectionCount}) — forcing exit\n`,
+      );
+      process.exit(1);
+    }
   });
 
+  // Node.js docs explicitly say `uncaughtException` is a "crude mechanism"
+  // and recommend logging then exiting — the process is in an undefined
+  // state after a true uncaught exception (e.g. a require() that threw
+  // halfway through a module init), and continuing to serve traffic
+  // risks further corruption (zombie connections, half-initialised
+  // singletons). We give the existing in-flight requests 5 seconds to
+  // finish via the same graceful-shutdown path the SIGTERM/SIGINT
+  // handlers use, then force-exit with code 1 so the platform restarts
+  // us. The Sentry captureException runs first so the Sentry event
+  // includes the originating error before the process goes down.
   process.on('uncaughtException', (error) => {
     Sentry.captureException(error);
+    // Schedule the exit on the next tick so the Sentry SDK has a
+    // chance to flush its event to the relay.
+    setImmediate(() => {
+      process.stderr.write(
+        `Uncaught exception — forcing exit: ${error.message}\n`,
+      );
+      process.exit(1);
+    });
   });
 }
 

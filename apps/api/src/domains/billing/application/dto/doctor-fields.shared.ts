@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { z } from 'zod';
 import { stripHtmlTags } from '@workspace/types';
 

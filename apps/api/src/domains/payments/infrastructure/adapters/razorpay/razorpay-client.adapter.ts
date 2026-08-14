@@ -32,9 +32,7 @@ export class RazorpayClientAdapter {
   }
 
   getClient(): Razorpay {
-    if (!this.razorpay) {
-      throw new Error('Razorpay client not initialized');
-    }
+    if (!this.razorpay) throw new Error('Razorpay client not initialized');
     // AuditLogged: razorpay request
     this.logger.log({ action: 'razorpay.request' });
     return this.razorpay;

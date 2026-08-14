@@ -6,9 +6,7 @@ export async function mapWithConcurrency<T, R>(
   concurrency: number,
   mapper: (item: T, index: number) => Promise<R>,
 ): Promise<R[]> {
-  if (items.length === 0) {
-    return [];
-  }
+  if (items.length === 0) return [];
 
   const limit = Math.max(1, Math.min(concurrency, items.length));
   const results = new Array<R>(items.length);

@@ -21,6 +21,7 @@ export const DOCTOR_CARD_SELECT = {
   registrationNumber: true,
   registrationCouncil: true,
   registrationStateCode: true,
+  hprId: true,
   verificationStatus: true,
   verificationReason: true,
   verificationCheckedAt: true,
@@ -32,7 +33,7 @@ export const DOCTOR_CARD_SELECT = {
   createdAt: true,
 } as const;
 
-export const INVOICE_CARD_SELECT = {
+const INVOICE_COMMON_SELECT = {
   id: true,
   patientId: true,
   clinicId: true,
@@ -49,6 +50,11 @@ export const INVOICE_CARD_SELECT = {
   discountTotalCents: true,
   taxTotalCents: true,
   grandTotalCents: true,
+  amountPaidCents: true,
+} as const;
+
+export const INVOICE_CARD_SELECT = {
+  ...INVOICE_COMMON_SELECT,
   status: true,
   items: true,
   issuedAt: true,
@@ -65,22 +71,7 @@ export const INVOICE_CARD_SELECT = {
 } as const;
 
 export const INVOICE_DETAIL_SELECT = {
-  id: true,
-  patientId: true,
-  clinicId: true,
-  invoiceNumber: true,
-  invoiceType: true,
-  currency: true,
-  total: true,
-  subtotal: true,
-  discountTotal: true,
-  taxTotal: true,
-  grandTotal: true,
-  totalCents: true,
-  subtotalCents: true,
-  discountTotalCents: true,
-  taxTotalCents: true,
-  grandTotalCents: true,
+  ...INVOICE_COMMON_SELECT,
   taxSummary: true,
   sellerTaxSnapshot: true,
   buyerTaxSnapshot: true,
@@ -136,6 +127,10 @@ export const INVOICE_DETAIL_SELECT = {
     select: {
       id: true,
       startTime: true,
+      advanceAmountCents: true,
+      advancePaymentMethod: true,
+      advanceReference: true,
+      advanceNotes: true,
       doctor: {
         select: {
           id: true,
@@ -182,6 +177,43 @@ export const CLINIC_CARD_SELECT = {
       appointments: true,
     },
   },
+} as const;
+
+export const DOCTOR_DETAIL_SELECT = {
+  id: true,
+  email: true,
+  name: true,
+  role: true,
+  clinicId: true,
+  specialization: true,
+  hospitalRole: true,
+  qualification: true,
+  registrationNumber: true,
+  hprId: true,
+  licenseNumber: true,
+  licenseExpiry: true,
+  signatureUrl: true,
+  signatureUploadedAt: true,
+  verificationStatus: true,
+  verificationSource: true,
+  verificationRef: true,
+  verificationReason: true,
+  verificationData: true,
+  verificationCheckedAt: true,
+  profilePhotoUrl: true,
+  phoneNumber: true,
+  bio: true,
+  yearsOfExperience: true,
+  consultationFee: true,
+  createdAt: true,
+  updatedAt: true,
+  educationHistory: {
+    orderBy: { order: 'asc' },
+  },
+  certifications: {
+    orderBy: { issueDate: 'desc' },
+  },
+  additionalSpecializations: true,
 } as const;
 
 export const PATIENT_ANALYTICS_SELECT = {

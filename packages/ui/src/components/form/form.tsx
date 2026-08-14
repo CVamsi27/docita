@@ -49,17 +49,13 @@ const useFormField = () => {
   const formContext = useFormContext();
   const fallbackId = React.useId();
 
-  if (!formContext) {
-    throw new Error("useFormField must be used within a FormProvider");
-  }
+  if (!formContext) throw new Error("useFormField must be used within a FormProvider");
 
   const { getFieldState } = formContext;
   const formState = useFormState({ name: fieldContext.name });
   const fieldState = getFieldState(fieldContext.name, formState);
 
-  if (!fieldContext) {
-    throw new Error("useFormField should be used within <FormField>");
-  }
+  if (!fieldContext) throw new Error("useFormField should be used within <FormField>");
 
   const id = itemContext.id || fallbackId;
 
@@ -131,28 +127,13 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
   );
 }
 
-function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
-  const { formDescriptionId } = useFormField();
-
-  return (
-    <p
-      data-slot="form-description"
-      id={formDescriptionId}
-      className={cn("text-muted-foreground text-sm", className)}
-      {...props}
-    />
-  );
-}
-
 function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField();
   const body = error
     ? sanitizeUserFacingMessage(String(error?.message ?? ""), "Please check this field")
     : props.children;
 
-  if (!body) {
-    return null;
-  }
+  if (!body) return null;
 
   return (
     <p
@@ -172,7 +153,6 @@ export {
   FormItem,
   FormLabel,
   FormControl,
-  FormDescription,
   FormMessage,
   FormField,
 };

@@ -1,0 +1,15 @@
+{
+  "pageTitle": "Lab Portal",
+  "loginPageTitle": "Lab Portal Login",
+  "eyebrow": "Lab Portal",
+  "loginTitle": "Lab Technician Login",
+  "loginDescription": "Enter your lab credentials to access the workspace.",
+  "email": "Email",
+  "emailPlaceholder": "lab@example.com",
+  "password": "Password",
+  "passwordPlaceholder": "Enter your password",
+  "signingIn": "Signing in…",
+  "signIn": "Sign in",
+  "invalidCredentials": "Invalid credentials",
+  "loginFailed": "Login failed"
+}

@@ -15,6 +15,8 @@ import { seedIpd } from './seed-ipd';
 import { seedInventory } from './seed-inventory';
 import { seedOperations } from './seed-operations';
 import { seedPdfs } from './seed-pdfs';
+import { seedWhatsappLogs } from './seed-whatsapp';
+import { seedMedicalDocuments } from './seed-medical-documents';
 
 async function assertSeedSchemaReady(pool: Pool): Promise<void> {
   const LATEST_MIGRATION = '20260502180000_starter_list_price_inr_499';
@@ -51,6 +53,7 @@ async function main() {
     const {
       defaultClinic,
       clinicAdmin,
+      adminDoctor,
       doctor1,
       doctor2,
       doctor3,
@@ -60,6 +63,7 @@ async function main() {
 
     const patients = await seedPatientsAndEncounters(prisma, {
       clinicId: defaultClinic.id,
+      adminDoctorId: adminDoctor.id,
       doctor1Id: doctor1.id,
       doctor2Id: doctor2.id,
       patientPortalUserId: patientPortalUser.id,
@@ -69,9 +73,11 @@ async function main() {
 
     await seedSchedulesAndLabTests(prisma, {
       clinicId: defaultClinic.id,
+      adminDoctorId: adminDoctor.id,
       doctor1Id: doctor1.id,
       doctor2Id: doctor2.id,
       doctor3Id: doctor3.id,
+      patientIds: patients.map((p) => p.id),
     });
 
     await seedIpd(prisma, {
@@ -108,6 +114,17 @@ async function main() {
     });
 
     await seedPdfs(prisma, { clinicId: defaultClinic.id });
+
+    await seedWhatsappLogs(prisma, {
+      clinicId: defaultClinic.id,
+      patients,
+    });
+
+    await seedMedicalDocuments(prisma, {
+      clinicId: defaultClinic.id,
+      doctor1Id: doctor1.id,
+      patients,
+    });
   } finally {
     await prisma.$disconnect();
     await pool.end();
@@ -120,9 +137,8 @@ function errorStack(value: unknown): string | null {
     typeof value === 'object' &&
     'stack' in value &&
     typeof value.stack === 'string'
-  ) {
+  )
     return value.stack;
-  }
   return null;
 }
 

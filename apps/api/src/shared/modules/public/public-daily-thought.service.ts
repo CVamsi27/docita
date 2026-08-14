@@ -28,9 +28,8 @@ export class PublicDailyThoughtService {
   async getDailyThought(): Promise<DailyThoughtResponse> {
     const dayKey = new Date().toISOString().slice(0, 10);
 
-    if (this.cachedDayKey === dayKey && this.cachedThought) {
+    if (this.cachedDayKey === dayKey && this.cachedThought)
       return this.cachedThought;
-    }
 
     const thought = await this.fetchThoughtForDay();
     this.cachedDayKey = dayKey;

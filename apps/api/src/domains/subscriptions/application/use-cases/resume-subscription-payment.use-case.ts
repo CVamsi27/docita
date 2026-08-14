@@ -77,17 +77,14 @@ export class ResumeSubscriptionPaymentUseCase {
       ),
     );
 
-    if (!payment) {
-      throw new BadRequestException('Payment not found');
-    }
+    if (!payment) throw new BadRequestException('Payment not found');
 
     if (isSubscriptionBillingRowPaid(payment.status, payment.paidAt)) {
       throw new BadRequestException('Payment is already completed');
     }
 
-    if (payment.amountCents <= 0) {
+    if (payment.amountCents <= 0)
       throw new BadRequestException('Payment amount is invalid');
-    }
 
     // AuditLogged: subscription payment resumed
     this.logger.log({

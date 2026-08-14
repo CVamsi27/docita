@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
-import { isRecord } from '@workspace/utils';
+import { isDatabaseAuthError } from '@/shared/common/utils/is-database-auth-error';
 
 @Injectable()
 export class MetricsPersistenceService {
@@ -45,7 +45,7 @@ export class MetricsPersistenceService {
   }
 
   private handlePersistenceError(error: unknown, context: string): void {
-    if (this.isDatabaseAuthError(error)) {
+    if (isDatabaseAuthError(error)) {
       this.persistenceDisabled = true;
       this.logger.warn(
         'Disabling metrics database persistence due to database authentication failure. Verify DATABASE_URL credentials.',
@@ -54,25 +54,5 @@ export class MetricsPersistenceService {
     }
 
     this.logger.error(context, error);
-  }
-
-  private isDatabaseAuthError(error: unknown): boolean {
-    if (!isRecord(error)) {
-      return false;
-    }
-
-    const code = typeof error.code === 'string' ? error.code : '';
-    const message =
-      typeof error.message === 'string' ? error.message.toLowerCase() : '';
-
-    if (code === 'P1000') {
-      return true;
-    }
-
-    return (
-      message.includes('authentication failed against the database server') ||
-      message.includes('database credentials') ||
-      message.includes('password authentication failed')
-    );
   }
 }

@@ -15,7 +15,6 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 - `setup.ts` - Database setup, reset, and teardown utilities
 - `factories.ts` - Test data factory functions for creating consistent test data
 - `mocks/razorpay.mock.ts` - Mocked Razorpay payment service
-- `mocks/twilio.mock.ts` - Mocked Twilio WhatsApp service
 - `auth.e2e-spec.ts` - Authentication flow tests (login, register)
 - `patients.e2e-spec.ts` - Patient management tests (CRUD, clinic isolation)
 - `jest-e2e.json` - Jest configuration for E2E tests
@@ -28,11 +27,20 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 - ✅ Multi-clinic data isolation testing
 - ✅ Doctor-scope authorization checks for appointments
 - ✅ Error handling and edge cases
-- ✅ Mocked external services (Razorpay, Twilio)
+- ✅ Mocked external services (Razorpay)
 
 ### Frontend E2E Tests (Playwright)
 
-**Location**: `apps/app/e2e/` — configuration: `apps/app/playwright.config.ts`
+**Location**: `apps/app/e2e/` (45 spec files, ~1,048 tests) — configuration: `apps/app/playwright.config.ts`; `apps/internal/e2e/` (3 spec files, 44 tests) — configuration: `apps/internal/playwright.config.ts`
+
+> **Status (2026-08-02):** the Playwright suite is **ported** to the Vite apps.
+> app runs on port 5173 via `vite preview` against a local API; the CI
+> workflow `.github/workflows/frontend-critical-e2e.yml` runs the app
+> suite, and the internal suite (health, accessibility, critical-flows)
+> runs in its own job. 5 visual spec files were dropped at port-or-drop
+> (2026-08-02) because the Next dev-tools fixtures they snapshotted are not
+> ported (tools is an intentional shell). See
+> [ADR 0012](../architecture/decisions/0012-replace-nextjs-with-vite-spa.md) for the port record.
 
 #### Doctor app testing matrix
 
@@ -43,11 +51,11 @@ Use this split so expectations stay maintainable (full per-widget coverage is no
 | **E2E smoke** | Authenticated route renders, no hard failure; guards redirect correctly | `health.spec.ts`, `nav-routes-smoke.spec.ts` (parameterized top-level nav), selected single-page checks |
 | **E2E journeys** | Minimal-click critical workflows (patient, appointment, consultation, billing, WhatsApp) | `critical-flows.spec.ts`, `appointments.spec.ts`, `consultation.spec.ts`, `smart-auth.spec.ts`, `whatsapp.spec.ts`, `upgrade.spec.ts` |
 | **Accessibility (axe)** | Catch regressions against WCAG-oriented rules | `accessibility.spec.ts` (public + authenticated audits where stable) |
-| **Vitest** | Component logic, rules, hooks — not every static label | `apps/app/**/*.test.ts(x)` (run `pnpm --filter @docita/app test`) |
+| **Vitest** | Component logic, rules, hooks — not every static label | `apps/app/src/**/*.test.ts(x)` (run `pnpm --filter @docita/app test`) |
 
-**Command palette (doctor app):** press **⌘K** / **Ctrl+K**, or **/** when focus is not in a text field, to jump to nav destinations and quick actions (`features/_shared/components/navigation/command-palette.tsx`).
+**Command palette (doctor app):** press **⌘K** / **Ctrl+K**, or **/** when focus is not in a text field, to jump to nav destinations and quick actions (`apps/app/src/components/navigation/command-palette.tsx`).
 
-CI runs a **subset** of Playwright on `main` (see below). Run `pnpm --filter @docita/app test:e2e` locally for the full suite before merging broad UI changes.
+CI runs a **subset** of Playwright on `main` (see below). Run the full suite locally before merging broad UI changes.
 
 #### Playwright spec files (doctor app)
 
@@ -215,7 +223,7 @@ pnpm --filter @docita/app test:e2e:report
 
 ### Doctor app subscription / billing E2E (`upgrade.spec.ts`, `subscription.spec.ts`)
 
-These specs register a user via the API and drive the Next.js app at `http://localhost:3000`. **PostgreSQL must be running** and migrations applied for the API (`http://localhost:3001` by default) or registration returns `500` / `ECONNREFUSED` from Prisma.
+These specs register a user via the API and drive the Vite SPA app at `http://localhost:5173`. **PostgreSQL must be running** and migrations applied for the API (`http://localhost:3001` by default) or registration returns `500` / `ECONNREFUSED` from Prisma.
 
 ```bash
 # From repo root: ensure DATABASE_URL in .env points at a live Postgres, then:
@@ -396,11 +404,38 @@ Templates typically take 24-48 hours to be approved for production accounts. For
 # Expose local server
 ngrok http 3001
 
-# Set webhook URL in Meta App Dashboard (preferred):
-# https://<ngrok-url>/api/webhooks/whatsapp
-# Legacy fail-open path (deprecated): https://<ngrok-url>/api/whatsapp/webhook
+# Set webhook URL in Meta App Dashboard:
+# https://<ngrok-url>/api/v1/webhooks/whatsapp
+# (The global 'api' prefix + URI versioning put the controller at
+# /api/v1/webhooks/whatsapp; the legacy /api/whatsapp/webhook route was removed
+# 2026-08-07 after the Meta callback URL moved here. Strict verification +
+# replay protection apply.)
 # Subscribe to: messages, message_deliveries, message_reads
 ```
+
+**Webhook verification contract (GET echo):**
+
+When Meta configures the callback URL it sends a GET with
+`hub.mode=subscribe&hub.verify_token=<META_VERIFY_TOKEN>&hub.challenge=<int>`.
+The endpoint must respond with **exactly the `hub.challenge` value** — Meta's
+contract: "An int you must pass back to us" / "Respond with the hub.challenge
+value". The current controller echoes the raw query string unchanged
+(`return challenge`), so the response body is byte-identical to what Meta
+sent. The removed legacy route wrapped it in `parseInt(challenge, 10)`; that
+was wire-identical for Meta's numeric challenges (e.g. `1158201444`) but lossy
+for edge cases (`abc` → `NaN`, `0115` → `115`), so the exact echo is the
+correct form. Pinned by the unit spec
+(`whatsapp-webhook.controller.spec.ts` asserts `'123456'`); challenge
+mismatch or a missing/invalid `hub.verify_token` yields `403 Forbidden`.
+
+**Webhook signature contract (POST):**
+
+`POST /api/v1/webhooks/whatsapp` is verified with HMAC-SHA256 over the raw
+request body using `META_APP_SECRET`, delivered as the `x-hub-signature-256`
+header (`sha256=<hex>`). Outcomes: valid signature → `200 {"status":"ok"}`;
+same payload+signature replayed within 10 min → `409 Conflict`; missing header
+or tampered body/wrong secret → `401 Unauthorized`. E2E coverage:
+`apps/api/test/e2e/webhooks/whatsapp-webhook.e2e-spec.ts`.
 
 ## Environment Variables
 
@@ -415,7 +450,7 @@ NODE_ENV=test
 ### Frontend (.env.test)
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+API_PUBLIC_URL=http://localhost:3001/api
 API_URL=http://localhost:3001/api
 NODE_ENV=test
 ```
@@ -439,7 +474,7 @@ Tests run automatically on:
 2. **Frontend Playwright Smoke (`.github/workflows/test.yml`)**
    - Install dependencies
    - Install Playwright browsers
-   - Execute Playwright smoke test (`apps/app/e2e/health.spec.ts`)
+   - Execute Playwright smoke test (pending port to `apps/app/e2e/health.spec.ts`)
    - Upload test report
 
 3. **Local Full-Stack E2E**
@@ -546,7 +581,7 @@ lsof -ti:3001 | xargs kill -9
 
 - Expand axe coverage when new high-traffic routes ship; keep authenticated audits resilient (timeouts, seeded data).
 - Add Vitest for complex new dialogs and rules modules alongside Playwright journeys.
-- Optional: visual regression for [`ui-contract`](../apps/app/app/(tools)/visual-test/ui-contract/page.tsx) if design-system churn increases.
+- Optional: visual regression for the visual-test route in the Vite app if design-system churn increases.
 
 ### Metrics to Track
 
@@ -559,7 +594,7 @@ lsof -ti:3001 | xargs kill -9
 
 For issues or questions:
 
-1. Check test logs: `apps/api/coverage-e2e/` or `apps/app/playwright-report/`
+1. Check test logs: `apps/api/coverage-e2e/` or the Vite app `playwright-report/` (once ported)
 2. Review test code in `test/` or `e2e/` directories
 3. Check GitHub Actions workflow runs for CI failures
 

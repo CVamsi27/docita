@@ -5,6 +5,9 @@ import { InternalLogsController } from './internal-logs.controller';
 import { InternalSupportController } from './internal-support.controller';
 import { InternalClinicTierController } from './internal-clinic-tier.controller';
 import { InternalBillingController } from './internal-billing.controller';
+import { InternalReferralController } from './internal-referral.controller';
+import { DatabaseControlController } from './database-control.controller';
+import { InternalReferralService } from './internal-referral.service';
 import { InternalBillingService } from './internal-billing.service';
 import { InternalBillingMetricsService } from './internal-billing-metrics.service';
 import { InternalSubscriptionQueryService } from './internal-subscription-query.service';
@@ -17,6 +20,7 @@ import { InternalLogService } from './internal-log.service';
 import { InternalLogStorageQueryService } from './logs/internal-log-storage-query.service';
 import { InternalLogActivityFallbackService } from './logs/internal-log-activity-fallback.service';
 import { InternalAiService } from './internal-ai.service';
+import { DatabaseControlService } from './database-control.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicsModule } from '@/domains/clinics/clinics.module';
@@ -29,6 +33,8 @@ import { ContactModule } from '@/shared/modules/contact/contact.module';
 import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
 import { WhatsAppBroadcastModule } from '@/shared/modules/whatsapp-broadcast';
 import { SubscriptionsModule } from '@/domains/subscriptions/subscriptions.module';
+import { EmailModule } from '@/shared/modules/messaging/email/email.module';
+import { AuditModule } from '@/shared/modules/audit/audit.module';
 import { INTERNAL_SUBSCRIPTION_PAYMENT_REPOSITORY_TOKEN } from './ports/internal-subscription-payment.repository.port';
 import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/prisma-internal-subscription-payment.repository';
 
@@ -45,6 +51,8 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     WhatsAppBroadcastModule,
     AuthModule,
     WebsocketsModule,
+    EmailModule,
+    AuditModule,
   ],
   controllers: [
     InternalAnalyticsController,
@@ -53,9 +61,12 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     InternalSupportController,
     InternalClinicsController,
     InternalBillingController,
+    InternalReferralController,
+    DatabaseControlController,
   ],
   providers: [
     InternalBillingService,
+    InternalReferralService,
     InternalBillingMetricsService,
     {
       provide: INTERNAL_SUBSCRIPTION_PAYMENT_REPOSITORY_TOKEN,
@@ -72,6 +83,7 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     InternalLogActivityFallbackService,
     InternalLogService,
     InternalAiService,
+    DatabaseControlService,
   ],
   exports: [
     InternalBillingService,
@@ -81,6 +93,7 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     InternalLogActivityFallbackService,
     InternalLogService,
     InternalAiService,
+    DatabaseControlService,
   ],
 })
 export class InternalModule {}

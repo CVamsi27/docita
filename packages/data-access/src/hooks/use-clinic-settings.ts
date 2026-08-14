@@ -6,6 +6,7 @@ import {
   UpdateClinicMemberRequest,
   UpdateClinicSettingsRequest,
   User,
+  type AbdmClinicDashboard,
   type AppClinicSettings,
 } from "@workspace/types";
 import { queryKeys } from "../lib/query-keys-clinician";
@@ -15,23 +16,33 @@ import { useAPIQuery } from "../core/use-api-query";
 export type ClinicAppSettings = AppClinicSettings;
 
 export const useClinicSettings = (queryOptions?: { enabled?: boolean }) =>
-  useAPIQuery<Clinic>(queryKeys.clinic.settings(), "/clinic/settings", {
+  useAPIQuery<Clinic>(queryKeys.clinic.settings(), "/clinics/settings", {
     enabled: queryOptions?.enabled,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
 
+export const useClinicAbdmDashboard = (queryOptions?: { enabled?: boolean }) =>
+  useAPIQuery<AbdmClinicDashboard>(
+    queryKeys.clinic.abdmDashboard(),
+    "/clinics/abdm/dashboard",
+    {
+      enabled: queryOptions?.enabled,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    },
+  );
+
 export const useClinicMembers = () =>
-  useAPIQuery<User[]>(queryKeys.clinic.members(), "/clinic/members");
+  useAPIQuery<User[]>(queryKeys.clinic.members(), "/clinics/members");
 
 export const useCreateClinicDoctor = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicDoctorRequest>(
     () => {
-      if (!clinicId) {
+      if (!clinicId)
         throw new Error(
           "We could not identify this facility. Please refresh and try again.",
         );
-      }
       return `/clinics/${clinicId}/doctors`;
     },
     "POST",
@@ -44,11 +55,10 @@ export const useCreateClinicDoctor = (clinicId?: string) =>
 export const useCreateClinicReceptionist = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicReceptionistRequest>(
     () => {
-      if (!clinicId) {
+      if (!clinicId)
         throw new Error(
           "We could not identify this facility. Please refresh and try again.",
         );
-      }
       return `/clinics/${clinicId}/receptionists`;
     },
     "POST",
@@ -61,11 +71,10 @@ export const useCreateClinicReceptionist = (clinicId?: string) =>
 export const useCreateClinicMember = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicMemberRequest>(
     () => {
-      if (!clinicId) {
+      if (!clinicId)
         throw new Error(
           "We could not identify this facility. Please refresh and try again.",
         );
-      }
       return `/clinics/${clinicId}/members`;
     },
     "POST",
@@ -81,14 +90,14 @@ export const useUpdateClinicMember = () =>
     UpdateClinicMemberRequest & {
       memberId: string;
     }
-  >(({ memberId }) => `/clinic/members/${memberId}`, "PUT", {
+  >(({ memberId }) => `/clinics/members/${memberId}`, "PUT", {
     invalidateKeys: [queryKeys.clinic.members()],
     suppressGlobalErrorToast: true,
   });
 
 export const useDeleteClinicMember = () =>
   useAPIMutation<{ success: boolean }, { memberId: string }>(
-    ({ memberId }) => `/clinic/members/${memberId}`,
+    ({ memberId }) => `/clinics/members/${memberId}`,
     "DELETE",
     {
       invalidateKeys: [queryKeys.clinic.members()],
@@ -97,9 +106,13 @@ export const useDeleteClinicMember = () =>
 
 export const useUpdateClinicSettings = () =>
   useAPIMutation<Clinic, UpdateClinicSettingsRequest>(
-    "/clinic/settings",
+    "/clinics/settings",
     "PUT",
     {
-      invalidateKeys: [queryKeys.clinic.settings()],
+      invalidateKeys: [
+        queryKeys.clinic.settings(),
+        queryKeys.clinic.abdmDashboard(),
+        queryKeys.abdm.all(),
+      ],
     },
   );

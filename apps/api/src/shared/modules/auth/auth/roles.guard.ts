@@ -26,24 +26,20 @@ export class RolesGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
 
-    if (!requiredRoles) {
-      return true;
-    }
+    if (!requiredRoles) return true;
 
-    if (!user) {
+    if (!user)
       throw forbiddenProblem(
         'AUTHENTICATION_REQUIRED',
         'Authentication required to access this resource.',
       );
-    }
 
     const hasRole = requiredRoles.some((role) => user.role === role);
-    if (!hasRole) {
+    if (!hasRole)
       throw forbiddenProblem(
         'INSUFFICIENT_PERMISSIONS',
         'Insufficient permissions. You do not have the required role to access this resource.',
       );
-    }
 
     // Enforce email allowlist for INTERNAL role: even if a user record has
     // Role.INTERNAL in the DB, only configured operator emails may use it.

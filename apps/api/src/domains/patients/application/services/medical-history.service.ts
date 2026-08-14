@@ -15,13 +15,11 @@ import {
   CreatePatientSurgicalHistoryInput,
   UpdatePatientSurgicalHistoryInput,
 } from '@workspace/types';
-import { AiService } from '@/shared/modules/ai-core/ai.service';
-import { AiFactory } from '@/shared/modules/ai-core/factories/ai.factory';
 import { MedicalHistoryConditionsService } from './medical-history-conditions.service';
 
 /**
  * Facade — delegates condition/allergy CRUD to MedicalHistoryConditionsService;
- * other medical-history sections use patient persistence and AI helpers.
+ * other medical-history sections use patient persistence.
  */
 @Injectable()
 export class MedicalHistoryService {
@@ -29,8 +27,6 @@ export class MedicalHistoryService {
     @Inject(PATIENT_PERSISTENCE_PORT)
     private readonly persistence: PatientPersistencePort,
     private readonly medicalHistoryFactory: MedicalHistoryFactory,
-    private readonly aiService: AiService,
-    private readonly aiFactory: AiFactory,
     private readonly conditionsService: MedicalHistoryConditionsService,
   ) {}
 
@@ -65,50 +61,14 @@ export class MedicalHistoryService {
     return this.conditionsService.deleteAllergy(id, patientId);
   }
 
-  // ── AI summarization ─────────────────────────────────────────────────────
-
-  async summarizeMedicalHistory(patientId: string): Promise<string> {
-    const [conditions, allergies, meds] = await Promise.all([
-      this.persistence.patientMedicalCondition.findMany({
-        where: { patientId },
-      }),
-      this.persistence.patientAllergy.findMany({ where: { patientId } }),
-      this.persistence.prescription.findMany({
-        where: { patientId, approvalStatus: 'APPROVED' },
-        include: { medications: true },
-      }),
-    ]);
-
-    const context = {
-      conditions: conditions
-        .map((c) => `${c.conditionName} (${c.status})`)
-        .join(', '),
-      allergies: allergies
-        .map((a) => `${a.allergen} (${a.reaction})`)
-        .join(', '),
-      medications: meds
-        .flatMap((p) => p.medications.map((m) => m.name))
-        .join(', '),
-    };
-
-    const prompt = this.aiFactory.createPrompt(
-      {
-        system:
-          'You are a clinical assistant. Summarize the following patient history into a concise paragraph suitable for a doctor to read quickly.',
-        user: `Medical Conditions: {{conditions}}\nAllergies: {{allergies}}\nActive Medications: {{medications}}\n\nPlease provide a brief clinical summary.`,
-      },
-      context,
-    );
-
-    return this.aiService.generateText(prompt);
-  }
-
   // ── Family history ────────────────────────────────────────────────────────
 
   async getFamilyHistory(patientId: string) {
     return this.persistence.patientFamilyHistory.findMany({
       where: { patientId },
       orderBy: { createdAt: 'desc' },
+      // No `take`: bounded by patientId. Family history is a small curated
+      // per-patient list surfaced in the patient chart.
     });
   }
 
@@ -234,6 +194,8 @@ export class MedicalHistoryService {
     return this.persistence.patientSurgicalHistory.findMany({
       where: { patientId },
       orderBy: { procedureDate: 'desc' },
+      // No `take`: bounded by patientId. Surgical history is a small curated
+      // per-patient list surfaced in the patient chart.
     });
   }
 

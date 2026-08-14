@@ -1,0 +1,13 @@
+{
+  "pageTitle": "Coding queue",
+  "pageDescription": "Review completed visits that still need ICD-10 or procedure coding before reporting and billing.",
+  "uncodedVisits": "Uncoded Visits",
+  "uncodedVisitsDescription": "Search by patient, visit, or clinician to keep coding work from piling up after consultations.",
+  "searchAriaLabel": "Search coding queue",
+  "searchPlaceholder": "Enter patient or visit",
+  "pendingReview": "pending review",
+  "loading": "Loading uncoded visits…",
+  "error": "We could not load the coding queue. Try again. If this keeps happening, check whether medical coding access is enabled for this clinic.",
+  "emptyTitle": "No uncoded visits",
+  "emptyDescription": "Completed visits that need ICD-10 or procedure coding will appear here."
+}

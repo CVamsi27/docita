@@ -5,11 +5,6 @@ env:
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "packages/db/**"
 
 jobs:
   migrate-db:
@@ -20,7 +15,7 @@ jobs:
       NODE_ENV: production
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Prepare pnpm
         run: |
@@ -28,9 +23,9 @@ jobs:
           corepack prepare pnpm@10.30.3 --activate
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: pnpm
 
       - name: Install dependencies

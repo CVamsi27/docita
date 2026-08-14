@@ -11,9 +11,8 @@ export async function verifyMedicalHistoryPatientAccess(
   patientService: PatientService,
 ): Promise<void> {
   if (req.user?.role === Role.PATIENT) {
-    if (!req.user.patientId || req.user.patientId !== patientId) {
+    if (!req.user.patientId || req.user.patientId !== patientId)
       throw new ForbiddenException('You can only access your own records');
-    }
     return;
   }
 

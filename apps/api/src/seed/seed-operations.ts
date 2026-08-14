@@ -1,4 +1,10 @@
-import { LeaveStatus, LeaveType, PrismaClient } from '@workspace/db';
+import {
+  FeedbackFeatureType,
+  LeaveStatus,
+  LeaveType,
+  PrismaClient,
+} from '@workspace/db';
+import { dateOffset } from './seed-date-helpers';
 
 interface SeedOperationsParams {
   clinicId: string;
@@ -28,11 +34,37 @@ interface FeedbackSeed {
   comments: string;
 }
 
-function dateOffset(days: number): Date {
-  const d = new Date();
-  d.setHours(9, 0, 0, 0);
-  d.setDate(d.getDate() + days);
-  return d;
+function buildFeedbackFeatures(clinicId: string, feedback: FeedbackSeed) {
+  const rows = [
+    ...feedback.good.map((feature) => ({
+      clinicId,
+      featureType: FeedbackFeatureType.GOOD,
+      feature: feature.trim(),
+    })),
+    ...feedback.bad.map((feature) => ({
+      clinicId,
+      featureType: FeedbackFeatureType.BAD,
+      feature: feature.trim(),
+    })),
+    ...feedback.bad.map((feature) => ({
+      clinicId,
+      featureType: FeedbackFeatureType.IMPROVEMENT,
+      feature: feature.trim(),
+    })),
+  ];
+  const seen = new Set<string>();
+
+  return rows.filter((row) => {
+    if (row.feature.length === 0) {
+      return false;
+    }
+    const key = `${row.featureType}:${row.feature}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 }
 
 export async function seedOperations(
@@ -299,6 +331,7 @@ async function upsertSeedFeedback(
   params: { clinicId: string; feedback: FeedbackSeed },
 ): Promise<void> {
   const { clinicId, feedback } = params;
+  const feedbackFeatures = buildFeedbackFeatures(clinicId, feedback);
   const data = {
     clinicId,
     userId: feedback.userId,
@@ -310,8 +343,20 @@ async function upsertSeedFeedback(
   };
   await prisma.feedback.upsert({
     where: { id: feedback.id },
-    update: data,
-    create: { id: feedback.id, ...data },
+    update: {
+      ...data,
+      feedbackFeatures: {
+        deleteMany: {},
+        createMany: { data: feedbackFeatures },
+      },
+    },
+    create: {
+      id: feedback.id,
+      ...data,
+      feedbackFeatures: {
+        createMany: { data: feedbackFeatures },
+      },
+    },
   });
 }
 

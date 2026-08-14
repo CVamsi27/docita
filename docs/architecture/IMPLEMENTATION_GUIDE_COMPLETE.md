@@ -469,7 +469,11 @@ Under high concurrency, when a cached value expires, multiple requests could all
 
 ### Fix
 
-**File:** `apps/api/src/shared/modules/cache/in-memory-cache.service.ts`
+> **Superseded (module removed 2026-08-08):** the XFetch implementation below lived in the
+> former `shared/modules/cache` abstraction, which was deleted. The live service-cache backend
+> is `apps/api/src/cache/cache.module.ts` (`CacheConfigModule` — in-memory via
+> `@nestjs/cache-manager`, TTL 300 s). The pattern is retained here for reference in case a
+> future Redis rollout re-introduces a service cache.
 
 Added XFetch (probabilistic early expiration):
 
@@ -887,7 +891,11 @@ No distributed cache invalidation — cache entries stale until TTL expiry. No e
 
 ### Fix
 
-**New file:** `apps/api/src/shared/modules/cache/cache-invalidation-bus.ts`
+> **Superseded (module removed 2026-08-08):** the `CacheInvalidationBus` example below lived in
+> the former `shared/modules/cache` abstraction, which was deleted. The live backend is
+> `apps/api/src/cache/cache.module.ts` (`CacheConfigModule`, in-memory); there is no
+> distributed invalidation bus in the current codebase. The pattern is retained for reference if
+> a future Redis rollout needs cross-pod invalidation.
 
 ```typescript
 @Injectable()

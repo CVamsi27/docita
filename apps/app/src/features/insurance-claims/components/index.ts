@@ -1,0 +1,1 @@
+export { PatientClaimsPanel } from "./PatientClaimsPanel";

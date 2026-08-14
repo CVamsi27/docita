@@ -1,0 +1,29 @@
+# Pre-push smoke check. Runs the cheap subset of verify:standard gates
+# that catch the regression classes we've already hit (jscpd clones,
+# missing i18n namespaces, broken gate wiring, raw buttons, error-boundary
+# coverage, zod parity) without paying the ~6min cost of the full suite.
+# CI runs the full suite — this hook exists to fail fast locally so a bad
+# commit doesn't get pushed and waste a CI run.
+#
+# The full `pnpm verify:standard` is still the project merge gate.
+# To bypass locally (e.g. for a hotfix), use `git push --no-verify`.
+#
+# Runtime budget: the checks below are grep/lexer-based and add ~1-2 s combined
+# on a warm cache (workflow-script-refs reads ~10 small yml + manifests;
+# jsx-escape-literals is a single pass over ~1k tsx/jsx files; api-conformance
+# and route-shadowing are single passes over ~100 controller/module files;
+# openai-client-singleton is a single grep pass over api/worker src).
+pnpm lint \
+  && pnpm check:duplication \
+  && pnpm check:standard-gate-wiring \
+  && pnpm check:api-conformance \
+  && pnpm check:route-shadowing \
+  && pnpm check:openai-client-singleton \
+  && pnpm check:workflow-script-refs \
+  && pnpm check:jsx-escape-literals \
+  && pnpm check:button-primitive --enforce \
+  && pnpm check:i18n-coverage --enforce \
+  && pnpm check:i18next-parity --enforce \
+  && pnpm check:error-boundary-coverage --enforce \
+  && pnpm check:zod-interface-parity --enforce \
+  && pnpm test:standards-checks

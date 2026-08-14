@@ -514,10 +514,10 @@ describe('StaffNotificationService', () => {
       expect(mockPrisma.staffNotification.create).toHaveBeenCalled();
     });
 
-    it('delivers invoice notifications for Front Desk operations tiers', async () => {
+    it('delivers invoice notifications for clinics on ESSENTIAL or above', async () => {
       mockPrisma.clinic.findUnique.mockResolvedValue({
         id: 'clinic-123',
-        tier: ClinicTier.FRONT_DESK,
+        tier: ClinicTier.ESSENTIAL,
         whatsappAutomation: { enabled: false },
       });
 
@@ -531,10 +531,10 @@ describe('StaffNotificationService', () => {
       expect(mockPrisma.staffNotification.create).toHaveBeenCalled();
     });
 
-    it('delivers payment provider updates for scaled Front Desk operations tiers', async () => {
+    it('delivers payment provider updates for clinics on PROFESSIONAL or above', async () => {
       mockPrisma.clinic.findUnique.mockResolvedValue({
         id: 'clinic-123',
-        tier: ClinicTier.FRONT_DESK_CLINIC,
+        tier: ClinicTier.PROFESSIONAL,
         whatsappAutomation: { enabled: false },
       });
 

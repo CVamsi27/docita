@@ -14,9 +14,7 @@ export function detectPaymentProviderFromWebhookHeaders(
   headers: Record<string, string>,
 ): PaymentProvider {
   for (const { headerKey, provider } of WEBHOOK_PROVIDER_DETECTORS) {
-    if (headers[headerKey]) {
-      return provider;
-    }
+    if (headers[headerKey]) return provider;
   }
 
   throw new Error('Unable to detect payment provider from webhook headers');

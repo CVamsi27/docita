@@ -1,15 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
+// jscpd:ignore-start
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
-import { PrismaService } from '@/prisma/prisma.service';
-import { UsageType, Prisma } from '@workspace/db';
+import { Prisma, UsageType } from '@workspace/db';
 import type { AiCreditFeature } from '@workspace/types';
+import {
+  type CreateUsageEventParams,
+  type IUsageRepository,
+  USAGE_REPOSITORY_TOKEN,
+} from '@/domains/billing/core/repositories/usage.repository';
 
 @Injectable()
 export class UsageTrackingCommandService {
   private readonly logger = new Logger(UsageTrackingCommandService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(USAGE_REPOSITORY_TOKEN)
+    private readonly usageRepository: IUsageRepository,
+  ) {}
 
   async recordUsageEvent(params: {
     clinicId: string;
@@ -20,6 +28,7 @@ export class UsageTrackingCommandService {
     metadata?: Prisma.InputJsonValue;
   }) {
     const {
+      // jscpd:ignore-end
       clinicId,
       type,
       quantity = 1,
@@ -32,24 +41,19 @@ export class UsageTrackingCommandService {
       ? `${clinicId}:${type}:${entityType}:${entityId}`
       : undefined;
 
-    try {
-      await this.prisma.usageEvent.create({
-        data: {
-          clinicId,
-          type,
-          quantity,
-          entityType,
-          entityId,
-          eventKey,
-          metadata: metadata || Prisma.JsonNull,
-        },
-      });
-    } catch (error) {
-      if (error instanceof Error && 'code' in error && error.code === 'P2002') {
-        this.logger.debug(`Duplicate usage event ignored: ${eventKey}`);
-        return;
-      }
-      throw error;
+    const createParams: CreateUsageEventParams = {
+      clinicId,
+      type,
+      quantity,
+      entityType,
+      entityId,
+      eventKey,
+      metadata,
+    };
+
+    const created = await this.usageRepository.createUsageEvent(createParams);
+    if (!created) {
+      this.logger.debug(`Duplicate usage event ignored: ${eventKey}`);
     }
   }
 

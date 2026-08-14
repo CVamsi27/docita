@@ -42,9 +42,8 @@ export class PublicBookingTokenService {
         !decoded.clinicId ||
         !decoded.patientId ||
         !decoded.phoneNumber
-      ) {
+      )
         throw new UnauthorizedException('Invalid booking verification');
-      }
       return decoded;
     } catch {
       throw new UnauthorizedException(

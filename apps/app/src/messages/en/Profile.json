@@ -1,0 +1,18 @@
+{
+  "pageTitle": "Profile",
+  "pageDescription": "Manage your profile and account settings",
+  "userPlaceholder": "Dr. User",
+  "emailPlaceholder": "doctor@clinic.com",
+  "sections": {
+    "personalInformation": "Personal Information",
+    "personalInformationDesc": "Name, email, phone",
+    "security": "Security",
+    "securityDesc": "Password, two-factor auth",
+    "notifications": "Notifications",
+    "notificationsDesc": "Email and push preferences",
+    "appearance": "Appearance",
+    "appearanceDesc": "Theme and display settings",
+    "devices": "Devices",
+    "devicesDesc": "Manage connected devices"
+  }
+}

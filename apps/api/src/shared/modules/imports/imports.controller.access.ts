@@ -27,10 +27,9 @@ export function assertDpdpAttestation(value: unknown): {
   noticeVersion: string;
 } {
   const parsed = dpdpBulkAttestationSchema.safeParse(value);
-  if (!parsed.success) {
+  if (!parsed.success)
     throw new BadRequestException(
       'DPDP consent attestation is required when importing patients',
     );
-  }
   return parsed.data;
 }

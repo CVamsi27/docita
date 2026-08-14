@@ -15,7 +15,7 @@ import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
-import { isDatabaseAuthError } from '@/shared/modules/auth/auth/auth-database.util';
+import { isDatabaseAuthError } from '@/shared/common/utils/is-database-auth-error';
 
 const APPOINTMENT_REMINDER_INCLUDE = {
   patient: {
@@ -97,18 +97,7 @@ export class ReminderSchedulerService {
         }
       });
     } catch (error) {
-      if (isDatabaseAuthError(error)) {
-        this.databaseAccessDisabled = true;
-        this.logger.warn(
-          'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
-        );
-        return;
-      }
-
-      this.logger.error(
-        'Reminder scheduler encountered an unexpected error',
-        error instanceof Error ? error.stack : String(error),
-      );
+      this.handleCronError(error, 'Reminder scheduler');
     }
   }
 
@@ -186,9 +175,7 @@ export class ReminderSchedulerService {
         const appointmentResults = await Promise.allSettled(
           appointments.map((appointment) => {
             const settings = settingsByClinicId.get(appointment.clinicId);
-            if (!settings) {
-              return Promise.resolve();
-            }
+            if (!settings) return Promise.resolve();
             return this.sendThirtyMinuteWhatsappReminder(
               appointment,
               settings,
@@ -206,19 +193,23 @@ export class ReminderSchedulerService {
         }
       });
     } catch (error) {
-      if (isDatabaseAuthError(error)) {
-        this.databaseAccessDisabled = true;
-        this.logger.warn(
-          'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
-        );
-        return;
-      }
-
-      this.logger.error(
-        '30-min reminder scheduler encountered an unexpected error',
-        error instanceof Error ? error.stack : String(error),
-      );
+      this.handleCronError(error, '30-min reminder scheduler');
     }
+  }
+
+  private handleCronError(error: unknown, context: string): void {
+    if (isDatabaseAuthError(error)) {
+      this.databaseAccessDisabled = true;
+      this.logger.warn(
+        'Disabling reminder scheduler due to database authentication failure. Verify DATABASE_URL credentials.',
+      );
+      return;
+    }
+
+    this.logger.error(
+      `${context} encountered an unexpected error`,
+      error instanceof Error ? error.stack : String(error),
+    );
   }
 
   private async processClinicHourlyReminders(
@@ -278,14 +269,35 @@ export class ReminderSchedulerService {
     }
   }
 
+  /**
+   * Shared by `sendHourlyAppointmentReminder` and
+   * `sendThirtyMinuteWhatsappReminder` — both dispatchers skip appointments
+   * a prior pass already reminded (tracked via the optional dedupe set), so
+   * the "already sent" check stays identical across both reminder cadences.
+   */
+  private reminderAlreadySent(
+    appointment: AppointmentForReminder,
+    existingReminderIds?: Set<string>,
+  ): boolean {
+    return existingReminderIds?.has(appointment.id) ?? false;
+  }
+
+  // The signature and dedupe guard below intentionally mirror
+  // `sendThirtyMinuteWhatsappReminder` — both are `Promise.allSettled` map
+  // callbacks driven by the same `(appointment, settings, existingReminderIds)`
+  // triple and must short-circuit on the same "already sent" check before
+  // their channel-specific dispatch logic (which differs substantially)
+  // begins. That's structural to the dispatcher pattern, not copy-paste drift.
+  // jscpd:ignore-start
   private async sendHourlyAppointmentReminder(
     appointment: AppointmentForReminder,
     settings: _ReminderSettings,
     existingReminderIds?: Set<string>,
   ): Promise<void> {
-    if (existingReminderIds?.has(appointment.id)) {
+    if (this.reminderAlreadySent(appointment, existingReminderIds)) {
       return;
     }
+    // jscpd:ignore-end
 
     if (settings.emailEnabled && appointment.patient.email) {
       await this.notificationService.sendEmailReminder(appointment, settings);
@@ -317,14 +329,18 @@ export class ReminderSchedulerService {
     }
   }
 
+  // See the jscpd note above `sendHourlyAppointmentReminder` for why this
+  // signature and guard intentionally mirror that method's.
+  // jscpd:ignore-start
   private async sendThirtyMinuteWhatsappReminder(
     appointment: AppointmentForReminder,
     settings: _ReminderSettings,
     existingReminderIds?: Set<string>,
   ): Promise<void> {
-    if (existingReminderIds?.has(appointment.id)) {
+    if (this.reminderAlreadySent(appointment, existingReminderIds)) {
       return;
     }
+    // jscpd:ignore-end
 
     if (
       appointment.patient.phoneNumber &&

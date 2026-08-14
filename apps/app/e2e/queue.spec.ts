@@ -1,4 +1,5 @@
-import { APIRequestContext, expect, test } from "@playwright/test";
+import type { APIRequestContext } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { z } from "zod";
 import {
   enqueuePdfJobResponseSchema,

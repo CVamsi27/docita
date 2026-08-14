@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { RequiresIdempotency } from '@/shared/modules/idempotency';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
-import { DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
+import { ConsentCommandService } from '@/shared/modules/compliance/consent-command.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import {
   APP_ACCESS_TARGETS,
@@ -33,6 +33,8 @@ import {
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
+import { RequirePolicy } from '@/shared/modules/auth/decorators/require-policy.decorator';
+import { EmergencyAccess } from '@/shared/modules/auth/decorators/emergency-access.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
@@ -54,7 +56,7 @@ import {
 export class PatientsController {
   constructor(
     private readonly patientService: PatientService,
-    private readonly dpdpService: DPDPComplianceService,
+    private readonly consentCommand: ConsentCommandService,
     private readonly auditService: AuditService,
   ) {}
 
@@ -94,23 +96,21 @@ export class PatientsController {
     @Body() body: CreatePatientDto,
   ) {
     const consent = body.dpdpConsent;
-    if (!consent || consent.accepted !== true) {
+    if (!consent || consent.accepted !== true)
       throw new BadRequestException(
         'DPDP consent is required to add a patient',
       );
-    }
-    if (consent.noticeVersion !== DPDP_NOTICE_VERSION) {
+    if (consent.noticeVersion !== DPDP_NOTICE_VERSION)
       throw new BadRequestException(
         'The DPDP notice has been updated. Please refresh and re-collect consent before saving.',
       );
-    }
 
     const { clinicId } = getClinicStaffRequestContext(req);
     const created = await this.patientService.createPatient(
       this.normalizeCreateBody(body, clinicId),
     );
 
-    await this.dpdpService.recordDpdpNoticeConsent({
+    await this.consentCommand.recordDpdpNoticeConsent({
       patientId: created.id,
       clinicId,
       noticeVersion: consent.noticeVersion,
@@ -161,6 +161,8 @@ export class PatientsController {
   }
 
   @Get(':id')
+  @RequirePolicy('patient', 'read')
+  @EmergencyAccess()
   @ApiOperation({ summary: 'Get patient by ID' })
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
     const patient = await this.patientService.getPatient(
@@ -172,6 +174,7 @@ export class PatientsController {
   }
 
   @Patch(':id')
+  @RequirePolicy('patient', 'update')
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_WRITE, 'write'))
   @ApiOperation({ summary: 'Update patient' })
   async update(

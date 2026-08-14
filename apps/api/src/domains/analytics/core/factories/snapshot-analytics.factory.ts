@@ -1,7 +1,10 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  ANALYTICS_PERSISTENCE_PORT,
+  type AnalyticsPersistencePort,
+} from '@/domains/analytics/application/ports/analytics-persistence.port';
 import { FinancialAnalyticsFactory } from './financial-analytics.factory';
 import { OperationalAnalyticsFactory } from './operational-analytics.factory';
 import { ClinicalAnalyticsFactory } from './clinical-analytics.factory';
@@ -34,7 +37,8 @@ export class SnapshotAnalyticsFactory {
   private readonly logger = new Logger(SnapshotAnalyticsFactory.name);
 
   constructor(
-    private prisma: PrismaService,
+    @Inject(ANALYTICS_PERSISTENCE_PORT)
+    private prisma: AnalyticsPersistencePort,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private financialFactory: FinancialAnalyticsFactory,
     private operationalFactory: OperationalAnalyticsFactory,
@@ -143,9 +147,7 @@ export class SnapshotAnalyticsFactory {
     try {
       const snapshots = await this.getAnalyticsSnapshots(clinicId, days);
 
-      if (snapshots.length === 0) {
-        return null;
-      }
+      if (snapshots.length === 0) return null;
 
       const latestSnapshot = snapshots[0];
       const oldestSnapshot = snapshots[snapshots.length - 1];

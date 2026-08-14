@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" suppressHydrationWarning>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Docita Internal Admin Dashboard" />
+    <title>Docita – Internal</title>
+    <script>
+      // Apply persisted appearance before first paint to avoid a flash of the
+      // wrong theme. Mirrors applyThemeToDOM in theme-provider.tsx; keep both
+      // in sync when the appearance model changes. Reads the legacy
+      // docita-theme key once so pre-cutover dark-mode users keep their
+      // preference (the provider migrates it to docita-internal-theme).
+      (function () {
+        try {
+          var theme =
+            localStorage.getItem("docita-internal-theme") ||
+            localStorage.getItem("docita-theme") ||
+            "system";
+          var dark =
+            theme === "dark" ||
+            (theme === "system" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", dark);
+          document.documentElement.setAttribute(
+            "data-theme",
+            dark ? "dark" : "light",
+          );
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen bg-background font-sans antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

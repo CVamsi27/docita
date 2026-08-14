@@ -19,9 +19,7 @@ export function docitaPublicPayUrl(token: string): string {
  */
 export function toWhatsAppUrlButtonToken(urlOrToken: string): string {
   const trimmed = urlOrToken.trim();
-  if (!trimmed) {
-    return trimmed;
-  }
+  if (!trimmed) return trimmed;
   if (!trimmed.includes('://') && !trimmed.includes('/')) {
     return trimmed;
   }

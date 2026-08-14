@@ -67,9 +67,7 @@ export class DoctorClinicsService {
       clinicId,
     );
 
-    if (!assignment) {
-      throw new NotFoundException('Assignment not found');
-    }
+    if (!assignment) throw new NotFoundException('Assignment not found');
 
     return this.doctorClinicsRepository.deactivateAssignment(assignment.id);
   }
@@ -88,9 +86,7 @@ export class DoctorClinicsService {
       clinicId,
     );
 
-    if (!assignment) {
-      throw new NotFoundException('Assignment not found');
-    }
+    if (!assignment) throw new NotFoundException('Assignment not found');
 
     return this.doctorClinicsRepository.updateAssignmentRole(
       assignment.id,

@@ -9,10 +9,8 @@ const repoRoot = process.cwd();
 const enforce = process.argv.includes("--enforce");
 
 const appRoots = [
-  "apps/app/lib",
-  "apps/app/features",
-  "apps/internal/lib",
-  "apps/internal/features",
+  "apps/app/src/features",
+  "apps/internal/src/features",
 ].filter((root) => fs.existsSync(path.join(repoRoot, root)));
 
 const packageTypeFiles = execSync("git ls-files packages/types/src", {
@@ -71,6 +69,25 @@ const appFiles = appRoots.flatMap((root) =>
 );
 
 const findings = [];
+const duplicatedEnumPatterns = [
+  {
+    label: "facility type enum",
+    pattern:
+      /z\.enum\(\s*\[\s*["']CLINIC["']\s*,\s*["']HOSPITAL["']\s*\]\s*\)/g,
+    canonical: "facilityTypeSchema from @workspace/types",
+  },
+  {
+    label: "facility type tuple",
+    pattern:
+      /readonly\s+\[\s*["']CLINIC["']\s*,\s*["']HOSPITAL["']\s*\]/g,
+    canonical: "typeof facilityTypeSchema.options",
+  },
+  {
+    label: "facility type union",
+    pattern: /["']CLINIC["']\s*\|\s*["']HOSPITAL["']/g,
+    canonical: "FacilityTypeType from @workspace/types",
+  },
+];
 
 for (const file of appFiles) {
   const absolutePath = path.join(repoRoot, file);
@@ -88,6 +105,17 @@ for (const file of appFiles) {
       name: declaration.name,
       matches: matches.map((match) => `${match.name} (${match.file})`),
     });
+  }
+  for (const rule of duplicatedEnumPatterns) {
+    for (const match of source.matchAll(rule.pattern)) {
+      const line = source.slice(0, match.index).split(/\r?\n/).length;
+      findings.push({
+        file,
+        line,
+        name: rule.label,
+        matches: [rule.canonical],
+      });
+    }
   }
 }
 

@@ -33,10 +33,14 @@ model User {
   registrationNumber         String?
   registrationCouncil        String?
   registrationStateCode      String?
+  hprId                      String?
   signatureUrl               String?
   signatureUploadedAt        DateTime?                @db.Timestamptz(3)
   bio                        String?
+  // Canonical money column — integer paise/cents. Prefer over the legacy
+  // `consultationFee` Float (kept for backward compatibility, additive-only).
   consultationFee            Float?
+  consultationFeeCents       Int?
   hospitalRole               HospitalRole?
   licenseExpiry              DateTime?                @db.Timestamptz(3)
   licenseNumber              String?
@@ -72,6 +76,10 @@ model User {
   onboardingStep             OnboardingStep?          @default(NOT_STARTED)
   onboardingStartedAt        DateTime?                @db.Timestamptz(3)
   onboardingCompletedAt      DateTime?                @db.Timestamptz(3)
+  guidedTourStatus           GuidedTourStatus         @default(NOT_STARTED)
+  guidedTourLastStep         Int                      @default(0)
+  guidedTourCompletedAt      DateTime?                @db.Timestamptz(3)
+  checklistDismissedAt       DateTime?                @db.Timestamptz(3)
   deletedAt                  DateTime?                @db.Timestamptz(3)
   labId                      String?
 
@@ -114,6 +122,7 @@ model User {
   lab                          Lab?                     @relation(fields: [labId], references: [id])
 
   @@index([clinicId])
+  @@index([hprId])
   @@index([specialization])
   @@index([clinicId, role, createdAt], map: "User_clinicId_role_createdAt_idx")
   @@index([verificationStatus])
@@ -339,6 +348,9 @@ model Patient {
   whatsappConversations       WhatsappConversation[]
   whatsappBroadcastRecipients WhatsAppBroadcastRecipient[]
   abhaAddress                 String?
+  abhaNumber                  String?
+  abhaKycName                 String?
+  abhaVerifiedAt              DateTime?                    @db.Timestamptz(3)
   deletedAt                   DateTime?                    @db.Timestamptz(3)
   medicalConditions           PatientMedicalCondition[]
   patientAllergies            PatientAllergy[]
@@ -358,6 +370,10 @@ model Patient {
   patientDoctors              PatientDoctor[]
   dataSubjectRequests         DataSubjectRequest[]
   insuranceClaims             InsuranceClaim[]
+  abdmCareContexts            AbdmCareContext[]
+  abdmTransactions            AbdmTransaction[]
+  abdmConsentRequests         AbdmConsentRequest[]
+  abdmExternalRecords         AbdmExternalRecord[]
 
   @@unique([clinicId, mrn], map: "Patient_clinicId_mrn_key")
   @@index([mrn])
@@ -630,6 +646,10 @@ model Appointment {
   /// @json:psychiatryExamDataSchema
   psychiatryExam          Json?
   encounterSummary        String?
+  advanceAmountCents      Int                   @default(0)
+  advancePaymentMethod    String?
+  advanceReference        String?
+  advanceNotes            String?
   clinic                  Clinic                @relation(fields: [clinicId], references: [id])
   doctor                  User                  @relation(fields: [doctorId], references: [id], onDelete: Restrict)
   patient                 Patient               @relation(fields: [patientId], references: [id], onDelete: Restrict)
@@ -785,6 +805,7 @@ model Medication {
   prescription    Prescription     @relation(fields: [prescriptionId], references: [id])
   medicationDoses MedicationDose[]
 
+  @@index([prescriptionId])
   @@index([ndcCode])
   @@index([rxNormCui])
   @@index([name])
@@ -843,16 +864,25 @@ model Invoice {
   invoiceNumber            String?
   invoiceType              String           @default("BILL_OF_SUPPLY")
   currency                 String           @default("INR")
+  // MONEY REPRESENTATION (schema-locked, additive-only):
+  // The `*Cents` integer columns below are the canonical money representation
+  // and MUST be read by new code. The legacy `Float` columns (total, subtotal,
+  // discountTotal, taxTotal, grandTotal) are retained for backward compatibility
+  // and are written as a derived mirror of the cents values
+  // (see invoice-normalization.ts toInvoiceCentCreateFields). Do not add new
+  // Float money columns; do not treat Float as the source of truth.
   total                    Float
   subtotal                 Float            @default(0)
   discountTotal            Float            @default(0)
   taxTotal                 Float            @default(0)
   grandTotal               Float            @default(0)
+  // Canonical money columns — integer paise/cents. Prefer these everywhere.
   totalCents               Int              @default(0)
   subtotalCents            Int              @default(0)
   discountTotalCents       Int              @default(0)
   taxTotalCents            Int              @default(0)
   grandTotalCents          Int              @default(0)
+  amountPaidCents          Int              @default(0)
   /// @json:invoiceTaxSummarySchema
   taxSummary               Json?
   /// @json:taxRegistrationSnapshotSchema
@@ -1154,8 +1184,7 @@ model Clinic {
   active                       Boolean                   @default(true)
   tier                         ClinicTier                @default(STARTER)
   /// Top-level Full/Front Desk/Core toggle paired with `tier`.
-  /// Legacy FRONT_DESK_* rows on `tier` ignore this column and are surfaced
-  /// as mode = FRONT_DESK by `mapDbClinicTierToTierAndMode`.
+  /// PlanMode.FRONT_DESK = reception/queue/billing; clinical features blocked.
   planMode                     PlanMode                  @default(FULL)
   type                         ClinicType                @default(GENERAL)
   /// @json:jsonObjectSchema
@@ -1190,6 +1219,8 @@ model Clinic {
   queueBufferMinutes           Int                       @default(10)
   useDoctorQueues              Boolean                   @default(false)
   mrnPrefix                    String?
+  abdmEnabled                  Boolean                   @default(false)
+  hfrFacilityId                String?
   razorpayCustomerId           String?
   referralCode                 String?                   @unique
   domain                       String?
@@ -1266,6 +1297,180 @@ model Clinic {
   inventoryMovements           InventoryMovement[]
   apiQuota                     ClinicApiQuota?
   insuranceClaims              InsuranceClaim[]
+  abdmCareContexts             AbdmCareContext[]
+  abdmTransactions             AbdmTransaction[]
+  abdmConsentRequests          AbdmConsentRequest[]
+  abdmExternalRecords          AbdmExternalRecord[]
+
+  @@index([hfrFacilityId])
+}
+
+model AbdmCareContext {
+  id              String                @id @default(cuid())
+  clinicId        String
+  patientId       String
+  sourceType      AbdmCareContextSource
+  sourceId        String
+  referenceNumber String
+  display         String
+  hiType          String
+  status          AbdmCareContextStatus @default(READY)
+  /// @json:jsonObjectSchema
+  fhirBundle      Json?
+  linkedAt        DateTime?             @db.Timestamptz(3)
+  lastSharedAt    DateTime?             @db.Timestamptz(3)
+  createdAt       DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime              @updatedAt @db.Timestamptz(3)
+
+  clinic       Clinic               @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient      Patient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  transactions AbdmTransaction[]
+  externalRows AbdmExternalRecord[]
+
+  @@unique([clinicId, sourceType, sourceId], map: "AbdmCareContext_clinic_source_key")
+  @@unique([clinicId, referenceNumber], map: "AbdmCareContext_clinic_ref_key")
+  @@index([clinicId, patientId])
+  @@index([clinicId, status])
+  @@index([patientId, createdAt])
+}
+
+model AbdmTransaction {
+  id            String                   @id @default(cuid())
+  clinicId      String
+  patientId     String?
+  careContextId String?
+  type          AbdmTransactionType
+  direction     AbdmTransactionDirection
+  status        AbdmTransactionStatus    @default(PENDING)
+  requestId     String?
+  transactionId String?
+  correlationId String?
+  /// @json:jsonObjectSchema
+  payload       Json?
+  error         String?
+  retryCount    Int                      @default(0)
+  nextRetryAt   DateTime?                @db.Timestamptz(3)
+  createdAt     DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime                 @updatedAt @db.Timestamptz(3)
+
+  clinic      Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient     Patient?         @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  careContext AbdmCareContext? @relation(fields: [careContextId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId, status, createdAt])
+  @@index([clinicId, type, createdAt])
+  @@index([requestId])
+  @@index([transactionId])
+  @@index([nextRetryAt])
+}
+
+model AbdmConsentRequest {
+  id          String                   @id @default(cuid())
+  clinicId    String
+  patientId   String
+  abhaAddress String
+  purposeCode String
+  purposeText String
+  status      AbdmConsentRequestStatus @default(DRAFT)
+  requestId   String?
+  consentId   String?
+  artefactId  String?
+  requestedAt DateTime?                @db.Timestamptz(3)
+  grantedAt   DateTime?                @db.Timestamptz(3)
+  expiresAt   DateTime?                @db.Timestamptz(3)
+  /// @json:jsonObjectSchema
+  rawArtifact Json?
+  createdAt   DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime                 @updatedAt @db.Timestamptz(3)
+
+  clinic          Clinic               @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient         Patient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  externalRecords AbdmExternalRecord[]
+
+  @@index([clinicId, patientId])
+  @@index([clinicId, status, createdAt])
+  @@index([requestId])
+  @@index([consentId])
+}
+
+model AbdmExternalRecord {
+  id                   String   @id @default(cuid())
+  clinicId             String
+  patientId            String
+  consentRequestId     String?
+  sourceHipId          String?
+  careContextReference String?
+  careContextId        String?
+  hiType               String
+  /// @json:jsonObjectSchema
+  fhirBundle           Json?
+  receivedAt           DateTime @default(now()) @db.Timestamptz(3)
+  createdAt            DateTime @default(now()) @db.Timestamptz(3)
+
+  clinic         Clinic              @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient        Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  consentRequest AbdmConsentRequest? @relation(fields: [consentRequestId], references: [id], onDelete: SetNull)
+  careContext    AbdmCareContext?    @relation(fields: [careContextId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId, patientId, receivedAt])
+  @@index([consentRequestId])
+  @@index([careContextReference])
+}
+
+enum AbdmCareContextSource {
+  OP_CONSULTATION
+  PRESCRIPTION
+  DIAGNOSTIC_REPORT
+  DISCHARGE_SUMMARY
+  HEALTH_DOCUMENT
+  INVOICE
+}
+
+enum AbdmCareContextStatus {
+  READY
+  LINK_REQUESTED
+  LINKED
+  SHARE_REQUESTED
+  SHARED
+  FAILED
+}
+
+enum AbdmTransactionType {
+  M1_ABHA_VERIFY
+  M2_GENERATE_CONTEXT
+  M2_LINK_CONTEXT
+  M2_DISCOVER_CALLBACK
+  M2_LINK_CALLBACK
+  M2_DATA_REQUEST
+  M2_DATA_PUSH
+  M2_NOTIFY
+  M3_CONSENT_REQUEST
+  M3_CONSENT_CALLBACK
+  M3_DATA_FETCH
+}
+
+enum AbdmTransactionDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
+enum AbdmTransactionStatus {
+  PENDING
+  ACKNOWLEDGED
+  SUCCEEDED
+  FAILED
+  RETRYABLE
+}
+
+enum AbdmConsentRequestStatus {
+  DRAFT
+  REQUESTED
+  GRANTED
+  DENIED
+  EXPIRED
+  REVOKED
+  FAILED
 }
 
 model ClinicSecret {
@@ -2157,23 +2362,27 @@ model QueueToken {
 }
 
 model InventoryItem {
-  id            String              @id @default(cuid())
-  clinicId      String
-  name          String
-  category      String
-  sku           String?
-  quantity      Int                 @default(0)
-  minQuantity   Int                 @default(10)
-  unit          String              @default("units")
-  purchasePrice Float?
-  sellingPrice  Float?
-  expiryDate    DateTime?           @db.Timestamptz(3)
-  batchNumber   String?
-  supplier      String?
-  active        Boolean             @default(true)
-  createdAt     DateTime            @default(now()) @db.Timestamptz(3)
-  updatedAt     DateTime            @updatedAt @db.Timestamptz(3)
-  movements     InventoryMovement[]
+  id                 String              @id @default(cuid())
+  clinicId           String
+  name               String
+  category           String
+  sku                String?
+  quantity           Int                 @default(0)
+  minQuantity        Int                 @default(10)
+  unit               String              @default("units")
+  // Canonical money columns — integer paise/cents. Prefer over the legacy
+  // purchasePrice / sellingPrice Floats (kept for backward compatibility).
+  purchasePrice      Float?
+  sellingPrice       Float?
+  purchasePriceCents Int?
+  sellingPriceCents  Int?
+  expiryDate         DateTime?           @db.Timestamptz(3)
+  batchNumber        String?
+  supplier           String?
+  active             Boolean             @default(true)
+  createdAt          DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime            @updatedAt @db.Timestamptz(3)
+  movements          InventoryMovement[]
 
   @@index([clinicId])
   @@index([clinicId, active])
@@ -2273,7 +2482,9 @@ model LabTest {
   code                   String?
   loincCode              String?
   category               String
+  // Canonical money column — integer paise/cents. Prefer over `price` Float.
   price                  Float?
+  priceCents             Int?
   description            String?
   referenceRangeLow      Float?
   referenceRangeHigh     Float?
@@ -2324,6 +2535,7 @@ model LabTestOrder {
   @@index([patientId])
   @@index([status])
   @@index([patientId, clinicId, status])
+  @@index([clinicId, status, createdAt])
   @@index([appointmentId], map: "LabTestOrder_appointmentId_idx")
   @@index([labId])
 }
@@ -2430,6 +2642,17 @@ enum OnboardingStep {
   CREATING_CLINIC
   JOINING_CLINIC
   COMPLETED
+}
+
+// Lifecycle of the post-onboarding guided experience (welcome tour) shown on
+// /today. NOT_STARTED → IN_PROGRESS once auto-started; COMPLETED/SKIPPED are
+// terminal and permanently suppress the auto-start. The getting-started
+// checklist is suppressed separately via User.checklistDismissedAt.
+enum GuidedTourStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
 }
 
 enum JoinRequestStatus {
@@ -2552,6 +2775,8 @@ enum ConsentType {
   BLOOD_TRANSFUSION
   VACCINATION
   DPDP_NOTICE
+  MARKETING
+  ANALYTICS
 }
 
 enum ConsentStatus {
@@ -2641,9 +2866,6 @@ enum ClinicTier {
   PROFESSIONAL
   HOSPITAL
   ENTERPRISE
-  FRONT_DESK
-  FRONT_DESK_CLINIC
-  FRONT_DESK_HOSPITAL
 }
 
 /// Top-level mode toggle that pairs with `ClinicTier` to produce a billed plan.
@@ -3483,7 +3705,9 @@ model SubscriptionReminder {
 
 model Referral {
   id               String  @id @default(cuid())
-  referrerClinicId String
+  /// Legacy clinic-to-clinic path. Nullable so the new partner path
+  /// (Referrer.code) can store a Referral with only `referrerId` set.
+  referrerClinicId String?
   referredClinicId String?
 
   referredEmail  String
@@ -3502,17 +3726,29 @@ model Referral {
   rejectedAt      DateTime? @db.Timestamptz(3)
   rejectionReason String?
 
+  /// Optional partner referrer (pharmacy / marketing / custom). Null for the
+  /// legacy clinic-to-clinic path, which uses referrerClinicId.
+  referrerId      String?
+  /// Referred clinic's paid activation — anchors the first-year accrual window.
+  activationAt    DateTime? @db.Timestamptz(3)
+  /// One-time guard: set once the reward lifecycle for this referred clinic is
+  /// closed; it can never be reopened (enforced in referral-reward.rules.ts).
+  rewardClaimedAt DateTime? @db.Timestamptz(3)
+
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  referrerClinic Clinic  @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
-  referredClinic Clinic? @relation("ReferredClinic", fields: [referredClinicId], references: [id])
+  referrerClinic Clinic?          @relation("ReferrerClinic", fields: [referrerClinicId], references: [id])
+  referredClinic Clinic?          @relation("ReferredClinic", fields: [referredClinicId], references: [id])
+  referrer       Referrer?        @relation(fields: [referrerId], references: [id])
+  payouts        ReferralPayout[]
 
   @@index([referrerClinicId])
   @@index([referredClinicId])
   @@index([referredEmail])
   @@index([referralCode])
   @@index([status])
+  @@index([referrerId])
 }
 
 model ReferralCredit {
@@ -3531,6 +3767,169 @@ model ReferralCredit {
 
   @@index([clinicId])
   @@index([referralId])
+}
+
+/// A referral partner. CLINIC referrers earn free-month credits; PHARMACY /
+/// MARKETING_PERSON / CUSTOM earn cash revenue-share of the referred clinic's
+/// first-year billing. Terms are stored as JSON so per-referrer overrides are
+/// possible without a schema change (see referral-reward.rules.ts).
+model Referrer {
+  id            String             @id @default(cuid())
+  type          ReferrerType
+  rewardKind    ReferrerRewardKind
+  name          String
+  email         String?
+  phone         String?
+  /// Set when type = CLINIC (the referring clinic).
+  clinicId      String?
+  /// @json:referrerRateBandsJsonSchema
+  rateBands     Json?
+  /// @json:referrerCreditConfigJsonSchema
+  creditConfig  Json?
+  /// @json:referrerPayoutDetailsJsonSchema
+  payoutDetails Json?
+  firstYearOnly Boolean            @default(true)
+  active        Boolean            @default(true)
+  /// Human-shareable code (`RFR-XXXXXX`). Nullable for legacy rows that
+  /// pre-date the self-service portal; backfilled by
+  /// `scripts/db/backfill-referrer-codes.ts` after migration.
+  code          String?            @unique
+  /// Last successful welcome send (welcome message + showcase PDF + login).
+  welcomeSentAt DateTime?          @db.Timestamptz(3)
+  /// Last welcome-send error message (operator-visible on the internal page).
+  welcomeError  String?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  referrals    Referral[]
+  payouts      ReferralPayout[]
+  payoutDetail ReferrerPayoutDetails?
+  messages     ReferrerMessage[]
+
+  @@index([type])
+  @@index([clinicId])
+  @@index([active])
+}
+
+/// Banking / payout details for a referral partner. Holds AES-GCM encrypted
+/// IFSC + account number (and optional PAN) keyed off `ENCRYPTION_KEY`.
+/// Plaintext last-4 + IFSC are stored for operator-visible audit and display
+/// without round-tripping decryption on every read.
+/// Banking / payout details for a referral partner. Holds AES-GCM encrypted
+/// IFSC + account number (and optional PAN) keyed off `ENCRYPTION_KEY`.
+/// Plaintext last-4 + IFSC are stored for operator-visible audit and display
+/// without round-tripping decryption on every read.
+///
+/// Encrypted fields are stored as text in the `version:iv:authTag:ciphertext`
+/// format produced by `EncryptionService.encrypt` (so the existing service
+/// works without a second encryption path) — `version` lets us rotate
+/// keys without losing the ability to decrypt old rows.
+model ReferrerPayoutDetails {
+  id                 String    @id @default(cuid())
+  referrerId         String    @unique
+  accountHolder      String
+  /// AES-GCM ciphertext of the account number, in
+  /// `version:iv:authTag:ciphertext` form (see EncryptionService.encrypt).
+  accountNumberEnc   String
+  /// Last 4 digits of the account number (plaintext, for display + audit).
+  accountNumberLast4 String
+  /// AES-GCM ciphertext of the IFSC code. IFSC is 11 chars and needed
+  /// plaintext for payouts, so the plaintext IFSC is also stored below.
+  ifscEnc            String
+  ifscPlain          String
+  bankName           String
+  upiId              String?
+  /// AES-GCM ciphertext of PAN (optional).
+  panEnc             String?
+  panLast4           String?
+  /// Operator toggles this after manually verifying the bank details.
+  verified           Boolean   @default(false)
+  verifiedByAdminId  String?
+  verifiedAt         DateTime? @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  referrer Referrer @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+
+  @@index([verified])
+}
+
+/// Audit log of every WhatsApp message rendered and sent to a referral
+/// partner. Operator resends (and the original welcome send) are all logged
+/// here. Idempotent: the welcome pipeline can re-run without creating
+/// duplicate `WELCOME` rows because the trigger source is part of the kind.
+model ReferrerMessage {
+  id           String                @id @default(cuid())
+  referrerId   String
+  kind         ReferrerMessageKind
+  channel      String                @default("whatsapp")
+  /// WhatsApp template name (e.g. `partner_welcome_v1`).
+  template     String
+  status       ReferrerMessageStatus @default(QUEUED)
+  /// External id from the WhatsApp Business API (e.g. `wamid.*`).
+  externalId   String?
+  /// Last error message (set when status = FAILED).
+  errorMessage String?
+  /// Rendered body (placeholders resolved). Stored for audit and for the
+  /// operator UI to show what was actually sent. PII redacted in this row —
+  /// we keep the partner name, code, and URLs only.
+  /// @json:referrerMessagePayloadSchema
+  payload      Json
+
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  sentAt    DateTime? @db.Timestamptz(3)
+
+  referrer Referrer @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId, createdAt])
+  @@index([status])
+}
+
+/// OTP challenges for the partner self-service portal. One row per active
+/// OTP; older rows for the same phone are invalidated on a new request.
+/// `attempts` is incremented atomically by the repository on each verify
+/// so a concurrent brute-force cannot bypass the cap.
+model PartnerOtpChallenge {
+  id        String    @id @default(cuid())
+  phone     String
+  otpHash   String
+  expiresAt DateTime  @db.Timestamptz(3)
+  usedAt    DateTime? @db.Timestamptz(3)
+  attempts  Int       @default(0)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([phone, expiresAt])
+}
+
+/// Idempotent revenue-share accrual ledger for one referred clinic + billing
+/// period. `@@unique([referralId, periodStart])` guarantees a scheduler re-run
+/// never double-pays. Disbursed manually (status -> PAID) from the internal app.
+model ReferralPayout {
+  id         String @id @default(cuid())
+  referralId String
+  referrerId String
+
+  periodStart DateTime @db.Timestamptz(3)
+  periodEnd   DateTime @db.Timestamptz(3)
+
+  baseRevenueCents Int
+  ratePercent      Int
+  amountCents      Int
+
+  status ReferralPayoutStatus @default(PENDING)
+  paidAt DateTime?            @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  referral Referral @relation(fields: [referralId], references: [id])
+  referrer Referrer @relation(fields: [referrerId], references: [id])
+
+  @@unique([referralId, periodStart])
+  @@index([referrerId])
+  @@index([status])
 }
 
 model DeviceToken {
@@ -3762,6 +4161,37 @@ enum ReferralStatus {
   EXPIRED
 }
 
+enum ReferrerType {
+  CLINIC
+  PHARMACY
+  MARKETING_PERSON
+  CUSTOM
+}
+
+enum ReferrerRewardKind {
+  CREDIT_MONTHS
+  REVENUE_SHARE
+}
+
+enum ReferralPayoutStatus {
+  PENDING
+  APPROVED
+  PAID
+  VOID
+}
+
+enum ReferrerMessageKind {
+  WELCOME
+  RESEND_WELCOME
+  PAYOUT_NOTICE
+}
+
+enum ReferrerMessageStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
 model Ward {
   id          String   @id @default(cuid())
   name        String
@@ -3778,17 +4208,19 @@ model Ward {
 }
 
 model Room {
-  id         String   @id @default(cuid())
-  wardId     String
-  clinicId   String?
-  roomNumber String
-  type       String?
-  charges    Float    @default(0)
-  createdAt  DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
-  clinic     Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)
-  ward       Ward     @relation(fields: [wardId], references: [id], onDelete: Cascade)
-  beds       Bed[]
+  id           String   @id @default(cuid())
+  wardId       String
+  clinicId     String?
+  roomNumber   String
+  type         String?
+  // Canonical money column — integer paise/cents. Prefer over `charges` Float.
+  charges      Float    @default(0)
+  chargesCents Int      @default(0)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+  clinic       Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)
+  ward         Ward     @relation(fields: [wardId], references: [id], onDelete: Cascade)
+  beds         Bed[]
 
   @@index([wardId])
   @@index([clinicId])
@@ -4424,6 +4856,32 @@ enum EmailSuppressionReason {
   SOFT_BOUNCE
   COMPLAINT
   UNSUBSCRIBE
+}
+
+/// Append-only ledger of every action issued through the internal portal's
+/// "Database Control" page (Stop/Start/Snapshot/Delete/Restore). The table
+/// lives in the same DB it controls — after a Delete+Restore, the table is
+/// empty until the next migration, which is accepted: the AWS event log +
+/// CloudTrail remain the source of truth across DB lifecycle events.
+model DatabaseControlAction {
+  id           String    @id @default(cuid())
+  action       String // STOP | START | CREATE_SNAPSHOT | DELETE | RESTORE
+  status       String // SUCCESS | FAILED | IN_PROGRESS
+  reason       String
+  actorUserId  String
+  actorEmail   String
+  snapshotId   String?
+  awsRequestId String?
+  errorMessage String?
+  /// @json:jsonObjectSchema
+  metadata     Json?
+  startedAt    DateTime  @default(now()) @db.Timestamptz(3)
+  completedAt  DateTime? @db.Timestamptz(3)
+
+  @@index([startedAt])
+  @@index([action, startedAt])
+  @@index([status, startedAt])
+  @@map("database_control_actions")
 }
 
 /// Addresses we must not email again (hard bounces, spam complaints,

@@ -1,0 +1,36 @@
+{
+  "UiContractVisualTest": {
+    "pageTitle": "रोगी कार्यस्थल",
+    "pageSubtitle": "एक सुसंगत पृष्ठ ढाँचा और शीर्षक उपचार",
+    "newEntryButton": "नई प्रविष्टि",
+    "todayTitle": "आज",
+    "todayBody": "{count} अपॉइंटमेंट शेड्यूल किए गए",
+    "queueTitle": "कतार",
+    "queueBody": "{count, plural, one {1 रोगी प्रतीक्षारत} other {{count} रोगी प्रतीक्षारत}}",
+    "loadingTitle": "लोड हो रहा है",
+    "loadingMessage": "अपॉइंटमेंट डेटा लोड हो रहा है…",
+    "emptyTitle": "खाली स्थिति",
+    "emptyStateTitle": "कोई अपॉइंटमेंट नहीं मिला",
+    "emptyStateDescription": "नए अपॉइंटमेंट यहाँ दिखाई देंगे",
+    "emptyAction": "शेड्यूल करें",
+    "errorTitle": "त्रुटि स्थिति",
+    "errorMessage": "हम यह डैशबोर्ड दृश्य लोड नहीं कर सके। कृपया पुनः प्रयास करें।",
+    "interactiveCardTitle": "इंटरैक्टिव कार्ड वेरिएंट",
+    "interactiveCardBody": "यह कार्ड ऑप्ट-इन अन्तरक्रियाशीलता का उपयोग करता है।",
+    "inlineAlertLabel": "इनलाइन अलर्ट शैली संदर्भ"
+  },
+  "visualTest": {
+    "title": "विज़ुअल टेस्ट",
+    "fixtureTitle": "फिक्स्चर",
+    "none": "कोई चयन नहीं",
+    "description": "दृश्य समीक्षा के लिए UI फिक्स्चर को अलगाव में रेंडर करें।",
+    "backToDashboard": "डैशबोर्ड पर वापस जाएं"
+  },
+  "e2eSeed": {
+    "title": "E2E सत्र सीड",
+    "description": "एंड-टू-एंड स्वचालन के लिए एक परीक्षण सत्र सीड करें।",
+    "cancel": "रद्द करें",
+    "seedButton": "सत्र सीड करें",
+    "seeded": "सीड हो गया"
+  }
+}

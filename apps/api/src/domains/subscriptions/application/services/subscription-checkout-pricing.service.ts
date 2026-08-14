@@ -8,7 +8,7 @@ import {
   BillingCycle,
 } from '@/domains/subscriptions/core/value-objects';
 
-export type SubscriptionCheckoutPricingBreakdown = {
+type SubscriptionCheckoutPricingBreakdown = {
   currentTier: string | null;
   currentCycle: string | null;
   newTier: string;
@@ -32,13 +32,9 @@ export function finalizePayableAmountPaise(
   rawFinalPaise: number,
   currencyCode: string,
 ): number {
-  if (rawFinalPaise <= 0) {
-    return 0;
-  }
+  if (rawFinalPaise <= 0) return 0;
   const upper = currencyCode.toUpperCase();
-  if (upper === 'INR' && rawFinalPaise < 100) {
-    return 100;
-  }
+  if (upper === 'INR' && rawFinalPaise < 100) return 100;
   return rawFinalPaise;
 }
 

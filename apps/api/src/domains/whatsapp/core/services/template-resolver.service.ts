@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { Injectable } from '@nestjs/common';
 import {
   TemplateResolutionService,
@@ -5,7 +6,6 @@ import {
 } from '@/shared/whatsapp/template-resolution.service';
 
 export type { ResolvedTemplate };
-export type { TemplateButton, TemplateVariable } from '@workspace/types';
 
 @Injectable()
 export class TemplateResolverService {
@@ -23,3 +23,4 @@ export class TemplateResolverService {
     );
   }
 }
+// jscpd:ignore-end

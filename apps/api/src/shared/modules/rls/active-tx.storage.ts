@@ -16,19 +16,11 @@ type Tx = Prisma.TransactionClient;
  * extension can temporarily clear `tx` (set it to `null`) on the
  * nested call without losing the outer reference for sibling queries.
  */
-export interface ActiveTxStore {
+interface ActiveTxStore {
   tx: Tx | null;
 }
 
 export const activeTxStorage = new AsyncLocalStorage<ActiveTxStore>();
-
-/**
- * Returns the currently active RLS-scoped transaction client, if any.
- * The extension uses this to decide whether to re-route a query.
- */
-export function getActiveTx(): Tx | null {
-  return activeTxStorage.getStore()?.tx ?? null;
-}
 
 /**
  * Runs `fn` with `tx` published as the active RLS-scoped transaction.
@@ -46,9 +38,7 @@ export function runWithActiveTx<T>(tx: Tx, fn: () => Promise<T>): Promise<T> {
  */
 export async function runOutsideActiveTx<T>(fn: () => Promise<T>): Promise<T> {
   const store = activeTxStorage.getStore();
-  if (!store?.tx) {
-    return fn();
-  }
+  if (!store?.tx) return fn();
   const previousTx = store.tx;
   store.tx = null;
   try {

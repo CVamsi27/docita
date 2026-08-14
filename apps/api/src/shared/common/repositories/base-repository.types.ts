@@ -8,7 +8,7 @@ export interface PaginatedResult<T> {
   items: T[];
   hasMore: boolean;
   nextCursor?: string;
-  count?: number;
+  count: number;
 }
 
 export interface WhereClauseOptions {
@@ -28,9 +28,7 @@ export type RepositoryModelDelegate = {
 export function isRepositoryModelDelegate(
   value: unknown,
 ): value is RepositoryModelDelegate {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
+  if (!value || typeof value !== 'object') return false;
 
   return (
     'findMany' in value &&

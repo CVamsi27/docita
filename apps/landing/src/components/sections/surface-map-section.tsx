@@ -1,34 +1,9 @@
 "use client";
 
-import {
-  Activity,
-  BedDouble,
-  Boxes,
-  CalendarClock,
-  CalendarDays,
-  ClipboardList,
-  FileInput,
-  Files,
-  FlaskConical,
-  type LucideIcon,
-  MessageCircle,
-  Pill,
-  Receipt,
-  ScanText,
-  ShieldCheck,
-  SmilePlus,
-  Sparkles,
-  Stethoscope,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { Activity, BedDouble, BookOpen, Boxes, CalendarClock, CalendarDays, ClipboardList, FileInput, Files, FlaskConical, HeartPulse, type LucideIcon, MessageCircle, Pill, Receipt, ScanText, ShieldCheck, ShieldPlus, SmilePlus, Sparkles, Stethoscope, TrendingUp, Users } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
-import {
-  landingFadeUpVariants,
-  landingInViewViewport,
-  landingStaggerContainer,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
 
 interface SurfaceItem {
   label: string;
@@ -73,13 +48,16 @@ const COLUMNS: SurfaceColumn[] = [
   },
   {
     role: "Admin",
-    title: "Run the clinic, not a tab graveyard",
+    title: "Run the practice, not a tab graveyard",
     description:
-      "Multi-doctor, multi-location, billing, inventory, analytics, audit, and IPD beds — without leaving Docita.",
+      "Multi-doctor, multi-location billing, insurance, daybook, inventory, reports, audit, ABDM, and IPD beds — without leaving Docita.",
     items: [
       { label: "Invoices & payments", icon: Receipt },
+      { label: "Insurance claims", icon: ShieldPlus },
+      { label: "Daybook & day-close", icon: BookOpen },
       { label: "Inventory", icon: Boxes },
-      { label: "Analytics", icon: TrendingUp },
+      { label: "Reports & analytics", icon: TrendingUp },
+      { label: "ABDM / ABHA (coming soon)", icon: HeartPulse },
       { label: "IPD bed management", icon: BedDouble },
       { label: "Audit & roles", icon: ShieldCheck },
       { label: "Imports (Excel · OCR)", icon: FileInput },
@@ -109,7 +87,7 @@ export function SurfaceMapSection() {
     >
       <div className="ui-page-shell">
         <div className="flex items-center gap-3">
-          <span className="r2-eyebrow">Built for the whole clinic</span>
+          <span className="r2-eyebrow">Built for the whole practice</span>
         </div>
 
         <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-end lg:gap-12">
@@ -118,10 +96,10 @@ export function SurfaceMapSection() {
             className="max-w-3xl r2-display-sm text-foreground"
           >
             Reception, doctor, admin&mdash;
-            <em>and your patients</em>&mdash;all on the same layer.
+            <em>and your patients</em>&mdash;all on one platform.
           </h2>
           <p className="max-w-md text-base leading-relaxed text-muted-foreground">
-            Most clinic stacks ship one role and bolt on the rest. Docita is
+            Most practice stacks ship one role and bolt on the rest. Docita is
             built role-first, with deep surfaces for each side of the desk.
           </p>
         </div>

@@ -18,6 +18,11 @@ import {
   parseDosesPerDay,
   parseDurationDays,
 } from '@/domains/patients/core/domain-services/medication-dose.rules';
+import {
+  buildScheduledDoses,
+  chunkDoseDrafts,
+  DOSE_INSERT_BATCH_SIZE,
+} from '@/domains/patients/core/domain-services/medication-dose-schedule.rules';
 import { verifyMedicationDosePatientAccess } from './medication-dose-access.helpers';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
@@ -55,20 +60,32 @@ export class MedicationDoseCommandService {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
-  async recordDose(clinicId: string, patientId: string, dto: RecordDoseDto) {
+  private async verifyMedicationAccess(
+    clinicId: string,
+    patientId: string,
+    medicationId: string,
+  ) {
     await verifyMedicationDosePatientAccess(
       this.repository,
       clinicId,
       patientId,
     );
 
-    const medication = await this.repository.findMedicationWithPrescription(
+    const medication =
+      await this.repository.findMedicationWithPrescription(medicationId);
+
+    if (!medication || medication.prescription.patientId !== patientId)
+      throw new NotFoundException('Medication not found for this patient');
+
+    return medication;
+  }
+
+  async recordDose(clinicId: string, patientId: string, dto: RecordDoseDto) {
+    const medication = await this.verifyMedicationAccess(
+      clinicId,
+      patientId,
       dto.medicationId,
     );
-
-    if (!medication || medication.prescription.patientId !== patientId) {
-      throw new NotFoundException('Medication not found for this patient');
-    }
 
     return this.repository.createDose({
       medicationId: dto.medicationId,
@@ -89,25 +106,16 @@ export class MedicationDoseCommandService {
     dto: RecordAdHocDoseDto,
     source: MedicationDoseSource = 'PATIENT_REPORTED',
   ) {
-    await verifyMedicationDosePatientAccess(
-      this.repository,
+    const medication = await this.verifyMedicationAccess(
       clinicId,
       patientId,
-    );
-
-    const medication = await this.repository.findMedicationWithPrescription(
       dto.medicationId,
     );
 
-    if (!medication || medication.prescription.patientId !== patientId) {
-      throw new NotFoundException('Medication not found for this patient');
-    }
-
-    if (!medication.isPRN) {
+    if (!medication.isPRN)
       throw new BadRequestException(
         'Ad-hoc dose recording is only available for PRN (as-needed) medications',
       );
-    }
 
     if (medication.prnMaxDose && dto.doseAmount) {
       this.logger.log(
@@ -143,15 +151,12 @@ export class MedicationDoseCommandService {
       clinicId,
     );
 
-    if (!dose) {
-      throw new NotFoundException('Medication dose not found');
-    }
+    if (!dose) throw new NotFoundException('Medication dose not found');
 
-    if (dto.version !== undefined && dose.version !== dto.version) {
+    if (dto.version !== undefined && dose.version !== dto.version)
       throw new BadRequestException(
         'Medication dose has changed. Refresh and try again.',
       );
-    }
 
     const data: Prisma.MedicationDoseUpdateInput = {};
     if (dto.status !== undefined) data.status = dto.status;
@@ -175,12 +180,9 @@ export class MedicationDoseCommandService {
       patientId,
     );
 
-    if (!prescription) {
-      throw new NotFoundException('Prescription not found');
-    }
-
+    if (!prescription) throw new NotFoundException('Prescription not found');
     const created: string[] = [];
-
+    const truncatedMedicationIds: string[] = [];
     for (const med of prescription.medications) {
       if (med.isPRN) continue;
 
@@ -191,43 +193,25 @@ export class MedicationDoseCommandService {
       if (!durationDays) continue;
 
       const startDate = med.startDate ?? prescription.date;
-      const doses: Array<{
-        scheduledAt: Date;
-        medicationId: string;
-        patientId: string;
-        clinicId: string;
-        prescriptionId: string;
-        status: MedicationDoseStatus;
-        source: MedicationDoseSource;
-      }> = [];
+      const { doses, truncated } = buildScheduledDoses({
+        startDate,
+        durationDays,
+        dosesPerDay,
+        medicationId: med.id,
+        patientId,
+        clinicId,
+        prescriptionId,
+      });
 
-      const intervalHours = 24 / dosesPerDay;
+      if (doses.length === 0) continue;
 
-      for (let day = 0; day < durationDays; day++) {
-        for (let dose = 0; dose < dosesPerDay; dose++) {
-          const scheduledAt = new Date(startDate);
-          scheduledAt.setDate(scheduledAt.getDate() + day);
-          scheduledAt.setHours(
-            scheduledAt.getHours() + Math.round(dose * intervalHours),
-          );
-          doses.push({
-            scheduledAt,
-            medicationId: med.id,
-            patientId,
-            clinicId,
-            prescriptionId,
-            status: 'PENDING',
-            source: 'SYSTEM_GENERATED',
-          });
-        }
+      for (const batch of chunkDoseDrafts(doses, DOSE_INSERT_BATCH_SIZE)) {
+        await this.repository.createManyDoses(batch);
       }
 
-      if (doses.length > 0 && doses.length <= 500) {
-        await this.repository.createManyDoses(doses);
-        created.push(med.id);
-      }
+      created.push(med.id);
+      if (truncated) truncatedMedicationIds.push(med.id);
     }
-
-    return { medicationsProcessed: created.length };
+    return { medicationsProcessed: created.length, truncatedMedicationIds };
   }
 }

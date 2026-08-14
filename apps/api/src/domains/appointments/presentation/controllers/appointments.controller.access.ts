@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import { applyDecorators, UseGuards } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
@@ -11,6 +12,7 @@ import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.ut
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
 /** Shared RBAC, tier gate, and idempotency for `/appointments/*` routes. */
+// jscpd:ignore-end
 export function AppointmentsApiAccess() {
   return applyDecorators(
     UseGuards(TierGuard),

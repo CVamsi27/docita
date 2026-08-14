@@ -250,5 +250,12 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
     availability: "PLANNED",
     comingSoon: true,
   },
+  [Feature.ABDM_INTEGRATION]: {
+    name: "ABHA / ABDM",
+    description:
+      "Capture and link patient ABHA (Ayushman Bharat Health Account) addresses",
+    availability: "PLANNED",
+    comingSoon: true,
+  },
 };
 

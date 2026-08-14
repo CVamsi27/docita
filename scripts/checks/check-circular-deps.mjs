@@ -6,7 +6,7 @@
  * Rationale: §15 of AGENTS.md codifies layering invariants but does not directly
  * catch import cycles (a -> b -> a) that can sneak in via barrel files or DI
  * tokens. Cycles cause NestJS providers to resolve as `undefined`, force
- * `forwardRef()` workarounds, and break tree-shaking on the Next.js apps.
+ * `forwardRef()` workarounds, and break tree-shaking in the Vite apps.
  *
  * Implementation: shells out to `madge --circular --json` for each project root
  * with its own tsconfig so path aliases (`@/...`, `@workspace/...`) resolve
@@ -51,14 +51,13 @@ const projects = [
     label: "apps/app",
     entry: "apps/app",
     tsconfig: "apps/app/tsconfig.json",
-    // Skip Next.js build output and Cloudflare worker shims.
-    exclude: "^(\\.next|\\.open-next|public)/",
+    exclude: "^(build|dist|public)/",
   },
   {
     label: "apps/internal",
     entry: "apps/internal",
     tsconfig: "apps/internal/tsconfig.json",
-    exclude: "^(\\.next|\\.open-next|public)/",
+    exclude: "^(build|dist|public)/",
   },
   {
     label: "packages/data-access",
@@ -110,6 +109,20 @@ const KNOWN_CYCLES = new Set([
   // Worker scans the same files through `../../api/src/...` paths.
   "../../api/src/domains/clinics/clinics.module.ts -> ../../api/src/shared/modules/auth/auth/auth.module.ts",
   "../../api/src/domains/whatsapp/whatsapp-clinic.module.ts -> ../../api/src/shared/modules/support-whatsapp/index.ts -> ../../api/src/shared/modules/support-whatsapp/support-whatsapp.module.ts",
+  // consultation-dashboard-helpers re-exports `buildDoctorNowNext` from
+  // consultation-doctor-now-next, which imports the DashboardAppointment /
+  // DoctorNextUpRow types and `buildQueueNextUpRow` from the helpers module.
+  // Both are value/type-only and resolve at compile time; resolution order
+  // works because TypeScript handles type-only cycles gracefully. Splitting
+  // the types into a third file would add noise without changing the
+  // runtime shape, so we accept this cycle.
+  "features/consultation/hooks/consultation-dashboard-helpers.ts -> features/consultation/hooks/consultation-doctor-now-next.ts",
+  // today-page-content-sections lazy-loads today-right-rail (React.lazy
+  // import) and today-right-rail imports the TodayRightRailSection type
+  // from today-page-content-sections. Type-only cycle; React.lazy
+  // resolution is independent. Splitting types would fragment the section
+  // vocabulary without runtime benefit.
+  "features/dashboard/components/today/today-page-content-sections.tsx -> features/dashboard/components/today/today-right-rail.tsx",
 ]);
 
 /** Rotate cycle so it starts at the lexicographically smallest entry. */

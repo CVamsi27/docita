@@ -154,4 +154,18 @@ describe('DoctorsQueryService', () => {
       );
     });
   });
+
+  describe('getAvailableSpecializations', () => {
+    it('offers only the active specialization set, not legacy enum values', () => {
+      const options = service.getAvailableSpecializations();
+      const values = options.map((o) => o.value);
+
+      // Active set (packages/types ACTIVE_SPECIALIZATIONS) — 10 values.
+      expect(values).toContain('CARDIOLOGY');
+      expect(values).toContain('GENERAL_PRACTICE');
+      expect(values.length).toBe(10);
+      // Every option carries a human label.
+      expect(options.every((o) => o.label.length > 0)).toBe(true);
+    });
+  });
 });

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { OCRService } from './ocr.service';
+import { OCRFacadeService as OCRService } from './ocr-facade.service';
 import { ImagePreprocessorService } from './image-preprocessor.service';
 import { TextExtractorService } from './text-extractor.service';
 import { DocumentClassifierService } from './document-classifier.service';
@@ -90,9 +90,6 @@ describe('OCRService', () => {
           preferredName: '',
           pronouns: '',
           address: '123 Main St, Anytown',
-          race: '',
-          ethnicity: '',
-          maritalStatus: '',
           preferredLanguage: '',
           age: '45',
           gender: 'MALE',

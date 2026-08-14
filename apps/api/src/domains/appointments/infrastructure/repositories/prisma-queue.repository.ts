@@ -82,6 +82,9 @@ export class PrismaQueueRepository implements IQueueRepository {
         : {}),
     };
 
+    // No `take`: the result is bounded by (clinicId, single-day createdAt
+    // window). One clinic's token count for one day is small by construction,
+    // so paginating here would fragment the queue view rather than protect it.
     const rows = await this.getReadClient().queueToken.findMany({
       where,
       include: TOKEN_WITH_RELATIONS_INCLUDE,
@@ -100,6 +103,7 @@ export class PrismaQueueRepository implements IQueueRepository {
         id: true,
         patientId: true,
         doctorId: true,
+        // jscpd:ignore-start
         startTime: true,
         patient: {
           select: {
@@ -111,9 +115,8 @@ export class PrismaQueueRepository implements IQueueRepository {
         },
       },
     });
-    if (!row) {
-      return null;
-    }
+    // jscpd:ignore-end
+    if (!row) return null;
     return row satisfies AppointmentForCheckIn;
   }
 

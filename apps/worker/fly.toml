@@ -1,5 +1,8 @@
 app = 'docita-worker'
-primary_region = 'bom'
+# Production worker primary region. Was 'bom' (Mumbai) until 2026-07-29 when
+# Fly shelved bom capacity; shifted to 'sin' (Singapore) in lockstep with the
+# API. Keep this in sync with /fly.toml.
+primary_region = 'sin'
 
 [build]
   dockerfile = 'Dockerfile'
@@ -16,23 +19,6 @@ primary_region = 'bom'
   QUEUE_BACKEND = 'postgres'
   STORAGE_PROVIDER = 'r2'
   ENABLE_SCHEDULERS = 'true'
-
-[[services]]
-  internal_port = 3000
-  protocol = 'tcp'
-
-  [[services.ports]]
-    port = 3000
-
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 25
-    soft_limit = 20
-
-  [[services.tcp_checks]]
-    interval = '15s'
-    timeout = '5s'
-    grace_period = '60s'
 
 [[vm]]
   memory = '512mb'

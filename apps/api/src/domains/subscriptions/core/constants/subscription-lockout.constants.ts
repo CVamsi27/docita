@@ -1,4 +1,4 @@
-export const SUBSCRIPTION_LOCKOUT_GRACE_DAYS = 10;
+const SUBSCRIPTION_LOCKOUT_GRACE_DAYS = 10;
 
 export function computeSubscriptionGraceDeadline(from: Date): Date {
   const d = new Date(from.getTime());

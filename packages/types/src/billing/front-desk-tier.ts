@@ -1,30 +1,19 @@
-import { Tier, tierSchema } from "./tier";
-
-/** True when the clinic is on the Front Desk billed SKU. */
+/**
+ * True when the clinic is on a Front Desk plan mode.
+ *
+ * This replaces the old tier-based check (which relied on FRONT_DESK_* DB enum
+ * values that have been migrated to canonical (tier, mode=FRONT_DESK) pairs).
+ *
+ * Prefer {@link isFrontDeskPlanMode} from `@workspace/types/access` when you
+ * have both `dbTier` and `dbPlanMode`. This helper is kept for callers that
+ * already have the resolved `PlanMode`.
+ */
 export function isFrontDeskTier(
-  tier: string | number | null | undefined,
+  tierOrMode: string | number | null | undefined,
 ): boolean {
-  if (tier === null || tier === undefined) {
-    return false;
-  }
-  if (
-    tier === Tier.FRONT_DESK ||
-    tier === Tier.FRONT_DESK_CLINIC ||
-    tier === Tier.FRONT_DESK_HOSPITAL ||
-    tier === "FRONT_DESK" ||
-    tier === "FRONT_DESK_CLINIC" ||
-    tier === "FRONT_DESK_HOSPITAL"
-  ) {
-    return true;
-  }
-  if (typeof tier === "string") {
-    const parsed = tierSchema.safeParse(tier);
-    return (
-      parsed.success &&
-      (parsed.data === "FRONT_DESK" ||
-        parsed.data === "FRONT_DESK_CLINIC" ||
-        parsed.data === "FRONT_DESK_HOSPITAL")
-    );
+  if (tierOrMode === null || tierOrMode === undefined) return false;
+  if (typeof tierOrMode === "string") {
+    return tierOrMode === "FRONT_DESK";
   }
   return false;
 }

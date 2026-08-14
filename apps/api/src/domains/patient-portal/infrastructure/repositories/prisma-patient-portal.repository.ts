@@ -46,10 +46,6 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     return this.profile.getPatientProfile(patientId);
   }
 
-  hasActiveTreatmentConsent(patientId: string, clinicId: string) {
-    return this.profile.hasActiveTreatmentConsent(patientId, clinicId);
-  }
-
   updatePatient(
     patientId: string,
     data: Record<string, unknown>,
@@ -59,6 +55,14 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
 
   linkUserToPatient(patientId: string, userId: string): Promise<void> {
     return this.profile.linkUserToPatient(patientId, userId);
+  }
+
+  createDataSubjectRequest(
+    input: Parameters<
+      PrismaPortalProfileRepository['createDataSubjectRequest']
+    >[0],
+  ) {
+    return this.profile.createDataSubjectRequest(input);
   }
 
   getUpcomingAppointments(
@@ -139,8 +143,8 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     return this.auth.findActiveOtp(phone, now);
   }
 
-  incrementOtpAttempts(id: string): Promise<void> {
-    return this.auth.incrementOtpAttempts(id);
+  tryConsumeOtpAttempt(id: string, maxAttempts: number): Promise<boolean> {
+    return this.auth.tryConsumeOtpAttempt(id, maxAttempts);
   }
 
   markOtpUsed(id: string): Promise<void> {

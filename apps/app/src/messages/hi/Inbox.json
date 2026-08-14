@@ -1,0 +1,19 @@
+{
+  "pageTitle": "इनबॉक्स",
+  "pageDescriptionDefault": "सूचनाएँ और उन वर्कस्पेस के शॉर्टकट जिन्हें आप एक्सेस कर सकते हैं।",
+  "emptyTitle": "आपकी भूमिका के लिए कोई इनबॉक्स शॉर्टकट नहीं",
+  "emptyDescription": "आपके प्लान या भूमिका में वे वर्कस्पेस शामिल नहीं हैं जो आमतौर पर यहाँ दिखाई देते हैं।",
+  "loading": "इनबॉक्स लोड हो रहा है...",
+  "tabEmptyTitle": "{label} अपने समर्पित वर्कस्पेस में रहते हैं",
+  "openWorkspace": "{label} खोलें",
+  "tabs": {
+    "notifications": "सूचनाएँ",
+    "notificationsDescription": "आपके क्लिनिक भर की अलर्ट और गतिविधि।",
+    "followUps": "फॉलो-अप",
+    "followUpsDescription": "विज़िट इतिहास के आधार पर संपर्क करने वाले मरीज़।",
+    "joinRequests": "जॉइन अनुरोध",
+    "joinRequestsDescription": "स्वीकृति की प्रतीक्षा कर रहे टीम निमंत्रण।",
+    "codingQueue": "कोडिंग कतार",
+    "codingQueueDescription": "चिकित्सा कोडिंग स्वीकृति की प्रतीक्षा कर रहे विज़िट।"
+  }
+}

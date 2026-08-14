@@ -1,16 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from './config.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { CLINIC_CONFIG_QUERY_TOKEN } from './core/clinic-config-query.port';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('ConfigService', () => {
   let service: ConfigService;
-  let prismaService: PrismaService & Record<string, unknown>;
+  let clinicConfigQuery: { findAppConfigById: jest.Mock };
 
-  const mockPrismaService = {
-    clinic: {
-      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    },
+  const mockClinicConfigQuery = {
+    findAppConfigById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
   type AppConfigWithClinicSettings = {
     clinicSettings?: {
@@ -39,15 +37,16 @@ describe('ConfigService', () => {
       providers: [
         ConfigService,
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
+          provide: CLINIC_CONFIG_QUERY_TOKEN,
+          useValue: mockClinicConfigQuery,
         },
       ],
     }).compile();
 
     service = module.get<ConfigService>(ConfigService);
-    prismaService = module.get(PrismaService) as PrismaService &
-      Record<string, unknown>;
+    clinicConfigQuery = module.get(CLINIC_CONFIG_QUERY_TOKEN) as {
+      findAppConfigById: jest.Mock;
+    };
 
     jest.clearAllMocks();
   });
@@ -57,8 +56,8 @@ describe('ConfigService', () => {
       expect(service).toBeDefined();
     });
 
-    it('should inject PrismaService', () => {
-      expect(prismaService).toBeDefined();
+    it('should inject the clinic config query port', () => {
+      expect(clinicConfigQuery).toBeDefined();
     });
   });
 
@@ -229,7 +228,7 @@ describe('ConfigService', () => {
     });
 
     it('should include clinic settings when clinicId provided', async () => {
-      mockPrismaService.clinic.findUnique.mockResolvedValue(mockClinic);
+      mockClinicConfigQuery.findAppConfigById.mockResolvedValue(mockClinic);
 
       const result = (await service.getAppConfig(
         'clinic-1',
@@ -246,7 +245,7 @@ describe('ConfigService', () => {
     });
 
     it('should use default values when clinic has no settings', async () => {
-      mockPrismaService.clinic.findUnique.mockResolvedValue({
+      mockClinicConfigQuery.findAppConfigById.mockResolvedValue({
         ...mockClinic,
         settings: null,
       });
@@ -262,7 +261,7 @@ describe('ConfigService', () => {
     });
 
     it('should use default values for missing clinic settings', async () => {
-      mockPrismaService.clinic.findUnique.mockResolvedValue({
+      mockClinicConfigQuery.findAppConfigById.mockResolvedValue({
         ...mockClinic,
         settings: { consultationFee: 1000 },
       });
@@ -277,7 +276,7 @@ describe('ConfigService', () => {
     });
 
     it('should return base config when clinic not found', async () => {
-      mockPrismaService.clinic.findUnique.mockResolvedValue(null);
+      mockClinicConfigQuery.findAppConfigById.mockResolvedValue(null);
 
       const result = await service.getAppConfig('non-existent');
 
@@ -287,17 +286,13 @@ describe('ConfigService', () => {
     });
 
     it('should query clinic with correct parameters', async () => {
-      mockPrismaService.clinic.findUnique.mockResolvedValue(mockClinic);
+      mockClinicConfigQuery.findAppConfigById.mockResolvedValue(mockClinic);
 
       await service.getAppConfig('clinic-1');
 
-      expect(mockPrismaService.clinic.findUnique).toHaveBeenCalledWith({
-        where: { id: 'clinic-1' },
-        select: {
-          settings: true,
-          tier: true,
-        },
-      });
+      expect(mockClinicConfigQuery.findAppConfigById).toHaveBeenCalledWith(
+        'clinic-1',
+      );
     });
   });
 
@@ -363,7 +358,7 @@ describe('ConfigService', () => {
   describe('Error Handling', () => {
     it('should handle database errors in getAppConfig', async () => {
       const error = new Error('Database connection failed');
-      mockPrismaService.clinic.findUnique.mockRejectedValue(error);
+      mockClinicConfigQuery.findAppConfigById.mockRejectedValue(error);
 
       await expect(service.getAppConfig('clinic-1')).rejects.toThrow(
         'Database connection failed',
@@ -381,7 +376,7 @@ describe('ConfigService', () => {
     });
 
     it('should provide comprehensive configuration for app initialization', async () => {
-      mockPrismaService.clinic.findUnique.mockResolvedValue(mockClinic);
+      mockClinicConfigQuery.findAppConfigById.mockResolvedValue(mockClinic);
 
       const config = (await service.getAppConfig(
         'clinic-1',

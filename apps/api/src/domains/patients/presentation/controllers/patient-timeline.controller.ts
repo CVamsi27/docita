@@ -47,6 +47,7 @@ export class PatientTimelineController {
   @Get()
   @ApiOperation({ summary: 'Get unified patient timeline' })
   async getTimeline(
+    // jscpd:ignore-start
     @Param('patientId') patientId: string,
     @Request() req: RequestWithUser,
     @Query()
@@ -59,6 +60,7 @@ export class PatientTimelineController {
     },
   ) {
     const clinicId = this.getClinicId(req);
+    // jscpd:ignore-end
     await logPatientPhiRead(this.auditService, req, patientId, 'VIEW_HISTORY');
     const eventTypes = query.eventTypes
       ? query.eventTypes

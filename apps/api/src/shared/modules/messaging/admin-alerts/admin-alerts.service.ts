@@ -8,9 +8,9 @@ import {
 } from '@/shared/common/constants/support-contact.constants';
 import { PrismaService } from '@/prisma/prisma.service';
 
-export type AdminAlertSeverity = 'info' | 'warn' | 'critical';
+type AdminAlertSeverity = 'info' | 'warn' | 'critical';
 
-export interface AdminAlertOptions {
+interface AdminAlertOptions {
   alertKey: string;
   severity: AdminAlertSeverity;
   subject: string;
@@ -92,9 +92,7 @@ export class AdminAlertsService {
   }
 
   private resolveRecipients(severity: AdminAlertSeverity): string[] {
-    if (severity === 'critical') {
-      return [this.primaryAdminEmail, this.ceoEmail];
-    }
+    if (severity === 'critical') return [this.primaryAdminEmail, this.ceoEmail];
     return [this.primaryAdminEmail];
   }
 
@@ -146,10 +144,8 @@ export class AdminAlertsService {
     if (!this.config.isProduction()) {
       return false;
     }
-
     const now = this.clock.now();
     const environment = this.config.getEnvironment();
-
     const existing = await this.prisma.platformAlert.findUnique({
       where: {
         alertKey_environment: {
@@ -163,10 +159,7 @@ export class AdminAlertsService {
       },
     });
 
-    // Only send a recovery email if we previously had an OPEN alert.
-    if (!existing || existing.status !== 'OPEN') {
-      return false;
-    }
+    if (!existing || existing.status !== 'OPEN') return false;
 
     await this.prisma.platformAlert.update({
       where: {
@@ -193,9 +186,8 @@ export class AdminAlertsService {
         replyTo: SUPPORT_EMAIL,
       });
 
-      if (!result.success) {
+      if (!result.success)
         this.logger.error('Failed to send admin recovery email', result.error);
-      }
       return result.success;
     } catch (error) {
       this.logger.error('Recovery alert send threw an error', error);

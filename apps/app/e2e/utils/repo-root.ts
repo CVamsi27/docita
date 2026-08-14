@@ -21,9 +21,7 @@ export function findRepoRoot(startDirectory = process.cwd()): string {
 
 export function readRepoDatabaseUrl(): string | null {
   const fromEnv = process.env["DATABASE_URL"]?.trim();
-  if (fromEnv) {
-    return fromEnv;
-  }
+  if (fromEnv) return fromEnv;
 
   const envPath = resolve(findRepoRoot(), ".env");
   if (!existsSync(envPath)) {
@@ -43,9 +41,7 @@ export function readRepoDatabaseUrl(): string | null {
 
 export function requireRepoDatabaseUrl(): string {
   const databaseUrl = readRepoDatabaseUrl();
-  if (databaseUrl) {
-    return databaseUrl;
-  }
+  if (databaseUrl) return databaseUrl;
 
   throw new Error(
     "DATABASE_URL was not found in process.env or the repository .env file.",

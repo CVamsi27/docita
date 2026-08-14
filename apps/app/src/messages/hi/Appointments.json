@@ -1,0 +1,108 @@
+{
+  "pageTitle": "अपॉइंटमेंट",
+  "pageDescription": "अपनी सुविधा में रोगी अपॉइंटमेंट शेड्यूल करें, प्रबंधित करें और ट्रैक करें",
+  "patientResponse": {
+    "confirmed": "WhatsApp के माध्यम से पुष्टि",
+    "onTheWay": "रास्ते में (WhatsApp)",
+    "runningLate": "देर से आ रहे हैं (WhatsApp)",
+    "runningLateMinutes": "{count} मिनट देर से आ रहे हैं (WhatsApp)",
+    "askedToReschedule": "पुनर्निर्धारित करने को कहा (WhatsApp)",
+    "cancelled": "WhatsApp के माध्यम से रद्द",
+    "replied": "WhatsApp पर उत्तर दिया"
+  },
+  "timeSlotPicker": {
+    "loadingAriaLabel": "समय स्लॉट लोड हो रहे हैं",
+    "emptyMessage": "{date} के लिए कोई उपलब्ध समय स्लॉट नहीं",
+    "selectTimeTitle": "समय चुनें",
+    "legendSelected": "चयनित",
+    "legendAvailable": "उपलब्ध",
+    "legendUnavailable": "अनुपलब्ध"
+  },
+  "slotPickerFields": {
+    "findingSlots": "उपलब्ध स्लॉट खोजे जा रहे हैं…",
+    "selectSlotPlaceholder": "समय स्लॉट चुनें",
+    "slotLabel": "अपॉइंटमेंट स्लॉट",
+    "noOpenSlots": "इस डॉक्टर के लिए इस दिन कोई खुला स्लॉट नहीं है। कोई अन्य दिन चुनें या उपलब्धता समायोजित करें।",
+    "startTimeLabel": "आरंभ समय",
+    "endTimeLabel": "समाप्ति समय (वैकल्पिक)"
+  },
+  "followUpForm": {
+    "typeLabel": "प्रकार",
+    "typePlaceholder": "फॉलो-अप प्रकार",
+    "timeLabel": "समय",
+    "timePlaceholder": "समय",
+    "sendReminderLabel": "रिमाइंडर भेजें",
+    "whenLabel": "कब",
+    "whatsappNotificationLabel": "WhatsApp सूचना",
+    "notesLabel": "नोट्स",
+    "notesPlaceholder": "फॉलो-अप नोट्स"
+  },
+  "page": {
+    "loading": "अपॉइंटमेंट लोड हो रहे हैं…",
+    "markDelay": "विलंब चिह्नित करें"
+  },
+  "delayBanner": {
+    "minutes": "मिनट विलंब",
+    "clearDelay": "विलंब हटाएँ"
+  },
+  "summaryBar": {
+    "appointment": "{count, plural, one {अपॉइंटमेंट} other {अपॉइंटमेंट}}"
+  },
+  "calendarView": {
+    "day": "दिन",
+    "week": "सप्ताह"
+  },
+  "upgradeFallback": {
+    "title": "अपॉइंटमेंट शेड्यूलिंग",
+    "description": "आसान कैलेंडर से मरीज़ों के अपॉइंटमेंट प्रबंधित करें। यह सुविधा अनलॉक करने के लिए कोर टियर में अपग्रेड करें।",
+    "upgradeButton": "कोर में अपग्रेड करें"
+  },
+  "sections": {
+    "weekViewError": "हम इस सप्ताह के अपॉइंटमेंट लोड नहीं कर सके। कृपया पुनः प्रयास करें।"
+  },
+  "delayDialog": {
+    "title": "डॉक्टर विलंब चिह्नित करें",
+    "description": "स्टाफ़ और कतार को बताएँ कि डॉक्टर देर से आ रहे हैं।",
+    "doctorLabel": "डॉक्टर",
+    "doctorPlaceholder": "डॉक्टर चुनें",
+    "durationLabel": "विलंब अवधि",
+    "durationPlaceholder": "विलंब चुनें",
+    "reasonLabel": "कारण (वैकल्पिक)",
+    "reasonPlaceholder": "जैसे, सर्जरी से देर से लौट रहे हैं",
+    "cancelButton": "रद्द करें",
+    "confirmButton": "विलंब चिह्नित करें",
+    "errorDoctorRequired": "कृपया डॉक्टर चुनें",
+    "errorDurationRequired": "कृपया विलंब अवधि चुनें"
+  },
+  "askAiAriaLabel": "अपॉइंटमेंट के बारे में एआई से पूछें",
+  "askAiButton": "एआई से पूछें",
+  "newAppointmentAriaLabel": "नया अपॉइंटमेंट बनाएँ",
+  "newAppointmentButton": "नया अपॉइंटमेंट",
+  "searchPlaceholder": "मरीज़ का नाम या फ़ोन दर्ज करें",
+  "searchAriaLabel": "अपॉइंटमेंट खोजें",
+  "cancelDialog": {
+    "title": "अपॉइंटमेंट रद्द करें",
+    "description": "कारण चुनें ताकि शेड्यूल ऑडिट-योग्य बना रहे",
+    "reasonLabel": "कारण",
+    "otherReasonLabel": "अन्य कारण",
+    "keepButton": "अपॉइंटमेंट रखें",
+    "cancelButton": "अपॉइंटमेंट रद्द करें",
+    "errorRequired": "रद्दीकरण का कारण चुनें",
+    "errorTooLong": "कारण बहुत लंबा है",
+    "errorFallback": "रद्दीकरण का कारण दर्ज करें।",
+    "reasonPatientRequested": "मरीज़ ने अनुरोध किया",
+    "reasonDoctorUnavailable": "डॉक्टर अनुपलब्ध",
+    "reasonClinicClosed": "क्लिनिक बंद",
+    "reasonDuplicate": "डुप्लिकेट बुकिंग",
+    "reasonOther": "अन्य / कस्टम"
+  },
+  "formFields": {
+    "typeLabel": "प्रकार",
+    "typePlaceholder": "अपॉइंटमेंट प्रकार",
+    "notesLabel": "नोट्स (वैकल्पिक)",
+    "notesPlaceholder": "विज़िट नोट्स",
+    "advanceLabel": "अग्रिम भुगतान (वैकल्पिक)",
+    "paidByLabel": "भुगतानकर्ता",
+    "paymentMethodPlaceholder": "भुगतान विधि"
+  }
+}

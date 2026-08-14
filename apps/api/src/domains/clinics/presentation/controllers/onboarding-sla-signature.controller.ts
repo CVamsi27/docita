@@ -83,17 +83,14 @@ export class OnboardingSlaSignatureController {
     uploadSecretHeader: string | string[] | undefined,
     @Request() req?: RequestWithUser,
   ) {
-    if (!file) {
-      throw new BadRequestException('Signature file is required');
-    }
+    if (!file) throw new BadRequestException('Signature file is required');
 
     const rawSecret = Array.isArray(uploadSecretHeader)
       ? uploadSecretHeader[0]
       : uploadSecretHeader;
     const uploadSecret = typeof rawSecret === 'string' ? rawSecret.trim() : '';
-    if (!uploadSecret) {
+    if (!uploadSecret)
       throw new UnauthorizedException('X-Upload-Secret header is required');
-    }
 
     try {
       await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp'], {

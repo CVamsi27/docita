@@ -1,0 +1,10 @@
+{
+  "linkUnavailableTitle": "This link is unavailable",
+  "linkUnavailableDescription": "The booking link may be wrong or inactive. Reach out to the clinic directly.",
+  "requestVisitTitle": "Request a visit online",
+  "fetchingLocation": "Fetching this location...",
+  "loading": "Loading location…",
+  "error": "This booking link is not valid or the location is unavailable.",
+  "unavailableTitle": "Unavailable",
+  "unavailableDescription": "Try again later or contact the location directly."
+}

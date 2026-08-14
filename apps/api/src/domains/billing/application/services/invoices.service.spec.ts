@@ -51,6 +51,7 @@ describe('InvoicesService', () => {
 
   const repository: jest.Mocked<IInvoiceRepository> = {
     findAll: jest.fn<IInvoiceRepository['findAll']>(),
+    belongsToClinic: jest.fn<IInvoiceRepository['belongsToClinic']>(),
     findById: jest.fn<IInvoiceRepository['findById']>(),
     create: jest.fn<IInvoiceRepository['create']>(),
     update: jest.fn<IInvoiceRepository['update']>(),
@@ -73,6 +74,8 @@ describe('InvoicesService', () => {
     findPendingReminders:
       jest.fn<IPaymentSessionRepository['findPendingReminders']>(),
     findByInvoiceId: jest.fn<IPaymentSessionRepository['findByInvoiceId']>(),
+    findSettledByClinicInRange:
+      jest.fn<IPaymentSessionRepository['findSettledByClinicInRange']>(),
   };
 
   const pdfService = Object.create(PDFService.prototype) as PDFService;
@@ -159,6 +162,7 @@ describe('InvoicesService', () => {
     discountTotalCents: 0,
     taxTotalCents: 0,
     grandTotalCents: 10000,
+    amountPaidCents: 0,
     taxSummary: null,
     sellerTaxSnapshot: null,
     buyerTaxSnapshot: null,

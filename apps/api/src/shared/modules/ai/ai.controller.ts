@@ -223,9 +223,7 @@ export class AIController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: RequestWithUser,
   ) {
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
+    if (!file) throw new BadRequestException('File is required');
 
     await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
 

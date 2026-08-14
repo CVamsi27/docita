@@ -3,6 +3,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ClinicalAnalyticsFactory } from './clinical-analytics.factory';
 import { PrismaService } from '@/prisma/prisma.service';
+import { ANALYTICS_PERSISTENCE_PORT } from '@/domains/analytics/application/ports/analytics-persistence.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 describe('ClinicalAnalyticsFactory', () => {
@@ -54,6 +55,7 @@ describe('ClinicalAnalyticsFactory', () => {
       providers: [
         ClinicalAnalyticsFactory,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: ANALYTICS_PERSISTENCE_PORT, useExisting: PrismaService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
         {
           provide: AppConfigService,

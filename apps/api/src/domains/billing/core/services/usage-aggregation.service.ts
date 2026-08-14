@@ -1,16 +1,21 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { addOnIncludedQuotaByTierJsonSchema } from '@workspace/types';
-import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType } from '@workspace/db';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
+import {
+  type ActiveAddOnSnapshot,
+  type IUsageRepository,
+  USAGE_REPOSITORY_TOKEN,
+} from '@/domains/billing/core/repositories/usage.repository';
 
 @Injectable()
 export class UsageAggregationService {
   private readonly logger = new Logger(UsageAggregationService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(USAGE_REPOSITORY_TOKEN)
+    private readonly usageRepository: IUsageRepository,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -18,21 +23,15 @@ export class UsageAggregationService {
     this.logger.log('Starting daily usage aggregation...');
 
     // RLS-BYPASS: usage aggregation rolls up metrics across clinics
-    await this.prisma.runUnrestricted(async () => {
+    await this.usageRepository.runUnrestricted(async () => {
       const { yesterday, endOfYesterday } = this.getYesterdayRange();
 
-      const clinics = await this.prisma.clinic.findMany({
-        where: {
-          subscription: {
-            status: { in: ['ACTIVE', 'TRIALING'] },
-          },
-        },
-        select: { id: true },
-      });
+      const clinicIds =
+        await this.usageRepository.findActiveSubscriptionClinicIds();
 
       const results = await Promise.allSettled(
-        clinics.map((clinic) =>
-          this.aggregateForClinic(clinic.id, yesterday, endOfYesterday),
+        clinicIds.map((clinicId) =>
+          this.aggregateForClinic(clinicId, yesterday, endOfYesterday),
         ),
       );
       let successCount = 0;
@@ -43,9 +42,8 @@ export class UsageAggregationService {
           continue;
         }
         errorCount++;
-        const clinic = clinics[index];
         this.logger.error(
-          `Failed to aggregate usage for clinic ${clinic?.id ?? 'unknown'}:`,
+          `Failed to aggregate usage for clinic ${clinicIds[index] ?? 'unknown'}:`,
           result.reason,
         );
       }
@@ -61,19 +59,12 @@ export class UsageAggregationService {
     periodStart: Date,
     periodEnd: Date,
   ) {
-    const [subscription, addOns] = await Promise.all([
-      this.prisma.subscription.findUnique({
-        where: { clinicId },
-        select: { plan: true },
-      }),
-      this.prisma.clinicAddOn.findMany({
-        where: { clinicId, status: 'ACTIVE' },
-        include: { addOn: true },
-      }),
+    const [plan, addOns] = await Promise.all([
+      this.usageRepository.findSubscriptionPlan(clinicId),
+      this.usageRepository.findActiveAddOns(clinicId),
     ]);
 
-    const plan =
-      typeof subscription?.plan === 'string' ? subscription.plan : 'CORE';
+    const resolvedPlan = plan ?? 'CORE';
 
     const aggregationResults = await Promise.allSettled([
       this.aggregateUsageType(
@@ -81,7 +72,7 @@ export class UsageAggregationService {
         'WHATSAPP_MESSAGES',
         periodStart,
         periodEnd,
-        plan,
+        resolvedPlan,
         addOns.find((a) => a.addOnType === 'WHATSAPP'),
       ),
       this.aggregateUsageType(
@@ -89,7 +80,7 @@ export class UsageAggregationService {
         'AI_CREDITS',
         periodStart,
         periodEnd,
-        plan,
+        resolvedPlan,
         addOns.find((a) => a.addOnType === 'INTELLIGENCE'),
       ),
     ]);
@@ -109,18 +100,14 @@ export class UsageAggregationService {
     start: Date,
     end: Date,
     plan: string,
-    addOn?: { addOn: Record<string, unknown> },
+    addOn?: ActiveAddOnSnapshot,
   ) {
-    const aggregation = await this.prisma.usageEvent.aggregate({
-      where: {
-        clinicId,
-        type,
-        timestamp: { gte: start, lte: end },
-      },
-      _sum: { quantity: true },
-    });
-
-    const quantity = aggregation._sum.quantity || 0;
+    const quantity = await this.usageRepository.sumUsage(
+      clinicId,
+      type,
+      start,
+      end,
+    );
     if (quantity === 0) return;
 
     let included = 0;
@@ -148,26 +135,14 @@ export class UsageAggregationService {
       999,
     );
 
-    await this.prisma.usageRecord.upsert({
-      where: {
-        clinicId_type_periodStart: {
-          clinicId,
-          type,
-          periodStart: monthStart,
-        },
-      },
-      update: {
-        quantity: { increment: quantity },
-      },
-      create: {
-        clinicId,
-        type,
-        periodStart: monthStart,
-        periodEnd: monthEnd,
-        quantity,
-        includedQuota: included,
-        overageUnits: Math.max(0, quantity - included),
-      },
+    await this.usageRepository.upsertUsageRecord({
+      clinicId,
+      type,
+      periodStart: monthStart,
+      periodEnd: monthEnd,
+      quantity,
+      includedQuota: included,
+      overageUnits: Math.max(0, quantity - included),
     });
   }
 

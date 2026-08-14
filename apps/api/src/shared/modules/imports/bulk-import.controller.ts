@@ -44,9 +44,7 @@ export class BulkImportController {
     @Req() req: AuthenticatedRequest,
   ) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
-      throw new BadRequestException('Clinic ID is required');
-    }
+    if (!clinicId) throw new BadRequestException('Clinic ID is required');
     const job = await this.bulkImportService.getJobStatus(jobId, clinicId);
     return {
       jobId: job.jobId,
@@ -73,22 +71,19 @@ export class BulkImportController {
     @Body() data: BulkImportRequest,
   ) {
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
+    if (!clinicId)
       throw new BadRequestException('Clinic ID is required for bulk import');
-    }
     const userId = req.user.id;
 
     if (data.entityType === 'PATIENT') {
-      if (!data.dpdpAttestation?.confirmedByOperator) {
+      if (!data.dpdpAttestation?.confirmedByOperator)
         throw new BadRequestException(
           'DPDP consent attestation is required when bulk importing patients',
         );
-      }
-      if (data.dpdpAttestation.noticeVersion !== DPDP_NOTICE_VERSION) {
+      if (data.dpdpAttestation.noticeVersion !== DPDP_NOTICE_VERSION)
         throw new BadRequestException(
           'The DPDP notice has been updated. Please reload and re-confirm the attestation.',
         );
-      }
     }
 
     let fileBuffer: Buffer;
@@ -97,9 +92,8 @@ export class BulkImportController {
     } catch {
       throw new BadRequestException('Invalid fileBase64 payload');
     }
-    if (fileBuffer.length === 0) {
+    if (fileBuffer.length === 0)
       throw new BadRequestException('Decoded file is empty');
-    }
 
     return this.bulkImportService.startImport(
       clinicId,

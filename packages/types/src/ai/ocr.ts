@@ -63,9 +63,6 @@ export interface ParsedMedicalFields {
   preferredName: string;
   pronouns: string;
   address: string;
-  race: string;
-  ethnicity: string;
-  maritalStatus: string;
   preferredLanguage: string;
   age: string;
   gender: string;

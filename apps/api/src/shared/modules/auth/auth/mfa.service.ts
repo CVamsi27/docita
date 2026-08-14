@@ -29,16 +29,11 @@ export class MfaService {
       where: { id: userId },
       select: { email: true, mfaEnabled: true },
     });
-
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    if (user.mfaEnabled) {
+    if (!user) throw new UnauthorizedException('User not found');
+    if (user.mfaEnabled)
       throw new BadRequestException(
         'MFA is already enabled. Disable it first to re-setup.',
       );
-    }
 
     const secret = generateSecret();
 
@@ -46,7 +41,6 @@ export class MfaService {
       where: { id: userId },
       data: { mfaTempSecret: secret },
     });
-
     const otpauthUrl = generateURI({
       issuer: 'Docita',
       label: user.email,
@@ -65,35 +59,18 @@ export class MfaService {
       where: { id: userId },
       select: { mfaTempSecret: true, mfaEnabled: true },
     });
-
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    if (user.mfaEnabled) {
+    if (!user) throw new UnauthorizedException('User not found');
+    if (user.mfaEnabled)
       throw new BadRequestException('MFA is already enabled');
-    }
-
-    if (!user.mfaTempSecret) {
+    if (!user.mfaTempSecret)
       throw new BadRequestException(
         'No MFA setup in progress. Call /auth/mfa/setup first.',
       );
-    }
 
-    const result = await verify({
-      token: totpCode,
-      secret: user.mfaTempSecret,
-      epochTolerance: 1,
-    });
+    await this.verifyTotpOrThrow(user.mfaTempSecret, totpCode);
 
-    if (!result.valid) {
-      throw new UnauthorizedException('Invalid TOTP code');
-    }
-
-    const plainBackupCodes = this.generatePlainBackupCodes();
-    const hashedBackupCodes = await Promise.all(
-      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
-    );
+    const { plainBackupCodes, hashedBackupCodes } =
+      await this.generateHashedBackupCodes();
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -106,7 +83,6 @@ export class MfaService {
     });
 
     this.logger.log('MFA enabled', { userId });
-
     return { backupCodes: plainBackupCodes };
   }
 
@@ -115,24 +91,11 @@ export class MfaService {
       where: { id: userId },
       select: { mfaEnabled: true, mfaSecret: true },
     });
-
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    if (!user.mfaEnabled || !user.mfaSecret) {
+    if (!user) throw new UnauthorizedException('User not found');
+    if (!user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not enabled');
-    }
 
-    const result = await verify({
-      token: totpCode,
-      secret: user.mfaSecret,
-      epochTolerance: 1,
-    });
-
-    if (!result.valid) {
-      throw new UnauthorizedException('Invalid TOTP code');
-    }
+    await this.verifyTotpOrThrow(user.mfaSecret, totpCode);
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -155,37 +118,53 @@ export class MfaService {
       where: { id: userId },
       select: { mfaEnabled: true, mfaSecret: true },
     });
-
-    if (!user || !user.mfaEnabled || !user.mfaSecret) {
+    if (!user || !user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not enabled');
-    }
 
-    const result = await verify({
-      token: totpCode,
-      secret: user.mfaSecret,
-      epochTolerance: 1,
-    });
+    await this.verifyTotpOrThrow(user.mfaSecret, totpCode);
 
-    if (!result.valid) {
-      throw new UnauthorizedException('Invalid TOTP code');
-    }
-
-    const plainBackupCodes = this.generatePlainBackupCodes();
-    const hashedBackupCodes = await Promise.all(
-      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
-    );
+    const { plainBackupCodes, hashedBackupCodes } =
+      await this.generateHashedBackupCodes();
 
     await this.prisma.user.update({
       where: { id: userId },
       data: { mfaBackupCodes: hashedBackupCodes },
     });
-
     return { backupCodes: plainBackupCodes };
+  }
+
+  /**
+   * Verifies a TOTP code against a stored secret and throws the same
+   * `UnauthorizedException` used by every MFA mutation on failure — keeping
+   * the `epochTolerance` and error copy in one place avoids the three call
+   * sites (enable/disable/regenerate) drifting apart over time.
+   */
+  private async verifyTotpOrThrow(
+    secret: string,
+    totpCode: string,
+  ): Promise<void> {
+    const result = await verify({ token: totpCode, secret, epochTolerance: 1 });
+    if (!result.valid) throw new UnauthorizedException('Invalid TOTP code');
+  }
+
+  /**
+   * Generates a fresh batch of backup codes and their bcrypt hashes —
+   * shared by `enableMfa` and `regenerateBackupCodes`, which both need to
+   * return the plaintext codes once while persisting only the hashes.
+   */
+  private async generateHashedBackupCodes(): Promise<{
+    plainBackupCodes: string[];
+    hashedBackupCodes: string[];
+  }> {
+    const plainBackupCodes = this.generatePlainBackupCodes();
+    const hashedBackupCodes = await Promise.all(
+      plainBackupCodes.map((code) => bcrypt.hash(code, 10)),
+    );
+    return { plainBackupCodes, hashedBackupCodes };
   }
 
   async issueMfaChallenge(userId: string): Promise<string> {
     await this.prisma.mfaChallenge.deleteMany({ where: { userId } });
-
     const token = nanoid(64);
     await this.prisma.mfaChallenge.create({
       data: {
@@ -194,7 +173,6 @@ export class MfaService {
         expiresAt: new Date(Date.now() + AUTH_CONSTANTS.MFA_CHALLENGE_TTL_MS),
       },
     });
-
     return token;
   }
 
@@ -204,18 +182,12 @@ export class MfaService {
   ): Promise<string> {
     const challenge = await this.prisma.mfaChallenge.findUnique({
       where: { token: challengeToken },
-      select: {
-        id: true,
-        userId: true,
-        expiresAt: true,
-      },
+      select: { id: true, userId: true, expiresAt: true },
     });
-
-    if (!challenge || challenge.expiresAt < this.clock.now()) {
+    if (!challenge || challenge.expiresAt < this.clock.now())
       throw new UnauthorizedException(
         'MFA challenge expired or invalid. Please log in again.',
       );
-    }
 
     // RLS-BYPASS: auth resolves users before clinic tenant context is established
     const user = await this.prisma.runUnrestricted(async () =>
@@ -230,34 +202,26 @@ export class MfaService {
       }),
     );
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+    if (!user) throw new UnauthorizedException('User not found');
 
-    if (!user.mfaEnabled || !user.mfaSecret) {
+    if (!user.mfaEnabled || !user.mfaSecret)
       throw new BadRequestException('MFA is not configured for this user');
-    }
 
     const verifyResult = await verify({
       token: totpCode,
       secret: user.mfaSecret,
       epochTolerance: 1,
     });
-    const isTotpValid = verifyResult.valid;
-
-    if (!isTotpValid) {
+    if (!verifyResult.valid) {
       const isBackupCode = await this.verifyAndConsumeBackupCode(
         user.id,
         totpCode,
         user.mfaBackupCodes,
       );
-      if (!isBackupCode) {
-        throw new UnauthorizedException('Invalid MFA code');
-      }
+      if (!isBackupCode) throw new UnauthorizedException('Invalid MFA code');
     }
 
     await this.prisma.mfaChallenge.delete({ where: { id: challenge.id } });
-
     return user.id;
   }
 

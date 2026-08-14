@@ -33,6 +33,7 @@ interface OverageBreakdown {
   quantity: number;
   rate: number;
   charge: number;
+  chargeCents: number;
 }
 
 interface OverageResult {
@@ -50,9 +51,7 @@ export class OverageCalculationService {
   ) {}
 
   private resolveCurrency(currency?: string) {
-    if (!currency) {
-      return parseSupportedCurrency(DEFAULT_CURRENCY);
-    }
+    if (!currency) return parseSupportedCurrency(DEFAULT_CURRENCY);
     return parseSupportedCurrency(currency.toUpperCase());
   }
 
@@ -63,7 +62,7 @@ export class OverageCalculationService {
     const tier = usageData.tier;
     const tierPricing = await this.tierPricingRepo.findByTier(tier);
 
-    let totalOverageCharges = 0;
+    let totalOverageChargeCents = 0;
     const breakdown: Record<string, OverageBreakdown> = {};
     const tierKey = mapDbClinicTierStringToTierName(tier);
     const resolvedCurrency = this.resolveCurrency(usageData.currency);
@@ -126,12 +125,12 @@ export class OverageCalculationService {
     }
 
     for (const key in breakdown) {
-      totalOverageCharges += breakdown[key].charge;
+      totalOverageChargeCents += breakdown[key].chargeCents;
     }
 
     return {
       period: usageData.period,
-      totalOverageCharges,
+      totalOverageCharges: totalOverageChargeCents / 100,
       breakdown,
       currency: resolvedCurrency,
     };
@@ -144,11 +143,12 @@ export class OverageCalculationService {
     rateCents: number,
   ) {
     if (quantity > 0) {
-      const charge = (quantity * rateCents) / 100;
+      const chargeCents = Math.round(quantity * rateCents);
       breakdown[key] = {
         quantity,
         rate: rateCents / 100,
-        charge,
+        charge: chargeCents / 100,
+        chargeCents,
       };
     }
   }

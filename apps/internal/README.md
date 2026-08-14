@@ -1,32 +1,43 @@
-# apps/internal
+# @docita/internal
 
-Internal Next.js console for Docita operational staff. Not customer-facing.
+Internal admin portal — Vite + React Router v7 SPA (replaces the Next.js `apps/internal`; same shape as `apps/app`).
 
-## Access pattern
+## Stack
 
-Role check happens in `apps/internal/lib/auth.tsx` (`AuthProvider`): on mount it reads the stored user, verifies `role === "INTERNAL"`, and redirects to the main-app login if the check fails. There is no separate middleware role gate — the `AuthProvider` at the root of `app/(protected)/layout.tsx` is the enforcement boundary.
+- Vite 6 + React 19 + React Router v7 (SPA, no SSR)
+- React Query, Tailwind CSS with tokens from `@workspace/ui`
+- TypeScript strict; shared types from `@workspace/types`
 
-Route protection is layered:
-
-1. **`middleware.ts`** — redirects unknown paths to `/dashboard`; does not validate the JWT (stateless Next.js edge middleware).
-2. **`AuthProvider` (client)** — validates the token via `GET /auth/validate`, enforces `role === "INTERNAL"`, refreshes the access token if needed, and clears storage + redirects on failure.
-
-## Protected routes
-
-`/dashboard`, `/users`, `/admins`, `/payment-processing`, `/billing`, `/pricing`, `/enterprise-contracts`, `/analytics`, `/system-monitoring`, `/feedback`, `/support`, `/broadcasts`, `/logs`, `/audits`, `/performance`, `/doctors`
-
-## Boundaries
-
-- Internal-only access checks belong at the `AuthProvider` boundary (see above) — not scattered in individual page components.
-- Reuse `@workspace/ui`, `@workspace/types`, and `@workspace/data-access`.
-- Do not duplicate app data clients or domain types here.
-- Keep route files thin (`app/(protected)/*/page.tsx` re-exports only) and move behavior into `features/<feature>/`.
-- Examples: `features/billing`, `features/doctors`, `features/pricing`, `features/feedback`, `features/admins`, `features/analytics`, `features/payment-processing`.
-
-## Run
+## Local development
 
 ```bash
-pnpm --filter @docita/internal run lint
-pnpm --filter @docita/internal run test
-pnpm audit:internal
+pnpm --filter @docita/api run start:dev   # API on :3001 (see apps/api)
+pnpm --filter @docita/internal run dev  # SPA on http://localhost:3002
 ```
+
+`vite.config.ts` proxies `/api/*` to `VITE_API_TARGET` (default `http://localhost:3001`), mirroring the Hono proxy Worker used in production.
+
+## Scripts
+
+| Script | Purpose |
+| --- | --- |
+| `pnpm --filter @docita/internal run dev` | Dev server on :3002 |
+| `pnpm --filter @docita/internal run test` | Vitest (unit) |
+| `pnpm --filter @docita/internal run lint` / `check-types` | ESLint / `tsc --noEmit` |
+| `pnpm --filter @docita/internal run build` | Production build |
+| `pnpm --filter @docita/internal run preview:cloudflare` | Local `wrangler dev` (static assets + proxy Worker) |
+| `pnpm --filter @docita/internal run deploy:cloudflare` | Deploy `docita-internal` (internal.docita.work) |
+
+Wrangler config lives in `apps/internal/wrangler.toml` (`main = "api/index.ts"` Hono proxy Worker, `assets = "./dist"`, SPA not-found handling). Staging environment: `docita-internal-vite-staging` (staging-internal.docita.work).
+
+## Project layout
+
+Same conventions as `apps/app`: `src/App.tsx` route tree, `src/features/<feature>/`, `src/components/`, `src/lib/`, `src/providers/`. Import aliases: `@/*` → `./src/*`, `@workspace/*` → `packages/*/src`.
+
+## Deployment
+
+Cloudflare Workers + Static Assets (CI: `deploy-internal` job in `.github/workflows/deploy.yml`, gated on the `gate` job's Cloudflare credential check). The Hono proxy Worker (`api/index.ts`) forwards `/api/*` and `/socket.io/*` to the NestJS API on Fly.io and serves the SPA from the `ASSETS` binding (SPA fallback via `not_found_handling`); static assets are served from the edge.
+
+## PWA
+
+Deliberately **not** a PWA: the internal admin portal gets no `manifest.webmanifest` / offline shell / install prompt (admin-only audience, always-online session flow). Only `apps/app` ships PWA assets (`manifest.webmanifest`, `offline.html` in its `public/`).

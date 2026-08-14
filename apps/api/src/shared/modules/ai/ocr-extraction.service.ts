@@ -10,7 +10,12 @@ import {
   FieldConfidenceConfig,
 } from '@workspace/types';
 import { coerceOcrRawData } from '@/shared/modules/ai/ocr-raw-data.boundary';
-import { isRecord, parseStringEnumMember } from '@workspace/utils';
+import {
+  isRecord,
+  parseStringEnumMember,
+  redactPatientIdentifiers,
+} from '@workspace/utils';
+import { ExternalIntegrationsConfigService } from '@/shared/modules/config/external-integrations-config.service';
 import * as fs from 'fs';
 import sharp from 'sharp';
 import {
@@ -30,7 +35,10 @@ const OCR_DOCUMENT_TYPES = [
 export class OcrExtractionService {
   private readonly logger = new Logger(OcrExtractionService.name);
 
-  constructor(private openaiService: OpenaiService) {}
+  constructor(
+    private openaiService: OpenaiService,
+    private readonly integrationsConfig: ExternalIntegrationsConfigService,
+  ) {}
 
   async extractFromMedicalDocument(
     imagePath: string,
@@ -77,6 +85,16 @@ export class OcrExtractionService {
   }
 
   private async extractTextFromImage(imagePath: string): Promise<string> {
+    // DPDP: a raw patient-document image cannot be de-identified before sending,
+    // so cloud Vision OCR is a cross-border PHI transfer. It is OFF unless
+    // explicitly enabled (and disclosed in the consent notice); otherwise the
+    // local OCR path (imports text-extractor / tesseract) must be used.
+    if (!this.integrationsConfig.getAiConfig().cloudOcrEnabled)
+      throw new ServiceUnavailableException({
+        message:
+          'Cloud OCR is disabled: patient document images are not sent to external AI. Use the local OCR path.',
+        code: 'CLOUD_OCR_DISABLED',
+      });
     if (!this.openaiService.client)
       throw new ServiceUnavailableException('OpenAI Vision API not configured');
 
@@ -135,15 +153,16 @@ export class OcrExtractionService {
       vitalFields: 0.8,
     };
 
-    if (!this.openaiService.client || !hasAiSubscription) {
+    if (!this.openaiService.client || !hasAiSubscription)
       return basicOcrParsing(ocrText, config);
-    }
 
+    // DPDP data-minimisation: strip direct identifiers before the text leaves
+    // for the external AI provider.
     return this.openaiService
       .callChatCompletion({
         systemPrompt:
           'You are a medical document parser. Extract structured data into JSON.',
-        userPrompt: `Extract from this OCR text:\n${ocrText}`,
+        userPrompt: `Extract from this OCR text:\n${redactPatientIdentifiers(ocrText)}`,
       })
       .then((parsed) => normalizeOcrFields(coerceOcrRawData(parsed), config))
       .catch(() => basicOcrParsing(ocrText, config));
@@ -155,7 +174,7 @@ export class OcrExtractionService {
     const raw = await this.openaiService.callChatCompletion({
       systemPrompt:
         'Classify document type: PRESCRIPTION, CASE_SHEET, LAB_REPORT, or GENERAL. Return one word.',
-      userPrompt: ocrText.substring(0, 500),
+      userPrompt: redactPatientIdentifiers(ocrText.substring(0, 500)),
       jsonMode: false,
     });
     const token =
@@ -173,7 +192,9 @@ export class OcrExtractionService {
     return this.openaiService.callChatCompletion({
       systemPrompt:
         'Suggest corrections for low-confidence fields. Return JSON.',
-      userPrompt: `Fields: ${lowConfidenceFields.join(', ')}\nData: ${JSON.stringify(fields)}`,
+      userPrompt: redactPatientIdentifiers(
+        `Fields: ${lowConfidenceFields.join(', ')}\nData: ${JSON.stringify(fields)}`,
+      ),
     });
   }
 }

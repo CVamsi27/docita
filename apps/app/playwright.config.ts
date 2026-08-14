@@ -33,6 +33,11 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
 
+    // The app registers a service worker in production builds (vite preview
+    // serves the built bundle); block it during E2E so cached index.html can
+    // never serve stale markup and introduce cross-test flake.
+    serviceWorkers: "block",
+
     navigationTimeout: 60000,
     actionTimeout: 30000,
   },
@@ -71,6 +76,7 @@ export default defineConfig({
             timeout: 180_000,
           },
         ],
+// jscpd:ignore-start
 
   projects: [
     {
@@ -82,6 +88,7 @@ export default defineConfig({
       use: {
         ...devices["Pixel 5"],
         viewport: VIEWPORT_PRESETS.mobile,
+// jscpd:ignore-end
         hasTouch: true,
         isMobile: true,
       },

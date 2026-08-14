@@ -80,11 +80,10 @@ export class AppointmentCommandService {
     clinicId: string,
     accessContext?: AppointmentAccessContext,
   ): Promise<{ appointmentId: string; status: string }> {
-    if (!accessContext?.userId || !accessContext.role) {
+    if (!accessContext?.userId || !accessContext.role)
       throw new ForbiddenException(
         'Only the assigned doctor can start this consultation',
       );
-    }
 
     return this.startConsultationUseCase.execute({
       appointmentId: id,
@@ -178,11 +177,10 @@ export class AppointmentCommandService {
       accessContext?.role === Role.DOCTOR &&
       accessContext.userId &&
       appointment.doctorId !== accessContext.userId
-    ) {
+    )
       throw new ForbiddenException(
         'Doctors can only access their appointments',
       );
-    }
 
     await this.updateAppointmentDetailsUseCase.execute({
       appointmentId: id,

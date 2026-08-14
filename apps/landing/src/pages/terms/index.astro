@@ -1,5 +1,6 @@
 ---
 import LegalLayout from "@/layouts/legal-layout.astro";
+import { SUPPORT_EMAIL } from "@workspace/types";
 ---
 
 <LegalLayout
@@ -85,13 +86,11 @@ import LegalLayout from "@/layouts/legal-layout.astro";
       <li>Failure to pay may result in suspension or termination</li>
     </ul>
 
-    <h3 class="mt-5 text-xl font-medium text-foreground">4.3 Free Trial</h3>
+    <h3 class="mt-5 text-xl font-medium text-foreground">4.3 Plan Activation</h3>
     <p class="mt-3">
-      Starter and Essential plans include a 30-day free trial period. No credit card
-      is required to start your trial on those tiers. Before the trial ends, add a
-      payment method and choose a paid subscription to continue without interruption;
-      otherwise access may enter a payment grace period as described in your workspace
-      billing notices.
+      Access to paid tiers starts after plan activation and applicable payment
+      confirmation. Your workspace billing notices describe renewal dates,
+      payment grace periods, and any action required to keep access active.
     </p>
   </section>
 
@@ -266,7 +265,7 @@ import LegalLayout from "@/layouts/legal-layout.astro";
       </p>
       <p>
         Support:
-        <a class="ml-1 text-primary hover:underline" href="mailto:support@docita.work">support@docita.work</a>
+        <a class="ml-1 text-primary hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
       </p>
     </div>
   </section>

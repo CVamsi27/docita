@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { passwordSchema } from "../contracts/auth";
 
+// allow-no-base-schema: owner=app-platform reason=ui-confirm-password review=2026-09-30
 export const resetPasswordFormSchema = z
   .object({
     newPassword: z.string().min(1, "Enter new password").pipe(passwordSchema),
@@ -13,6 +14,7 @@ export const resetPasswordFormSchema = z
 
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;
 
+// allow-no-base-schema: owner=app-platform reason=auth-email-only review=2026-09-30
 export const forgotPasswordFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
 });

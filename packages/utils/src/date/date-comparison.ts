@@ -3,35 +3,32 @@ import { toZonedTime } from "date-fns-tz";
 import { type DateTimeOptions, DEFAULT_TIMEZONE } from "./date-config.js";
 import { parseDate } from "./date-parsing.js";
 
+function isSameZonedDay(
+  date: string | Date | null | undefined,
+  referenceDate: Date,
+  options: DateTimeOptions = {},
+): boolean {
+  const { timezone = DEFAULT_TIMEZONE } = options;
+  const parsedDate = parseDate(date);
+  if (!parsedDate) return false;
+  return isSameDay(
+    toZonedTime(parsedDate, timezone),
+    toZonedTime(referenceDate, timezone),
+  );
+}
+
 export function isToday(
   date: string | Date | null | undefined,
   options: DateTimeOptions = {},
 ): boolean {
-  const { timezone = DEFAULT_TIMEZONE } = options;
-
-  const parsedDate = parseDate(date);
-  if (!parsedDate) return false;
-
-  const zonedDate = toZonedTime(parsedDate, timezone);
-  const today = toZonedTime(new Date(), timezone);
-
-  return isSameDay(zonedDate, today);
+  return isSameZonedDay(date, new Date(), options);
 }
 
 export function isYesterday(
   date: string | Date | null | undefined,
   options: DateTimeOptions = {},
 ): boolean {
-  const { timezone = DEFAULT_TIMEZONE } = options;
-
-  const parsedDate = parseDate(date);
-  if (!parsedDate) return false;
-
-  const zonedDate = toZonedTime(parsedDate, timezone);
-  const today = toZonedTime(new Date(), timezone);
-  const yesterday = subDays(today, 1);
-
-  return isSameDay(zonedDate, yesterday);
+  return isSameZonedDay(date, subDays(new Date(), 1), options);
 }
 
 /**

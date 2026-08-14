@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FinancialAnalyticsFactory } from './financial-analytics.factory';
 import { PrismaService } from '@/prisma/prisma.service';
+import { ANALYTICS_PERSISTENCE_PORT } from '@/domains/analytics/application/ports/analytics-persistence.port';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
@@ -32,6 +33,7 @@ describe('FinancialAnalyticsFactory', () => {
       providers: [
         FinancialAnalyticsFactory,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: ANALYTICS_PERSISTENCE_PORT, useExisting: PrismaService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
         {
           provide: AppConfigService,

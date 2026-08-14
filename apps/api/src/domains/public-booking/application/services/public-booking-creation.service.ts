@@ -26,7 +26,7 @@ import {
   PublicBookingTokenService,
   PUBLIC_BOOKING_JWT_PURPOSE,
 } from '@/domains/public-booking/application/services/public-booking-token.service';
-import { TurnstileVerifyService } from '@/domains/public-booking/application/services/turnstile-verify.service';
+import { TurnstileVerifyService } from '@/shared/modules/turnstile/turnstile-verify.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   extractBearerToken,
@@ -55,7 +55,9 @@ export class PublicBookingCreationService {
     clinicId: string,
     phone: string,
   ): Promise<void> {
-    const otp = crypto.randomInt(100000, 999999).toString();
+    // randomInt's max is exclusive — use 1_000_000 to actually include
+    // 999_999 in the sample space. Same fix as PatientPortalAuthCommandService.
+    const otp = crypto.randomInt(100000, 1_000_000).toString();
     const otpHash = await bcrypt.hash(otp, 10);
     const expiresAt = new Date(this.clock.now().getTime() + 10 * 60 * 1000);
     await this.persistence.publicBookingOtp.deleteMany({
@@ -139,7 +141,6 @@ export class PublicBookingCreationService {
     const phone = normalizePhone(body.phoneNumber);
     return withBookingTenant(this.persistence, referralCode, async (clinic) => {
       const now = this.clock.now();
-
       const otpRecord = await this.persistence.publicBookingOtp.findFirst({
         where: {
           clinicId: clinic.id,
@@ -149,52 +150,47 @@ export class PublicBookingCreationService {
         },
         orderBy: { createdAt: 'desc' },
       });
-
-      if (!otpRecord) {
+      if (!otpRecord)
         throw new UnauthorizedException('Invalid or expired code');
-      }
-
-      await this.persistence.publicBookingOtp.update({
-        where: { id: otpRecord.id },
+      // Atomic attempt consumption: cap-check and increment in one UPDATE
+      // so concurrent verifyOtp calls cannot all observe attempts < cap
+      // and all run bcrypt.compare. See also the equivalent fix in
+      // PatientPortalAuthCommandService — same pattern, different domain.
+      const PUBLIC_BOOKING_MAX_OTP_ATTEMPTS = 3;
+      const consumed = await this.persistence.publicBookingOtp.updateMany({
+        where: {
+          id: otpRecord.id,
+          attempts: { lt: PUBLIC_BOOKING_MAX_OTP_ATTEMPTS },
+        },
         data: { attempts: { increment: 1 } },
       });
-
-      const refreshed = await this.persistence.publicBookingOtp.findUnique({
-        where: { id: otpRecord.id },
-      });
-      if (!refreshed || refreshed.attempts > 3) {
+      if (consumed.count !== 1)
         throw new UnauthorizedException(
           'Too many attempts. Please request a new code.',
         );
-      }
-
+      const refreshed = await this.persistence.publicBookingOtp.findUnique({
+        where: { id: otpRecord.id },
+      });
+      if (!refreshed)
+        throw new UnauthorizedException('Invalid or expired code');
       const isValid = await bcrypt.compare(body.otp, refreshed.otpHash);
-      if (!isValid) {
-        throw new UnauthorizedException('Invalid code');
-      }
-
+      if (!isValid) throw new UnauthorizedException('Invalid code');
       await this.persistence.publicBookingOtp.update({
         where: { id: otpRecord.id },
         data: { usedAt: this.clock.now() },
       });
-
       const patient = await this.patientService.findByClinicIdAndPhoneNumber(
         clinic.id,
         phone,
       );
-      if (!patient) {
-        throw new UnauthorizedException('Patient not found');
-      }
-
+      if (!patient) throw new UnauthorizedException('Patient not found');
       const plain = patient.toPlain();
-
       const token = this.bookingTokenService.sign({
         purpose: PUBLIC_BOOKING_JWT_PURPOSE,
         clinicId: clinic.id,
         patientId: patient.id,
         phoneNumber: phone,
       });
-
       return {
         bookingVerificationToken: token,
         patient: {
@@ -211,14 +207,11 @@ export class PublicBookingCreationService {
     authHeader: string | undefined,
   ): Promise<PublicBookingContextResponse> {
     const token = extractBearerToken(authHeader);
-    if (!token) {
-      throw new UnauthorizedException('Verification required');
-    }
+    if (!token) throw new UnauthorizedException('Verification required');
     const payload = this.bookingTokenService.verify(token);
     return withBookingTenant(this.persistence, referralCode, async (clinic) => {
-      if (payload.clinicId !== clinic.id) {
+      if (payload.clinicId !== clinic.id)
         throw new UnauthorizedException('Invalid verification context');
-      }
 
       const appointments = await this.persistence.appointment.findMany({
         where: { clinicId: clinic.id, patientId: payload.patientId },

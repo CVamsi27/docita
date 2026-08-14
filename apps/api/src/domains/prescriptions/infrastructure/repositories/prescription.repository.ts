@@ -7,8 +7,32 @@ import {
   PatientWithAllergies,
   DoctorComplianceProfile,
 } from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
+import type {
+  CreatePrescriptionCommand,
+  UpdatePrescriptionCommand,
+} from '@/domains/prescriptions/core/repositories/prescription-commands';
 import { mapPrescriptionDetailRow } from '@/domains/prescriptions/infrastructure/repositories/prescription-detail.mapper';
-import { Prescription, Prisma, Role } from '@workspace/db';
+import {
+  Prescription,
+  Prisma,
+  Role,
+  DosageForm,
+  SigCode,
+  Specialization,
+  HospitalRole,
+} from '@workspace/db';
+import { parseStringEnumMember } from '@workspace/utils';
+
+// Shared by `findAll` and `findById` — both project the same prescribing
+// doctor fields (the ones a prescription document/printout needs), so the
+// projection lives in one place rather than the two queries drifting apart.
+const PRESCRIPTION_DOCTOR_SUMMARY_SELECT = {
+  id: true,
+  name: true,
+  qualification: true,
+  registrationNumber: true,
+  signatureUrl: true,
+} satisfies Prisma.UserSelect;
 
 @Injectable()
 export class PrismaPrescriptionRepository implements IPrescriptionRepository {
@@ -22,9 +46,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     const { clinicId, search, date, startDate, endDate, patientId, limit } =
       params;
 
-    if (!clinicId) {
-      return [];
-    }
+    if (!clinicId) return [];
 
     const where: Prisma.PrescriptionWhereInput = {
       patient: { clinicId },
@@ -91,13 +113,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
           },
         },
         doctor: {
-          select: {
-            id: true,
-            name: true,
-            qualification: true,
-            registrationNumber: true,
-            signatureUrl: true,
-          },
+          select: PRESCRIPTION_DOCTOR_SUMMARY_SELECT,
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -138,13 +154,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
           },
         },
         doctor: {
-          select: {
-            id: true,
-            name: true,
-            qualification: true,
-            registrationNumber: true,
-            signatureUrl: true,
-          },
+          select: PRESCRIPTION_DOCTOR_SUMMARY_SELECT,
         },
         appointment: {
           select: {
@@ -164,16 +174,71 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     return mapPrescriptionDetailRow(result);
   }
 
-  async create(data: Prisma.PrescriptionCreateInput): Promise<Prescription> {
+  async create(data: CreatePrescriptionCommand): Promise<Prescription> {
     return await this.prisma.prescription.create({
-      data,
+      data: {
+        appointment: { connect: { id: data.appointmentId } },
+        patient: { connect: { id: data.patientId } },
+        doctor: { connect: { id: data.doctorId } },
+        instructions: data.instructions,
+        doctorName: data.doctorName,
+        doctorEmail: data.doctorEmail,
+        doctorPhone: data.doctorPhone,
+        doctorSpecialization: data.doctorSpecialization
+          ? (parseStringEnumMember(
+              Object.values(Specialization),
+              data.doctorSpecialization,
+            ) ?? undefined)
+          : undefined,
+        doctorRole: data.doctorRole
+          ? (parseStringEnumMember(
+              Object.values(HospitalRole),
+              data.doctorRole,
+            ) ?? undefined)
+          : undefined,
+        doctorRegistrationNumber: data.doctorRegistrationNumber,
+        doctorLicenseNumber: data.doctorLicenseNumber,
+        medications: {
+          create: data.medications.map((med) => ({
+            name: med.name,
+            dosage: med.dosage,
+            frequency: med.frequency,
+            duration: med.duration,
+            route: med.route,
+            ndcCode: med.ndcCode,
+            rxNormCui: med.rxNormCui,
+            dosageForm: med.dosageForm
+              ? (parseStringEnumMember(
+                  Object.values(DosageForm),
+                  med.dosageForm,
+                ) ?? undefined)
+              : undefined,
+            strengthValue: med.strengthValue,
+            strengthUnit: med.strengthUnit,
+            sigCode: med.sigCode
+              ? (parseStringEnumMember(Object.values(SigCode), med.sigCode) ??
+                undefined)
+              : undefined,
+            quantity: med.quantity,
+            refillsAllowed: med.refillsAllowed,
+            dispenseAsWritten: med.dispenseAsWritten,
+            startDate: med.startDate,
+            endDate: med.endDate,
+            isPRN: med.isPRN,
+            prnInstructions: med.prnInstructions,
+            prnMaxDose: med.prnMaxDose,
+            specialInstructions: med.specialInstructions,
+            indication: med.indication,
+          })),
+        },
+      },
       include: { medications: true },
     });
   }
 
   async update(
     id: string,
-    data: Prisma.PrescriptionUpdateInput,
+    data: UpdatePrescriptionCommand,
     clinicId: string,
     expectedVersion?: number,
   ): Promise<Prescription> {
@@ -181,16 +246,17 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     // write on it so concurrent edits do not silently overwrite each other.
     // Callers that have not been migrated to pass a version still get a
     // monotonically-increasing version field, just without conflict detection.
+    const prismaData: Prisma.PrescriptionUpdateManyMutationInput = {
+      ...data,
+      version: { increment: 1 },
+    };
     const result = await this.prisma.prescription.updateMany({
       where: {
         id,
         patient: { clinicId },
         ...(expectedVersion !== undefined ? { version: expectedVersion } : {}),
       },
-      data: {
-        ...data,
-        version: { increment: 1 },
-      } satisfies Prisma.PrescriptionUpdateManyMutationInput,
+      data: prismaData,
     });
     if (result.count === 0) {
       if (expectedVersion !== undefined) {
@@ -285,10 +351,23 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
       },
     });
 
-    if (!doctor) {
-      return null;
-    }
+    if (!doctor) return null;
 
     return doctor;
+  }
+
+  async findAppointmentType(
+    appointmentId: string,
+    clinicId?: string,
+  ): Promise<string | null> {
+    const appointment = await this.getReadClient().appointment.findFirst({
+      where: {
+        id: appointmentId,
+        ...(clinicId ? { clinicId } : {}),
+      },
+      select: { type: true },
+    });
+
+    return appointment?.type ?? null;
   }
 }

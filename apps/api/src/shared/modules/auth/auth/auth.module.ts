@@ -9,6 +9,7 @@ import { AuthMfaOrchestratorService } from './auth-mfa-orchestrator.service';
 import { AuthRegistrationController } from './auth-registration.controller';
 import { AuthLoginController } from './auth-login.controller';
 import { AuthPasswordController } from './auth-password.controller';
+import { AuthEffectivePermissionsController } from './auth-effective-permissions.controller';
 import { AuthSessionController } from './auth-session.controller';
 import { AuthMfaController } from './auth-mfa.controller';
 import { AuthVerificationController } from './auth-verification.controller';
@@ -19,18 +20,16 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
 import { PasswordExpiredGuard } from '@/shared/modules/auth/guards/password-expired.guard';
-import { ApiKeyGuard } from '@/shared/modules/auth/guards/api-key.guard';
 import { UsersModule } from '@/domains/users/users.module';
 import { ClinicsModule } from '@/domains/clinics/clinics.module';
 import { PassportModule } from '@nestjs/passport';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { DefaultPasswordPolicy } from './policies/password.policy';
+import { TurnstileModule } from '@/shared/modules/turnstile/turnstile.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 import { ConsentGuard } from '@/shared/modules/auth/guards/consent.guard';
-import { PatientDoctorGuard } from '@/shared/modules/auth/guards/patient-doctor.guard';
 import { EmailVerifiedGuard } from '@/shared/modules/auth/guards/email-verified.guard';
 import { AuthGuardsModule } from './auth-guards.module';
 
@@ -54,6 +53,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
     UsersModule,
     forwardRef(() => ClinicsModule),
     EmailModule,
+    TurnstileModule,
     JwtModule.registerAsync({
       imports: [AppConfigModule],
       inject: [AppConfigService],
@@ -64,9 +64,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
         const expiresIn = /^\d+$/.test(expiration)
           ? Number(expiration)
           : (parsedDuration ?? '7d');
-        if (!secret) {
-          throw new Error('JWT_SECRET is not defined');
-        }
+        if (!secret) throw new Error('JWT_SECRET is not defined');
         return {
           secret: secret,
           signOptions: {
@@ -88,12 +86,8 @@ function parseJwtDuration(value: string): JwtDuration | null {
     ApiKeyService,
     JwtStrategy,
     JwtAuthGuard,
-    ClinicTypeGuard,
-    FacilityTypeGuard,
     PasswordExpiredGuard,
-    ApiKeyGuard,
     ConsentGuard,
-    PatientDoctorGuard,
     EmailVerifiedGuard,
     {
       provide: 'IPasswordPolicy',
@@ -104,6 +98,7 @@ function parseJwtDuration(value: string): JwtDuration | null {
     AuthRegistrationController,
     AuthLoginController,
     AuthPasswordController,
+    AuthEffectivePermissionsController,
     AuthSessionController,
     AuthMfaController,
     AuthVerificationController,
@@ -118,13 +113,9 @@ function parseJwtDuration(value: string): JwtDuration | null {
     JwtStrategy,
     PassportModule,
     JwtModule,
-    ClinicTypeGuard,
-    FacilityTypeGuard,
     AuthGuardsModule,
     PasswordExpiredGuard,
-    ApiKeyGuard,
     ConsentGuard,
-    PatientDoctorGuard,
     EmailVerifiedGuard,
   ],
 })

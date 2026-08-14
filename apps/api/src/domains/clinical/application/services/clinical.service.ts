@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import { IMedicalCodingRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
 import {
-  ILabRepository,
-  IMedicalCodingRepository,
   LabOrderQueryParams,
   LabStats,
-} from '@/domains/clinical/core/repositories/clinical.repository.interface';
+  type LabOrderRepository,
+} from '@/domains/clinical/core/repositories/lab-order.repository.interface';
+import type { LabTestCatalogRepository } from '@/domains/clinical/core/repositories/lab-test-catalog.repository.interface';
 import {
   CODE_CATALOG_PROVIDER,
   CodeCatalogProvider,
@@ -31,6 +32,8 @@ type LabTestCreateInput = {
   description?: string;
 };
 
+type LabTestUpdateInput = Partial<Omit<LabTestCreateInput, 'id' | 'clinicId'>>;
+
 type LabOrderCreateInput = {
   patientId: string;
   labTestId: string;
@@ -46,8 +49,10 @@ type LabOrderCreateInput = {
 @Injectable()
 export class ClinicalService {
   constructor(
-    @Inject('ILabRepository')
-    private readonly labRepository: ILabRepository,
+    @Inject('LabTestCatalogRepository')
+    private readonly labTestRepository: LabTestCatalogRepository,
+    @Inject('LabOrderRepository')
+    private readonly labOrderRepository: LabOrderRepository,
     @Inject('IMedicalCodingRepository')
     private readonly codingRepository: IMedicalCodingRepository,
     @Inject(CODE_CATALOG_PROVIDER)
@@ -71,30 +76,49 @@ export class ClinicalService {
   }
 
   async getAllTests(clinicId: string): Promise<LabTest[]> {
-    return await this.labRepository.findAllTests(clinicId);
+    return await this.labTestRepository.findAllTests(clinicId);
   }
 
   async getTestById(id: string): Promise<LabTest> {
-    const test = await this.labRepository.findTestById(id);
+    const test = await this.labTestRepository.findTestById(id);
     if (!test) throw new NotFoundException('Lab test not found');
     return test;
   }
 
   async createTest(data: LabTestCreateInput): Promise<LabTest> {
     const test = LabTest.create(this.toLabTestInput(data));
-    return await this.labRepository.saveTest(test);
+    return await this.labTestRepository.saveTest(test);
   }
 
-  async getAllOrders(
-    clinicId: string,
-    params?: LabOrderQueryParams,
-  ): Promise<LabOrder[]> {
-    const orders = await this.labRepository.findAllOrders(clinicId, params);
-    return orders;
+  async updateTest(id: string, data: LabTestUpdateInput): Promise<LabTest> {
+    const existing = await this.labTestRepository.findTestById(id);
+    if (!existing) throw new NotFoundException('Lab test not found');
+
+    const merged = LabTest.create({
+      id: existing.id,
+      clinicId: existing.clinicId,
+      name: data.name ?? existing.name,
+      category: data.category ?? existing.category,
+      active: data.active ?? existing.active,
+      code: data.code ?? existing.code,
+      price: data.price ?? existing.price,
+      description: data.description ?? existing.description,
+    });
+    return await this.labTestRepository.saveTest(merged);
+  }
+
+  async deleteTest(id: string): Promise<void> {
+    const existing = await this.labTestRepository.findTestById(id);
+    if (!existing) throw new NotFoundException('Lab test not found');
+    await this.labTestRepository.deleteTest(id);
+  }
+
+  async getAllOrders(clinicId: string, params?: LabOrderQueryParams) {
+    return await this.labOrderRepository.findAllOrders(clinicId, params);
   }
 
   async getOrderById(id: string): Promise<LabOrder> {
-    const order = await this.labRepository.findOrderById(id);
+    const order = await this.labOrderRepository.findOrderById(id);
     if (!order) throw new NotFoundException('Lab order not found');
     return order;
   }
@@ -109,22 +133,22 @@ export class ClinicalService {
       orderedBy: data.orderedBy,
       status: LabTestOrderStatus.ORDERED,
     });
-    return await this.labRepository.saveOrder(order);
+    return await this.labOrderRepository.saveOrder(order);
   }
 
   async updateOrderStatus(
     id: string,
     status: LabTestOrderStatus,
   ): Promise<LabOrder> {
-    const order = await this.labRepository.findOrderById(id);
+    const order = await this.labOrderRepository.findOrderById(id);
     if (!order) throw new NotFoundException('Lab order not found');
 
     const updated = order.update({ status }, this.clock.now());
-    return await this.labRepository.saveOrder(updated);
+    return await this.labOrderRepository.saveOrder(updated);
   }
 
   async getStats(clinicId: string): Promise<LabStats> {
-    return await this.labRepository.getStats(clinicId);
+    return await this.labOrderRepository.getStats(clinicId);
   }
 
   async searchIcdCodes(query: string): Promise<IcdCode[]> {

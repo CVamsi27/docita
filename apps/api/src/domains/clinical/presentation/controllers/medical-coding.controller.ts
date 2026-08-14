@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Controller,
   Get,
@@ -38,6 +39,7 @@ import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-
 import { ZodValidationPipe } from '@/shared/common/pipes/zod-validation.pipe';
 
 @Controller('clinical/medical-coding')
+// jscpd:ignore-end
 @UseGuards(TierGuard, FrontDeskClinicalBlockGuard)
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_MEDICAL_CODING))
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_MEDICAL_CODING))

@@ -16,6 +16,18 @@ import {
 const CODE_CACHE_TTL_MS = 5 * 60 * 1000;
 const CODE_CACHE_CAPACITY = 512;
 
+/**
+ * Shared `select` for the ICD/CPT sync read paths — both code tables expose
+ * the same sync-relevant columns, so a single literal keeps the two mirrored
+ * query paths (`findExistingIcdCodes` / `findExistingCptCodes`) in lockstep.
+ */
+const SYNCED_CODE_SELECT = {
+  code: true,
+  description: true,
+  category: true,
+  isCommon: true,
+} as const;
+
 @Injectable()
 export class PrismaMedicalCodingRepository
   implements IMedicalCodingRepository, OnModuleInit
@@ -80,42 +92,66 @@ export class PrismaMedicalCodingRepository
   }
 
   async searchIcdCodes(query: string, limit = 20): Promise<IcdCode[]> {
-    if (!query?.trim()) return [];
-    const key = this.cacheKey(query, limit);
-    const cached = this.icdSearchCache.get(key);
-    if (cached) return cached;
-
-    const result = await this.getReadClient().icdCode.findMany({
-      where: {
-        OR: [
-          { code: { contains: query.trim(), mode: 'insensitive' } },
-          { description: { contains: query.trim(), mode: 'insensitive' } },
-        ],
-      },
-      orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
-      take: limit,
-    });
-    this.icdSearchCache.set(key, result);
-    return result;
+    return this.cachedSearch(this.icdSearchCache, query, limit, () =>
+      this.getReadClient().icdCode.findMany(
+        this.buildCodeSearchArgs(query, limit),
+      ),
+    );
   }
 
   async searchCptCodes(query: string, limit = 20): Promise<CptCode[]> {
-    if (!query?.trim()) return [];
-    const key = this.cacheKey(query, limit);
-    const cached = this.cptSearchCache.get(key);
-    if (cached) return cached;
+    return this.cachedSearch(this.cptSearchCache, query, limit, () =>
+      this.getReadClient().cptCode.findMany(
+        this.buildCodeSearchArgs(query, limit),
+      ),
+    );
+  }
 
-    const result = await this.getReadClient().cptCode.findMany({
+  /**
+   * Builds the `findMany` args shared by `searchIcdCodes` / `searchCptCodes` —
+   * both code tables are searched the same way (code/description prefix match,
+   * common-first ordering), so the query shape is genuinely identical, not
+   * coincidentally similar.
+   */
+  private buildCodeSearchArgs(query: string, limit: number) {
+    const trimmed = query.trim();
+    return {
       where: {
         OR: [
-          { code: { contains: query.trim(), mode: 'insensitive' } },
-          { description: { contains: query.trim(), mode: 'insensitive' } },
+          { code: { contains: trimmed, mode: 'insensitive' as const } },
+          { description: { contains: trimmed, mode: 'insensitive' as const } },
         ],
       },
-      orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
+      orderBy: [{ isCommon: 'desc' as const }, { code: 'asc' as const }],
       take: limit,
-    });
-    this.cptSearchCache.set(key, result);
+    };
+  }
+
+  /**
+   * Builds the `update.data` shared by `updateCommonIcdCodes` /
+   * `updateCommonCptCodes` — syncing either coding system overwrites the same
+   * three fields and re-marks the record as common.
+   */
+  private buildCodeUpdateData(code: MedicalCodeSyncRecord) {
+    return {
+      description: code.description,
+      category: code.category,
+      isCommon: true,
+    };
+  }
+
+  private async cachedSearch<T>(
+    cache: LruCache<T[]>,
+    query: string,
+    limit: number,
+    factory: () => Promise<T[]>,
+  ): Promise<T[]> {
+    if (!query?.trim()) return [];
+    const key = this.cacheKey(query, limit);
+    const cached = cache.get(key);
+    if (cached) return cached;
+    const result = await factory();
+    cache.set(key, result);
     return result;
   }
 
@@ -234,12 +270,7 @@ export class PrismaMedicalCodingRepository
   ): Promise<SyncedMedicalCodeRecord[]> {
     return this.getReadClient().icdCode.findMany({
       where: { code: { in: codes } },
-      select: {
-        code: true,
-        description: true,
-        category: true,
-        isCommon: true,
-      },
+      select: SYNCED_CODE_SELECT,
     });
   }
 
@@ -261,11 +292,7 @@ export class PrismaMedicalCodingRepository
       records.map((code) =>
         this.prisma.icdCode.update({
           where: { code: code.code },
-          data: {
-            description: code.description,
-            category: code.category,
-            isCommon: true,
-          },
+          data: this.buildCodeUpdateData(code),
         }),
       ),
     );
@@ -276,12 +303,7 @@ export class PrismaMedicalCodingRepository
   ): Promise<SyncedMedicalCodeRecord[]> {
     return this.getReadClient().cptCode.findMany({
       where: { code: { in: codes } },
-      select: {
-        code: true,
-        description: true,
-        category: true,
-        isCommon: true,
-      },
+      select: SYNCED_CODE_SELECT,
     });
   }
 
@@ -303,11 +325,7 @@ export class PrismaMedicalCodingRepository
       records.map((code) =>
         this.prisma.cptCode.update({
           where: { code: code.code },
-          data: {
-            description: code.description,
-            category: code.category,
-            isCommon: true,
-          },
+          data: this.buildCodeUpdateData(code),
         }),
       ),
     );

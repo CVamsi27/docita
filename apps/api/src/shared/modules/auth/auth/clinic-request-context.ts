@@ -17,9 +17,8 @@ export function getClinicStaffRequestContext(
     typeof req.user?.clinicId === 'string' ? req.user.clinicId.trim() : '';
   const role = req.user?.role;
 
-  if (!userId || !clinicId || role == null) {
+  if (!userId || !clinicId || role == null)
     throw forbiddenProblem('NO_CLINIC', 'No clinic assigned to this user');
-  }
 
   return { clinicId, userId, role };
 }
@@ -32,12 +31,11 @@ export function requireClinicIdFromRequest(req: RequestWithUser): string {
 /** Authenticated user id without requiring an assigned clinic (patient portal, join flow). */
 export function requireAuthenticatedUserId(req: RequestWithUser): string {
   const userId = getAuthenticatedUserId(req.user);
-  if (!userId) {
+  if (!userId)
     throw forbiddenProblem(
       'AUTHENTICATION_REQUIRED',
       'Authentication required',
     );
-  }
   return userId;
 }
 
@@ -45,12 +43,11 @@ export function requireAuthenticatedUserId(req: RequestWithUser): string {
 export function requireAuthenticatedUser(
   req: RequestWithUser,
 ): NonNullable<RequestWithUser['user']> {
-  if (!req.user) {
+  if (!req.user)
     throw forbiddenProblem(
       'AUTHENTICATION_REQUIRED',
       'Authentication required',
     );
-  }
   requireAuthenticatedUserId(req);
   return req.user;
 }

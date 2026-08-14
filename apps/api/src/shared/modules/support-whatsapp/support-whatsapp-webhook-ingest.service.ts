@@ -95,7 +95,6 @@ export class SupportWhatsAppWebhookIngestService {
     if (alreadyStored) {
       return;
     }
-
     const threadPhoneNumber = normalizePhoneNumber(message.from);
     const senderName =
       value.contacts?.find((contact) => contact.wa_id === message.from)?.profile
@@ -104,7 +103,6 @@ export class SupportWhatsAppWebhookIngestService {
       null;
     const receivedAt = parseTimestamp(message.timestamp, this.clock.now());
     const messageBody = extractMessageBody(message);
-
     await this.prisma.supportWhatsAppMessage.upsert({
       where: { providerMessageId: message.id },
       update: {
@@ -139,7 +137,6 @@ export class SupportWhatsAppWebhookIngestService {
         }),
       },
     });
-
     await this.maybeSendAutoReply({
       threadPhoneNumber,
       inboundProviderMessageId: message.id,
@@ -147,7 +144,6 @@ export class SupportWhatsAppWebhookIngestService {
       messageType: message.type,
     });
   }
-
   private async maybeSendAutoReply(input: {
     threadPhoneNumber: string;
     inboundProviderMessageId: string;

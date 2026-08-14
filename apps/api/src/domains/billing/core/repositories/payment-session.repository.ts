@@ -48,6 +48,12 @@ export interface IPaymentSessionRepository {
     invoiceId: string,
     clinicId: string,
   ): Promise<PaymentSession[]>;
+  /** Settled (CAPTURED/PAID) sessions recorded within [from, to) for a clinic. */
+  findSettledByClinicInRange(
+    clinicId: string,
+    from: Date,
+    to: Date,
+  ): Promise<PaymentSession[]>;
 }
 
 export const PAYMENT_SESSION_REPOSITORY_TOKEN = Symbol(

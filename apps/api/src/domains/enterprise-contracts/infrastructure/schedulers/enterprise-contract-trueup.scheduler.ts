@@ -7,6 +7,7 @@ import { EnterpriseContractsService } from '@/domains/enterprise-contracts/appli
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
+import { BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
 
 @Injectable()
 export class EnterpriseContractTrueUpScheduler {
@@ -41,6 +42,11 @@ export class EnterpriseContractTrueUpScheduler {
         const activeContracts = await this.prisma.enterpriseContract.findMany({
           where: { status: EnterpriseContractStatus.ACTIVE },
           select: { id: true, contractNumber: true },
+          // Capped: this is a daily cron that iterates all active contracts.
+          // Active enterprise contracts are a small internal-portal set;
+          // 1000 is a guardrail well above realistic scale and below
+          // table-size.
+          take: BULK_READ_LIMIT,
         });
         this.logger.log(
           `True-up scan: ${activeContracts.length} active contracts`,

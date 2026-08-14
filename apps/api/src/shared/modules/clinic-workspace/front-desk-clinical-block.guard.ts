@@ -19,14 +19,10 @@ export class FrontDeskClinicalBlockGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<RequestWithUser>();
     const method = (req.method ?? 'GET').toUpperCase();
-    if (method === 'GET' || method === 'HEAD') {
-      return true;
-    }
+    if (method === 'GET' || method === 'HEAD') return true;
 
     const clinicId = req.user?.clinicId;
-    if (!clinicId) {
-      return true;
-    }
+    if (!clinicId) return true;
 
     const auth = await this.clinicAuthCache.getClinicAuth(clinicId);
     if (!isFrontDeskPlanMode(auth.tier, auth.planMode)) {

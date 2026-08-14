@@ -1,7 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsAppTemplate } from '@/domains/whatsapp/core/entities';
-import type { WhatsAppClinicMessageContext } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
+import type {
+  IWhatsAppTemplateRepository,
+  WhatsAppClinicMessageContext,
+} from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import type {
   PrismaWhatsAppDatabase,
   PrismaWhatsAppReadClient,
@@ -20,7 +23,7 @@ import {
 } from './prisma-whatsapp.mappers';
 
 @Injectable()
-export class PrismaWhatsAppTemplateRepository {
+export class PrismaWhatsAppTemplateRepository implements IWhatsAppTemplateRepository {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaWhatsAppDatabase,
   ) {}
@@ -118,9 +121,8 @@ export class PrismaWhatsAppTemplateRepository {
       !clinic?.tier ||
       !clinic.intelligenceAddon ||
       typeof clinic.name !== 'string'
-    ) {
+    )
       return null;
-    }
 
     return {
       tier: clinic.tier,

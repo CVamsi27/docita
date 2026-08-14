@@ -306,4 +306,28 @@ describe('CsrfInterceptor', () => {
     });
     expect(() => interceptor.intercept(context, next)).not.toThrow();
   });
+
+  it('allows signature-authenticated webhook ingress without CSRF', () => {
+    // Provider callbacks (Razorpay/ZeptoMail/WhatsApp) are POSTed without a
+    // browser session and are authenticated by their own HMAC verification +
+    // replay dedupe — the CSRF double-submit must not block them.
+    const context = createContext({
+      method: 'POST',
+      url: '/api/v1/webhooks/subscriptions/razorpay',
+      originalUrl: '/api/v1/webhooks/subscriptions/razorpay',
+    });
+    expect(() => interceptor.intercept(context, next)).not.toThrow();
+  });
+
+  it('still rejects non-webhook mutating requests without CSRF', () => {
+    // Guard against over-broadening the webhook exemption.
+    const context = createContext({
+      method: 'POST',
+      url: '/api/v1/webhooks-like-route',
+      originalUrl: '/api/v1/webhooks-like-route',
+    });
+    expect(() => interceptor.intercept(context, next)).toThrow(
+      ForbiddenException,
+    );
+  });
 });

@@ -13,7 +13,11 @@ import {
   StorageFile,
 } from '@/domains/documents/application/ports/storage-provider.port';
 import { DoctorsQueryService } from './doctors-query.service';
-import { DoctorProfileService } from './doctor-profile.service';
+import {
+  DoctorProfileService,
+  type CreateCertificationData,
+  type CreateEducationData,
+} from './doctor-profile.service';
 import { DoctorAdminVerificationCommandService } from './doctor-admin-verification-command.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { parseStringEnumMember } from '@workspace/utils';
@@ -45,6 +49,7 @@ interface UpdateDoctorData {
   registrationNumber?: string;
   registrationCouncil?: string | null;
   registrationStateCode?: string | null;
+  hprId?: string;
   licenseNumber?: string;
   licenseExpiry?: Date;
   signatureUrl?: string;
@@ -54,28 +59,6 @@ interface UpdateDoctorData {
   yearsOfExperience?: number;
   consultationFee?: number;
   role?: string;
-}
-
-interface CreateEducationData {
-  degree: string;
-  fieldOfStudy?: string;
-  institution: string;
-  location?: string;
-  startYear?: number;
-  endYear?: number;
-  isOngoing?: boolean;
-  grade?: string;
-  thesis?: string;
-  order?: number;
-}
-
-interface CreateCertificationData {
-  name: string;
-  issuingBody: string;
-  issueDate: Date;
-  expiryDate?: Date;
-  credentialId?: string;
-  credentialUrl?: string;
 }
 
 function normalizeRole(role: string | undefined): Role {
@@ -159,6 +142,7 @@ export class DoctorsCommandService {
       registrationNumber,
       registrationCouncil,
       registrationStateCode,
+      hprId,
       licenseNumber,
       licenseExpiry,
       signatureUrl,
@@ -183,6 +167,7 @@ export class DoctorsCommandService {
       updateData.registrationCouncil = registrationCouncil;
     if (registrationStateCode !== undefined)
       updateData.registrationStateCode = registrationStateCode;
+    if (hprId !== undefined) updateData.hprId = hprId.trim() || null;
     if (licenseNumber !== undefined) updateData.licenseNumber = licenseNumber;
     if (licenseExpiry !== undefined) updateData.licenseExpiry = licenseExpiry;
     if (signatureUrl !== undefined) {
@@ -243,18 +228,30 @@ export class DoctorsCommandService {
     );
   }
 
-  adminVerifyDoctor(doctorId: string, adminId: string, note?: string) {
+  adminVerifyDoctor(
+    doctorId: string,
+    adminId: string,
+    ticketId: string,
+    note?: string,
+  ) {
     return this.adminVerificationService.adminVerifyDoctor(
       doctorId,
       adminId,
+      ticketId,
       note,
     );
   }
 
-  adminRejectDoctor(doctorId: string, adminId: string, reason: string) {
+  adminRejectDoctor(
+    doctorId: string,
+    adminId: string,
+    ticketId: string,
+    reason: string,
+  ) {
     return this.adminVerificationService.adminRejectDoctor(
       doctorId,
       adminId,
+      ticketId,
       reason,
     );
   }

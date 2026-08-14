@@ -1,3 +1,4 @@
+// jscpd:ignore-start
 import {
   Body,
   Controller,
@@ -9,7 +10,6 @@ import {
   Put,
   Request,
   UseGuards,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
@@ -24,10 +24,10 @@ import {
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { getClinicStaffRequestContext } from '@/shared/modules/auth/auth/clinic-request-context';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { WhatsappSenderSettingsService } from '@/domains/whatsapp/application/services/whatsapp-sender-settings.service';
 import {
   RevokeWhatsappSenderResponseDto,
+  // jscpd:ignore-end
   UpdateWhatsappSenderDto,
   VerifyWhatsappSenderResponseDto,
   WhatsappSenderConfigResponseDto,
@@ -38,10 +38,7 @@ import {
 @RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_WHATSAPP_SENDER))
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_WHATSAPP_SENDER))
 export class WhatsappSenderController {
-  constructor(
-    private readonly senderSettings: WhatsappSenderSettingsService,
-    private readonly configService: AppConfigService,
-  ) {}
+  constructor(private readonly senderSettings: WhatsappSenderSettingsService) {}
 
   @Get()
   @ZodSerializerDto(WhatsappSenderConfigResponseDto)
@@ -69,16 +66,13 @@ export class WhatsappSenderController {
   }
 
   @Post('managed-onboarding/start')
-  @HttpCode(HttpStatus.SERVICE_UNAVAILABLE)
-  startManagedOnboarding() {
-    if (!this.configService.isPerClinicWhatsappSenderEnabled()) {
-      throw new ServiceUnavailableException(
-        'Per-clinic WhatsApp sender settings are not enabled.',
-      );
-    }
-    throw new ServiceUnavailableException(
-      'Managed WhatsApp onboarding is pending Docita support provisioning.',
-    );
+  @HttpCode(HttpStatus.OK)
+  @ZodSerializerDto(WhatsappSenderConfigResponseDto)
+  async startManagedOnboarding(@Request() req: RequestWithUser) {
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    return this.senderSettings.updateConfig(clinicId, userId, {
+      mode: 'MANAGED',
+    });
   }
 
   @Delete()

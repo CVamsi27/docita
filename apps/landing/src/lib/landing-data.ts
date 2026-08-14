@@ -1,5 +1,5 @@
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
-import { fetchLandingJson } from "@/lib/public-api";
+import { fetchLandingJson } from "@/lib/api-fetch";
 
 export interface PlatformStats {
   clinics: number;
@@ -42,13 +42,14 @@ const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "STARTER",
     name: "Starter",
-    description: "Core clinical workflows for solo doctors moving off paper",
+    description: "Core clinical workflows for solo practitioners moving off paper",
     tagline: "Go digital from day one",
     pricing: { monthly: 499, yearly: 4990, currency: "₹" },
     features: [
-      "50 patients",
-      "Digital prescriptions",
-      "Basic appointment queue",
+      "Up to 50 patients",
+      "Digital prescriptions with PDF",
+      "Patient profiles & visit history",
+      "Excel import & CSV export",
       "Single doctor",
     ],
   },
@@ -97,13 +98,13 @@ const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "ESSENTIAL",
     name: "Essential",
-    description: "Built for solo clinics running OPD, billing, and follow-ups",
+    description: "For solo clinics running OPD, billing, and follow-ups",
     tagline: "Best for solo practices",
     pricing: { monthly: 999, yearly: 9990, currency: "₹" },
     features: [
       "Unlimited patients",
       "Billing workflows",
-      "WhatsApp reminders",
+      "WhatsApp messaging",
       "Analytics dashboard",
     ],
   },
@@ -124,7 +125,7 @@ const FALLBACK_TIERS: TierConfig[] = [
     id: "HOSPITAL",
     name: "Hospital",
     description:
-      "For multi-doctor multi-branch hospitals: pooled WhatsApp, multi-branch analytics, dedicated CSM",
+      "For multi-doctor multi-branch hospitals: pooled WhatsApp, analytics, and dedicated CSM",
     tagline: "Multi-branch and multi-specialty",
     pricing: { monthly: 7999, yearly: 79990, currency: "₹" },
     features: [
@@ -191,9 +192,7 @@ export async function fetchPlatformStats(
   }
 
   const now = Date.now();
-  if (platformStatsCache && platformStatsCache.expiresAt > now) {
-    return platformStatsCache.stats;
-  }
+  if (platformStatsCache && platformStatsCache.expiresAt > now) return platformStatsCache.stats;
 
   try {
     const payload = await fetchLandingJson<Partial<PlatformStats>>(
@@ -211,9 +210,7 @@ export async function fetchPlatformStats(
       doctors === null ||
       patients === null ||
       prescriptions === null
-    ) {
-      return null;
-    }
+    ) return null;
 
     const stats = {
       clinics,
@@ -245,9 +242,7 @@ export function formatTierPrice(
   value: number | "custom",
   symbol: string,
 ): string {
-  if (value === "custom") {
-    return "Custom";
-  }
+  if (value === "custom") return "Custom";
 
   return `${symbol}${formatAmountLocale(value)}`;
 }

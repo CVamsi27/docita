@@ -1,28 +1,6 @@
 name: API E2E Tests
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "apps/api/**"
-      - "packages/db/**"
-      - "packages/types/**"
-      - "packages/utils/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - "turbo.json"
-  pull_request:
-    branches: [staging, main]
-    paths:
-      - "apps/api/**"
-      - "packages/db/**"
-      - "packages/types/**"
-      - "packages/utils/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - "turbo.json"
   workflow_dispatch:
 
 concurrency:
@@ -34,13 +12,25 @@ env:
 
 jobs:
   api-e2e-tests:
-    name: API E2E Tests
+    name: API E2E Tests (${{ matrix.shard }}/${{ matrix.total }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 1
+            total: 2
+          - shard: 2
+            total: 2
     env:
       PGHOST: localhost
       PGPORT: "5434"
       PGUSER: docita
       PGPASSWORD: password
+      # The suite runs single-process (jest --runInBand) and OOM'd at the
+      # default 2GB Node heap (`FATAL ERROR: Ineffective mark-compacts near
+      # heap limit`, exit 134). Give each shard a 4GB heap.
+      NODE_OPTIONS: --max-old-space-size=4096
     services:
       postgres:
         image: postgres:16-alpine
@@ -60,25 +50,24 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Prepare pnpm
         run: |
           corepack enable
           corepack prepare pnpm@10.30.3 --activate
-      - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v5
+      - name: Use Node.js 22.22.0
+        uses: actions/setup-node@v7
         with:
-          node-version: 22.12.0
+          node-version: 22.22.0
           cache: "pnpm"
       - name: Install dependencies
+        # Root postinstall already runs `pnpm db:generate`.
         run: pnpm install --frozen-lockfile
-      - name: Generate Prisma Client
-        run: pnpm db:generate
       - name: Run Database Migrations
         env:
           DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
         run: pnpm db:deploy
-      - name: Run API E2E Tests
+      - name: Run API E2E Tests (shard ${{ matrix.shard }}/${{ matrix.total }})
         env:
           DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
           JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
@@ -89,4 +78,4 @@ jobs:
           NEXT_PUBLIC_API_URL: http://localhost:3001/api
           CORS_ORIGINS: http://localhost:3000
           WHATSAPP_PRODUCTION_MODE: "false"
-        run: pnpm --filter @docita/api run test:e2e
+        run: pnpm --filter @docita/api run test:e2e:shard ${{ matrix.shard }}/${{ matrix.total }}

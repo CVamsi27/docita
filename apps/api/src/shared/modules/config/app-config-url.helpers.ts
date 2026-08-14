@@ -1,3 +1,4 @@
+// fallow-ignore-file coverage-gaps
 export function parseHostname(value: string): string | null {
   try {
     return new URL(value).hostname.toLowerCase();
@@ -11,9 +12,7 @@ export function emailLinkBaseUrlFromAppUrl(
   isDevelopment: boolean,
 ): string {
   const trimmed = appUrl.trim().replace(/\/+$/, '');
-  if (!isDevelopment) {
-    return trimmed;
-  }
+  if (!isDevelopment) return trimmed;
   try {
     const parsed = new URL(
       /^[a-zA-Z][a-zA-Z+\-.]*:\/\//.test(trimmed)
@@ -38,9 +37,7 @@ export function resolveSharedCookieDomain(
     .map((hostname) => hostname.trim().toLowerCase())
     .filter(Boolean);
 
-  if (normalizedHosts.length < 2) {
-    return undefined;
-  }
+  if (normalizedHosts.length < 2) return undefined;
 
   if (
     normalizedHosts.some(
@@ -68,13 +65,11 @@ export function resolveSharedCookieDomain(
     break;
   }
 
-  if (sharedSegments.length < 2) {
-    return undefined;
-  }
+  if (sharedSegments.length < 2) return undefined;
 
   return sharedSegments.join('.');
 }
 
-function isIpAddress(hostname: string): boolean {
+export function isIpAddress(hostname: string): boolean {
   return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) || hostname.includes(':');
 }

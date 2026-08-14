@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   countryCodeToCurrency,
+  formatCompactCurrency,
   formatCurrency,
   getCurrencyLocale,
   getCurrencySymbol,
@@ -60,5 +61,39 @@ describe("currency utilities", () => {
     expect(
       formatCurrency(1234.5, { currency: "USD", fractionDigits: 0 }),
     ).toBe("$1,235");
+  });
+
+  describe("formatCompactCurrency", () => {
+    it("uses the regular currency formatter for sub-1K values", () => {
+      // The analytics card shows "₹0.00" for clinics with no revenue, not
+      // "₹0" or a blank cell — falling through to the regular formatter
+      // preserves that contract.
+      expect(formatCompactCurrency(0, { currency: "INR" })).toBe(
+        formatCurrency(0, { currency: "INR" }),
+      );
+      expect(formatCompactCurrency(500, { currency: "INR" })).toBe(
+        formatCurrency(500, { currency: "INR" }),
+      );
+    });
+
+    it("uses compact notation for K/M-scale values", () => {
+      const inr = formatCompactCurrency(120_000, { currency: "INR" });
+      const usd = formatCompactCurrency(2_500_000, { currency: "USD" });
+
+      // Locale-correct suffixes. The exact glyphs vary by Node ICU build,
+      // so we assert on the compact-notation markers instead of the
+      // suffix character.
+      expect(inr).toMatch(/1\.2\s*L|120\s*K|1,20,000/);
+      expect(usd).toMatch(/2\.5\s*M|25\s*L/);
+      // Currency symbol still appears in the output.
+      expect(inr).toContain("₹");
+      expect(usd).toContain("$");
+    });
+
+    it("returns 0 for non-finite input (defensive default for empty data)", () => {
+      expect(formatCompactCurrency(Number.NaN, { currency: "INR" })).toBe(
+        formatCurrency(0, { currency: "INR" }),
+      );
+    });
   });
 });

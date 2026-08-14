@@ -1,4 +1,8 @@
-export type WebhookProvider = 'razorpay' | 'meta-whatsapp' | 'zeptomail';
+export type WebhookProvider =
+  | 'razorpay'
+  | 'meta-whatsapp'
+  | 'zeptomail'
+  | 'abdm';
 
 export type WebhookAuthMode = 'hmac-body' | 'shared-secret-header';
 

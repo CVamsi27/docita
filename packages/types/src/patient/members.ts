@@ -20,13 +20,16 @@ export const doctorDetailsSchema = z.object({
 
 export type DoctorDetails = z.infer<typeof doctorDetailsSchema>;
 
-export const memberFormDataSchema = z.object({
-  name: z.string().min(1, "Enter the team member's name."),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().optional(),
-  phoneNumber: z.string().optional(),
-  role: userRoleSchema.optional(),
+const doctorFieldsSchema = z.object({
+  specialization: z.string().optional(),
+  qualification: z.string().optional(),
+  registrationNumber: z.string().optional(),
+  licenseNumber: z.string().optional(),
+  yearsOfExperience: z.number().optional(),
+  consultationFee: z.number().optional(),
+});
 
+const doctorFieldsFormSchema = z.object({
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
@@ -34,6 +37,14 @@ export const memberFormDataSchema = z.object({
   yearsOfExperience: z.union([z.string(), z.number()]).optional(),
   consultationFee: z.union([z.string(), z.number()]).optional(),
 });
+
+export const memberFormDataSchema = z.object({
+  name: z.string().min(1, "Enter the team member's name."),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  role: userRoleSchema.optional(),
+}).merge(doctorFieldsFormSchema);
 
 export type MemberFormData = z.infer<typeof memberFormDataSchema>;
 
@@ -82,14 +93,7 @@ export const createMemberSchema = z.object({
     .or(z.literal("NURSE"))
     .or(z.literal("RECEPTIONIST"))
     .optional(),
-
-  specialization: z.string().optional(),
-  qualification: z.string().optional(),
-  registrationNumber: z.string().optional(),
-  licenseNumber: z.string().optional(),
-  yearsOfExperience: z.number().optional(),
-  consultationFee: z.number().optional(),
-});
+}).merge(doctorFieldsSchema);
 
 export type CreateMemberPayload = z.infer<typeof createMemberSchema>;
 
@@ -98,13 +102,6 @@ export const updateMemberSchema = z.object({
   email: z.string().email("Please enter a valid email address").optional(),
   password: z.string().optional(),
   phoneNumber: z.string().optional(),
-
-  specialization: z.string().optional(),
-  qualification: z.string().optional(),
-  registrationNumber: z.string().optional(),
-  licenseNumber: z.string().optional(),
-  yearsOfExperience: z.number().optional(),
-  consultationFee: z.number().optional(),
-});
+}).merge(doctorFieldsSchema);
 
 export type UpdateMemberPayload = z.infer<typeof updateMemberSchema>;

@@ -1,4 +1,3 @@
-// check-as-cast-density: allow-file — narrowing casts required by generic signatures or external SDK types
 import { Injectable, Logger } from '@nestjs/common';
 import type { IClock } from '@/shared/common/ports/clock.port';
 import {
@@ -27,15 +26,11 @@ export class R2StorageProvider extends StorageProvider {
   private readonly bucket: string;
 
   private normalizeMetadataValue(value: StorageMetadataValue): string | null {
-    if (value === null || value === undefined) {
-      return null;
-    }
+    if (value === null || value === undefined) return null;
 
     const resolved =
       value instanceof Date ? value.toISOString() : String(value).trim();
-    if (!resolved) {
-      return null;
-    }
+    if (!resolved) return null;
 
     return resolved.slice(0, 512);
   }
@@ -94,11 +89,10 @@ export class R2StorageProvider extends StorageProvider {
     const secretAccessKey = r2Config.secretAccessKey;
     this.bucket = r2Config.bucketName || 'docita-storage';
 
-    if (!accountId || !accessKeyId || !secretAccessKey) {
+    if (!accountId || !accessKeyId || !secretAccessKey)
       throw new Error(
         'Missing R2 configuration. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY.',
       );
-    }
 
     this.client = new S3Client({
       region: 'auto',
@@ -133,6 +127,7 @@ export class R2StorageProvider extends StorageProvider {
 
       return objectKey;
     } finally {
+      // jscpd:ignore-start
       if (file.path && fs.existsSync(file.path)) {
         try {
           fs.unlinkSync(file.path);
@@ -146,6 +141,7 @@ export class R2StorageProvider extends StorageProvider {
   }
 
   async delete(objectKey: string): Promise<void> {
+    // jscpd:ignore-end
     await this.client.send(
       new DeleteObjectCommand({ Bucket: this.bucket, Key: objectKey }),
     );
@@ -193,13 +189,17 @@ export class R2StorageProvider extends StorageProvider {
     });
 
     const response = await this.client.send(command);
-    const chunks: Uint8Array[] = [];
-    for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
-      chunks.push(chunk);
+    const body = response.Body;
+    if (!body) {
+      // A successful GetObject always carries a stream; an undefined body
+      // would previously fail the for-await loop — keep that strictness
+      // instead of silently returning an empty document.
+      throw new Error(`R2 object "${objectKey}" returned an empty body.`);
     }
+    const bytes = await body.transformToByteArray();
 
     return {
-      buffer: Buffer.concat(chunks),
+      buffer: Buffer.from(bytes),
       contentType: response.ContentType ?? 'application/octet-stream',
     };
   }

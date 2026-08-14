@@ -109,9 +109,7 @@ const DateTimePicker = React.forwardRef<HTMLButtonElement, DateTimePickerProps>(
         slotDate.setHours(slotHours, slotMinutes, 0, 0);
 
         const bufferTime = new Date(now.getTime() + 15 * 60 * 1000);
-        if (slotDate < bufferTime) {
-          return false;
-        }
+        if (slotDate < bufferTime) return false;
 
         return true;
       });

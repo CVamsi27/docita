@@ -30,9 +30,9 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
+import { AbdmModule } from '@/domains/abdm/abdm.module';
 import { MedicalHistoryFactory } from './core/factories/medical-history.factory';
 import { VitalsFactory } from './core/factories/vitals.factory';
-import { AiModule } from '@/shared/modules/ai-core/ai.module';
 import { MEDICATION_DOSE_REPOSITORY_TOKEN } from './core/repositories/medication-dose.repository.interface';
 import {
   PATIENT_TIMELINE_REPOSITORY_TOKEN,
@@ -41,9 +41,26 @@ import {
 import { PATIENT_METRICS_REPOSITORY_TOKEN } from './core/repositories/patient-metrics.repository.interface';
 import { PATIENT_TAGS_REPOSITORY_TOKEN } from './core/repositories/patient-tags.repository.interface';
 import { PatientTagsController } from './presentation/controllers/patient-tags.controller';
+import { PatientAbdmController } from './presentation/controllers/patient-abdm.controller';
+import { AbhaVerificationCommandService } from './application/services/abha-verification-command.service';
+import { AbhaVerificationService } from './application/services/abha-verification.service';
+import { AbhaMobileVerificationService } from './application/services/abha-mobile-verification.service';
+import { AbhaMobileVerificationCommandService } from './application/services/abha-mobile-verification-command.service';
+import { AbdmHttpGateway } from './infrastructure/external/abdm-http.gateway';
+import { PrismaAbhaVerificationStore } from './infrastructure/persistence/prisma-abha-verification.store';
+import {
+  ABDM_GATEWAY,
+  ABHA_VERIFICATION_STORE,
+} from './core/ports/abha-verification.port';
 
 @Module({
-  imports: [PrismaModule, AuthModule, AuditModule, AiModule, ComplianceModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    AuditModule,
+    ComplianceModule,
+    AbdmModule,
+  ],
   controllers: [
     PatientsController,
     PatientTagsController,
@@ -52,9 +69,16 @@ import { PatientTagsController } from './presentation/controllers/patient-tags.c
     PatientMetricsController,
     MedicationDoseController,
     PatientTimelineController,
+    PatientAbdmController,
   ],
   providers: [
     { provide: PATIENT_PERSISTENCE_PORT, useExisting: PrismaService },
+    AbhaVerificationCommandService,
+    AbhaVerificationService,
+    AbhaMobileVerificationService,
+    AbhaMobileVerificationCommandService,
+    { provide: ABDM_GATEWAY, useClass: AbdmHttpGateway },
+    { provide: ABHA_VERIFICATION_STORE, useClass: PrismaAbhaVerificationStore },
     PatientQueryService,
     PatientCommandService,
     PatientService,

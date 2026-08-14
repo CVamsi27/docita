@@ -2,13 +2,13 @@
 
 Framework-agnostic React hooks shared across apps.
 
-**Rule:** if a hook imports `next/navigation`, `next/router`, or any app store — it stays in the app, not here.
+**Rule:** if a hook imports `react-router` (`useNavigate`, `useLocation`), or any app store — it stays in the app, not here.
 
-## When to add here vs apps/app/hooks
+## When to add here vs app-local hooks
 
-| Add to `@workspace/hooks` | Keep in `apps/app/hooks` (or feature) |
+| Add to `@workspace/hooks` | Keep in `apps/<app>/src/hooks` (or feature `hooks/`) |
 |---|---|
-| No Next.js, no app routes, no domain API clients | Uses `useRouter`, `usePathname`, or `next/navigation` |
+| No `react-router`, no app routes, no domain API clients | Uses `useNavigate`, `useLocation`, or `react-router` |
 | Useful to at least two apps or packages today | Only consumed by one feature or one app |
 | Pure React + Web APIs only | Calls `@workspace/data-access` hooks or app stores |
 

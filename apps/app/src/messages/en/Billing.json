@@ -1,0 +1,9 @@
+{
+  "locked": {
+    "title": "Billing Locked",
+    "workspaceAccessPaused": "Workspace access paused",
+    "description": "Your clinic's subscription needs attention before you can continue using the workspace.",
+    "contactAdmin": "Please contact your clinic administrator to restore access.",
+    "mistakeNote": "If you believe this is a mistake, please reach out to our support team."
+  }
+}

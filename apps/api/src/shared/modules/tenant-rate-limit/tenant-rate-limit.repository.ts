@@ -108,9 +108,7 @@ export class TenantRateLimitRepository {
         const existing = await this.prisma.clinicApiQuota.findUnique({
           where: { clinicId },
         });
-        if (!existing) {
-          return null;
-        }
+        if (!existing) return null;
         const now = this.clock.now();
         const needsReset =
           existing.currentMonthResetsAt.getTime() <= now.getTime();

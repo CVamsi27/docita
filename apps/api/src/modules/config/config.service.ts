@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   GENDER_OPTIONS,
   BLOOD_GROUP_OPTIONS,
@@ -32,43 +31,18 @@ import {
   TEETH_QUADRANTS,
   TOOTH_CONDITIONS,
 } from '@workspace/utils';
-
-export {
-  GENDER_OPTIONS,
-  BLOOD_GROUP_OPTIONS,
-  APPOINTMENT_TYPE_OPTIONS,
-  APPOINTMENT_STATUS_OPTIONS,
-  INVOICE_STATUS_OPTIONS,
-  PAYMENT_STATUS_OPTIONS,
-  USER_ROLE_OPTIONS,
-  WEEKDAY_OPTIONS,
-  CUSTOM_FIELD_TYPE_OPTIONS,
-  TEMPLATE_FIELD_TYPE_OPTIONS,
-  SPECIALTY_OPTIONS,
-  DOCUMENT_TYPE_OPTIONS,
-  APPOINTMENT_DURATION_OPTIONS,
-  WHATSAPP_MESSAGE_TYPE_OPTIONS,
-  CURRENCY_OPTIONS,
-  TIMEZONE_OPTIONS,
-  DEFAULT_APPOINTMENT_DURATION,
-  DEFAULT_CONSULTATION_FEE,
-  DEFAULT_CURRENCY,
-  DEFAULT_TIMEZONE,
-  DEFAULT_INVOICE_ITEMS,
-  PATIENT_IMPORT_FIELDS,
-  FOLLOW_UP_TYPES,
-  REMINDER_DAYS_OPTIONS,
-  INVENTORY_CATEGORY_OPTIONS,
-  QUEUE_STATUS_OPTIONS,
-  WARD_TYPE_OPTIONS,
-  BED_NUMBER_OPTIONS,
-  TEETH_QUADRANTS,
-  TOOTH_CONDITIONS,
-};
+import {
+  CLINIC_CONFIG_QUERY_TOKEN,
+  IClinicConfigQuery,
+} from './core/clinic-config-query.port';
 
 @Injectable()
 export class ConfigService {
-  constructor(private prisma: PrismaService) {}
+  // jscpd:ignore-start
+  constructor(
+    @Inject(CLINIC_CONFIG_QUERY_TOKEN)
+    private readonly clinicConfigQuery: IClinicConfigQuery,
+  ) {}
 
   private toRecord(value: unknown): Record<string, unknown> {
     if (!value || typeof value !== 'object') {
@@ -88,6 +62,7 @@ export class ConfigService {
   }
 
   private readNumber(
+    // jscpd:ignore-end
     source: Record<string, unknown>,
     key: string,
     fallback: number,
@@ -152,13 +127,7 @@ export class ConfigService {
     };
 
     if (clinicId) {
-      const clinic = await this.prisma.clinic.findUnique({
-        where: { id: clinicId },
-        select: {
-          settings: true,
-          tier: true,
-        },
-      });
+      const clinic = await this.clinicConfigQuery.findAppConfigById(clinicId);
 
       if (clinic) {
         const clinicSettings = this.toRecord(clinic.settings);

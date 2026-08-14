@@ -7,13 +7,16 @@ import { EnterpriseContractsService } from './application/services/enterprise-co
 import { EnterpriseContractsQueryService } from './application/services/enterprise-contracts-query.service';
 import { EnterpriseContractsCommandService } from './application/services/enterprise-contracts-command.service';
 import { EnterpriseContractInvoiceCommandService } from './application/services/enterprise-contract-invoice-command.service';
+import { EnterpriseContractTrueUpCommandService } from './application/services/enterprise-contract-true-up-command.service';
 import { InternalEnterpriseContractsController } from './presentation/controllers/internal-enterprise-contracts.controller';
+import { InternalEnterpriseInvoicesController } from './presentation/controllers/internal-enterprise-invoices.controller';
 import { ClinicEnterpriseContractController } from './presentation/controllers/clinic-enterprise-contract.controller';
 
 @Module({
   imports: [PrismaModule, EmailModule],
   controllers: [
     InternalEnterpriseContractsController,
+    InternalEnterpriseInvoicesController,
     ClinicEnterpriseContractController,
   ],
   providers: [
@@ -25,6 +28,7 @@ import { ClinicEnterpriseContractController } from './presentation/controllers/c
     EnterpriseContractsQueryService,
     EnterpriseContractsCommandService,
     EnterpriseContractInvoiceCommandService,
+    EnterpriseContractTrueUpCommandService,
   ],
   exports: [EnterpriseContractsService],
 })

@@ -44,9 +44,7 @@ function formatParsedZeptoMailError(
 ): string | null {
   if (isRecord(parsed.error)) {
     const parts = collectNestedErrorParts(parsed.error);
-    if (parts.length > 0) {
-      return parts.join(' | ');
-    }
+    if (parts.length > 0) return parts.join(' | ');
   }
 
   return readStringField(parsed, 'message') ?? null;
@@ -55,9 +53,7 @@ function formatParsedZeptoMailError(
 /** Normalizes ZeptoMail HTTP error bodies into a single log-safe string. */
 export function formatZeptoMailErrorBody(body: string): string {
   const trimmed = body.trim();
-  if (!trimmed) {
-    return 'Empty ZeptoMail error response';
-  }
+  if (!trimmed) return 'Empty ZeptoMail error response';
 
   try {
     const parsed: unknown = JSON.parse(trimmed);

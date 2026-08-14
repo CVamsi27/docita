@@ -109,9 +109,7 @@ export class PdfJobService implements PdfJobServicePort {
           where: { clinicId, documentId, documentType },
         });
 
-        if (!existing) {
-          throw error;
-        }
+        if (!existing) throw error;
 
         return existing;
       }
@@ -123,12 +121,23 @@ export class PdfJobService implements PdfJobServicePort {
         : JobNames.GENERATE_PRESCRIPTION_PDF;
 
     if (shouldEnqueue) {
-      await this.queue.enqueue(jobName, {
-        documentId,
-        documentType,
-        clinicId,
-        pdfJobId: pdfJob.id,
-      });
+      await this.queue.enqueue(
+        jobName,
+        {
+          documentId,
+          documentType,
+          clinicId,
+          pdfJobId: pdfJob.id,
+        },
+        {
+          // PDF rendering is user-visible (the clinic opens the prescription
+          // or invoice and the file is the deliverable). Retry transient
+          // failures — the doctor is waiting on the file.
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 2_000 },
+          idempotencyKey: `${jobName}:${documentId}`,
+        },
+      );
     }
 
     return {

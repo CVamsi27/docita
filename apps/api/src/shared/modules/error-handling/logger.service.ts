@@ -5,7 +5,7 @@ import {
   writeAppLog,
 } from './logger-level.registry';
 
-export interface LogContext {
+interface LogContext {
   userId?: string;
   clinicId?: string;
   requestId?: string;

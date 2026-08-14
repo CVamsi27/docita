@@ -89,11 +89,8 @@ export function computePeriodEnd({
   now,
 }: PeriodEndInput): Date {
   const trialMs = trialDays * 24 * 60 * 60 * 1000;
-  if (skipPayment) {
-    return new Date(now.getTime() + trialMs);
-  }
-  if (billingCycle === BillingCycle.YEARLY) {
+  if (skipPayment) return new Date(now.getTime() + trialMs);
+  if (billingCycle === BillingCycle.YEARLY)
     return new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
-  }
   return new Date(now.getTime() + trialMs);
 }

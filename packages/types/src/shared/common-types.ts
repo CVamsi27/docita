@@ -17,6 +17,17 @@ export const BaseEntitySchema = z.object({
 
 export type BaseEntity = z.infer<typeof BaseEntitySchema>;
 
+/**
+ * 24-hour HH:mm time string (e.g. "09:00", "17:30"). Anchored with `^`
+ * and `$` so a 5-character input that happens to start with a valid hour
+ * (e.g. "09:00extra") is rejected, not silently truncated.
+ */
+export const TimeOfDaySchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must be in HH:mm 24-hour format.");
+
+export type TimeOfDay = z.infer<typeof TimeOfDaySchema>;
+
 export const PaginationQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -112,6 +123,7 @@ export interface TestAppointment extends AppointmentContractResponse {
 
 export interface AxeViolation {
   id: string;
+// jscpd:ignore-start
   impact: "critical" | "serious" | "moderate" | "minor";
   description: string;
   help: string;
@@ -124,6 +136,7 @@ export interface AxeViolation {
 }
 
 export interface AxeResults {
+// jscpd:ignore-end
   violations: AxeViolation[];
   passes: Array<{ id: string; description: string }>;
   incomplete: Array<{ id: string; description: string }>;

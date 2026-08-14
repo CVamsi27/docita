@@ -6,22 +6,20 @@ export function hashUploadSecret(plaintext: string): string {
   return createHash('sha256').update(plaintext, 'utf8').digest('hex');
 }
 
-export function assertUploadSecretValid(
+function assertUploadSecretValid(
   uploadSecretHash: string | null,
   uploadSecret: string | undefined,
 ): void {
-  if (!uploadSecretHash) {
+  if (!uploadSecretHash)
     throw new BadRequestException(
       'This upload session is no longer valid. Create a new upload session.',
     );
-  }
 
   const trimmed = uploadSecret?.trim();
-  if (!trimmed) {
+  if (!trimmed)
     throw new UnauthorizedException(
       'Upload credentials are required (X-Upload-Secret header).',
     );
-  }
 
   const expected = Buffer.from(uploadSecretHash, 'hex');
   const candidate = Buffer.from(hashUploadSecret(trimmed), 'hex');
@@ -50,7 +48,6 @@ export function validateSessionReadyForUpload(
     throw new BadRequestException('This upload link has expired');
   }
 
-  if (session.status === 'uploaded' || session.fileUrl) {
+  if (session.status === 'uploaded' || session.fileUrl)
     throw new BadRequestException('This upload link has already been used');
-  }
 }

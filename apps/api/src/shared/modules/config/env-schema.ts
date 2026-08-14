@@ -11,15 +11,9 @@ function envBoolean(defaultValue: boolean) {
     .union([z.boolean(), z.string(), z.number()])
     .optional()
     .transform((value) => {
-      if (value === undefined) {
-        return defaultValue;
-      }
-      if (typeof value === 'boolean') {
-        return value;
-      }
-      if (typeof value === 'number') {
-        return value !== 0;
-      }
+      if (value === undefined) return defaultValue;
+      if (typeof value === 'boolean') return value;
+      if (typeof value === 'number') return value !== 0;
       const normalized = String(value).trim().toLowerCase();
       if (['false', '0', 'no', 'off'].includes(normalized)) {
         return false;
@@ -45,8 +39,19 @@ export const EnvSchema = z.object({
   PORT: z.coerce.number().default(3001),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   APP_URL: z.string().min(1),
-  NEXT_PUBLIC_APP_URL: z.string().min(1),
-  NEXT_PUBLIC_API_URL: z.string().min(1),
+  /** Frontend app origin (canonical name; resolved in `createEnvToParse` with
+   *  fallback to the legacy `NEXT_PUBLIC_APP_URL` alias). */
+  FRONTEND_URL: z.string().min(1),
+  /** Frontend-facing API base URL (canonical name; resolved with fallback to
+   *  the legacy `NEXT_PUBLIC_API_URL` alias). */
+  API_PUBLIC_URL: z.string().min(1),
+  /** Legacy aliases — deprecated; removed after the compatibility rollout. */
+  NEXT_PUBLIC_APP_URL: z.string().optional(),
+  NEXT_PUBLIC_API_URL: z.string().optional(),
+  /** Override for the partner self-service portal URL. Defaults to
+   *  `${FRONTEND_URL}/partner`. Set when the portal is hosted
+   *  on a different subdomain. */
+  PARTNER_PORTAL_URL: z.string().optional(),
   CORS_ORIGINS: z.string().min(1),
   STORAGE_PROVIDER: z.enum(['local', 'r2']).default('local'),
   R2_ACCOUNT_ID: z.string().optional(),
@@ -108,6 +113,19 @@ export const EnvSchema = z.object({
   DOCTOR_VERIFICATION_API_KEY: z.string().optional(),
   HPR_API_URL: z.string().optional(),
   HPR_API_KEY: z.string().optional(),
+  ABDM_BASE_URL: z.string().optional(),
+  ABDM_CLIENT_ID: z.string().optional(),
+  ABDM_CLIENT_SECRET: z.string().optional(),
+  ABDM_CALLBACK_SECRET: z.string().optional(),
+  // ABHA profile/verification host (M1). Distinct from the gateway host above:
+  // ABHA APIs live on abhasbx.abdm.gov.in (sandbox) / abha.abdm.gov.in (prod).
+  ABDM_ABHA_BASE_URL: z.string().optional(),
+  // RSA public key (PEM or base64 body) used to encrypt mobile/OTP for ABHA
+  // APIs. Falls back to the published sandbox key when unset on the sandbox host.
+  ABDM_ABHA_PUBLIC_KEY: z.string().optional(),
+  // DPDP grievance / data-protection officer contact, published on the consent
+  // sheet and trust page. Defaults to the platform support email.
+  GRIEVANCE_CONTACT_EMAIL: z.string().optional(),
   META_BUSINESS_ACCOUNT_ID: z.string().optional(),
   SMTP_HOST: z.string().default('localhost'),
   SMTP_PORT: z.coerce.number().default(587),
@@ -126,11 +144,21 @@ export const EnvSchema = z.object({
   PUBLIC_LANDING_APPOINTMENTS: z.coerce.number().int().min(0).optional(),
   PUBLIC_LANDING_UPTIME: z.string().optional(),
   SLA_UPTIME_TARGET: z.string().optional(),
-  OPENAI_API_KEY: z.string().optional(),
+  BACKUP_DIR: z.string().optional(),
+  AI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4-turbo'),
   AI_REQUEST_TIMEOUT: z.coerce.number().default(5000),
   AI_CACHE_ENABLED: z.coerce.boolean().default(true),
   AI_CACHE_TTL: z.coerce.number().default(86400),
+  // DPDP kill-switch: master gate for ALL external-AI (OpenAI) calls. OFF by
+  // default — no patient data leaves to OpenAI from any feature unless this is
+  // explicitly enabled AND an API key is set. Disclose AI processing in the
+  // consent notice before enabling.
+  AI_EXTERNAL_ENABLED: z.coerce.boolean().default(false),
+  // DPDP: sending raw patient-document images to the cloud Vision API is a
+  // cross-border PHI transfer that cannot be de-identified. OFF by default —
+  // local OCR is used instead. Enable only with consent-notice disclosure.
+  AI_CLOUD_OCR_ENABLED: z.coerce.boolean().default(false),
   TENANT_RATE_LIMIT_DEFAULT_RPS: z.coerce.number().int().positive().default(50),
   TENANT_RATE_LIMIT_DEFAULT_RPM: z.coerce
     .number()
@@ -158,6 +186,35 @@ export const EnvSchema = z.object({
   CPT_LICENSED_API_KEY: z.string().optional(),
   CPT_LICENSED_SEARCH_PATH: z.string().optional(),
   CPT_LICENSED_SYNC_PATH: z.string().optional(),
+  // ─── Database Control (internal portal) ────────────────────────────────────
+  // Master switch. Defaults to false; must be explicitly enabled per env so a
+  // misconfigured deploy cannot expose the Stop/Start/Delete buttons.
+  DATABASE_CONTROL_ENABLED: z.coerce.boolean().default(false),
+  // Comma-separated list of NODE_ENV values the control is allowed to run in.
+  // Refuses to act on any env outside this list.
+  DATABASE_CONTROL_ALLOWED_ENV: z.string().default('production,staging'),
+  // AWS region of the target RDS instance.
+  DATABASE_CONTROL_AWS_REGION: z.string().default('ap-south-1'),
+  // RDS DB instance identifier (NOT the endpoint hostname).
+  DATABASE_CONTROL_RDS_INSTANCE_ID: z.string().optional(),
+  // Destination address for action notifications. Required when
+  // DATABASE_CONTROL_ENABLED=true. Routed through the existing EmailService
+  // (ZeptoMail transport), not SMTP.
+  DATABASE_CONTROL_ALERT_EMAIL: z.string().email().optional(),
+  // Block Stop/Delete/Restore while a `Deploy Production` GitHub Actions run
+  // is in flight. Cheap protection against racing a deploy.
+  DATABASE_CONTROL_DEPLOY_GUARD: z.coerce.boolean().default(true),
+  // Cooldown (seconds) after a Stop/Delete/Snapshot/Restore to block the same
+  // action from firing twice in a row. START is never cooled down.
+  DATABASE_CONTROL_COOLDOWN_SECONDS: z.coerce.number().int().min(0).default(60),
+  // AWS credentials (long-lived access keys for now; migrate to IAM role on
+  // Fly later). The IAM user must be scoped to the docita-db ARN with the
+  // rds:Describe*/StopDBInstance/StartDBInstance/CreateDBSnapshot/
+  // DeleteDBInstance/RestoreDBInstanceFromDBSnapshot actions — see
+  // docs/architecture/DATABASE_CONTROL_PLAN.md §1.
+  AWS_REGION: z.string().default('ap-south-1'),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

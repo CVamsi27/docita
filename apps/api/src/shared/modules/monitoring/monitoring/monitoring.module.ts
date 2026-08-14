@@ -5,7 +5,6 @@ import { MonitoringRumController } from './monitoring-rum.controller';
 import { MonitoringClientController } from './monitoring-client.controller';
 import { MonitoringService } from './monitoring.service';
 import { PrismaModule } from '@/prisma/prisma.module';
-import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
 import { MonitoringFactory } from './factories/monitoring.factory';
 import { PrismaHealthIndicator } from './health/prisma.health';
@@ -26,6 +25,25 @@ import { API_REQUEST_METRICS_REPOSITORY_TOKEN } from './ports/api-request-metric
 import { PrismaApiRequestMetricsRepository } from './infrastructure/prisma-api-request-metrics.repository';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
 
+// Services other monitoring/health-dependent modules inject directly —
+// listed once so `providers` and `exports` can't drift apart over which of
+// the module's services are part of its public surface.
+const MONITORING_EXPORTED_SERVICES = [
+  MonitoringService,
+  HealthService,
+  PrismaHealthIndicator,
+  RequestLogService,
+  ErrorTrackingService,
+  MetricsPersistenceService,
+  MetricsRecordingService,
+  WebVitalsMetricsService,
+  MetricsQueryService,
+  MetricsAggregationService,
+  MetricsService,
+  HealthCheckService,
+  OpsAlertService,
+] as const;
+
 @Global()
 @Module({
   imports: [TerminusModule, PrismaModule, ComplianceModule, AppConfigModule],
@@ -33,44 +51,17 @@ import { AppConfigModule } from '@/shared/modules/config/config.module';
     MonitoringController,
     MonitoringRumController,
     MonitoringClientController,
-    HealthController,
   ],
   providers: [
     {
       provide: API_REQUEST_METRICS_REPOSITORY_TOKEN,
       useClass: PrismaApiRequestMetricsRepository,
     },
-    MonitoringService,
+    ...MONITORING_EXPORTED_SERVICES,
     MonitoringFactory,
-    HealthService,
-    PrismaHealthIndicator,
-    RequestLogService,
-    ErrorTrackingService,
-    MetricsPersistenceService,
-    MetricsRecordingService,
-    WebVitalsMetricsService,
-    MetricsQueryService,
-    MetricsAggregationService,
-    MetricsService,
-    HealthCheckService,
-    OpsAlertService,
     OpsAlertListener,
     BusinessMetricsService,
   ],
-  exports: [
-    MonitoringService,
-    HealthService,
-    PrismaHealthIndicator,
-    RequestLogService,
-    ErrorTrackingService,
-    MetricsPersistenceService,
-    MetricsRecordingService,
-    WebVitalsMetricsService,
-    MetricsQueryService,
-    MetricsAggregationService,
-    MetricsService,
-    HealthCheckService,
-    OpsAlertService,
-  ],
+  exports: [...MONITORING_EXPORTED_SERVICES],
 })
 export class MonitoringModule {}

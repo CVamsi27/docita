@@ -1,25 +1,11 @@
 export function calculateBMI(weight: number, height: number): number {
-  if (weight <= 0 || height <= 0) {
-    throw new Error("Weight and height must be positive numbers");
-  }
+  if (weight <= 0 || height <= 0) throw new Error("Weight and height must be positive numbers");
 
   const heightInMeters = height / 100;
 
   const bmi = weight / Math.pow(heightInMeters, 2);
 
   return parseFloat(bmi.toFixed(1));
-}
-
-export function calculateQTc(qt: number, heartRate: number): number {
-  if (qt <= 0 || heartRate <= 0) {
-    throw new Error("QT interval and heart rate must be positive numbers");
-  }
-
-  const rrInterval = 60 / heartRate;
-
-  const qtc = qt / Math.sqrt(rrInterval);
-
-  return Math.round(qtc);
 }
 
 export function getBMICategory(bmi: number): string {

@@ -52,9 +52,7 @@ export function useInternalDoctorsList(
         return allDoctorsArrays.flat();
       }
 
-      if (!selectedClinic) {
-        return [];
-      }
+      if (!selectedClinic) return [];
 
       const data = await fetcher<InternalDoctorListItem[]>(
         `/internal/clinics/${selectedClinic}/doctors`,

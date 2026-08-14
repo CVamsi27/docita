@@ -2,23 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import {
-  ArrowRight,
-  CalendarCheck,
-  CheckCircle2,
-  ClipboardList,
-  FileText,
-  MessageSquare,
-  Receipt,
-  Stethoscope,
-} from "lucide-react";
+import { ArrowRight, CalendarCheck, CheckCircle2, ClipboardList, FileText, MessageSquare, Receipt, Stethoscope } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
 
-import {
-  landingFadeUpVariants,
-  landingStaggerContainer,
-} from "@/lib/motion-prefs";
+import { landingFadeUpVariants, landingStaggerContainer } from "@/lib/motion-prefs";
 
 interface HeroSectionProps {
   appUrl: string;
@@ -61,7 +49,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
           <div className="col-span-12 mt-0 sm:mt-4 lg:col-span-7 lg:mt-0 lg:pr-6 xl:col-span-6">
             <motion.div variants={item}>
               <span className="r2-eyebrow r2-eyebrow-accent">
-                India · Private clinics · OPD
+                Clinics & Hospitals
               </span>
             </motion.div>
 
@@ -83,8 +71,8 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
               className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
             >
               A single operating layer for reception and clinicians: tokens,
-              records, prescriptions, invoices, and WhatsApp&mdash;tight enough
-              to feel obvious, deep enough for real clinic days.
+              records, prescriptions, invoices, and WhatsApp&mdash;built for
+              solo practices and multi-branch hospitals alike.
             </motion.p>
 
             <motion.div
@@ -98,7 +86,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                 className="h-12 rounded-xl px-7 text-base font-semibold shadow-md"
               >
                 <a href={`${appUrl}/onboarding`}>
-                  Start clinic setup
+                  Start setup
                   <ArrowRight className="h-5 w-5" />
                 </a>
               </Button>
@@ -108,7 +96,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                 variant="ghost"
                 className="h-12 rounded-xl px-6 text-base font-semibold"
               >
-                <a href="/contact">
+                <a href="/contact#book-demo">
                   <CalendarCheck className="h-5 w-5" />
                   Book guided demo
                 </a>
@@ -177,14 +165,13 @@ function HeroProductCard({
       onMouseLeave={onHoverEnd}
       onFocusCapture={onHoverStart}
       onBlurCapture={onHoverEnd}
-      role="region"
-      aria-label="Live clinic operations preview"
+      role="region"                  aria-label="Live practice operations preview"
     >
       <div className="r2-product-chrome">
         <span className="r2-product-chrome-dot" aria-hidden />
         <span className="r2-product-chrome-dot" aria-hidden />
         <span className="r2-product-chrome-dot" aria-hidden />
-        <span className="ml-2">SUNDAR CLINIC · MON 10:42</span>
+        <span className="ml-2">CITY MEDICAL CENTER · MON 10:42</span>
         <span className="ml-auto inline-flex items-center gap-1.5">
           <span
             className="h-1.5 w-1.5 rounded-full bg-success"
@@ -193,7 +180,6 @@ function HeroProductCard({
           <span>Live</span>
         </span>
       </div>
-
       <div className="r2-product-stage">
         <WaitingFrame />
         <ConsultFrame />
@@ -213,7 +199,7 @@ function HeroProductCard({
             aria-selected={state === s}
             aria-label={`Show ${s} preview`}
             onClick={() => onSelect(s)}
-            className="group flex flex-1 items-center gap-2 focus:outline-none"
+            className="group flex flex-1 items-center gap-2 rounded-md py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <span className="r2-product-rail-dot" />
             <span className="sr-only">{`Step ${i + 1}: ${s}`}</span>
@@ -277,15 +263,12 @@ function ConsultFrame() {
       <div className="flex items-center justify-between">
         <div>
           <p className="r2-eyebrow">Consult · Token 07</p>
-          <p className="text-sm font-semibold text-foreground">
-            R. Iyer · 42 · F · Follow-up
-          </p>
+          <p className="text-sm font-semibold text-foreground">R. Iyer · 42 · F · Follow-up</p>
         </div>
         <span className="r2-status-pill r2-status-pill--in">
           <Stethoscope className="h-3 w-3" /> In room
         </span>
       </div>
-
       <div className="r2-row">
         <div className="min-w-0 flex-1">
           <p className="r2-eyebrow">Last visit · 12 Apr</p>
@@ -294,7 +277,6 @@ function ConsultFrame() {
           </p>
         </div>
       </div>
-
       <div className="r2-row">
         <FileText className="h-4 w-4 text-primary" />
         <div className="min-w-0 flex-1">
@@ -309,7 +291,6 @@ function ConsultFrame() {
           Review
         </span>
       </div>
-
       <div className="r2-row">
         <FileText className="h-4 w-4 text-primary" />
         <div className="min-w-0 flex-1">
@@ -322,7 +303,6 @@ function ConsultFrame() {
         </div>
         <span className="r2-status-pill r2-status-pill--done">Added</span>
       </div>
-
       <div className="grid grid-cols-2 gap-2.5">
         <div className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-xs">
           <p className="r2-eyebrow">Lab</p>

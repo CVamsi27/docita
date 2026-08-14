@@ -88,6 +88,7 @@ These are added in PR F:
 
 - Default sans (Inter) for all UI.
 - Reserve a serif accent (Tailwind's default serif stack via `font-serif`) for hero/empty-state moments only: onboarding hero ("Welcome, Dr. Sharma"), `/today` morning greeting, weekly recap titles. Never for body copy or controls.
+- **Auth front door (shared)**: both the clinician login (`AuthBrandingHero`) and the internal admin login (`InternalLoginGreeting`) use the `DaypartGreetingHero` primitive from `@workspace/ui` — serif daypart greeting + live-clock eyebrow (`Today · 09:30` / `आज · 09:30`). Locale-agnostic: callers supply localized strings. The clinician app flips EN / हिंदी via `LocaleToggle` (`aria-pressed`); the internal console is an ops-only tool and stays English-only (no toggle).
 - Keep the hierarchy from `UI_UX_CONTRACT.md` §2: `text-3xl font-bold tracking-tight` for page titles, `text-xs text-muted-foreground` for helper.
 
 ### 2.3 Color and intent
@@ -188,10 +189,10 @@ Plus, for any page exposing Ask AI:
 
 The following must be removed or consolidated as part of this initiative:
 
-- Stale `sidebarItems` array in [apps/app/lib/constants.ts](../apps/app/lib/constants.ts) (unimported anywhere).
-- App-local `apps/app/components/common/empty-state/empty-state.tsx` — use `@workspace/ui` `EmptyState`.
-- App-local `apps/app/components/common/navigation/back-button.tsx` — use shared back-button from `@workspace/ui`.
-- Unused `HelpCenter` in [apps/app/features/help/components/index.tsx](../apps/app/features/help/components/index.tsx) — wired into new `/help` route in PR F.
+- ~~Stale `sidebarItems` array in `apps/app/lib/constants.ts`~~ — resolved: `apps/app` was deleted in the Vite cutover; the Vite app has no sidebar items constants.
+- ~~App-local `apps/app/components/common/empty-state/empty-state.tsx`~~ — resolved: `@workspace/ui` `EmptyState` only.
+- ~~App-local `apps/app/components/common/navigation/back-button.tsx`~~ — resolved: shared back-button from `@workspace/ui` only.
+- ~~Unused `HelpCenter` in `apps/app/features/help/components/index.tsx`~~ — resolved: `apps/app` deleted; Vite `/help` route does not use a `HelpCenter` component.
 - Decorative `animate-in fade-in slide-in-from-bottom-*` on auth pages.
 - Skeleton `animation="wave"` across dashboards.
 - `animate-pulse` on WhatsApp Bot Status.

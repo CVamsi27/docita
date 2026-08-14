@@ -74,7 +74,7 @@ export class StaffNotificationController {
     return { success: true };
   }
 
-  @Delete('delete/:id')
+  @Delete(':id')
   async deleteNotification(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
@@ -86,7 +86,7 @@ export class StaffNotificationController {
     return { success: true };
   }
 
-  @Delete('delete-all')
+  @Delete()
   async deleteAllNotifications(@Req() req: RequestWithUser) {
     const { clinicId, userId } = getClinicStaffRequestContext(req);
     await this.notificationService.deleteAllNotifications(userId, clinicId);

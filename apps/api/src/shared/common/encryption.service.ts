@@ -14,17 +14,15 @@ export class EncryptionService {
   constructor(private configService: AppConfigService) {
     const key = this.configService.getEncryptionKey();
 
-    if (!key) {
+    if (!key)
       throw new Error(
         'CRITICAL: ENCRYPTION_KEY is not set in environment. Encryption is non-functional.',
       );
-    }
 
-    if (key.length !== 64) {
+    if (key.length !== 64)
       throw new Error(
         'CRITICAL: ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes).',
       );
-    }
 
     try {
       this.encryptionKey = Buffer.from(key, 'hex');

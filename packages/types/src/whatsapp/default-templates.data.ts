@@ -1,4 +1,15 @@
-/** Canonical WhatsApp default template definitions (config-as-data). */
+/**
+ * Canonical WhatsApp default template definitions (config-as-data).
+ *
+ * jscpd flags many of the `variables`/`buttons` blocks below as near-duplicates —
+ * that's inherent to the domain (sibling templates legitimately share the same
+ * patient/clinic/date/time variable shapes and confirm/reschedule/cancel button
+ * sets). Extracting those into shared constants would force every template to be
+ * cross-referenced to understand its own contract, which is exactly what this
+ * file exists to avoid: each entry should stay self-contained and reviewable by
+ * non-engineers against the approved WhatsApp Manager copy.
+ */
+// jscpd:ignore-start
 export const WHATSAPP_DEFAULT_TEMPLATES_RAW = {
     appointment_confirmation: {
       name: 'appointment_confirmation',
@@ -458,4 +469,69 @@ The clinic will plan around the new time. Drive safe.`,
       textFallback: `{{code}} is your verification code. For your security, do not share this code. This code expires in 10 minutes.`,
     },
 
+    partner_welcome_v1: {
+      name: 'partner_welcome_v1',
+      category: 'PARTNER',
+      // Sent once when an operator adds a referral partner
+      // (pharmacist / marketing rep / clinic) via the internal referrals
+      // page. The Docita Clinic OS showcase PDF is attached as a header
+      // document and the partner's share message is inlined in the body
+      // so they can copy-paste it straight into a doctor conversation.
+      // Rendered by `PartnerTemplateService.renderWelcomeComponents`.
+      content: `Hi {{1}},
+
+Welcome to the Docita Referral Partner programme.
+
+You are listed as a {{2}} with referral code {{3}}.
+
+Sign in to your partner portal anytime at:
+{{4}}
+
+Below is a ready-to-send message you can share with any doctor or clinic owner you speak to. Your code is applied automatically when they sign up using your link.
+
+---
+{{5}}
+
+— The Docita team`,
+      variables: [
+        { name: 'partnerName', required: true },
+        { name: 'typeLabel', required: true },
+        { name: 'code', required: true },
+        { name: 'partnerPortalUrl', required: true },
+        { name: 'shareMessage', required: true },
+      ],
+      buttonType: 'CALL_TO_ACTION',
+      buttons: [
+        { id: 'open_partner_portal', text: 'Open partner portal' },
+      ],
+      headerType: 'DOCUMENT',
+      headerDocumentFilename: 'docita-partner-showcase.pdf',
+      // 24h signed URL; the partner can download but not share a permanent link.
+      // The signed URL is generated at send time by `ReferrerWelcomeService`.
+      textFallback: `Hi {{partnerName}},
+
+Welcome to the Docita Referral Partner programme.
+
+You are listed as a {{typeLabel}} with referral code {{code}}.
+
+Sign in to your partner portal anytime at: {{partnerPortalUrl}}
+
+— The Docita team`,
+    },
+
+    partner_login_otp: {
+      name: 'partner_login_otp',
+      category: 'AUTHENTICATION',
+      // Meta auto-generates the body — same posture as `patient_login_otp`.
+      // Mirrored content kept in sync with the WhatsApp Manager toggles
+      // below; rendered by `sendLoginOtp` in
+      // `apps/api/src/shared/whatsapp/whatsapp-login-otp.helper.ts`.
+      content: `{{code}} is your verification code. For your security, do not share this code. This code expires in 10 minutes.`,
+      variables: [{ name: 'code', required: true }],
+      buttonType: 'CALL_TO_ACTION',
+      buttons: [{ id: 'copy_code', text: 'Copy code' }],
+      textFallback: `{{code}} is your verification code. For your security, do not share this code. This code expires in 10 minutes.`,
+    },
+
   } as const;
+// jscpd:ignore-end

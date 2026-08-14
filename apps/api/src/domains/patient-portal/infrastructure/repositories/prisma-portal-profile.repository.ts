@@ -1,11 +1,43 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { phoneMatchCandidates } from '@workspace/utils';
 import type {
   PatientProfile,
   PatientSummary,
   PatientWithUser,
 } from '@/domains/patient-portal/core/repositories/portal-patient.types';
-import { IPortalProfileRepository } from '@/domains/patient-portal/core/repositories/portal-profile.repository.interface';
+import {
+  IPortalProfileRepository,
+  type PortalDataSubjectRequestInput,
+} from '@/domains/patient-portal/core/repositories/portal-profile.repository.interface';
+
+/**
+ * The full patient-profile field selection, shared by `getPatientProfile`
+ * (read) and `updatePatient` (write — Prisma's `update` also needs a
+ * `select` to shape its return value). Both return `PatientProfile`, so the
+ * field list must stay identical; defining it once keeps that guarantee
+ * structural instead of convention.
+ */
+const PORTAL_PROFILE_SELECT = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  preferredName: true,
+  email: true,
+  phoneNumber: true,
+  dateOfBirth: true,
+  gender: true,
+  bloodGroup: true,
+  address: true,
+  mrn: true,
+  preferredLanguage: true,
+  emergencyContactName: true,
+  emergencyContactPhone: true,
+  emergencyContactRelation: true,
+  whatsappConsent: true,
+  whatsappConsentAt: true,
+  createdAt: true,
+} as const;
 
 @Injectable()
 export class PrismaPortalProfileRepository implements IPortalProfileRepository {
@@ -16,17 +48,23 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
     return this.prisma.runUnrestricted(operation);
   }
 
+  private async withUnrestricted<T>(fn: () => Promise<T>): Promise<T> {
+    return this.prisma.runUnrestricted(fn);
+  }
+
   async findPatientByUserId(userId: string) {
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({ where: { userId, deletedAt: null } }),
     );
   }
 
   async findPatientByPhone(phone: string) {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
-        where: { phoneNumber: phone, deletedAt: null },
+        where: {
+          phoneNumber: { in: phoneMatchCandidates(phone) },
+          deletedAt: null,
+        },
       }),
     );
   }
@@ -34,18 +72,19 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
   async findPatientWithUserByPhone(
     phone: string,
   ): Promise<PatientWithUser | null> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
-        where: { phoneNumber: phone, deletedAt: null },
+        where: {
+          phoneNumber: { in: phoneMatchCandidates(phone) },
+          deletedAt: null,
+        },
         include: { user: true },
       }),
     );
   }
 
   async getPatientSummary(patientId: string): Promise<PatientSummary | null> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
         where: { id: patientId },
         select: {
@@ -61,51 +100,13 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
         },
       }),
     );
-  }
-
-  async hasActiveTreatmentConsent(
-    patientId: string,
-    clinicId: string,
-  ): Promise<boolean> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    const count = await this.prisma.runUnrestricted(async () =>
-      this.prisma.consent.count({
-        where: {
-          patientId,
-          clinicId,
-          status: 'ACTIVE',
-          consentType: 'TREATMENT',
-        },
-      }),
-    );
-    return count > 0;
   }
 
   async getPatientProfile(patientId: string): Promise<PatientProfile | null> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.findFirst({
         where: { id: patientId },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          preferredName: true,
-          email: true,
-          phoneNumber: true,
-          dateOfBirth: true,
-          gender: true,
-          bloodGroup: true,
-          address: true,
-          mrn: true,
-          preferredLanguage: true,
-          emergencyContactName: true,
-          emergencyContactPhone: true,
-          emergencyContactRelation: true,
-          whatsappConsent: true,
-          whatsappConsentAt: true,
-          createdAt: true,
-        },
+        select: PORTAL_PROFILE_SELECT,
       }),
     );
   }
@@ -114,41 +115,40 @@ export class PrismaPortalProfileRepository implements IPortalProfileRepository {
     patientId: string,
     data: Record<string, unknown>,
   ): Promise<PatientProfile> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    return this.prisma.runUnrestricted(async () =>
+    return this.withUnrestricted(() =>
       this.prisma.patient.update({
         where: { id: patientId },
         data,
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          preferredName: true,
-          email: true,
-          phoneNumber: true,
-          dateOfBirth: true,
-          gender: true,
-          bloodGroup: true,
-          address: true,
-          mrn: true,
-          preferredLanguage: true,
-          emergencyContactName: true,
-          emergencyContactPhone: true,
-          emergencyContactRelation: true,
-          whatsappConsent: true,
-          whatsappConsentAt: true,
-          createdAt: true,
-        },
+        select: PORTAL_PROFILE_SELECT,
       }),
     );
   }
 
   async linkUserToPatient(patientId: string, userId: string): Promise<void> {
-    // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    await this.prisma.runUnrestricted(async () =>
+    await this.withUnrestricted(() =>
       this.prisma.patient.update({
         where: { id: patientId },
         data: { userId },
+      }),
+    );
+  }
+
+  async createDataSubjectRequest(
+    input: PortalDataSubjectRequestInput,
+  ): Promise<{ id: string; dueAt: Date | null }> {
+    return this.withUnrestricted(() =>
+      this.prisma.dataSubjectRequest.create({
+        data: {
+          clinicId: input.clinicId,
+          patientId: input.patientId,
+          requestType: input.requestType,
+          requestChannel: 'PORTAL',
+          requestedByName: 'Patient (portal)',
+          requestedByRelation: 'SELF',
+          requestDetails: input.requestDetails,
+          dueAt: input.dueAt,
+        },
+        select: { id: true, dueAt: true },
       }),
     );
   }

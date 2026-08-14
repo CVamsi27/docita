@@ -6,10 +6,10 @@ import { SidebarRailTooltip } from "@workspace/ui/components/navigation/sidebar-
 
 function getIconClasses(isActive: boolean) {
   return cn(
-    "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 ring-transparent transition-colors",
+    "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 ring-transparent transition-[background-color,color,box-shadow,transform] duration-200",
     isActive
-      ? "bg-foreground text-background ring-border/40"
-      : "bg-background/60 text-muted-foreground ring-border/40",
+      ? "bg-foreground text-background ring-border/40 shadow-sm"
+      : "bg-background/60 text-muted-foreground ring-border/40 group-hover:bg-background group-hover:text-foreground group-hover:ring-border/60",
   );
 }
 

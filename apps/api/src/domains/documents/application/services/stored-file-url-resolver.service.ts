@@ -5,7 +5,7 @@ import {
   StorageProvider,
 } from '@/domains/documents/application/ports/storage-provider.port';
 
-export interface ResolvedStoredFileUrl {
+interface ResolvedStoredFileUrl {
   url: string | null;
   storedUrl: string | null;
 }

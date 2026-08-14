@@ -12,9 +12,9 @@ import type {
   FeatureFlagValue,
 } from '@/shared/modules/services/feature-flag.types';
 
-export type { ClinicPricingOffer, FeatureFlagConfig, FeatureFlagValue };
+export type { ClinicPricingOffer };
 
-export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
+const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
   {
     key: 'enable_whatsapp_reminders',
     defaultValue: true,
@@ -174,17 +174,13 @@ export class FeatureFlagService implements OnModuleInit {
         const clinicFlag = await this.prisma.featureFlag?.findFirst({
           where: { key, clinicId },
         });
-        if (clinicFlag) {
-          return coerceFeatureFlagValue(clinicFlag.value);
-        }
+        if (clinicFlag) return coerceFeatureFlagValue(clinicFlag.value);
       }
 
       const cacheKey = `global:${key}`;
       if (this.cache.has(cacheKey) && this.cacheExpiry > this.clock.now()) {
         const cached = this.cache.get(cacheKey);
-        if (cached !== undefined) {
-          return coerceFeatureFlagValue(cached);
-        }
+        if (cached !== undefined) return coerceFeatureFlagValue(cached);
       }
 
       const globalFlag = await this.prisma.featureFlag?.findFirst({
@@ -300,9 +296,7 @@ export class FeatureFlagService implements OnModuleInit {
     const offer = await this.getValue('clinic_pricing_offer', clinicId, null);
 
     const parsed = parseClinicPricingOffer(offer);
-    if (!parsed || parsed.percentOff <= 0) {
-      return null;
-    }
+    if (!parsed || parsed.percentOff <= 0) return null;
 
     return parsed;
   }

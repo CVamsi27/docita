@@ -5,9 +5,8 @@ export class Money {
     public readonly amount: number,
     public readonly currency: string = 'INR',
   ) {
-    if (amount < 0) {
+    if (amount < 0)
       throw new InvariantViolationError('Money amount cannot be negative');
-    }
   }
 
   toCents(): number {

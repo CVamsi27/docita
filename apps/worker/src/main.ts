@@ -7,9 +7,9 @@ import "@/instrument";
 import * as Sentry from "@sentry/nestjs";
 import { NestFactory } from "@nestjs/core";
 import { Logger } from "nestjs-pino";
-import { AppConfigService } from "@/shared/modules/config/app-configuration.service";
 import { StartupValidationService } from "@/shared/modules/services/startup-validation.service";
 import { validateEnv } from "@/shared/modules/config/app-config";
+import { buildAppConfigService } from "@/shared/modules/config/app-config.builder";
 import { WorkerModule } from "@/worker.module";
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_MS = 15_000;
@@ -21,7 +21,7 @@ async function bootstrap() {
     // is not serving HTTP auth.
     process.env.WORKER_ENTRYPOINT ??= "worker";
     validateEnv();
-    const appConfigService = new AppConfigService();
+    const appConfigService = buildAppConfigService();
     new StartupValidationService(appConfigService).validate();
   } catch (error) {
     process.stderr.write(
@@ -36,7 +36,6 @@ async function bootstrap() {
 
   app.useLogger(app.get(Logger));
   app.get(Logger).log("Worker started", "Worker");
-
   const shutdown = (signal: string) => {
     app
       .get(Logger)
@@ -46,7 +45,6 @@ async function bootstrap() {
       process.exit(1);
     }, GRACEFUL_SHUTDOWN_TIMEOUT_MS);
     timeout.unref();
-
     app
       .close()
       .then(async () => {
@@ -58,10 +56,8 @@ async function bootstrap() {
         process.exit(1);
       });
   };
-
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
-
   process.on("unhandledRejection", (reason: unknown) => {
     app
       .get(Logger)
@@ -71,7 +67,6 @@ async function bootstrap() {
         "Worker",
       );
   });
-
   process.on("uncaughtException", (error: Error) => {
     app
       .get(Logger)

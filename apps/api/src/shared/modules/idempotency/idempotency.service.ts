@@ -6,8 +6,6 @@ import type { CachedIdempotencyEntry } from './idempotency.types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { isRecord } from '@workspace/utils';
 
-export type { CachedIdempotencyEntry };
-
 /**
  * Storage layer for the idempotency interceptor. Persists state in Postgres so
  * idempotency holds across multiple API replicas.
@@ -90,9 +88,8 @@ export class IdempotencyService implements OnModuleInit {
 function canonicalize(value: unknown): string {
   if (value === null || value === undefined) return 'null';
   if (typeof value === 'string') return JSON.stringify(value);
-  if (typeof value === 'number' || typeof value === 'boolean') {
+  if (typeof value === 'number' || typeof value === 'boolean')
     return JSON.stringify(value);
-  }
   if (Array.isArray(value)) {
     return `[${value.map((item) => canonicalize(item)).join(',')}]`;
   }

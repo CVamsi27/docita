@@ -129,7 +129,7 @@ describe('NlmCodingClient', () => {
       const terms = parsed.searchParams.get('terms');
       const offset = parsed.searchParams.get('offset');
 
-      if (terms === 'A' && offset === '0') {
+      if (terms === 'A' && offset === '0')
         return Promise.resolve(
           jsonResponse([
             501,
@@ -138,9 +138,8 @@ describe('NlmCodingClient', () => {
             firstPageRows,
           ]),
         );
-      }
 
-      if (terms === 'A' && offset === '500') {
+      if (terms === 'A' && offset === '500')
         return Promise.resolve(
           jsonResponse([
             501,
@@ -149,7 +148,6 @@ describe('NlmCodingClient', () => {
             secondPageRows,
           ]),
         );
-      }
 
       return Promise.resolve(jsonResponse([0, [], null, []]));
     });
@@ -183,20 +181,18 @@ describe('NlmCodingClient', () => {
       const terms = parsed.searchParams.get('terms');
       const offset = parsed.searchParams.get('offset');
 
-      if (terms === 'A' && offset === '0') {
+      if (terms === 'A' && offset === '0')
         return Promise.resolve(
           jsonResponse([1, ['A00'], null, [['A00', 'Alpha condition']]]),
         );
-      }
 
-      if (terms === 'B') {
+      if (terms === 'B')
         return Promise.reject(
           new DOMException(
             'The operation was aborted due to timeout',
             'TimeoutError',
           ),
         );
-      }
 
       return Promise.resolve(jsonResponse([0, [], null, []]));
     });
@@ -218,11 +214,10 @@ describe('NlmCodingClient', () => {
       const parsed = new URL(String(url));
       const terms = parsed.searchParams.get('terms');
 
-      if (terms === 'A') {
+      if (terms === 'A')
         return Promise.resolve(
           jsonResponse([1, ['A4550'], null, [['A4550', 'Surgical trays']]]),
         );
-      }
 
       return Promise.resolve(jsonResponse([0, [], null, []]));
     });

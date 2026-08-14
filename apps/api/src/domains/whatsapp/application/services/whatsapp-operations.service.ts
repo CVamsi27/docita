@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,12 +11,16 @@ import type {
 } from '@workspace/types';
 import { CLINIC_ADMIN_ROLES } from '@/shared/common/constants/role-groups';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { PrismaWhatsappOperationsRepository } from '@/domains/whatsapp/infrastructure/repositories/prisma-whatsapp-operations.repository';
+import {
+  type IWhatsappOperationsRepository,
+  WHATSAPP_OPERATIONS_REPOSITORY_TOKEN,
+} from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 
 @Injectable()
 export class WhatsappOperationsService {
   constructor(
-    private readonly repository: PrismaWhatsappOperationsRepository,
+    @Inject(WHATSAPP_OPERATIONS_REPOSITORY_TOKEN)
+    private readonly repository: IWhatsappOperationsRepository,
     private readonly sendMessage: SendMessageUseCase,
   ) {}
 

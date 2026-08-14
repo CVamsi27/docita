@@ -97,9 +97,7 @@ test.describe("Dental Charts", () => {
   });
 
   test("renders the dental charts route", async ({ page }) => {
-    if (!testUser) {
-      throw new Error("Test user was not initialized");
-    }
+    if (!testUser) throw new Error("Test user was not initialized");
 
     await loginUser(page, testUser);
     const response = await page.goto("/specialty/dental-charts");

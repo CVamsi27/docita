@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 /** Clinic registration compliance step (SLA, privacy, DPDP, WhatsApp). */
+// allow-no-base-schema: owner=onboarding reason=ui-compliance-affirmations review=2026-09-30
 export const onboardingComplianceFormSchema = z.object({
   acceptedSLA: z
     .boolean()

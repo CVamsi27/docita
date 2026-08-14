@@ -22,6 +22,7 @@ export const queryKeys = {
     detail: (id: string) => ["patients", "detail", id] as const,
     medicalHistory: (id: string) =>
       ["patients", "detail", id, "medical-history"] as const,
+    tags: (id: string) => ["patients", "detail", id, "tags"] as const,
     metrics: {
       root: (id: string) => ["patients", "detail", id, "metrics"] as const,
       categories: (id: string) =>
@@ -83,6 +84,8 @@ export const queryKeys = {
       ["invoices", id, "payment-activity"] as const,
     claimReadiness: (id: string) =>
       ["invoices", id, "claim-readiness"] as const,
+    collectionsByMode: (from: string, to: string) =>
+      ["invoices", "reports", "collections-by-mode", from, to] as const,
   },
   insuranceClaims: {
     all: () => ["insurance-claims"] as const,
@@ -187,10 +190,22 @@ export const queryKeys = {
       ["clinic-subscription", clinicId] as const,
     subscriptionSettings: () => ["clinic", "subscription"] as const,
     settings: () => ["clinic", "settings"] as const,
+    abdmDashboard: () => ["clinic", "abdm", "dashboard"] as const,
     members: () => ["clinic", "members"] as const,
     medicalCodingSettings: () => ["clinic", "medical-coding-settings"] as const,
     prescriptionDefaults: () => ["clinic", "prescription-defaults"] as const,
     opdSlipSettings: () => ["clinic", "opd-slip-settings"] as const,
+  },
+  customFields: {
+    all: () => ["custom-fields"] as const,
+  },
+  abdm: {
+    all: () => ["abdm"] as const,
+    careContexts: (patientId?: string | null) =>
+      ["abdm", "care-contexts", patientId ?? ""] as const,
+    opsInbox: () => ["abdm", "ops-inbox"] as const,
+    externalRecords: (patientId?: string | null) =>
+      ["abdm", "external-records", patientId ?? ""] as const,
   },
   doctors: {
     all: () => ["doctors"] as const,
@@ -304,12 +319,7 @@ export const queryKeys = {
     campaigns: () => ["whatsapp", "operations", "campaigns"] as const,
     patientSentMessages: (patientId: string) =>
       ["whatsapp", "sent-messages", patientId] as const,
-    notifications: {
-      unreadCount: () => ["whatsapp", "notifications", "unread-count"] as const,
-      unread: (limit: number) =>
-        ["whatsapp", "notifications", "unread", limit] as const,
-      unreadPrefix: () => ["whatsapp", "notifications", "unread"] as const,
-    },
+    recentSentMessages: () => ["whatsapp", "recent-sent"] as const,
   },
   medicalCoding: {
     icd: (search: string) => ["icd-codes", search] as const,
@@ -357,6 +367,9 @@ export const queryKeys = {
   },
   featureFlags: {
     me: () => ["feature-flags", "me"] as const,
+  },
+  guidedTour: {
+    me: () => ["guided-tour", "me"] as const,
   },
   billingHistory: {
     all: () => ["billing-history"] as const,

@@ -2,7 +2,7 @@ import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 
-export type AppointmentAccessContext = {
+type AppointmentAccessContext = {
   userId: string;
   role: Role;
 };
@@ -13,11 +13,10 @@ export function getAppointmentAccessContext(
   const userId = req.user?.id;
   const role = req.user?.role;
 
-  if (!userId || !role) {
+  if (!userId || !role)
     throw new UnauthorizedException(
       'Authenticated user context is required for this appointment action',
     );
-  }
 
   return { userId, role };
 }
@@ -27,7 +26,6 @@ export function assertDoctorOwnsAppointment(
   accessContext: AppointmentAccessContext,
   doctorId: string,
 ): void {
-  if (accessContext.role === Role.DOCTOR && accessContext.userId !== doctorId) {
+  if (accessContext.role === Role.DOCTOR && accessContext.userId !== doctorId)
     throw new ForbiddenException('Doctors can only access their appointments');
-  }
 }

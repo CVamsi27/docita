@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { Prisma } from '@workspace/db';
+import type { IWhatsappOperationsRepository } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import type {
   ClinicWhatsappCampaignPreviewResponse,
   ClinicWhatsappCampaignSummary,
@@ -23,7 +24,7 @@ function maskPhone(phone: string): string {
 }
 
 @Injectable()
-export class PrismaWhatsappOperationsRepository {
+export class PrismaWhatsappOperationsRepository implements IWhatsappOperationsRepository {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,

@@ -1,0 +1,54 @@
+import { useEffect, useState } from "react";
+import type { EffectivePermissionsResponse } from "@workspace/types";
+import { effectivePermissionsResponseSchema } from "@workspace/types";
+import { useDataAccessFetcher } from "../provider/hooks";
+
+/**
+ * C7 (ADR-0013): loads the server permission snapshot once per session.
+ * Non-blocking and failure-tolerant: returns null until loaded (or forever on
+ * error / unauthenticated) so callers fall back to the local matrix — the
+ * documented offline fallback. The snapshot only previews decisions; the
+ * server remains the enforcement point.
+ */
+let cachedSnapshot: EffectivePermissionsResponse | null | undefined;
+
+/**
+ * Clears the once-per-session snapshot cache. Must be called on logout so a
+ * second user in the same tab never inherits the previous user's snapshot.
+ */
+export function clearEffectivePermissionsCache(): void {
+  cachedSnapshot = undefined;
+}
+
+export function useEffectivePermissions():
+  | EffectivePermissionsResponse
+  | null {
+  const fetcher = useDataAccessFetcher();
+  const [snapshot, setSnapshot] = useState<
+    EffectivePermissionsResponse | null
+  >(() => (cachedSnapshot === undefined ? null : cachedSnapshot));
+
+  useEffect(() => {
+    if (cachedSnapshot !== undefined) {
+      if (cachedSnapshot !== null) setSnapshot(cachedSnapshot);
+      return;
+    }
+    let active = true;
+    fetcher<unknown>("/auth/effective-permissions")
+      .then((value) => {
+        const parsed = effectivePermissionsResponseSchema.parse(value);
+        cachedSnapshot = parsed;
+        if (active) setSnapshot(parsed);
+      })
+      .catch(() => {
+        // Offline / error fallback: keep the local matrix evaluation.
+        cachedSnapshot = null;
+        if (active) setSnapshot(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [fetcher]);
+
+  return snapshot;
+}

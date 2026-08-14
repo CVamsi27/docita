@@ -5,3 +5,4 @@ export * from "./razorpay-contact.js";
 export * from "./internal-tier-display.js";
 export * from "./recommend-tier-for-team-size.js";
 export * from "./invoice-totals.js";
+export * from "./money-cents.js";

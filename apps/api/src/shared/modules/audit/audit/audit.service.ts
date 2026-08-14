@@ -7,32 +7,33 @@ import {
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import { isRecord } from '@workspace/utils';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { runOutsideActiveTx } from '@/shared/modules/rls/active-tx.storage';
 import type { AppAuditLogSummary } from '@workspace/types';
+import type {
+  AdminActionType,
+  AppointmentActionType,
+  PatientAccessType,
+  PaymentActionType,
+  PrescriptionActionType,
+  UserActionType,
+} from './domain-audit-action-builders';
+import {
+  buildAdminActionLog,
+  buildAppointmentActionLog,
+  buildDataExportLog,
+  buildPatientAccessLog,
+  buildPaymentActionLog,
+  buildPrescriptionActionLog,
+  buildUserActionLog,
+} from './domain-audit-action-builders';
 
-export interface AuditLogData {
-  clinicId: string;
-  userId: string;
-  actionType: string;
-  resourceType: string;
-  resourceId: string;
-  changes?: Record<string, unknown>;
-  ipAddress?: string;
-  userAgent?: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface AuditLogFilter {
-  clinicId?: string;
-  userId?: string;
-  actionType?: string;
-  resourceType?: string;
-  startDate?: Date;
-  endDate?: Date;
-  skip?: number;
-  take?: number;
-}
+import type {
+  AuditLogData,
+  AuditLogFilter,
+  CreatedAuditLog,
+} from './audit.service.types';
 
 @Injectable()
 export class AuditService {
@@ -53,7 +54,7 @@ export class AuditService {
     await this.createAuditLog(data);
   }
 
-  async createAuditLog(data: AuditLogData): Promise<unknown> {
+  async createAuditLog(data: AuditLogData): Promise<CreatedAuditLog> {
     // RLS-BYPASS: audit persistence correlates events across tenants for compliance
     return this.prisma.runUnrestricted(async () =>
       runOutsideActiveTx(async () => {
@@ -62,14 +63,10 @@ export class AuditService {
             this.prisma.clinic.findUnique({ where: { id: data.clinicId } }),
             this.prisma.user.findUnique({ where: { id: data.userId } }),
           ]);
-
-          if (!clinic) {
+          if (!clinic)
             throw new BadRequestException(`Clinic ${data.clinicId} not found`);
-          }
-
-          if (!user) {
+          if (!user)
             throw new BadRequestException(`User ${data.userId} not found`);
-          }
 
           const auditLog = await this.prisma.auditLog.create({
             data: {
@@ -93,7 +90,7 @@ export class AuditService {
             `[AUDIT] ${data.actionType} | User: ${data.userId} | Resource: ${data.resourceType}:${data.resourceId} | ID: ${auditLog.id}`,
           );
 
-          const auditData = {
+          return {
             id: auditLog.id,
             clinicId: data.clinicId,
             userId: data.userId,
@@ -106,8 +103,6 @@ export class AuditService {
             metadata: data.metadata,
             createdAt: this.clock.now(),
           };
-
-          return auditData;
         } catch (error) {
           this.logger.error(
             `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -124,11 +119,10 @@ export class AuditService {
     userRole: string,
   ): Promise<unknown[]> {
     try {
-      if (userRole !== 'INTERNAL' && userRole !== 'ADMIN') {
+      if (userRole !== 'INTERNAL' && userRole !== 'ADMIN')
         throw new BadRequestException(
           'Insufficient permissions to view audit logs',
         );
-      }
 
       const where: Prisma.AuditLogWhereInput = {};
 
@@ -140,12 +134,12 @@ export class AuditService {
         where.userId = filter.userId;
       }
 
-      if (filter.actionType) {
-        where.action = filter.actionType;
+      if (filter.action) {
+        where.action = filter.action;
       }
 
-      if (filter.resourceType) {
-        where.entityType = filter.resourceType;
+      if (filter.resource) {
+        where.entityType = filter.resource;
       }
 
       if (filter.startDate || filter.endDate) {
@@ -158,18 +152,39 @@ export class AuditService {
         }
       }
 
+      const page = Math.max(filter.page ?? 1, 1);
+      const take = Math.min(Math.max(filter.limit ?? 10, 1), 100);
+
       const logs = await this.prisma.auditLog.findMany({
         where,
         orderBy: { createdAt: 'desc' },
-        skip: filter.skip || 0,
-        take: filter.take || 10,
+        skip: (page - 1) * take,
+        take,
       });
 
       this.logger.debug(
         `Fetched ${logs.length} audit logs with filter: ${JSON.stringify(where)}`,
       );
 
-      return logs;
+      // Map persistence rows to the shared auditLogSchema contract
+      // (resource/resourceId/details instead of the raw entityType/entityId
+      // column names) so clients can rely on one canonical shape.
+      return logs.map((log) => ({
+        id: log.id,
+        clinicId: log.clinicId,
+        userId: log.userId,
+        action: log.action,
+        resource: log.entityType,
+        resourceId: log.entityId ?? undefined,
+        // auditLogSchema.details is z.record — only pass through JSON objects
+        // so a scalar/array newValue cannot break the response serializer.
+        details:
+          log.newValue && isRecord(log.newValue) ? log.newValue : undefined,
+        ipAddress: log.ipAddress ?? undefined,
+        userAgent: log.userAgent ?? undefined,
+        status: log.status,
+        createdAt: log.createdAt,
+      }));
     } catch (error) {
       this.logger.error(
         `Failed to get audit logs: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -229,105 +244,101 @@ export class AuditService {
   async logUserAction(
     userId: string,
     clinicId: string,
-    actionType: 'PROFILE_UPDATE' | 'ROLE_CHANGE' | 'PASSWORD_CHANGE',
+    actionType: UserActionType,
     changes: Record<string, unknown>,
     ipAddress?: string,
     userAgent?: string,
   ): Promise<void> {
-    await this.logAction({
-      userId,
-      clinicId,
-      actionType,
-      resourceType: 'User',
-      resourceId: userId,
-      changes,
-      ipAddress,
-      userAgent,
-    });
+    await this.logAction(
+      buildUserActionLog({
+        userId,
+        clinicId,
+        actionType,
+        changes,
+        ipAddress,
+        userAgent,
+      }),
+    );
   }
 
   async logPrescriptionAction(
     userId: string,
     clinicId: string,
-    actionType:
-      | 'PRESCRIPTION_CREATE'
-      | 'PRESCRIPTION_UPDATE'
-      | 'PRESCRIPTION_APPROVE'
-      | 'PRESCRIPTION_DELETE',
+    actionType: PrescriptionActionType,
     prescriptionId: string,
     changes?: Record<string, unknown>,
     ipAddress?: string,
   ): Promise<void> {
-    await this.logAction({
-      userId,
-      clinicId,
-      actionType,
-      resourceType: 'Prescription',
-      resourceId: prescriptionId,
-      changes,
-      ipAddress,
-    });
+    await this.logAction(
+      buildPrescriptionActionLog({
+        userId,
+        clinicId,
+        actionType,
+        prescriptionId,
+        changes,
+        ipAddress,
+      }),
+    );
   }
 
   async logPaymentAction(
     userId: string,
     clinicId: string,
-    actionType: 'PAYMENT_RETRY' | 'PAYMENT_REFUND' | 'PAYMENT_FAILED',
+    actionType: PaymentActionType,
     invoiceId: string,
     changes?: Record<string, unknown>,
     ipAddress?: string,
   ): Promise<void> {
-    await this.logAction({
-      userId,
-      clinicId,
-      actionType,
-      resourceType: 'Invoice',
-      resourceId: invoiceId,
-      changes,
-      ipAddress,
-    });
+    await this.logAction(
+      buildPaymentActionLog({
+        userId,
+        clinicId,
+        actionType,
+        invoiceId,
+        changes,
+        ipAddress,
+      }),
+    );
   }
 
   async logAppointmentAction(
     userId: string,
     clinicId: string,
-    actionType: 'APPOINTMENT_CANCEL' | 'APPOINTMENT_NO_SHOW',
+    actionType: AppointmentActionType,
     appointmentId: string,
     changes?: Record<string, unknown>,
     ipAddress?: string,
   ): Promise<void> {
-    await this.logAction({
-      userId,
-      clinicId,
-      actionType,
-      resourceType: 'Appointment',
-      resourceId: appointmentId,
-      changes,
-      ipAddress,
-    });
+    await this.logAction(
+      buildAppointmentActionLog({
+        userId,
+        clinicId,
+        actionType,
+        appointmentId,
+        changes,
+        ipAddress,
+      }),
+    );
   }
 
   async logAdminAction(
     userId: string,
     clinicId: string,
-    actionType:
-      | 'ADMIN_CREATE'
-      | 'ADMIN_UPDATE'
-      | 'ADMIN_DELETE'
-      | 'ADMIN_ROLE_CHANGE',
+    actionType: AdminActionType,
     adminId: string,
     changes?: Record<string, unknown>,
     ipAddress?: string,
   ): Promise<void> {
-    await this.logAction({
-      userId,
-      clinicId,
-      actionType,
-      resourceType: 'Admin',
-      resourceId: adminId,
-      changes,
-      ipAddress,
-    });
+    await this.logAction(
+      buildAdminActionLog({
+        userId,
+        clinicId,
+        actionType,
+        adminId,
+        changes,
+        ipAddress,
+      }),
+    );
   }
 
   async logDataExport(
@@ -337,36 +348,35 @@ export class AuditService {
     recordCount: number,
     ipAddress?: string,
   ): Promise<void> {
-    await this.logAction({
-      userId,
-      clinicId,
-      actionType: 'DATA_EXPORT',
-      resourceType: entityType,
-      resourceId: clinicId,
-      metadata: { recordCount },
-      ipAddress,
-    });
+    await this.logAction(
+      buildDataExportLog({
+        userId,
+        clinicId,
+        entityType,
+        recordCount,
+        ipAddress,
+      }),
+    );
   }
 
   async logPatientAccess(
     userId: string,
     clinicId: string,
     patientId: string,
-    accessType: 'VIEW_HISTORY' | 'VIEW_PROFILE' | 'EXPORT_DATA',
+    accessType: PatientAccessType,
     ipAddress?: string,
     userAgent?: string,
   ): Promise<void> {
-    await this.logAction({
-      userId,
-      clinicId,
-      actionType: accessType,
-      resourceType: 'Patient',
-      resourceId: patientId,
-      ipAddress,
-      userAgent,
-      metadata: {
+    await this.logAction(
+      buildPatientAccessLog({
+        userId,
+        clinicId,
+        patientId,
+        accessType,
+        ipAddress,
+        userAgent,
         accessTime: this.clock.now().toISOString(),
-      },
-    });
+      }),
+    );
   }
 }

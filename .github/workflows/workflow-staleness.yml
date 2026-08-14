@@ -1,0 +1,42 @@
+name: Workflow staleness guard
+
+# Daily guard that fails when any scheduled workflow has had no run in 7 days —
+# the silent-stop class that left scale-api-hours.yml and synthetic-monitoring.yml
+# disabled_manually since 2026-07-26 with no run and no alert until a survey found it.
+#
+# Two documented-disabled workflows (RB-14 in docs/operations/RUNBOOKS.md) are
+# exempt while they report disabled_manually; the check script owns that logic.
+#
+# If this guard is itself disabled, staleness is still caught: the same check
+# runs inside pnpm verify:standard (Repository Standards job) on every PR,
+# which has a token and would flag this workflow for not having run.
+#
+# If the guard's own runs stop, it flags itself the same way any other stale
+# scheduled workflow would — the failure is visible in the Actions tab and
+# pages OPS_ALERT_WEBHOOK_URL (set per-run below).
+
+on:
+  schedule:
+    # Daily 07:30 UTC — well past every monitored cron's firing window.
+    - cron: "30 7 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: workflow-staleness
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  check:
+    name: Check scheduled workflow staleness
+    runs-on: ubuntu-latest
+    env:
+      OPS_ALERT_WEBHOOK_URL: ${{ secrets.OPS_ALERT_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run staleness check
+        run: node scripts/checks/check-workflow-staleness.mjs

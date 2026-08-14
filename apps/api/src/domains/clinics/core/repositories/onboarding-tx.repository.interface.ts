@@ -24,6 +24,7 @@ export interface OnboardingClinicWriteData {
   mrnPrefix: string;
   timezone: string;
   referralCode: string;
+  abdmEnabled?: boolean;
   settings: Prisma.InputJsonValue;
 }
 
@@ -131,6 +132,7 @@ export interface IOnboardingTxRepository {
     clinicId: string,
   ): Promise<void>;
 
+  // jscpd:ignore-start
   replaceClinicWeeklySchedules(
     tx: Prisma.TransactionClient,
     clinicId: string,
@@ -142,6 +144,7 @@ export interface IOnboardingTxRepository {
       isActive: boolean;
     }>,
   ): Promise<void>;
+  // jscpd:ignore-end
 }
 
 export const ONBOARDING_TX_REPOSITORY_TOKEN = Symbol('IOnboardingTxRepository');

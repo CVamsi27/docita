@@ -1,4 +1,5 @@
-import { APIRequestContext, expect, Page, test } from "@playwright/test";
+import type { APIRequestContext, Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 const API_URL = "http://127.0.0.1:3001/api/v1";
 

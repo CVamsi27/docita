@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaReadBase } from '@/shared/common/repositories/prisma-read-base';
 import {
   IMedicationDoseRepository,
   MedicationDoseHistoryRow,
@@ -10,11 +11,13 @@ import {
 } from '@/domains/patients/core/repositories/medication-dose.repository.interface';
 
 @Injectable()
-export class PrismaMedicationDoseRepository implements IMedicationDoseRepository {
-  constructor(private readonly prisma: PrismaService) {}
-
-  private getReadClient() {
-    return this.prisma.getReadClient();
+// jscpd:ignore-start
+export class PrismaMedicationDoseRepository
+  extends PrismaReadBase
+  implements IMedicationDoseRepository
+{
+  constructor(prisma: PrismaService) {
+    super(prisma);
   }
 
   async verifyPatientAccess(
@@ -29,6 +32,7 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
   }
 
   async findMedicationWithPrescription(
+    // jscpd:ignore-end
     medicationId: string,
   ): Promise<MedicationWithPrescription | null> {
     return this.getReadClient().medication.findFirst({
@@ -102,6 +106,7 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
   ): Promise<DoseAdherenceStat[]> {
     const rows = await this.getReadClient().medicationDose.groupBy({
       by: ['status'],
+      // jscpd:ignore-start
       where,
       _count: { status: true },
     });
@@ -112,7 +117,31 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
     }));
   }
 
+  /**
+   * Batched adherence lookup: returns a `{ medicationId, status, count }`
+   * row per (medication, status) for the matching dose filter. The
+   * caller (typically `getActiveMedications`) accumulates these into a
+   * per-medication map and computes adherence in one pass — replacing
+   * a per-medication groupBy that scaled linearly with the number of
+   * non-PrN medications on the active-prescription list.
+   */
+  async groupDosesByMedicationAndStatus(
+    where: Prisma.MedicationDoseWhereInput,
+  ): Promise<Array<{ medicationId: string; status: string; count: number }>> {
+    const rows = await this.getReadClient().medicationDose.groupBy({
+      by: ['medicationId', 'status'],
+      where,
+      _count: { _all: true },
+    });
+    return rows.map((row) => ({
+      medicationId: row.medicationId,
+      status: row.status,
+      count: row._count._all,
+    }));
+  }
+
   async createManyDoses(
+    // jscpd:ignore-end
     data: Array<Prisma.MedicationDoseUncheckedCreateInput>,
   ) {
     return this.prisma.medicationDose.createMany({

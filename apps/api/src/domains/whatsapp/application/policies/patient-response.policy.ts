@@ -8,9 +8,9 @@ export type PatientResponseType =
   | 'CANCEL'
   | 'UNKNOWN';
 
-export type StaffNotificationPriority = 'HIGH' | 'LOW' | 'NORMAL';
+type StaffNotificationPriority = 'HIGH' | 'LOW' | 'NORMAL';
 
-export type StaffNotificationType =
+type StaffNotificationType =
   | 'PATIENT_RESPONSE'
   | 'APPOINTMENT_CANCEL'
   | 'APPOINTMENT_DELAY';

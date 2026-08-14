@@ -8,7 +8,7 @@ import {
   API_URL,
   loginUser,
   setupTestUser,
-  UserData,
+  type UserData,
 } from "./utils/patient-helpers";
 import { VIEWPORT_PRESETS } from "./utils/viewport-presets";
 
@@ -21,7 +21,10 @@ const RESPONSIVE_A11Y_ROUTES = [
 ] as const;
 
 const PUBLIC_AUDIT_PAGES = [
-  { path: "/", name: "Home" },
+  // The Vite SPA has no public home page: "/" redirects to the protected
+  // "/today" (the Next app's public HomePageClient was not ported, per the
+  // porting plan). /forgot-password is a real unauthenticated surface.
+  { path: "/forgot-password", name: "Forgot password" },
   { path: "/login", name: "Login" },
   /** Referral segment is arbitrary; page resolves to error DataState when API has no clinic. */
   { path: "/book/accessibility-audit-placeholder", name: "Public booking" },
@@ -83,12 +86,24 @@ async function runAccessibilityAudit(
       await page.locator("body").waitFor({ state: "visible", timeout: 15_000 });
       break;
     } catch (error) {
-      if (attempt === 3) {
-        throw error;
-      }
+      if (attempt === 3) throw error;
       await page.waitForTimeout(1000);
     }
   }
+
+  // Wait for the app shell's <main> landmark before injecting axe. Lazy-loaded
+  // routes (e.g. /book/...) render a Suspense fallback that has no landmarks,
+  // and auditing that shell produced false-positive landmark-one-main /
+  // page-has-heading-one violations on <html>. Every audited surface renders
+  // <main> in all of its states, so this resolves as soon as the route
+  // hydrates. If a page genuinely lacks a <main>, the wait times out and we
+  // still proceed so axe reports the real missing-landmark violation instead
+  // of failing the test with a locator timeout.
+  await page
+    .locator("main")
+    .first()
+    .waitFor({ state: "visible", timeout: 20_000 })
+    .catch(() => undefined);
 
   await injectAxe(page);
 
@@ -344,7 +359,6 @@ test.describe("Accessibility Audit - Main App", () => {
       { path: "/whatsapp", name: "WhatsApp" },
       { path: "/desk/collect-payment", name: "Collect payment" },
       { path: "/daybook", name: "Daybook" },
-      { path: "/vaccines", name: "Vaccines" },
       { path: "/referrals", name: "Referrals" },
       { path: "/follow-ups", name: "Follow-ups" },
       { path: "/analytics", name: "Analytics" },

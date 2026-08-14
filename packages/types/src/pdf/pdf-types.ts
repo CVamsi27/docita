@@ -103,9 +103,7 @@ const lookupOverride = (
   overrides: Record<string, string> | undefined,
   key: string,
 ): string | undefined => {
-  if (!overrides) {
-    return undefined;
-  }
+  if (!overrides) return undefined;
 
   if (Object.prototype.hasOwnProperty.call(overrides, key)) {
     return overrides[key];

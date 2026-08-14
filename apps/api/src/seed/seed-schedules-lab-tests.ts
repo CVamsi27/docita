@@ -1,17 +1,26 @@
-import { PrismaClient } from '@workspace/db';
+import { LabTestOrderStatus, PrismaClient } from '@workspace/db';
 
 interface SeedSchedulesAndLabTestsParams {
   clinicId: string;
+  adminDoctorId: string;
   doctor1Id: string;
   doctor2Id: string;
   doctor3Id: string;
+  patientIds: string[];
 }
 
 export async function seedSchedulesAndLabTests(
   prisma: PrismaClient,
   params: SeedSchedulesAndLabTestsParams,
 ): Promise<void> {
-  const { clinicId, doctor1Id, doctor2Id, doctor3Id } = params;
+  const {
+    clinicId,
+    adminDoctorId,
+    doctor1Id,
+    doctor2Id,
+    doctor3Id,
+    patientIds,
+  } = params;
 
   const daysOfWeek = [
     'MONDAY',
@@ -23,7 +32,9 @@ export async function seedSchedulesAndLabTests(
   ] as const;
 
   await prisma.doctorSchedule.deleteMany({
-    where: { doctorId: { in: [doctor1Id, doctor2Id, doctor3Id] } },
+    where: {
+      doctorId: { in: [adminDoctorId, doctor1Id, doctor2Id, doctor3Id] },
+    },
   });
 
   await prisma.labTest.deleteMany({
@@ -32,6 +43,15 @@ export async function seedSchedulesAndLabTests(
 
   await prisma.doctorSchedule.createMany({
     data: [
+      ...daysOfWeek.map((day) => ({
+        doctorId: adminDoctorId,
+        clinicId,
+        dayOfWeek: day,
+        startTime: '09:00',
+        endTime: day === 'SATURDAY' ? '14:00' : '18:00',
+        slotDuration: 30,
+        isActive: true,
+      })),
       ...daysOfWeek.map((day) => ({
         doctorId: doctor1Id,
         clinicId,
@@ -144,4 +164,74 @@ export async function seedSchedulesAndLabTests(
       },
     ],
   });
+
+  await seedLabTestOrders(prisma, clinicId, adminDoctorId, patientIds);
+}
+
+const LAB_ORDER_PLAN: Array<{
+  status: LabTestOrderStatus;
+  orderedDaysAgo: number;
+}> = [
+  { status: LabTestOrderStatus.COMPLETED, orderedDaysAgo: 5 },
+  { status: LabTestOrderStatus.COMPLETED, orderedDaysAgo: 4 },
+  { status: LabTestOrderStatus.COMPLETED, orderedDaysAgo: 3 },
+  { status: LabTestOrderStatus.RESULT_READY, orderedDaysAgo: 2 },
+  { status: LabTestOrderStatus.RESULT_READY, orderedDaysAgo: 1 },
+  { status: LabTestOrderStatus.SAMPLE_COLLECTED, orderedDaysAgo: 1 },
+  { status: LabTestOrderStatus.SAMPLE_COLLECTED, orderedDaysAgo: 0 },
+  { status: LabTestOrderStatus.PENDING, orderedDaysAgo: 0 },
+  { status: LabTestOrderStatus.ORDERED, orderedDaysAgo: 0 },
+  { status: LabTestOrderStatus.ORDERED, orderedDaysAgo: 0 },
+];
+
+/**
+ * Lab orders across the workflow statuses so the Lab Tests worklist and its
+ * Pending / In-progress / Completed stat cards show real data on camera
+ * instead of an empty "No lab tests found" state.
+ */
+async function seedLabTestOrders(
+  prisma: PrismaClient,
+  clinicId: string,
+  orderedBy: string,
+  patientIds: string[],
+): Promise<void> {
+  if (patientIds.length === 0) return;
+
+  const labTests = await prisma.labTest.findMany({
+    where: { clinicId },
+    select: { id: true },
+    orderBy: { code: 'asc' },
+  });
+  if (labTests.length === 0) return;
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  for (let i = 0; i < LAB_ORDER_PLAN.length; i++) {
+    const plan = LAB_ORDER_PLAN[i];
+    const orderedAt = new Date(Date.now() - plan.orderedDaysAgo * dayMs);
+    const collected =
+      plan.status === LabTestOrderStatus.ORDERED ||
+      plan.status === LabTestOrderStatus.PENDING
+        ? null
+        : new Date(orderedAt.getTime() + dayMs / 2);
+    const completed =
+      plan.status === LabTestOrderStatus.COMPLETED ||
+      plan.status === LabTestOrderStatus.RESULT_READY
+        ? new Date(orderedAt.getTime() + dayMs)
+        : null;
+    const data = {
+      clinicId,
+      patientId: patientIds[i % patientIds.length],
+      labTestId: labTests[i % labTests.length].id,
+      status: plan.status,
+      orderedBy,
+      collectedAt: collected,
+      completedAt: completed,
+      createdAt: orderedAt,
+    };
+    await prisma.labTestOrder.upsert({
+      where: { id: `seed-laborder-${i.toString().padStart(2, '0')}` },
+      update: data,
+      create: { id: `seed-laborder-${i.toString().padStart(2, '0')}`, ...data },
+    });
+  }
 }

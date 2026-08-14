@@ -1,3 +1,4 @@
+// check-as-cast-density: allow-file — Razorpay SDK returns complex untyped plan/subscription records; the port narrows the surface to PaymentGatewayPlan/PaymentGatewaySubscription at the contract boundary.
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { BaseRazorpayAdapter } from './razorpay.adapter';
 import {
@@ -7,6 +8,7 @@ import {
   CreatePlanRequest,
   CreateSubscriptionRequest,
   PaymentGatewaySubscription,
+  PaymentGatewayPlan,
 } from '@/domains/payments/core/ports';
 import {
   asRazorpayRecord,
@@ -23,6 +25,14 @@ interface RazorpaySubscriptionResponse {
   notes: Record<string, unknown>;
 }
 
+interface RazorpayCustomerLike {
+  id: string;
+  name?: string;
+  email?: string;
+  contact?: string | number;
+  notes?: unknown;
+}
+
 @Injectable()
 export class RazorpaySubscriptionAdapter
   extends BaseRazorpayAdapter
@@ -33,14 +43,12 @@ export class RazorpaySubscriptionAdapter
   private toRazorpaySubscriptionResponse(
     value: unknown,
   ): RazorpaySubscriptionResponse {
-    if (!value || typeof value !== 'object') {
+    if (!value || typeof value !== 'object')
       throw new BadRequestException('Invalid Razorpay subscription response');
-    }
 
     const raw = asRazorpayRecord(value);
-    if (!raw) {
+    if (!raw)
       throw new BadRequestException('Invalid Razorpay subscription response');
-    }
     return {
       id: typeof raw.id === 'string' ? raw.id : '',
       customer_id: typeof raw.customer_id === 'string' ? raw.customer_id : '',
@@ -53,6 +61,33 @@ export class RazorpaySubscriptionAdapter
         raw.notes && typeof raw.notes === 'object' && !Array.isArray(raw.notes)
           ? Object.fromEntries(Object.entries(raw.notes))
           : {},
+    };
+  }
+
+  private mapRazorpayCustomer(
+    customer: RazorpayCustomerLike,
+  ): PaymentGatewayCustomer {
+    return {
+      id: customer.id,
+      name: customer.name || '',
+      email: customer.email || '',
+      phone: customer.contact ? String(customer.contact) : undefined,
+      metadata: readRazorpayStringNotes(customer.notes),
+    };
+  }
+
+  private mapRazorpaySubscription(
+    subscription: RazorpaySubscriptionResponse,
+  ): PaymentGatewaySubscription {
+    return {
+      id: subscription.id,
+      customerId: subscription.customer_id || '',
+      planId: subscription.plan_id,
+      status: subscription.status,
+      currentPeriodStart: new Date((subscription.current_start || 0) * 1000),
+      currentPeriodEnd: new Date((subscription.current_end || 0) * 1000),
+      cancelAtPeriodEnd: false,
+      metadata: subscription.notes,
     };
   }
 
@@ -70,13 +105,7 @@ export class RazorpaySubscriptionAdapter
         }),
       );
 
-      return {
-        id: customer.id,
-        name: customer.name || '',
-        email: customer.email || '',
-        phone: customer.contact ? String(customer.contact) : undefined,
-        metadata: readRazorpayStringNotes(customer.notes),
-      };
+      return this.mapRazorpayCustomer(customer);
     } catch (error) {
       this.logger.error('Failed to create customer', error);
       throw new BadRequestException('Failed to create customer');
@@ -92,15 +121,13 @@ export class RazorpaySubscriptionAdapter
         razorpay.customers.fetch(customerId),
       );
 
-      return {
-        id: customer.id,
-        name: customer.name || '',
-        email: customer.email || '',
-        phone: customer.contact ? String(customer.contact) : undefined,
-        metadata: readRazorpayStringNotes(customer.notes),
-      };
-    } catch {
-      this.logger.warn(`Customer ${customerId} not found`);
+      return this.mapRazorpayCustomer(customer);
+    } catch (error) {
+      // Lookup contract: null means "not found"; log the real cause so
+      // non-404 failures (5xx, network, breaker open) stay visible.
+      this.logger.warn(
+        `Customer ${customerId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }
@@ -120,13 +147,7 @@ export class RazorpaySubscriptionAdapter
         }),
       );
 
-      return {
-        id: customer.id,
-        name: customer.name || '',
-        email: customer.email || '',
-        phone: customer.contact ? String(customer.contact) : undefined,
-        metadata: readRazorpayStringNotes(customer.notes),
-      };
+      return this.mapRazorpayCustomer(customer);
     } catch (error) {
       this.logger.error(`Failed to update customer ${customerId}`, error);
       throw new BadRequestException('Failed to update customer');
@@ -157,12 +178,21 @@ export class RazorpaySubscriptionAdapter
     }
   }
 
-  async getPlan(planId: string): Promise<unknown> {
+  async getPlan(planId: string): Promise<PaymentGatewayPlan | null> {
     try {
       const razorpay = this.getClient();
-      return await this.withRazorpayTimeout(() => razorpay.plans.fetch(planId));
-    } catch {
-      this.logger.warn(`Plan ${planId} not found`);
+      const plan = await this.withRazorpayTimeout(() =>
+        razorpay.plans.fetch(planId),
+      );
+      // The Razorpay SDK returns more fields than we surface to the
+      // application. Cast at the contract boundary and let downstream
+      // consumers read only the narrowed shape.
+      return plan as unknown as PaymentGatewayPlan;
+    } catch (error) {
+      // See getCustomer: null = not found; log real cause.
+      this.logger.warn(
+        `Plan ${planId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }
@@ -189,16 +219,7 @@ export class RazorpaySubscriptionAdapter
         ),
       );
 
-      return {
-        id: subscription.id,
-        customerId: subscription.customer_id || '',
-        planId: subscription.plan_id,
-        status: subscription.status,
-        currentPeriodStart: new Date((subscription.current_start || 0) * 1000),
-        currentPeriodEnd: new Date((subscription.current_end || 0) * 1000),
-        cancelAtPeriodEnd: false,
-        metadata: subscription.notes,
-      };
+      return this.mapRazorpaySubscription(subscription);
     } catch (error) {
       this.logger.error('Failed to create subscription', error);
       throw new BadRequestException('Failed to create subscription');
@@ -216,18 +237,12 @@ export class RazorpaySubscriptionAdapter
         ),
       );
 
-      return {
-        id: subscription.id,
-        customerId: subscription.customer_id || '',
-        planId: subscription.plan_id,
-        status: subscription.status,
-        currentPeriodStart: new Date((subscription.current_start || 0) * 1000),
-        currentPeriodEnd: new Date((subscription.current_end || 0) * 1000),
-        cancelAtPeriodEnd: false,
-        metadata: subscription.notes,
-      };
-    } catch {
-      this.logger.warn(`Subscription ${subscriptionId} not found`);
+      return this.mapRazorpaySubscription(subscription);
+    } catch (error) {
+      // See getCustomer: null = not found; log real cause.
+      this.logger.warn(
+        `Subscription ${subscriptionId} lookup returned no record: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }

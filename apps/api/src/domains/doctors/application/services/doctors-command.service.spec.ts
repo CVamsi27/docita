@@ -182,12 +182,14 @@ describe('DoctorsCommandService', () => {
       const result = await service.adminVerifyDoctor(
         'doc-1',
         'admin-1',
+        'SUP-123',
         'looks good',
       );
 
       expect(adminVerificationService.adminVerifyDoctor).toHaveBeenCalledWith(
         'doc-1',
         'admin-1',
+        'SUP-123',
         'looks good',
       );
       expect(result).toMatchObject({ id: 'doc-1' });

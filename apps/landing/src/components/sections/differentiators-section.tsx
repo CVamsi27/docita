@@ -7,13 +7,13 @@ import {
   CalendarCheck,
   CheckCircle2,
   FileText,
-  Mic,
+  type LucideIcon,
   Receipt,
   ScanText,
   ShieldCheck,
   Smartphone,
-  Smile,
   Sparkles,
+  UserRound,
 } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
@@ -23,6 +23,7 @@ import {
   landingInViewViewport,
   landingStaggerContainer,
 } from "@/lib/motion-prefs";
+import { DifferentiatorCard } from "./differentiator-card";
 
 const TRUST_BADGES = [
   "India residency · Mumbai",
@@ -32,6 +33,17 @@ const TRUST_BADGES = [
   "Encryption in transit + at rest",
   "Data export · CSV",
 ];
+
+type PortalRow = { icon: LucideIcon; label: string };
+
+function PortalListRow({ row }: { row: PortalRow }) {
+  return (
+    <li className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5">
+      <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
+      <span className="truncate text-foreground">{row.label}</span>
+    </li>
+  );
+}
 
 export function DifferentiatorsSection() {
   const reduce = useReducedMotion();
@@ -53,7 +65,7 @@ export function DifferentiatorsSection() {
           id="r2-diff-heading"
           className="mt-4 max-w-3xl r2-display-sm text-foreground"
         >
-          Three things <em>local CMS</em> usually skip&mdash;and we lead with.
+          Three things <em>local tools</em> usually skip&mdash;and we lead with.
         </h2>
 
         <motion.div
@@ -63,137 +75,65 @@ export function DifferentiatorsSection() {
           whileInView="visible"
           viewport={landingInViewViewport}
         >
-          <motion.article variants={item} className="r2-diff-col">
-            <div className="flex items-center gap-2">
-              <span
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"
-                aria-hidden
-              >
-                <Smile className="h-4 w-4" />
-              </span>
-              <p className="r2-eyebrow r2-eyebrow-accent">Patient portal</p>
-            </div>
-            <h3 className="text-lg font-semibold tracking-tight text-foreground">
-              Your patients log in too.
-            </h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              A real patient portal&mdash;not a WhatsApp link. They see their
-              upcoming visits, past prescriptions, bills, and consent settings
-              in one place.
-            </p>
+          <DifferentiatorCard
+            icon={UserRound}
+            eyebrow="Patient portal"
+            title="Your patients log in too."
+            description="A real patient portal&mdash;not a WhatsApp link. Patients see upcoming visits, past prescriptions, bills, and consent settings in one place."
+            variants={item}
+          >
             <div className="r2-diff-surface">
               <div className="mb-3 flex items-center justify-between">
                 <p className="r2-mono text-[var(--fs-2xs)] uppercase tracking-[0.12em] text-muted-foreground">
-                  PORTAL · R. IYER
+                  PORTAL &middot; R. IYER
                 </p>
                 <span className="inline-flex h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
               </div>
               <ul className="space-y-2 text-xs">
                 {[
-                  { icon: CalendarCheck, label: "Next visit · 28 May · 11:30" },
-                  { icon: FileText, label: "Prescription · Metformin 500mg" },
-                  { icon: Receipt, label: "Receipt · ₹700 · Paid · UPI" },
-                  { icon: ShieldCheck, label: "Consent · WhatsApp granted" },
+                  { icon: CalendarCheck, label: "Next visit &middot; 28 May &middot; 11:30" },
+                  { icon: FileText, label: "Prescription &middot; Metformin 500mg" },
+                  { icon: Receipt, label: "Receipt &middot; \u20B9700 &middot; Paid &middot; UPI" },
+                  { icon: ShieldCheck, label: "Consent &middot; WhatsApp granted" },
                 ].map((row) => (
-                  <li
-                    key={row.label}
-                    className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5"
-                  >
-                    <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
-                    <span className="truncate text-foreground">{row.label}</span>
-                  </li>
+                  <PortalListRow key={row.label} row={row} />
                 ))}
               </ul>
             </div>
-          </motion.article>
+          </DifferentiatorCard>
 
-          <motion.article variants={item} className="r2-diff-col">
-            <div className="flex items-center gap-2">
-              <span
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"
-                aria-hidden
-              >
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <p className="r2-eyebrow r2-eyebrow-accent">AI Assist</p>
-            </div>
-            <h3 className="text-lg font-semibold tracking-tight text-foreground">
-              AI that helps&mdash;without diagnosing.
-            </h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Narrow, reviewable assistance: OCR for old prescriptions, mobile
-              upload of scans, and a prescription assistant the doctor signs
-              off. No broad diagnosis claims.
-            </p>
+          <DifferentiatorCard
+            icon={Sparkles}
+            eyebrow="AI Assist"
+            title="AI that helps&mdash;without diagnosing."
+            description="Narrow, reviewable assistance for the things that slow reception and clinicians down: digitising old records, capturing scans from a phone, and an Ask AI overlay scoped to whatever surface you are on."
+            variants={item}
+          >
             <div className="r2-diff-surface">
               <ul className="space-y-2 text-xs">
                 {[
-                  {
-                    icon: ScanText,
-                    label: "OCR digitization",
-                    badge: "Live",
-                    tone: "done" as const,
-                  },
-                  {
-                    icon: Smartphone,
-                    label: "Mobile upload (phone camera)",
-                    badge: "Live",
-                    tone: "done" as const,
-                  },
-                  {
-                    icon: Brain,
-                    label: "Prescription drafting & checks",
-                    badge: "Planned",
-                    tone: "wait" as const,
-                  },
-                  {
-                    icon: Mic,
-                    label: "Voice dictation to notes",
-                    badge: "Planned",
-                    tone: "wait" as const,
-                  },
+                  { icon: ScanText, label: "OCR for old prescriptions & case sheets" },
+                  { icon: Smartphone, label: "Mobile camera upload to patient record" },
+                  { icon: Brain, label: "Ask AI overlay, scoped to current surface" },
+                  { icon: FileText, label: "Prescription templates with auto dose rules" },
                 ].map((row) => (
-                  <li
-                    key={row.label}
-                    className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5"
-                  >
-                    <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
-                    <span className="flex-1 truncate text-foreground">
-                      {row.label}
-                    </span>
-                    <span
-                      className={
-                        row.tone === "done"
-                          ? "r2-status-pill r2-status-pill--done"
-                          : "r2-status-pill r2-status-pill--waiting"
-                      }
-                    >
-                      {row.badge}
-                    </span>
-                  </li>
+                  <PortalListRow key={row.label} row={row} />
                 ))}
               </ul>
+              <p className="mt-3 text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+                AI suggestions are reviewed and signed off by the doctor.
+                We do not generate diagnoses.
+              </p>
             </div>
-          </motion.article>
+          </DifferentiatorCard>
 
-          <motion.article variants={item} className="r2-diff-col">
-            <div className="flex items-center gap-2">
-              <span
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"
-                aria-hidden
-              >
-                <ShieldCheck className="h-4 w-4" />
-              </span>
-              <p className="r2-eyebrow r2-eyebrow-accent">Trust posture</p>
-            </div>
-            <h3 className="text-lg font-semibold tracking-tight text-foreground">
-              Controls we can stand behind today.
-            </h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              We describe what we operate&mdash;not unsupported certifications.
-              India-hosted backend, role-based access, audit logs, consent on
-              every WhatsApp send, and full data export.
-            </p>
+          <DifferentiatorCard
+            icon={ShieldCheck}
+            eyebrow="Trust posture"
+            title="Controls we can stand behind today."
+            description="We describe what we operate&mdash;not unsupported certifications. India-hosted backend, role-based access, audit logs, consent on every WhatsApp send, and full data export."
+            variants={item}
+          >
             <div className="r2-diff-surface">
               <ul className="grid grid-cols-2 gap-1.5 text-[var(--fs-2xs)]">
                 {TRUST_BADGES.map((b) => (
@@ -207,7 +147,7 @@ export function DifferentiatorsSection() {
                 ))}
               </ul>
             </div>
-          </motion.article>
+          </DifferentiatorCard>
         </motion.div>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">

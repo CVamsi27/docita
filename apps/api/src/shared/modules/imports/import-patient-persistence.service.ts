@@ -104,14 +104,12 @@ export class ImportPatientPersistenceService {
     clinicId: string | undefined,
     audit: ImportAuditContext,
   ): asserts clinicId is string {
-    if (!clinicId) {
+    if (!clinicId)
       throw new BadRequestException('Clinic ID is required for patient import');
-    }
-    if (!audit.dpdpNoticeVersion) {
+    if (!audit.dpdpNoticeVersion)
       throw new BadRequestException(
         'DPDP consent attestation is required for patient imports',
       );
-    }
   }
 
   private async createPatientWithConsent(

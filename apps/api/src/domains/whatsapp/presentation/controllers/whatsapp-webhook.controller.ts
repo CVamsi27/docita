@@ -44,9 +44,8 @@ export class WhatsAppWebhookController {
       challenge,
     } = readWhatsAppWebhookVerificationQuery(req.query);
 
-    if (mode === 'subscribe' && token === verifyToken && challenge) {
+    if (mode === 'subscribe' && token === verifyToken && challenge)
       return challenge;
-    }
 
     if (!mode && !token && !challenge) {
       this.logger.debug('Ignoring non-verification WhatsApp webhook GET');
@@ -66,9 +65,8 @@ export class WhatsAppWebhookController {
     @Body() payload: HandleWhatsAppWebhookDto,
   ) {
     const rawBody = req.rawBody;
-    if (!rawBody || !signature) {
+    if (!rawBody || !signature)
       throw new UnauthorizedException('Missing webhook signature');
-    }
 
     const verification = await this.webhookVerifier.verify({
       provider: 'meta-whatsapp',
@@ -82,9 +80,8 @@ export class WhatsAppWebhookController {
       this.logger.warn('WhatsApp webhook verification failed', {
         failure: verification.failure,
       });
-      if (verification.failure === 'replayed') {
+      if (verification.failure === 'replayed')
         throw new ConflictException('Webhook already processed');
-      }
       throw new UnauthorizedException('Invalid webhook signature');
     }
 

@@ -57,9 +57,7 @@ export function formatClinicPickerIsoLabel(
     return "";
   }
   const instant = fromLocalISOString(`${trimmed}T12:00`, { timezone });
-  if (!instant) {
-    return trimmed;
-  }
+  if (!instant) return trimmed;
   return formatInTimeZone(instant, timezone, formatPattern, {
     locale: enUS,
   });
@@ -116,9 +114,7 @@ export function formatPickerIsoAsWeekdayUpper(
   timezone: string,
 ): string {
   const instant = fromLocalISOString(`${pickerIso}T12:00`, { timezone });
-  if (!instant) {
-    return "";
-  }
+  if (!instant) return "";
   return formatInTimeZone(instant, timezone, "EEEE", {
     locale: enUS,
   }).toUpperCase();
@@ -142,9 +138,7 @@ export function addMinutesToClinicWallDatetimeLocal(
     return null;
   }
   const base = fromLocalISOString(trimmed, { timezone });
-  if (!base) {
-    return null;
-  }
+  if (!base) return null;
   const shifted = new Date(base.getTime() + minutes * 60_000);
   return utcInstantToClinicWallDatetimeLocal(shifted, timezone);
 }

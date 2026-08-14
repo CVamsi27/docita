@@ -48,11 +48,10 @@ export class OnboardingPaymentValidator {
       this.persistence,
       completeData.adminAccount.email,
     );
-    if (hasPriorSubscription) {
+    if (hasPriorSubscription)
       throw new BadRequestException(
         'The 30-day free trial is only available to new customers. Please choose a paid plan to continue.',
       );
-    }
   }
 
   private async verifyPaidPlanPayment(
@@ -65,15 +64,13 @@ export class OnboardingPaymentValidator {
     const payment = this.getVerifiedRazorpayPaymentInput(completeData);
     const verification = await this.paymentGateway.verifyPayment(payment);
 
-    if (!verification.verified) {
+    if (!verification.verified)
       throw new BadRequestException('Unable to verify payment');
-    }
 
-    if (verification.amountCents !== listPriceCents) {
+    if (verification.amountCents !== listPriceCents)
       throw new BadRequestException(
         'Payment amount does not match selected plan',
       );
-    }
   }
 
   private getVerifiedRazorpayPaymentInput(completeData: CompleteOnboardingDto) {
@@ -82,9 +79,8 @@ export class OnboardingPaymentValidator {
     const razorpayOrderId = paymentDetails?.razorpayOrderId;
     const razorpaySignature = paymentDetails?.razorpaySignature;
 
-    if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
+    if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature)
       throw new BadRequestException('Payment details are required');
-    }
 
     return {
       razorpayPaymentId,

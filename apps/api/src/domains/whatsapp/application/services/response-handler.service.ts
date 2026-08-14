@@ -16,6 +16,7 @@ import {
   parsePatientResponse,
 } from './patient-response-parser.helper';
 import {
+  APPOINTMENT_CONTEXT_INCLUDE,
   toAppointmentContext,
   type AppointmentContext,
   type DelayContext,
@@ -48,11 +49,7 @@ export class ResponseHandlerService {
   ): Promise<void> {
     const appointment = await this.persistence.appointment.findUnique({
       where: { id: appointmentId },
-      include: {
-        patient: true,
-        doctor: true,
-        clinic: true,
-      },
+      include: APPOINTMENT_CONTEXT_INCLUDE,
     });
 
     if (!appointment) {

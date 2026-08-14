@@ -1,4 +1,11 @@
-import { Prescription, Prisma } from '@workspace/db';
+import { Prescription } from '@workspace/db';
+import type { PaginatedResult } from '@/shared/common/repositories/base-repository.types';
+import {
+  CreatePrescriptionCommand,
+  UpdatePrescriptionCommand,
+} from './prescription-commands';
+
+export type { PaginatedResult };
 
 export interface PrescriptionSearchParams {
   clinicId: string;
@@ -9,13 +16,6 @@ export interface PrescriptionSearchParams {
   patientId?: string;
   cursor?: string;
   limit?: number;
-}
-
-export interface PaginatedResult<T> {
-  items: T[];
-  nextCursor?: string;
-  hasMore: boolean;
-  count: number;
 }
 
 export interface PrescriptionDetail extends Prescription {
@@ -93,10 +93,10 @@ export interface IPrescriptionRepository {
     params: PrescriptionSearchParams,
   ): Promise<Prescription[] | PaginatedResult<Prescription>>;
   findById(id: string, clinicId: string): Promise<PrescriptionDetail | null>;
-  create(data: Prisma.PrescriptionCreateInput): Promise<Prescription>;
+  create(data: CreatePrescriptionCommand): Promise<Prescription>;
   update(
     id: string,
-    data: Prisma.PrescriptionUpdateInput,
+    data: UpdatePrescriptionCommand,
     clinicId: string,
     expectedVersion?: number,
   ): Promise<Prescription>;
@@ -109,4 +109,13 @@ export interface IPrescriptionRepository {
     doctorId: string,
     clinicId?: string,
   ): Promise<DoctorComplianceProfile | null>;
+  /**
+   * Consultation modality of the appointment ("IN_PERSON" | "TELEHEALTH"),
+   * used to enforce the NMC telemedicine controlled-substance block at
+   * prescription creation. Null when the appointment is not found.
+   */
+  findAppointmentType(
+    appointmentId: string,
+    clinicId?: string,
+  ): Promise<string | null>;
 }
