@@ -61,8 +61,7 @@
     "livePreviewHint": "This is how primary and secondary actions will look",
     "previewPrimaryButton": "Primary action",
     "previewOutlineButton": "Secondary action",
-    "saveButton": "Save appearance",
-    "savedToast": "Appearance settings saved"
+    "autoSaveHint": "Changes are applied and saved automatically"
   },
   "security": {
     "cardTitle": "Security",
