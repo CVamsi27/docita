@@ -8,7 +8,6 @@ import {
   ToggleGroupItem,
 } from "@workspace/ui/components/form/toggle-group";
 import { useAppearanceStore } from "@/lib/stores/appearance-store";
-import { toast } from "sonner";
 import { cn } from "@workspace/ui/lib/utils";
 
 function useAppearanceSettingsTranslations() {
@@ -25,10 +24,6 @@ export function AppearanceSettings() {
     setPrimaryColor,
     setCompactMode,
   } = useAppearanceStore();
-
-  const handleSave = () => {
-    toast.success(t("savedToast"));
-  };
 
   const handleSelectTheme = (mode: "light" | "dark" | "system") => {
     setTheme(mode);
@@ -152,11 +147,9 @@ export function AppearanceSettings() {
           </div>
         </div>
 
-        <div className="flex justify-end border-t border-border/60 pt-4">
-          <Button type="button" onClick={handleSave}>
-            {t("saveButton")}
-          </Button>
-        </div>
+        <p className="border-t border-border/60 pt-4 text-xs text-muted-foreground">
+          {t("autoSaveHint")}
+        </p>
       </CardContent>
     </Card>
   );

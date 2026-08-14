@@ -61,8 +61,7 @@
     "livePreviewHint": "प्राथमिक और द्वितीयक क्रियाएं ऐसी दिखेंगी",
     "previewPrimaryButton": "प्राथमिक क्रिया",
     "previewOutlineButton": "द्वितीयक क्रिया",
-    "saveButton": "दृश्य रूप सहेजें",
-    "savedToast": "दृश्य रूप सेटिंग्स सहेजी गईं"
+    "autoSaveHint": "परिवर्तन स्वचालित रूप से लागू और सहेजे जाते हैं"
   },
   "security": {
     "cardTitle": "सुरक्षा",
