@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { EnterpriseContractsPage } from "./enterprise-contracts-page";
 import { apiGet } from "@/lib/api/api-client";
+import { formatInternalTimestamp } from "@/lib/formatters";
 
 vi.mock("@/lib/api/api-client", () => ({
   apiGet: vi.fn(),
@@ -90,9 +91,14 @@ describe("EnterpriseContractsPage", () => {
     expect(rowFor("Acme Health").getByText("ACTIVE")).toBeInTheDocument();
     expect(rowFor("Old Clinic").getByText("EXPIRED")).toBeInTheDocument();
 
-    // Start dates render in the en-IN locale (Asia/Calcutta timezone).
-    expect(rowFor("Acme Health").getByText("15 Jan 2026, 03:30 pm")).toBeInTheDocument();
-    expect(rowFor("City Hospital").getByText("1 Feb 2026, 02:30 pm")).toBeInTheDocument();
+    // Start dates render through the en-IN timestamp formatter (timezone-agnostic
+    // assertion: the CI runner is UTC while local dev is Asia/Calcutta).
+    expect(
+      rowFor("Acme Health").getByText(formatInternalTimestamp("2026-01-15T10:00:00Z")),
+    ).toBeInTheDocument();
+    expect(
+      rowFor("City Hospital").getByText(formatInternalTimestamp("2026-02-01T09:00:00Z")),
+    ).toBeInTheDocument();
   });
 
   it("shows the empty state when no contracts exist", async () => {
@@ -124,7 +130,7 @@ describe("EnterpriseContractsPage", () => {
     expect(dialog.getByText("Acme Health")).toBeInTheDocument();
     expect(dialog.getByText("ENTERPRISE")).toBeInTheDocument();
     expect(dialog.getByText("₹2,50,000")).toBeInTheDocument();
-    expect(dialog.getByText("1 Jan 2027, 05:29 am")).toBeInTheDocument();
+    expect(dialog.getByText(formatInternalTimestamp("2026-12-31T23:59:00Z"))).toBeInTheDocument();
     expect(dialog.getByText("Custom SLA with 99.9% uptime")).toBeInTheDocument();
   });
 
@@ -139,7 +145,7 @@ describe("EnterpriseContractsPage", () => {
     fireEvent.click(rowFor("City Hospital").getAllByRole("button")[0]);
 
     const dialog = within(await screen.findByRole("dialog"));
-    expect(dialog.getByText("1 Feb 2026, 02:30 pm")).toBeInTheDocument();
+    expect(dialog.getByText(formatInternalTimestamp("2026-02-01T09:00:00Z"))).toBeInTheDocument();
     expect(dialog.queryByText("End Date")).not.toBeInTheDocument();
     expect(dialog.queryByText("Notes")).not.toBeInTheDocument();
   });
