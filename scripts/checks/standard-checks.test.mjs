@@ -1668,3 +1668,38 @@ test("workspace-resolution check fails when an app imports an unbuilt package", 
     runCheck(makeGitFixture(fixture), "check-workspace-resolution.mjs"),
   );
 });
+
+test("feature-test-density ratchet applies to internal (grandfathered allowlist + new untested feature fails)", () => {
+  const appAllowlist = JSON.stringify([]);
+  const internalAllowlist = JSON.stringify(["feedback"]);
+  // New internal feature with no tests and no allowlist entry fails (app stays clean).
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/src/features/covered/Page.test.tsx":
+          "import { test } from 'vitest'; test('x', () => {});\n",
+        "apps/internal/src/features/newbie/Page.tsx":
+          "export function Page() { return null; }\n",
+        "scripts/checks/allowlists/feature-test-density-zero.json": appAllowlist,
+        "scripts/checks/allowlists/feature-test-density-zero-internal.json": internalAllowlist,
+      }),
+      "check-feature-test-density.mjs",
+    ),
+  );
+  // Grandfathered internal feature passes; covered feature passes. App untouched.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/app/src/features/covered/Page.test.tsx":
+          "import { test } from 'vitest'; test('x', () => {});\n",
+        "apps/internal/src/features/feedback/Page.tsx":
+          "export function Page() { return null; }\n",
+        "apps/internal/src/features/covered/Page.test.tsx":
+          "import { test } from 'vitest'; test('x', () => {});\n",
+        "scripts/checks/allowlists/feature-test-density-zero.json": appAllowlist,
+        "scripts/checks/allowlists/feature-test-density-zero-internal.json": internalAllowlist,
+      }),
+      "check-feature-test-density.mjs",
+    ),
+  );
+});
