@@ -33,6 +33,25 @@ export const createReferrerSchema = z.object({
 });
 type CreateReferrerInput = z.infer<typeof createReferrerSchema>;
 
+/**
+ * Editable partner fields. `email`/`phone` are optional so an empty string
+ * can clear a previously stored value; omitting a key leaves it unchanged.
+ * `name`/`type` are required: the operator UI always submits the full
+ * editable set.
+ */
+export const updateReferrerSchema = z.object({
+  type: z.enum(['CLINIC', 'PHARMACY', 'MARKETING_PERSON', 'CUSTOM']),
+  name: z.string().min(1).max(200),
+  email: z.union([z.literal(''), z.string().email().max(255)]).optional(),
+  phone: z.union([z.literal(''), z.string().max(40)]).optional(),
+});
+type UpdateReferrerInput = z.infer<typeof updateReferrerSchema>;
+
+/** Empty-string phone/email values are how the UI clears a stored value. */
+function isEmptyClear(value: string | undefined): boolean {
+  return value === '';
+}
+
 /** Maximum attempts to claim a fresh referrer code. The alphabet is
  *  32^6 ≈ 1.07B; collisions at realistic scale are vanishingly rare. */
 const MAX_CODE_GENERATION_ATTEMPTS = 8;
@@ -153,14 +172,96 @@ export class InternalReferralService {
     );
   }
 
-  /** Operator-triggered resend of the partner welcome message. */
-  async resendWelcome(referrerId: string) {
+  /**
+   * Update a partner's editable fields. A phone change re-runs the normalized
+   * duplicate check against OTHER partners so the create-time idempotency
+   * invariant holds for updates too (an operator reassigning a phone already
+   * in use gets a surfaced conflict instead of a silent duplicate).
+   */
+  async updateReferrer(id: string, input: UpdateReferrerInput) {
+    const existing = await this.prisma.referrer.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Referrer not found');
+    }
+
+    const data: Prisma.ReferrerUpdateInput = {
+      type: input.type,
+      name: input.name,
+    };
+
+    if (input.email !== undefined) {
+      data.email = isEmptyClear(input.email) ? null : input.email;
+    }
+
+    if (input.phone !== undefined) {
+      const phone = input.phone.trim();
+      if (phone) {
+        const normalized = normalizePhoneE164(phone);
+        const conflict = await this.prisma.referrer.findFirst({
+          where: {
+            id: { not: id },
+            phone: { in: phoneMatchCandidates(normalized) },
+          },
+          select: { id: true },
+        });
+        if (conflict) {
+          throw new ConflictException({
+            message: 'A partner with this phone number already exists',
+            code: 'DUPLICATE_ENTRY',
+          });
+        }
+        data.phone = normalized;
+      } else {
+        data.phone = null;
+      }
+    }
+
+    return this.prisma.referrer.update({ where: { id }, data });
+  }
+
+  /**
+   * Deactivate a partner. Partners with financial history are never deleted;
+   * `active: false` blocks OTP login, share-code resolution, welcome resends,
+   * and payout accrual. Deactivating an already-inactive partner is a no-op.
+   */
+  async deactivateReferrer(referrerId: string) {
     const referrer = await this.prisma.referrer.findUnique({
       where: { id: referrerId },
-      select: { id: true },
+      select: { id: true, active: true },
     });
     if (!referrer) {
       throw new NotFoundException('Referrer not found');
+    }
+    if (!referrer.active) {
+      return this.prisma.referrer.findUnique({ where: { id: referrerId } });
+    }
+    return this.prisma.referrer.update({
+      where: { id: referrerId },
+      data: { active: false },
+    });
+  }
+
+  /**
+   * Operator-triggered resend of the partner welcome message. Rejected for
+   * inactive partners: the welcome pipeline itself skips them silently, so
+   * the internal API must surface the state instead of returning a false
+   * success (the row action is also disabled in the UI).
+   */
+  async resendWelcome(referrerId: string) {
+    const referrer = await this.prisma.referrer.findUnique({
+      where: { id: referrerId },
+      select: { id: true, active: true },
+    });
+    if (!referrer) {
+      throw new NotFoundException('Referrer not found');
+    }
+    if (!referrer.active) {
+      throw new ConflictException(
+        'This partner is inactive and cannot receive messages',
+      );
     }
     await this.welcomeService.resendWelcome(referrerId);
     return { ok: true };

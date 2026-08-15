@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { ReferralsPage } from "./referrals-page";
-import { apiGet, apiPost } from "@/lib/api/api-client";
+import { apiGet, apiPatch, apiPost } from "@/lib/api/api-client";
 import { formatDate } from "@/lib/formatters";
 
 vi.mock("@/lib/api/api-client", () => ({
   apiGet: vi.fn(),
   apiPost: vi.fn(),
+  apiPatch: vi.fn(),
 }));
 
 vi.mock("sonner", () => ({
@@ -15,10 +16,12 @@ vi.mock("sonner", () => ({
 
 const mockApiGet = vi.mocked(apiGet);
 const mockApiPost = vi.mocked(apiPost);
+const mockApiPatch = vi.mocked(apiPatch);
 
 const mockReferrals = [
   {
     id: "r1",
+    type: "PHARMACY",
     name: "Alice Referrer",
     email: "alice@example.com",
     code: "ALICE10",
@@ -27,6 +30,7 @@ const mockReferrals = [
   },
   {
     id: "r2",
+    type: "PHARMACY",
     name: "Bob Referrer",
     phone: "+919876543210",
     active: false,
@@ -34,6 +38,7 @@ const mockReferrals = [
   },
   {
     id: "r3",
+    type: "MARKETING_PERSON",
     name: "Carol Referrer",
     active: true,
     createdAt: "2026-03-01T10:00:00Z",
@@ -74,6 +79,7 @@ describe("ReferralsPage", () => {
   beforeEach(() => {
     mockApiGet.mockReset();
     mockApiPost.mockReset();
+    mockApiPatch.mockReset();
   });
 
   const renderPage = () => {
@@ -302,5 +308,134 @@ describe("ReferralsPage", () => {
 
     // FAILED entries surface their delivery error for the operator.
     expect(within(dialog).getByText("Template not approved")).toBeInTheDocument();
+  });
+
+  it("edits a partner through the dialog and refreshes the list", async () => {
+    renderPage();
+    await waitForRows();
+
+    mockApiPatch.mockResolvedValueOnce({ id: "r1", name: "Alice Renamed" });
+    // The post-save refetch resolves the list + payout summary again.
+    mockApiGet.mockResolvedValueOnce(mockReferrals);
+    mockApiGet.mockResolvedValueOnce(mockPayouts);
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    const dialog = await screen.findByRole("dialog");
+
+    // The form is prefilled from the row (name, type, email, phone).
+    expect(within(dialog).getByPlaceholderText("Partner name")).toHaveValue(
+      "Alice Referrer",
+    );
+    expect(within(dialog).getByPlaceholderText("partner@example.com")).toHaveValue(
+      "alice@example.com",
+    );
+
+    fireEvent.change(within(dialog).getByPlaceholderText("Partner name"), {
+      target: { value: "Alice Renamed" },
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Save Changes" }),
+    );
+
+    await waitFor(() => {
+      expect(mockApiPatch).toHaveBeenCalledWith(
+        "/api/internal/referrers/r1",
+        {
+          name: "Alice Renamed",
+          type: "PHARMACY",
+          email: "alice@example.com",
+          phone: "",
+        },
+      );
+    });
+
+    // Success closes the dialog, refetches, and toasts.
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+    const { toast } = await import("sonner");
+    expect(toast.success).toHaveBeenCalledWith("Partner updated successfully");
+  });
+
+  it("surfaces the DUPLICATE_ENTRY conflict inline when a phone is reassigned", async () => {
+    renderPage();
+    await waitForRows();
+
+    mockApiPatch.mockRejectedValueOnce(
+      Object.assign(new Error("conflict"), {
+        status: 409,
+        code: "DUPLICATE_ENTRY",
+        data: {
+          detail: "A partner with this phone number already exists",
+        },
+      }),
+    );
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    const dialog = await screen.findByRole("dialog");
+
+    fireEvent.change(within(dialog).getByPlaceholderText("+91 98XXXXXXXX"), {
+      target: { value: "9812345678" },
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Save Changes" }),
+    );
+
+    await waitFor(() => {
+      expect(
+        within(dialog).getByText(
+          "A partner with this phone number already exists. Use the existing record instead.",
+        ),
+      ).toBeInTheDocument();
+    });
+    expect(mockApiPatch).toHaveBeenCalledTimes(1);
+  });
+
+  it("deactivates a partner after confirmation and refreshes the list", async () => {
+    renderPage();
+    await waitForRows();
+
+    mockApiPatch.mockResolvedValueOnce({ id: "r1", active: false });
+    // The post-deactivate refetch resolves the list + payout summary again.
+    mockApiGet.mockResolvedValueOnce(mockReferrals);
+    mockApiGet.mockResolvedValueOnce(mockPayouts);
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Deactivate" })[0]);
+    const confirm = await screen.findByRole("alertdialog");
+    expect(within(confirm).getByText("Deactivate partner?")).toBeInTheDocument();
+
+    fireEvent.click(within(confirm).getByRole("button", { name: "Deactivate" }));
+
+    await waitFor(() => {
+      expect(mockApiPatch).toHaveBeenCalledWith(
+        "/api/internal/referrers/r1/deactivate",
+      );
+    });
+    const { toast } = await import("sonner");
+    expect(toast.success).toHaveBeenCalledWith(
+      "Alice Referrer has been deactivated",
+    );
+    await waitFor(() => {
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    });
+  });
+
+  it("disables deactivate and resend for an already-inactive partner", async () => {
+    renderPage();
+    await waitForRows();
+
+    // Bob (r2) is inactive: deactivate reads "Deactivated" (disabled) and
+    // resend-welcome is disabled — the welcome pipeline skips inactive
+    // partners silently, so the action must not be offered.
+    const table = screen.getByRole("table");
+    const bobRow = within(table)
+      .getByText("Bob Referrer")
+      .closest("tr") as HTMLElement;
+    expect(
+      within(bobRow).getByRole("button", { name: "Deactivated" }),
+    ).toBeDisabled();
+    expect(
+      within(bobRow).getByRole("button", { name: "Resend welcome" }),
+    ).toBeDisabled();
   });
 });

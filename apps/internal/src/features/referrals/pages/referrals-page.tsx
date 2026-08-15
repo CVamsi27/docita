@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  ConfirmationDialog,
   DataState,
   PageHeader,
   Table,
@@ -20,27 +21,20 @@ import {
 } from "@workspace/ui/components";
 import {
   ArrowLeftRight,
+  Ban,
   MessageSquareText,
+  Pencil,
   Plus,
   RefreshCw,
   TrendingUp,
   Users,
 } from "lucide-react";
 import { formatDate } from "../../../lib/formatters";
-import { apiGet, apiPost } from "@/lib/api/api-client";
+import { apiGet, apiPatch, apiPost } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { CreateReferrerDialog } from "../components/create-referrer-dialog";
+import type { Referral } from "../types";
+import { ReferrerFormDialog } from "../components/referrer-form-dialog";
 import { ReferrerMessagesDialog } from "../components/referrer-messages-dialog";
-
-interface Referral {
-  id: string;
-  name: string;
-  email?: string | null;
-  phone?: string | null;
-  code?: string | null;
-  active: boolean;
-  createdAt: string;
-}
 
 /** Real contract for GET /api/v1/internal/referral-payouts/summary. */
 interface PayoutSummaryRow {
@@ -53,9 +47,13 @@ export function ReferralsPage() {
   const [loading, setLoading] = useState(true);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [stats, setStats] = useState({ total: 0, converted: 0, commission: 0 });
-  const [createOpen, setCreateOpen] = useState(false);
+  // Open the create form with null; edit with the row being edited.
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [formReferrer, setFormReferrer] = useState<Referral | null>(null);
+  const [deactivating, setDeactivating] = useState<Referral | null>(null);
   const [messagesFor, setMessagesFor] = useState<Referral | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
 
   const fetchReferrals = useCallback(async () => {
     setLoading(true);
@@ -97,6 +95,22 @@ export function ReferralsPage() {
     }
   };
 
+  const handleDeactivate = async (referral: Referral) => {
+    setDeactivatingId(referral.id);
+    try {
+      await apiPatch(`/api/internal/referrers/${referral.id}/deactivate`);
+      toast.success(`${referral.name} has been deactivated`);
+      await fetchReferrals();
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not deactivate this partner right now. Please try again.",
+      );
+    } finally {
+      setDeactivatingId(null);
+    }
+  };
+
   return (
     <AppPageScaffold
       header={
@@ -105,7 +119,12 @@ export function ReferralsPage() {
           description="Track referral partners, conversions, and commissions"
           size="compact"
           actions={
-            <Button onClick={() => setCreateOpen(true)}>
+            <Button
+              onClick={() => {
+                setFormReferrer(null);
+                setFormDialogOpen(true);
+              }}
+            >
               <Plus className="h-4 w-4 mr-2" /> Create Partner
             </Button>
           }
@@ -217,8 +236,39 @@ export function ReferralsPage() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => {
+                                setFormReferrer(r);
+                                setFormDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDeactivating(r)}
+                              disabled={!r.active || deactivatingId === r.id}
+                            >
+                              <Ban
+                                className={`h-4 w-4 mr-1 ${
+                                  deactivatingId === r.id ? "animate-spin" : ""
+                                }`}
+                              />
+                              {deactivatingId === r.id
+                                ? "Deactivating…"
+                                : r.active
+                                  ? "Deactivate"
+                                  : "Deactivated"}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => void handleResendWelcome(r)}
-                              disabled={resendingId === r.id}
+                              // The welcome pipeline skips inactive partners
+                              // silently and the API now rejects the resend,
+                              // so the action must not be offered.
+                              disabled={!r.active || resendingId === r.id}
                             >
                               <RefreshCw
                                 className={`h-4 w-4 mr-1 ${
@@ -241,10 +291,27 @@ export function ReferralsPage() {
         </Card>
       </DataState>
 
-      <CreateReferrerDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onCreated={() => void fetchReferrals()}
+      <ReferrerFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
+        referrer={formReferrer}
+        onSaved={() => void fetchReferrals()}
+      />
+      <ConfirmationDialog
+        open={deactivating !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeactivating(null);
+        }}
+        title="Deactivate partner?"
+        description="This partner will not be able to sign in, share their code, or accrue new commissions. Existing ledger rows are preserved."
+        confirmText="Deactivate"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={() => {
+          const target = deactivating;
+          setDeactivating(null);
+          if (target) void handleDeactivate(target);
+        }}
       />
       <ReferrerMessagesDialog
         open={messagesFor !== null}
