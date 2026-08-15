@@ -20,7 +20,8 @@ import { PartnerPortalController } from './presentation/controllers/partner-port
 import { PartnerAuthGuard } from './presentation/guards/partner-auth.guard';
 import { PartnerAuthService } from './core/services/partner-auth.service';
 import { PartnerPortalService } from './core/services/partner-portal.service';
-import { FacilityLeadService } from './core/services/facility-lead.service';
+import { FacilityLeadCommandService } from './core/services/facility-lead-command.service';
+import { FacilityLeadQueryService } from './core/services/facility-lead-query.service';
 import { ClinicReferralAdapter } from './infrastructure/adapters/clinic-referral.adapter';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { BillingModule } from '@/domains/billing/billing.module';
@@ -79,7 +80,8 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     SchedulePlanChangeUseCase,
     PartnerAuthService,
     PartnerPortalService,
-    FacilityLeadService,
+    FacilityLeadCommandService,
+    FacilityLeadQueryService,
     PartnerAuthGuard,
     ClinicReferralAdapter,
   ],
@@ -87,7 +89,8 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     ...SUBSCRIPTIONS_COMMON_EXPORTS,
     SchedulePlanChangeUseCase,
     ClinicReferralAdapter,
-    FacilityLeadService,
+    FacilityLeadCommandService,
+    FacilityLeadQueryService,
   ],
 })
 export class SubscriptionsModule {}

@@ -1,10 +1,11 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { FacilityLeadStatus, Prisma } from '@workspace/db';
+import { Prisma } from '@workspace/db';
 import {
   FACILITY_LEAD_TRANSITIONS,
   type FacilityLeadStatusHistoryEntry,
@@ -17,29 +18,20 @@ import {
   PARTNER_PERSISTENCE_PORT,
   type PartnerPersistencePort,
 } from '@/domains/subscriptions/application/ports/partner-persistence.port';
-import { Inject } from '@nestjs/common';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { mapToView } from './facility-lead.mapper';
 
 /**
- * Forward chain from docs/REFERRAL_PARTNER_PROGRAM_PLAN.md, sourced from
- * `FACILITY_LEAD_TRANSITIONS` in @workspace/types (shared with the UI so
- * the operator only sees reachable targets).
- */
-
-/** Row shape with the referrer name join used by every read. */
-type LeadWithReferrer = Prisma.FacilityLeadGetPayload<{
-  include: { referrer: { select: { id: true; name: true } } };
-}>;
-
-/**
- * Facility leads: partners submit prospective facilities; internal operators
- * progress the lifecycle. Submission is idempotent on a per-partner
+ * Facility-lead writes. Submission is idempotent on a per-partner
  * `idempotencyKey` and conflicts on a normalized contact phone with any
  * existing lead (`DUPLICATE_ENTRY`, the same semantic used for partner
  * phone conflicts) so double-submits surface instead of duplicating rows.
+ * Transitions only follow the allowed edges from `FACILITY_LEAD_TRANSITIONS`
+ * and append an actor/reason/timestamp record to `statusHistory` (never
+ * edited in place).
  */
 @Injectable()
-export class FacilityLeadService {
+export class FacilityLeadCommandService {
   constructor(
     @Inject(PARTNER_PERSISTENCE_PORT)
     private readonly prisma: PartnerPersistencePort,
@@ -127,19 +119,6 @@ export class FacilityLeadService {
     }
   }
 
-  /** Internal operator queue: newest first, optional status filter. */
-  async listLeads(filter?: {
-    status?: FacilityLeadStatus;
-  }): Promise<FacilityLeadView[]> {
-    const leads = await this.prisma.facilityLead.findMany({
-      where: { status: filter?.status },
-      orderBy: { createdAt: 'desc' },
-      take: 200,
-      include: { referrer: { select: { id: true, name: true } } },
-    });
-    return leads.map(mapToView);
-  }
-
   /**
    * Internal operator status transition. Only the allowed edges from
    * `FACILITY_LEAD_TRANSITIONS` are permitted; every change appends an
@@ -199,30 +178,6 @@ export class FacilityLeadService {
     }
     return mapToView(fresh);
   }
-}
-
-function mapToView(lead: LeadWithReferrer): FacilityLeadView {
-  return {
-    id: lead.id,
-    referrerId: lead.referrerId,
-    referrerName: lead.referrer.name,
-    status: lead.status,
-    facilityName: lead.facilityName,
-    facilityType: lead.facilityType,
-    address: lead.address,
-    city: lead.city,
-    state: lead.state,
-    postalCode: lead.postalCode,
-    contactName: lead.contactName,
-    contactPhone: lead.contactPhone,
-    contactEmail: lead.contactEmail,
-    consentToFollowUp: lead.consentToFollowUp,
-    createdAt: lead.createdAt.toISOString(),
-    updatedAt: lead.updatedAt.toISOString(),
-    statusHistory: Array.isArray(lead.statusHistory)
-      ? (lead.statusHistory as FacilityLeadStatusHistoryEntry[])
-      : undefined,
-  };
 }
 
 function isUniqueConstraintOnIdempotency(error: unknown): boolean {

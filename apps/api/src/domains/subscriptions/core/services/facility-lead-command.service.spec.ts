@@ -1,52 +1,8 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
-import { FacilityLeadService } from './facility-lead.service';
-
-function leadRow(overrides: Record<string, unknown> = {}) {
-  return {
-    id: 'l1',
-    referrerId: 'r1',
-    referrer: { id: 'r1', name: 'Priya Partner' },
-    status: 'SUBMITTED',
-    facilityName: 'Sunrise Diagnostics',
-    facilityType: 'DIAGNOSTIC_CENTRE',
-    address: '12 MG Road',
-    city: 'Bengaluru',
-    state: 'Karnataka',
-    postalCode: '560001',
-    mapsUrl: null,
-    contactName: 'Dr Anil',
-    contactRole: 'Owner',
-    contactPhone: '+919812345678',
-    contactEmail: null,
-    sourceNote: null,
-    preferredChannel: 'WHATSAPP',
-    consentToFollowUp: true,
-    notes: null,
-    bestTimeToContact: null,
-    idempotencyKey: null,
-    statusHistory: null,
-    createdAt: new Date('2026-08-15T10:00:00Z'),
-    updatedAt: new Date('2026-08-15T10:00:00Z'),
-    ...overrides,
-  };
-}
-
-function makeCtx() {
-  const facilityLead = {
-    findUnique: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
-    findFirst: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
-    create: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
-    findMany: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
-    updateMany: jest.fn<(...a: unknown[]) => Promise<{ count: number }>>(),
-  };
-  const prisma = { facilityLead } as never;
-  return {
-    service: new FacilityLeadService(prisma),
-    facilityLead,
-  };
-}
+import { FacilityLeadCommandService } from './facility-lead-command.service';
+import { leadRow, makeFacilityLeadCtx } from './facility-lead.spec-helpers';
 
 const submitInput = {
   facilityName: 'Sunrise Diagnostics',
@@ -58,10 +14,10 @@ const submitInput = {
   consentToFollowUp: true,
 };
 
-describe('FacilityLeadService', () => {
-  let ctx: ReturnType<typeof makeCtx>;
+describe('FacilityLeadCommandService', () => {
+  let ctx: ReturnType<typeof makeFacilityLeadCtx>;
   beforeEach(() => {
-    ctx = makeCtx();
+    ctx = makeFacilityLeadCtx();
   });
 
   describe('submitLead', () => {
@@ -70,7 +26,8 @@ describe('FacilityLeadService', () => {
       ctx.facilityLead.findFirst.mockResolvedValue(null);
       ctx.facilityLead.create.mockResolvedValue(leadRow());
 
-      const view = await ctx.service.submitLead('r1', submitInput);
+      const service = new FacilityLeadCommandService(ctx.prisma);
+      const view = await service.submitLead('r1', submitInput);
 
       const data = (
         ctx.facilityLead.create.mock.calls[0][0] as {
@@ -97,7 +54,8 @@ describe('FacilityLeadService', () => {
         leadRow({ contactPhone: null }),
       );
 
-      await ctx.service.submitLead('r1', {
+      const service = new FacilityLeadCommandService(ctx.prisma);
+      await service.submitLead('r1', {
         ...submitInput,
         contactPhone: undefined,
       });
@@ -115,9 +73,10 @@ describe('FacilityLeadService', () => {
       ctx.facilityLead.findUnique.mockResolvedValue(null);
       ctx.facilityLead.findFirst.mockResolvedValue({ id: 'existing-1' });
 
+      const service = new FacilityLeadCommandService(ctx.prisma);
       let thrown: unknown;
       try {
-        await ctx.service.submitLead('r1', submitInput);
+        await service.submitLead('r1', submitInput);
       } catch (error) {
         thrown = error;
       }
@@ -135,7 +94,8 @@ describe('FacilityLeadService', () => {
         leadRow({ idempotencyKey: 'key-12345678' }),
       );
 
-      const view = await ctx.service.submitLead('r1', {
+      const service = new FacilityLeadCommandService(ctx.prisma);
+      const view = await service.submitLead('r1', {
         ...submitInput,
         idempotencyKey: 'key-12345678',
       });
@@ -159,31 +119,13 @@ describe('FacilityLeadService', () => {
         leadRow({ idempotencyKey: 'key-12345678' }),
       );
 
-      const view = await ctx.service.submitLead('r1', {
+      const service = new FacilityLeadCommandService(ctx.prisma);
+      const view = await service.submitLead('r1', {
         ...submitInput,
         idempotencyKey: 'key-12345678',
       });
 
       expect(view.id).toBe('l1');
-    });
-  });
-
-  describe('listLeads', () => {
-    it('returns the queue with the partner name, newest first, filtered by status', async () => {
-      ctx.facilityLead.findMany.mockResolvedValue([leadRow()]);
-
-      const views = await ctx.service.listLeads({ status: 'SUBMITTED' });
-
-      const args = ctx.facilityLead.findMany.mock.calls[0][0] as {
-        where: { status: string };
-        orderBy: Record<string, string>;
-      };
-      expect(args.where.status).toBe('SUBMITTED');
-      expect(args.orderBy).toEqual({ createdAt: 'desc' });
-      expect(views[0]).toMatchObject({
-        id: 'l1',
-        referrerName: 'Priya Partner',
-      });
     });
   });
 
@@ -197,7 +139,8 @@ describe('FacilityLeadService', () => {
       );
       ctx.facilityLead.updateMany.mockResolvedValue({ count: 1 });
 
-      const view = await ctx.service.transitionLead('l1', 'admin-1', {
+      const service = new FacilityLeadCommandService(ctx.prisma);
+      const view = await service.transitionLead('l1', 'admin-1', {
         status: 'TRIAGED',
         reason: 'Reached out to the contact',
       });
@@ -243,7 +186,8 @@ describe('FacilityLeadService', () => {
         leadRow({ status: 'CONTACT_ATTEMPTED', statusHistory: [] }),
       );
 
-      await ctx.service.transitionLead('l1', 'admin-2', {
+      const service = new FacilityLeadCommandService(ctx.prisma);
+      await service.transitionLead('l1', 'admin-2', {
         status: 'CONTACT_ATTEMPTED',
         reason: 'Called twice, no answer',
       });
@@ -267,8 +211,9 @@ describe('FacilityLeadService', () => {
       // CONTACTED is not the immediate successor of SUBMITTED, so the edge is
       // invalid (terminal states are reachable from any non-terminal state,
       // but chain states only advance to the next one).
+      const service = new FacilityLeadCommandService(ctx.prisma);
       await expect(
-        ctx.service.transitionLead('l1', 'admin-1', {
+        service.transitionLead('l1', 'admin-1', {
           status: 'CONTACTED',
           reason: 'Skip triage entirely',
         }),
@@ -281,8 +226,9 @@ describe('FacilityLeadService', () => {
         leadRow({ status: 'LOST' }),
       );
 
+      const service = new FacilityLeadCommandService(ctx.prisma);
       await expect(
-        ctx.service.transitionLead('l1', 'admin-1', {
+        service.transitionLead('l1', 'admin-1', {
           status: 'TRIAGED',
           reason: 'Revive the lead',
         }),
@@ -292,8 +238,9 @@ describe('FacilityLeadService', () => {
     it('throws 404 for an unknown lead', async () => {
       ctx.facilityLead.findUnique.mockResolvedValue(null);
 
+      const service = new FacilityLeadCommandService(ctx.prisma);
       await expect(
-        ctx.service.transitionLead('nope', 'admin-1', {
+        service.transitionLead('nope', 'admin-1', {
           status: 'TRIAGED',
           reason: 'Something happened',
         }),
@@ -307,8 +254,9 @@ describe('FacilityLeadService', () => {
       // Another operator transitioned it between our read and write.
       ctx.facilityLead.updateMany.mockResolvedValue({ count: 0 });
 
+      const service = new FacilityLeadCommandService(ctx.prisma);
       await expect(
-        ctx.service.transitionLead('l1', 'admin-1', {
+        service.transitionLead('l1', 'admin-1', {
           status: 'TRIAGED',
           reason: 'Someone else got here first',
         }),
