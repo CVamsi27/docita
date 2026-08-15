@@ -1,14 +1,26 @@
 // check-as-cast-density: allow-file — narrowing Prisma JsonValue to the
-// domain statusHistory array (schema-backed; no unchecked widening).
+// domain statusHistory array and the schema-backed notification payload
+// (both schema-backed; no unchecked widening).
 import { Prisma } from '@workspace/db';
 import type {
+  FacilityLeadNotificationView,
   FacilityLeadStatusHistoryEntry,
   FacilityLeadView,
+  InternalFacilityLeadView,
 } from '@workspace/types';
+import { parseNotificationPayload } from './facility-lead-notification.service';
 
 /** Row shape with the referrer name join used by every read. */
 type LeadWithReferrer = Prisma.FacilityLeadGetPayload<{
   include: { referrer: { select: { id: true; name: true } } };
+}>;
+
+/** Internal queue row: lead + referrer + the latest notification (if any). */
+type LeadWithNotification = Prisma.FacilityLeadGetPayload<{
+  include: {
+    referrer: { select: { id: true; name: true } };
+    notifications: { orderBy: { createdAt: 'desc' }; take: 1 };
+  };
 }>;
 
 export function mapToView(lead: LeadWithReferrer): FacilityLeadView {
@@ -32,5 +44,30 @@ export function mapToView(lead: LeadWithReferrer): FacilityLeadView {
     statusHistory: Array.isArray(lead.statusHistory)
       ? (lead.statusHistory as FacilityLeadStatusHistoryEntry[])
       : undefined,
+  };
+}
+
+export function mapToInternalView(
+  lead: LeadWithNotification,
+): InternalFacilityLeadView {
+  const latest = lead.notifications[0] ?? null;
+  return {
+    ...mapToView(lead),
+    notification: latest ? mapNotification(latest) : null,
+  };
+}
+
+function mapNotification(
+  row: LeadWithNotification['notifications'][number],
+): FacilityLeadNotificationView {
+  return {
+    id: row.id,
+    leadId: row.leadId,
+    kind: row.kind,
+    status: row.status,
+    payload: parseNotificationPayload(row.payload),
+    errorMessage: row.errorMessage,
+    deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,
+    createdAt: row.createdAt.toISOString(),
   };
 }

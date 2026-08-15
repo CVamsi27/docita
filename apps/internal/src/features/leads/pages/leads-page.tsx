@@ -18,9 +18,13 @@ import {
   TableRow,
 } from "@workspace/ui/components";
 import { Building2, CheckCircle2 } from "lucide-react";
-import { FACILITY_LEAD_TRANSITIONS, type FacilityLeadView } from "@workspace/types";
+import {
+  FACILITY_LEAD_TRANSITIONS,
+  type InternalFacilityLeadView,
+} from "@workspace/types";
 import { formatDate } from "../../../lib/formatters";
 import { apiGet } from "@/lib/api/api-client";
+import { LeadNotificationBadge } from "../components/lead-notification-badge";
 import { LeadStatusDialog } from "../components/lead-status-dialog";
 import {
   LEAD_STATUS_LABELS,
@@ -29,15 +33,16 @@ import {
 
 export function LeadsPage() {
   const [loading, setLoading] = useState(true);
-  const [leads, setLeads] = useState<FacilityLeadView[]>([]);
-  const [transitioning, setTransitioning] = useState<FacilityLeadView | null>(
-    null,
-  );
+  const [leads, setLeads] = useState<InternalFacilityLeadView[]>([]);
+  const [transitioning, setTransitioning] =
+    useState<InternalFacilityLeadView | null>(null);
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiGet<FacilityLeadView[]>("/api/internal/leads");
+      const data = await apiGet<InternalFacilityLeadView[]>(
+        "/api/internal/leads",
+      );
       setLeads(data);
     } catch {
       /* keep last-known data; the DataState below only renders when loading */
@@ -118,6 +123,7 @@ export function LeadsPage() {
                       <TableHead>Partner</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Notify</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -149,6 +155,11 @@ export function LeadsPage() {
                             <Badge variant={leadStatusBadgeVariant(lead.status)}>
                               {LEAD_STATUS_LABELS[lead.status]}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <LeadNotificationBadge
+                              notification={lead.notification}
+                            />
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {formatDate(lead.createdAt)}

@@ -5,6 +5,7 @@ import request from 'supertest';
 import cookieParser from 'cookie-parser';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from '@workspace/db';
+import { OutboxRelayScheduler } from '@/shared/modules/outbox/outbox-relay.scheduler';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
@@ -77,6 +78,7 @@ describe('Facility Leads (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let jwtService: JwtService;
+  let outboxRelay: OutboxRelayScheduler;
   let internalToken: string;
   let internalUserId: string;
   let adminToken: string;
@@ -134,6 +136,7 @@ describe('Facility Leads (e2e)', () => {
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
     jwtService = moduleFixture.get<JwtService>(JwtService);
+    outboxRelay = moduleFixture.get<OutboxRelayScheduler>(OutboxRelayScheduler);
     setPrismaInstance(prisma);
   });
 
@@ -141,6 +144,8 @@ describe('Facility Leads (e2e)', () => {
     await resetDatabase();
     // resetDatabase does not cover the referral tables; clear them here.
     await prisma.partnerOtpChallenge.deleteMany();
+    await prisma.outboxEvent.deleteMany();
+    await prisma.facilityLeadNotification.deleteMany();
     await prisma.facilityLead.deleteMany();
     await prisma.referrer.deleteMany();
     sentOtps.length = 0;
@@ -333,6 +338,144 @@ describe('Facility Leads (e2e)', () => {
         .set('Authorization', `Bearer ${internalToken}`)
         .send({ status: 'TRIAGED', reason: 'Something happened' })
         .expect(404);
+    });
+  });
+
+  describe('outbox notification (lead-created P0)', () => {
+    it('persists exactly one facility-lead.created outbox event per lead, atomically with submit', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD08');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+
+      const created = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody())
+        .expect(200);
+
+      const events = await prisma.outboxEvent.findMany({
+        where: { eventName: 'facility-lead.created' },
+        select: { aggregateId: true, idempotencyKey: true, payload: true },
+      });
+      expect(events).toHaveLength(1);
+      expect(events[0].aggregateId).toBe(created.body.id);
+      expect(events[0].idempotencyKey).toBe(
+        `facility-lead.created:${created.body.id}`,
+      );
+      // Identifiers only — no PHI in the outbox payload.
+      expect(events[0].payload).toEqual({
+        leadId: created.body.id,
+        referrerId: expect.any(String),
+      });
+    });
+
+    it('does not append a second event when the same lead is resubmitted with the same key', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD09');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+
+      const first = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'lead-key-cccc0001' }))
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'lead-key-cccc0001' }))
+        .expect(200);
+
+      const events = await prisma.outboxEvent.findMany({
+        where: {
+          eventName: 'facility-lead.created',
+          aggregateId: first.body.id,
+        },
+      });
+      expect(events).toHaveLength(1);
+    });
+
+    it('appends a facility-lead.converted event when an operator converts the lead', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD10');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+      const created = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody())
+        .expect(200);
+
+      // Walk the chain to TRIAL, then convert.
+      for (const [from, to] of [
+        ['SUBMITTED', 'TRIAGED'],
+        ['TRIAGED', 'CONTACT_ATTEMPTED'],
+        ['CONTACT_ATTEMPTED', 'CONTACTED'],
+        ['CONTACTED', 'DEMO_SCHEDULED'],
+        ['DEMO_SCHEDULED', 'ONBOARDING'],
+        ['ONBOARDING', 'TRIAL'],
+      ] as const) {
+        await request(app.getHttpServer())
+          .patch(`/internal/leads/${created.body.id}/status`)
+          .set('Authorization', `Bearer ${internalToken}`)
+          .send({ status: to, reason: `Moving ${from} -> ${to}` })
+          .expect(200);
+      }
+      await request(app.getHttpServer())
+        .patch(`/internal/leads/${created.body.id}/status`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .send({ status: 'CONVERTED', reason: 'Signed the agreement' })
+        .expect(200);
+
+      const converted = await prisma.outboxEvent.findMany({
+        where: { eventName: 'facility-lead.converted' },
+      });
+      expect(converted).toHaveLength(1);
+      expect(converted[0].aggregateId).toBe(created.body.id);
+      expect(converted[0].idempotencyKey).toBe(
+        `facility-lead.converted:${created.body.id}`,
+      );
+    });
+
+    it('relay drain materializes the internal notification and the queue exposes delivery status', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD11');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+      const created = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody())
+        .expect(200);
+
+      // Drive the outbox relay manually (the cron is disabled in tests) so
+      // the listener materializes the internal notification. The relay does
+      // not await async listeners, so poll briefly for the row.
+      await outboxRelay.drain();
+      let notification = await prisma.facilityLeadNotification.findFirst({
+        where: { leadId: created.body.id, kind: 'LEAD_CREATED' },
+      });
+      for (let attempt = 0; !notification && attempt < 20; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        notification = await prisma.facilityLeadNotification.findFirst({
+          where: { leadId: created.body.id, kind: 'LEAD_CREATED' },
+        });
+      }
+      expect(notification).not.toBeNull();
+      expect(notification?.status).toBe('DELIVERED');
+      expect(notification?.channel).toBe('internal');
+      const payload = notification?.payload as Record<string, unknown>;
+      expect(payload).toMatchObject({
+        leadId: created.body.id,
+        facilityName: 'Sunrise Diagnostics',
+        partnerName: 'E2E Partner RFR-E2ELD11',
+        consentToFollowUp: true,
+        deepLink: '/leads',
+      });
+      expect(payload.contactPhone).toBeUndefined();
+
+      const queue = await request(app.getHttpServer())
+        .get('/internal/leads')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(queue.body[0].notification).toMatchObject({
+        kind: 'LEAD_CREATED',
+        status: 'DELIVERED',
+      });
     });
   });
 });

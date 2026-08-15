@@ -12,6 +12,7 @@ type PartnerPersistenceKey =
   | '$transaction'
   | 'clinic'
   | 'facilityLead'
+  | 'facilityLeadNotification'
   | 'partnerOtpChallenge'
   | 'referral'
   | 'referralPayout'
