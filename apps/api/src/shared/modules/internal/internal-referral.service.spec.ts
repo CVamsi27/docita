@@ -10,6 +10,7 @@ function makeCtx() {
     findMany: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
     findUnique: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
     findFirst: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
+    update: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
   };
   const referralPayout = {
     updateMany: jest.fn<(...a: unknown[]) => Promise<{ count: number }>>(),
@@ -220,10 +221,124 @@ describe('InternalReferralService', () => {
   });
 
   it('delegates resend-welcome to the welcome service', async () => {
-    ctx.referrer.findUnique.mockResolvedValue({ id: 'r6' });
+    ctx.referrer.findUnique.mockResolvedValue({ id: 'r6', active: true });
 
     await ctx.service.resendWelcome('r6');
 
     expect(ctx.welcomeService.resendWelcome).toHaveBeenCalledWith('r6');
+  });
+
+  it('rejects resend-welcome for an inactive partner instead of a false success', async () => {
+    ctx.referrer.findUnique.mockResolvedValue({ id: 'r6', active: false });
+
+    await expect(ctx.service.resendWelcome('r6')).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+    expect(ctx.welcomeService.resendWelcome).not.toHaveBeenCalled();
+  });
+
+  it('updates editable fields and normalizes a changed phone', async () => {
+    ctx.referrer.findUnique.mockResolvedValue({ id: 'r10' });
+    ctx.referrer.findFirst.mockResolvedValue(null);
+    ctx.referrer.update.mockResolvedValue({ id: 'r10', active: true });
+
+    await ctx.service.updateReferrer('r10', {
+      type: 'PHARMACY',
+      name: 'Apollo Pharmacy 2',
+      phone: '98123 45678',
+      email: '',
+    });
+
+    const data = (
+      ctx.referrer.update.mock.calls[0][0] as { data: Record<string, unknown> }
+    ).data;
+    expect(data.name).toBe('Apollo Pharmacy 2');
+    expect(data.phone).toBe('+919812345678');
+    // Empty-string email clears the stored value.
+    expect(data.email).toBeNull();
+  });
+
+  it('rejects an update that reassigns a phone used by another partner', async () => {
+    ctx.referrer.findUnique.mockResolvedValue({ id: 'r10' });
+    ctx.referrer.findFirst.mockResolvedValue({ id: 'other-1' });
+
+    let thrown: unknown;
+    try {
+      await ctx.service.updateReferrer('r10', {
+        type: 'PHARMACY',
+        name: 'Apollo Pharmacy 2',
+        phone: '9812345678',
+      });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(ConflictException);
+    expect((thrown as ConflictException).getResponse()).toEqual({
+      message: 'A partner with this phone number already exists',
+      code: 'DUPLICATE_ENTRY',
+    });
+    // The dedupe lookup excludes the partner being updated, and no write runs.
+    const where = (
+      ctx.referrer.findFirst.mock.calls[0][0] as {
+        where: Record<string, unknown>;
+      }
+    ).where;
+    expect(where.id).toEqual({ not: 'r10' });
+    expect(ctx.referrer.update).not.toHaveBeenCalled();
+  });
+
+  it('leaves email/phone untouched when omitted from an update', async () => {
+    ctx.referrer.findUnique.mockResolvedValue({ id: 'r10' });
+    ctx.referrer.update.mockResolvedValue({ id: 'r10' });
+
+    await ctx.service.updateReferrer('r10', {
+      type: 'PHARMACY',
+      name: 'Apollo Pharmacy 2',
+    });
+
+    const data = (
+      ctx.referrer.update.mock.calls[0][0] as { data: Record<string, unknown> }
+    ).data;
+    expect(data.email).toBeUndefined();
+    expect(data.phone).toBeUndefined();
+  });
+
+  it('throws 404 when updating a missing partner', async () => {
+    ctx.referrer.findUnique.mockResolvedValue(null);
+
+    await expect(
+      ctx.service.updateReferrer('nope', { type: 'PHARMACY', name: 'X' }),
+    ).rejects.toThrow('Referrer not found');
+  });
+
+  it('deactivates an active partner', async () => {
+    ctx.referrer.findUnique.mockResolvedValue({ id: 'r11', active: true });
+    ctx.referrer.update.mockResolvedValue({ id: 'r11', active: false });
+
+    const result = await ctx.service.deactivateReferrer('r11');
+
+    expect(ctx.referrer.update).toHaveBeenCalledWith({
+      where: { id: 'r11' },
+      data: { active: false },
+    });
+    expect(result).toEqual({ id: 'r11', active: false });
+  });
+
+  it('treats deactivating an already-inactive partner as a no-op', async () => {
+    ctx.referrer.findUnique.mockResolvedValue({ id: 'r11', active: false });
+
+    const result = await ctx.service.deactivateReferrer('r11');
+
+    expect(ctx.referrer.update).not.toHaveBeenCalled();
+    expect(result).toEqual({ id: 'r11', active: false });
+  });
+
+  it('throws 404 when deactivating a missing partner', async () => {
+    ctx.referrer.findUnique.mockResolvedValue(null);
+
+    await expect(ctx.service.deactivateReferrer('nope')).rejects.toThrow(
+      'Referrer not found',
+    );
   });
 });

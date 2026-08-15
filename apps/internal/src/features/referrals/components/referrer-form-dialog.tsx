@@ -17,100 +17,114 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
-import { isRecord } from "@workspace/utils";
-import { apiPost } from "@/lib/api/api-client";
+import { apiPatch, apiPost } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { formatDate } from "../../../lib/formatters";
+import type { Referral } from "../types";
 import {
+  conflictMessageFromError,
   INITIAL_REFERRER_FORM_DATA,
   REFERRER_TYPE_OPTIONS,
-  validateCreateReferrerForm,
-  type CreateReferrerFormData,
+  validateReferrerForm,
   type ReferrerFieldErrors,
+  type ReferrerFormData,
 } from "../lib/referrer-form-helpers";
 
-interface CreateReferrerDialogProps {
+interface ReferrerFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: () => void;
-}
-
-function isDuplicateEntryConflict(error: unknown): boolean {
-  return (
-    isRecord(error) &&
-    error.status === 409 &&
-    (error.code === "DUPLICATE_ENTRY" ||
-      (isRecord(error.data) && error.data.code === "DUPLICATE_ENTRY"))
-  );
+  /**
+   * The partner being edited, or null to create a new partner. Editing a
+   * partner PATCHes the full editable field set to
+   * `PATCH /api/internal/referrers/:id` (empty phone/email clear the stored
+   * value); creating POSTs to `POST /api/internal/referrers`. Either way a
+   * `DUPLICATE_ENTRY` 409 surfaces the existing-partner conflict inline.
+   */
+  referrer: Referral | null;
+  onSaved: () => void;
 }
 
 /**
- * Operator-facing "Create partner" dialog. Submits to
- * `POST /api/internal/referrers`; a 409 from the server surfaces the
- * existing-partner conflict inline (idempotent on normalized phone) instead
- * of creating a duplicate.
+ * Operator form for creating and editing referral partners. The two modes
+ * share the same field set, validation, and inline conflict handling; only
+ * the endpoint, seed values, and copy differ.
  */
-export function CreateReferrerDialog({
+export function ReferrerFormDialog({
   open,
   onOpenChange,
-  onCreated,
-}: CreateReferrerDialogProps) {
-  const [form, setForm] = useState<CreateReferrerFormData>({
+  referrer,
+  onSaved,
+}: ReferrerFormDialogProps) {
+  const isEdit = referrer !== null;
+  const [form, setForm] = useState<ReferrerFormData>({
     ...INITIAL_REFERRER_FORM_DATA,
   });
   const [fieldErrors, setFieldErrors] = useState<ReferrerFieldErrors>({});
   const [conflictMessage, setConflictMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Reset transient form state every time the dialog opens so a previous
-  // close does not leak stale validation/conflict errors into a fresh create.
+  // Reset transient state every time the dialog opens so a previous close
+  // does not leak stale values or errors into the next open; edit mode seeds
+  // the form from the row being edited.
   useEffect(() => {
-    if (open) {
-      setFieldErrors({});
-      setConflictMessage(null);
-    }
-  }, [open]);
+    if (!open) return;
+    setFieldErrors({});
+    setConflictMessage(null);
+    setForm(
+      referrer
+        ? {
+            name: referrer.name,
+            type: referrer.type,
+            email: referrer.email ?? "",
+            phone: referrer.phone ?? "",
+          }
+        : { ...INITIAL_REFERRER_FORM_DATA },
+    );
+  }, [open, referrer]);
 
-  const updateField = (field: keyof CreateReferrerFormData, value: string) => {
+  const updateField = (field: keyof ReferrerFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
     setConflictMessage(null);
   };
 
-  const handleCreate = async () => {
-    const errors = validateCreateReferrerForm(form);
+  const handleSubmit = async () => {
+    const errors = validateReferrerForm(form);
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
     setSaving(true);
     try {
-      await apiPost("/api/internal/referrers", {
-        name: form.name.trim(),
-        type: form.type,
-        email: form.email.trim() || undefined,
-        phone: form.phone.trim() || undefined,
-      });
-      setForm({ ...INITIAL_REFERRER_FORM_DATA });
-      setFieldErrors({});
-      setConflictMessage(null);
+      if (isEdit && referrer) {
+        // Empty strings clear the stored value on the server.
+        await apiPatch(`/api/internal/referrers/${referrer.id}`, {
+          name: form.name.trim(),
+          type: form.type,
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+        });
+        toast.success("Partner updated successfully");
+      } else {
+        await apiPost("/api/internal/referrers", {
+          name: form.name.trim(),
+          type: form.type,
+          email: form.email.trim() || undefined,
+          phone: form.phone.trim() || undefined,
+        });
+        toast.success("Partner created successfully");
+      }
       onOpenChange(false);
-      onCreated();
-      toast.success("Partner created successfully");
+      onSaved();
     } catch (error) {
-      const record = isRecord(error) ? error : null;
-      const data = record && isRecord(record.data) ? record.data : null;
-      if (record && isDuplicateEntryConflict(record) && data) {
-        const detail =
-          typeof data.detail === "string" ? data.detail : null;
-        // The server message has no trailing period; normalize so the
-        // composed sentence reads correctly however the copy evolves.
-        const base =
-          detail ?? "A partner with this phone number already exists";
-        const normalized = base.endsWith(".") ? base : `${base}.`;
-        setConflictMessage(`${normalized} Use the existing record instead.`);
+      const message = conflictMessageFromError(error);
+      if (message) {
+        setConflictMessage(message);
       } else {
         showUserFacingErrorToast(
           error,
-          "We could not create this partner right now. Please try again.",
+          isEdit
+            ? "We could not update this partner right now. Please try again."
+            : "We could not create this partner right now. Please try again.",
         );
       }
     } finally {
@@ -122,10 +136,11 @@ export function CreateReferrerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Partner</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Partner" : "Create Partner"}</DialogTitle>
           <DialogDescription>
-            Add a referral partner. A unique shareable code (RFR-XXXXXX) and
-            welcome message are generated automatically.
+            {isEdit && referrer
+              ? `Update details for ${referrer.name}. Code ${referrer.code ?? "—"} and commission policy are unchanged.`
+              : "Add a referral partner. A unique shareable code (RFR-XXXXXX) and welcome message are generated automatically."}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -185,6 +200,11 @@ export function CreateReferrerDialog({
               <p className="text-sm text-destructive">{fieldErrors.email}</p>
             )}
           </div>
+          {isEdit && referrer?.createdAt && (
+            <p className="text-xs text-muted-foreground">
+              Partner since {formatDate(referrer.createdAt)}
+            </p>
+          )}
           {conflictMessage && (
             <p className="text-sm text-destructive">{conflictMessage}</p>
           )}
@@ -196,8 +216,14 @@ export function CreateReferrerDialog({
             >
               Cancel
             </Button>
-            <Button onClick={() => void handleCreate()} disabled={saving}>
-              {saving ? "Creating…" : "Create Partner"}
+            <Button onClick={() => void handleSubmit()} disabled={saving}>
+              {saving
+                ? isEdit
+                  ? "Saving…"
+                  : "Creating…"
+                : isEdit
+                  ? "Save Changes"
+                  : "Create Partner"}
             </Button>
           </div>
         </div>
