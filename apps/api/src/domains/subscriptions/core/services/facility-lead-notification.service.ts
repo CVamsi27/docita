@@ -92,11 +92,15 @@ export class FacilityLeadNotificationService {
           kind,
           channel: 'internal',
           status: 'DELIVERED',
+          // Target the assigned owner (null while the lead sits in the
+          // shared triage queue — the assign endpoint re-targets later).
+          recipientUserId: lead.ownerUserId ?? null,
           payload: toPrismaInputJsonValue(payload),
           deliveredAt: this.clock.now(),
         },
         update: {
           status: 'DELIVERED',
+          recipientUserId: lead.ownerUserId ?? null,
           payload: toPrismaInputJsonValue(payload),
           deliveredAt: this.clock.now(),
           errorMessage: null,

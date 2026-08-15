@@ -19,7 +19,8 @@ type PartnerPersistenceKey =
   | 'referrer'
   | 'referrerMessage'
   | 'referrerPayoutDetails'
-  | 'runUnrestricted';
+  | 'runUnrestricted'
+  | 'user';
 
 export type PartnerPersistencePort = Pick<
   PrismaDelegatePort,

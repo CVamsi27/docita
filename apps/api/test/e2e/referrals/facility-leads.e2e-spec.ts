@@ -475,7 +475,138 @@ describe('Facility Leads (e2e)', () => {
       expect(queue.body[0].notification).toMatchObject({
         kind: 'LEAD_CREATED',
         status: 'DELIVERED',
+        recipientUserId: null,
       });
+    });
+  });
+
+  describe('PATCH /internal/leads/:id/assign', () => {
+    it('assigns an INTERNAL operator, records the audit entry, and re-targets the notification', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD12');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+      const created = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody())
+        .expect(200);
+
+      // A second operator to receive the assignment.
+      const assignee = await factories.user({ role: Role.INTERNAL });
+      const assigneeId = assignee.user.id;
+
+      // Materialize the created notification first (unassigned -> untargeted).
+      await outboxRelay.drain();
+      let notification = await prisma.facilityLeadNotification.findFirst({
+        where: { leadId: created.body.id, kind: 'LEAD_CREATED' },
+      });
+      for (let attempt = 0; !notification && attempt < 20; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        notification = await prisma.facilityLeadNotification.findFirst({
+          where: { leadId: created.body.id, kind: 'LEAD_CREATED' },
+        });
+      }
+      expect(notification).not.toBeNull();
+      expect(notification?.recipientUserId).toBeNull();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/internal/leads/${created.body.id}/assign`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .send({ userId: assigneeId, reason: 'Kiran owns this region' })
+        .expect(200);
+
+      // The partner view stays clean; the audit entry is persisted.
+      const row = await prisma.facilityLead.findUnique({
+        where: { id: created.body.id },
+        select: {
+          ownerUserId: true,
+          assignmentHistory: true,
+          notifications: { select: { recipientUserId: true } },
+        },
+      });
+      expect(row?.ownerUserId).toBe(assigneeId);
+      expect(row?.assignmentHistory).toHaveLength(1);
+      expect((row?.assignmentHistory as Array<Record<string, unknown>>)[0]).toMatchObject(
+        {
+          fromUserId: null,
+          toUserId: assigneeId,
+          actorId: internalUserId,
+        },
+      );
+      expect(row?.notifications[0].recipientUserId).toBe(assigneeId);
+      expect(response.body.status).toBe('SUBMITTED');
+
+      // The internal queue exposes the assignment.
+      const queue = await request(app.getHttpServer())
+        .get('/internal/leads')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(queue.body[0]).toMatchObject({
+        id: created.body.id,
+        ownerUserId: assigneeId,
+        ownerName: assignee.user.name,
+        notification: { recipientUserId: assigneeId },
+      });
+    });
+
+    it('rejects a non-INTERNAL target user with 400 and writes nothing', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD13');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+      const created = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody())
+        .expect(200);
+
+      const admin = await factories.user({ role: Role.ADMIN });
+
+      await request(app.getHttpServer())
+        .patch(`/internal/leads/${created.body.id}/assign`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .send({ userId: admin.user.id })
+        .expect(400);
+
+      const row = await prisma.facilityLead.findUnique({
+        where: { id: created.body.id },
+        select: { ownerUserId: true },
+      });
+      expect(row?.ownerUserId).toBeNull();
+    });
+
+    it('rejects an assignment on an unknown lead with 404', async () => {
+      const assignee = await factories.user({ role: Role.INTERNAL });
+      await request(app.getHttpServer())
+        .patch('/internal/leads/does-not-exist/assign')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .send({ userId: assignee.user.id })
+        .expect(404);
+    });
+  });
+
+  describe('GET /internal/operators', () => {
+    it('lists INTERNAL operators only (never clinic staff)', async () => {
+      const secondOperator = await factories.user({ role: Role.INTERNAL });
+
+      const response = await request(app.getHttpServer())
+        .get('/internal/operators')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+
+      const ids = response.body.map(
+        (operator: { id: string }) => operator.id,
+      ) as string[];
+      // Exactly the two INTERNAL users from this test: the beforeEach admin
+      // (Role.ADMIN) is not an operator.
+      expect(ids).toEqual(
+        expect.arrayContaining([internalUserId, secondOperator.user.id]),
+      );
+      expect(ids).toHaveLength(2);
+    });
+
+    it('rejects a non-INTERNAL caller with 403', async () => {
+      await request(app.getHttpServer())
+        .get('/internal/operators')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(403);
     });
   });
 });

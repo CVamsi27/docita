@@ -120,6 +120,7 @@ model User {
   patientDoctors               PatientDoctor[]          @relation("DoctorPatients")
   handledDataSubjectRequests   DataSubjectRequest[]     @relation("HandledDataSubjectRequests")
   lab                          Lab?                     @relation(fields: [labId], references: [id])
+  facilityLeadsOwned           FacilityLead[]           @relation("FacilityLeadOwner")
 
   @@index([clinicId])
   @@index([hprId])
@@ -3957,6 +3958,15 @@ model FacilityLead {
   /// @json:facilityLeadStatusHistoryEntrySchema
   statusHistory Json?
 
+  /// The internal operator this lead is assigned to (null = in the shared
+  /// triage queue). Set/cleared only via the audited assign endpoint.
+  ownerUserId String?
+  ownerUser   User?    @relation("FacilityLeadOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  /// Append-only JSON history of owner assignments:
+  /// `[{ fromUserId, toUserId, actorId, at }]` — never edited in place.
+  /// @json:facilityLeadAssignmentHistoryEntrySchema
+  assignmentHistory Json?
+
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
@@ -3965,6 +3975,7 @@ model FacilityLead {
   @@unique([referrerId, idempotencyKey])
   @@index([status, createdAt])
   @@index([referrerId])
+  @@index([ownerUserId])
 }
 
 /// What triggered an internal facility-lead notification.
@@ -3985,6 +3996,9 @@ enum FacilityLeadNotificationStatus {
 
 /// Internal (Docita ops) notification for a facility lead, materialized by
 /// the `facility-lead.created` / `facility-lead.converted` outbox listeners.
+/// `recipientUserId` is the assigned owner at materialize time (null while
+/// the lead is unassigned); the assign endpoint re-targets existing rows so
+/// the delivery record always names the current owner.
 /// The payload is PII-redacted (facility name/location/partner/consent, a
 /// deep link into the internal portal — no contact phone or email).
 model FacilityLeadNotification {
@@ -3997,6 +4011,8 @@ model FacilityLeadNotification {
   status       FacilityLeadNotificationStatus @default(QUEUED)
   /// @json:facilityLeadNotificationPayloadSchema
   payload      Json
+  /// Target operator (the assigned owner) when the lead is assigned.
+  recipientUserId String?
   errorMessage String?
   deliveredAt  DateTime? @db.Timestamptz(3)
   createdAt    DateTime @default(now()) @db.Timestamptz(3)
@@ -4004,6 +4020,7 @@ model FacilityLeadNotification {
   @@unique([leadId, kind])
   @@index([status])
   @@index([leadId, createdAt])
+  @@index([recipientUserId])
 }
 
 /// OTP challenges for the partner self-service portal. One row per active

@@ -40,6 +40,8 @@ describe('FacilityLeadNotificationService', () => {
     });
     expect(arg.create.status).toBe('DELIVERED');
     expect(arg.create.channel).toBe('internal');
+    // Untargeted while the lead sits in the shared triage queue.
+    expect(arg.create.recipientUserId).toBeNull();
     // Payload must not carry contact phone/email.
     const payload = arg.create.payload as Record<string, unknown>;
     expect(payload).toMatchObject({
@@ -74,6 +76,25 @@ describe('FacilityLeadNotificationService', () => {
     };
     expect(arg.create.status).toBe('FAILED');
     expect(arg.create.errorMessage).toBe('connection refused');
+  });
+
+  it('targets the assigned owner when the lead has one', async () => {
+    ctx.facilityLead.findUnique.mockResolvedValue(
+      leadRow({
+        ownerUserId: 'op-1',
+        ownerUser: { id: 'op-1', name: 'Kiran Ops' },
+      }),
+    );
+    ctx.facilityLeadNotification.upsert.mockResolvedValue({ id: 'n1' });
+
+    await service().onLeadCreated({ leadId: 'l1' });
+
+    const arg = ctx.facilityLeadNotification.upsert.mock.calls[0]?.[0] as {
+      create: Record<string, unknown>;
+      update: Record<string, unknown>;
+    };
+    expect(arg.create.recipientUserId).toBe('op-1');
+    expect(arg.update.recipientUserId).toBe('op-1');
   });
 
   it('skips silently when the lead no longer exists', async () => {

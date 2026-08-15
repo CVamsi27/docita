@@ -305,4 +305,143 @@ describe('FacilityLeadCommandService', () => {
       expect(ctx.outbox.append).not.toHaveBeenCalled();
     });
   });
+
+  describe('assignOwner', () => {
+    it('assigns an INTERNAL operator, records the audit entry, and re-targets notifications atomically', async () => {
+      ctx.facilityLead.findUnique.mockResolvedValueOnce(leadRow());
+      ctx.user.findFirst.mockResolvedValue({ id: 'op-1' });
+      ctx.facilityLead.updateMany.mockResolvedValue({ count: 1 });
+      ctx.facilityLeadNotification.updateMany.mockResolvedValue({ count: 1 });
+      ctx.facilityLead.findUnique.mockResolvedValueOnce(
+        leadRow({
+          ownerUserId: 'op-1',
+          ownerUser: { id: 'op-1', name: 'Kiran Ops' },
+          assignmentHistory: [
+            {
+              fromUserId: null,
+              toUserId: 'op-1',
+              actorId: 'internal-9',
+              at: '2026-08-15T12:00:00.000Z',
+            },
+          ],
+        }),
+      );
+
+      const view = await service().assignOwner('l1', 'internal-9', {
+        userId: 'op-1',
+      });
+
+      // The target must be an internal operator.
+      const operatorQuery = ctx.user.findFirst.mock.calls[0][0] as {
+        where: { id: string; role: string };
+      };
+      expect(operatorQuery.where).toEqual({ id: 'op-1', role: 'INTERNAL' });
+
+      // The write is conditional on the owner we read (concurrency guard).
+      const write = ctx.facilityLead.updateMany.mock.calls[0][0] as {
+        where: { id: string; ownerUserId: string | null };
+        data: { ownerUserId: string; assignmentHistory: unknown[] };
+      };
+      expect(write.where).toEqual({ id: 'l1', ownerUserId: null });
+      expect(write.data.ownerUserId).toBe('op-1');
+      const history = write.data.assignmentHistory as Array<
+        Record<string, unknown>
+      >;
+      expect(history).toHaveLength(1);
+      expect(history[0]).toMatchObject({
+        fromUserId: null,
+        toUserId: 'op-1',
+        actorId: 'internal-9',
+      });
+      expect(typeof history[0].at).toBe('string');
+
+      // Existing notifications are re-targeted in the same transaction.
+      expect(ctx.facilityLeadNotification.updateMany).toHaveBeenCalledWith({
+        where: { leadId: 'l1' },
+        data: { recipientUserId: 'op-1' },
+      });
+      // The partner view never exposes the assignment surface; the fresh
+      // internal read (queue) carries owner fields instead.
+      expect(view.id).toBe('l1');
+      expect(ctx.facilityLead.findUnique).toHaveBeenCalledTimes(2);
+      // Assignment emits no outbox event.
+      expect(ctx.outbox.append).not.toHaveBeenCalled();
+    });
+
+    it('appends to existing assignment history instead of overwriting it', async () => {
+      const existing = [
+        {
+          fromUserId: null,
+          toUserId: 'op-1',
+          actorId: 'internal-9',
+          at: '2026-08-15T11:00:00.000Z',
+        },
+      ];
+      ctx.facilityLead.findUnique.mockResolvedValueOnce(
+        leadRow({
+          ownerUserId: 'op-1',
+          ownerUser: { id: 'op-1', name: 'Kiran Ops' },
+          assignmentHistory: existing,
+        }),
+      );
+      ctx.user.findFirst.mockResolvedValue({ id: 'op-2' });
+      ctx.facilityLead.updateMany.mockResolvedValue({ count: 1 });
+      ctx.facilityLeadNotification.updateMany.mockResolvedValue({ count: 1 });
+      ctx.facilityLead.findUnique.mockResolvedValueOnce(
+        leadRow({ ownerUserId: 'op-2' }),
+      );
+
+      await service().assignOwner('l1', 'internal-9', { userId: 'op-2' });
+
+      const write = ctx.facilityLead.updateMany.mock.calls[0][0] as {
+        where: { ownerUserId: string | null };
+        data: { assignmentHistory: unknown[] };
+      };
+      // Conditional on the owner we actually read.
+      expect(write.where.ownerUserId).toBe('op-1');
+      const history = write.data.assignmentHistory as Array<
+        Record<string, unknown>
+      >;
+      expect(history).toHaveLength(2);
+      expect(history[1]).toMatchObject({
+        fromUserId: 'op-1',
+        toUserId: 'op-2',
+        actorId: 'internal-9',
+      });
+    });
+
+    it('rejects a non-INTERNAL target with 400 and writes nothing', async () => {
+      ctx.facilityLead.findUnique.mockResolvedValue(leadRow());
+      ctx.user.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service().assignOwner('l1', 'internal-9', { userId: 'patient-1' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(ctx.facilityLead.updateMany).not.toHaveBeenCalled();
+      expect(ctx.facilityLeadNotification.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('throws 404 for an unknown lead', async () => {
+      ctx.facilityLead.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service().assignOwner('nope', 'internal-9', { userId: 'op-1' }),
+      ).rejects.toThrow('Lead not found');
+      expect(ctx.user.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('throws a conflict when the owner changed concurrently and re-targets nothing', async () => {
+      ctx.facilityLead.findUnique.mockResolvedValue(leadRow());
+      ctx.user.findFirst.mockResolvedValue({ id: 'op-1' });
+      // Someone else assigned the lead between our read and write.
+      ctx.facilityLead.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(
+        service().assignOwner('l1', 'internal-9', { userId: 'op-1' }),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(ctx.facilityLeadNotification.updateMany).not.toHaveBeenCalled();
+      // No fresh read: the write never happened.
+      expect(ctx.facilityLead.findUnique).toHaveBeenCalledTimes(1);
+    });
+  });
 });

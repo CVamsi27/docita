@@ -28,6 +28,9 @@ export function leadRow(overrides: Record<string, unknown> = {}) {
     bestTimeToContact: null,
     idempotencyKey: null,
     statusHistory: null,
+    ownerUserId: null,
+    ownerUser: null,
+    assignmentHistory: null,
     createdAt: new Date('2026-08-15T10:00:00Z'),
     updatedAt: new Date('2026-08-15T10:00:00Z'),
     ...overrides,
@@ -41,6 +44,7 @@ export function notificationRow(overrides: Record<string, unknown> = {}) {
     kind: 'LEAD_CREATED',
     channel: 'internal',
     status: 'DELIVERED',
+    recipientUserId: null,
     payload: {
       leadId: 'l1',
       facilityName: 'Sunrise Diagnostics',
@@ -73,10 +77,16 @@ export function makeFacilityLeadCtx() {
   };
   const facilityLeadNotification = {
     upsert: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
+    updateMany: jest.fn<(...a: unknown[]) => Promise<{ count: number }>>(),
+  };
+  const user = {
+    findFirst: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
+    findMany: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
   };
   const prisma = {
     facilityLead,
     facilityLeadNotification,
+    user,
     $transaction: jest.fn(
       async <T>(fn: (tx: Record<string, unknown>) => Promise<T>): Promise<T> =>
         fn({ facilityLead, facilityLeadNotification } as never),
@@ -84,5 +94,12 @@ export function makeFacilityLeadCtx() {
   } as never;
   const outbox: IOutboxService = { append: jest.fn<() => Promise<void>>() };
   const clock: IClock = { now: () => new Date('2026-08-15T12:00:00Z') };
-  return { prisma, facilityLead, facilityLeadNotification, outbox, clock };
+  return {
+    prisma,
+    facilityLead,
+    facilityLeadNotification,
+    user,
+    outbox,
+    clock,
+  };
 }

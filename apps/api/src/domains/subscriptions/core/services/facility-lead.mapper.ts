@@ -3,6 +3,7 @@
 // (both schema-backed; no unchecked widening).
 import { Prisma } from '@workspace/db';
 import type {
+  FacilityLeadAssignmentHistoryEntry,
   FacilityLeadNotificationView,
   FacilityLeadStatusHistoryEntry,
   FacilityLeadView,
@@ -15,10 +16,11 @@ type LeadWithReferrer = Prisma.FacilityLeadGetPayload<{
   include: { referrer: { select: { id: true; name: true } } };
 }>;
 
-/** Internal queue row: lead + referrer + the latest notification (if any). */
+/** Internal queue row: lead + referrer + owner + latest notification. */
 type LeadWithNotification = Prisma.FacilityLeadGetPayload<{
   include: {
     referrer: { select: { id: true; name: true } };
+    ownerUser: { select: { id: true; name: true } };
     notifications: { orderBy: { createdAt: 'desc' }; take: 1 };
   };
 }>;
@@ -53,6 +55,11 @@ export function mapToInternalView(
   const latest = lead.notifications[0] ?? null;
   return {
     ...mapToView(lead),
+    ownerUserId: lead.ownerUserId ?? null,
+    ownerName: lead.ownerUser?.name ?? null,
+    assignmentHistory: Array.isArray(lead.assignmentHistory)
+      ? (lead.assignmentHistory as FacilityLeadAssignmentHistoryEntry[])
+      : undefined,
     notification: latest ? mapNotification(latest) : null,
   };
 }
@@ -65,6 +72,7 @@ function mapNotification(
     leadId: row.leadId,
     kind: row.kind,
     status: row.status,
+    recipientUserId: row.recipientUserId ?? null,
     payload: parseNotificationPayload(row.payload),
     errorMessage: row.errorMessage,
     deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,

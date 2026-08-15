@@ -109,6 +109,36 @@ export type FacilityLeadStatusHistoryEntry = z.infer<
   typeof facilityLeadStatusHistoryEntrySchema
 >;
 
+/** One append-only owner-assignment record on the lead. */
+export const facilityLeadAssignmentHistoryEntrySchema = z.object({
+  /** Null when the lead was previously unassigned. */
+  fromUserId: z.string().nullable(),
+  toUserId: z.string(),
+  actorId: z.string(),
+  at: z.string(),
+});
+export type FacilityLeadAssignmentHistoryEntry = z.infer<
+  typeof facilityLeadAssignmentHistoryEntrySchema
+>;
+
+/** Body for `PATCH /internal/leads/:id/assign`. */
+export const facilityLeadAssignSchema = z.object({
+  /** The internal operator (Role.INTERNAL user) to assign. */
+  userId: z.string().trim().min(1).max(64),
+  reason: z.string().trim().max(500).optional(),
+});
+export type FacilityLeadAssign = z.infer<typeof facilityLeadAssignSchema>;
+
+/** One internal operator option for the assign picker. */
+export const internalOperatorSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+});
+export type InternalOperator = z.infer<typeof internalOperatorSchema>;
+
+export const internalOperatorListSchema = z.array(internalOperatorSchema);
+
 /** Server-side projection of a lead (partner submit response + internal queue). */
 export const facilityLeadViewSchema = z.object({
   id: z.string(),
@@ -185,6 +215,8 @@ export const facilityLeadNotificationViewSchema = z.object({
   leadId: z.string(),
   kind: facilityLeadNotificationKindSchema,
   status: facilityLeadNotificationStatusSchema,
+  /** The assigned owner at delivery time (null while unassigned). */
+  recipientUserId: z.string().nullable(),
   payload: facilityLeadNotificationPayloadSchema,
   errorMessage: z.string().nullable(),
   deliveredAt: z.string().nullable(),
@@ -196,11 +228,14 @@ export type FacilityLeadNotificationView = z.infer<
 
 /**
  * Internal-only lead queue item: the operator-facing view plus the latest
- * internal notification delivery status. Kept separate from
- * `facilityLeadViewSchema` so the partner submit response never leaks the
- * internal notification surface.
+ * internal notification delivery status and assignment state. Kept separate
+ * from `facilityLeadViewSchema` so the partner submit response never leaks
+ * the internal notification or assignment surface.
  */
 export const internalFacilityLeadViewSchema = facilityLeadViewSchema.extend({
+  ownerUserId: z.string().nullable(),
+  ownerName: z.string().nullable(),
+  assignmentHistory: z.array(facilityLeadAssignmentHistoryEntrySchema).optional(),
   notification: facilityLeadNotificationViewSchema.nullable(),
 });
 export type InternalFacilityLeadView = z.infer<
