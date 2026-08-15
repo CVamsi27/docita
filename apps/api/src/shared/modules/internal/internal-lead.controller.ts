@@ -12,14 +12,18 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { FacilityLeadStatus } from '@workspace/db';
 import { facilityLeadTransitionSchema } from '@workspace/types';
-import { FacilityLeadService } from '@/domains/subscriptions/core/services/facility-lead.service';
+import { FacilityLeadCommandService } from '@/domains/subscriptions/core/services/facility-lead-command.service';
+import { FacilityLeadQueryService } from '@/domains/subscriptions/core/services/facility-lead-query.service';
 import { InternalApiAccess } from './internal.controller.access';
 
 @ApiTags('internal-leads')
 @Controller('internal')
 @InternalApiAccess()
 export class InternalLeadController {
-  constructor(private readonly leadService: FacilityLeadService) {}
+  constructor(
+    private readonly commandService: FacilityLeadCommandService,
+    private readonly queryService: FacilityLeadQueryService,
+  ) {}
 
   @Get('leads')
   @ApiOperation({
@@ -30,7 +34,7 @@ export class InternalLeadController {
     const parsedStatus = Object.values(FacilityLeadStatus).find(
       (value) => value === status,
     );
-    return this.leadService.listLeads({
+    return this.queryService.listLeads({
       status: parsedStatus,
     });
   }
@@ -52,6 +56,6 @@ export class InternalLeadController {
       throw new BadRequestException('Invalid lead transition');
     }
     const actorId = (req.user as { id?: string } | undefined)?.id ?? 'internal';
-    return this.leadService.transitionLead(id, actorId, parsed.data);
+    return this.commandService.transitionLead(id, actorId, parsed.data);
   }
 }
