@@ -26,7 +26,7 @@ describe('FacilityLeadCommandService', () => {
       ctx.facilityLead.findFirst.mockResolvedValue(null);
       ctx.facilityLead.create.mockResolvedValue(leadRow());
 
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       const view = await service.submitLead('r1', submitInput);
 
       const data = (
@@ -54,7 +54,7 @@ describe('FacilityLeadCommandService', () => {
         leadRow({ contactPhone: null }),
       );
 
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       await service.submitLead('r1', {
         ...submitInput,
         contactPhone: undefined,
@@ -73,7 +73,7 @@ describe('FacilityLeadCommandService', () => {
       ctx.facilityLead.findUnique.mockResolvedValue(null);
       ctx.facilityLead.findFirst.mockResolvedValue({ id: 'existing-1' });
 
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       let thrown: unknown;
       try {
         await service.submitLead('r1', submitInput);
@@ -94,7 +94,7 @@ describe('FacilityLeadCommandService', () => {
         leadRow({ idempotencyKey: 'key-12345678' }),
       );
 
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       const view = await service.submitLead('r1', {
         ...submitInput,
         idempotencyKey: 'key-12345678',
@@ -119,7 +119,7 @@ describe('FacilityLeadCommandService', () => {
         leadRow({ idempotencyKey: 'key-12345678' }),
       );
 
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       const view = await service.submitLead('r1', {
         ...submitInput,
         idempotencyKey: 'key-12345678',
@@ -139,7 +139,7 @@ describe('FacilityLeadCommandService', () => {
       );
       ctx.facilityLead.updateMany.mockResolvedValue({ count: 1 });
 
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       const view = await service.transitionLead('l1', 'admin-1', {
         status: 'TRIAGED',
         reason: 'Reached out to the contact',
@@ -186,7 +186,7 @@ describe('FacilityLeadCommandService', () => {
         leadRow({ status: 'CONTACT_ATTEMPTED', statusHistory: [] }),
       );
 
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       await service.transitionLead('l1', 'admin-2', {
         status: 'CONTACT_ATTEMPTED',
         reason: 'Called twice, no answer',
@@ -211,7 +211,7 @@ describe('FacilityLeadCommandService', () => {
       // CONTACTED is not the immediate successor of SUBMITTED, so the edge is
       // invalid (terminal states are reachable from any non-terminal state,
       // but chain states only advance to the next one).
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       await expect(
         service.transitionLead('l1', 'admin-1', {
           status: 'CONTACTED',
@@ -226,7 +226,7 @@ describe('FacilityLeadCommandService', () => {
         leadRow({ status: 'LOST' }),
       );
 
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       await expect(
         service.transitionLead('l1', 'admin-1', {
           status: 'TRIAGED',
@@ -238,7 +238,7 @@ describe('FacilityLeadCommandService', () => {
     it('throws 404 for an unknown lead', async () => {
       ctx.facilityLead.findUnique.mockResolvedValue(null);
 
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       await expect(
         service.transitionLead('nope', 'admin-1', {
           status: 'TRIAGED',
@@ -254,7 +254,7 @@ describe('FacilityLeadCommandService', () => {
       // Another operator transitioned it between our read and write.
       ctx.facilityLead.updateMany.mockResolvedValue({ count: 0 });
 
-      const service = new FacilityLeadCommandService(ctx.prisma);
+      const service = new FacilityLeadCommandService(ctx.prisma, ctx.clock);
       await expect(
         service.transitionLead('l1', 'admin-1', {
           status: 'TRIAGED',

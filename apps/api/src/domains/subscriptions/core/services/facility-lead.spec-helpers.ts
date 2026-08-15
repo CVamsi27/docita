@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+import type { IClock } from '@/shared/common/ports/clock.port';
 
 export function leadRow(overrides: Record<string, unknown> = {}) {
   return {
@@ -39,5 +40,6 @@ export function makeFacilityLeadCtx() {
     updateMany: jest.fn<(...a: unknown[]) => Promise<{ count: number }>>(),
   };
   const prisma = { facilityLead } as never;
-  return { prisma, facilityLead };
+  const clock: IClock = { now: () => new Date('2026-08-15T12:00:00Z') };
+  return { prisma, facilityLead, clock };
 }

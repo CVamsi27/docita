@@ -19,6 +19,7 @@ import {
   type PartnerPersistencePort,
 } from '@/domains/subscriptions/application/ports/partner-persistence.port';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { mapToView } from './facility-lead.mapper';
 
 /**
@@ -35,6 +36,7 @@ export class FacilityLeadCommandService {
   constructor(
     @Inject(PARTNER_PERSISTENCE_PORT)
     private readonly prisma: PartnerPersistencePort,
+    @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
   async submitLead(
@@ -152,7 +154,7 @@ export class FacilityLeadCommandService {
       to: input.status,
       reason: input.reason,
       actorId,
-      at: new Date().toISOString(),
+      at: this.clock.now().toISOString(),
     };
 
     const updated = await this.prisma.facilityLead.updateMany({
