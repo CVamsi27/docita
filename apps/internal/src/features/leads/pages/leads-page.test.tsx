@@ -34,11 +34,22 @@ const mockLeads = [
     consentToFollowUp: true,
     createdAt: "2026-08-15T10:00:00Z",
     updatedAt: "2026-08-15T10:00:00Z",
+    ownerUserId: "op-1",
+    ownerName: "Kiran Ops",
+    assignmentHistory: [
+      {
+        fromUserId: null,
+        toUserId: "op-1",
+        actorId: "internal-9",
+        at: "2026-08-15T09:00:00Z",
+      },
+    ],
     notification: {
       id: "n1",
       leadId: "l1",
       kind: "LEAD_CREATED",
       status: "DELIVERED",
+      recipientUserId: "op-1",
       payload: {
         leadId: "l1",
         facilityName: "Sunrise Diagnostics",
@@ -71,11 +82,15 @@ const mockLeads = [
     consentToFollowUp: true,
     createdAt: "2026-08-14T10:00:00Z",
     updatedAt: "2026-08-15T08:00:00Z",
+    ownerUserId: null,
+    ownerName: null,
+    assignmentHistory: undefined,
     notification: {
       id: "n2",
       leadId: "l2",
       kind: "LEAD_CREATED",
       status: "FAILED",
+      recipientUserId: null,
       payload: {
         leadId: "l2",
         facilityName: "Green Valley Hospital",
@@ -130,6 +145,9 @@ describe("LeadsPage", () => {
     // Notification delivery status
     expect(screen.getByText("Notified")).toBeInTheDocument();
     expect(screen.getByText("Notify failed")).toBeInTheDocument();
+    // Owner column: assigned operator vs unassigned
+    expect(screen.getByText("Kiran Ops")).toBeInTheDocument();
+    expect(screen.getByText("Unassigned")).toBeInTheDocument();
     // Dates
     expect(screen.getByText(formatDate("2026-08-15T10:00:00Z"))).toBeInTheDocument();
   });
@@ -210,5 +228,42 @@ describe("LeadsPage", () => {
     expect(
       within(lostRow).getByRole("button", { name: "Update status" }),
     ).toBeDisabled();
+  });
+
+  it("assigns an owner through the dialog and refreshes the queue", async () => {
+    mockApiGet.mockResolvedValueOnce(mockLeads);
+    render(<LeadsPage />);
+    await waitForRows();
+
+    // The assign dialog fetches the operator picker list on open.
+    mockApiGet.mockResolvedValueOnce([
+      { id: "op-2", name: "Amit Ops", email: "amit@docita.work" },
+      { id: "op-3", name: "Neha Ops", email: "neha@docita.work" },
+    ]);
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Assign" })[0]);
+    const dialog = await screen.findByRole("dialog");
+
+    expect(mockApiGet).toHaveBeenCalledWith("/api/internal/operators");
+
+    fireEvent.click(within(dialog).getByRole("combobox"));
+    fireEvent.click(await screen.findByRole("option", { name: /Amit Ops/ }));
+
+    mockApiPatch.mockResolvedValueOnce({ id: "l1" });
+    mockApiGet.mockResolvedValueOnce(mockLeads);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Save Changes" }));
+
+    await waitFor(() => {
+      expect(mockApiPatch).toHaveBeenCalledWith("/api/internal/leads/l1/assign", {
+        userId: "op-2",
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+    expect(mockApiGet).toHaveBeenCalledTimes(3); // leads + operators + refetch
+    const { toast } = await import("sonner");
+    expect(toast.success).toHaveBeenCalledWith("Lead owner updated");
   });
 });

@@ -7,9 +7,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
+import { Prisma, Role } from '@workspace/db';
 import {
   FACILITY_LEAD_TRANSITIONS,
+  type FacilityLeadAssignmentHistoryEntry,
+  type FacilityLeadAssign,
   type FacilityLeadStatusHistoryEntry,
   type FacilityLeadSubmit,
   type FacilityLeadTransition,
@@ -210,6 +212,75 @@ export class FacilityLeadCommandService {
       }
     });
 
+    return this.readFreshView(id);
+  }
+
+  /**
+   * Internal operator assignment. The write is conditional on the owner we
+   * read, so two operators assigning the same lead concurrently cannot
+   * silently overwrite each other — the loser gets a conflict. Every change
+   * appends an actor/timestamp record to `assignmentHistory` (never edited
+   * in place), and any existing internal notifications are re-targeted to
+   * the new owner in the same transaction so the delivery record always
+   * names the current assignee.
+   */
+  async assignOwner(
+    id: string,
+    actorId: string,
+    input: FacilityLeadAssign,
+  ): Promise<FacilityLeadView> {
+    const lead = await this.prisma.facilityLead.findUnique({ where: { id } });
+    if (!lead) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    // Owners are internal operators only; the picker already restricts the
+    // list, but the write re-checks so a direct API call cannot pin a clinic
+    // staff or patient user as the lead owner.
+    const operator = await this.prisma.user.findFirst({
+      where: { id: input.userId, role: Role.INTERNAL },
+      select: { id: true },
+    });
+    if (!operator) {
+      throw new BadRequestException('Operator not found');
+    }
+
+    const history = Array.isArray(lead.assignmentHistory)
+      ? (lead.assignmentHistory as FacilityLeadAssignmentHistoryEntry[])
+      : [];
+    const entry: FacilityLeadAssignmentHistoryEntry = {
+      fromUserId: lead.ownerUserId ?? null,
+      toUserId: input.userId,
+      actorId,
+      at: this.clock.now().toISOString(),
+    };
+
+    await this.prisma.$transaction(async (tx) => {
+      const result = await tx.facilityLead.updateMany({
+        where: { id, ownerUserId: lead.ownerUserId },
+        data: {
+          ownerUserId: input.userId,
+          assignmentHistory: toPrismaInputJsonValue([...history, entry]),
+        },
+      });
+      if (result.count === 0) {
+        // The owner changed between our read and write (concurrent assign).
+        throw new ConflictException(
+          'This lead was just assigned by someone else; please review and retry',
+        );
+      }
+      // Keep the delivery record in step with the assignment.
+      await tx.facilityLeadNotification.updateMany({
+        where: { leadId: id },
+        data: { recipientUserId: input.userId },
+      });
+    });
+
+    return this.readFreshView(id);
+  }
+
+  /** Re-read after a write and map to the partner view (404 if gone). */
+  private async readFreshView(id: string): Promise<FacilityLeadView> {
     const fresh = await this.prisma.facilityLead.findUnique({
       where: { id },
       include: { referrer: { select: { id: true, name: true } } },

@@ -1,7 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { Role } from '@workspace/db';
 import type {
   FacilityLeadStatus,
   InternalFacilityLeadView,
+  InternalOperator,
 } from '@workspace/types';
 import {
   PARTNER_PERSISTENCE_PORT,
@@ -27,9 +29,27 @@ export class FacilityLeadQueryService {
       take: 200,
       include: {
         referrer: { select: { id: true, name: true } },
+        ownerUser: { select: { id: true, name: true } },
         notifications: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
     });
     return leads.map(mapToInternalView);
+  }
+
+  /** Assignable internal operators, alphabetized for the picker. */
+  async listOperators(): Promise<InternalOperator[]> {
+    const operators = await this.prisma.user.findMany({
+      where: { role: Role.INTERNAL },
+      select: { id: true, name: true, email: true },
+      orderBy: { name: 'asc' },
+      // Bounded like the other internal user lists (§9.3): the picker never
+      // needs the whole platform staff.
+      take: 200,
+    });
+    return operators.map((operator) => ({
+      id: operator.id,
+      name: operator.name,
+      email: operator.email,
+    }));
   }
 }

@@ -24,6 +24,7 @@ import {
 } from "@workspace/types";
 import { formatDate } from "../../../lib/formatters";
 import { apiGet } from "@/lib/api/api-client";
+import { LeadAssignDialog } from "../components/lead-assign-dialog";
 import { LeadNotificationBadge } from "../components/lead-notification-badge";
 import { LeadStatusDialog } from "../components/lead-status-dialog";
 import {
@@ -35,6 +36,8 @@ export function LeadsPage() {
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState<InternalFacilityLeadView[]>([]);
   const [transitioning, setTransitioning] =
+    useState<InternalFacilityLeadView | null>(null);
+  const [assigning, setAssigning] =
     useState<InternalFacilityLeadView | null>(null);
 
   const fetchLeads = useCallback(async () => {
@@ -123,6 +126,7 @@ export function LeadsPage() {
                       <TableHead>Partner</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Owner</TableHead>
                       <TableHead>Notify</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -156,6 +160,11 @@ export function LeadsPage() {
                               {LEAD_STATUS_LABELS[lead.status]}
                             </Badge>
                           </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {lead.ownerName ?? (
+                              <span className="text-xs">Unassigned</span>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <LeadNotificationBadge
                               notification={lead.notification}
@@ -165,6 +174,13 @@ export function LeadsPage() {
                             {formatDate(lead.createdAt)}
                           </TableCell>
                           <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setAssigning(lead)}
+                            >
+                              Assign
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -191,6 +207,14 @@ export function LeadsPage() {
           if (!open) setTransitioning(null);
         }}
         lead={transitioning}
+        onSaved={() => void fetchLeads()}
+      />
+      <LeadAssignDialog
+        open={assigning !== null}
+        onOpenChange={(open) => {
+          if (!open) setAssigning(null);
+        }}
+        lead={assigning}
         onSaved={() => void fetchLeads()}
       />
     </AppPageScaffold>
