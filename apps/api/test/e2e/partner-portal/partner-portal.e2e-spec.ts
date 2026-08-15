@@ -278,6 +278,21 @@ describe('Partner Portal (e2e)', () => {
         .set('Authorization', 'Bearer not.a.jwt')
         .expect(401);
     });
+
+    it('rejects an existing access token once the partner is deactivated', async () => {
+      const { accessToken } = await obtainTokens();
+      // Deactivation (internal console) must terminate the existing session
+      // on the next request — not only block new logins.
+      await prisma.referrer.update({
+        where: { id: referrerId },
+        data: { active: false },
+      });
+
+      await request(app.getHttpServer())
+        .get('/partner/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(401);
+    });
   });
 
   describe('POST /partner/auth/refresh', () => {
@@ -313,6 +328,21 @@ describe('Partner Portal (e2e)', () => {
         .post('/partner/auth/refresh')
         .set(csrfHeaders(csrf))
         .send({})
+        .expect(401);
+    });
+
+    it('rejects a refresh token once the partner is deactivated', async () => {
+      const { refreshToken } = await obtainTokens();
+      await prisma.referrer.update({
+        where: { id: referrerId },
+        data: { active: false },
+      });
+      const csrf = await getCsrfHeaders(app.getHttpServer());
+
+      await request(app.getHttpServer())
+        .post('/partner/auth/refresh')
+        .set(csrfHeaders(csrf))
+        .send({ refreshToken })
         .expect(401);
     });
   });

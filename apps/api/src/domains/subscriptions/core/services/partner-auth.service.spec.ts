@@ -49,6 +49,9 @@ class FakePrismaService {
             );
           },
         ),
+        findUnique: jest.fn(async (args: { where: { id: string } }) => {
+          return this.referrers.find((r) => r.id === args.where.id) ?? null;
+        }),
       },
       partnerOtpChallenge: {
         updateMany: jest.fn(
@@ -382,6 +385,39 @@ describe('PartnerAuthService', () => {
       expect(claims.sub).toBe('rfr_1');
       expect(claims.phone).toBe(PHONE);
       expect(claims.type).toBe('access');
+    });
+
+    it('rejects a valid access token once the referrer is deactivated', async () => {
+      const PHONE = '+919999999998';
+      await seedOtp('111111', PHONE);
+      const { accessToken } = await service.verifyOtp({
+        phone: PHONE,
+        otp: '111111',
+      });
+
+      // Deactivate after login — the same state the internal console sets.
+      const referrer = prisma.referrers.find((r) => r.id === 'rfr_1');
+      if (referrer) referrer.active = false;
+
+      await expect(
+        service.verifyAccessToken(accessToken),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('rejects refresh once the referrer is deactivated', async () => {
+      const PHONE = '+919999999998';
+      await seedOtp('111111', PHONE);
+      const { refreshToken } = await service.verifyOtp({
+        phone: PHONE,
+        otp: '111111',
+      });
+
+      const referrer = prisma.referrers.find((r) => r.id === 'rfr_1');
+      if (referrer) referrer.active = false;
+
+      await expect(service.refresh(refreshToken)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
     });
   });
 });

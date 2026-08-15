@@ -170,9 +170,9 @@ export class PartnerAuthService {
   /**
    * Mint a new access token from a valid refresh token. The refresh
    * token must be a partner JWT with `type: 'refresh'` and a still-valid
-   * expiry. No DB lookup — pure JWT rotation, intentional trade-off
-   * for v1 (no revocation; if that's ever needed we can add a
-   * PartnerRefreshToken table later).
+   * expiry, and the referrer must still be active. JWT rotation with a
+   * per-use `active` re-check (no PartnerRefreshToken row, so there is
+   * no separate revocation ledger beyond the referrer flag).
    */
   async refresh(
     refreshToken: string,
@@ -191,6 +191,7 @@ export class PartnerAuthService {
     ) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+    await this.assertReferrerActive(claims.sub);
     const accessToken = this.signPartnerToken(
       { sub: claims.sub, phone: claims.phone, type: 'access' },
       PARTNER_ACCESS_TOKEN_TTL_SECONDS,
@@ -201,7 +202,13 @@ export class PartnerAuthService {
     };
   }
 
-  /** Verify a partner access token and return the referrerId + phone claims. */
+  /**
+   * Verify a partner access token and return the referrerId + phone claims.
+   * The referrer must still be active: deactivation from the internal
+   * console must terminate existing sessions on the next request, not just
+   * block new logins. Active partners are unaffected — one indexed PK
+   * lookup per request.
+   */
   async verifyAccessToken(token: string): Promise<PartnerJwtClaims> {
     let claims: PartnerJwtClaims;
     try {
@@ -214,7 +221,23 @@ export class PartnerAuthService {
     if (claims.type !== 'access') {
       throw new UnauthorizedException('Wrong token type');
     }
+    await this.assertReferrerActive(claims.sub);
     return claims;
+  }
+
+  /**
+   * A partner token only authorizes the portal while the referrer row is
+   * active. Deactivation takes effect on the very next token use, so the
+   * 30-day refresh TTL cannot outlive a partner's active status.
+   */
+  private async assertReferrerActive(referrerId: string): Promise<void> {
+    const referrer = await this.prisma.referrer.findUnique({
+      where: { id: referrerId },
+      select: { active: true },
+    });
+    if (!referrer?.active) {
+      throw new UnauthorizedException('Partner account is not active');
+    }
   }
 
   private signPartnerToken(claims: PartnerJwtClaims, expiresInSeconds: number) {
