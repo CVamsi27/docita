@@ -1,19 +1,8 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { BadRequestException, ConflictException } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { FacilityLeadCommandService } from './facility-lead-command.service';
 import { leadRow, makeFacilityLeadCtx } from './facility-lead.spec-helpers';
-
-const submitInput = {
-  facilityName: 'Sunrise Diagnostics',
-  facilityType: 'DIAGNOSTIC_CENTRE' as const,
-  address: '12 MG Road, Indiranagar',
-  city: 'Bengaluru',
-  contactName: 'Dr Anil',
-  contactPhone: '98123 45678',
-  consentToFollowUp: true,
-};
 
 describe('FacilityLeadCommandService', () => {
   let ctx: ReturnType<typeof makeFacilityLeadCtx>;
@@ -23,126 +12,6 @@ describe('FacilityLeadCommandService', () => {
 
   const service = () =>
     new FacilityLeadCommandService(ctx.prisma, ctx.clock, ctx.outbox);
-
-  describe('submitLead', () => {
-    it('creates a SUBMITTED lead with the normalized contact phone and appends the created outbox event atomically', async () => {
-      ctx.facilityLead.findUnique.mockResolvedValue(null);
-      ctx.facilityLead.findFirst.mockResolvedValue(null);
-      ctx.facilityLead.create.mockResolvedValue(leadRow());
-
-      const view = await service().submitLead('r1', submitInput);
-
-      const data = (
-        ctx.facilityLead.create.mock.calls[0][0] as {
-          data: Record<string, unknown>;
-        }
-      ).data;
-      expect(data.referrerId).toBe('r1');
-      expect(data.status).toBeUndefined(); // DB default SUBMITTED
-      expect(data.contactPhone).toBe('+919812345678');
-      expect(data.consentToFollowUp).toBe(true);
-      // Prisma.JsonNull sentinel: no history on a fresh lead.
-      expect(data.statusHistory).toBe(Prisma.JsonNull);
-      expect(view).toMatchObject({
-        id: 'l1',
-        referrerName: 'Priya Partner',
-        status: 'SUBMITTED',
-        facilityName: 'Sunrise Diagnostics',
-      });
-
-      // The durable event is appended inside the same transaction.
-      expect(ctx.outbox.append).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          eventName: ApplicationEvents.FACILITY_LEAD_CREATED,
-          aggregateType: 'FacilityLead',
-          aggregateId: 'l1',
-          idempotencyKey: 'facility-lead.created:l1',
-          payload: { leadId: 'l1', referrerId: 'r1' },
-        }),
-      );
-    });
-
-    it('skips the dedupe lookup when no contact phone is provided', async () => {
-      ctx.facilityLead.findUnique.mockResolvedValue(null);
-      ctx.facilityLead.create.mockResolvedValue(
-        leadRow({ contactPhone: null }),
-      );
-
-      await service().submitLead('r1', {
-        ...submitInput,
-        contactPhone: undefined,
-      });
-
-      expect(ctx.facilityLead.findFirst).not.toHaveBeenCalled();
-      const data = (
-        ctx.facilityLead.create.mock.calls[0][0] as {
-          data: Record<string, unknown>;
-        }
-      ).data;
-      expect(data.contactPhone).toBeNull();
-    });
-
-    it('rejects a duplicate contact phone with DUPLICATE_ENTRY and never creates', async () => {
-      ctx.facilityLead.findUnique.mockResolvedValue(null);
-      ctx.facilityLead.findFirst.mockResolvedValue({ id: 'existing-1' });
-
-      let thrown: unknown;
-      try {
-        await service().submitLead('r1', submitInput);
-      } catch (error) {
-        thrown = error;
-      }
-
-      expect(thrown).toBeInstanceOf(ConflictException);
-      expect((thrown as ConflictException).getResponse()).toEqual({
-        message: 'A lead for this facility contact already exists',
-        code: 'DUPLICATE_ENTRY',
-      });
-      expect(ctx.facilityLead.create).not.toHaveBeenCalled();
-      expect(ctx.outbox.append).not.toHaveBeenCalled();
-    });
-
-    it('replays an idempotency key to the original lead before any dedupe', async () => {
-      ctx.facilityLead.findUnique.mockResolvedValue(
-        leadRow({ idempotencyKey: 'key-12345678' }),
-      );
-
-      const view = await service().submitLead('r1', {
-        ...submitInput,
-        idempotencyKey: 'key-12345678',
-      });
-
-      expect(view.id).toBe('l1');
-      expect(ctx.facilityLead.findFirst).not.toHaveBeenCalled();
-      expect(ctx.facilityLead.create).not.toHaveBeenCalled();
-      expect(ctx.outbox.append).not.toHaveBeenCalled();
-    });
-
-    it('returns the existing lead when a concurrent create hits the unique key (no second event)', async () => {
-      ctx.facilityLead.findUnique.mockResolvedValue(null);
-      ctx.facilityLead.findFirst.mockResolvedValue(null);
-      const conflict = new Error('Unique constraint failed') as Error & {
-        code: string;
-        meta: { target: string[] };
-      };
-      conflict.code = 'P2002';
-      conflict.meta = { target: ['referrerId', 'idempotencyKey'] };
-      ctx.facilityLead.create.mockRejectedValueOnce(conflict);
-      ctx.facilityLead.findUnique.mockResolvedValue(
-        leadRow({ idempotencyKey: 'key-12345678' }),
-      );
-
-      const view = await service().submitLead('r1', {
-        ...submitInput,
-        idempotencyKey: 'key-12345678',
-      });
-
-      expect(view.id).toBe('l1');
-      // The loser's transaction rolled back: no outbox event was appended.
-      expect(ctx.outbox.append).not.toHaveBeenCalled();
-    });
-  });
 
   describe('transitionLead', () => {
     it('advances along an allowed edge and appends history with actor + reason (no outbox event)', async () => {
@@ -243,6 +112,65 @@ describe('FacilityLeadCommandService', () => {
           payload: { leadId: 'l1', referrerId: 'r1' },
         }),
       );
+    });
+
+    it('resolves a DUPLICATE_REVIEW lead to TRIAGED and drops the duplicate linkage', async () => {
+      ctx.facilityLead.findUnique.mockResolvedValueOnce(
+        leadRow({
+          status: 'DUPLICATE_REVIEW',
+          duplicateOfId: 'orig-1',
+          duplicateScore: 1,
+          statusHistory: [],
+        }),
+      );
+      ctx.facilityLead.findUnique.mockResolvedValueOnce(
+        leadRow({ status: 'TRIAGED', statusHistory: [] }),
+      );
+      ctx.facilityLead.updateMany.mockResolvedValue({ count: 1 });
+
+      const view = await service().transitionLead('l1', 'admin-1', {
+        status: 'TRIAGED',
+        reason: 'Verified this is a distinct facility after all',
+      });
+
+      expect(view.status).toBe('TRIAGED');
+      const write = ctx.facilityLead.updateMany.mock.calls[0][0] as {
+        where: { status: string };
+        data: { duplicateOfId: string | null; duplicateScore: number | null };
+      };
+      expect(write.where.status).toBe('DUPLICATE_REVIEW');
+      // Resolved as real: the queue must stop labeling it a duplicate.
+      expect(write.data.duplicateOfId).toBeNull();
+      expect(write.data.duplicateScore).toBeNull();
+    });
+
+    it('keeps the duplicate linkage when a DUPLICATE_REVIEW lead is rejected as a duplicate', async () => {
+      ctx.facilityLead.findUnique.mockResolvedValueOnce(
+        leadRow({
+          status: 'DUPLICATE_REVIEW',
+          duplicateOfId: 'orig-1',
+          duplicateScore: 1,
+          statusHistory: [],
+        }),
+      );
+      ctx.facilityLead.findUnique.mockResolvedValueOnce(
+        leadRow({ status: 'DUPLICATE', statusHistory: [] }),
+      );
+      ctx.facilityLead.updateMany.mockResolvedValue({ count: 1 });
+
+      const view = await service().transitionLead('l1', 'admin-1', {
+        status: 'DUPLICATE',
+        reason: 'Confirmed a copy of the existing Sunrise Diagnostics lead',
+      });
+
+      expect(view.status).toBe('DUPLICATE');
+      const write = ctx.facilityLead.updateMany.mock.calls[0][0] as {
+        data: Record<string, unknown>;
+      };
+      // The dead copy keeps its provenance: the write does not touch the
+      // duplicate linkage (the DB retains the stored values).
+      expect(write.data.duplicateOfId).toBeUndefined();
+      expect(write.data.duplicateScore).toBeUndefined();
     });
 
     it('rejects an edge that skips the chain', async () => {

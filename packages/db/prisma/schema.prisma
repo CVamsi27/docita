@@ -3906,6 +3906,7 @@ enum FacilityLeadType {
 enum FacilityLeadStatus {
   SUBMITTED
   TRIAGED
+  DUPLICATE_REVIEW
   CONTACT_ATTEMPTED
   CONTACTED
   DEMO_SCHEDULED
@@ -3967,6 +3968,21 @@ model FacilityLead {
   /// @json:facilityLeadAssignmentHistoryEntrySchema
   assignmentHistory Json?
 
+  /// Deterministic facility fingerprint (sha256 of normalized
+  /// name|address|phone). Unique so two concurrent submits of the same
+  /// facility cannot both slip past the pre-check — the loser hits P2002
+  /// and is routed to DUPLICATE_REVIEW instead. Null for review-flagged
+  /// copies (they reference the original via `duplicateOfId` instead, so
+  /// the unique index keeps exactly one real lead per facility).
+  fingerprint String? @unique
+  /// 1.0 for exact fingerprint matches; null otherwise. Surfaced to
+  /// operators in the internal queue and the notification payload.
+  duplicateScore Float?
+  /// The original lead this row is a review-flagged duplicate of.
+  duplicateOfId String?
+  duplicateOf FacilityLead? @relation("FacilityLeadDuplicate", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicates  FacilityLead[] @relation("FacilityLeadDuplicate")
+
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
@@ -3976,6 +3992,7 @@ model FacilityLead {
   @@index([status, createdAt])
   @@index([referrerId])
   @@index([ownerUserId])
+  @@index([duplicateOfId])
 }
 
 /// What triggered an internal facility-lead notification.

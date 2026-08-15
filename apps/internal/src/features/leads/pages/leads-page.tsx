@@ -159,6 +159,14 @@ export function LeadsPage() {
                             <Badge variant={leadStatusBadgeVariant(lead.status)}>
                               {LEAD_STATUS_LABELS[lead.status]}
                             </Badge>
+                            {lead.duplicateOf && (
+                              <div className="text-xs text-destructive">
+                                Duplicate of {lead.duplicateOf.facilityName}
+                                {lead.duplicateScore != null
+                                  ? ` (score ${lead.duplicateScore})`
+                                  : ""}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {lead.ownerName ?? (

@@ -30,6 +30,7 @@ export class FacilityLeadQueryService {
       include: {
         referrer: { select: { id: true, name: true } },
         ownerUser: { select: { id: true, name: true } },
+        duplicateOf: { select: { id: true, facilityName: true } },
         notifications: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
     });

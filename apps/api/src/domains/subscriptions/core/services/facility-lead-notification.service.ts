@@ -80,8 +80,8 @@ export class FacilityLeadNotificationService {
         state: lead.state,
         partnerName: lead.referrer.name,
         consentToFollowUp: lead.consentToFollowUp,
-        // Duplicate fingerprinting is a later sub-slice of the P0.
-        duplicateScore: null,
+        // Exact fingerprint matches are held for review with score 1.
+        duplicateScore: lead.duplicateScore ?? null,
         deepLink: LEADS_QUEUE_DEEP_LINK,
       };
 

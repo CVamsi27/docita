@@ -21,6 +21,7 @@ import { PartnerAuthGuard } from './presentation/guards/partner-auth.guard';
 import { PartnerAuthService } from './core/services/partner-auth.service';
 import { PartnerPortalService } from './core/services/partner-portal.service';
 import { FacilityLeadCommandService } from './core/services/facility-lead-command.service';
+import { FacilityLeadSubmissionCommandService } from './core/services/facility-lead-submission-command.service';
 import { FacilityLeadQueryService } from './core/services/facility-lead-query.service';
 import { ClinicReferralAdapter } from './infrastructure/adapters/clinic-referral.adapter';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -81,6 +82,7 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     PartnerAuthService,
     PartnerPortalService,
     FacilityLeadCommandService,
+    FacilityLeadSubmissionCommandService,
     FacilityLeadQueryService,
     PartnerAuthGuard,
     ClinicReferralAdapter,
@@ -90,6 +92,7 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     SchedulePlanChangeUseCase,
     ClinicReferralAdapter,
     FacilityLeadCommandService,
+    FacilityLeadSubmissionCommandService,
     FacilityLeadQueryService,
   ],
 })

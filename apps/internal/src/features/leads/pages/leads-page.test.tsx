@@ -44,6 +44,8 @@ const mockLeads = [
         at: "2026-08-15T09:00:00Z",
       },
     ],
+    duplicateScore: null,
+    duplicateOf: null,
     notification: {
       id: "n1",
       leadId: "l1",
@@ -85,6 +87,8 @@ const mockLeads = [
     ownerUserId: null,
     ownerName: null,
     assignmentHistory: undefined,
+    duplicateScore: null,
+    duplicateOf: null,
     notification: {
       id: "n2",
       leadId: "l2",
@@ -104,6 +108,49 @@ const mockLeads = [
       errorMessage: "connection refused",
       deliveredAt: null,
       createdAt: "2026-08-14T10:05:00Z",
+    },
+  },
+  {
+    id: "l3",
+    referrerId: "r3",
+    referrerName: "Carol Partner",
+    status: "DUPLICATE_REVIEW",
+    facilityName: "Sunrise Diagnostics (2nd submit)",
+    facilityType: "DIAGNOSTIC_CENTRE",
+    address: "12 MG Road",
+    city: "Pune",
+    state: "Maharashtra",
+    postalCode: "411001",
+    contactName: "Dr Sana",
+    contactPhone: "+919800000001",
+    contactEmail: null,
+    consentToFollowUp: true,
+    createdAt: "2026-08-15T11:00:00Z",
+    updatedAt: "2026-08-15T11:00:00Z",
+    ownerUserId: null,
+    ownerName: null,
+    assignmentHistory: undefined,
+    duplicateScore: 1,
+    duplicateOf: { id: "l1", facilityName: "Sunrise Diagnostics" },
+    notification: {
+      id: "n3",
+      leadId: "l3",
+      kind: "LEAD_CREATED",
+      status: "DELIVERED",
+      recipientUserId: null,
+      payload: {
+        leadId: "l3",
+        facilityName: "Sunrise Diagnostics (2nd submit)",
+        city: "Bengaluru",
+        state: "Karnataka",
+        partnerName: "Carol Partner",
+        consentToFollowUp: true,
+        duplicateScore: 1,
+        deepLink: "/leads",
+      },
+      errorMessage: null,
+      deliveredAt: "2026-08-15T11:05:00Z",
+      createdAt: "2026-08-15T11:05:00Z",
     },
   },
 ];
@@ -142,12 +189,17 @@ describe("LeadsPage", () => {
     // Status badges
     expect(screen.getByText("Submitted")).toBeInTheDocument();
     expect(screen.getByText("Lost")).toBeInTheDocument();
-    // Notification delivery status
-    expect(screen.getByText("Notified")).toBeInTheDocument();
+    expect(screen.getByText("Duplicate review")).toBeInTheDocument();
+    // Duplicate surface: linked original + exact-match score
+    expect(
+      screen.getByText("Duplicate of Sunrise Diagnostics (score 1)"),
+    ).toBeInTheDocument();
+    // Notification delivery status (l1 and the duplicate l3 are both notified)
+    expect(screen.getAllByText("Notified").length).toBeGreaterThan(0);
     expect(screen.getByText("Notify failed")).toBeInTheDocument();
     // Owner column: assigned operator vs unassigned
     expect(screen.getByText("Kiran Ops")).toBeInTheDocument();
-    expect(screen.getByText("Unassigned")).toBeInTheDocument();
+    expect(screen.getAllByText("Unassigned").length).toBeGreaterThan(0);
     // Dates
     expect(screen.getByText(formatDate("2026-08-15T10:00:00Z"))).toBeInTheDocument();
   });

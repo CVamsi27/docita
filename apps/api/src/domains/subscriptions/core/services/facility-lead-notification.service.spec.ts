@@ -78,6 +78,20 @@ describe('FacilityLeadNotificationService', () => {
     expect(arg.create.errorMessage).toBe('connection refused');
   });
 
+  it('carries the duplicate score for review-flagged leads', async () => {
+    ctx.facilityLead.findUnique.mockResolvedValue(
+      leadRow({ duplicateScore: 1 }),
+    );
+    ctx.facilityLeadNotification.upsert.mockResolvedValue({ id: 'n1' });
+
+    await service().onLeadCreated({ leadId: 'l1' });
+
+    const arg = ctx.facilityLeadNotification.upsert.mock.calls[0]?.[0] as {
+      create: { payload: Record<string, unknown> };
+    };
+    expect(arg.create.payload.duplicateScore).toBe(1);
+  });
+
   it('targets the assigned owner when the lead has one', async () => {
     ctx.facilityLead.findUnique.mockResolvedValue(
       leadRow({

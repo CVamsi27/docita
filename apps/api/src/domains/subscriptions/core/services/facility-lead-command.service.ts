@@ -1,5 +1,6 @@
 // check-as-cast-density: allow-file — narrowing Prisma JsonValue to the
-// domain statusHistory array (schema-backed; no unchecked widening).
+// domain statusHistory/assignmentHistory arrays (schema-backed; no
+// unchecked widening).
 import {
   BadRequestException,
   ConflictException,
@@ -13,11 +14,9 @@ import {
   type FacilityLeadAssignmentHistoryEntry,
   type FacilityLeadAssign,
   type FacilityLeadStatusHistoryEntry,
-  type FacilityLeadSubmit,
   type FacilityLeadTransition,
   type FacilityLeadView,
 } from '@workspace/types';
-import { normalizePhoneE164, phoneMatchCandidates } from '@workspace/utils';
 import {
   PARTNER_PERSISTENCE_PORT,
   type PartnerPersistencePort,
@@ -29,13 +28,13 @@ import type { IOutboxService } from '@/shared/modules/outbox/outbox.interface';
 import { mapToView } from './facility-lead.mapper';
 
 /**
- * Facility-lead writes. Submission is idempotent on a per-partner
- * `idempotencyKey` and conflicts on a normalized contact phone with any
- * existing lead (`DUPLICATE_ENTRY`, the same semantic used for partner
- * phone conflicts) so double-submits surface instead of duplicating rows.
- * Transitions only follow the allowed edges from `FACILITY_LEAD_TRANSITIONS`
- * and append an actor/reason/timestamp record to `statusHistory` (never
- * edited in place).
+ * Facility-lead lifecycle and ownership writes (internal operators). The
+ * partner-facing submission flow (idempotency, fingerprint duplicate
+ * review) lives in `FacilityLeadSubmissionCommandService`. Transitions
+ * only follow the allowed edges from `FACILITY_LEAD_TRANSITIONS` and
+ * append an actor/reason/timestamp record to `statusHistory` (never edited
+ * in place); assignments follow the same append-only contract on
+ * `assignmentHistory`.
  */
 @Injectable()
 export class FacilityLeadCommandService {
@@ -45,106 +44,6 @@ export class FacilityLeadCommandService {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
     @Inject('IOutboxService') private readonly outbox: IOutboxService,
   ) {}
-
-  async submitLead(
-    referrerId: string,
-    input: FacilityLeadSubmit,
-  ): Promise<FacilityLeadView> {
-    // 1. Idempotent replay: a client retry with the same key returns the
-    //    original lead before any duplicate check can trip on its own phone.
-    if (input.idempotencyKey) {
-      const existing = await this.prisma.facilityLead.findUnique({
-        where: {
-          referrerId_idempotencyKey: {
-            referrerId,
-            idempotencyKey: input.idempotencyKey,
-          },
-        },
-        include: { referrer: { select: { id: true, name: true } } },
-      });
-      if (existing) return mapToView(existing);
-    }
-
-    // 2. Normalized contact-phone dedupe. Conservative for v1: any existing
-    //    lead (any partner) with an equivalent stored form conflicts; the
-    //    operator resolves duplicates via the lifecycle instead.
-    let contactPhone: string | null = null;
-    if (input.contactPhone) {
-      contactPhone = normalizePhoneE164(input.contactPhone);
-      const duplicate = await this.prisma.facilityLead.findFirst({
-        where: { contactPhone: { in: phoneMatchCandidates(contactPhone) } },
-        select: { id: true },
-      });
-      if (duplicate) {
-        throw new ConflictException({
-          message: 'A lead for this facility contact already exists',
-          code: 'DUPLICATE_ENTRY',
-        });
-      }
-    }
-
-    // 3. Create. The compound unique is the hard idempotency guarantee for
-    //    the concurrent-submit race the pre-check cannot see. The lead and
-    //    its durable `facility-lead.created` outbox event commit atomically
-    //    (ADR-0010), so a lead can never exist without its event and a
-    //    rolled-back submit appends nothing.
-    try {
-      const lead = await this.prisma.$transaction(async (tx) => {
-        const created = await tx.facilityLead.create({
-          data: {
-            referrerId,
-            facilityName: input.facilityName,
-            facilityType: input.facilityType,
-            address: input.address,
-            city: input.city,
-            state: input.state ?? null,
-            postalCode: input.postalCode ?? null,
-            mapsUrl: input.mapsUrl ?? null,
-            contactName: input.contactName,
-            contactRole: input.contactRole ?? null,
-            contactPhone: contactPhone,
-            contactEmail: input.contactEmail ?? null,
-            sourceNote: input.sourceNote ?? null,
-            preferredChannel: input.preferredChannel ?? null,
-            consentToFollowUp: input.consentToFollowUp,
-            notes: input.notes ?? null,
-            bestTimeToContact: input.bestTimeToContact ?? null,
-            idempotencyKey: input.idempotencyKey ?? null,
-            statusHistory: Prisma.JsonNull,
-          },
-          include: { referrer: { select: { id: true, name: true } } },
-        });
-        await this.outbox.append(tx, {
-          eventName: ApplicationEvents.FACILITY_LEAD_CREATED,
-          aggregateType: 'FacilityLead',
-          aggregateId: created.id,
-          clinicId: null,
-          // Deterministic per lead: the lead row itself is unique, so the
-          // event is exactly-once even across relay retries.
-          idempotencyKey: `facility-lead.created:${created.id}`,
-          // Identifiers only — the listener reloads the lead to build the
-          // PII-redacted notification payload (never PHI in the outbox).
-          payload: { leadId: created.id, referrerId },
-        });
-        return created;
-      });
-      return mapToView(lead);
-    } catch (error) {
-      if (input.idempotencyKey && isUniqueConstraintOnIdempotency(error)) {
-        const existing = await this.prisma.facilityLead.findUnique({
-          where: {
-            referrerId_idempotencyKey: {
-              referrerId,
-              idempotencyKey: input.idempotencyKey,
-            },
-          },
-          include: { referrer: { select: { id: true, name: true } } },
-        });
-        if (existing) return mapToView(existing);
-      }
-      throw error;
-    }
-  }
 
   /**
    * Internal operator status transition. Only the allowed edges from
@@ -182,16 +81,25 @@ export class FacilityLeadCommandService {
       at: this.clock.now().toISOString(),
     };
 
+    const data: Prisma.FacilityLeadUncheckedUpdateManyInput = {
+      status: input.status,
+      statusHistory: toPrismaInputJsonValue([...history, entry]),
+    };
+    if (lead.status === 'DUPLICATE_REVIEW' && input.status === 'TRIAGED') {
+      // Resolved as a real facility: drop the duplicate linkage so the
+      // queue stops labeling a live lead as a copy (the statusHistory entry
+      // above is the audit record of the resolution).
+      data.duplicateOfId = null;
+      data.duplicateScore = null;
+    }
+
     // The write stays conditional on the status we read (concurrency guard)
     // and the CONVERTED outbox event commits atomically with it, so a
     // loser of a concurrent transition never appends a spurious event.
     await this.prisma.$transaction(async (tx) => {
       const result = await tx.facilityLead.updateMany({
         where: { id, status: lead.status },
-        data: {
-          status: input.status,
-          statusHistory: toPrismaInputJsonValue([...history, entry]),
-        },
+        data,
       });
       if (result.count === 0) {
         // The lead moved between our read and write (concurrent operator).
@@ -290,11 +198,4 @@ export class FacilityLeadCommandService {
     }
     return mapToView(fresh);
   }
-}
-
-function isUniqueConstraintOnIdempotency(error: unknown): boolean {
-  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return false;
-  if (error.code !== 'P2002') return false;
-  const target = error.meta?.target;
-  return Array.isArray(target) && target.includes('idempotencyKey');
 }

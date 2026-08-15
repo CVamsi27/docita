@@ -30,7 +30,7 @@ import {
   type PartnerReferralRow,
 } from '@workspace/types';
 import { PartnerPortalService } from '../../core/services/partner-portal.service';
-import { FacilityLeadCommandService } from '../../core/services/facility-lead-command.service';
+import { FacilityLeadSubmissionCommandService } from '../../core/services/facility-lead-submission-command.service';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import {
   PARTNER_AUTH_REQUEST_KEY,
@@ -58,7 +58,7 @@ const WRITE_RATE_LIMIT = {
 export class PartnerPortalController {
   constructor(
     private readonly portal: PartnerPortalService,
-    private readonly leadService: FacilityLeadCommandService,
+    private readonly leadService: FacilityLeadSubmissionCommandService,
   ) {}
 
   @Get('me')

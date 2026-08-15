@@ -609,4 +609,165 @@ describe('Facility Leads (e2e)', () => {
         .expect(403);
     });
   });
+
+  describe('cross-partner duplicate review', () => {
+    it('holds an exact facility match in DUPLICATE_REVIEW linked to the original instead of a 409', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD14');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+
+      const first = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'lead-key-dup000001' }))
+        .expect(200);
+      expect(first.body.status).toBe('SUBMITTED');
+
+      // Exact same facility (name + address + phone) resubmitted with a
+      // different key: accepted for review, not rejected.
+      const second = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'lead-key-dup000002' }))
+        .expect(200);
+
+      expect(second.body.status).toBe('DUPLICATE_REVIEW');
+      expect(second.body.id).not.toBe(first.body.id);
+
+      const copy = await prisma.facilityLead.findUnique({
+        where: { id: second.body.id },
+        select: {
+          duplicateOfId: true,
+          duplicateScore: true,
+          fingerprint: true,
+        },
+      });
+      expect(copy?.duplicateOfId).toBe(first.body.id);
+      expect(copy?.duplicateScore).toBe(1);
+      // The review copy carries no fingerprint: the unique index keeps one
+      // real lead per facility.
+      expect(copy?.fingerprint).toBeNull();
+
+      // The original keeps its fingerprint (the unique owner).
+      const original = await prisma.facilityLead.findUnique({
+        where: { id: first.body.id },
+        select: { fingerprint: true },
+      });
+      expect(original?.fingerprint).not.toBeNull();
+
+      // The internal queue surfaces the duplicate link.
+      const queue = await request(app.getHttpServer())
+        .get('/internal/leads')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      const queued = queue.body.find(
+        (lead: { id: string }) => lead.id === second.body.id,
+      );
+      expect(queued).toMatchObject({
+        status: 'DUPLICATE_REVIEW',
+        duplicateScore: 1,
+        duplicateOf: {
+          id: first.body.id,
+          facilityName: 'Sunrise Diagnostics',
+        },
+      });
+    });
+
+    it('keeps the DUPLICATE_ENTRY 409 for a same-phone but different-facility submit', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD15');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+
+      await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'lead-key-dup000003' }))
+        .expect(200);
+
+      // Different facility name/address but the same contact phone: the
+      // fingerprint differs, so the conservative phone conflict still 409s.
+      const response = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(
+          leadBody({
+            facilityName: 'Sunrise Diagnostics Annex',
+            address: '44 Other Road',
+            idempotencyKey: 'lead-key-dup000004',
+          }),
+        )
+        .expect(409);
+
+      expect(response.body.code).toBe('DUPLICATE_ENTRY');
+    });
+
+    it('never creates two real leads for concurrent same-facility submits', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD16');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+
+      // Two parallel submits of the same facility with different keys: the
+      // fingerprint unique index guarantees exactly one winner; the loser is
+      // re-routed to DUPLICATE_REVIEW (never a 500, never a second real lead).
+      const [first, second] = await Promise.all([
+        request(app.getHttpServer())
+          .post('/partner/me/leads')
+          .set('Authorization', `Bearer ${token}`)
+          .send(leadBody({ idempotencyKey: 'lead-key-race000001' })),
+        request(app.getHttpServer())
+          .post('/partner/me/leads')
+          .set('Authorization', `Bearer ${token}`)
+          .send(leadBody({ idempotencyKey: 'lead-key-race000002' })),
+      ]);
+
+      expect(first.status).toBe(200);
+      expect(second.status).toBe(200);
+
+      const statuses = [first.body.status, second.body.status];
+      expect(statuses).toContain('SUBMITTED');
+      expect(statuses).toContain('DUPLICATE_REVIEW');
+
+      const real = await prisma.facilityLead.count({
+        where: { status: 'SUBMITTED' },
+      });
+      expect(real).toBe(1);
+      const reviewed = await prisma.facilityLead.findMany({
+        where: { status: 'DUPLICATE_REVIEW' },
+        select: { duplicateOfId: true },
+      });
+      expect(reviewed).toHaveLength(1);
+      const winner = await prisma.facilityLead.findFirst({
+        where: { status: 'SUBMITTED' },
+        select: { id: true },
+      });
+      expect(reviewed[0].duplicateOfId).toBe(winner?.id);
+    });
+
+    it('populates the duplicate score in the review copy notification payload', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD17');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+
+      await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'lead-key-dup000005' }))
+        .expect(200);
+      const copy = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'lead-key-dup000006' }))
+        .expect(200);
+
+      await outboxRelay.drain();
+      let notification = await prisma.facilityLeadNotification.findFirst({
+        where: { leadId: copy.body.id, kind: 'LEAD_CREATED' },
+      });
+      for (let attempt = 0; !notification && attempt < 20; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        notification = await prisma.facilityLeadNotification.findFirst({
+          where: { leadId: copy.body.id, kind: 'LEAD_CREATED' },
+        });
+      }
+      expect(notification).not.toBeNull();
+      const payload = notification?.payload as Record<string, unknown>;
+      expect(payload.duplicateScore).toBe(1);
+    });
+  });
 });

@@ -16,11 +16,12 @@ type LeadWithReferrer = Prisma.FacilityLeadGetPayload<{
   include: { referrer: { select: { id: true; name: true } } };
 }>;
 
-/** Internal queue row: lead + referrer + owner + latest notification. */
+/** Internal queue row: lead + referrer + owner + duplicate link + latest notification. */
 type LeadWithNotification = Prisma.FacilityLeadGetPayload<{
   include: {
     referrer: { select: { id: true; name: true } };
     ownerUser: { select: { id: true; name: true } };
+    duplicateOf: { select: { id: true; facilityName: true } };
     notifications: { orderBy: { createdAt: 'desc' }; take: 1 };
   };
 }>;
@@ -60,6 +61,10 @@ export function mapToInternalView(
     assignmentHistory: Array.isArray(lead.assignmentHistory)
       ? (lead.assignmentHistory as FacilityLeadAssignmentHistoryEntry[])
       : undefined,
+    duplicateScore: lead.duplicateScore ?? null,
+    duplicateOf: lead.duplicateOf
+      ? { id: lead.duplicateOf.id, facilityName: lead.duplicateOf.facilityName }
+      : null,
     notification: latest ? mapNotification(latest) : null,
   };
 }

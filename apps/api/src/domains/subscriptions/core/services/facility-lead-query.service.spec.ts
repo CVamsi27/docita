@@ -52,6 +52,33 @@ describe('FacilityLeadQueryService', () => {
     });
   });
 
+  it('surfaces the duplicate link and score for review-flagged leads', async () => {
+    ctx.facilityLead.findMany.mockResolvedValue([
+      leadRow({
+        status: 'DUPLICATE_REVIEW',
+        duplicateScore: 1,
+        duplicateOfId: 'orig-1',
+        duplicateOf: { id: 'orig-1', facilityName: 'Sunrise Diagnostics' },
+        notifications: [],
+      }),
+    ]);
+
+    const service = new FacilityLeadQueryService(ctx.prisma);
+    const views = await service.listLeads();
+
+    const args = ctx.facilityLead.findMany.mock.calls[0][0] as {
+      include: { duplicateOf: Record<string, unknown> };
+    };
+    expect(args.include.duplicateOf).toEqual({
+      select: { id: true, facilityName: true },
+    });
+    expect(views[0]).toMatchObject({
+      status: 'DUPLICATE_REVIEW',
+      duplicateScore: 1,
+      duplicateOf: { id: 'orig-1', facilityName: 'Sunrise Diagnostics' },
+    });
+  });
+
   it('exposes the assigned owner on the queue item', async () => {
     ctx.facilityLead.findMany.mockResolvedValue([
       leadRow({
