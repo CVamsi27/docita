@@ -19,6 +19,7 @@ import {
 } from '@workspace/types';
 import { FacilityLeadCommandService } from '@/domains/subscriptions/core/services/facility-lead-command.service';
 import { FacilityLeadQueryService } from '@/domains/subscriptions/core/services/facility-lead-query.service';
+import { parsePaginationInt } from '@/shared/common/utils/string.utils';
 import { InternalApiAccess } from './internal.controller.access';
 
 @ApiTags('internal-leads')
@@ -33,15 +34,37 @@ export class InternalLeadController {
   @Get('leads')
   @ApiOperation({
     summary:
-      'Operator facility-lead queue (newest first, optional status filter)',
+      'Operator facility-lead queue (newest first; status/owner/referrer filters + cursor pagination)',
   })
-  async listLeads(@Query('status') status?: string) {
+  async listLeads(
+    @Query('status') status?: string,
+    @Query('owner') owner?: string,
+    @Query('referrerId') referrerId?: string,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
     const parsedStatus = Object.values(FacilityLeadStatus).find(
       (value) => value === status,
     );
-    return this.queryService.listLeads({
-      status: parsedStatus,
-    });
+    // owner accepts an operator id or the UNASSIGNED sentinel (unassigned
+    // leads, i.e. ownerUserId IS NULL). Anything else is ignored.
+    let ownerUserId: string | null | undefined;
+    if (owner === 'UNASSIGNED') {
+      ownerUserId = null;
+    } else if (owner) {
+      ownerUserId = owner;
+    }
+    return this.queryService.listLeads(
+      {
+        status: parsedStatus,
+        ownerUserId,
+        referrerId: referrerId || undefined,
+      },
+      {
+        cursor: cursor || undefined,
+        limit: parsePaginationInt(limit, { min: 1, max: 100 }),
+      },
+    );
   }
 
   @Patch('leads/:id/status')

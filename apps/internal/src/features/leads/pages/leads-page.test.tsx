@@ -155,14 +155,52 @@ const mockLeads = [
   },
 ];
 
+const OPERATORS = [
+  { id: "op-1", name: "Kiran Ops", email: "kiran@docita.work" },
+  { id: "op-2", name: "Amit Ops", email: "amit@docita.work" },
+];
+
+const REFERRERS = [
+  { id: "r1", name: "Alice Partner" },
+  { id: "r2", name: "Bob Partner" },
+];
+
+const envelope = (items: typeof mockLeads) => ({
+  items,
+  nextCursor: undefined,
+  hasMore: false,
+  count: items.length,
+});
+
+/** URL-routed default: pickers resolve, the leads list returns all fixtures. */
+const mockDefaultApi = () => {
+  mockApiGet.mockImplementation((url: string) => {
+    if (url.startsWith("/api/internal/operators")) {
+      return Promise.resolve(OPERATORS);
+    }
+    if (url.startsWith("/api/internal/referrers")) {
+      return Promise.resolve(REFERRERS);
+    }
+    if (url.startsWith("/api/internal/leads")) {
+      return Promise.resolve(envelope(mockLeads));
+    }
+    return Promise.resolve(undefined);
+  });
+};
+
+const leadsCalls = () =>
+  mockApiGet.mock.calls.filter(([url]) =>
+    String(url).startsWith("/api/internal/leads"),
+  );
+
 describe("LeadsPage", () => {
   beforeEach(() => {
     mockApiGet.mockReset();
     mockApiPatch.mockReset();
+    mockDefaultApi();
   });
 
   const renderPage = () => {
-    mockApiGet.mockResolvedValueOnce(mockLeads);
     render(<LeadsPage />);
   };
 
@@ -176,7 +214,7 @@ describe("LeadsPage", () => {
 
     await waitForRows();
 
-    expect(mockApiGet).toHaveBeenCalledWith("/api/internal/leads");
+    expect(leadsCalls()[0][0]).toBe("/api/internal/leads");
 
     // Facility + location
     expect(screen.getByText("Sunrise Diagnostics")).toBeInTheDocument();
@@ -202,10 +240,22 @@ describe("LeadsPage", () => {
     expect(screen.getAllByText("Unassigned").length).toBeGreaterThan(0);
     // Dates
     expect(screen.getByText(formatDate("2026-08-15T10:00:00Z"))).toBeInTheDocument();
+    // Pagination chrome
+    expect(screen.getByText("Page 1")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
   });
 
   it("shows the empty state when no leads exist", async () => {
-    mockApiGet.mockResolvedValueOnce([]);
+    mockApiGet.mockImplementation((url: string) => {
+      if (url.startsWith("/api/internal/operators")) {
+        return Promise.resolve(OPERATORS);
+      }
+      if (url.startsWith("/api/internal/referrers")) {
+        return Promise.resolve(REFERRERS);
+      }
+      return Promise.resolve(envelope([]));
+    });
     render(<LeadsPage />);
 
     await waitFor(() => {
@@ -213,12 +263,137 @@ describe("LeadsPage", () => {
     });
   });
 
+  it("filters by status and owner, then clears filters back to page one", async () => {
+    renderPage();
+    await waitForRows();
+
+    // Status filter -> the API is called with the status query. DataState
+    // swaps the page for a loading state during each refetch, so wait for
+    // the filter bar to return before the next interaction.
+    fireEvent.click(screen.getByRole("combobox", { name: "Filter by status" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Submitted" }));
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toContain("status=SUBMITTED");
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByRole("combobox", { name: "Filter by owner" }),
+      ).toBeInTheDocument();
+    });
+
+    // Owner filter -> the API is called with the UNASSIGNED sentinel.
+    fireEvent.click(screen.getByRole("combobox", { name: "Filter by owner" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Unassigned" }));
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toContain("owner=UNASSIGNED");
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByRole("combobox", { name: "Filter by partner" }),
+      ).toBeInTheDocument();
+    });
+
+    // Partner filter -> the API is called with the referrer id.
+    fireEvent.click(
+      screen.getByRole("combobox", { name: "Filter by partner" }),
+    );
+    fireEvent.click(await screen.findByRole("option", { name: "Bob Partner" }));
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toContain("referrerId=r2");
+    });
+
+    // The same fetch carries all three filters together.
+    expect(leadsCalls().at(-1)?.[0]).toContain("status=SUBMITTED");
+    expect(leadsCalls().at(-1)?.[0]).toContain("owner=UNASSIGNED");
+
+    // Clear filters -> back to the unfiltered list.
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toBe("/api/internal/leads");
+    });
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: "Clear filters" }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows the filtered empty state when nothing matches", async () => {
+    mockApiGet.mockImplementation((url: string) => {
+      if (url.startsWith("/api/internal/operators")) {
+        return Promise.resolve(OPERATORS);
+      }
+      if (url.startsWith("/api/internal/referrers")) {
+        return Promise.resolve(REFERRERS);
+      }
+      return Promise.resolve(envelope([]));
+    });
+    render(<LeadsPage />);
+    await waitFor(() => {
+      expect(screen.getByText("No leads yet")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Filter by status" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Submitted" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("No leads match these filters"),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("pages forward and backward with the cursor", async () => {
+    mockApiGet.mockImplementation((url: string) => {
+      if (url.startsWith("/api/internal/operators")) {
+        return Promise.resolve(OPERATORS);
+      }
+      if (url.startsWith("/api/internal/referrers")) {
+        return Promise.resolve(REFERRERS);
+      }
+      if (url.includes("cursor=c1")) {
+        return Promise.resolve({
+          items: [mockLeads[1]],
+          nextCursor: undefined,
+          hasMore: false,
+          count: 1,
+        });
+      }
+      return Promise.resolve({
+        items: [mockLeads[0]],
+        nextCursor: "c1",
+        hasMore: true,
+        count: 1,
+      });
+    });
+    render(<LeadsPage />);
+    await waitForRows();
+    expect(screen.getByText("Page 1")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toContain("cursor=c1");
+    });
+    await waitFor(() => {
+      expect(screen.getByText("Page 2")).toBeInTheDocument();
+    });
+    // Page two has no further results -> Next disabled, Previous enabled.
+    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Previous" }));
+    await waitFor(() => {
+      expect(screen.getByText("Page 1")).toBeInTheDocument();
+    });
+    expect(leadsCalls().at(-1)?.[0]).toBe("/api/internal/leads");
+    expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
+  });
+
   it("transitions a lead through the dialog and refreshes the list", async () => {
     renderPage();
     await waitForRows();
 
     mockApiPatch.mockResolvedValueOnce({ id: "l1", status: "TRIAGED" });
-    mockApiGet.mockResolvedValueOnce(mockLeads);
 
     fireEvent.click(screen.getAllByRole("button", { name: "Update status" })[0]);
     const dialog = await screen.findByRole("dialog");
@@ -242,11 +417,11 @@ describe("LeadsPage", () => {
       });
     });
 
-    // Success closes the dialog and refetches.
+    // Success closes the dialog and refetches the queue.
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
-    expect(mockApiGet).toHaveBeenCalledTimes(2);
+    expect(leadsCalls()).toHaveLength(2);
     const { toast } = await import("sonner");
     expect(toast.success).toHaveBeenCalledWith("Lead status updated");
   });
@@ -283,15 +458,8 @@ describe("LeadsPage", () => {
   });
 
   it("assigns an owner through the dialog and refreshes the queue", async () => {
-    mockApiGet.mockResolvedValueOnce(mockLeads);
-    render(<LeadsPage />);
+    renderPage();
     await waitForRows();
-
-    // The assign dialog fetches the operator picker list on open.
-    mockApiGet.mockResolvedValueOnce([
-      { id: "op-2", name: "Amit Ops", email: "amit@docita.work" },
-      { id: "op-3", name: "Neha Ops", email: "neha@docita.work" },
-    ]);
 
     fireEvent.click(screen.getAllByRole("button", { name: "Assign" })[0]);
     const dialog = await screen.findByRole("dialog");
@@ -302,7 +470,6 @@ describe("LeadsPage", () => {
     fireEvent.click(await screen.findByRole("option", { name: /Amit Ops/ }));
 
     mockApiPatch.mockResolvedValueOnce({ id: "l1" });
-    mockApiGet.mockResolvedValueOnce(mockLeads);
     fireEvent.click(within(dialog).getByRole("button", { name: "Save Changes" }));
 
     await waitFor(() => {
@@ -314,7 +481,8 @@ describe("LeadsPage", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
-    expect(mockApiGet).toHaveBeenCalledTimes(3); // leads + operators + refetch
+    // Queue fetched on mount + once after the assignment.
+    expect(leadsCalls()).toHaveLength(2);
     const { toast } = await import("sonner");
     expect(toast.success).toHaveBeenCalledWith("Lead owner updated");
   });
