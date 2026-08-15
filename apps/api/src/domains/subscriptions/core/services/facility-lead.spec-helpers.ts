@@ -2,6 +2,7 @@
 // (service constructor accepts the port, not this fixture).
 import { jest } from '@jest/globals';
 import type { IClock } from '@/shared/common/ports/clock.port';
+import type { IOutboxService } from '@/shared/modules/outbox/outbox.interface';
 
 export function leadRow(overrides: Record<string, unknown> = {}) {
   return {
@@ -33,6 +34,35 @@ export function leadRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
+export function notificationRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'n1',
+    leadId: 'l1',
+    kind: 'LEAD_CREATED',
+    channel: 'internal',
+    status: 'DELIVERED',
+    payload: {
+      leadId: 'l1',
+      facilityName: 'Sunrise Diagnostics',
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      partnerName: 'Priya Partner',
+      consentToFollowUp: true,
+      duplicateScore: null,
+      deepLink: '/leads',
+    },
+    errorMessage: null,
+    deliveredAt: new Date('2026-08-15T12:00:00Z'),
+    createdAt: new Date('2026-08-15T12:00:00Z'),
+    ...overrides,
+  };
+}
+
+/**
+ * Persistence-port double. `$transaction` runs the callback against the
+ * same delegate mocks (the interactive-tx delegates are the mocked ones),
+ * and `outbox` is the IOutboxService double injected by the command service.
+ */
 export function makeFacilityLeadCtx() {
   const facilityLead = {
     findUnique: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
@@ -41,7 +71,18 @@ export function makeFacilityLeadCtx() {
     findMany: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
     updateMany: jest.fn<(...a: unknown[]) => Promise<{ count: number }>>(),
   };
-  const prisma = { facilityLead } as never;
+  const facilityLeadNotification = {
+    upsert: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
+  };
+  const prisma = {
+    facilityLead,
+    facilityLeadNotification,
+    $transaction: jest.fn(
+      async <T>(fn: (tx: Record<string, unknown>) => Promise<T>): Promise<T> =>
+        fn({ facilityLead, facilityLeadNotification } as never),
+    ),
+  } as never;
+  const outbox: IOutboxService = { append: jest.fn<() => Promise<void>>() };
   const clock: IClock = { now: () => new Date('2026-08-15T12:00:00Z') };
-  return { prisma, facilityLead, clock };
+  return { prisma, facilityLead, facilityLeadNotification, outbox, clock };
 }

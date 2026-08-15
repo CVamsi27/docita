@@ -34,6 +34,25 @@ const mockLeads = [
     consentToFollowUp: true,
     createdAt: "2026-08-15T10:00:00Z",
     updatedAt: "2026-08-15T10:00:00Z",
+    notification: {
+      id: "n1",
+      leadId: "l1",
+      kind: "LEAD_CREATED",
+      status: "DELIVERED",
+      payload: {
+        leadId: "l1",
+        facilityName: "Sunrise Diagnostics",
+        city: "Bengaluru",
+        state: "Karnataka",
+        partnerName: "Alice Partner",
+        consentToFollowUp: true,
+        duplicateScore: null,
+        deepLink: "/leads",
+      },
+      errorMessage: null,
+      deliveredAt: "2026-08-15T10:05:00Z",
+      createdAt: "2026-08-15T10:05:00Z",
+    },
   },
   {
     id: "l2",
@@ -52,6 +71,25 @@ const mockLeads = [
     consentToFollowUp: true,
     createdAt: "2026-08-14T10:00:00Z",
     updatedAt: "2026-08-15T08:00:00Z",
+    notification: {
+      id: "n2",
+      leadId: "l2",
+      kind: "LEAD_CREATED",
+      status: "FAILED",
+      payload: {
+        leadId: "l2",
+        facilityName: "Green Valley Hospital",
+        city: "Mysuru",
+        state: null,
+        partnerName: "Bob Partner",
+        consentToFollowUp: true,
+        duplicateScore: null,
+        deepLink: "/leads",
+      },
+      errorMessage: "connection refused",
+      deliveredAt: null,
+      createdAt: "2026-08-14T10:05:00Z",
+    },
   },
 ];
 
@@ -89,6 +127,9 @@ describe("LeadsPage", () => {
     // Status badges
     expect(screen.getByText("Submitted")).toBeInTheDocument();
     expect(screen.getByText("Lost")).toBeInTheDocument();
+    // Notification delivery status
+    expect(screen.getByText("Notified")).toBeInTheDocument();
+    expect(screen.getByText("Notify failed")).toBeInTheDocument();
     // Dates
     expect(screen.getByText(formatDate("2026-08-15T10:00:00Z"))).toBeInTheDocument();
   });

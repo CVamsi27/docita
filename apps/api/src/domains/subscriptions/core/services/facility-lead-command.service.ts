@@ -20,8 +20,10 @@ import {
   PARTNER_PERSISTENCE_PORT,
   type PartnerPersistencePort,
 } from '@/domains/subscriptions/application/ports/partner-persistence.port';
+import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
+import type { IOutboxService } from '@/shared/modules/outbox/outbox.interface';
 import { mapToView } from './facility-lead.mapper';
 
 /**
@@ -39,6 +41,7 @@ export class FacilityLeadCommandService {
     @Inject(PARTNER_PERSISTENCE_PORT)
     private readonly prisma: PartnerPersistencePort,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    @Inject('IOutboxService') private readonly outbox: IOutboxService,
   ) {}
 
   async submitLead(
@@ -79,31 +82,49 @@ export class FacilityLeadCommandService {
     }
 
     // 3. Create. The compound unique is the hard idempotency guarantee for
-    //    the concurrent-submit race the pre-check cannot see.
+    //    the concurrent-submit race the pre-check cannot see. The lead and
+    //    its durable `facility-lead.created` outbox event commit atomically
+    //    (ADR-0010), so a lead can never exist without its event and a
+    //    rolled-back submit appends nothing.
     try {
-      const lead = await this.prisma.facilityLead.create({
-        data: {
-          referrerId,
-          facilityName: input.facilityName,
-          facilityType: input.facilityType,
-          address: input.address,
-          city: input.city,
-          state: input.state ?? null,
-          postalCode: input.postalCode ?? null,
-          mapsUrl: input.mapsUrl ?? null,
-          contactName: input.contactName,
-          contactRole: input.contactRole ?? null,
-          contactPhone: contactPhone,
-          contactEmail: input.contactEmail ?? null,
-          sourceNote: input.sourceNote ?? null,
-          preferredChannel: input.preferredChannel ?? null,
-          consentToFollowUp: input.consentToFollowUp,
-          notes: input.notes ?? null,
-          bestTimeToContact: input.bestTimeToContact ?? null,
-          idempotencyKey: input.idempotencyKey ?? null,
-          statusHistory: Prisma.JsonNull,
-        },
-        include: { referrer: { select: { id: true, name: true } } },
+      const lead = await this.prisma.$transaction(async (tx) => {
+        const created = await tx.facilityLead.create({
+          data: {
+            referrerId,
+            facilityName: input.facilityName,
+            facilityType: input.facilityType,
+            address: input.address,
+            city: input.city,
+            state: input.state ?? null,
+            postalCode: input.postalCode ?? null,
+            mapsUrl: input.mapsUrl ?? null,
+            contactName: input.contactName,
+            contactRole: input.contactRole ?? null,
+            contactPhone: contactPhone,
+            contactEmail: input.contactEmail ?? null,
+            sourceNote: input.sourceNote ?? null,
+            preferredChannel: input.preferredChannel ?? null,
+            consentToFollowUp: input.consentToFollowUp,
+            notes: input.notes ?? null,
+            bestTimeToContact: input.bestTimeToContact ?? null,
+            idempotencyKey: input.idempotencyKey ?? null,
+            statusHistory: Prisma.JsonNull,
+          },
+          include: { referrer: { select: { id: true, name: true } } },
+        });
+        await this.outbox.append(tx, {
+          eventName: ApplicationEvents.FACILITY_LEAD_CREATED,
+          aggregateType: 'FacilityLead',
+          aggregateId: created.id,
+          clinicId: null,
+          // Deterministic per lead: the lead row itself is unique, so the
+          // event is exactly-once even across relay retries.
+          idempotencyKey: `facility-lead.created:${created.id}`,
+          // Identifiers only — the listener reloads the lead to build the
+          // PII-redacted notification payload (never PHI in the outbox).
+          payload: { leadId: created.id, referrerId },
+        });
+        return created;
       });
       return mapToView(lead);
     } catch (error) {
@@ -159,19 +180,35 @@ export class FacilityLeadCommandService {
       at: this.clock.now().toISOString(),
     };
 
-    const updated = await this.prisma.facilityLead.updateMany({
-      where: { id, status: lead.status },
-      data: {
-        status: input.status,
-        statusHistory: toPrismaInputJsonValue([...history, entry]),
-      },
+    // The write stays conditional on the status we read (concurrency guard)
+    // and the CONVERTED outbox event commits atomically with it, so a
+    // loser of a concurrent transition never appends a spurious event.
+    await this.prisma.$transaction(async (tx) => {
+      const result = await tx.facilityLead.updateMany({
+        where: { id, status: lead.status },
+        data: {
+          status: input.status,
+          statusHistory: toPrismaInputJsonValue([...history, entry]),
+        },
+      });
+      if (result.count === 0) {
+        // The lead moved between our read and write (concurrent operator).
+        throw new ConflictException(
+          'This lead was just updated by someone else; please review and retry',
+        );
+      }
+      if (input.status === 'CONVERTED') {
+        await this.outbox.append(tx, {
+          eventName: ApplicationEvents.FACILITY_LEAD_CONVERTED,
+          aggregateType: 'FacilityLead',
+          aggregateId: id,
+          clinicId: null,
+          // CONVERTED is an absorbing terminal, so one event per lead.
+          idempotencyKey: `facility-lead.converted:${id}`,
+          payload: { leadId: id, referrerId: lead.referrerId },
+        });
+      }
     });
-    if (updated.count === 0) {
-      // The lead moved between our read and write (concurrent operator).
-      throw new ConflictException(
-        'This lead was just updated by someone else; please review and retry',
-      );
-    }
 
     const fresh = await this.prisma.facilityLead.findUnique({
       where: { id },

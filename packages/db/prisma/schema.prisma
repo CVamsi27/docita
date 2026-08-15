@@ -3960,9 +3960,50 @@ model FacilityLead {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
+  notifications FacilityLeadNotification[]
+
   @@unique([referrerId, idempotencyKey])
   @@index([status, createdAt])
   @@index([referrerId])
+}
+
+/// What triggered an internal facility-lead notification.
+enum FacilityLeadNotificationKind {
+  LEAD_CREATED
+  LEAD_CONVERTED
+}
+
+/// Delivery state of an internal facility-lead notification. The outbox
+/// relay republishes the durable `facility-lead.*` event; this row records
+/// whether the listener materialized the internal notification and, on
+/// failure, the error (operator-visible in the internal portal).
+enum FacilityLeadNotificationStatus {
+  QUEUED
+  DELIVERED
+  FAILED
+}
+
+/// Internal (Docita ops) notification for a facility lead, materialized by
+/// the `facility-lead.created` / `facility-lead.converted` outbox listeners.
+/// The payload is PII-redacted (facility name/location/partner/consent, a
+/// deep link into the internal portal — no contact phone or email).
+model FacilityLeadNotification {
+  id           String   @id @default(cuid())
+  leadId       String
+  lead         FacilityLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  kind         FacilityLeadNotificationKind
+  /// Notification channel (only `internal` today; SMS/WhatsApp later).
+  channel      String   @default("internal")
+  status       FacilityLeadNotificationStatus @default(QUEUED)
+  /// @json:facilityLeadNotificationPayloadSchema
+  payload      Json
+  errorMessage String?
+  deliveredAt  DateTime? @db.Timestamptz(3)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([leadId, kind])
+  @@index([status])
+  @@index([leadId, createdAt])
 }
 
 /// OTP challenges for the partner self-service portal. One row per active

@@ -139,3 +139,70 @@ export const facilityLeadTransitionSchema = z.object({
 export type FacilityLeadTransition = z.infer<
   typeof facilityLeadTransitionSchema
 >;
+
+/** What triggered an internal facility-lead notification. */
+export const facilityLeadNotificationKindSchema = z.enum([
+  "LEAD_CREATED",
+  "LEAD_CONVERTED",
+]);
+export type FacilityLeadNotificationKind = z.infer<
+  typeof facilityLeadNotificationKindSchema
+>;
+
+/** Delivery state of an internal facility-lead notification. */
+export const facilityLeadNotificationStatusSchema = z.enum([
+  "QUEUED",
+  "DELIVERED",
+  "FAILED",
+]);
+export type FacilityLeadNotificationStatus = z.infer<
+  typeof facilityLeadNotificationStatusSchema
+>;
+
+/**
+ * PII-redacted payload carried by an internal facility-lead notification.
+ * No contact phone/email or other sensitive data — only what the operator
+ * needs to find the lead in the portal plus a deep link.
+ */
+export const facilityLeadNotificationPayloadSchema = z.object({
+  leadId: z.string(),
+  facilityName: z.string(),
+  city: z.string(),
+  state: z.string().nullable(),
+  partnerName: z.string(),
+  consentToFollowUp: z.boolean(),
+  /** Null until cross-partner duplicate fingerprinting lands. */
+  duplicateScore: z.number().nullable(),
+  deepLink: z.string(),
+});
+export type FacilityLeadNotificationPayload = z.infer<
+  typeof facilityLeadNotificationPayloadSchema
+>;
+
+/** Internal-portal projection of one facility-lead notification. */
+export const facilityLeadNotificationViewSchema = z.object({
+  id: z.string(),
+  leadId: z.string(),
+  kind: facilityLeadNotificationKindSchema,
+  status: facilityLeadNotificationStatusSchema,
+  payload: facilityLeadNotificationPayloadSchema,
+  errorMessage: z.string().nullable(),
+  deliveredAt: z.string().nullable(),
+  createdAt: z.string(),
+});
+export type FacilityLeadNotificationView = z.infer<
+  typeof facilityLeadNotificationViewSchema
+>;
+
+/**
+ * Internal-only lead queue item: the operator-facing view plus the latest
+ * internal notification delivery status. Kept separate from
+ * `facilityLeadViewSchema` so the partner submit response never leaks the
+ * internal notification surface.
+ */
+export const internalFacilityLeadViewSchema = facilityLeadViewSchema.extend({
+  notification: facilityLeadNotificationViewSchema.nullable(),
+});
+export type InternalFacilityLeadView = z.infer<
+  typeof internalFacilityLeadViewSchema
+>;
