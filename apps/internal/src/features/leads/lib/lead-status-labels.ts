@@ -3,6 +3,7 @@ import type { FacilityLeadStatus } from "@workspace/types";
 export const LEAD_STATUS_LABELS: Record<FacilityLeadStatus, string> = {
   SUBMITTED: "Submitted",
   TRIAGED: "Triaged",
+  DUPLICATE_REVIEW: "Duplicate review",
   CONTACT_ATTEMPTED: "Contact attempted",
   CONTACTED: "Contacted",
   DEMO_SCHEDULED: "Demo scheduled",
@@ -31,6 +32,7 @@ export function leadStatusBadgeVariant(
   status: FacilityLeadStatus,
 ): "default" | "outline" | "destructive" {
   if (status === "CONVERTED") return "default";
+  if (status === "DUPLICATE_REVIEW") return "destructive";
   if (TERMINAL_DESTRUCTIVE.has(status)) return "destructive";
   return "outline";
 }

@@ -19,6 +19,7 @@ export type FacilityLeadType = z.infer<typeof facilityLeadTypeSchema>;
 export const facilityLeadStatusSchema = z.enum([
   "SUBMITTED",
   "TRIAGED",
+  "DUPLICATE_REVIEW",
   "CONTACT_ATTEMPTED",
   "CONTACTED",
   "DEMO_SCHEDULED",
@@ -56,6 +57,10 @@ export const FACILITY_LEAD_TRANSITIONS: Record<
   readonly FacilityLeadStatus[]
 > = {
   SUBMITTED: ["TRIAGED", ...TERMINAL_LEAD_STATUSES],
+  // Operators resolve a review-flagged duplicate: resume the chain when it
+  // turns out to be a real facility, or reject it (DUPLICATE / any other
+  // absorbing terminal) with an audit record.
+  DUPLICATE_REVIEW: ["TRIAGED", ...TERMINAL_LEAD_STATUSES],
   TRIAGED: ["CONTACT_ATTEMPTED", ...TERMINAL_LEAD_STATUSES],
   CONTACT_ATTEMPTED: ["CONTACTED", ...TERMINAL_LEAD_STATUSES],
   CONTACTED: ["DEMO_SCHEDULED", ...TERMINAL_LEAD_STATUSES],
@@ -236,6 +241,12 @@ export const internalFacilityLeadViewSchema = facilityLeadViewSchema.extend({
   ownerUserId: z.string().nullable(),
   ownerName: z.string().nullable(),
   assignmentHistory: z.array(facilityLeadAssignmentHistoryEntrySchema).optional(),
+  /** 1.0 when this lead is a fingerprint-match duplicate; null otherwise. */
+  duplicateScore: z.number().nullable(),
+  /** The original lead this row is a review-flagged duplicate of. */
+  duplicateOf: z
+    .object({ id: z.string(), facilityName: z.string() })
+    .nullable(),
   notification: facilityLeadNotificationViewSchema.nullable(),
 });
 export type InternalFacilityLeadView = z.infer<
