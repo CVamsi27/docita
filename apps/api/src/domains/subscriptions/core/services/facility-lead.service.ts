@@ -13,7 +13,11 @@ import {
   type FacilityLeadView,
 } from '@workspace/types';
 import { normalizePhoneE164, phoneMatchCandidates } from '@workspace/utils';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  PARTNER_PERSISTENCE_PORT,
+  type PartnerPersistencePort,
+} from '@/domains/subscriptions/application/ports/partner-persistence.port';
+import { Inject } from '@nestjs/common';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 
 /**
@@ -36,7 +40,10 @@ type LeadWithReferrer = Prisma.FacilityLeadGetPayload<{
  */
 @Injectable()
 export class FacilityLeadService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PARTNER_PERSISTENCE_PORT)
+    private readonly prisma: PartnerPersistencePort,
+  ) {}
 
   async submitLead(
     referrerId: string,
