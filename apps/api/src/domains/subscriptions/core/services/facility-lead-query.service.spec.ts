@@ -38,7 +38,7 @@ describe('FacilityLeadQueryService', () => {
     expect(args.include.ownerUser).toEqual({
       select: { id: true, name: true },
     });
-    expect(views[0]).toMatchObject({
+    expect(views.items[0]).toMatchObject({
       id: 'l1',
       referrerName: 'Priya Partner',
       ownerUserId: null,
@@ -50,6 +50,48 @@ describe('FacilityLeadQueryService', () => {
         payload: { facilityName: 'Sunrise Diagnostics', deepLink: '/leads' },
       },
     });
+  });
+
+  it('filters by owner (null selects unassigned) and referrer', async () => {
+    ctx.facilityLead.findMany.mockResolvedValue([]);
+
+    const service = new FacilityLeadQueryService(ctx.prisma);
+    await service.listLeads({
+      ownerUserId: null,
+      referrerId: 'r-9',
+    });
+
+    const args = ctx.facilityLead.findMany.mock.calls[0][0] as {
+      where: { ownerUserId: string | null; referrerId: string };
+    };
+    expect(args.where.ownerUserId).toBeNull();
+    expect(args.where.referrerId).toBe('r-9');
+  });
+
+  it('pages with a cursor and bounded limit', async () => {
+    ctx.facilityLead.findMany.mockResolvedValue([
+      leadRow({ id: 'l2', notifications: [] }),
+      leadRow({ id: 'l1', notifications: [] }),
+    ]);
+
+    const service = new FacilityLeadQueryService(ctx.prisma);
+    const page = await service.listLeads(undefined, {
+      cursor: 'l3',
+      limit: 1,
+    });
+
+    const args = ctx.facilityLead.findMany.mock.calls[0][0] as {
+      take: number;
+      cursor?: { id: string };
+      skip?: number;
+    };
+    // take = limit + 1 so the helper can detect hasMore.
+    expect(args.take).toBe(2);
+    expect(args.cursor).toEqual({ id: 'l3' });
+    expect(args.skip).toBe(1);
+    expect(page.items).toHaveLength(1);
+    expect(page.hasMore).toBe(true);
+    expect(page.nextCursor).toBe('l2');
   });
 
   it('surfaces the duplicate link and score for review-flagged leads', async () => {
@@ -72,7 +114,7 @@ describe('FacilityLeadQueryService', () => {
     expect(args.include.duplicateOf).toEqual({
       select: { id: true, facilityName: true },
     });
-    expect(views[0]).toMatchObject({
+    expect(views.items[0]).toMatchObject({
       status: 'DUPLICATE_REVIEW',
       duplicateScore: 1,
       duplicateOf: { id: 'orig-1', facilityName: 'Sunrise Diagnostics' },
@@ -99,7 +141,7 @@ describe('FacilityLeadQueryService', () => {
     const service = new FacilityLeadQueryService(ctx.prisma);
     const views = await service.listLeads();
 
-    expect(views[0]).toMatchObject({
+    expect(views.items[0]).toMatchObject({
       ownerUserId: 'op-1',
       ownerName: 'Kiran Ops',
       assignmentHistory: [
@@ -121,7 +163,7 @@ describe('FacilityLeadQueryService', () => {
     const service = new FacilityLeadQueryService(ctx.prisma);
     const views = await service.listLeads();
 
-    expect(views[0].notification).toBeNull();
+    expect(views.items[0].notification).toBeNull();
   });
 
   it('lists INTERNAL-role operators for the assign picker', async () => {

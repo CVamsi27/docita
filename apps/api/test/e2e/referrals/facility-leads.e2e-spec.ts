@@ -270,13 +270,97 @@ describe('Facility Leads (e2e)', () => {
         .set('Authorization', `Bearer ${internalToken}`)
         .expect(200);
 
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body).toHaveLength(1);
-      expect(response.body[0]).toMatchObject({
+      expect(response.body.items).toHaveLength(1);
+      expect(response.body.nextCursor).toBeUndefined();
+      expect(response.body.hasMore).toBe(false);
+      expect(response.body.items[0]).toMatchObject({
         id: created.body.id,
         referrerName: 'E2E Partner RFR-E2ELD05',
         status: 'SUBMITTED',
       });
+    });
+
+    it('filters the queue by status, owner, and referrer and pages with a cursor', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD14');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+      const first = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'RFR-E2ELD14-key-1' }))
+        .expect(200);
+      const second = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(
+          leadBody({
+            facilityName: 'Sunset Clinics',
+            // A different contact phone avoids the same-phone DUPLICATE_ENTRY
+            // 409 (that contract is asserted separately).
+            contactPhone: '+919800000002',
+            idempotencyKey: 'RFR-E2ELD14-key-2',
+          }),
+        )
+        .expect(200);
+
+      // Partner filter narrows to this partner's two leads.
+      const byPartner = await request(app.getHttpServer())
+        .get(`/internal/leads?referrerId=${first.body.referrerId}`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(byPartner.body.items).toHaveLength(2);
+
+      // Status filter (SUBMITTED) + pagination: page 1 has one lead and a
+      // cursor; page 2 has the other and no further cursor.
+      const pageOne = await request(app.getHttpServer())
+        .get('/internal/leads?status=SUBMITTED&limit=1')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(pageOne.body.items).toHaveLength(1);
+      expect(pageOne.body.hasMore).toBe(true);
+      expect(typeof pageOne.body.nextCursor).toBe('string');
+
+      const pageTwo = await request(app.getHttpServer())
+        .get(
+          `/internal/leads?status=SUBMITTED&limit=1&cursor=${pageOne.body.nextCursor}`,
+        )
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(pageTwo.body.items).toHaveLength(1);
+      expect(pageTwo.body.hasMore).toBe(false);
+      expect(pageTwo.body.nextCursor).toBeUndefined();
+      expect([first.body.id, second.body.id].sort()).toEqual(
+        [pageOne.body.items[0].id, pageTwo.body.items[0].id].sort(),
+      );
+
+      // Owner filter: unassigned matches both; after assigning one, only one
+      // remains unassigned.
+      const unassigned = await request(app.getHttpServer())
+        .get('/internal/leads?owner=UNASSIGNED')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(unassigned.body.items).toHaveLength(2);
+
+      const assignee = await factories.user({ role: Role.INTERNAL });
+      await request(app.getHttpServer())
+        .patch(`/internal/leads/${first.body.id}/assign`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .send({ userId: assignee.user.id })
+        .expect(200);
+
+      const unassignedAfter = await request(app.getHttpServer())
+        .get('/internal/leads?owner=UNASSIGNED')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(unassignedAfter.body.items).toHaveLength(1);
+      expect(unassignedAfter.body.items[0].id).toBe(second.body.id);
+
+      // Owner filter by operator id exposes only the assigned lead.
+      const owned = await request(app.getHttpServer())
+        .get(`/internal/leads?owner=${assignee.user.id}`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(owned.body.items).toHaveLength(1);
+      expect(owned.body.items[0].id).toBe(first.body.id);
     });
 
     it('rejects a non-INTERNAL operator with 403', async () => {
@@ -472,7 +556,7 @@ describe('Facility Leads (e2e)', () => {
         .get('/internal/leads')
         .set('Authorization', `Bearer ${internalToken}`)
         .expect(200);
-      expect(queue.body[0].notification).toMatchObject({
+      expect(queue.body.items[0].notification).toMatchObject({
         kind: 'LEAD_CREATED',
         status: 'DELIVERED',
         recipientUserId: null,
@@ -525,13 +609,13 @@ describe('Facility Leads (e2e)', () => {
       });
       expect(row?.ownerUserId).toBe(assigneeId);
       expect(row?.assignmentHistory).toHaveLength(1);
-      expect((row?.assignmentHistory as Array<Record<string, unknown>>)[0]).toMatchObject(
-        {
-          fromUserId: null,
-          toUserId: assigneeId,
-          actorId: internalUserId,
-        },
-      );
+      expect(
+        (row?.assignmentHistory as Array<Record<string, unknown>>)[0],
+      ).toMatchObject({
+        fromUserId: null,
+        toUserId: assigneeId,
+        actorId: internalUserId,
+      });
       expect(row?.notifications[0].recipientUserId).toBe(assigneeId);
       expect(response.body.status).toBe('SUBMITTED');
 
@@ -540,7 +624,7 @@ describe('Facility Leads (e2e)', () => {
         .get('/internal/leads')
         .set('Authorization', `Bearer ${internalToken}`)
         .expect(200);
-      expect(queue.body[0]).toMatchObject({
+      expect(queue.body.items[0]).toMatchObject({
         id: created.body.id,
         ownerUserId: assigneeId,
         ownerName: assignee.user.name,
@@ -659,7 +743,7 @@ describe('Facility Leads (e2e)', () => {
         .get('/internal/leads')
         .set('Authorization', `Bearer ${internalToken}`)
         .expect(200);
-      const queued = queue.body.find(
+      const queued = queue.body.items.find(
         (lead: { id: string }) => lead.id === second.body.id,
       );
       expect(queued).toMatchObject({
