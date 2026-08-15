@@ -17,9 +17,9 @@ The repository currently has a useful foundation:
 | --- | --- | --- |
 | Partner authentication | OTP login for an already-created active `Referrer`; WhatsApp OTP path exists. | Partial — no public partner signup/profile completion. |
 | Partner portal | Dashboard, share link/message, showcase PDF, referral list, payout list, and encrypted bank-detail submission. | Partial — no facility lead submission or partner-invite flow. |
-| Internal partner creation | API `POST /internal/referrers` generates a code and emits a welcome event. | Partial — the internal Vite page is currently a read-only referral table; no create/edit/progress UI. |
+| Internal partner creation | API `POST /internal/referrers` generates a code and emits a welcome event; create is idempotent on normalized phone (409 conflict surfaces the existing partner). The internal Vite page (2026-08-15) now has a create-partner dialog, per-row resend-welcome, and a message-log drawer. | Partial — edit/deactivate partner UI still missing. |
 | Referral capture | Referral codes can link a clinic during onboarding/settings; clinic referrals can earn free-month credits. | Partial — no facility lead record, contact workflow, or configurable clinic discount policy. |
-| Partner commission | Idempotent first-year payout ledger and scheduler exist. | Incorrect for the requested offer — defaults are pharmacy 5% and marketing 15%/5%, not the requested 10%. |
+| Partner commission | Idempotent first-year payout ledger and scheduler exist. Defaults are now a flat 10% first-year policy (2026-08-15); payout rows snapshot `ratePercent` per period, so historical obligations are never rewritten by a future default change. | Partial — refunds/chargebacks exclusion and payout holds still need finance sign-off. |
 | Welcome message | Internal creation triggers a WhatsApp template with app link, share copy, and signed showcase PDF. | Partial — no SMS fallback/campaign orchestration or delivery/readiness evidence. |
 | Docita follow-up | No partner-lead notification workflow, assignment, SLA, calendar booking, or onboarding invite orchestration found. | Missing. |
 | Anti-abuse | Some one-referral and idempotency guards exist. | Insufficient for duplicate facilities, self-referrals, collusion, partner trees, consent, refunds, and payout holds. |
@@ -218,9 +218,9 @@ After an internal user schedules a demo/onboarding appointment:
 
 | Priority | Work | Current gap / acceptance evidence |
 | --- | --- | --- |
-| P0 | Replace the 5%/15%-5% default reward bands with versioned 10% first-year net-revenue policy | Unit tests prove months 1–12, refunds/credits/chargebacks, rounding, policy snapshots, and no accrual after month 12. |
+| P0 | Replace the 5%/15%-5% default reward bands with versioned 10% first-year net-revenue policy | **DONE (2026-08-15)** — new revenue-share partners default to a flat 10% band for months 1–12; `ratePercent` is snapshotted per payout row; unit tests cover months 1–12, month-13 no-accrual, non-positive revenue, and rounding. |
 | P0 | Add facility lead schema, API, partner UI, internal queue, lifecycle/audit history | Partner can submit the required facility/contact/location fields; internal owner can progress it; tenant/partner isolation tests pass. |
-| P0 | Add internal create/edit/deactivate partner workflow | Internal user can add name + phone, receive welcome, resolve duplicate, and see message status. |
+| P0 | Add internal create/edit/deactivate partner workflow | **PARTIAL (2026-08-15)** — create dialog (type/name/phone/email) with normalized-phone duplicate conflict, per-row resend-welcome, and message-audit drawer shipped; edit and deactivate UI remain. |
 | P0 | Add public partner signup/profile/terms and sponsor code capture | New partner can sign up, verify OTP, complete profile, and cannot submit leads before verification/terms. |
 | P0 | Add lead-created outbox notification and operator assignment | A lead creates exactly one durable event; retry/DLQ and internal notification are observable. |
 | P1 | Add configurable clinic plan discount policy and clinic dashboard tracking | Discount amount and duration are approved; checkout and clinic history show the same policy snapshot. |

@@ -32,7 +32,7 @@ const marketingReferral = {
     rewardKind: 'REVENUE_SHARE',
     active: true,
     firstYearOnly: true,
-    rateBands: null, // → defaults to 15%/5% special-marketing bands
+    rateBands: null, // → defaults to the flat 10% first-year bands
   },
 };
 
@@ -52,7 +52,7 @@ describe('ReferralAccrualService.accrueAllDuePayouts', () => {
     ]);
     ctx.payoutService.accruePayoutForPeriod.mockResolvedValue({
       created: true,
-      amountCents: 37485,
+      amountCents: 24990,
     });
 
     const result = await ctx.service.accrueAllDuePayouts();
@@ -76,7 +76,7 @@ describe('ReferralAccrualService.accrueAllDuePayouts', () => {
     ]);
     ctx.payoutService.accruePayoutForPeriod.mockResolvedValue({
       created: false,
-      amountCents: 37485,
+      amountCents: 24990,
     });
 
     const result = await ctx.service.accrueAllDuePayouts();
