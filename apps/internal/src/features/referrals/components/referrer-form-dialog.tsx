@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  Button,
   Input,
   Label,
   Select,
@@ -10,13 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
+import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
 import { apiPatch, apiPost } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { formatDate } from "../../../lib/formatters";
@@ -133,101 +126,87 @@ export function ReferrerFormDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Partner" : "Create Partner"}</DialogTitle>
-          <DialogDescription>
-            {isEdit && referrer
-              ? `Update details for ${referrer.name}. Code ${referrer.code ?? "—"} and commission policy are unchanged.`
-              : "Add a referral partner. A unique shareable code (RFR-XXXXXX) and welcome message are generated automatically."}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Partner type *</Label>
-            <Select
-              value={form.type}
-              onValueChange={(value) => updateField("type", value)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {REFERRER_TYPE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Name *</Label>
-            <Input
-              value={form.name}
-              onChange={(e) => updateField("name", e.target.value)}
-              placeholder="Partner name"
-              aria-invalid={Boolean(fieldErrors.name)}
-            />
-            {fieldErrors.name && (
-              <p className="text-sm text-destructive">{fieldErrors.name}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label>Phone</Label>
-            <Input
-              type="tel"
-              value={form.phone}
-              onChange={(e) => updateField("phone", e.target.value)}
-              placeholder="+91 98XXXXXXXX"
-              aria-invalid={Boolean(fieldErrors.phone)}
-            />
-            {fieldErrors.phone && (
-              <p className="text-sm text-destructive">{fieldErrors.phone}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input
-              type="email"
-              value={form.email}
-              onChange={(e) => updateField("email", e.target.value)}
-              placeholder="partner@example.com"
-              aria-invalid={Boolean(fieldErrors.email)}
-            />
-            {fieldErrors.email && (
-              <p className="text-sm text-destructive">{fieldErrors.email}</p>
-            )}
-          </div>
-          {isEdit && referrer?.createdAt && (
-            <p className="text-xs text-muted-foreground">
-              Partner since {formatDate(referrer.createdAt)}
-            </p>
-          )}
-          {conflictMessage && (
-            <p className="text-sm text-destructive">{conflictMessage}</p>
-          )}
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={saving}
-            >
-              Cancel
-            </Button>
-            <Button onClick={() => void handleSubmit()} disabled={saving}>
-              {saving
-                ? isEdit
-                  ? "Saving…"
-                  : "Creating…"
-                : isEdit
-                  ? "Save Changes"
-                  : "Create Partner"}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <CRUDDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? "Edit Partner" : "Create Partner"}
+      description={
+        isEdit && referrer
+          ? `Update details for ${referrer.name}. Code ${referrer.code ?? "—"} and commission policy are unchanged.`
+          : "Add a referral partner. A unique shareable code (RFR-XXXXXX) and welcome message are generated automatically."
+      }
+      isEditing={isEdit}
+      isLoading={saving}
+      disabled={saving}
+      submitLabel={isEdit ? "Save Changes" : "Create Partner"}
+      onSubmit={() => {
+        void handleSubmit();
+      }}
+    >
+      <div className="space-y-2">
+        <Label>Partner type *</Label>
+        <Select
+          value={form.type}
+          onValueChange={(value) => updateField("type", value)}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {REFERRER_TYPE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Name *</Label>
+        <Input
+          value={form.name}
+          onChange={(e) => updateField("name", e.target.value)}
+          placeholder="Partner name"
+          aria-invalid={Boolean(fieldErrors.name)}
+        />
+        {fieldErrors.name && (
+          <p className="text-sm text-destructive">{fieldErrors.name}</p>
+        )}
+      </div>
+      <div className="space-y-2">
+        <Label>Phone</Label>
+        <Input
+          type="tel"
+          value={form.phone}
+          onChange={(e) => updateField("phone", e.target.value)}
+          placeholder="+91 98XXXXXXXX"
+          aria-invalid={Boolean(fieldErrors.phone)}
+        />
+        {fieldErrors.phone && (
+          <p className="text-sm text-destructive">{fieldErrors.phone}</p>
+        )}
+      </div>
+      <div className="space-y-2">
+        <Label>Email</Label>
+        <Input
+          type="email"
+          value={form.email}
+          onChange={(e) => updateField("email", e.target.value)}
+          placeholder="partner@example.com"
+          aria-invalid={Boolean(fieldErrors.email)}
+        />
+        {fieldErrors.email && (
+          <p className="text-sm text-destructive">{fieldErrors.email}</p>
+        )}
+      </div>
+      {isEdit && referrer?.createdAt && (
+        <p className="text-xs text-muted-foreground">
+          Partner since {formatDate(referrer.createdAt)}
+        </p>
+      )}
+      {conflictMessage && (
+        <p className="text-sm text-destructive">{conflictMessage}</p>
+      )}
+    </CRUDDialog>
   );
 }

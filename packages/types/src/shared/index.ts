@@ -11,6 +11,7 @@ export * from "./contact";
 export * from "./support-contact";
 export * from "./custom-fields";
 export * from "./referrals";
+export * from "./facility-leads";
 export * from "./fhir";
 export * from "./whatsapp";
 export * from "./imports";

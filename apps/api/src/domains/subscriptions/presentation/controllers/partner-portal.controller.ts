@@ -3,10 +3,13 @@
 // request via the guard-set symbol; replacing either with a predicate
 // would duplicate the guard or the schema.
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   Header,
+  HttpCode,
+  Post,
   Put,
   Query,
   Req,
@@ -18,6 +21,8 @@ import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { ReferralPayoutStatus, ReferralStatus } from '@workspace/db';
 import {
+  facilityLeadSubmitSchema,
+  type FacilityLeadView,
   referrerPayoutDetailsInputSchema,
   type PartnerMe,
   type ReferrerPayoutDetailsView,
@@ -25,6 +30,7 @@ import {
   type PartnerReferralRow,
 } from '@workspace/types';
 import { PartnerPortalService } from '../../core/services/partner-portal.service';
+import { FacilityLeadCommandService } from '../../core/services/facility-lead-command.service';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import {
   PARTNER_AUTH_REQUEST_KEY,
@@ -50,7 +56,10 @@ const WRITE_RATE_LIMIT = {
 @UseGuards(PartnerAuthGuard)
 @Controller('partner')
 export class PartnerPortalController {
-  constructor(private readonly portal: PartnerPortalService) {}
+  constructor(
+    private readonly portal: PartnerPortalService,
+    private readonly leadService: FacilityLeadCommandService,
+  ) {}
 
   @Get('me')
   @Throttle(READ_RATE_LIMIT)
@@ -127,6 +136,27 @@ export class PartnerPortalController {
       throw parsed.error;
     }
     return this.portal.upsertPayoutDetails(referrerId, parsed.data);
+  }
+
+  @Post('me/leads')
+  @HttpCode(200)
+  @Throttle(WRITE_RATE_LIMIT)
+  @ApiOperation({
+    summary:
+      'Submit a facility lead (prospective customer) for Docita follow-up',
+  })
+  async submitLead(
+    @Req() req: Request,
+    @Body() body: unknown,
+  ): Promise<FacilityLeadView> {
+    const { referrerId } = this.context(req);
+    const parsed = facilityLeadSubmitSchema.safeParse(body);
+    if (!parsed.success) {
+      // The global filter maps only nestjs-zod exceptions; throw the
+      // framework-shaped error like the other safeParse controllers.
+      throw new BadRequestException('Invalid lead submission');
+    }
+    return this.leadService.submitLead(referrerId, parsed.data);
   }
 
   @Get('me/share-message')
