@@ -6,6 +6,7 @@ import { InternalSupportController } from './internal-support.controller';
 import { InternalClinicTierController } from './internal-clinic-tier.controller';
 import { InternalBillingController } from './internal-billing.controller';
 import { InternalReferralController } from './internal-referral.controller';
+import { InternalLeadController } from './internal-lead.controller';
 import { DatabaseControlController } from './database-control.controller';
 import { InternalReferralService } from './internal-referral.service';
 import { InternalBillingService } from './internal-billing.service';
@@ -62,6 +63,7 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     InternalClinicsController,
     InternalBillingController,
     InternalReferralController,
+    InternalLeadController,
     DatabaseControlController,
   ],
   providers: [

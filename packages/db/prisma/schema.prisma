@@ -3806,6 +3806,7 @@ model Referrer {
   payouts      ReferralPayout[]
   payoutDetail ReferrerPayoutDetails?
   messages     ReferrerMessage[]
+  leads        FacilityLead[]
 
   @@index([type])
   @@index([clinicId])
@@ -3885,6 +3886,83 @@ model ReferrerMessage {
 
   @@index([referrerId, createdAt])
   @@index([status])
+}
+
+enum FacilityLeadType {
+  CLINIC
+  HOSPITAL
+  DIAGNOSTIC_CENTRE
+  PHARMACY
+  NURSING_HOME
+  OTHER
+}
+
+/// Lead lifecycle per docs/REFERRAL_PARTNER_PROGRAM_PLAN.md: the forward
+/// chain `SUBMITTED -> TRIAGED -> CONTACT_ATTEMPTED -> CONTACTED ->
+/// DEMO_SCHEDULED -> ONBOARDING -> TRIAL -> CONVERTED`, plus absorbing
+/// terminal/exception states. Only internal operators transition a lead
+/// past SUBMITTED; every transition records actor/time/reason.
+enum FacilityLeadStatus {
+  SUBMITTED
+  TRIAGED
+  CONTACT_ATTEMPTED
+  CONTACTED
+  DEMO_SCHEDULED
+  ONBOARDING
+  TRIAL
+  CONVERTED
+  DUPLICATE
+  NOT_INTERESTED
+  INVALID
+  UNREACHABLE
+  REJECTED
+  LOST
+}
+
+/// A prospective facility a referral partner submits for Docita follow-up.
+/// The partner can create leads but never transition or delete them;
+/// internal operators own the lifecycle. `idempotencyKey` is unique per
+/// partner so a client resubmit (network retry, double-tap) cannot create
+/// a duplicate row; contact-phone dedupe is enforced in the service.
+model FacilityLead {
+  id         String            @id @default(cuid())
+  referrerId String
+  referrer   Referrer          @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+  status     FacilityLeadStatus @default(SUBMITTED)
+
+  facilityName String
+  facilityType FacilityLeadType
+  address      String
+  city         String
+  /// Region/state (free text — India-first, matches partner input).
+  state        String?
+  postalCode   String?
+  mapsUrl      String?
+
+  contactName    String
+  contactRole    String?
+  contactPhone   String?
+  contactEmail   String?
+  sourceNote     String?
+  preferredChannel String?
+  /// Partner attests the facility contact consented to a Docita follow-up.
+  consentToFollowUp Boolean @default(false)
+  notes            String?
+  bestTimeToContact String?
+
+  /// Client-supplied idempotency key (unique per partner).
+  idempotencyKey String?
+  /// Append-only JSON history of status transitions:
+  /// `[{ from, to, reason, actorId, at }]` — never edited in place.
+  /// @json:facilityLeadStatusHistoryEntrySchema
+  statusHistory Json?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([referrerId, idempotencyKey])
+  @@index([status, createdAt])
+  @@index([referrerId])
 }
 
 /// OTP challenges for the partner self-service portal. One row per active

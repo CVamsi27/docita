@@ -13,6 +13,7 @@ import {
   Megaphone,
   ShieldAlert,
   ArrowLeftRight,
+  Building2,
   FileSpreadsheet,
   UserCog,
   MessageSquare,
@@ -52,6 +53,7 @@ const navItems = [
   ]},
   { section: "Partners", items: [
     { label: "Referrals", icon: ArrowLeftRight, href: "/referrals" },
+    { label: "Leads", icon: Building2, href: "/leads" },
     { label: "Enterprise Contracts", icon: FileSpreadsheet, href: "/enterprise-contracts" },
     { label: "System Monitoring", icon: Monitor, href: "/system-monitoring" },
   ]},
