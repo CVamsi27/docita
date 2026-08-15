@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { z } from 'zod';
 import { Prisma, ReferralPayoutStatus } from '@workspace/db';
+import { normalizePhoneE164, phoneMatchCandidates } from '@workspace/utils';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
@@ -67,12 +72,37 @@ export class InternalReferralService {
         ? [...defaultRateBandsForType(type)]
         : undefined);
 
+    // Idempotent on normalized phone: refuse to create a second partner for a
+    // number that already exists in any stored form, so an operator who hits
+    // Create twice (or a partner who self-signs up twice) gets a surfaced
+    // conflict instead of a silent duplicate. Deactivated partners keep their
+    // row (financial history), so the conflict covers all rows, not just
+    // active ones.
+    let phone: string | null = null;
+    if (input.phone) {
+      phone = normalizePhoneE164(input.phone);
+      const existing = await this.prisma.referrer.findFirst({
+        where: { phone: { in: phoneMatchCandidates(phone) } },
+        select: { id: true },
+      });
+      if (existing) {
+        // The wire contract is the AllExceptionsFilter problem-details
+        // envelope (detail + optional code); extra fields do not reach the
+        // client. DUPLICATE_ENTRY is the canonical AppErrorCode for
+        // "already exists" and lets the UI distinguish this from other 409s.
+        throw new ConflictException({
+          message: 'A partner with this phone number already exists',
+          code: 'DUPLICATE_ENTRY',
+        });
+      }
+    }
+
     const referrer = await this.createWithUniqueCode({
       type: input.type,
       rewardKind,
       name: input.name,
       email: input.email ?? null,
-      phone: input.phone ?? null,
+      phone,
       clinicId: input.clinicId ?? null,
       rateBands: bands ? toPrismaInputJsonValue(bands) : Prisma.JsonNull,
       payoutDetails: input.payoutDetails

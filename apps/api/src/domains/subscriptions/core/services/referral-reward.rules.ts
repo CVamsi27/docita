@@ -28,15 +28,17 @@ export interface RateBand {
 /** Only the first 12 billed months of a referred clinic ever earn a reward. */
 export const REFERRAL_FIRST_YEAR_MONTHS = 12 as const;
 
-/** Opening offer — pharmacy / general marketing: flat 5% of first-year billing. */
-export const DEFAULT_PHARMACY_RATE_BANDS: readonly RateBand[] = [
-  { fromMonth: 1, toMonth: 12, percent: 5 },
-];
-
-/** Special marketing person: 15% for months 1–6, then 5% for months 7–12. */
-export const DEFAULT_SPECIAL_MARKETING_RATE_BANDS: readonly RateBand[] = [
-  { fromMonth: 1, toMonth: 6, percent: 15 },
-  { fromMonth: 7, toMonth: 12, percent: 5 },
+/**
+ * Default revenue-share policy for commercial / lab / medical-shop partners:
+ * a flat 10% of the referred clinic's first-year (months 1–12) net collected
+ * billing. This is the approved opening offer in
+ * `docs/REFERRAL_PARTNER_PROGRAM_PLAN.md` (the former 5% / 15%+5% bands were
+ * pre-launch placeholders). The policy is snapshotted per payout row
+ * (`ratePercent`), so changing this default never rewrites historical
+ * obligations.
+ */
+export const DEFAULT_REVENUE_SHARE_RATE_BANDS: readonly RateBand[] = [
+  { fromMonth: 1, toMonth: 12, percent: 10 },
 ];
 
 interface CreditMilestoneConfig {
@@ -134,9 +136,8 @@ export function defaultRateBandsForType(
 ): readonly RateBand[] {
   switch (type) {
     case 'MARKETING_PERSON':
-      return DEFAULT_SPECIAL_MARKETING_RATE_BANDS;
     case 'PHARMACY':
-      return DEFAULT_PHARMACY_RATE_BANDS;
+      return DEFAULT_REVENUE_SHARE_RATE_BANDS;
     case 'CLINIC':
     case 'CUSTOM':
       return [];

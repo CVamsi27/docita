@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import {
-  DEFAULT_PHARMACY_RATE_BANDS,
-  DEFAULT_SPECIAL_MARKETING_RATE_BANDS,
+  DEFAULT_REVENUE_SHARE_RATE_BANDS,
   computeCreditMilestoneGrant,
   computeRevenueShareCents,
   defaultRateBandsForType,
@@ -11,19 +10,20 @@ import {
 } from './referral-reward.rules';
 
 describe('resolveRateForMonth', () => {
-  it('special marketing: 15% months 1-6, 5% months 7-12, 0 after', () => {
-    const bands = DEFAULT_SPECIAL_MARKETING_RATE_BANDS;
-    expect(resolveRateForMonth(bands, 1)).toBe(15);
-    expect(resolveRateForMonth(bands, 6)).toBe(15);
-    expect(resolveRateForMonth(bands, 7)).toBe(5);
-    expect(resolveRateForMonth(bands, 12)).toBe(5);
+  it('flat 10% across all 12 first-year months, 0 after', () => {
+    const bands = DEFAULT_REVENUE_SHARE_RATE_BANDS;
+    expect(resolveRateForMonth(bands, 1)).toBe(10);
+    expect(resolveRateForMonth(bands, 6)).toBe(10);
+    expect(resolveRateForMonth(bands, 12)).toBe(10);
     expect(resolveRateForMonth(bands, 13)).toBe(0);
+    expect(resolveRateForMonth(bands, 0)).toBe(0);
   });
 
-  it('pharmacy: flat 5% across the first year', () => {
-    expect(resolveRateForMonth(DEFAULT_PHARMACY_RATE_BANDS, 1)).toBe(5);
-    expect(resolveRateForMonth(DEFAULT_PHARMACY_RATE_BANDS, 12)).toBe(5);
-    expect(resolveRateForMonth(DEFAULT_PHARMACY_RATE_BANDS, 13)).toBe(0);
+  it('returns 0 when no band matches the month', () => {
+    expect(resolveRateForMonth([], 1)).toBe(0);
+    expect(
+      resolveRateForMonth([{ fromMonth: 2, toMonth: 4, percent: 10 }], 5),
+    ).toBe(0);
   });
 });
 
@@ -50,27 +50,27 @@ describe('monthIndexForPeriod', () => {
 });
 
 describe('computeRevenueShareCents', () => {
-  const bands = DEFAULT_SPECIAL_MARKETING_RATE_BANDS;
+  const bands = DEFAULT_REVENUE_SHARE_RATE_BANDS;
   const monthly = 249900; // ₹2499 in paise
 
-  it('15% in an early month', () => {
+  it('10% in an early month', () => {
     expect(
       computeRevenueShareCents({
         paidRevenueCents: monthly,
         monthIndex: 3,
         bands,
       }),
-    ).toBe(37485);
+    ).toBe(24990);
   });
 
-  it('5% in a later first-year month', () => {
+  it('10% in the final first-year month', () => {
     expect(
       computeRevenueShareCents({
         paidRevenueCents: monthly,
-        monthIndex: 8,
+        monthIndex: 12,
         bands,
       }),
-    ).toBe(12495);
+    ).toBe(24990);
   });
 
   it('0 after the first year (firstYearOnly default)', () => {
@@ -103,6 +103,23 @@ describe('computeRevenueShareCents', () => {
       bands,
     });
     expect(Number.isInteger(v)).toBe(true);
+  });
+
+  it('rounds the revenue share to the nearest paise', () => {
+    expect(
+      computeRevenueShareCents({
+        paidRevenueCents: 33333,
+        monthIndex: 1,
+        bands,
+      }),
+    ).toBe(3333); // 3333.3 → 3333
+    expect(
+      computeRevenueShareCents({
+        paidRevenueCents: 33335,
+        monthIndex: 1,
+        bands,
+      }),
+    ).toBe(3334); // 3333.5 → 3334
   });
 });
 
@@ -156,12 +173,12 @@ describe('isRewardClaimable (one-time / one-per-clinic)', () => {
 });
 
 describe('defaultRateBandsForType', () => {
-  it('maps types to their opening-offer bands', () => {
+  it('maps revenue-share types to the flat 10% first-year policy', () => {
     expect(defaultRateBandsForType('PHARMACY')).toBe(
-      DEFAULT_PHARMACY_RATE_BANDS,
+      DEFAULT_REVENUE_SHARE_RATE_BANDS,
     );
     expect(defaultRateBandsForType('MARKETING_PERSON')).toBe(
-      DEFAULT_SPECIAL_MARKETING_RATE_BANDS,
+      DEFAULT_REVENUE_SHARE_RATE_BANDS,
     );
     expect(defaultRateBandsForType('CLINIC')).toEqual([]);
     expect(defaultRateBandsForType('CUSTOM')).toEqual([]);
