@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  Button,
   Label,
   Select,
   SelectContent,
@@ -10,13 +9,7 @@ import {
   SelectValue,
   Textarea,
 } from "@workspace/ui/components";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/overlay/dialog";
+import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
 import { FACILITY_LEAD_TRANSITIONS, type FacilityLeadStatus, type FacilityLeadView } from "@workspace/types";
 import { apiPatch } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
@@ -56,12 +49,8 @@ export function LeadStatusDialog({
     }
   }, [open]);
 
-  if (!lead) return null;
-
-  const allowed = FACILITY_LEAD_TRANSITIONS[lead.status] ?? [];
-  const currentLabel = LEAD_STATUS_LABELS[lead.status];
-
   const handleSave = async () => {
+    if (!lead) return;
     if (!target) {
       setReasonError("Choose a target status");
       return;
@@ -90,67 +79,61 @@ export function LeadStatusDialog({
     }
   };
 
+  if (!lead) return null;
+
+  const allowed = FACILITY_LEAD_TRANSITIONS[lead.status] ?? [];
+  const currentLabel = LEAD_STATUS_LABELS[lead.status];
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Update lead status</DialogTitle>
-          <DialogDescription>
-            {lead.facilityName} ({currentLabel}) — {lead.referrerName}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>New status *</Label>
-            <Select
-              value={target}
-              onValueChange={(value) => {
-                setTarget(value as FacilityLeadStatus);
-                setReasonError(null);
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a status" />
-              </SelectTrigger>
-              <SelectContent>
-                {allowed.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {LEAD_STATUS_LABELS[status]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Reason *</Label>
-            <Textarea
-              value={reason}
-              onChange={(e) => {
-                setReason(e.target.value);
-                setReasonError(null);
-              }}
-              placeholder="Why is this lead moving to this state?"
-              rows={3}
-              aria-invalid={Boolean(reasonError)}
-            />
-            {reasonError && (
-              <p className="text-sm text-destructive">{reasonError}</p>
-            )}
-          </div>
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={saving}
-            >
-              Cancel
-            </Button>
-            <Button onClick={() => void handleSave()} disabled={saving}>
-              {saving ? "Saving…" : "Save Changes"}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <CRUDDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Update lead status"
+      description={`${lead.facilityName} (${currentLabel}) — ${lead.referrerName}`}
+      isLoading={saving}
+      disabled={saving}
+      submitLabel="Save Changes"
+      onSubmit={() => {
+        void handleSave();
+      }}
+    >
+      <div className="space-y-2">
+        <Label>New status *</Label>
+        <Select
+          value={target}
+          onValueChange={(value) => {
+            setTarget(value as FacilityLeadStatus);
+            setReasonError(null);
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select a status" />
+          </SelectTrigger>
+          <SelectContent>
+            {allowed.map((status) => (
+              <SelectItem key={status} value={status}>
+                {LEAD_STATUS_LABELS[status]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Reason *</Label>
+        <Textarea
+          value={reason}
+          onChange={(e) => {
+            setReason(e.target.value);
+            setReasonError(null);
+          }}
+          placeholder="Why is this lead moving to this state?"
+          rows={3}
+          aria-invalid={Boolean(reasonError)}
+        />
+        {reasonError && (
+          <p className="text-sm text-destructive">{reasonError}</p>
+        )}
+      </div>
+    </CRUDDialog>
   );
 }
