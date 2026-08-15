@@ -1,3 +1,5 @@
+// check-as-cast-density: allow-file — narrowing Prisma JsonValue to the
+// domain statusHistory array (schema-backed; no unchecked widening).
 import {
   BadRequestException,
   ConflictException,

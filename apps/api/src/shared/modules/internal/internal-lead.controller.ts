@@ -1,3 +1,5 @@
+// check-as-cast-density: allow-file — extracting the actor id from the
+// internal session user (guarded by @InternalApiAccess).
 import {
   BadRequestException,
   Body,

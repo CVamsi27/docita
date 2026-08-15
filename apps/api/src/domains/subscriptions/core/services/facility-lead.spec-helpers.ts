@@ -1,3 +1,5 @@
+// check-as-cast-density: allow-file — test double for the persistence port
+// (service constructor accepts the port, not this fixture).
 import { jest } from '@jest/globals';
 import type { IClock } from '@/shared/common/ports/clock.port';
 

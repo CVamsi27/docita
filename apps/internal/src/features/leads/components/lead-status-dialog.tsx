@@ -1,3 +1,5 @@
+// check-as-cast-density: allow-file — narrowing the Select value (string)
+// to the schema-backed FacilityLeadStatus enum.
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
