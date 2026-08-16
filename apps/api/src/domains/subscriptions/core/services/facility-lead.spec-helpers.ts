@@ -81,6 +81,7 @@ export function makeFacilityLeadCtx() {
   };
   const facilityLeadNotification = {
     upsert: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
+    findFirst: jest.fn<(...a: unknown[]) => Promise<unknown>>(),
     updateMany: jest.fn<(...a: unknown[]) => Promise<{ count: number }>>(),
   };
   const user = {

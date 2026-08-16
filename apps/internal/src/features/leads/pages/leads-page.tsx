@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 import {
   AppPageScaffold,
   Badge,
@@ -69,6 +70,11 @@ export function LeadsPage() {
   const [assigning, setAssigning] =
     useState<InternalFacilityLeadView | null>(null);
 
+  // The notification deep link points at one lead (`/leads?lead=<id>`);
+  // the queue narrows to it until the operator clears back to the queue.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const leadFilter = searchParams.get("lead") ?? "";
+
   const hasActiveFilters =
     statusFilter !== FILTER_ALL ||
     ownerFilter !== FILTER_ALL ||
@@ -81,11 +87,14 @@ export function LeadsPage() {
       if (ownerFilter !== FILTER_ALL) params.set("owner", ownerFilter);
       if (referrerFilter !== FILTER_ALL)
         params.set("referrerId", referrerFilter);
+      // The API reads this as `lead` (same key the notification deep
+      // link uses: `/leads?lead=<id>`); do not rename it here.
+      if (leadFilter) params.set("lead", leadFilter);
       if (cursor) params.set("cursor", cursor);
       const query = params.toString();
       return query ? `/api/internal/leads?${query}` : "/api/internal/leads";
     },
-    [statusFilter, ownerFilter, referrerFilter],
+    [statusFilter, ownerFilter, referrerFilter, leadFilter],
   );
 
   const fetchLeads = useCallback(
@@ -167,6 +176,20 @@ export function LeadsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {leadFilter && (
+              <div className="mb-4 flex items-center justify-between gap-3 rounded-md border bg-muted/30 px-3 py-2">
+                <p className="text-sm text-muted-foreground">
+                  Viewing a single lead from a notification
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSearchParams({}, { replace: true })}
+                >
+                  Show all leads
+                </Button>
+              </div>
+            )}
             <div className="mb-4 flex flex-wrap items-end gap-3">
               <div className="min-w-44 space-y-1">
                 <Label className="text-xs text-muted-foreground">Status</Label>
@@ -310,6 +333,7 @@ export function LeadsPage() {
                             <TableCell>
                               <LeadNotificationBadge
                                 notification={lead.notification}
+                                onAcknowledged={() => void fetchLeads()}
                               />
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">

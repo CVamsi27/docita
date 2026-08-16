@@ -13,6 +13,7 @@ import {
   FACILITY_LEAD_TRANSITIONS,
   type FacilityLeadAssignmentHistoryEntry,
   type FacilityLeadAssign,
+  type FacilityLeadNotificationView,
   type FacilityLeadStatusHistoryEntry,
   type FacilityLeadTransition,
   type FacilityLeadView,
@@ -25,7 +26,7 @@ import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import type { IOutboxService } from '@/shared/modules/outbox/outbox.interface';
-import { mapToView } from './facility-lead.mapper';
+import { mapNotification, mapToView } from './facility-lead.mapper';
 
 /**
  * Facility-lead lifecycle and ownership writes (internal operators). The
@@ -185,6 +186,51 @@ export class FacilityLeadCommandService {
     });
 
     return this.readFreshView(id);
+  }
+
+  /**
+   * Marks the lead's latest internal notification as acknowledged (read) by
+   * the acting operator. The write is conditional on the row being
+   * unacknowledged, so the first ack wins and concurrent acks (or a re-ack
+   * after a UI refetch) are idempotent no-ops that return the current state.
+   * 404 when the lead has no notification yet (e.g. the outbox relay has
+   * not drained).
+   */
+  async acknowledgeNotification(
+    id: string,
+    actorId: string,
+  ): Promise<FacilityLeadNotificationView> {
+    const lead = await this.prisma.facilityLead.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!lead) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    const latest = await this.prisma.facilityLeadNotification.findFirst({
+      where: { leadId: id },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!latest) {
+      throw new NotFoundException('No notification for this lead yet');
+    }
+
+    await this.prisma.facilityLeadNotification.updateMany({
+      where: { id: latest.id, acknowledgedAt: null },
+      data: {
+        acknowledgedAt: this.clock.now(),
+        acknowledgedByUserId: actorId,
+      },
+    });
+
+    const fresh = await this.prisma.facilityLeadNotification.findFirst({
+      where: { id: latest.id },
+    });
+    if (!fresh) {
+      throw new NotFoundException('Notification not found');
+    }
+    return mapNotification(fresh);
   }
 
   /** Re-read after a write and map to the partner view (404 if gone). */

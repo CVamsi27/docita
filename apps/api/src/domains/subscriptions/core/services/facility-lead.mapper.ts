@@ -69,7 +69,7 @@ export function mapToInternalView(
   };
 }
 
-function mapNotification(
+export function mapNotification(
   row: LeadWithNotification['notifications'][number],
 ): FacilityLeadNotificationView {
   return {
@@ -81,6 +81,10 @@ function mapNotification(
     payload: parseNotificationPayload(row.payload),
     errorMessage: row.errorMessage,
     deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,
+    acknowledgedAt: row.acknowledgedAt
+      ? row.acknowledgedAt.toISOString()
+      : null,
+    acknowledgedByUserId: row.acknowledgedByUserId ?? null,
     createdAt: row.createdAt.toISOString(),
   };
 }

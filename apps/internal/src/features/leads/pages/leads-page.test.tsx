@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { LeadsPage } from "./leads-page";
-import { apiGet, apiPatch } from "@/lib/api/api-client";
+import { apiGet, apiPatch, apiPost } from "@/lib/api/api-client";
 import { formatDate } from "@/lib/formatters";
 
 vi.mock("@/lib/api/api-client", () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
+  apiPost: vi.fn(),
 }));
 
 vi.mock("sonner", () => ({
@@ -15,6 +17,7 @@ vi.mock("sonner", () => ({
 
 const mockApiGet = vi.mocked(apiGet);
 const mockApiPatch = vi.mocked(apiPatch);
+const mockApiPost = vi.mocked(apiPost);
 
 const mockLeads = [
   {
@@ -64,6 +67,8 @@ const mockLeads = [
       },
       errorMessage: null,
       deliveredAt: "2026-08-15T10:05:00Z",
+      acknowledgedAt: null,
+      acknowledgedByUserId: null,
       createdAt: "2026-08-15T10:05:00Z",
     },
   },
@@ -107,6 +112,8 @@ const mockLeads = [
       },
       errorMessage: "connection refused",
       deliveredAt: null,
+      acknowledgedAt: null,
+      acknowledgedByUserId: null,
       createdAt: "2026-08-14T10:05:00Z",
     },
   },
@@ -150,6 +157,8 @@ const mockLeads = [
       },
       errorMessage: null,
       deliveredAt: "2026-08-15T11:05:00Z",
+      acknowledgedAt: null,
+      acknowledgedByUserId: null,
       createdAt: "2026-08-15T11:05:00Z",
     },
   },
@@ -197,11 +206,16 @@ describe("LeadsPage", () => {
   beforeEach(() => {
     mockApiGet.mockReset();
     mockApiPatch.mockReset();
+    mockApiPost.mockReset();
     mockDefaultApi();
   });
 
-  const renderPage = () => {
-    render(<LeadsPage />);
+  const renderPage = (initialEntries?: string[]) => {
+    render(
+      <MemoryRouter initialEntries={initialEntries ?? ["/leads"]}>
+        <LeadsPage />
+      </MemoryRouter>,
+    );
   };
 
   const waitForRows = () =>
@@ -256,7 +270,7 @@ describe("LeadsPage", () => {
       }
       return Promise.resolve(envelope([]));
     });
-    render(<LeadsPage />);
+    renderPage();
 
     await waitFor(() => {
       expect(screen.getByText("No leads yet")).toBeInTheDocument();
@@ -328,7 +342,7 @@ describe("LeadsPage", () => {
       }
       return Promise.resolve(envelope([]));
     });
-    render(<LeadsPage />);
+    renderPage();
     await waitFor(() => {
       expect(screen.getByText("No leads yet")).toBeInTheDocument();
     });
@@ -340,6 +354,83 @@ describe("LeadsPage", () => {
       expect(
         screen.getByText("No leads match these filters"),
       ).toBeInTheDocument();
+    });
+  });
+
+  it("marks a notification as seen and refetches the queue", async () => {
+    renderPage();
+    await waitForRows();
+
+    mockApiPost.mockResolvedValueOnce({
+      id: "n1",
+      acknowledgedAt: "2026-08-15T12:00:00Z",
+      acknowledgedByUserId: "internal-9",
+    });
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Mark seen" })[0]);
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith(
+        "/api/internal/leads/l1/notification/ack",
+      );
+    });
+    // Success refetches the queue.
+    await waitFor(() => {
+      expect(leadsCalls()).toHaveLength(2);
+    });
+  });
+
+  it("shows Seen (with no Mark-seen action) for an acknowledged notification", async () => {
+    const acknowledged = mockLeads.map((lead) =>
+      lead.id === "l1"
+        ? {
+            ...lead,
+            notification: {
+              ...lead.notification,
+              acknowledgedAt: "2026-08-15T12:00:00Z",
+              acknowledgedByUserId: "internal-9",
+            },
+          }
+        : lead,
+    );
+    mockApiGet.mockImplementation((url: string) => {
+      if (url.startsWith("/api/internal/operators")) {
+        return Promise.resolve(OPERATORS);
+      }
+      if (url.startsWith("/api/internal/referrers")) {
+        return Promise.resolve(REFERRERS);
+      }
+      return Promise.resolve(envelope(acknowledged));
+    });
+    renderPage();
+    await waitForRows();
+
+    expect(screen.getByText("Seen")).toBeInTheDocument();
+    // The duplicate row (l3) is still unacknowledged.
+    expect(screen.getAllByRole("button", { name: "Mark seen" })).toHaveLength(
+      1,
+    );
+  });
+
+  it("narrows the queue to the deep-linked lead and offers Show all leads", async () => {
+    renderPage(["/leads?lead=l2"]);
+    await waitForRows();
+
+    // The API key is `lead` — the same key the notification deep link
+    // carries (`/leads?lead=<id>`), and the controller reads `@Query('lead')`.
+    expect(leadsCalls().at(-1)?.[0]).toContain("lead=l2");
+    expect(
+      screen.getByText("Viewing a single lead from a notification"),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Show all leads" }));
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toBe("/api/internal/leads");
+    });
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Viewing a single lead from a notification"),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -366,7 +457,7 @@ describe("LeadsPage", () => {
         count: 1,
       });
     });
-    render(<LeadsPage />);
+    renderPage();
     await waitForRows();
     expect(screen.getByText("Page 1")).toBeInTheDocument();
 

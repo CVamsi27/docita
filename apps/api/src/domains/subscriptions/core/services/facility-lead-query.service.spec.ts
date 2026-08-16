@@ -52,20 +52,27 @@ describe('FacilityLeadQueryService', () => {
     });
   });
 
-  it('filters by owner (null selects unassigned) and referrer', async () => {
+  it('filters by owner (null selects unassigned), referrer, and lead id', async () => {
     ctx.facilityLead.findMany.mockResolvedValue([]);
 
     const service = new FacilityLeadQueryService(ctx.prisma);
     await service.listLeads({
       ownerUserId: null,
       referrerId: 'r-9',
+      // The notification deep link narrows the queue to exactly one lead.
+      leadId: 'l-deeplink',
     });
 
     const args = ctx.facilityLead.findMany.mock.calls[0][0] as {
-      where: { ownerUserId: string | null; referrerId: string };
+      where: {
+        ownerUserId: string | null;
+        referrerId: string;
+        id: string;
+      };
     };
     expect(args.where.ownerUserId).toBeNull();
     expect(args.where.referrerId).toBe('r-9');
+    expect(args.where.id).toBe('l-deeplink');
   });
 
   it('pages with a cursor and bounded limit', async () => {

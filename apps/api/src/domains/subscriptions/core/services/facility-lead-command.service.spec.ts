@@ -1,8 +1,16 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { FacilityLeadCommandService } from './facility-lead-command.service';
-import { leadRow, makeFacilityLeadCtx } from './facility-lead.spec-helpers';
+import {
+  leadRow,
+  makeFacilityLeadCtx,
+  notificationRow,
+} from './facility-lead.spec-helpers';
 
 describe('FacilityLeadCommandService', () => {
   let ctx: ReturnType<typeof makeFacilityLeadCtx>;
@@ -370,6 +378,87 @@ describe('FacilityLeadCommandService', () => {
       expect(ctx.facilityLeadNotification.updateMany).not.toHaveBeenCalled();
       // No fresh read: the write never happened.
       expect(ctx.facilityLead.findUnique).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('acknowledgeNotification', () => {
+    it('marks the latest notification acknowledged with the acting operator', async () => {
+      ctx.facilityLead.findUnique.mockResolvedValue(leadRow());
+      ctx.facilityLeadNotification.findFirst.mockResolvedValueOnce(
+        notificationRow(),
+      );
+      ctx.facilityLeadNotification.updateMany.mockResolvedValue({ count: 1 });
+      // The fresh read after the write carries the ack timestamps.
+      ctx.facilityLeadNotification.findFirst.mockResolvedValueOnce(
+        notificationRow({
+          acknowledgedAt: new Date('2026-08-15T12:00:00Z'),
+          acknowledgedByUserId: 'internal-9',
+        }),
+      );
+
+      const result = await service().acknowledgeNotification(
+        'l1',
+        'internal-9',
+      );
+
+      const write = ctx.facilityLeadNotification.updateMany.mock
+        .calls[0][0] as {
+        where: { id: string; acknowledgedAt: null };
+        data: Record<string, unknown>;
+      };
+      expect(write.where).toEqual({ id: 'n1', acknowledgedAt: null });
+      expect(write.data.acknowledgedByUserId).toBe('internal-9');
+      expect(write.data.acknowledgedAt).toEqual(
+        new Date('2026-08-15T12:00:00Z'),
+      );
+      expect(result).toMatchObject({
+        id: 'n1',
+        acknowledgedAt: '2026-08-15T12:00:00.000Z',
+        acknowledgedByUserId: 'internal-9',
+      });
+    });
+
+    it('is idempotent when the notification is already acknowledged', async () => {
+      ctx.facilityLead.findUnique.mockResolvedValue(leadRow());
+      ctx.facilityLeadNotification.findFirst.mockResolvedValueOnce(
+        notificationRow(),
+      );
+      // Someone else (or an earlier click) already acked it: no row matched.
+      ctx.facilityLeadNotification.updateMany.mockResolvedValue({ count: 0 });
+      ctx.facilityLeadNotification.findFirst.mockResolvedValueOnce(
+        notificationRow({
+          acknowledgedAt: new Date('2026-08-15T12:00:00Z'),
+          acknowledgedByUserId: 'internal-8',
+        }),
+      );
+
+      const result = await service().acknowledgeNotification(
+        'l1',
+        'internal-9',
+      );
+
+      expect(result.acknowledgedByUserId).toBe('internal-8');
+      // No exception and no overwrite of the original acknowledger.
+      expect(ctx.facilityLeadNotification.updateMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws 404 for an unknown lead without touching notifications', async () => {
+      ctx.facilityLead.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service().acknowledgeNotification('nope', 'internal-9'),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(ctx.facilityLeadNotification.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('throws 404 when the lead has no notification yet', async () => {
+      ctx.facilityLead.findUnique.mockResolvedValue(leadRow());
+      ctx.facilityLeadNotification.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service().acknowledgeNotification('l1', 'internal-9'),
+      ).rejects.toThrow('No notification for this lead yet');
+      expect(ctx.facilityLeadNotification.updateMany).not.toHaveBeenCalled();
     });
   });
 });

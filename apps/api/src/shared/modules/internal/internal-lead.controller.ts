@@ -7,6 +7,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   Req,
 } from '@nestjs/common';
@@ -40,6 +41,7 @@ export class InternalLeadController {
     @Query('status') status?: string,
     @Query('owner') owner?: string,
     @Query('referrerId') referrerId?: string,
+    @Query('lead') lead?: string,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
   ) {
@@ -59,12 +61,28 @@ export class InternalLeadController {
         status: parsedStatus,
         ownerUserId,
         referrerId: referrerId || undefined,
+        // The per-lead deep link (`/leads?lead=<id>`) narrows the queue to
+        // exactly one lead.
+        leadId: lead || undefined,
       },
       {
         cursor: cursor || undefined,
         limit: parsePaginationInt(limit, { min: 1, max: 100 }),
       },
     );
+  }
+
+  @Post('leads/:id/notification/ack')
+  @ApiOperation({
+    summary:
+      'Acknowledge (mark as read) the lead notification (idempotent; first ack wins)',
+  })
+  async acknowledgeLeadNotification(
+    @Param('id') id: string,
+    @Req() req: Request,
+  ) {
+    const actorId = (req.user as { id?: string } | undefined)?.id ?? 'internal';
+    return this.commandService.acknowledgeNotification(id, actorId);
   }
 
   @Patch('leads/:id/status')
