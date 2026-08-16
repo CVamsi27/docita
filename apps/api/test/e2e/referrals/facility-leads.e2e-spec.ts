@@ -255,6 +255,93 @@ describe('Facility Leads (e2e)', () => {
     });
   });
 
+  describe('GET /partner/me/leads', () => {
+    it("lists only the authenticated partner's own leads, newest first, read-only", async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2EML1');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+
+      // A fresh partner sees an empty list, not an error.
+      const empty = await request(app.getHttpServer())
+        .get('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      expect(empty.body.items).toEqual([]);
+      expect(empty.body.nextCursor).toBeNull();
+
+      const first = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'RFR-E2EML1-key-1' }))
+        .expect(200);
+      const second = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(
+          leadBody({
+            facilityName: 'Mumbai Harbour Diagnostics',
+            city: 'Mumbai',
+            state: 'Maharashtra',
+            contactPhone: '+919800000009',
+            idempotencyKey: 'RFR-E2EML1-key-2',
+          }),
+        )
+        .expect(200);
+
+      const mine = await request(app.getHttpServer())
+        .get('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      expect(mine.body.items).toHaveLength(2);
+      expect(new Set(mine.body.items.map((i: { id: string }) => i.id))).toEqual(
+        new Set([first.body.id, second.body.id]),
+      );
+      // Newest first (createdAt desc; id desc breaks same-ms ties, so assert
+      // the ordering constraint rather than a specific id).
+      expect(mine.body.items[0].createdAt >= mine.body.items[1].createdAt).toBe(
+        true,
+      );
+      const secondLead = mine.body.items.find(
+        (i: { id: string }) => i.id === second.body.id,
+      );
+      // Partner-facing projection only.
+      expect(secondLead).toMatchObject({
+        status: 'SUBMITTED',
+        facilityName: 'Mumbai Harbour Diagnostics',
+        city: 'Mumbai',
+        referrerName: 'E2E Partner RFR-E2EML1',
+        consentToFollowUp: true,
+      });
+      expect(typeof secondLead.createdAt).toBe('string');
+      // The internal owner/notification surface never leaks to the partner.
+      expect(secondLead).not.toHaveProperty('ownerUserId');
+      expect(secondLead).not.toHaveProperty('duplicateScore');
+      expect(secondLead).not.toHaveProperty('notification');
+      expect(mine.body.nextCursor).toBeNull();
+    });
+
+    it("never returns another partner's leads and requires the partner token", async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2EML2');
+      const tokenA = await obtainPartnerToken(PARTNER_PHONE);
+      await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${tokenA}`)
+        .send(leadBody({ idempotencyKey: 'RFR-E2EML2-key-1' }))
+        .expect(200);
+
+      // A different partner sees none of A's leads.
+      await seedPartner('+919999999999', 'RFR-E2EML2B');
+      const tokenB = await obtainPartnerToken('+919999999999');
+      const mine = await request(app.getHttpServer())
+        .get('/partner/me/leads')
+        .set('Authorization', `Bearer ${tokenB}`)
+        .expect(200);
+      expect(mine.body.items).toEqual([]);
+
+      // No token -> the guard rejects.
+      await request(app.getHttpServer()).get('/partner/me/leads').expect(401);
+    });
+  });
+
   describe('GET /internal/leads', () => {
     it('lists leads with the partner name for an INTERNAL operator', async () => {
       await seedPartner(PARTNER_PHONE, 'RFR-E2ELD05');

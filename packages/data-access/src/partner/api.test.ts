@@ -231,6 +231,25 @@ describe("partnerApi", () => {
     expect(seen.url).toContain("limit=10");
   });
 
+  it("listMyLeads GETs /partner/me/leads with the query string", async () => {
+    const seen: { url: string } = { url: "" };
+    mockFetch(async (url) => {
+      seen.url = url;
+      return new Response("{}", { status: 200 });
+    });
+    await partnerApi.listMyLeads(
+      { limit: 10, cursor: "lead-5" },
+      { accessToken: "x" },
+    );
+    expect(seen.url).toContain("/partner/me/leads?");
+    expect(seen.url).toContain("limit=10");
+    expect(seen.url).toContain("cursor=lead-5");
+
+    // No options -> bare endpoint, like the other paginated reads.
+    await partnerApi.listMyLeads(undefined, { accessToken: "x" });
+    expect(seen.url).toBe("/partner/me/leads");
+  });
+
   it("submitFacilityLead POSTs the lead to /partner/me/leads", async () => {
     const seen: { url: string; init: RequestInit | undefined } = { url: "", init: undefined };
     mockFetch(async (url, init) => {

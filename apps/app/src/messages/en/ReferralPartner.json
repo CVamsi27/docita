@@ -21,7 +21,8 @@
     "payouts": "Payouts",
     "referrals": "Referrals",
     "banking": "Banking",
-    "submitLead": "Submit a lead"
+    "submitLead": "Submit a lead",
+    "mySubmissions": "My submissions"
   },
   "dashboard": {
     "loading": "Loading...",
@@ -175,6 +176,23 @@
     "errorSession": "Your session has expired. Please sign in again.",
     "errorSubmitFallback": "We could not submit the lead. Please try again.",
     "consentRequired": "Please confirm the facility contact agreed to be contacted.",
-    "errorTitle": "Error"
+    "errorTitle": "Error",
+    "viewSubmissions": "View my submissions"
+  },
+  "mySubmissions": {
+    "title": "My submissions",
+    "description": "Status of the facility leads you have submitted",
+    "loading": "Loading…",
+    "loadErrorTitle": "Couldn't load your submissions",
+    "loadErrorDescription": "Please try again in a moment.",
+    "empty": "No submissions yet. When you submit a facility lead it will show up here.",
+    "columnFacility": "Facility",
+    "columnStatus": "Status",
+    "columnSubmitted": "Submitted",
+    "statusSubmitted": "Submitted",
+    "statusUnderReview": "Under review",
+    "statusInProgress": "In progress",
+    "statusOnboarded": "Onboarded",
+    "statusClosed": "Closed"
   }
 }

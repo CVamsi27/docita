@@ -6,12 +6,14 @@ import {
 } from '@nestjs/common';
 import { Prisma, ReferralPayoutStatus, ReferralStatus } from '@workspace/db';
 import {
+  type FacilityLeadView,
   type PartnerMe,
   type PartnerPayoutRow,
   type PartnerReferralRow,
   type ReferrerPayoutDetailsInput,
   type ReferrerPayoutDetailsView,
 } from '@workspace/types';
+import { mapToView } from './facility-lead.mapper';
 import {
   PARTNER_PERSISTENCE_PORT,
   type PartnerPersistencePort,
@@ -166,6 +168,29 @@ export class PartnerPortalService {
         paidAt: row.paidAt ? row.paidAt.toISOString() : null,
       }),
     );
+  }
+
+  /**
+   * The partner's own submitted facility leads, newest first, cursor-
+   * paginated. Read-only: the partner can see status + what they
+   * submitted but never the internal owner/notification surface (the
+   * partner-facing `mapToView` projection).
+   */
+  async listMyLeads(
+    referrerId: string,
+    options: { limit?: number; cursor?: string } = {},
+  ): Promise<{ items: FacilityLeadView[]; nextCursor: string | null }> {
+    const limit = Math.min(options.limit ?? 50, 200);
+    const rows = await this.prisma.facilityLead.findMany({
+      where: { referrerId },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
+      ...(options.cursor ? { cursor: { id: options.cursor }, skip: 1 } : {}),
+      include: {
+        referrer: { select: { id: true, name: true } },
+      },
+    });
+    return this.paginateAndMap(rows, limit, (row) => mapToView(row));
   }
 
   async listReferrals(

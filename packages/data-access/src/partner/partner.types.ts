@@ -39,6 +39,11 @@ export interface PartnerReferralsResponse {
   nextCursor: string | null;
 }
 
+export interface PartnerMyLeadsResponse {
+  items: PartnerFacilityLeadView[];
+  nextCursor: string | null;
+}
+
 export interface PartnerShareMessageResponse {
   message: string;
 }

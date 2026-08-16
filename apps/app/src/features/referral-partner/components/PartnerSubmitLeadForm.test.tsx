@@ -126,6 +126,10 @@ describe("PartnerSubmitLeadForm", () => {
       screen.getByText("Thank you! Our team will follow up with Sunrise Diagnostics shortly."),
     ).toBeInTheDocument();
 
+    // The flow is no longer terminal: the panel links to My submissions.
+    fireEvent.click(screen.getByRole("button", { name: "View my submissions" }));
+    expect(navigateMock).toHaveBeenCalledWith("/partner/submissions");
+
     // "Submit another facility" returns to the empty form.
     fireEvent.click(screen.getByRole("button", { name: "Submit another facility" }));
     expect(screen.getByText("Submit a facility lead")).toBeInTheDocument();
@@ -147,6 +151,11 @@ describe("PartnerSubmitLeadForm", () => {
       screen.getByText(
         "A lead for this facility has already been submitted and is under review. No further action is needed from you.",
       ),
+    ).toBeInTheDocument();
+
+    // The duplicate-review panel is also not terminal.
+    expect(
+      screen.getByRole("button", { name: "View my submissions" }),
     ).toBeInTheDocument();
   });
 

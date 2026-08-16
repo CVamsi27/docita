@@ -89,6 +89,26 @@ interface FakePayout {
   referrerId: string;
 }
 
+interface FakeFacilityLead {
+  id: string;
+  referrerId: string;
+  referrer: { id: string; name: string };
+  status: string;
+  facilityName: string;
+  facilityType: string;
+  address: string;
+  city: string;
+  state: string | null;
+  postalCode: string | null;
+  contactName: string;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  consentToFollowUp: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  statusHistory: unknown[] | null;
+}
+
 interface FakeReferral {
   id: string;
   referrerId: string;
@@ -104,6 +124,7 @@ class FakePrismaService {
   payouts: FakePayout[] = [];
   referrals: FakeReferral[] = [];
   payoutDetails = new Map<string, FakePayoutDetail>();
+  facilityLeads: FakeFacilityLead[] = [];
 
   buildClient(): PrismaService {
     return {
@@ -196,6 +217,32 @@ class FakePrismaService {
                 r.referrerId === args.where.referrerId &&
                 r.status === args.where.status,
             ).length;
+          },
+        ),
+      },
+      facilityLead: {
+        findMany: jest.fn(
+          async (args: {
+            where: { referrerId: string };
+            take: number;
+            orderBy: unknown;
+            include?: unknown;
+            cursor?: { id: string };
+            skip?: number;
+          }) => {
+            let rows = this.facilityLeads
+              .filter((l) => l.referrerId === args.where.referrerId)
+              .sort(
+                (a, b) =>
+                  b.createdAt.getTime() - a.createdAt.getTime() ||
+                  b.id.localeCompare(a.id),
+              );
+            if (args.cursor) {
+              const cursorId = args.cursor.id;
+              const index = rows.findIndex((r) => r.id === cursorId);
+              if (index !== -1) rows = rows.slice(index + 1);
+            }
+            return rows.slice(0, args.take);
           },
         ),
       },
@@ -459,6 +506,131 @@ describe('PartnerPortalService', () => {
       });
       expect(page.items[1]?.referredClinicName).toBe('Sunrise');
       expect(page.nextCursor).toBeNull();
+    });
+  });
+
+  describe('listMyLeads', () => {
+    it("returns only the partner's own leads with the partner projection, newest first", async () => {
+      prisma.facilityLeads.push(
+        {
+          id: 'lead-1',
+          referrerId: 'rfr_1',
+          referrer: { id: 'rfr_1', name: 'Anil Pharmacy' },
+          status: 'DUPLICATE_REVIEW',
+          facilityName: 'Sunrise Diagnostics',
+          facilityType: 'DIAGNOSTIC_CENTRE',
+          address: '12 MG Road',
+          city: 'Bengaluru',
+          state: 'Karnataka',
+          postalCode: '560001',
+          contactName: 'Dr Anil',
+          contactPhone: '+919812345678',
+          contactEmail: null,
+          consentToFollowUp: true,
+          createdAt: new Date('2026-01-10'),
+          updatedAt: new Date('2026-01-11'),
+          statusHistory: null,
+        },
+        {
+          id: 'lead-2',
+          referrerId: 'rfr_1',
+          referrer: { id: 'rfr_1', name: 'Anil Pharmacy' },
+          status: 'SUBMITTED',
+          facilityName: 'Mumbai Harbour',
+          facilityType: 'CLINIC',
+          address: '1 Marine Drive',
+          city: 'Mumbai',
+          state: 'Maharashtra',
+          postalCode: null,
+          contactName: 'Dr Priya',
+          contactPhone: null,
+          contactEmail: 'priya@example.com',
+          consentToFollowUp: false,
+          createdAt: new Date('2026-01-15'),
+          updatedAt: new Date('2026-01-15'),
+          statusHistory: null,
+        },
+        // Another partner's lead must never leak into this partner's list.
+        {
+          id: 'lead-other',
+          referrerId: 'rfr_2',
+          referrer: { id: 'rfr_2', name: 'Other Partner' },
+          status: 'CONVERTED',
+          facilityName: 'Other Clinic',
+          facilityType: 'CLINIC',
+          address: '9 Other Road',
+          city: 'Delhi',
+          state: 'Delhi',
+          postalCode: null,
+          contactName: 'Dr X',
+          contactPhone: null,
+          contactEmail: null,
+          consentToFollowUp: true,
+          createdAt: new Date('2026-01-20'),
+          updatedAt: new Date('2026-01-20'),
+          statusHistory: null,
+        },
+      );
+
+      const page = await service.listMyLeads('rfr_1', { limit: 10 });
+      expect(page.items).toHaveLength(2);
+      // Newest first.
+      expect(page.items[0]?.id).toBe('lead-2');
+      expect(page.items[1]?.id).toBe('lead-1');
+      expect(page.items[0]).toMatchObject({
+        id: 'lead-2',
+        referrerId: 'rfr_1',
+        referrerName: 'Anil Pharmacy',
+        status: 'SUBMITTED',
+        facilityName: 'Mumbai Harbour',
+        city: 'Mumbai',
+        consentToFollowUp: false,
+        createdAt: '2026-01-15T00:00:00.000Z',
+      });
+      // The partner projection never exposes the internal surface.
+      expect(page.items[0]).not.toHaveProperty('ownerUserId');
+      expect(page.items[0]).not.toHaveProperty('duplicateScore');
+      expect(page.items[0]).not.toHaveProperty('notification');
+      expect(page.nextCursor).toBeNull();
+    });
+
+    it('pages with a cursor and a bounded limit', async () => {
+      for (let i = 0; i < 3; i += 1) {
+        prisma.facilityLeads.push({
+          id: `lead-${i}`,
+          referrerId: 'rfr_1',
+          referrer: { id: 'rfr_1', name: 'Anil Pharmacy' },
+          status: 'SUBMITTED',
+          facilityName: `Clinic ${i}`,
+          facilityType: 'CLINIC',
+          address: 'addr',
+          city: 'City',
+          state: null,
+          postalCode: null,
+          contactName: 'Dr X',
+          contactPhone: null,
+          contactEmail: null,
+          consentToFollowUp: true,
+          createdAt: new Date(`2026-01-0${i + 1}`),
+          updatedAt: new Date(`2026-01-0${i + 1}`),
+          statusHistory: null,
+        });
+      }
+
+      const page = await service.listMyLeads('rfr_1', { limit: 2 });
+      expect(page.items).toHaveLength(2);
+      expect(page.nextCursor).toBe('lead-1'); // last of the trimmed page
+
+      const next = await service.listMyLeads('rfr_1', {
+        limit: 2,
+        cursor: page.nextCursor ?? undefined,
+      });
+      expect(next.items).toHaveLength(1);
+      expect(next.items[0]?.id).toBe('lead-0');
+      expect(next.nextCursor).toBeNull();
+
+      const capped = await service.listMyLeads('rfr_1', { limit: 10_000 });
+      expect(capped.items.length).toBeLessThanOrEqual(200);
     });
   });
 

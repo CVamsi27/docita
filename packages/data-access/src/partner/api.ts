@@ -19,6 +19,7 @@ import type {
   PartnerReferralRow,
   PartnerRefreshResponse,
   PartnerShareMessageResponse,
+  PartnerMyLeadsResponse,
 } from "./partner.types";
 
 export type PartnerApiContext = {
@@ -130,6 +131,18 @@ export const partnerApi = {
     const qs = query.length > 0 ? `?${query.join("&")}` : "";
     return createPartnerFetcher(ctx)<PartnerReferralsResponse>(
       `/partner/me/referrals${qs}`,
+    );
+  },
+  listMyLeads(
+    options: { limit?: number; cursor?: string } | undefined,
+    ctx: PartnerApiContext,
+  ) {
+    const query: string[] = [];
+    if (options?.limit) query.push(`limit=${options.limit}`);
+    if (options?.cursor) query.push(`cursor=${encodeURIComponent(options.cursor)}`);
+    const qs = query.length > 0 ? `?${query.join("&")}` : "";
+    return createPartnerFetcher(ctx)<PartnerMyLeadsResponse>(
+      `/partner/me/leads${qs}`,
     );
   },
   upsertPayoutDetails(

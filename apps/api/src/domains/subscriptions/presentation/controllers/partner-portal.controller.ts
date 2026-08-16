@@ -138,6 +138,21 @@ export class PartnerPortalController {
     return this.portal.upsertPayoutDetails(referrerId, parsed.data);
   }
 
+  @Get('me/leads')
+  @Throttle(READ_RATE_LIMIT)
+  @ApiOperation({
+    summary: 'Paginated facility leads submitted by the partner (read-only)',
+  })
+  async listMyLeads(
+    @Req() req: Request,
+    @Query('limit') limitRaw?: string,
+    @Query('cursor') cursor?: string,
+  ): Promise<{ items: FacilityLeadView[]; nextCursor: string | null }> {
+    const { referrerId } = this.context(req);
+    const limit = limitRaw ? Math.max(1, Math.min(200, Number(limitRaw))) : 50;
+    return this.portal.listMyLeads(referrerId, { limit, cursor });
+  }
+
   @Post('me/leads')
   @HttpCode(200)
   @Throttle(WRITE_RATE_LIMIT)
