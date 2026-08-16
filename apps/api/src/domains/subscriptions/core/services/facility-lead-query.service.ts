@@ -38,9 +38,9 @@ export class FacilityLeadQueryService {
 
   /**
    * Internal operator queue: newest first, cursor-paginated (see
-   * `paginateWithCursor`), with status / owner / partner filters.
-   * `ownerUserId: null` selects unassigned leads (the UI's UNASSIGNED
-   * sentinel); undefined leaves the filter open.
+   * `paginateWithCursor`), with status / owner / partner / age / location /
+   * duplicate / consent filters. `ownerUserId: null` selects unassigned
+   * leads (the UI's UNASSIGNED sentinel); undefined leaves the filter open.
    */
   async listLeads(
     filter?: {
@@ -49,6 +49,14 @@ export class FacilityLeadQueryService {
       referrerId?: string;
       /** Exact id match, used by the per-lead deep link. */
       leadId?: string;
+      /** Submitted within this window (the UI's age presets). */
+      createdSince?: Date;
+      /** Case-insensitive substring match on city or state. */
+      location?: string;
+      /** Leads carrying a duplicate score (review-flagged copies + originals). */
+      duplicateFlagged?: boolean;
+      /** Consent-to-follow-up state. */
+      consent?: boolean;
     },
     page?: { cursor?: string; limit?: number },
   ): Promise<CursorPaginationResult<InternalFacilityLeadView>> {
@@ -66,16 +74,33 @@ export class FacilityLeadQueryService {
         this.prisma.facilityLead.count(args),
     };
 
+    const where: Prisma.FacilityLeadWhereInput = {
+      status: filter?.status,
+      ownerUserId: filter?.ownerUserId,
+      referrerId: filter?.referrerId,
+      id: filter?.leadId,
+      ...(filter?.createdSince !== undefined && {
+        createdAt: { gte: filter.createdSince },
+      }),
+      ...(filter?.location && {
+        OR: [
+          { city: { contains: filter.location, mode: 'insensitive' } },
+          { state: { contains: filter.location, mode: 'insensitive' } },
+        ],
+      }),
+      ...(filter?.duplicateFlagged && {
+        duplicateScore: { not: null },
+      }),
+      ...(filter?.consent !== undefined && {
+        consentToFollowUp: filter.consent,
+      }),
+    };
+
     const result = await paginateWithCursor<LeadQueueRow>({
       model: leadModel,
       cursor: page?.cursor,
       limit: page?.limit ?? 50,
-      where: {
-        status: filter?.status,
-        ownerUserId: filter?.ownerUserId,
-        referrerId: filter?.referrerId,
-        id: filter?.leadId,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       include: LEAD_QUEUE_INCLUDE,
     });

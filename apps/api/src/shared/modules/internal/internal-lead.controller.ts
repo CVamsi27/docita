@@ -35,13 +35,17 @@ export class InternalLeadController {
   @Get('leads')
   @ApiOperation({
     summary:
-      'Operator facility-lead queue (newest first; status/owner/referrer filters + cursor pagination)',
+      'Operator facility-lead queue (newest first; status/owner/referrer/age/location/duplicate/consent filters + cursor pagination)',
   })
   async listLeads(
     @Query('status') status?: string,
     @Query('owner') owner?: string,
     @Query('referrerId') referrerId?: string,
     @Query('lead') lead?: string,
+    @Query('age') age?: string,
+    @Query('location') location?: string,
+    @Query('duplicate') duplicate?: string,
+    @Query('consent') consent?: string,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
   ) {
@@ -56,6 +60,14 @@ export class InternalLeadController {
     } else if (owner) {
       ownerUserId = owner;
     }
+    // age is a rolling recency window on submittedAt: 24h / 7d / 30d.
+    const AGE_WINDOWS: Record<string, number> = {
+      '24h': 24 * 60 * 60 * 1000,
+      '7d': 7 * 24 * 60 * 60 * 1000,
+      '30d': 30 * 24 * 60 * 60 * 1000,
+    };
+    const ageMs = age ? AGE_WINDOWS[age] : undefined;
+    const trimmedLocation = location?.trim();
     return this.queryService.listLeads(
       {
         status: parsedStatus,
@@ -64,6 +76,15 @@ export class InternalLeadController {
         // The per-lead deep link (`/leads?lead=<id>`) narrows the queue to
         // exactly one lead.
         leadId: lead || undefined,
+        createdSince:
+          ageMs !== undefined ? new Date(Date.now() - ageMs) : undefined,
+        location: trimmedLocation || undefined,
+        // duplicate accepts the FLAGGED sentinel (leads with a duplicate
+        // score); anything else is ignored.
+        duplicateFlagged: duplicate === 'flagged' || undefined,
+        // consent is a strict boolean toggle; anything else is ignored.
+        consent:
+          consent === 'true' ? true : consent === 'false' ? false : undefined,
       },
       {
         cursor: cursor || undefined,
