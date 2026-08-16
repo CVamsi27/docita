@@ -102,16 +102,27 @@ export const facilityLeadSubmitSchema = z.object({
 });
 export type FacilityLeadSubmit = z.infer<typeof facilityLeadSubmitSchema>;
 
-/** One append-only status transition record on the lead. */
+/** One append-only status transition record on the lead (internal). */
 export const facilityLeadStatusHistoryEntrySchema = z.object({
   from: facilityLeadStatusSchema,
   to: facilityLeadStatusSchema,
   reason: z.string(),
+  /** The internal operator who made the transition. */
   actorId: z.string(),
   at: z.string(),
 });
 export type FacilityLeadStatusHistoryEntry = z.infer<
   typeof facilityLeadStatusHistoryEntrySchema
+>;
+
+/**
+ * Partner-facing transition record: same shape minus the internal operator
+ * id, so no internal actor identity reaches the partner wire.
+ */
+export const facilityLeadStatusHistoryEntryViewSchema =
+  facilityLeadStatusHistoryEntrySchema.omit({ actorId: true });
+export type FacilityLeadStatusHistoryEntryView = z.infer<
+  typeof facilityLeadStatusHistoryEntryViewSchema
 >;
 
 /** One append-only owner-assignment record on the lead. */
@@ -144,7 +155,7 @@ export type InternalOperator = z.infer<typeof internalOperatorSchema>;
 
 export const internalOperatorListSchema = z.array(internalOperatorSchema);
 
-/** Server-side projection of a lead (partner submit response + internal queue). */
+/** Partner-facing projection of a lead (submit response + my-submissions). */
 export const facilityLeadViewSchema = z.object({
   id: z.string(),
   referrerId: z.string(),
@@ -162,9 +173,19 @@ export const facilityLeadViewSchema = z.object({
   consentToFollowUp: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
-  statusHistory: z.array(facilityLeadStatusHistoryEntrySchema).optional(),
+  statusHistory: z.array(facilityLeadStatusHistoryEntryViewSchema).optional(),
 });
 export type FacilityLeadView = z.infer<typeof facilityLeadViewSchema>;
+
+/**
+ * Internal write response (`PATCH /internal/leads/:id/status` and
+ * `/assign`): the partner view plus the full audit history with operator
+ * actor ids, which are internal-only.
+ */
+export const facilityLeadAuditViewSchema = facilityLeadViewSchema.extend({
+  statusHistory: z.array(facilityLeadStatusHistoryEntrySchema).optional(),
+});
+export type FacilityLeadAuditView = z.infer<typeof facilityLeadAuditViewSchema>;
 
 /** Body for `PATCH /internal/leads/:id/status`. */
 export const facilityLeadTransitionSchema = z.object({
@@ -242,6 +263,8 @@ export type FacilityLeadNotificationView = z.infer<
  * the internal notification or assignment surface.
  */
 export const internalFacilityLeadViewSchema = facilityLeadViewSchema.extend({
+  // Internal surfaces keep the full audit history (operator actor ids).
+  statusHistory: z.array(facilityLeadStatusHistoryEntrySchema).optional(),
   ownerUserId: z.string().nullable(),
   ownerName: z.string().nullable(),
   assignmentHistory: z.array(facilityLeadAssignmentHistoryEntrySchema).optional(),

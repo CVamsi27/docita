@@ -340,6 +340,39 @@ describe('Facility Leads (e2e)', () => {
       // No token -> the guard rejects.
       await request(app.getHttpServer()).get('/partner/me/leads').expect(401);
     });
+
+    it('strips internal operator actor ids from statusHistory', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2EML3');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+      const created = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'RFR-E2EML3-key-1' }))
+        .expect(200);
+
+      // An internal operator advances the lead, appending an actor record.
+      await request(app.getHttpServer())
+        .patch(`/internal/leads/${created.body.id}/status`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .send({ status: 'TRIAGED', reason: 'Qualified via phone' })
+        .expect(200);
+
+      const mine = await request(app.getHttpServer())
+        .get('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      expect(mine.body.items).toHaveLength(1);
+      expect(mine.body.items[0].statusHistory).toHaveLength(1);
+      // The partner sees the transition but never the operator identity.
+      expect(mine.body.items[0].statusHistory[0]).toMatchObject({
+        from: 'SUBMITTED',
+        to: 'TRIAGED',
+        reason: 'Qualified via phone',
+      });
+      expect(mine.body.items[0].statusHistory[0]).not.toHaveProperty('actorId');
+      // No internal operator id anywhere in the serialized partner response.
+      expect(JSON.stringify(mine.body)).not.toContain('actorId');
+    });
   });
 
   describe('GET /internal/leads', () => {

@@ -13,10 +13,10 @@ import {
   FACILITY_LEAD_TRANSITIONS,
   type FacilityLeadAssignmentHistoryEntry,
   type FacilityLeadAssign,
+  type FacilityLeadAuditView,
   type FacilityLeadNotificationView,
   type FacilityLeadStatusHistoryEntry,
   type FacilityLeadTransition,
-  type FacilityLeadView,
 } from '@workspace/types';
 import {
   PARTNER_PERSISTENCE_PORT,
@@ -26,7 +26,7 @@ import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import type { IOutboxService } from '@/shared/modules/outbox/outbox.interface';
-import { mapNotification, mapToView } from './facility-lead.mapper';
+import { mapNotification, mapToAuditView } from './facility-lead.mapper';
 
 /**
  * Facility-lead lifecycle and ownership writes (internal operators). The
@@ -58,7 +58,7 @@ export class FacilityLeadCommandService {
     id: string,
     actorId: string,
     input: FacilityLeadTransition,
-  ): Promise<FacilityLeadView> {
+  ): Promise<FacilityLeadAuditView> {
     const lead = await this.prisma.facilityLead.findUnique({ where: { id } });
     if (!lead) {
       throw new NotFoundException('Lead not found');
@@ -137,7 +137,7 @@ export class FacilityLeadCommandService {
     id: string,
     actorId: string,
     input: FacilityLeadAssign,
-  ): Promise<FacilityLeadView> {
+  ): Promise<FacilityLeadAuditView> {
     const lead = await this.prisma.facilityLead.findUnique({ where: { id } });
     if (!lead) {
       throw new NotFoundException('Lead not found');
@@ -233,8 +233,8 @@ export class FacilityLeadCommandService {
     return mapNotification(fresh);
   }
 
-  /** Re-read after a write and map to the partner view (404 if gone). */
-  private async readFreshView(id: string): Promise<FacilityLeadView> {
+  /** Re-read after an internal write and map to the audit view (404 if gone). */
+  private async readFreshView(id: string): Promise<FacilityLeadAuditView> {
     const fresh = await this.prisma.facilityLead.findUnique({
       where: { id },
       include: { referrer: { select: { id: true, name: true } } },
@@ -242,6 +242,6 @@ export class FacilityLeadCommandService {
     if (!fresh) {
       throw new NotFoundException('Lead not found');
     }
-    return mapToView(fresh);
+    return mapToAuditView(fresh);
   }
 }
