@@ -1,6 +1,10 @@
 import { Activity, DollarSign, TrendingUp, Users } from "lucide-react";
 import type { InternalAnalyticsData } from "@workspace/data-access/internal";
-import { formatCurrency, formatCompactCurrency } from "@/lib/formatters";
+import {
+  formatCompactCurrency,
+  formatCurrency,
+  WHOLE_AMOUNT_CURRENCY_OPTIONS,
+} from "@workspace/utils";
 
 export function formatChange(
   value: number | undefined | null,
@@ -26,7 +30,9 @@ export function buildMetrics(data: InternalAnalyticsData | null) {
   return [
     {
       title: "Total Revenue",
-      value: data ? formatCompactCurrency(data.revenue || 0) : formatCompactCurrency(0),
+      value: data
+        ? formatCompactCurrency(data.revenue || 0, WHOLE_AMOUNT_CURRENCY_OPTIONS)
+        : formatCompactCurrency(0, WHOLE_AMOUNT_CURRENCY_OPTIONS),
       change: formatChange(data?.revenueChange),
       trend: resolveTrend(data?.revenueChange),
       icon: icons.revenue,
@@ -47,7 +53,9 @@ export function buildMetrics(data: InternalAnalyticsData | null) {
     },
     {
       title: "Avg Invoice Value",
-      value: data ? formatCurrency(data.avgInvoiceValue || 0) : formatCurrency(0),
+      value: data
+        ? formatCurrency(data.avgInvoiceValue || 0, WHOLE_AMOUNT_CURRENCY_OPTIONS)
+        : formatCurrency(0, WHOLE_AMOUNT_CURRENCY_OPTIONS),
       change: formatChange(data?.invoiceValueChange),
       trend: resolveTrend(data?.invoiceValueChange),
       icon: icons.invoice,

@@ -3,7 +3,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/overlay/dialog";
 import { Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import { internalClinicAdminTypeSchema } from "@workspace/types";
-import { formatInternalTimestamp } from "../../../lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 
 interface Admin { id: string; name: string; email: string; phoneNumber?: string; role: string; appLoginDisabled: boolean; createdAt: string; }
 
@@ -19,7 +19,7 @@ export function AdminViewDialog({ open, onOpenChange, admin, getRoleLabel, getRo
           <div><Label className="text-muted-foreground">Email</Label><p className="font-medium">{admin.email}</p></div>
           <div><Label className="text-muted-foreground">Phone</Label><p className="font-medium">{admin.phoneNumber || "-"}</p></div>
           <div><Label className="text-muted-foreground">Type</Label><p><Badge variant={getRoleBadgeVariant(admin.role)}>{getRoleLabel(admin.role)}</Badge></p></div>
-          <div><Label className="text-muted-foreground">Created</Label><p className="font-medium">{formatInternalTimestamp(admin.createdAt)}</p></div>
+          <div><Label className="text-muted-foreground">Created</Label><p className="font-medium">{formatDateTime(admin.createdAt, undefined, { locale: enIN })}</p></div>
         </div>}
       </DialogContent>
     </Dialog>

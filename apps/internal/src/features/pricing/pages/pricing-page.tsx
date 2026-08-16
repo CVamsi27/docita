@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Save, Sparkles } from "lucide-react";
 import { apiGet, apiPut } from "@/lib/api/api-client";
-import { formatInternalListDate } from "../../../lib/formatters";
+import { formatDate, enIN } from "@workspace/utils";
 
 interface TierPricing { id: string; tier: string; monthlyBasePriceCents: number; includedPatients: number; includedAppointments: number; includedStorageGB: number; includedUsers: number; overagePatientCents: number; overageAppointmentCents: number; overagePrescriptionCents: number; overageInvoiceCents: number; overageOcrPageCents: number; overageApiCallCents: number; }
 interface Offer { id: string; clinicId: string; title: string; percentOff: number; durationMonths: number; validUntil?: string; }
@@ -109,7 +109,7 @@ export function PricingPage() {
                       <TableCell className="font-medium">{offer.title}</TableCell>
                       <TableCell><Badge variant="outline" className="text-success">{offer.percentOff}% off</Badge></TableCell>
                       <TableCell>{offer.durationMonths}mo</TableCell>
-                      <TableCell>{offer.validUntil ? formatInternalListDate(offer.validUntil) : "-"}</TableCell>
+                      <TableCell>{offer.validUntil ? formatDate(offer.validUntil, undefined, { locale: enIN }) : "-"}</TableCell>
                     </TableRow>
                   ))}</TableBody></Table></div>
                 )}

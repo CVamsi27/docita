@@ -1,6 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { enIN } from "./en-in-locale.js";
+
 import {
+  formatCompactDistanceToNow,
   formatDate,
   formatDateRange,
   formatDateTime,
@@ -29,6 +32,23 @@ describe("formatDate", () => {
 
   it("accepts Date objects", () => {
     expect(formatDate(new Date("2025-06-15T10:30:00Z"))).toBe("15 Jun 2025");
+  });
+
+  it("uses the date-fns Locale from options for month names", () => {
+    // en-IN month abbreviation is "Sept" (vs en-US default "Sep").
+    expect(formatDate("2025-09-30T10:30:00Z", "dd MMM yyyy", { locale: enIN })).toBe(
+      "30 Sept 2025",
+    );
+    expect(formatDate("2025-09-30T10:30:00Z")).toBe("30 Sep 2025");
+  });
+
+  it("renders the portal datetime with Intl en-IN am/pm casing", () => {
+    // The ops portal historically rendered lowercase "pm" via Intl en-IN;
+    // the shared default (en-US) renders uppercase "PM".
+    expect(formatDateTime("2025-09-30T10:30:00Z", undefined, { locale: enIN })).toBe(
+      "30 Sept 2025, 04:00 pm",
+    );
+    expect(formatDateTime("2025-09-30T10:30:00Z")).toBe("30 Sep 2025, 04:00 PM");
   });
 
   it("returns an empty string for null, undefined, and invalid input", () => {
@@ -129,6 +149,46 @@ describe("formatDistanceToNow", () => {
   it("returns an empty string for null and undefined", () => {
     expect(formatDistanceToNow(null)).toBe("");
     expect(formatDistanceToNow(undefined)).toBe("");
+  });
+});
+
+describe("formatCompactDistanceToNow", () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2025-07-01T12:00:00Z"));
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  it('renders "just now" for dates within the last minute', () => {
+    expect(
+      formatCompactDistanceToNow(new Date("2025-07-01T12:00:00Z")),
+    ).toBe("just now");
+  });
+
+  it('renders "Xm ago" for dates within the last hour', () => {
+    expect(formatCompactDistanceToNow("2025-07-01T11:45:00Z")).toBe("15m ago");
+  });
+
+  it('renders "Xh ago" for dates within the last day', () => {
+    expect(formatCompactDistanceToNow("2025-07-01T06:00:00Z")).toBe("6h ago");
+  });
+
+  it('renders "Xd ago" for dates within the last month', () => {
+    expect(formatCompactDistanceToNow("2025-06-25T12:00:00Z")).toBe("6d ago");
+  });
+
+  it('renders "Xmo ago" for dates older than 30 days', () => {
+    expect(formatCompactDistanceToNow("2025-05-01T12:00:00Z")).toBe("2mo ago");
+  });
+
+  it("returns an empty string for null, undefined, and invalid input", () => {
+    expect(formatCompactDistanceToNow(null)).toBe("");
+    expect(formatCompactDistanceToNow(undefined)).toBe("");
+    expect(formatCompactDistanceToNow("not-a-date")).toBe("");
+    expect(formatCompactDistanceToNow(Number.NaN)).toBe("");
   });
 });
 

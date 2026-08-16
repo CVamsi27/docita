@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/select";
 import { Button } from "@workspace/ui/components/form/button";
 import { CalendarPlus, Mail } from "lucide-react";
-import { formatDate, formatCurrency } from "../../../lib/formatters";
+import { formatCurrency, formatDateTime, enIN } from "@workspace/utils";
 
 interface Subscription { id: string; clinic: { name: string; email: string; referralCreditsMonths: number }; tier: string; status: string; billingCycle: string; amount: number; currency: string; currentPeriodEnd: string; }
 interface Payment { id: string; clinicName: string; planLabel: string; amount: number; currency: string; status: string; paidAt?: string; createdAt: string; gatewayPaymentId?: string; }
@@ -77,8 +77,8 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
                 <TableCell><Badge variant="outline">{sub.tier}</Badge></TableCell>
                 <TableCell><Badge>{sub.status}</Badge></TableCell>
                 <TableCell><span className="text-sm">{sub.billingCycle}</span></TableCell>
-                <TableCell><span className="font-medium">{formatCurrency(sub.amount, { currency: sub.currency, fractionDigits: 0 })}</span></TableCell>
-                <TableCell><span className="text-sm">{formatDate(sub.currentPeriodEnd)}</span></TableCell>
+                <TableCell><span className="font-medium">{formatCurrency(sub.amount, { currency: sub.currency, fractionDigits: 0, locale: "en-IN" })}</span></TableCell>
+                <TableCell><span className="text-sm">{formatDateTime(sub.currentPeriodEnd, undefined, { locale: enIN })}</span></TableCell>
                 <TableCell>{sub.clinic.referralCreditsMonths > 0 && <Badge variant="outline" className="text-success">{sub.clinic.referralCreditsMonths}m free</Badge>}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
@@ -103,10 +103,10 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
                 <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">No payments found</TableCell></TableRow>
               ) : payments.map((payment) => (
                 <TableRow key={payment.id}>
-                  <TableCell><span className="text-sm">{formatDate(payment.paidAt || payment.createdAt)}</span></TableCell>
+                  <TableCell><span className="text-sm">{formatDateTime(payment.paidAt || payment.createdAt, undefined, { locale: enIN })}</span></TableCell>
                   <TableCell><p className="font-medium">{payment.clinicName}</p></TableCell>
                   <TableCell><Badge variant="outline">{payment.planLabel}</Badge></TableCell>
-                  <TableCell><span className="font-medium">{formatCurrency(payment.amount, { currency: payment.currency, fractionDigits: 0 })}</span></TableCell>
+                  <TableCell><span className="font-medium">{formatCurrency(payment.amount, { currency: payment.currency, fractionDigits: 0, locale: "en-IN" })}</span></TableCell>
                   <TableCell><Badge variant={payment.status === "SUCCESS" ? "secondary" : "destructive"}>{payment.status}</Badge></TableCell>
                   <TableCell><code className="text-xs text-muted-foreground">{payment.gatewayPaymentId || "-"}</code></TableCell>
                 </TableRow>

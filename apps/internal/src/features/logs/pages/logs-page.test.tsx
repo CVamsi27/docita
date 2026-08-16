@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { LogsPage } from "./logs-page";
 import { apiGet } from "@/lib/api/api-client";
-import { formatDate } from "@/lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 
 vi.mock("@/lib/api/api-client", () => ({
   apiGet: vi.fn(),
@@ -73,7 +73,7 @@ describe("LogsPage", () => {
     expect(screen.queryByText("Retry payment")).toBeInTheDocument();
 
     // Timestamps render through the en-IN date formatter (TZ pinned to UTC).
-    expect(screen.getByText(formatDate("2026-01-10T10:00:00Z"))).toBeInTheDocument();
+    expect(screen.getByText(formatDateTime("2026-01-10T10:00:00Z", undefined, { locale: enIN }))).toBeInTheDocument();
 
     // Footer shows the pagination window.
     expect(screen.getByText("Showing 1-4 of 4")).toBeInTheDocument();

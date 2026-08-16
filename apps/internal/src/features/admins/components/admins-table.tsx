@@ -4,7 +4,7 @@ import { Badge } from "@workspace/ui/components/indicators/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/indicators/card";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { formatInternalListDate } from "../../../lib/formatters";
+import { formatDate, enIN } from "@workspace/utils";
 
 interface Admin { id: string; name: string; email: string; phoneNumber?: string; role: string; appLoginDisabled: boolean; createdAt: string; }
 
@@ -37,7 +37,7 @@ export function AdminsTable({ admins, selectedClinic, onView, onEdit, onDeactiva
                   <TableCell>{admin.phoneNumber || <span className="text-muted-foreground">-</span>}</TableCell>
                   <TableCell><Badge variant={getRoleBadgeVariant(admin.role)}>{getRoleLabel(admin.role)}</Badge></TableCell>
                   <TableCell>{admin.appLoginDisabled ? <Badge variant="destructive">Disabled</Badge> : <Badge variant="secondary">Active</Badge>}</TableCell>
-                  <TableCell>{formatInternalListDate(admin.createdAt)}</TableCell>
+                  <TableCell>{formatDate(admin.createdAt, undefined, { locale: enIN })}</TableCell>
                   <TableCell><div className="flex gap-2">
                     <Button variant="ghost" size="sm" onClick={() => { onView(admin); }}><Eye className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="sm" onClick={() => { onEdit(admin); }} disabled={admin.appLoginDisabled}><Edit2 className="h-4 w-4" /></Button>

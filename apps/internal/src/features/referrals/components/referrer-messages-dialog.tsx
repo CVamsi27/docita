@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/overlay/dialog";
 import { MessageSquareText } from "lucide-react";
-import { formatDate } from "../../../lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 import { apiGet } from "@/lib/api/api-client";
 
 interface MessageLogEntry {
@@ -123,8 +123,8 @@ export function ReferrerMessagesDialog({
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {entry.sentAt
-                      ? `Sent ${formatDate(entry.sentAt)}`
-                      : `Created ${formatDate(entry.createdAt)}`}
+                      ? `Sent ${formatDateTime(entry.sentAt, undefined, { locale: enIN })}`
+                      : `Created ${formatDateTime(entry.createdAt, undefined, { locale: enIN })}`}
                   </p>
                   {entry.errorMessage && (
                     <p className="mt-1 text-xs text-destructive">

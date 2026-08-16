@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { Eye, Search, Shield, Stethoscope, UserCog, Users } from "lucide-react";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { formatInternalListDate, formatInternalTimestamp } from "../../../lib/formatters";
+import { formatDate, formatDateTime, enIN } from "@workspace/utils";
 import { apiGet } from "@/lib/api/api-client";
 
 interface User { id: string; name: string; email: string; role: string; phoneNumber?: string; specialization?: string; qualification?: string; registrationNumber?: string; yearsOfExperience?: number; bio?: string; createdAt: string; clinicName?: string; }
@@ -107,7 +107,7 @@ export function UsersPage() {
                   <TableCell><Badge className={getRoleBadgeColor(user.role)}>{user.role.replace("_", " ")}</Badge></TableCell>
                   <TableCell className="text-muted-foreground">{user.specialization || "-"}</TableCell>
                   <TableCell className="text-muted-foreground">{user.phoneNumber || "-"}</TableCell>
-                  <TableCell className="text-muted-foreground">{formatInternalListDate(user.createdAt)}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatDate(user.createdAt, undefined, { locale: enIN })}</TableCell>
                   <TableCell className="text-right"><Button variant="ghost" size="sm" onClick={() => { setSelectedUser(user); setIsViewOpen(true); }}><Eye className="h-4 w-4 mr-2" /> View</Button></TableCell>
                 </TableRow>
               ))}</TableBody></Table></div>
@@ -126,7 +126,7 @@ export function UsersPage() {
               <div><p className="text-sm font-medium text-muted-foreground">Role</p><Badge className={`mt-1 ${getRoleBadgeColor(selectedUser.role)}`}>{selectedUser.role.replace("_", " ")}</Badge></div>
               <div><p className="text-sm font-medium text-muted-foreground">Phone</p><p className="text-sm font-semibold mt-1">{selectedUser.phoneNumber || "N/A"}</p></div>
             </div>
-            <div className="border-t pt-4"><p className="text-sm font-medium text-muted-foreground">Joined</p><p className="text-sm font-semibold mt-1">{formatInternalTimestamp(selectedUser.createdAt)}</p></div>
+            <div className="border-t pt-4"><p className="text-sm font-medium text-muted-foreground">Joined</p><p className="text-sm font-semibold mt-1">{formatDateTime(selectedUser.createdAt, undefined, { locale: enIN })}</p></div>
           </div>}
         </DialogContent>
       </Dialog>
