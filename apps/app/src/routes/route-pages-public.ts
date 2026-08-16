@@ -35,3 +35,9 @@ export const PartnerSharePage = lazy(() =>
 export const PartnerSubmitLeadPage = lazy(() =>
   import("@/features/referral-partner/pages/partner-pages").then((m) => ({ default: m.PartnerSubmitLeadPage })),
 );
+// My submissions: the read-side of the facility-lead flow.
+export const PartnerMySubmissionsPage = lazy(() =>
+  import("@/features/referral-partner/pages/partner-pages").then((m) => ({
+    default: m.PartnerMySubmissionsPage,
+  })),
+);

@@ -175,7 +175,10 @@ export function PartnerSubmitLeadForm() {
                 })}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => navigate("/partner/submissions")}>
+            {t("submitLead.viewSubmissions")}
+          </Button>
           <Button onClick={() => setResult(null)}>
             {t("submitLead.submitAnother")}
           </Button>

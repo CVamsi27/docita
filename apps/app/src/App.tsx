@@ -86,6 +86,7 @@ export default function App() {
           <Route path="/partner/referrals" element={<SuspenseWrapper><publicPages.PartnerReferralsPage /></SuspenseWrapper>} />
           <Route path="/partner/share" element={<SuspenseWrapper><publicPages.PartnerSharePage /></SuspenseWrapper>} />
           <Route path="/partner/submit-lead" element={<SuspenseWrapper><publicPages.PartnerSubmitLeadPage /></SuspenseWrapper>} />
+          <Route path="/partner/submissions" element={<SuspenseWrapper><publicPages.PartnerMySubmissionsPage /></SuspenseWrapper>} />
         </Route>
 
         {/* ── Lab Portal Routes ─────────────────────── */}

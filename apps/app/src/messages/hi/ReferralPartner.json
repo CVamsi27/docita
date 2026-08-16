@@ -21,7 +21,8 @@
     "payouts": "भुगतान",
     "referrals": "रेफरल",
     "banking": "बैंकिंग",
-    "submitLead": "लीड सबमिट करें"
+    "submitLead": "लीड सबमिट करें",
+    "mySubmissions": "मेरी सबमिशन"
   },
   "dashboard": {
     "loading": "लोड हो रहा है...",
@@ -175,6 +176,23 @@
     "errorSession": "आपका सत्र समाप्त हो गया है। कृपया फिर से साइन इन करें।",
     "errorSubmitFallback": "हम लीड सबमिट नहीं कर सके। कृपया पुनः प्रयास करें।",
     "consentRequired": "कृपया पुष्टि करें कि फैसिलिटी संपर्क व्यक्ति ने संपर्क किए जाने पर सहमति दी है।",
-    "errorTitle": "त्रुटि"
+    "errorTitle": "त्रुटि",
+    "viewSubmissions": "मेरी सबमिशन देखें"
+  },
+  "mySubmissions": {
+    "title": "मेरी सबमिशन",
+    "description": "आपके द्वारा सबमिट किए गए फैसिलिटी लीड की स्थिति",
+    "loading": "लोड हो रहा है…",
+    "loadErrorTitle": "सबमिशन लोड नहीं हो सके",
+    "loadErrorDescription": "कृपया थोड़ी देर बाद फिर कोशिश करें।",
+    "empty": "अभी तक कोई सबमिशन नहीं। जब आप कोई फैसिलिटी लीड सबमिट करेंगे तो वह यहाँ दिखेगा।",
+    "columnFacility": "फैसिलिटी",
+    "columnStatus": "स्थिति",
+    "columnSubmitted": "सबमिट तिथि",
+    "statusSubmitted": "सबमिट किया गया",
+    "statusUnderReview": "समीक्षा में",
+    "statusInProgress": "प्रगति में",
+    "statusOnboarded": "ऑनबोर्ड हो गया",
+    "statusClosed": "बंद"
   }
 }

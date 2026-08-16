@@ -13,6 +13,7 @@ export type {
   PartnerReferralsResponse,
   PartnerShareMessageResponse,
   PartnerRefreshResponse,
+  PartnerMyLeadsResponse,
 } from "./partner.types";
 
 export type { PartnerApiContext } from "./api";
@@ -26,6 +27,7 @@ export {
   usePartnerMe,
   usePartnerPayouts,
   usePartnerReferrals,
+  usePartnerMyLeads,
   usePartnerShareMessage,
   usePartnerPayoutDetails,
   useSubmitFacilityLead,
