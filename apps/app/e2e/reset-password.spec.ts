@@ -22,8 +22,11 @@ test.describe("Reset password", () => {
     await expect(
       page.getByRole("heading", { name: /Set New Password/i }),
     ).toBeVisible();
-    await expect(page.getByLabel(/New Password/i)).toBeVisible();
-    await expect(page.getByLabel(/Confirm Password/i)).toBeVisible();
+    // The floating field renders the required asterisk inside the label
+    // (accessible name "New password *" / "Confirm new password *"), so
+    // anchor on the label prefix and stay exact about which field.
+    await expect(page.getByLabel(/^New password/)).toBeVisible();
+    await expect(page.getByLabel(/^Confirm new password/)).toBeVisible();
     await expect(
       page.getByRole("button", { name: /Reset Password/i }),
     ).toBeVisible();

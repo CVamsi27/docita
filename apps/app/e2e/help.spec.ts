@@ -20,8 +20,6 @@ test.describe("Help center", () => {
 
     await expect(page).toHaveURL(/\/help/);
     await expect(page.getByRole("heading", { name: "Help" })).toBeVisible();
-    await expect(
-      page.getByText(/Search guides, browse FAQs/i),
-    ).toBeVisible();
+    await expect(page.getByPlaceholder(/Enter topic/i)).toBeVisible();
   });
 });

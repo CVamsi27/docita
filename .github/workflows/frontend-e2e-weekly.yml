@@ -1,0 +1,187 @@
+name: End-to-End Tests - Extended Flows (Weekly)
+
+on:
+  schedule:
+    # Weekly: Tuesday 2 AM UTC (the day after the critical-flows run)
+    - cron: "0 2 * * 2"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  extended-flows-e2e:
+    name: Extended E2E shard ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 1
+            specs: >-
+              e2e/nav-routes-smoke.spec.ts e2e/dashboard.spec.ts e2e/health.spec.ts
+              e2e/help.spec.ts e2e/upgrade-redirect.spec.ts e2e/reset-password.spec.ts
+              e2e/referral-partner.spec.ts e2e/inbox.spec.ts e2e/templates.spec.ts
+          - shard: 2
+            specs: >-
+              e2e/accessibility.spec.ts e2e/forgot-password.spec.ts e2e/mobile-auth-setup.spec.ts
+              e2e/mobile-forms.spec.ts e2e/mobile-portal-routes.spec.ts e2e/medical-coding.spec.ts
+              e2e/inventory.spec.ts e2e/invoices.spec.ts e2e/analytics.spec.ts
+    env:
+      DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
+      JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      NODE_ENV: test
+      # Explicit e2e operator switch (the API e2e suites set this in
+      # test/setup-e2e-env.ts): under NODE_ENV=test this disables the auth
+      # throttlers (register is limited to 5/60s per IP) and the
+      # email-verified gate, which the registration-heavy specs would
+      # otherwise trip with 429s. Only ever set in this CI workflow with a
+      # throwaway test DB; prod/staging never honor it (VULN-001).
+      DOCITA_API_E2E: "true"
+      # Pin the API bind port explicitly: the API honors the ambient PORT
+      # env var over its 3001 default, so a runner image or tooling that
+      # leaks PORT (e.g. PORT=0 for ephemeral binds) would silently move
+      # the server off the port the wait loop and Playwright use below and
+      # the run would fail with a confusing "API server failed to start".
+      PORT: "3001"
+      APP_URL: http://127.0.0.1:5173
+      API_URL: http://127.0.0.1:3001/api/v1
+      API_PROXY_TARGET: http://127.0.0.1:3001
+      CORS_ORIGINS: http://127.0.0.1:5173,http://localhost:5173
+      WHATSAPP_PRODUCTION_MODE: "false"
+      # Razorpay TEST credentials (rzp_test_…) so onboarding payment
+      # verification runs against the sandbox. The API verifies the HMAC
+      # signature and the order amount; the test-key path skips the live
+      # payment fetch (see razorpay-order.adapter.ts).
+      RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+      RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+      RAZORPAY_WEBHOOK_SECRET: ${{ secrets.RAZORPAY_WEBHOOK_SECRET }}
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: docita
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: docita_test
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U docita -d docita_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: Run Database Migrations
+        run: pnpm db:deploy
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @docita/app exec playwright install --with-deps
+
+      - name: Prepare API workspace packages
+        run: pnpm --filter @docita/api run predev
+
+      - name: Build app workspace deps
+        run: pnpm run build:web-workspace-deps
+
+      - name: Build app
+        run: pnpm --filter @docita/app run build
+
+      - name: Start API server
+        run: |
+          pnpm --filter @docita/api run dev > /tmp/docita-api.log 2>&1 &
+          echo $! > /tmp/docita-api.pid
+
+      - name: Start app server (preview)
+        run: |
+          # Bind to 127.0.0.1 explicitly: vite preview defaults to
+          # `localhost`, which Node resolves to ::1 (IPv6) on runners,
+          # making the server unreachable at the 127.0.0.1 APP_URL the
+          # wait loop and Playwright use.
+          pnpm --filter @docita/app exec vite preview --port 5173 --host 127.0.0.1 > /tmp/docita-app.log 2>&1 &
+          echo $! > /tmp/docita-app.pid
+
+      - name: Wait for API and App
+        run: |
+          # Liveness probe: the HealthCheckController is VERSION_NEUTRAL, so its
+          # ping lives at /api/health. Do NOT probe /api/v1/health — the old
+          # versioned AppController route was deleted and that path 404s at the
+          # router (never reaching a handler), which made this loop burn all 120
+          # iterations and report "API server failed to start" for a healthy API.
+          for i in {1..120}; do
+            if curl -fsS http://127.0.0.1:3001/api/health >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$i" -eq 120 ]; then
+              echo "API server failed to start"
+              echo "PORT=[${PORT:-unset}]"
+              echo "--- listeners on 3001 ---"
+              ss -tlnp 2>/dev/null | grep -E ':3001\b' || echo "no 3001 listener"
+              echo "--- API-related processes ---"
+              ps aux | grep -E 'nest start|dist/main' | grep -v grep | head -5 || true
+              echo "--- API log tail ---"
+              tail -n 200 /tmp/docita-api.log || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+          for i in {1..120}; do
+            if curl -fsS http://127.0.0.1:5173/login >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$i" -eq 120 ]; then
+              echo "App server failed to start"
+              tail -n 200 /tmp/docita-app.log || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Run extended E2E suites
+        run: |
+          unset NO_COLOR
+          pnpm --filter @docita/app exec playwright test --config=playwright.config.ts \
+            --reporter=json --output=/tmp/pw-extended-${{ matrix.shard }} \
+            ${{ matrix.specs }}
+
+      - name: Upload JSON report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: extended-e2e-shard-${{ matrix.shard }}
+          path: /tmp/pw-extended-${{ matrix.shard }}/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Dump server logs on failure
+        if: failure()
+        run: |
+          echo "==== API LOGS ===="
+          tail -n 200 /tmp/docita-api.log || true
+          echo "==== APP LOGS ===="
+          tail -n 200 /tmp/docita-app.log || true
