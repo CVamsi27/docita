@@ -4,8 +4,10 @@
 import { Prisma } from '@workspace/db';
 import type {
   FacilityLeadAssignmentHistoryEntry,
+  FacilityLeadAuditView,
   FacilityLeadNotificationView,
   FacilityLeadStatusHistoryEntry,
+  FacilityLeadStatusHistoryEntryView,
   FacilityLeadView,
   InternalFacilityLeadView,
 } from '@workspace/types';
@@ -26,6 +28,27 @@ type LeadWithNotification = Prisma.FacilityLeadGetPayload<{
   };
 }>;
 
+/** Partner-safe history: same records minus the internal operator id. */
+function toHistoryView(
+  statusHistory: Prisma.JsonValue | null,
+): FacilityLeadStatusHistoryEntryView[] | undefined {
+  if (!Array.isArray(statusHistory)) {
+    return undefined;
+  }
+  return (statusHistory as FacilityLeadStatusHistoryEntry[]).map(
+    ({ from, to, reason, at }) => ({ from, to, reason, at }),
+  );
+}
+
+/** Full audit history with operator actor ids (internal surfaces only). */
+function toFullHistory(
+  statusHistory: Prisma.JsonValue | null,
+): FacilityLeadStatusHistoryEntry[] | undefined {
+  return Array.isArray(statusHistory)
+    ? (statusHistory as FacilityLeadStatusHistoryEntry[])
+    : undefined;
+}
+
 export function mapToView(lead: LeadWithReferrer): FacilityLeadView {
   return {
     id: lead.id,
@@ -44,9 +67,15 @@ export function mapToView(lead: LeadWithReferrer): FacilityLeadView {
     consentToFollowUp: lead.consentToFollowUp,
     createdAt: lead.createdAt.toISOString(),
     updatedAt: lead.updatedAt.toISOString(),
-    statusHistory: Array.isArray(lead.statusHistory)
-      ? (lead.statusHistory as FacilityLeadStatusHistoryEntry[])
-      : undefined,
+    statusHistory: toHistoryView(lead.statusHistory),
+  };
+}
+
+/** Internal write response: partner view plus the full audit history. */
+export function mapToAuditView(lead: LeadWithReferrer): FacilityLeadAuditView {
+  return {
+    ...mapToView(lead),
+    statusHistory: toFullHistory(lead.statusHistory),
   };
 }
 
@@ -56,6 +85,8 @@ export function mapToInternalView(
   const latest = lead.notifications[0] ?? null;
   return {
     ...mapToView(lead),
+    // The internal queue keeps the full audit history (operator actor ids).
+    statusHistory: toFullHistory(lead.statusHistory),
     ownerUserId: lead.ownerUserId ?? null,
     ownerName: lead.ownerUser?.name ?? null,
     assignmentHistory: Array.isArray(lead.assignmentHistory)
