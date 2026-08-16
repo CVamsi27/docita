@@ -15,8 +15,13 @@ import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
-/** Internal portal route for the lead queue (the notification's deep link). */
-const LEADS_QUEUE_DEEP_LINK = '/leads';
+/**
+ * Per-lead deep link into the internal queue: the notification points at
+ * the exact lead (the queue honors `?lead=<id>` by filtering to it).
+ */
+function leadsQueueDeepLink(leadId: string): string {
+  return `/leads?lead=${leadId}`;
+}
 
 /**
  * Materializes the internal (Docita-ops) notification for a facility lead.
@@ -82,7 +87,7 @@ export class FacilityLeadNotificationService {
         consentToFollowUp: lead.consentToFollowUp,
         // Exact fingerprint matches are held for review with score 1.
         duplicateScore: lead.duplicateScore ?? null,
-        deepLink: LEADS_QUEUE_DEEP_LINK,
+        deepLink: leadsQueueDeepLink(lead.id),
       };
 
       await this.prisma.facilityLeadNotification.upsert({
@@ -127,7 +132,7 @@ export class FacilityLeadNotificationService {
               partnerName: '',
               consentToFollowUp: false,
               duplicateScore: null,
-              deepLink: LEADS_QUEUE_DEEP_LINK,
+              deepLink: leadsQueueDeepLink(leadId),
             }),
             errorMessage: message.slice(0, 1000),
           },
@@ -165,6 +170,6 @@ export function parseNotificationPayload(
     partnerName: '',
     consentToFollowUp: false,
     duplicateScore: null,
-    deepLink: LEADS_QUEUE_DEEP_LINK,
+    deepLink: leadsQueueDeepLink(''),
   };
 }

@@ -51,7 +51,8 @@ describe('FacilityLeadNotificationService', () => {
       partnerName: 'Priya Partner',
       consentToFollowUp: true,
       duplicateScore: null,
-      deepLink: '/leads',
+      // Per-lead deep link into the queue.
+      deepLink: '/leads?lead=l1',
     });
     expect(payload.contactPhone).toBeUndefined();
     expect(payload.contactEmail).toBeUndefined();

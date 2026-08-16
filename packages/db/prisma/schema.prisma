@@ -4032,6 +4032,11 @@ model FacilityLeadNotification {
   recipientUserId String?
   errorMessage String?
   deliveredAt  DateTime? @db.Timestamptz(3)
+  /// Set when an operator acknowledges (reads) the notification; the first
+  /// ack wins and later acks are no-ops (see acknowledgeNotification).
+  acknowledgedAt DateTime? @db.Timestamptz(3)
+  /// The operator who acknowledged the notification.
+  acknowledgedByUserId String?
   createdAt    DateTime @default(now()) @db.Timestamptz(3)
 
   @@unique([leadId, kind])

@@ -548,7 +548,8 @@ describe('Facility Leads (e2e)', () => {
         facilityName: 'Sunrise Diagnostics',
         partnerName: 'E2E Partner RFR-E2ELD11',
         consentToFollowUp: true,
-        deepLink: '/leads',
+        // Per-lead deep link into the queue.
+        deepLink: `/leads?lead=${created.body.id}`,
       });
       expect(payload.contactPhone).toBeUndefined();
 
@@ -560,7 +561,106 @@ describe('Facility Leads (e2e)', () => {
         kind: 'LEAD_CREATED',
         status: 'DELIVERED',
         recipientUserId: null,
+        acknowledgedAt: null,
       });
+    });
+  });
+
+  describe('notification acknowledgement and per-lead deep link', () => {
+    it('acknowledges the notification as the acting operator and is idempotent', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD15');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+      const created = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody())
+        .expect(200);
+
+      await outboxRelay.drain();
+      let notification = await prisma.facilityLeadNotification.findFirst({
+        where: { leadId: created.body.id, kind: 'LEAD_CREATED' },
+      });
+      for (let attempt = 0; !notification && attempt < 20; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        notification = await prisma.facilityLeadNotification.findFirst({
+          where: { leadId: created.body.id, kind: 'LEAD_CREATED' },
+        });
+      }
+      expect(notification).not.toBeNull();
+
+      const ack = await request(app.getHttpServer())
+        .post(`/internal/leads/${created.body.id}/notification/ack`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(201);
+      expect(ack.body).toMatchObject({
+        leadId: created.body.id,
+        kind: 'LEAD_CREATED',
+        status: 'DELIVERED',
+        acknowledgedByUserId: internalUserId,
+      });
+      expect(typeof ack.body.acknowledgedAt).toBe('string');
+
+      // The queue exposes the acknowledgement state.
+      const queue = await request(app.getHttpServer())
+        .get('/internal/leads')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(queue.body.items[0].notification).toMatchObject({
+        acknowledgedByUserId: internalUserId,
+      });
+      expect(queue.body.items[0].notification.acknowledgedAt).not.toBeNull();
+
+      // A second ack is a no-op that keeps the original acknowledger.
+      const reAck = await request(app.getHttpServer())
+        .post(`/internal/leads/${created.body.id}/notification/ack`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(201);
+      expect(reAck.body.acknowledgedAt).toBe(ack.body.acknowledgedAt);
+      expect(reAck.body.acknowledgedByUserId).toBe(internalUserId);
+    });
+
+    it('404s when the lead has no notification yet and rejects non-INTERNAL callers', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD16');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+      const created = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody())
+        .expect(200);
+
+      // The relay has not drained, so no notification row exists yet.
+      await request(app.getHttpServer())
+        .post(`/internal/leads/${created.body.id}/notification/ack`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(404);
+
+      await request(app.getHttpServer())
+        .post(`/internal/leads/${created.body.id}/notification/ack`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(403);
+    });
+
+    it('narrows the queue to exactly the deep-linked lead', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD17');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+      const created = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody())
+        .expect(200);
+
+      const byLead = await request(app.getHttpServer())
+        .get(`/internal/leads?lead=${created.body.id}`)
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(byLead.body.items).toHaveLength(1);
+      expect(byLead.body.items[0].id).toBe(created.body.id);
+
+      const missing = await request(app.getHttpServer())
+        .get('/internal/leads?lead=does-not-exist')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(missing.body.items).toHaveLength(0);
     });
   });
 

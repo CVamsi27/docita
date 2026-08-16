@@ -225,6 +225,10 @@ export const facilityLeadNotificationViewSchema = z.object({
   payload: facilityLeadNotificationPayloadSchema,
   errorMessage: z.string().nullable(),
   deliveredAt: z.string().nullable(),
+  /** Set when an operator acknowledged (read) the notification. */
+  acknowledgedAt: z.string().nullable(),
+  /** The operator who acknowledged the notification. */
+  acknowledgedByUserId: z.string().nullable(),
   createdAt: z.string(),
 });
 export type FacilityLeadNotificationView = z.infer<

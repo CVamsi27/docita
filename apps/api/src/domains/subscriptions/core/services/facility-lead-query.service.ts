@@ -47,6 +47,8 @@ export class FacilityLeadQueryService {
       status?: FacilityLeadStatus;
       ownerUserId?: string | null;
       referrerId?: string;
+      /** Exact id match, used by the per-lead deep link. */
+      leadId?: string;
     },
     page?: { cursor?: string; limit?: number },
   ): Promise<CursorPaginationResult<InternalFacilityLeadView>> {
@@ -72,6 +74,7 @@ export class FacilityLeadQueryService {
         status: filter?.status,
         ownerUserId: filter?.ownerUserId,
         referrerId: filter?.referrerId,
+        id: filter?.leadId,
       },
       orderBy: { createdAt: 'desc' },
       include: LEAD_QUEUE_INCLUDE,
