@@ -1,4 +1,6 @@
 import type {
+  FacilityLeadSubmit,
+  FacilityLeadView,
   PartnerMe,
   PartnerOtpRequest,
   PartnerOtpVerify,
@@ -15,6 +17,8 @@ import type {
 // the /partner/* endpoints, never from internal surfaces.
 export type PartnerPayoutDetailsInput = ReferrerPayoutDetailsInput;
 export type PartnerPayoutDetailsView = ReferrerPayoutDetailsView;
+export type PartnerFacilityLeadSubmit = FacilityLeadSubmit;
+export type PartnerFacilityLeadView = FacilityLeadView;
 
 export type {
   PartnerMe,

@@ -5,6 +5,8 @@ export type {
   PartnerOtpVerifyResponse,
   PartnerPayoutDetailsInput,
   PartnerPayoutDetailsView,
+  PartnerFacilityLeadSubmit,
+  PartnerFacilityLeadView,
   PartnerPayoutRow,
   PartnerReferralRow,
   PartnerPayoutsResponse,
@@ -26,4 +28,5 @@ export {
   usePartnerReferrals,
   usePartnerShareMessage,
   usePartnerPayoutDetails,
+  useSubmitFacilityLead,
 } from "./hooks/use-partner-portal";

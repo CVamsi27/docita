@@ -49,6 +49,7 @@ export function PartnerShell({ children }: { children: ReactNode }) {
 
   const nav: Array<{ href: string; label: string }> = [
     { href: "/partner/dashboard", label: t("shell.dashboard") },
+    { href: "/partner/submit-lead", label: t("shell.submitLead") },
     { href: "/partner/share", label: t("shell.shareKit") },
     { href: "/partner/payouts", label: t("shell.payouts") },
     { href: "/partner/referrals", label: t("shell.referrals") },
