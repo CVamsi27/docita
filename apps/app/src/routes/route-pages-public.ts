@@ -32,3 +32,6 @@ export const PartnerReferralsPage = lazy(() =>
 export const PartnerSharePage = lazy(() =>
   import("@/features/referral-partner/pages/partner-pages").then((m) => ({ default: m.PartnerSharePage })),
 );
+export const PartnerSubmitLeadPage = lazy(() =>
+  import("@/features/referral-partner/pages/partner-pages").then((m) => ({ default: m.PartnerSubmitLeadPage })),
+);

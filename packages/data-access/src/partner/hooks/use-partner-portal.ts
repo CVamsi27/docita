@@ -7,6 +7,8 @@ import {
 } from "@tanstack/react-query";
 import { partnerApi, type PartnerApiContext } from "../api";
 import type {
+  PartnerFacilityLeadSubmit,
+  PartnerFacilityLeadView,
   PartnerMe,
   PartnerOtpRequest,
   PartnerOtpVerify,
@@ -159,6 +161,29 @@ export function usePartnerShareMessage(
     queryFn: () =>
       partnerApi.getShareMessage(ctxFromToken(accessToken, baseUrl)),
     enabled: Boolean(accessToken),
+    ...options,
+  });
+}
+
+export function useSubmitFacilityLead(
+  accessToken: string | null,
+  baseUrl?: string,
+  options?: Omit<
+    UseMutationOptions<
+      PartnerFacilityLeadView,
+      Error,
+      PartnerFacilityLeadSubmit
+    >,
+    "mutationFn"
+  >,
+) {
+  return useMutation<
+    PartnerFacilityLeadView,
+    Error,
+    PartnerFacilityLeadSubmit
+  >({
+    mutationFn: (input) =>
+      partnerApi.submitFacilityLead(input, ctxFromToken(accessToken, baseUrl)),
     ...options,
   });
 }

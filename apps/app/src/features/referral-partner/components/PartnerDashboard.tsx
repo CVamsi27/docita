@@ -111,6 +111,20 @@ export function PartnerDashboard() {
 
       <Card>
         <CardHeader>
+          <CardTitle>{t("dashboard.submitLeadTitle")}</CardTitle>
+          <CardDescription>
+            {t("dashboard.submitLeadDescription")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild>
+            <Link to="/partner/submit-lead">{t("dashboard.openSubmitLead")}</Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>{t("dashboard.bankingDetailsTitle")}</CardTitle>
           <CardDescription>
             {hasBanking

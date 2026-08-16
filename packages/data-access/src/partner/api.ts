@@ -2,22 +2,21 @@
 // fetch adapter; the casts narrow `unknown` response bodies to the
 // partner-portal Zod schemas via `partner*.parse()` immediately after.
 // Each cast is paired with a `parse()` call in the same expression.
+import { buildApiRequestError } from "../lib/client-response-handler";
+import type { RequestConfig } from "../lib/types";
 import type {
+  PartnerFacilityLeadSubmit,
+  PartnerFacilityLeadView,
   PartnerMe,
   PartnerOtpRequest,
   PartnerOtpVerify,
   PartnerOtpVerifyResponse,
-  PartnerPayoutRow,
-  PartnerReferralRow,
-  ReferrerPayoutDetailsInput,
-  ReferrerPayoutDetailsView,
-} from "@workspace/types";
-import type { RequestConfig } from "../lib/types";
-import type {
   PartnerPayoutDetailsInput,
   PartnerPayoutDetailsView,
+  PartnerPayoutRow,
   PartnerPayoutsResponse,
   PartnerReferralsResponse,
+  PartnerReferralRow,
   PartnerRefreshResponse,
   PartnerShareMessageResponse,
 } from "./partner.types";
@@ -54,18 +53,11 @@ export function createPartnerFetcher(ctx: PartnerApiContext) {
     };
     const response = await fetch(url, init);
     if (!response.ok) {
-      // Re-throw as the existing APIRequestError so the React Query
-      // layer can parse the body the same way the main fetcher does.
-      const text = await response.text().catch(() => "");
-      const APIRequestErrorCtor = (
-        globalThis as { APIRequestError?: new (...a: unknown[]) => Error }
-      ).APIRequestError;
-      if (APIRequestErrorCtor) {
-        throw new APIRequestErrorCtor(response.status, text, response);
-      }
-      throw new Error(
-        `Partner API ${response.status}: ${text || response.statusText}`,
-      );
+      // Re-throw as the shared APIRequestError (status/code/message parsed
+      // from the body) so the React Query layer and
+      // getUserFacingErrorMessage can surface the same shapes the main
+      // fetcher produces (e.g. the 409 DUPLICATE_ENTRY contract).
+      throw await buildApiRequestError(response);
     }
     if (response.status === 204) {
       return undefined as T;
@@ -147,6 +139,15 @@ export const partnerApi = {
     return createPartnerFetcher(ctx)<PartnerPayoutDetailsView>(
       "/partner/me/payout-details",
       { method: "PUT", body: input as unknown as BodyInit },
+    );
+  },
+  submitFacilityLead(
+    input: PartnerFacilityLeadSubmit,
+    ctx: PartnerApiContext,
+  ) {
+    return createPartnerFetcher(ctx)<PartnerFacilityLeadView>(
+      "/partner/me/leads",
+      { method: "POST", body: input as unknown as BodyInit },
     );
   },
   getShareMessage(ctx: PartnerApiContext) {
