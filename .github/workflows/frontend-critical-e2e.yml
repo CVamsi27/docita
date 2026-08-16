@@ -29,6 +29,12 @@ jobs:
       # otherwise trip with 429s. Only ever set in this CI workflow with a
       # throwaway test DB; prod/staging never honor it (VULN-001).
       DOCITA_API_E2E: "true"
+      # Pin the API bind port explicitly: the API honors the ambient PORT
+      # env var over its 3001 default, so a runner image or tooling that
+      # leaks PORT (e.g. PORT=0 for ephemeral binds) would silently move
+      # the server off the port the wait loop and Playwright use below and
+      # the run would fail with a confusing "API server failed to start".
+      PORT: "3001"
       APP_URL: http://127.0.0.1:5173
       API_URL: http://127.0.0.1:3001/api/v1
       API_PROXY_TARGET: http://127.0.0.1:3001
@@ -111,12 +117,23 @@ jobs:
 
       - name: Wait for API and App
         run: |
+          # Liveness probe: the HealthCheckController is VERSION_NEUTRAL, so its
+          # ping lives at /api/health. Do NOT probe /api/v1/health — the old
+          # versioned AppController route was deleted and that path 404s at the
+          # router (never reaching a handler), which made this loop burn all 120
+          # iterations and report "API server failed to start" for a healthy API.
           for i in {1..120}; do
-            if curl -fsS http://127.0.0.1:3001/api/v1/health >/dev/null 2>&1 || curl -fsS http://127.0.0.1:3001/health >/dev/null 2>&1; then
+            if curl -fsS http://127.0.0.1:3001/api/health >/dev/null 2>&1; then
               break
             fi
             if [ "$i" -eq 120 ]; then
               echo "API server failed to start"
+              echo "PORT=[${PORT:-unset}]"
+              echo "--- listeners on 3001 ---"
+              ss -tlnp 2>/dev/null | grep -E ':3001\b' || echo "no 3001 listener"
+              echo "--- API-related processes ---"
+              ps aux | grep -E 'nest start|dist/main' | grep -v grep | head -5 || true
+              echo "--- API log tail ---"
               tail -n 200 /tmp/docita-api.log || true
               exit 1
             fi
