@@ -31,7 +31,7 @@ import {
   type InternalFacilityLeadView,
   type InternalOperator,
 } from "@workspace/types";
-import { formatDate } from "../../../lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 import { apiGet } from "@/lib/api/api-client";
 import { LeadAssignDialog } from "../components/lead-assign-dialog";
 import { LeadNotificationBadge } from "../components/lead-notification-badge";
@@ -337,7 +337,7 @@ export function LeadsPage() {
                               />
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
-                              {formatDate(lead.createdAt)}
+                              {formatDateTime(lead.createdAt, undefined, { locale: enIN })}
                             </TableCell>
                             <TableCell className="text-right">
                               <Button

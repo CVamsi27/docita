@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { ReferralsPage } from "./referrals-page";
 import { apiGet, apiPatch, apiPost } from "@/lib/api/api-client";
-import { formatDate } from "@/lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 
 vi.mock("@/lib/api/api-client", () => ({
   apiGet: vi.fn(),
@@ -126,7 +126,7 @@ describe("ReferralsPage", () => {
     expect(within(table).getByText("Inactive")).toBeInTheDocument();
 
     // Dates render through the en-IN date formatter (TZ pinned to UTC).
-    expect(screen.getByText(formatDate("2026-01-10T10:00:00Z"))).toBeInTheDocument();
+    expect(screen.getByText(formatDateTime("2026-01-10T10:00:00Z", undefined, { locale: enIN }))).toBeInTheDocument();
   });
 
   it("shows the empty state when no referrals exist", async () => {

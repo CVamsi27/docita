@@ -29,7 +29,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { formatDate } from "../../../lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 import { apiGet, apiPatch, apiPost } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { Referral } from "../types";
@@ -221,7 +221,7 @@ export function ReferralsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(r.createdAt)}
+                          {formatDateTime(r.createdAt, undefined, { locale: enIN })}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">

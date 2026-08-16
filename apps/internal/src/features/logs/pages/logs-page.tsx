@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { AppPageScaffold, Badge, Button, DataState, Input, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { RefreshCw } from "lucide-react";
-import { formatDate } from "@/lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 import { apiGet } from "@/lib/api/api-client";
 
 interface SystemLog { id: string; timestamp: string; level: string; module: string; message: string; details?: string; }
@@ -111,7 +111,7 @@ export function LogsPage() {
                 <TableRow><TableCell colSpan={4} className="h-24 text-center text-muted-foreground">No matching logs found</TableCell></TableRow>
               ) : logs.map((log) => (
                 <TableRow key={log.id}>
-                  <TableCell className="font-mono text-xs">{formatDate(log.timestamp)}</TableCell>
+                  <TableCell className="font-mono text-xs">{formatDateTime(log.timestamp, undefined, { locale: enIN })}</TableCell>
                   <TableCell>
                     {log.level === "ERROR" ? <Badge variant="destructive">ERROR</Badge>
                       : log.level === "WARNING" ? <Badge variant="outline" className="text-warning border-warning">WARNING</Badge>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AppPageScaffold, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, PageHeader } from "@workspace/ui/components";
 import { Activity, Building2, CreditCard, RefreshCw } from "lucide-react";
-import { formatCurrency } from "../../../lib/formatters";
+import { formatCurrency, WHOLE_AMOUNT_CURRENCY_OPTIONS } from "@workspace/utils";
 import { apiGet, apiPost } from "@/lib/api/api-client";
 import { BillingDashboardTabs } from "../components/billing-dashboard-tabs";
 
@@ -58,8 +58,8 @@ export function BillingPage() {
             <Card density="compact"><CardHeader className="border-b"><div className="flex items-center justify-between gap-3">
               <div className="space-y-1"><CardTitle>MRR</CardTitle><CardDescription>Recurring monthly revenue</CardDescription></div>
               <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </div></CardHeader><CardContent><p className="text-2xl font-semibold tabular-nums">{formatCurrency(metrics.mrr)}</p>
-              <p className="text-sm text-muted-foreground">ARR: {formatCurrency(metrics.arr)}</p></CardContent></Card>
+            </div></CardHeader><CardContent><p className="text-2xl font-semibold tabular-nums">{formatCurrency(metrics.mrr, WHOLE_AMOUNT_CURRENCY_OPTIONS)}</p>
+              <p className="text-sm text-muted-foreground">ARR: {formatCurrency(metrics.arr, WHOLE_AMOUNT_CURRENCY_OPTIONS)}</p></CardContent></Card>
             <Card density="compact"><CardHeader className="border-b"><div className="flex items-center justify-between gap-3">
               <div className="space-y-1"><CardTitle>Active Subscriptions</CardTitle><CardDescription>Paid customers across all tiers</CardDescription></div>
               <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -69,7 +69,7 @@ export function BillingPage() {
               <div className="space-y-1"><CardTitle>Revenue</CardTitle><CardDescription>Monthly revenue trend</CardDescription></div>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </div></CardHeader><CardContent>
-              {metrics.revenueByMonth.length > 0 && <p className="text-2xl font-semibold tabular-nums">{formatCurrency(metrics.revenueByMonth[metrics.revenueByMonth.length - 1]?.revenue ?? 0)}</p>}
+              {metrics.revenueByMonth.length > 0 && <p className="text-2xl font-semibold tabular-nums">{formatCurrency(metrics.revenueByMonth[metrics.revenueByMonth.length - 1]?.revenue ?? 0, WHOLE_AMOUNT_CURRENCY_OPTIONS)}</p>}
             </CardContent></Card>
           </div>
         )}

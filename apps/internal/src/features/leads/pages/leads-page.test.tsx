@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { MemoryRouter } from "react-router";
 import { LeadsPage } from "./leads-page";
 import { apiGet, apiPatch, apiPost } from "@/lib/api/api-client";
-import { formatDate } from "@/lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 
 vi.mock("@/lib/api/api-client", () => ({
   apiGet: vi.fn(),
@@ -253,7 +253,7 @@ describe("LeadsPage", () => {
     expect(screen.getByText("Kiran Ops")).toBeInTheDocument();
     expect(screen.getAllByText("Unassigned").length).toBeGreaterThan(0);
     // Dates
-    expect(screen.getByText(formatDate("2026-08-15T10:00:00Z"))).toBeInTheDocument();
+    expect(screen.getByText(formatDateTime("2026-08-15T10:00:00Z", undefined, { locale: enIN }))).toBeInTheDocument();
     // Pagination chrome
     expect(screen.getByText("Page 1")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();

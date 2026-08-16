@@ -12,7 +12,7 @@ import {
 import { CRUDDialog } from "@workspace/ui/components/overlay/crud-dialog";
 import { apiPatch, apiPost } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { formatDate } from "../../../lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 import type { Referral } from "../types";
 import {
   conflictMessageFromError,
@@ -201,7 +201,7 @@ export function ReferrerFormDialog({
       </div>
       {isEdit && referrer?.createdAt && (
         <p className="text-xs text-muted-foreground">
-          Partner since {formatDate(referrer.createdAt)}
+          Partner since {formatDateTime(referrer.createdAt, undefined, { locale: enIN })}
         </p>
       )}
       {conflictMessage && (

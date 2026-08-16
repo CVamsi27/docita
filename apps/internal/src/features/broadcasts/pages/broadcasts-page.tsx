@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, DataState, Input, Label, PageHeader, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import { Megaphone, Upload } from "lucide-react";
-import { formatDistanceToNow } from "../../../lib/formatters";
+import { formatCompactDistanceToNow } from "@workspace/utils";
 import { apiGet, apiPost } from "@/lib/api/api-client";
 
 interface BroadcastJob { id: string; title: string; audienceLabel?: string; status: string; sentCount: number; totalCount: number; failedCount: number; createdAt: string; }
@@ -118,7 +118,7 @@ export function BroadcastsPage() {
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       <span>Sent: {job.sentCount}/{job.totalCount}</span>
                       {job.failedCount > 0 && <span className="text-destructive">{job.failedCount} failed</span>}
-                      <span>{formatDistanceToNow(job.createdAt)}</span>
+                      <span>{formatCompactDistanceToNow(job.createdAt)}</span>
                     </div>
                   </li>
                 ))}

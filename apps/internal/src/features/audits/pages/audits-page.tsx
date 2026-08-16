@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AppPageScaffold, Badge, Button, DataState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { RefreshCw } from "lucide-react";
-import { formatInternalTimestamp } from "../../../lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 import { apiGet } from "@/lib/api/api-client";
 
 interface AuditLog { id: string; createdAt: string; action: string; resource?: string; resourceId?: string; clinicId?: string; userId?: string; status?: string; }
@@ -35,7 +35,7 @@ export function AuditsPage() {
           <TableBody>
             {logs.map((log) => (
               <TableRow key={log.id}>
-                <TableCell className="whitespace-nowrap text-xs">{formatInternalTimestamp(log.createdAt)}</TableCell>
+                <TableCell className="whitespace-nowrap text-xs">{formatDateTime(log.createdAt, undefined, { locale: enIN })}</TableCell>
                 <TableCell className="font-mono text-xs">{log.action}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{log.resource ? `${log.resource}${log.resourceId ? ` · ${log.resourceId}` : ""}` : "—"}</TableCell>
                 <TableCell className="font-mono text-xs">{log.clinicId || "—"}</TableCell>

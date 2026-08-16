@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, PageHeader } from "@workspace/ui/components";
 import { AlertCircle, CheckCircle, Clock, Eye, MessageSquare, RefreshCw, Star } from "lucide-react";
-import { formatDate } from "../../../lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 import { apiGet } from "@/lib/api/api-client";
 
 interface Feedback { id: string; overallRating: number; category: string; status: string; generalComments?: string; goodFeatures: string[]; badFeatures: string[]; improvementAreas: string[]; user: { name: string }; clinic: { name: string }; createdAt: string; adminNotes?: string; }
@@ -66,7 +66,7 @@ export function FeedbackPage() {
                       <div className="flex items-center gap-4 text-sm">
                         <span className="font-medium">{fb.user.name}</span>
                         <span className="text-muted-foreground">{fb.clinic.name}</span>
-                        <span className="text-muted-foreground">{formatDate(fb.createdAt)}</span>
+                        <span className="text-muted-foreground">{formatDateTime(fb.createdAt, undefined, { locale: enIN })}</span>
                       </div>
                       {fb.generalComments && <p className="text-sm text-muted-foreground line-clamp-2">{fb.generalComments}</p>}
                     </div>

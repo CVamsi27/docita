@@ -7,7 +7,7 @@ import { downloadInternalAnalyticsExport } from "@workspace/data-access/internal
 import { API_URL } from "@/lib/api/api-config";
 import { internalSession } from "@/lib/auth/session";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, WHOLE_AMOUNT_CURRENCY_OPTIONS } from "@workspace/utils";
 import { apiGet } from "@/lib/api/api-client";
 import { BillingOverviewCards } from "../components/analytics-billing-cards";
 import { MetricCardsGrid } from "../components/analytics-metric-cards";
@@ -106,7 +106,9 @@ export function AnalyticsPage() {
           {billing && (
             <BillingOverviewCards
               billing={{ mrr: billing.mrr, arr: billing.arr, activeSubscriptions: billing.activeSubscriptions, churnRate: billing.churnRate }}
-              formatCurrency={formatCurrency}
+              formatCurrency={(amount) =>
+                formatCurrency(amount, WHOLE_AMOUNT_CURRENCY_OPTIONS)
+              }
             />
           )}
 
