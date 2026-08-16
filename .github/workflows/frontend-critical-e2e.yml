@@ -5,6 +5,20 @@ on:
     # Weekly: Monday 2 AM UTC
     - cron: "0 2 * * 1"
   workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    # Path-scoped so docs-only or unrelated-app PRs never trigger a run. The
+    # Detect CI Scope job below re-checks with the shared path logic
+    # (scripts/workflow/detect-workflow-scope.mjs) and gates the heavy job.
+    paths:
+      - "apps/app/**"
+      - "apps/api/**"
+      - "packages/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - ".github/workflows/frontend-critical-e2e.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,8 +28,42 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  changes:
+    name: Detect CI Scope
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.detect.outputs.app }}
+      api: ${{ steps.detect.outputs.api }}
+      db: ${{ steps.detect.outputs.db }}
+      dependencies: ${{ steps.detect.outputs.dependencies }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          package-manager-cache: false
+
+      - name: Detect changed areas
+        id: detect
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            node scripts/workflow/detect-workflow-scope.mjs ci
+          else
+            # schedule / workflow_dispatch: always run the full suite
+            echo "app=true" >> "$GITHUB_OUTPUT"
+            echo "api=true" >> "$GITHUB_OUTPUT"
+            echo "db=true" >> "$GITHUB_OUTPUT"
+            echo "dependencies=true" >> "$GITHUB_OUTPUT"
+          fi
+
   critical-flows-e2e:
     name: Critical frontend E2E (onboarding, verify, auth, tenant)
+    needs: changes
+    if: github.event.pull_request.draft != true && (needs.changes.outputs.app == 'true' || needs.changes.outputs.api == 'true' || needs.changes.outputs.db == 'true' || needs.changes.outputs.dependencies == 'true')
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
