@@ -332,6 +332,122 @@ describe("LeadsPage", () => {
     });
   });
 
+  it("filters by age, duplicate flag, and consent, and clears them together", async () => {
+    renderPage();
+    await waitForRows();
+
+    // Age filter -> the API is called with the rolling window preset.
+    fireEvent.click(screen.getByRole("combobox", { name: "Filter by age" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Last 7 days" }));
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toContain("age=7d");
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByRole("combobox", { name: "Filter by duplicate flag" }),
+      ).toBeInTheDocument();
+    });
+
+    // Duplicate filter -> the API is called with the flagged sentinel.
+    fireEvent.click(
+      screen.getByRole("combobox", { name: "Filter by duplicate flag" }),
+    );
+    fireEvent.click(
+      await screen.findByRole("option", { name: "Flagged duplicates" }),
+    );
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toContain("duplicate=flagged");
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByRole("combobox", { name: "Filter by consent" }),
+      ).toBeInTheDocument();
+    });
+
+    // Consent filter -> the API is called with the strict boolean.
+    fireEvent.click(screen.getByRole("combobox", { name: "Filter by consent" }));
+    fireEvent.click(
+      await screen.findByRole("option", { name: "Not consented" }),
+    );
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toContain("consent=false");
+    });
+
+    // The same fetch carries all three filters together.
+    expect(leadsCalls().at(-1)?.[0]).toContain("age=7d");
+    expect(leadsCalls().at(-1)?.[0]).toContain("duplicate=flagged");
+
+    // Clear filters -> back to the unfiltered list.
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toBe("/api/internal/leads");
+    });
+  });
+
+  it("applies a location filter on Enter and clears it with the clear button", async () => {
+    renderPage();
+    await waitForRows();
+
+    const input = screen.getByRole("textbox", { name: "Filter by location" });
+    fireEvent.change(input, { target: { value: "Maharashtra" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toContain("location=Maharashtra");
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Clear location filter" }),
+    );
+    await waitFor(() => {
+      expect(leadsCalls().at(-1)?.[0]).toBe("/api/internal/leads");
+    });
+  });
+
+  it("shows a non-blocking picker error and recovers via Retry", async () => {
+    // The operators endpoint fails; the queue still loads.
+    mockApiGet.mockImplementation((url: string) => {
+      if (url.startsWith("/api/internal/operators")) {
+        return Promise.reject(new Error("network down"));
+      }
+      if (url.startsWith("/api/internal/referrers")) {
+        return Promise.resolve(REFERRERS);
+      }
+      if (url.startsWith("/api/internal/leads")) {
+        return Promise.resolve(envelope(mockLeads));
+      }
+      return Promise.resolve(undefined);
+    });
+    renderPage();
+    await waitForRows();
+
+    // The queue is non-blocked and the picker failure is visible.
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/owner\/partner lists/i);
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+
+    // Retry now succeeds: the banner disappears and operators populate.
+    mockApiGet.mockImplementation((url: string) => {
+      if (url.startsWith("/api/internal/operators")) {
+        return Promise.resolve(OPERATORS);
+      }
+      if (url.startsWith("/api/internal/referrers")) {
+        return Promise.resolve(REFERRERS);
+      }
+      if (url.startsWith("/api/internal/leads")) {
+        return Promise.resolve(envelope(mockLeads));
+      }
+      return Promise.resolve(undefined);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("combobox", { name: "Filter by owner" }));
+    expect(
+      await screen.findByRole("option", { name: "Kiran Ops" }),
+    ).toBeInTheDocument();
+  });
+
   it("shows the filtered empty state when nothing matches", async () => {
     mockApiGet.mockImplementation((url: string) => {
       if (url.startsWith("/api/internal/operators")) {

@@ -363,6 +363,98 @@ describe('Facility Leads (e2e)', () => {
       expect(owned.body.items[0].id).toBe(first.body.id);
     });
 
+    it('filters the queue by age, location, duplicate flag, and consent', async () => {
+      await seedPartner(PARTNER_PHONE, 'RFR-E2ELD15');
+      const token = await obtainPartnerToken(PARTNER_PHONE);
+      const fresh = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(leadBody({ idempotencyKey: 'RFR-E2ELD15-key-1' }))
+        .expect(200);
+      const older = await request(app.getHttpServer())
+        .post('/partner/me/leads')
+        .set('Authorization', `Bearer ${token}`)
+        .send(
+          leadBody({
+            facilityName: 'Mumbai Harbour Diagnostics',
+            city: 'Mumbai',
+            state: 'Maharashtra',
+            contactPhone: '+919800000003',
+            consentToFollowUp: false,
+            idempotencyKey: 'RFR-E2ELD15-key-2',
+          }),
+        )
+        .expect(200);
+
+      // Backdate the second lead beyond every age window and flag it as a
+      // review-flagged duplicate so each new dimension selects exactly one
+      // row.
+      await prisma.facilityLead.update({
+        where: { id: older.body.id },
+        data: {
+          createdAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+          duplicateScore: 1,
+          duplicateOfId: fresh.body.id,
+        },
+      });
+
+      // Location matches city or state, case-insensitively.
+      const byLocation = await request(app.getHttpServer())
+        .get('/internal/leads?location=maharashtra')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(byLocation.body.items).toHaveLength(1);
+      expect(byLocation.body.items[0].id).toBe(older.body.id);
+
+      // Consent is an exact boolean toggle.
+      const noConsent = await request(app.getHttpServer())
+        .get('/internal/leads?consent=false')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(noConsent.body.items).toHaveLength(1);
+      expect(noConsent.body.items[0].id).toBe(older.body.id);
+
+      const consented = await request(app.getHttpServer())
+        .get('/internal/leads?consent=true')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(consented.body.items).toHaveLength(1);
+      expect(consented.body.items[0].id).toBe(fresh.body.id);
+
+      // Duplicate flag matches leads carrying a duplicate score.
+      const flagged = await request(app.getHttpServer())
+        .get('/internal/leads?duplicate=flagged')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(flagged.body.items).toHaveLength(1);
+      expect(flagged.body.items[0].id).toBe(older.body.id);
+
+      // Age windows exclude the 40-day-old lead and keep the fresh one.
+      const lastDay = await request(app.getHttpServer())
+        .get('/internal/leads?age=24h')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(lastDay.body.items).toHaveLength(1);
+      expect(lastDay.body.items[0].id).toBe(fresh.body.id);
+
+      const lastMonth = await request(app.getHttpServer())
+        .get('/internal/leads?age=30d')
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(lastMonth.body.items).toHaveLength(1);
+      expect(lastMonth.body.items[0].id).toBe(fresh.body.id);
+
+      // The dimensions compose into one narrowed queue.
+      const combined = await request(app.getHttpServer())
+        .get(
+          '/internal/leads?location=Maharashtra&duplicate=flagged&consent=false',
+        )
+        .set('Authorization', `Bearer ${internalToken}`)
+        .expect(200);
+      expect(combined.body.items).toHaveLength(1);
+      expect(combined.body.items[0].id).toBe(older.body.id);
+    });
+
     it('rejects a non-INTERNAL operator with 403', async () => {
       await request(app.getHttpServer())
         .get('/internal/leads')

@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
   DataState,
+  Input,
   Label,
   PageHeader,
   Select,
@@ -24,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components";
-import { Building2 } from "lucide-react";
+import { Building2, X } from "lucide-react";
 import {
   FACILITY_LEAD_TRANSITIONS,
   type CursorPaginationResult,
@@ -62,8 +63,19 @@ export function LeadsPage() {
   const [statusFilter, setStatusFilter] = useState(FILTER_ALL);
   const [ownerFilter, setOwnerFilter] = useState(FILTER_ALL);
   const [referrerFilter, setReferrerFilter] = useState(FILTER_ALL);
+  const [ageFilter, setAgeFilter] = useState(FILTER_ALL);
+  // Location is free text: the draft applies on Enter/blur so the queue is
+  // not refetched per keystroke; the applied value drives the query.
+  const [locationDraft, setLocationDraft] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [duplicateFilter, setDuplicateFilter] = useState(FILTER_ALL);
+  const [consentFilter, setConsentFilter] = useState(FILTER_ALL);
   const [operators, setOperators] = useState<InternalOperator[]>([]);
   const [referrers, setReferrers] = useState<ReferrerOption[]>([]);
+  // Picker sources load independently of the queue; a failure shows a
+  // non-blocking inline error with a retry instead of silently showing
+  // only the "All…" options.
+  const [pickerError, setPickerError] = useState(false);
 
   const [transitioning, setTransitioning] =
     useState<InternalFacilityLeadView | null>(null);
@@ -78,7 +90,11 @@ export function LeadsPage() {
   const hasActiveFilters =
     statusFilter !== FILTER_ALL ||
     ownerFilter !== FILTER_ALL ||
-    referrerFilter !== FILTER_ALL;
+    referrerFilter !== FILTER_ALL ||
+    ageFilter !== FILTER_ALL ||
+    locationFilter !== "" ||
+    duplicateFilter !== FILTER_ALL ||
+    consentFilter !== FILTER_ALL;
 
   const buildQuery = useCallback(
     (cursor?: string) => {
@@ -87,6 +103,11 @@ export function LeadsPage() {
       if (ownerFilter !== FILTER_ALL) params.set("owner", ownerFilter);
       if (referrerFilter !== FILTER_ALL)
         params.set("referrerId", referrerFilter);
+      if (ageFilter !== FILTER_ALL) params.set("age", ageFilter);
+      if (locationFilter) params.set("location", locationFilter);
+      if (duplicateFilter !== FILTER_ALL)
+        params.set("duplicate", duplicateFilter);
+      if (consentFilter !== FILTER_ALL) params.set("consent", consentFilter);
       // The API reads this as `lead` (same key the notification deep
       // link uses: `/leads?lead=<id>`); do not rename it here.
       if (leadFilter) params.set("lead", leadFilter);
@@ -94,7 +115,16 @@ export function LeadsPage() {
       const query = params.toString();
       return query ? `/api/internal/leads?${query}` : "/api/internal/leads";
     },
-    [statusFilter, ownerFilter, referrerFilter, leadFilter],
+    [
+      statusFilter,
+      ownerFilter,
+      referrerFilter,
+      ageFilter,
+      locationFilter,
+      duplicateFilter,
+      consentFilter,
+      leadFilter,
+    ],
   );
 
   const fetchLeads = useCallback(
@@ -122,15 +152,33 @@ export function LeadsPage() {
     setCursorStack([]);
   }, [fetchLeads]);
 
-  // Picker sources for the filter bar (owners + partners).
-  useEffect(() => {
-    void apiGet<InternalOperator[]>("/api/internal/operators")
-      .then(setOperators)
-      .catch(() => {});
-    void apiGet<ReferrerOption[]>("/api/internal/referrers")
-      .then(setReferrers)
-      .catch(() => {});
+  // Picker sources for the filter bar (owners + partners). Each list is
+  // applied only on success (a partial failure does not clobber the other
+  // list); any failure surfaces the inline retry banner below.
+  const loadPickerSources = useCallback(async () => {
+    let failed = false;
+    try {
+      const nextOperators = await apiGet<InternalOperator[]>(
+        "/api/internal/operators",
+      );
+      setOperators(nextOperators);
+    } catch {
+      failed = true;
+    }
+    try {
+      const nextReferrers = await apiGet<ReferrerOption[]>(
+        "/api/internal/referrers",
+      );
+      setReferrers(nextReferrers);
+    } catch {
+      failed = true;
+    }
+    setPickerError(failed);
   }, []);
+
+  useEffect(() => {
+    void loadPickerSources();
+  }, [loadPickerSources]);
 
   const pageIndex = cursorStack.length;
 
@@ -148,10 +196,19 @@ export function LeadsPage() {
     void fetchLeads(previousCursor);
   };
 
+  const handleApplyLocation = () => {
+    setLocationFilter(locationDraft.trim());
+  };
+
   const handleClearFilters = () => {
     setStatusFilter(FILTER_ALL);
     setOwnerFilter(FILTER_ALL);
     setReferrerFilter(FILTER_ALL);
+    setAgeFilter(FILTER_ALL);
+    setLocationDraft("");
+    setLocationFilter("");
+    setDuplicateFilter(FILTER_ALL);
+    setConsentFilter(FILTER_ALL);
   };
 
   return (
@@ -187,6 +244,24 @@ export function LeadsPage() {
                   onClick={() => setSearchParams({}, { replace: true })}
                 >
                   Show all leads
+                </Button>
+              </div>
+            )}
+            {pickerError && (
+              <div
+                role="alert"
+                className="mb-4 flex items-center justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2"
+              >
+                <p className="text-sm text-destructive">
+                  Couldn't load the owner/partner lists. The queue is still
+                  loading — retry to restore the filters.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void loadPickerSources()}
+                >
+                  Retry
                 </Button>
               </div>
             )}
@@ -247,6 +322,87 @@ export function LeadsPage() {
                         {referrer.name}
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="min-w-40 space-y-1">
+                <Label className="text-xs text-muted-foreground">Age</Label>
+                <Select value={ageFilter} onValueChange={setAgeFilter}>
+                  <SelectTrigger aria-label="Filter by age">
+                    <SelectValue placeholder="Any age" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={FILTER_ALL}>Any age</SelectItem>
+                    <SelectItem value="24h">Last 24 hours</SelectItem>
+                    <SelectItem value="7d">Last 7 days</SelectItem>
+                    <SelectItem value="30d">Last 30 days</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="min-w-48 space-y-1">
+                <Label className="text-xs text-muted-foreground">
+                  Location
+                </Label>
+                <div className="relative">
+                  <Input
+                    aria-label="Filter by location"
+                    placeholder="City or state"
+                    value={locationDraft}
+                    onChange={(event) => setLocationDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") handleApplyLocation();
+                    }}
+                    onBlur={handleApplyLocation}
+                  />
+                  {locationFilter && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Clear location filter"
+                      className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+                      // Keep focus on the input so the clear click cannot
+                      // first trigger onBlur and re-apply the stale draft
+                      // (which would refetch the old location, racing the
+                      // cleared state).
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => {
+                        setLocationDraft("");
+                        setLocationFilter("");
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="min-w-44 space-y-1">
+                <Label className="text-xs text-muted-foreground">
+                  Duplicate
+                </Label>
+                <Select
+                  value={duplicateFilter}
+                  onValueChange={setDuplicateFilter}
+                >
+                  <SelectTrigger aria-label="Filter by duplicate flag">
+                    <SelectValue placeholder="Any" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={FILTER_ALL}>Any</SelectItem>
+                    <SelectItem value="flagged">Flagged duplicates</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="min-w-40 space-y-1">
+                <Label className="text-xs text-muted-foreground">Consent</Label>
+                <Select value={consentFilter} onValueChange={setConsentFilter}>
+                  <SelectTrigger aria-label="Filter by consent">
+                    <SelectValue placeholder="Any" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={FILTER_ALL}>Any</SelectItem>
+                    <SelectItem value="true">Consented</SelectItem>
+                    <SelectItem value="false">Not consented</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

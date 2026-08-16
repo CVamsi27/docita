@@ -75,6 +75,51 @@ describe('FacilityLeadQueryService', () => {
     expect(args.where.id).toBe('l-deeplink');
   });
 
+  it('builds where clauses for age, location, duplicate flag, and consent', async () => {
+    ctx.facilityLead.findMany.mockResolvedValue([]);
+
+    const service = new FacilityLeadQueryService(ctx.prisma);
+    await service.listLeads({
+      createdSince: new Date('2026-08-01T00:00:00Z'),
+      location: 'maharashtra',
+      duplicateFlagged: true,
+      consent: false,
+    });
+
+    const args = ctx.facilityLead.findMany.mock.calls[0][0] as {
+      where: {
+        createdAt: { gte: Date };
+        OR: Array<Record<string, unknown>>;
+        duplicateScore: { not: null };
+        consentToFollowUp: boolean;
+      };
+    };
+    expect(args.where.createdAt).toEqual({
+      gte: new Date('2026-08-01T00:00:00Z'),
+    });
+    expect(args.where.OR).toEqual([
+      { city: { contains: 'maharashtra', mode: 'insensitive' } },
+      { state: { contains: 'maharashtra', mode: 'insensitive' } },
+    ]);
+    expect(args.where.duplicateScore).toEqual({ not: null });
+    expect(args.where.consentToFollowUp).toBe(false);
+  });
+
+  it('leaves the new dimensions open when they are not supplied', async () => {
+    ctx.facilityLead.findMany.mockResolvedValue([]);
+
+    const service = new FacilityLeadQueryService(ctx.prisma);
+    await service.listLeads({});
+
+    const args = ctx.facilityLead.findMany.mock.calls[0][0] as {
+      where: Record<string, unknown>;
+    };
+    expect(args.where.createdAt).toBeUndefined();
+    expect(args.where.OR).toBeUndefined();
+    expect(args.where.duplicateScore).toBeUndefined();
+    expect(args.where.consentToFollowUp).toBeUndefined();
+  });
+
   it('pages with a cursor and bounded limit', async () => {
     ctx.facilityLead.findMany.mockResolvedValue([
       leadRow({ id: 'l2', notifications: [] }),
