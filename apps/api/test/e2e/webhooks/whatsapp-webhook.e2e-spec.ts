@@ -151,4 +151,33 @@ describe('WhatsApp webhook ingress (e2e)', () => {
     await sendWebhook(validPayload, signature).expect(200);
     await sendWebhook(otherPayload, signature).expect(401);
   });
+
+  it('echoes the verification challenge as text/plain (never HTML)', async () => {
+    // A challenge containing markup must be served as text/plain so a browser
+    // pointed at the verification URL cannot render attacker markup (NOTE-001).
+    const markupChallenge = '<script>alert(1)</script>';
+
+    const response = await request(app.getHttpServer())
+      .get('/webhooks/whatsapp')
+      .query({
+        'hub.mode': 'subscribe',
+        'hub.verify_token': 'e2e-verify-token',
+        'hub.challenge': markupChallenge,
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.text).toBe(markupChallenge);
+    expect(response.headers['content-type']).toMatch(/^text\/plain/);
+  });
+
+  it('rejects a verification GET with a wrong verify token', async () => {
+    await request(app.getHttpServer())
+      .get('/webhooks/whatsapp')
+      .query({
+        'hub.mode': 'subscribe',
+        'hub.verify_token': 'wrong-token',
+        'hub.challenge': 'any-challenge',
+      })
+      .expect(403);
+  });
 });
