@@ -11,6 +11,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  DataState,
 } from "@workspace/ui/components";
 import { FileText, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
@@ -41,7 +42,7 @@ export function ComplianceSettingsPanel() {
   const [requestForm, setRequestForm] =
     useState<CreateDataSubjectRequest>(INITIAL_REQUEST_FORM);
 
-  const { data: compliance } = useQuery<AppComplianceSummary>({
+  const { data: compliance, isLoading, error } = useQuery<AppComplianceSummary>({
     queryKey: ["compliance", clinicId],
     queryFn: () => complianceApi.getSummary<AppComplianceSummary>(),
     enabled: !!clinicId,
@@ -142,8 +143,15 @@ export function ComplianceSettingsPanel() {
     updateRequestMutation.mutate({ requestId, status });
   };
 
+  const dataStateStatus = isLoading ? "loading" : error ? "error" : "success";
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <DataState
+        status={dataStateStatus}
+        errorMessage="We could not load your compliance settings. Please try again."
+        onRetry={() => window.location.reload()}
+      >
       {compliance?.slaSignatureUrl && compliance.slaSignatureAcceptedAt && (
         <Alert>
           <CheckCircle2 className="h-4 w-4" />
@@ -208,6 +216,7 @@ export function ComplianceSettingsPanel() {
       <DataRetentionCard />
 
       <AuditLogCard recentAuditLogs={recentAuditLogs} />
+      </DataState>
     </div>
   );
 }
