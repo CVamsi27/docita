@@ -29,8 +29,8 @@ async function fetchJson(url, token) {
 async function main() {
   const repoRoot = process.cwd();
   const appDir = path.join(repoRoot, "apps/app");
-  const outputDir = path.join(repoRoot, "logs/performance");
-  const outputPath = path.join(outputDir, "baseline.json");
+  const outputDir = path.join(repoRoot, "artifacts");
+  const outputPath = path.join(outputDir, "perf-baseline.json");
   const apiBaseUrl = process.env["PERF_API_BASE_URL"];
   const apiToken = process.env["PERF_API_TOKEN"];
 
