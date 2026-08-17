@@ -31,6 +31,7 @@ import {
 } from '@workspace/types';
 import { PartnerPortalService } from '../../core/services/partner-portal.service';
 import { FacilityLeadSubmissionCommandService } from '../../core/services/facility-lead-submission-command.service';
+import { createZodValidationException } from '@/shared/common/utils/zod-exception.util';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import {
   PARTNER_AUTH_REQUEST_KEY,
@@ -131,9 +132,10 @@ export class PartnerPortalController {
     const { referrerId } = this.context(req);
     const parsed = referrerPayoutDetailsInputSchema.safeParse(body);
     if (!parsed.success) {
-      // Re-throw as the framework-shaped error so the validation message
-      // is surfaced; ZodError → NestJS BadRequest handled globally.
-      throw parsed.error;
+      // A raw ZodError would fall through the AllExceptionsFilter resolvers
+      // to a 500; wrap it the same way the global ZodValidationPipe does so
+      // the filter returns 400 with a field-level `validationErrors` map.
+      throw createZodValidationException(parsed.error);
     }
     return this.portal.upsertPayoutDetails(referrerId, parsed.data);
   }
