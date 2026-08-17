@@ -24,29 +24,42 @@ jobs:
   check-and-stop:
     name: Stop RDS if running
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Check DB status
-        id: status
+      - name: Poll and stop RDS instance
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: |
-          STATUS=$(aws rds describe-db-instances \
-            --db-instance-identifier "${{ secrets.RDS_INSTANCE_ID }}" \
-            --query 'DBInstances[0].DBInstanceStatus' \
-            --output text 2>&1)
-          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
-          echo "Instance ${{ secrets.RDS_INSTANCE_ID }} status: $STATUS"
-
-      - name: Stop RDS instance
-        if: steps.status.outputs.status == 'available'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          echo "DB instance is running - stopping it now"
-          aws rds stop-db-instance \
-            --db-instance-identifier "${{ secrets.RDS_INSTANCE_ID }}"
-          echo "Stop command issued"
+          set -euo pipefail
+          INSTANCE="${{ secrets.RDS_INSTANCE_ID }}"
+          # RDS auto-restarts 7 days after a stop. On restart it transitions
+          # starting -> backing-up -> available, so poll until it settles in
+          # a terminal state instead of guessing from a single snapshot.
+          for i in $(seq 1 28); do
+            STATUS=$(aws rds describe-db-instances \
+              --db-instance-identifier "$INSTANCE" \
+              --query 'DBInstances[0].DBInstanceStatus' \
+              --output text)
+            echo "Poll $i: $INSTANCE status = $STATUS"
+            case "$STATUS" in
+              stopped)
+                echo "Already stopped - nothing to do"
+                exit 0
+                ;;
+              available)
+                echo "Instance is running - stopping it now"
+                aws rds stop-db-instance --db-instance-identifier "$INSTANCE"
+                echo "Stop command issued"
+                exit 0
+                ;;
+              *)
+                # starting / backing-up / rebooting / storage-optimization:
+                # not yet in a stoppable state, wait and re-check
+                sleep 30
+                ;;
+            esac
+          done
+          echo "Instance never reached a terminal state within 14 minutes"
+          exit 1
