@@ -13,6 +13,17 @@ type TestPrismaClient = PrismaClient & {
   runUnrestricted<T>(fn: () => Promise<T>): Promise<T>;
 };
 
+// Every suite used to run `prisma db push --force-reset` in its beforeAll,
+// dropping and recreating the ENTIRE schema once per suite (~20 times per
+// shard). That repeated DDL — combined with the 55-statement truncate in
+// resetDatabase — is what generated the 100-180s Postgres checkpoints in
+// the runner logs and the `Exceeded timeout of 30000 ms for a hook` failures
+// on beforeEach under CI disk I/O pressure. Suite isolation is by truncation
+// (resetDatabase), not schema recreation, and no migration runs mid-process,
+// so one push per jest process is sufficient. Local runs keep working: the
+// first suite prepares the schema exactly as before.
+let schemaPrepared = false;
+
 export function setupTestDatabase() {
   const testDbUrl = process.env.DATABASE_URL;
 
@@ -35,14 +46,17 @@ export function setupTestDatabase() {
   }) as TestPrismaClient;
 
   try {
-    execSync('pnpm exec prisma db push --accept-data-loss --force-reset', {
-      cwd: path.join(__dirname, '../../..', 'packages/db'),
-      env: {
-        ...process.env,
-        DATABASE_URL: testDbUrl,
-      },
-      stdio: 'pipe',
-    });
+    if (!schemaPrepared) {
+      execSync('pnpm exec prisma db push --accept-data-loss --force-reset', {
+        cwd: path.join(__dirname, '../../..', 'packages/db'),
+        env: {
+          ...process.env,
+          DATABASE_URL: testDbUrl,
+        },
+        stdio: 'pipe',
+      });
+      schemaPrepared = true;
+    }
   } catch (error) {
     const execError = error as {
       message?: string;
@@ -127,13 +141,30 @@ export async function resetDatabase() {
     'CptCode',
   ];
 
-  for (const table of tables) {
-    try {
-      await prisma.$executeRaw(
-        Prisma.sql`TRUNCATE TABLE ${Prisma.raw(`"${table}"`)} CASCADE`,
-      );
-    } catch (_e) {
-      // Table may not exist yet; skip silently
+  try {
+    // One statement instead of 55 sequential round-trips: a single TRUNCATE
+    // with CASCADE resolves dependent tables in one lock pass and one commit,
+    // removing the per-statement lock acquisition and WAL flush that amplified
+    // runner disk-I/O stalls into 30s+ beforeEach hooks. CASCADE also makes
+    // the per-table order irrelevant (dependents are truncated once, not once
+    // per referencing table).
+    await prisma.$executeRaw(
+      Prisma.sql`TRUNCATE TABLE ${Prisma.join(
+        tables.map((table) => Prisma.raw(`"${table}"`)),
+        ', ',
+      )} CASCADE`,
+    );
+  } catch {
+    // Fall back to per-table truncation (skipping missing tables) for locally
+    // outdated schemas where one of the listed tables does not exist.
+    for (const table of tables) {
+      try {
+        await prisma.$executeRaw(
+          Prisma.sql`TRUNCATE TABLE ${Prisma.raw(`"${table}"`)} CASCADE`,
+        );
+      } catch {
+        // Table may not exist yet; skip silently
+      }
     }
   }
 }
