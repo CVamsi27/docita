@@ -38,6 +38,10 @@ interface PartnerJwtClaims {
   sub: string;
   phone: string;
   type: 'access' | 'refresh';
+  // Populated by jsonwebtoken on verified claims when the `audience`
+  // option is supplied (verified against jsonwebtoken 9.0.2). Optional at
+  // sign time — the audience is passed as a sign option, not a claim.
+  aud?: string;
 }
 
 @Injectable()
@@ -85,6 +89,17 @@ export class PartnerAuthService {
         templateName: 'partner_login_otp',
         otp,
       });
+    } else {
+      // SEC-002 timing parity: the match path always runs one bcrypt
+      // hash (cost 10, ~53 ms measured) plus two DB writes and a
+      // WhatsApp send. Without equalization, request latency reveals
+      // whether the phone is an active partner. Run the same-cost hash
+      // here (Django-style dummy hash) so the deterministic crypto
+      // component of the delta is closed. The residual delta (DB writes
+      // + the external WhatsApp call) is network-bound; full parity
+      // would require sending real messages to non-partners, which is
+      // a product decision (see the security-review follow-up).
+      await bcrypt.hash(this.generateOtp(), 10);
     }
 
     return {
@@ -187,7 +202,10 @@ export class PartnerAuthService {
     }
     if (
       claims.type !== 'refresh' ||
-      !isPartnerJwtAudience(JWT_AUDIENCE_PARTNER)
+      // Defense-in-depth: jsonwebtoken enforces the audience during
+      // verifyAsync above, but re-check the claim so a future refactor
+      // that drops the verify option cannot silently widen the surface.
+      !isPartnerJwtAudience(claims.aud)
     ) {
       throw new UnauthorizedException('Invalid refresh token');
     }
