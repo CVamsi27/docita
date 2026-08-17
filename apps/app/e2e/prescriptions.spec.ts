@@ -1,5 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { expect, test } from "@playwright/test";
+import { DPDP_NOTICE_VERSION } from "@workspace/types";
+import { setupTestUser } from "./utils/patient-helpers";
 
 const API_URL = "http://127.0.0.1:3001/api/v1";
 
@@ -14,67 +16,16 @@ test.describe("Prescriptions", () => {
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
-      const email = `doctor${Date.now()}@test.com`;
-      const password = "Test@123456";
-      const registerRes = await request.post(`${API_URL}/auth/register`, {
-        data: {
-          email,
-          password,
-          firstName: "Dr",
-          lastName: "Prescription",
-          clinicName: "Prescription Clinic",
-        },
-      });
-
-      if (!registerRes.ok()) {
-        suiteAvailable = false;
-        suiteSkipReason = `auth/register unavailable (status ${registerRes.status()})`;
-        return;
-      }
-
-      const userData = await registerRes.json();
-      authToken = userData.access_token;
-      doctorId = userData.user?.id || userData.id;
-
-      const clinicRes = await request.post(`${API_URL}/clinics`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-        data: {
-          name: "Prescription Clinic",
-          email: `clinic${Date.now()}@test.com`,
-          phone: "1234567890",
-          address: "123 Test St",
-          tier: "PRO",
-        },
-      });
-
-      expect(
-        clinicRes.ok(),
-        `clinic bootstrap failed: ${clinicRes.status()}`,
-      ).toBeTruthy();
-
-      const clinic = await clinicRes.json();
-      _clinicId = clinic.id;
-
-      if (doctorId && clinic.id) {
-        const assignRes = await request.post(`${API_URL}/doctor-clinics`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-          data: {
-            doctorId,
-            clinicId: clinic.id,
-            role: "doctor",
-          },
-        });
-
-        if (assignRes.ok()) {
-          const loginRes = await request.post(`${API_URL}/auth/login`, {
-            data: { email, password },
-          });
-          if (loginRes.ok()) {
-            const loginData = await loginRes.json();
-            authToken = loginData.access_token;
-          }
-        }
-      }
+      // Provision through the modern onboarding flow: register-with-clinicName
+      // hard-400s (clinic registration moved to onboarding) and the /clinics
+      // CRUD controller is now INTERNAL-only, so a doctor can no longer create
+      // a clinic or self-assign via /doctor-clinics. setupTestUser runs
+      // register -> onboarding -> login and returns the onboarded clinic; the
+      // registering user is already that clinic's admin doctor.
+      const user = await setupTestUser(request);
+      authToken = user.accessToken;
+      doctorId = user.id;
+      _clinicId = user.clinicId;
 
       const patientRes = await request.post(`${API_URL}/patients`, {
         headers: { Authorization: `Bearer ${authToken}` },
@@ -84,6 +35,13 @@ test.describe("Prescriptions", () => {
           dateOfBirth: "1990-01-01",
           gender: "MALE",
           phoneNumber: `9${Math.floor(Math.random() * 1e9)}`.padEnd(10, "0"),
+          // POST /patients enforces DPDP consent at the controller (400
+          // without it); mirror the critical-flows payload.
+          dpdpConsent: {
+            accepted: true,
+            noticeVersion: DPDP_NOTICE_VERSION,
+            givenByName: "E2E Prescription",
+          },
         },
       });
       expect(

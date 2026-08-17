@@ -51,9 +51,11 @@ export class PrismaLabRepository implements ILabRepository {
     return tests.slice(0, 1000).map((t) => this.mapToLabTest(t));
   }
 
-  async findTestById(id: string): Promise<LabTest | null> {
-    const test = await this.getReadClient().labTest.findUnique({
-      where: { id },
+  async findTestById(id: string, clinicId: string): Promise<LabTest | null> {
+    // Tenant-scoped read: the scope policy rejects `findUnique` keyed on id
+    // alone, so use a tenant-qualified findFirst.
+    const test = await this.getReadClient().labTest.findFirst({
+      where: { id, clinicId },
     });
     return test ? this.mapToLabTest(test) : null;
   }
@@ -71,17 +73,46 @@ export class PrismaLabRepository implements ILabRepository {
       active: labTest.active,
     };
 
-    const saved = await this.prisma.labTest.upsert({
-      where: { id: labTest.id || 'new' },
-      create: data,
-      update: data,
-    });
+    // The tenant-scope policy rejects `upsert`/`update` keyed on `id` alone;
+    // use the tenant-qualified findFirst + create/updateMany pattern instead.
+    const existing = labTest.id
+      ? await this.prisma.labTest.findFirst({
+          where: { id: labTest.id, clinicId: labTest.clinicId },
+        })
+      : null;
 
-    return this.mapToLabTest(saved);
+    if (existing) {
+      const result = await this.prisma.labTest.updateMany({
+        where: { id: existing.id, clinicId: labTest.clinicId },
+        data,
+      });
+      if (result.count === 0) {
+        throw new NotFoundException('Lab test not found');
+      }
+      const updated = await this.prisma.labTest.findFirst({
+        where: { id: existing.id, clinicId: labTest.clinicId },
+      });
+      if (!updated) {
+        throw new NotFoundException('Lab test not found');
+      }
+      return this.mapToLabTest(updated);
+    }
+
+    const created = await this.prisma.labTest.create({
+      data: { ...data, id: labTest.id || undefined },
+    });
+    return this.mapToLabTest(created);
   }
 
-  async deleteTest(id: string): Promise<void> {
-    await this.prisma.labTest.delete({ where: { id } });
+  async deleteTest(id: string, clinicId: string): Promise<void> {
+    // Tenant-scoped delete: the scope policy rejects `delete` keyed on id
+    // alone; deleteMany keeps clinicId in the where.
+    const result = await this.prisma.labTest.deleteMany({
+      where: { id, clinicId },
+    });
+    if (result.count === 0) {
+      throw new NotFoundException('Lab test not found');
+    }
   }
 
   async findAllOrders(
@@ -181,14 +212,18 @@ export class PrismaLabRepository implements ILabRepository {
     };
   }
 
-  async findOrderById(id: string): Promise<LabOrder | null> {
-    const order = await this.getReadClient().labTestOrder.findUnique({
-      where: { id },
+  async findOrderById(id: string, clinicId: string): Promise<LabOrder | null> {
+    // Tenant-scoped read: the scope policy rejects `findUnique` keyed on id
+    // alone, so use a tenant-qualified findFirst.
+    const order = await this.getReadClient().labTestOrder.findFirst({
+      where: { id, clinicId },
       include: { labTest: true },
     });
 
     if (!order) return null;
-    return this.mapToLabOrder(order);
+    return this.mapToLabOrder(order, {
+      labTest: order.labTest ? this.labTestRelation(order.labTest) : undefined,
+    });
   }
 
   async saveOrder(order: LabOrder): Promise<LabOrder> {
@@ -205,20 +240,57 @@ export class PrismaLabRepository implements ILabRepository {
       orderedBy: order.orderedBy || 'SYSTEM',
     };
 
-    const saved = await this.prisma.labTestOrder.upsert({
-      where: { id: order.id || 'new' },
-      create: data,
-      update: data,
+    // The tenant-scope policy rejects `upsert`/`update` keyed on `id` alone;
+    // use the tenant-qualified findFirst + create/updateMany pattern instead.
+    const existing = order.id
+      ? await this.prisma.labTestOrder.findFirst({
+          where: { id: order.id, clinicId: order.clinicId },
+          include: { labTest: true },
+        })
+      : null;
+
+    if (existing) {
+      const result = await this.prisma.labTestOrder.updateMany({
+        where: { id: existing.id, clinicId: order.clinicId },
+        data,
+      });
+      if (result.count === 0) {
+        throw new NotFoundException('Lab order not found');
+      }
+      const updated = await this.prisma.labTestOrder.findFirst({
+        where: { id: existing.id, clinicId: order.clinicId },
+        include: { labTest: true },
+      });
+      if (!updated) {
+        throw new NotFoundException('Lab order not found');
+      }
+      return this.mapToLabOrder(updated, {
+        labTest: updated.labTest
+          ? this.labTestRelation(updated.labTest)
+          : undefined,
+      });
+    }
+
+    const created = await this.prisma.labTestOrder.create({
+      data: { ...data, id: order.id || undefined },
       include: { labTest: true },
     });
-
-    return this.mapToLabOrder(saved);
+    return this.mapToLabOrder(created, {
+      labTest: created.labTest
+        ? this.labTestRelation(created.labTest)
+        : undefined,
+    });
   }
 
-  async deleteOrder(id: string): Promise<void> {
-    await this.prisma.labTestOrder.delete({
-      where: { id },
+  async deleteOrder(id: string, clinicId: string): Promise<void> {
+    // Tenant-scoped delete: the scope policy rejects `delete` keyed on id
+    // alone; deleteMany keeps clinicId in the where.
+    const result = await this.prisma.labTestOrder.deleteMany({
+      where: { id, clinicId },
     });
+    if (result.count === 0) {
+      throw new NotFoundException('Lab order not found');
+    }
   }
 
   async getStats(clinicId: string): Promise<{
@@ -271,6 +343,24 @@ export class PrismaLabRepository implements ILabRepository {
         undefined,
       prismaTest.description || undefined,
     );
+  }
+
+  private labTestRelation(
+    row: Pick<PrismaLabTest, 'id' | 'name' | 'category' | 'code' | 'price'>,
+  ): {
+    id: string;
+    name: string;
+    category: string;
+    code?: string;
+    price?: number;
+  } {
+    return {
+      id: row.id,
+      name: row.name,
+      category: row.category,
+      code: row.code ?? undefined,
+      price: row.price ?? undefined,
+    };
   }
 
   private mapToLabOrder(

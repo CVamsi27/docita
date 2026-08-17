@@ -11,7 +11,6 @@ import {
   HttpStatus,
   Request,
   UseGuards,
-  NotFoundException,
 } from '@nestjs/common';
 import { ClinicalService } from '@/domains/clinical/application/services/clinical.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
@@ -113,10 +112,10 @@ export class LabTestsController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ): Promise<LabOrder> {
-    const order = await this.clinicalService.getOrderById(id);
-    if (order.clinicId !== getClinicStaffRequestContext(req).clinicId) {
-      throw new NotFoundException('Lab order not found');
-    }
+    const order = await this.clinicalService.getOrderById(
+      id,
+      getClinicStaffRequestContext(req).clinicId,
+    );
     await logPatientPhiRead(
       this.auditService,
       req,
@@ -146,16 +145,16 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
     @Body() body: UpdateLabTestOrderDto,
   ): Promise<LabOrder> {
-    const order = await this.clinicalService.getOrderById(id);
-    if (order.clinicId !== getClinicStaffRequestContext(req).clinicId) {
-      throw new NotFoundException('Lab order not found');
-    }
     const status =
       parseStringEnumMember(
         Object.values(LabTestOrderStatus),
         body.status ?? LabTestOrderStatus.ORDERED,
       ) ?? LabTestOrderStatus.ORDERED;
-    return await this.clinicalService.updateOrderStatus(id, status);
+    return await this.clinicalService.updateOrderStatus(
+      id,
+      getClinicStaffRequestContext(req).clinicId,
+      status,
+    );
   }
 
   @Get(':id')
@@ -163,11 +162,10 @@ export class LabTestsController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ): Promise<LabTest> {
-    const test = await this.clinicalService.getTestById(id);
-    if (test.clinicId !== getClinicStaffRequestContext(req).clinicId) {
-      throw new NotFoundException('Lab test not found');
-    }
-    return test;
+    return await this.clinicalService.getTestById(
+      id,
+      getClinicStaffRequestContext(req).clinicId,
+    );
   }
 
   @Post()
@@ -187,11 +185,11 @@ export class LabTestsController {
     @Request() req: RequestWithUser,
     @Body() data: UpdateLabTestDto,
   ): Promise<LabTest> {
-    const existing = await this.clinicalService.getTestById(id);
-    if (existing.clinicId !== getClinicStaffRequestContext(req).clinicId) {
-      throw new NotFoundException('Lab test not found');
-    }
-    return await this.clinicalService.updateTest(id, data);
+    return await this.clinicalService.updateTest(
+      id,
+      getClinicStaffRequestContext(req).clinicId,
+      data,
+    );
   }
 
   @Delete(':id')
@@ -200,10 +198,9 @@ export class LabTestsController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ): Promise<void> {
-    const existing = await this.clinicalService.getTestById(id);
-    if (existing.clinicId !== getClinicStaffRequestContext(req).clinicId) {
-      throw new NotFoundException('Lab test not found');
-    }
-    await this.clinicalService.deleteTest(id);
+    await this.clinicalService.deleteTest(
+      id,
+      getClinicStaffRequestContext(req).clinicId,
+    );
   }
 }

@@ -198,7 +198,8 @@ export class LabWorkflowCommandService {
   }
 
   private async loadOrder(id: string, clinicId: string): Promise<LabOrder> {
-    const order = await this.orderRepository.findOrderById(id);
+    const order = await this.orderRepository.findOrderById(id, clinicId);
+    // Defense-in-depth on top of the tenant-scoped repository lookup.
     if (!order || order.clinicId !== clinicId)
       throw new NotFoundException('Lab order not found');
     return order;
