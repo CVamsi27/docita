@@ -25,6 +25,8 @@ import type {
 export type PartnerApiContext = {
   accessToken: string | null;
   baseUrl?: string;
+  /** CSRF token echoed back to the server on mutating requests. */
+  csrfToken?: string | null;
 };
 
 /**
@@ -32,6 +34,11 @@ export type PartnerApiContext = {
  * from the main app's `appSession` (different audience, different
  * storage key), so the fetcher is created locally and carries the
  * partner access token in the Authorization header.
+ *
+ * When a CSRF token is provided (via the ctx), it is echoed as the
+ * `x-xsrf-token` header on every request — the server's CSRF
+ * interceptor uses this for its double-submit check when the request
+ * is cookie-based (no Bearer header).
  */
 
 export function createPartnerFetcher(ctx: PartnerApiContext) {
@@ -46,6 +53,9 @@ export function createPartnerFetcher(ctx: PartnerApiContext) {
       headers: {
         "Content-Type": "application/json",
         ...(ctx.accessToken ? { Authorization: `Bearer ${ctx.accessToken}` } : {}),
+        // CSRF double-submit: when the request is cookie-based (no Bearer),
+        // the server's interceptor expects this header.
+        ...(ctx.csrfToken ? { "x-xsrf-token": ctx.csrfToken } : {}),
         ...(options?.headers as Record<string, string> | undefined),
       },
       ...(options?.body !== undefined
@@ -80,6 +90,23 @@ function joinUrl(base: string | undefined, endpoint: string): string {
 }
 
 export const partnerApi = {
+  /**
+   * Bootstrap the CSRF double-submit token by fetching GET /health.
+   * The XSRF-TOKEN cookie is set by the server; the X-CSRF-Token
+   * response header carries the matching value.
+   */
+  async bootstrapCsrfToken(): Promise<string | null> {
+    try {
+      const res = await fetch("/api/v1/health", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+      return res.headers.get("X-CSRF-Token");
+    } catch {
+      return null;
+    }
+  },
   requestOtp(input: PartnerOtpRequest, ctx: PartnerApiContext) {
     return createPartnerFetcher(ctx)<{
       message: string;
@@ -95,12 +122,18 @@ export const partnerApi = {
       { method: "POST", body: input as unknown as BodyInit },
     );
   },
-  refresh(refreshToken: string, ctx: PartnerApiContext) {
+  /**
+   * Refresh the partner access token using the httpOnly refresh cookie.
+   * The browser sends the `partner_refresh_token` cookie automatically;
+   * the CSRF token is echoed via the `x-xsrf-token` header in the ctx.
+   * No refresh token is sent in the request body.
+   */
+  refresh(ctx: PartnerApiContext) {
     return createPartnerFetcher(ctx)<PartnerRefreshResponse>(
       "/partner/auth/refresh",
       {
         method: "POST",
-        body: { refreshToken } as unknown as BodyInit,
+        body: {} as unknown as BodyInit,
       },
     );
   },

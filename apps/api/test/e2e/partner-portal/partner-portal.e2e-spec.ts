@@ -20,6 +20,7 @@ import { setPrismaInstance } from '../../factories';
 import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { getCsrfHeaders } from '../../csrf-helpers';
+import { PARTNER_REFRESH_COOKIE_NAME } from '@workspace/types';
 
 interface CsrfHeaders {
   cookie: string;
@@ -31,6 +32,17 @@ function csrfHeaders(headers: CsrfHeaders): {
   'X-XSRF-TOKEN': string;
 } {
   return { Cookie: headers.cookie, 'X-XSRF-TOKEN': headers.token };
+}
+
+/** Extract a cookie value from Set-Cookie headers (supertest stores them). */
+function extractCookie(headers: Record<string, unknown>, name: string): string | undefined {
+  const setCookie = headers['set-cookie'] as string[] | undefined;
+  if (!setCookie) return undefined;
+  for (const entry of setCookie) {
+    const match = entry.match(new RegExp(`${name}=([^;]+)`));
+    if (match) return match[1];
+  }
+  return undefined;
 }
 
 const PARTNER_PHONE = '+919876543210';
@@ -88,9 +100,16 @@ describe('Partner Portal (e2e)', () => {
       .set(csrfHeaders(csrf))
       .send({ phone: PARTNER_PHONE, otp })
       .expect(200);
+    const refreshToken = extractCookie(
+      response.headers as Record<string, unknown>,
+      PARTNER_REFRESH_COOKIE_NAME,
+    );
+    if (!refreshToken) {
+      throw new Error('partner_refresh_token cookie not set on verify-otp response');
+    }
     return {
       accessToken: response.body.accessToken as string,
-      refreshToken: response.body.refreshToken as string,
+      refreshToken,
     };
   }
 
@@ -182,7 +201,7 @@ describe('Partner Portal (e2e)', () => {
   });
 
   describe('POST /partner/auth/verify-otp', () => {
-    it('issues access + refresh tokens for a valid OTP', async () => {
+    it('issues access token and sets refresh cookie for a valid OTP', async () => {
       const csrf = await getCsrfHeaders(app.getHttpServer());
       await request(app.getHttpServer())
         .post('/partner/auth/request-otp')
@@ -198,8 +217,13 @@ describe('Partner Portal (e2e)', () => {
         .expect(200);
 
       expect(response.body.accessToken).toBeDefined();
-      expect(response.body.refreshToken).toBeDefined();
       expect(response.body.expiresIn).toBe(900);
+      // The refresh token is in the httpOnly cookie, not the body.
+      const refreshToken = extractCookie(
+        response.headers as Record<string, unknown>,
+        PARTNER_REFRESH_COOKIE_NAME,
+      );
+      expect(refreshToken).toBeDefined();
       expect(response.body.referrer).toMatchObject({
         id: referrerId,
         name: 'E2E Referral Partner',
@@ -296,14 +320,14 @@ describe('Partner Portal (e2e)', () => {
   });
 
   describe('POST /partner/auth/refresh', () => {
-    it('rotates a refresh token into a fresh access token', async () => {
+    it('rotates a refresh cookie into a fresh access token', async () => {
       const { refreshToken } = await obtainTokens();
       const csrf = await getCsrfHeaders(app.getHttpServer());
 
       const response = await request(app.getHttpServer())
         .post('/partner/auth/refresh')
         .set(csrfHeaders(csrf))
-        .send({ refreshToken })
+        .set('Cookie', `${PARTNER_REFRESH_COOKIE_NAME}=${refreshToken}`)
         .expect(200);
 
       expect(response.body.accessToken).toBeDefined();
@@ -318,16 +342,15 @@ describe('Partner Portal (e2e)', () => {
       await request(app.getHttpServer())
         .post('/partner/auth/refresh')
         .set(csrfHeaders(csrf))
-        .send({ refreshToken: accessToken })
+        .set('Cookie', `${PARTNER_REFRESH_COOKIE_NAME}=${accessToken}`)
         .expect(401);
     });
 
-    it('rejects a missing refresh token with 401', async () => {
+    it('rejects a missing refresh cookie with 401', async () => {
       const csrf = await getCsrfHeaders(app.getHttpServer());
       await request(app.getHttpServer())
         .post('/partner/auth/refresh')
         .set(csrfHeaders(csrf))
-        .send({})
         .expect(401);
     });
 
@@ -342,7 +365,7 @@ describe('Partner Portal (e2e)', () => {
       await request(app.getHttpServer())
         .post('/partner/auth/refresh')
         .set(csrfHeaders(csrf))
-        .send({ refreshToken })
+        .set('Cookie', `${PARTNER_REFRESH_COOKIE_NAME}=${refreshToken}`)
         .expect(401);
     });
   });

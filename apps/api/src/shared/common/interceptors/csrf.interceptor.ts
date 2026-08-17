@@ -41,6 +41,12 @@ export class CsrfInterceptor implements NestInterceptor {
     /^\/(?:api(?:\/v\d+)?\/)?auth\/resend-verification\/?$/i,
     /^\/(?:api(?:\/v\d+)?\/)?auth\/forgot-password\/?$/i,
     /^\/(?:api(?:\/v\d+)?\/)?auth\/reset-password\/?$/i,
+    // Partner portal auth: no browser session exists yet when the
+    // partner refresh endpoint is hit (the access token is in localStorage,
+    // the refresh token is in an httpOnly cookie — different from the
+    // main app's access_token/refresh_token cookies). Bootstrap CSRF
+    // so the client can echo it on subsequent partner mutations.
+    /^\/(?:api(?:\/v\d+)?\/)?partner\/auth\//i,
   ];
 
   private isSafeMethod(method: string): boolean {
