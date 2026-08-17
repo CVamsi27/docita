@@ -78,12 +78,21 @@ export function usePartnerVerifyOtp(
   });
 }
 
+/**
+ * Refresh the partner access token using the httpOnly refresh cookie.
+ * The browser sends the cookie automatically on POST /partner/auth/refresh;
+ * CSRF is handled by the double-submit pattern: the app bootstraps the
+ * XSRF-TOKEN cookie via GET /health, captures the CSRF token from the
+ * response header, and passes it here as the mutation input.
+ *
+ * The mutation input is the CSRF token to echo back on the POST.
+ */
 export function usePartnerRefresh(
   options?: Omit<
     UseMutationOptions<
       { accessToken: string; expiresIn: number },
       Error,
-      { refreshToken: string }
+      string // CSRF token input
     >,
     "mutationFn"
   >,
@@ -91,10 +100,10 @@ export function usePartnerRefresh(
   return useMutation<
     { accessToken: string; expiresIn: number },
     Error,
-    { refreshToken: string }
+    string
   >({
-    mutationFn: ({ refreshToken }) =>
-      partnerApi.refresh(refreshToken, ctxFromToken(null)),
+    mutationFn: (csrfToken) =>
+      partnerApi.refresh({ ...ctxFromToken(null), csrfToken }),
     ...options,
   });
 }

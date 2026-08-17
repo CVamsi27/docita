@@ -342,7 +342,7 @@ describe('PartnerAuthService', () => {
       ).rejects.toBeInstanceOf(UnauthorizedException);
     });
 
-    it('issues a partner access + refresh token pair on success', async () => {
+    it('issues a partner access token + refresh token pair on success', async () => {
       const PHONE = '+919999999998';
       await seedOtp('111111', PHONE);
       const result = await service.verifyOtp({ phone: PHONE, otp: '111111' });

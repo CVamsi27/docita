@@ -20,10 +20,10 @@ function buildContext(): PartnerApiContext {
 }
 
 /**
- * Two-step OTP auth: phone → OTP. On success, persists the access
- * + refresh token to localStorage and exposes `signedIn` so the
- * dashboard can render. Refresh is wired in the companion hook
- * `usePartnerRefreshOnExpire` (called from the dashboard shell).
+ * Two-step OTP auth: phone → OTP. On success, the server sets the
+ * refresh token as an httpOnly cookie and the client stores only
+ * the access token in localStorage. Refresh is handled by the browser
+ * sending the cookie automatically on POST /partner/auth/refresh.
  */
 export function usePartnerAuth() {
   const [phone, setPhone] = useState("");
@@ -78,17 +78,14 @@ export function usePartnerAuth() {
         throw new Error("Sign-in could not be completed. Please try again.");
       }
       const expiresAt = Date.now() + result.expiresIn * 1000 - EXPIRY_BUFFER_MS;
-      partnerSession.set(
-        {
-          accessToken: result.accessToken,
-          referrerId: result.referrer.id,
-          name: result.referrer.name,
-          code: result.referrer.code,
-          type: result.referrer.type,
-          expiresAt,
-        },
-        result.refreshToken,
-      );
+      partnerSession.set({
+        accessToken: result.accessToken,
+        referrerId: result.referrer.id,
+        name: result.referrer.name,
+        code: result.referrer.code,
+        type: result.referrer.type,
+        expiresAt,
+      });
       setSignedIn(true);
     } catch (err) {
       setError(
@@ -109,18 +106,19 @@ export function usePartnerAuth() {
   };
 
   /**
-   * Refresh the access token. Called from the dashboard shell when
-   * the access token is about to expire. Stable identity (useCallback over
-   * the stable React Query mutateAsync) so shell effects can depend on it
-   * without re-running on every render.
+   * Refresh the access token via the httpOnly refresh cookie.
+   * The browser sends the cookie automatically. Before the POST, we
+   * bootstrap the CSRF double-submit: first request bootstraps the
+   * XSRF-TOKEN cookie (via GET /health), then the token is echoed
+   * back as the x-xsrf-token header on the refresh POST.
    */
   const refresh = useCallback(async (): Promise<boolean> => {
-    const persisted = partnerSession.get();
-    if (!persisted?.refreshToken) return false;
+    if (!partnerSession.getAccessToken()) return false;
     try {
-      const result = await refreshPartnerToken({
-        refreshToken: persisted.refreshToken,
-      });
+      // Bootstrap CSRF token if not present (GET /health sets XSRF-TOKEN).
+      await partnerSession.bootstrapCsrfToken();
+      const csrfToken = partnerSession.getCsrfToken();
+      const result = await refreshPartnerToken(csrfToken ?? '');
       const expiresAt = Date.now() + result.expiresIn * 1000 - EXPIRY_BUFFER_MS;
       partnerSession.setAccessToken(result.accessToken, expiresAt);
       return true;

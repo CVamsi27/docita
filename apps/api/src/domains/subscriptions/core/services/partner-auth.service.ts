@@ -27,6 +27,15 @@ import {
   type PartnerOtpVerifyResponse,
 } from '@workspace/types';
 
+/**
+ * Internal response type returned by the service. The controller
+ * extracts `refreshToken` to set as an httpOnly cookie and returns
+ * only the client-facing fields (`PartnerOtpVerifyResponse`).
+ */
+export interface PartnerOtpVerifyInternalResponse extends PartnerOtpVerifyResponse {
+  refreshToken: string;
+}
+
 // TTLs are module-local by design (no external importers). If a spec ever
 // needs to reference one, add a bottom-of-file re-export for it.
 const PARTNER_OTP_TTL_MS = 10 * 60 * 1000;
@@ -114,7 +123,7 @@ export class PartnerAuthService {
    * every subsequent request; the refresh token is a longer-lived
    * JWT of the same shape (no DB row) used to mint new access tokens.
    */
-  async verifyOtp(input: PartnerOtpVerify): Promise<PartnerOtpVerifyResponse> {
+  async verifyOtp(input: PartnerOtpVerify): Promise<PartnerOtpVerifyInternalResponse> {
     const phone = this.normalizePhone(input.phone);
     const now = this.clock.now();
 
