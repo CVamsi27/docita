@@ -23,8 +23,8 @@ export interface LabOrderRepository {
     clinicId: string,
     params?: LabOrderQueryParams,
   ): Promise<PaginatedResponse<LabOrder>>;
-  findOrderById(id: string): Promise<LabOrder | null>;
+  findOrderById(id: string, clinicId: string): Promise<LabOrder | null>;
   saveOrder(order: LabOrder): Promise<LabOrder>;
-  deleteOrder(id: string): Promise<void>;
+  deleteOrder(id: string, clinicId: string): Promise<void>;
   getStats(clinicId: string): Promise<LabStats>;
 }

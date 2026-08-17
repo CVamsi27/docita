@@ -79,8 +79,8 @@ export class ClinicalService {
     return await this.labTestRepository.findAllTests(clinicId);
   }
 
-  async getTestById(id: string): Promise<LabTest> {
-    const test = await this.labTestRepository.findTestById(id);
+  async getTestById(id: string, clinicId: string): Promise<LabTest> {
+    const test = await this.labTestRepository.findTestById(id, clinicId);
     if (!test) throw new NotFoundException('Lab test not found');
     return test;
   }
@@ -90,8 +90,12 @@ export class ClinicalService {
     return await this.labTestRepository.saveTest(test);
   }
 
-  async updateTest(id: string, data: LabTestUpdateInput): Promise<LabTest> {
-    const existing = await this.labTestRepository.findTestById(id);
+  async updateTest(
+    id: string,
+    clinicId: string,
+    data: LabTestUpdateInput,
+  ): Promise<LabTest> {
+    const existing = await this.labTestRepository.findTestById(id, clinicId);
     if (!existing) throw new NotFoundException('Lab test not found');
 
     const merged = LabTest.create({
@@ -107,18 +111,18 @@ export class ClinicalService {
     return await this.labTestRepository.saveTest(merged);
   }
 
-  async deleteTest(id: string): Promise<void> {
-    const existing = await this.labTestRepository.findTestById(id);
+  async deleteTest(id: string, clinicId: string): Promise<void> {
+    const existing = await this.labTestRepository.findTestById(id, clinicId);
     if (!existing) throw new NotFoundException('Lab test not found');
-    await this.labTestRepository.deleteTest(id);
+    await this.labTestRepository.deleteTest(id, clinicId);
   }
 
   async getAllOrders(clinicId: string, params?: LabOrderQueryParams) {
     return await this.labOrderRepository.findAllOrders(clinicId, params);
   }
 
-  async getOrderById(id: string): Promise<LabOrder> {
-    const order = await this.labOrderRepository.findOrderById(id);
+  async getOrderById(id: string, clinicId: string): Promise<LabOrder> {
+    const order = await this.labOrderRepository.findOrderById(id, clinicId);
     if (!order) throw new NotFoundException('Lab order not found');
     return order;
   }
@@ -138,9 +142,10 @@ export class ClinicalService {
 
   async updateOrderStatus(
     id: string,
+    clinicId: string,
     status: LabTestOrderStatus,
   ): Promise<LabOrder> {
-    const order = await this.labOrderRepository.findOrderById(id);
+    const order = await this.labOrderRepository.findOrderById(id, clinicId);
     if (!order) throw new NotFoundException('Lab order not found');
 
     const updated = order.update({ status }, this.clock.now());
