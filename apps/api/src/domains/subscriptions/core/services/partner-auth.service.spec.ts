@@ -3,6 +3,20 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PartnerAuthService } from './partner-auth.service';
+
+// The native bcrypt addon exports non-configurable properties, so
+// jest.spyOn cannot wrap them. Mock the module with a delegating wrapper
+// (same behavior, but `hash` is assertable) so the timing-parity test can
+// pin the miss-path equalization hash.
+jest.mock('bcrypt', () => {
+  const actual = jest.requireActual<typeof import('bcrypt')>('bcrypt');
+  return {
+    ...actual,
+    hash: jest.fn((...args: Parameters<typeof actual.hash>) =>
+      actual.hash(...args),
+    ),
+  };
+});
 import { IWhatsAppClient } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IClock } from '@/shared/common/ports/clock.port';
@@ -245,6 +259,20 @@ describe('PartnerAuthService', () => {
         expect.objectContaining({ to: '+919999999998' }),
       );
     });
+
+    it('performs an equalization hash at the same cost when no referrer matches (timing parity)', async () => {
+      // The match path always runs bcrypt.hash at cost 10 (~53 ms
+      // measured); without the miss-path equalization, request latency
+      // reveals whether the phone is an active partner. Pin that the
+      // no-match path runs exactly one hash at the same cost.
+      const hashMock = bcrypt.hash as jest.MockedFunction<typeof bcrypt.hash>;
+      hashMock.mockClear();
+      await service.requestOtp({ phone: '+919999999999' });
+      expect(hashMock).toHaveBeenCalledTimes(1);
+      expect(hashMock.mock.calls[0]?.[1]).toBe(10);
+      expect(whatsapp.sendMessage).not.toHaveBeenCalled();
+      expect(prisma.otps).toHaveLength(0);
+    });
   });
 
   describe('verifyOtp', () => {
@@ -350,6 +378,30 @@ describe('PartnerAuthService', () => {
         { secret: JWT_SECRET, audience: 'some-other-audience' },
       );
       await expect(service.refresh(forged)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+    });
+
+    it('rejects at the claim level when the verified aud is not the partner audience', async () => {
+      // Bypass the library-level audience check (verifyAsync resolving
+      // as if the `audience` option had been dropped) to pin the
+      // service's own defense-in-depth check: a refresh token whose
+      // verified `aud` claim is wrong must be rejected here.
+      const laxJwt = {
+        verifyAsync: jest.fn(async () => ({
+          sub: 'rfr_1',
+          phone: '+919999999998',
+          type: 'refresh',
+          aud: 'some-other-audience',
+        })),
+      } as unknown as JwtService;
+      const laxService = new PartnerAuthService(
+        prisma.buildClient(),
+        laxJwt,
+        whatsapp,
+        clock,
+      );
+      await expect(laxService.refresh('forged')).rejects.toBeInstanceOf(
         UnauthorizedException,
       );
     });
