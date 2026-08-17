@@ -6,6 +6,12 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { createUtcPoolConfig } from '@workspace/db';
 
+import {
+  evaluateResetDuration,
+  evaluateSchemaPushCount,
+  evaluateSchemaPushDuration,
+} from '@/test-utils/reset-budget';
+
 let prisma: TestPrismaClient;
 
 type TestPrismaClient = PrismaClient & {
@@ -23,6 +29,7 @@ type TestPrismaClient = PrismaClient & {
 // so one push per jest process is sufficient. Local runs keep working: the
 // first suite prepares the schema exactly as before.
 let schemaPrepared = false;
+let schemaPushCount = 0;
 
 export function setupTestDatabase() {
   const testDbUrl = process.env.DATABASE_URL;
@@ -47,6 +54,16 @@ export function setupTestDatabase() {
 
   try {
     if (!schemaPrepared) {
+      schemaPushCount += 1;
+      const countVerdict = evaluateSchemaPushCount(schemaPushCount);
+      if (countVerdict.level === 'fail') {
+        // The #295 memoization contract is broken: suites are isolated by
+        // truncation, not schema recreation. Fail loudly instead of silently
+        // re-introducing the per-suite push churn that caused the shard flake.
+        throw new Error(countVerdict.message);
+      }
+
+      const pushStartedAt = performance.now();
       execSync('pnpm exec prisma db push --accept-data-loss --force-reset', {
         cwd: path.join(__dirname, '../../..', 'packages/db'),
         env: {
@@ -55,6 +72,12 @@ export function setupTestDatabase() {
         },
         stdio: 'pipe',
       });
+      const pushVerdict = evaluateSchemaPushDuration(
+        performance.now() - pushStartedAt,
+      );
+      if (pushVerdict.level === 'warn') {
+        process.stderr.write(`[reset-budget] ${pushVerdict.message}\n`);
+      }
       schemaPrepared = true;
     }
   } catch (error) {
@@ -141,6 +164,7 @@ export async function resetDatabase() {
     'CptCode',
   ];
 
+  const resetStartedAt = performance.now();
   try {
     // One statement instead of 55 sequential round-trips: a single TRUNCATE
     // with CASCADE resolves dependent tables in one lock pass and one commit,
@@ -166,6 +190,17 @@ export async function resetDatabase() {
         // Table may not exist yet; skip silently
       }
     }
+  }
+
+  // Budget guard: a reset that takes tens of seconds means the reset path has
+  // regressed (e.g. a reintroduced per-table loop). Fail with a clear message
+  // before the 30s jest hook timeout turns it into a generic hook failure.
+  const resetVerdict = evaluateResetDuration(performance.now() - resetStartedAt);
+  if (resetVerdict.level === 'fail') {
+    throw new Error(resetVerdict.message);
+  }
+  if (resetVerdict.level === 'warn') {
+    process.stderr.write(`[reset-budget] ${resetVerdict.message}\n`);
   }
 }
 
