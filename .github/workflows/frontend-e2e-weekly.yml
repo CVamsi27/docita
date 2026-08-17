@@ -26,6 +26,7 @@ jobs:
               e2e/nav-routes-smoke.spec.ts e2e/dashboard.spec.ts e2e/health.spec.ts
               e2e/help.spec.ts e2e/upgrade-redirect.spec.ts e2e/reset-password.spec.ts
               e2e/referral-partner.spec.ts e2e/inbox.spec.ts e2e/templates.spec.ts
+              e2e/lab-tests.spec.ts e2e/prescriptions.spec.ts
           - shard: 2
             specs: >-
               e2e/accessibility.spec.ts e2e/forgot-password.spec.ts e2e/mobile-auth-setup.spec.ts
