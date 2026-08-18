@@ -20,6 +20,18 @@ interface MonitoringPerformancePayload {
   slowestEndpoints: Array<{ path: string; method: string; avgDuration: number; maxDuration: number; count: number }>;
 }
 
+interface HealthCheck {
+  status: string;
+  latency?: number;
+  error?: string;
+}
+
+interface HealthSummary {
+  status: string;
+  uptime: number;
+  checks: Record<string, HealthCheck>;
+}
+
 export function SystemMonitoringPage() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
@@ -33,24 +45,24 @@ export function SystemMonitoringPage() {
 
   const loading = healthLoading || perfLoading;
 
-  const health = useMemo(() => {
+  const health = useMemo((): HealthSummary | null => {
     if (!healthData) return null;
     return {
       status: healthData.databaseConnected ? "healthy" : "degraded",
       uptime: healthData.uptime,
       checks: {
-        "API Server": { status: "healthy", latency: healthData.avgResponseTime } as { status: string; latency?: number; error?: string },
+        "API Server": { status: "healthy", latency: healthData.avgResponseTime },
         Database: {
           status: healthData.databaseConnected ? "healthy" : "down",
           error: healthData.databaseConnected ? undefined : "Connection failed",
         },
-        "Requests (last hour)": { status: "healthy", latency: healthData.requestsLastHour } as { status: string; latency?: number; error?: string },
+        "Requests (last hour)": { status: "healthy", latency: healthData.requestsLastHour },
         "Errors (last hour)": {
           status: healthData.errorsLastHour > 0 ? "degraded" : "healthy",
           error: healthData.errorsLastHour > 0 ? `${String(healthData.errorsLastHour)} errors` : undefined,
         },
       },
-    } as { status: string; uptime: number; checks: Record<string, { status: string; latency?: number; error?: string }> };
+    };
   }, [healthData]);
 
   const performance = useMemo(() => {
