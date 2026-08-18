@@ -1,38 +1,26 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Label } from "@workspace/ui/components";
 import { FileSpreadsheet, FileText } from "lucide-react";
-import { apiGet } from "@/lib/api/api-client";
 import {
   formatCurrency,
   formatDateTime,
   WHOLE_AMOUNT_CURRENCY_OPTIONS,  enIN,
-} from "@workspace/utils";
+} from "@workspace/utils"
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface Contract { id: string; clinicName: string; tier: string; startDate: string; endDate?: string; status: string; monthlyAmount: number; currency: string; customLimits?: Record<string, number>; notes?: string; }
 
 export function EnterpriseContractsPage() {
-  const [loading, setLoading] = useState(true);
-  const [contracts, setContracts] = useState<Contract[]>([]);
+  const { data: contracts = [], isLoading } = useApiQuery<Contract[]>("/api/internal/enterprise-contracts");
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
-
-  const fetchContracts = async () => {
-    setLoading(true);
-    try {
-      const data = await apiGet<Contract[]>("/api/internal/enterprise-contracts");
-      setContracts(data);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchContracts(); }, []);
 
   const activeContracts = useMemo(() => contracts.filter((c) => c.status === "ACTIVE"), [contracts]);
   const totalMrr = useMemo(() => contracts.reduce((sum, c) => sum + c.monthlyAmount, 0), [contracts]);
 
   return (
     <AppPageScaffold header={<PageHeader title="Enterprise Contracts" description="Manage custom enterprise agreements, custom pricing, and contract lifecycle" size="compact" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading contracts…">
+      <DataState status={isLoading ? "loading" : "success"} loadingMessage="Loading contracts...">
         <div className="grid gap-4 md:grid-cols-3 mb-6">
           <Card><CardHeader><CardTitle className="text-sm font-medium">Total Contracts</CardTitle></CardHeader><CardContent><p className="text-2xl font-semibold tabular-nums">{contracts.length}</p></CardContent></Card>
           <Card><CardHeader><CardTitle className="text-sm font-medium">Active Contracts</CardTitle></CardHeader><CardContent><p className="text-2xl font-semibold tabular-nums">{activeContracts.length}</p></CardContent></Card>

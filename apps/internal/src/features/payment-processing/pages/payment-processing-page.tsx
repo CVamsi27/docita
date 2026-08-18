@@ -1,35 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, Label, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { CreditCard, DollarSign } from "lucide-react";
 import { formatCurrency, formatDate, enIN } from "@workspace/utils";
-import { apiGet, apiPost } from "@/lib/api/api-client";
+import { apiPost } from "@/lib/api/api-client";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface Clinic { id: string; name: string; tier: string; email: string; subscriptionStatus?: string; }
 interface Payment { id: string; clinicName: string; planLabel: string; amount: number; currency: string; status: string; paidAt?: string; }
 
 export function PaymentProcessingPage() {
-  const [loading, setLoading] = useState(true);
+  const { data: clinics = [], isLoading: clinicsLoading } = useApiQuery<Clinic[]>("/api/internal/clinics");
+  const { data: payments = [], isLoading: paymentsLoading, refetch } = useApiQuery<Payment[]>("/api/internal/billing/payments");
   const [processing, setProcessing] = useState(false);
-  const [clinics, setClinics] = useState<Clinic[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
   const [selectedClinic, setSelectedClinic] = useState("");
   const [amount, setAmount] = useState("");
   const [newTier, setNewTier] = useState("STARTER");
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [clinicData, paymentData] = await Promise.all([
-        apiGet<Clinic[]>("/api/internal/clinics"),
-        apiGet<Payment[]>("/api/internal/billing/payments"),
-      ]);
-      setClinics(clinicData);
-      setPayments(paymentData);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchData(); }, []);
+  const loading = clinicsLoading || paymentsLoading;
 
   const handleProcessPayment = async () => {
     if (!selectedClinic || !amount) return;
@@ -43,14 +29,14 @@ export function PaymentProcessingPage() {
         paymentMethod: "MANUAL",
       });
       setAmount("");
-      await fetchData();
+      void refetch();
     } catch { /* ignore */ }
     finally { setProcessing(false); }
   };
 
   return (
     <AppPageScaffold header={<PageHeader title="Payment Processing" description="Record subscription payments and tier changes" size="compact" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading payment processing…">
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading payment processing...">
         <Card className="mb-6">
           <CardHeader><CardTitle>Process Payment</CardTitle><CardDescription>Record a payment and optionally change tier</CardDescription></CardHeader>
           <CardContent className="space-y-4">

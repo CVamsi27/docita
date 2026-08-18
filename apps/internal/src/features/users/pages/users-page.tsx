@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { Eye, Search, Shield, Stethoscope, UserCog, Users } from "lucide-react";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
 import { formatDate, formatDateTime, enIN } from "@workspace/utils";
-import { apiGet } from "@/lib/api/api-client";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface User { id: string; name: string; email: string; role: string; phoneNumber?: string; specialization?: string; qualification?: string; registrationNumber?: string; yearsOfExperience?: number; bio?: string; createdAt: string; clinicName?: string; }
 
@@ -37,23 +37,11 @@ function getRoleBadgeColor(role: string): string {
 }
 
 export function UsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+  const { data: users = [], isLoading, error, refetch } = useApiQuery<User[]>("/api/internal/users");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<RoleFilter>("ALL");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    setHasError(false);
-    try { setUsers(await apiGet<User[]>("/api/internal/users")); }
-    catch { setHasError(true); }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchUsers(); }, []);
 
   const roleStats = useMemo(() => ({
     ALL: users.length, ADMIN: users.filter((u) => u.role === "ADMIN").length,
@@ -69,9 +57,9 @@ export function UsersPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Team Members" description="View and manage all users across facilities" size="compact" />}>
-      <DataState status={loading ? "loading" : hasError ? "error" : "success"} loadingMessage="Loading team members…"
+      <DataState status={isLoading ? "loading" : error ? "error" : "success"} loadingMessage="Loading team members…"
         errorMessage="We could not load team members. Please refresh and try again."
-        onRetry={() => { void fetchUsers(); }}
+        onRetry={() => { void refetch(); }}
         emptyTitle="No team members found" emptyDescription="Team members will appear here once facilities add users." emptyIcon={Users}>
         <div className="grid gap-4 md:grid-cols-5 mb-6">
           {ROLE_FILTERS.map((role) => { const config = ROLE_CONFIG[role]; return (

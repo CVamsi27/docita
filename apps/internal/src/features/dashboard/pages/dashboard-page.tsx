@@ -1,34 +1,17 @@
-import { useState, useEffect } from "react";
 import { AppPageScaffold, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, PageHeader } from "@workspace/ui/components";
 import { Building2, FileText, Pill, Search, TrendingDown, TrendingUp, User, Users } from "lucide-react";
 import { ClinicList } from "../components/clinic-list";
 import { CreateClinicDialog } from "../components/create-clinic-dialog";
 import { defaultDashboardStats, defaultDashboardTrends, type DashboardClinic, type DashboardStats, type DashboardTrends } from "../types";
-import { apiGet } from "@/lib/api/api-client";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 export function DashboardPage() {
-  const [clinics, setClinics] = useState<DashboardClinic[]>([]);
-  const [stats, setStats] = useState<DashboardStats>(defaultDashboardStats);
-  const [trends, setTrends] = useState<DashboardTrends>(defaultDashboardTrends);
-  const [loading, setLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+  const { data: clinics = [], isLoading: clinicsLoading } = useApiQuery<DashboardClinic[]>("/api/internal/clinics");
+  const { data: statsData, isLoading: statsLoading, error, refetch } = useApiQuery<DashboardStats & { trends?: DashboardTrends }>("/api/internal/stats");
 
-  const fetchData = async () => {
-    setLoading(true);
-    setHasError(false);
-    try {
-      const [clinics, stats] = await Promise.all([
-        apiGet<DashboardClinic[]>("/api/internal/clinics"),
-        apiGet<DashboardStats & { trends?: DashboardTrends }>("/api/internal/stats"),
-      ]);
-      setClinics(clinics);
-      setStats(stats);
-      if (stats.trends) setTrends(stats.trends);
-    } catch { setHasError(true); }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchData(); }, []);
+  const loading = clinicsLoading || statsLoading;
+  const stats = statsData ?? defaultDashboardStats;
+  const trends = statsData?.trends ?? defaultDashboardTrends;
 
   const renderTrend = (value: number, isPercentage: boolean = false) => {
     const isPositive = value >= 0;
@@ -44,10 +27,10 @@ export function DashboardPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Dashboard" description="Monitor all facilities and platform metrics" size="compact"
-      actions={<CreateClinicDialog onClinicCreated={() => { void fetchData(); }} />} />}>
-      <DataState status={loading ? "loading" : hasError ? "error" : "success"}
-        loadingMessage="Loading dashboard…" errorMessage="We could not load this dashboard. Please refresh and try again."
-        onRetry={() => { void fetchData(); }}>
+      actions={<CreateClinicDialog onClinicCreated={() => { void refetch(); }} />} />}>
+      <DataState status={loading ? "loading" : error ? "error" : "success"}
+        loadingMessage="Loading dashboard..." errorMessage="We could not load this dashboard. Please refresh and try again."
+        onRetry={() => { void refetch(); }}>
         <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Facilities</CardTitle><Building2 className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums">{stats.clinics}</div>{renderTrend(trends.clinicsThisMonth)}</CardContent></Card>
           <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Doctors</CardTitle><Users className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums">{stats.doctors}</div>{renderTrend(trends.doctorsThisMonth)}</CardContent></Card>
@@ -59,7 +42,7 @@ export function DashboardPage() {
         <Card><CardHeader><div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div><CardTitle>Facilities</CardTitle><CardDescription>All registered facilities and their status</CardDescription></div>
           <div className="relative w-full md:w-64"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input placeholder="Search facilities…" className="pl-8" /></div>
-        </div></CardHeader><CardContent><ClinicList clinics={clinics} loading={false} onUpdate={() => { void fetchData(); }} /></CardContent></Card>
+        </div></CardHeader><CardContent><ClinicList clinics={clinics} loading={false} onUpdate={() => { void refetch(); }} /></CardContent></Card>
       </DataState>
     </AppPageScaffold>
   );

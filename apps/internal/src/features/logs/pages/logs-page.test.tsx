@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@/test-utils";
 import { LogsPage } from "./logs-page";
 import { apiGet } from "@/lib/api/api-client";
 import { formatDateTime, enIN } from "@workspace/utils";
@@ -87,6 +87,11 @@ describe("LogsPage", () => {
       expect(mockApiGet).toHaveBeenCalledWith("/api/internal/logs?limit=50&offset=0");
     });
 
+    // Wait for the Select (Radix) combobox to render after data loads.
+    await waitFor(() => {
+      expect(screen.getAllByRole("combobox").length).toBeGreaterThan(0);
+    });
+
     // Severity filter (first combobox on the page).
     fireEvent.click(screen.getAllByRole("combobox")[0]);
     const severityListbox = within(await screen.findByRole("listbox"));
@@ -129,7 +134,9 @@ describe("LogsPage", () => {
         "/api/internal/logs?limit=50&offset=50",
       );
     });
-    expect(screen.getByText("Showing 51-100 of 120")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Showing 51-100 of 120")).toBeInTheDocument();
+    });
     expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
 
     fireEvent.click(screen.getByRole("button", { name: "Previous" }));

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@/test-utils";
 import { MemoryRouter } from "react-router";
 import { LeadsPage } from "./leads-page";
 import { apiGet, apiPatch, apiPost } from "@/lib/api/api-client";
