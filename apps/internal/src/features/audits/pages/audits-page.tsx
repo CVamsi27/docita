@@ -1,32 +1,21 @@
-import { useState, useEffect } from "react";
 import { AppPageScaffold, Badge, Button, DataState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { RefreshCw } from "lucide-react";
 import { formatDateTime, enIN } from "@workspace/utils";
-import { apiGet } from "@/lib/api/api-client";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface AuditLog { id: string; createdAt: string; action: string; resource?: string; resourceId?: string; clinicId?: string; userId?: string; status?: string; }
 
 export function AuditsPage() {
-  const [loading, setLoading] = useState(true);
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-
-  const fetchLogs = async () => {
-    setLoading(true);
-    try {
-      // The client baseURL is /api/v1 (versioned API), so the bare path is
-      // correct here — the audit-logs controller is not under /internal/.
-      const data = await apiGet<AuditLog[]>("/audit-logs?limit=100");
-      setLogs(data);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchLogs(); }, []);
+  const { data: logs = [], isLoading, refetch } = useApiQuery<AuditLog[]>(
+    // The client baseURL is /api/v1 (versioned API), so the bare path is
+    // correct here — the audit-logs controller is not under /internal/.
+    "/audit-logs?limit=100",
+  );
 
   return (
     <AppPageScaffold header={<PageHeader title="Audit Logs" description="Track administrative actions and system events"
-      actions={<Button variant="outline" size="sm" onClick={() => { void fetchLogs(); }} disabled={loading}><RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
-      <DataState status={loading ? "loading" : logs.length === 0 ? "empty" : "success"}
+      actions={<Button variant="outline" size="sm" onClick={() => { void refetch(); }} disabled={isLoading}><RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
+      <DataState status={isLoading ? "loading" : logs.length === 0 ? "empty" : "success"}
         loadingMessage="Loading audit logs…" emptyTitle="No audit logs found" emptyDescription="Log entries will appear as admin actions are performed.">
         <div className="rounded-md border">
           <Table><TableHeader><TableRow>

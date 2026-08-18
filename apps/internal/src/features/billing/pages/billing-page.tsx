@@ -1,40 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AppPageScaffold, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, PageHeader } from "@workspace/ui/components";
 import { Activity, Building2, CreditCard, RefreshCw } from "lucide-react";
 import { formatCurrency, WHOLE_AMOUNT_CURRENCY_OPTIONS } from "@workspace/utils";
-import { apiGet, apiPost } from "@/lib/api/api-client";
-import { BillingDashboardTabs } from "../components/billing-dashboard-tabs";
+import { apiPost } from "@/lib/api/api-client";
+import { BillingDashboardTabs } from "../components/billing-dashboard-tabs"
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface Subscription { id: string; clinic: { name: string; email: string; referralCreditsMonths: number }; tier: string; status: string; billingCycle: string; amount: number; currency: string; currentPeriodEnd: string; }
 interface Payment { id: string; clinicName: string; planLabel: string; amount: number; currency: string; status: string; paidAt?: string; createdAt: string; gatewayPaymentId?: string; }
 interface BillingMetrics { mrr: number; arr: number; activeSubscriptions: number; churnRate: number; revenueByMonth: Array<{ month: string; revenue: number }>; }
 
 export function BillingPage() {
-  const [loading, setLoading] = useState(true);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [metrics, setMetrics] = useState<BillingMetrics | null>(null);
+  const { data: subscriptions = [], isLoading: subsLoading, refetch } = useApiQuery<Subscription[]>("/api/internal/billing/subscriptions");
+  const { data: payments = [], isLoading: paysLoading } = useApiQuery<Payment[]>("/api/internal/billing/payments");
+  const { data: metrics, isLoading: metricsLoading } = useApiQuery<BillingMetrics>("/api/internal/billing/metrics");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [cycleFilter, setCycleFilter] = useState("all");
   const [sending, setSending] = useState(false);
-
-  const fetchBilling = async () => {
-    setLoading(true);
-    try {
-      const [subs, pays, met] = await Promise.all([
-        apiGet<Subscription[]>("/api/internal/billing/subscriptions"),
-        apiGet<Payment[]>("/api/internal/billing/payments"),
-        apiGet<BillingMetrics>("/api/internal/billing/metrics"),
-      ]);
-      setSubscriptions(subs);
-      setPayments(pays);
-      setMetrics(met);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchBilling(); }, []);
+  const loading = subsLoading || paysLoading || metricsLoading;
 
   const handleSendReminder = async (subscription: Subscription) => {
     setSending(true);
@@ -46,13 +30,13 @@ export function BillingPage() {
 
   const handleExtendGracePeriod = async (subscription: Subscription): Promise<void> => {
     await apiPost(`/api/internal/billing/subscriptions/${subscription.id}/extend-grace`, { days: 7 });
-    await fetchBilling();
+    void refetch();
   };
 
   return (
     <AppPageScaffold header={<PageHeader title="Billing Dashboard" description="Monitor subscriptions, revenue, and payment activity" size="compact"
-      actions={<Button onClick={() => { void fetchBilling(); }} disabled={loading} variant="outline"><RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading billing dashboard…">
+      actions={<Button onClick={() => { void refetch(); }} disabled={loading} variant="outline"><RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading billing dashboard...">
         {metrics && (
           <div className="grid gap-4 md:grid-cols-3 mb-6">
             <Card density="compact"><CardHeader className="border-b"><div className="flex items-center justify-between gap-3">

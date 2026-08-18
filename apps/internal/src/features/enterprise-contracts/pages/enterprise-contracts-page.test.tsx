@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@/test-utils";
 import { EnterpriseContractsPage } from "./enterprise-contracts-page";
 import { apiGet } from "@/lib/api/api-client";
 import { formatDateTime, enIN } from "@workspace/utils";

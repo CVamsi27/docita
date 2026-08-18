@@ -22,6 +22,13 @@ type WebhookChangeValue =
 
 const WHATSAPP_LOG_STATUS_VALUES = Object.values(WhatsappLogStatus);
 
+function truncatePhone(phone: string | undefined): string {
+  if (!phone) return '<unset>';
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 4) return '***';
+  return `***${digits.slice(-4)}`;
+}
+
 function toLegacyLogStatus(status: string): WhatsappLogStatus | undefined {
   return (
     parseStringEnumMember(WHATSAPP_LOG_STATUS_VALUES, status.toUpperCase()) ??
@@ -102,12 +109,12 @@ export class WhatsAppWebhookIngressService {
           );
         } else {
           this.logger.warn(
-            `No matching appointment found for WhatsApp reply from ${phoneNumber}`,
+            `No matching appointment found for WhatsApp reply from ${truncatePhone(phoneNumber)}`,
           );
         }
       } catch (error) {
         this.logger.error(
-          `Error processing incoming message from ${phoneNumber}:`,
+          `Error processing incoming message from ${truncatePhone(phoneNumber)}:`,
           error instanceof Error ? error.stack : error,
         );
       }

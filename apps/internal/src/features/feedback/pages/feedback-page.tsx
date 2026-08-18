@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, PageHeader } from "@workspace/ui/components";
 import { AlertCircle, CheckCircle, Clock, Eye, MessageSquare, RefreshCw, Star } from "lucide-react";
 import { formatDateTime, enIN } from "@workspace/utils";
-import { apiGet } from "@/lib/api/api-client";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface Feedback { id: string; overallRating: number; category: string; status: string; generalComments?: string; goodFeatures: string[]; badFeatures: string[]; improvementAreas: string[]; user: { name: string }; clinic: { name: string }; createdAt: string; adminNotes?: string; }
 interface FeedbackStats { total: number; averageRating: number; recentFeedback: number; byStatus: Record<string, number>; topGoodFeatures: Array<{ feature: string; count: number }>; topBadFeatures: Array<{ feature: string; count: number }>; topImprovementAreas: Array<{ feature: string; count: number }>; }
@@ -14,31 +14,16 @@ function RatingStars({ rating }: { rating: number }) {
 }
 
 export function FeedbackPage() {
-  const [loading, setLoading] = useState(true);
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [stats, setStats] = useState<FeedbackStats | null>(null);
+  const { data: feedbacks = [], isLoading: feedbacksLoading, refetch: refetchFeedbacks } = useApiQuery<Feedback[]>("/api/internal/feedback/all");
+  const { data: stats, isLoading: statsLoading } = useApiQuery<FeedbackStats>("/api/internal/feedback/stats");
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [items, statsData] = await Promise.all([
-        apiGet<Feedback[]>("/api/internal/feedback/all"),
-        apiGet<FeedbackStats>("/api/internal/feedback/stats"),
-      ]);
-      setFeedbacks(items);
-      setStats(statsData);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void loadData(); }, []);
+  const loading = feedbacksLoading || statsLoading;
 
   return (
     <AppPageScaffold header={<PageHeader title={<span className="flex items-center gap-2"><MessageSquare className="h-7 w-7" /> Feedback Portal</span>}
       description="View and manage user feedback from all clinics" size="compact"
-      actions={<Button variant="outline" onClick={() => { void loadData(); }}><RefreshCw className="h-4 w-4 mr-2" /> Refresh</Button>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading feedback…" onRetry={() => { void loadData(); }}>
+      actions={<Button variant="outline" onClick={() => { void refetchFeedbacks(); }}><RefreshCw className="h-4 w-4 mr-2" /> Refresh</Button>} />}>
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading feedback..." onRetry={() => { void refetchFeedbacks(); }}>
         {stats && (
           <div className="grid gap-4 md:grid-cols-5 mb-6">
             <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total</CardTitle><MessageSquare className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums">{stats.total}</div><p className="text-xs text-muted-foreground">{stats.recentFeedback} recent</p></CardContent></Card>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
   AppPageScaffold,
@@ -30,11 +30,12 @@ import {
   Users,
 } from "lucide-react";
 import { formatDateTime, enIN } from "@workspace/utils";
-import { apiGet, apiPatch, apiPost } from "@/lib/api/api-client";
+import { apiPatch, apiPost } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import type { Referral } from "../types";
 import { ReferrerFormDialog } from "../components/referrer-form-dialog";
-import { ReferrerMessagesDialog } from "../components/referrer-messages-dialog";
+import { ReferrerMessagesDialog } from "../components/referrer-messages-dialog"
+import { useApiQuery } from "@/hooks/use-api-query";
 
 /** Real contract for GET /api/v1/internal/referral-payouts/summary. */
 interface PayoutSummaryRow {
@@ -44,41 +45,21 @@ interface PayoutSummaryRow {
 }
 
 export function ReferralsPage() {
-  const [loading, setLoading] = useState(true);
-  const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [stats, setStats] = useState({ total: 0, converted: 0, commission: 0 });
-  // Open the create form with null; edit with the row being edited.
+  const { data: referrals = [], isLoading, refetch } = useApiQuery<Referral[]>("/api/internal/referrers");
+  const { data: payoutData = [] } = useApiQuery<PayoutSummaryRow[]>("/api/internal/referral-payouts/summary");
+
+  const stats = useMemo(() => ({
+    total: referrals.length,
+    converted: referrals.filter((r) => r.active).length,
+    commission: payoutData.reduce((sum, row) => sum + row.totalCents, 0) / 100,
+  }), [referrals, payoutData]);
+
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [formReferrer, setFormReferrer] = useState<Referral | null>(null);
   const [deactivating, setDeactivating] = useState<Referral | null>(null);
   const [messagesFor, setMessagesFor] = useState<Referral | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
-
-  const fetchReferrals = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [referrerData, payoutData] = await Promise.all([
-        apiGet<Referral[]>("/api/internal/referrers"),
-        apiGet<PayoutSummaryRow[]>("/api/internal/referral-payouts/summary"),
-      ]);
-      setReferrals(referrerData);
-      setStats({
-        total: referrerData.length,
-        converted: referrerData.filter((r) => r.active).length,
-        commission:
-          payoutData.reduce((sum, row) => sum + row.totalCents, 0) / 100,
-      });
-    } catch {
-      /* keep last-known data; the DataState below only renders when loading */
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchReferrals();
-  }, [fetchReferrals]);
 
   const handleResendWelcome = async (referral: Referral) => {
     setResendingId(referral.id);
@@ -100,7 +81,7 @@ export function ReferralsPage() {
     try {
       await apiPatch(`/api/internal/referrers/${referral.id}/deactivate`);
       toast.success(`${referral.name} has been deactivated`);
-      await fetchReferrals();
+      void refetch();
     } catch (error) {
       showUserFacingErrorToast(
         error,
@@ -132,8 +113,8 @@ export function ReferralsPage() {
       }
     >
       <DataState
-        status={loading ? "loading" : "success"}
-        loadingMessage="Loading referrals…"
+        status={isLoading ? "loading" : "success"}
+        loadingMessage="Loading referrals..."
       >
         <div className="grid gap-4 md:grid-cols-3 mb-6">
           <Card>
@@ -295,7 +276,7 @@ export function ReferralsPage() {
         open={formDialogOpen}
         onOpenChange={setFormDialogOpen}
         referrer={formReferrer}
-        onSaved={() => void fetchReferrals()}
+        onSaved={() => void refetch()}
       />
       <ConfirmationDialog
         open={deactivating !== null}

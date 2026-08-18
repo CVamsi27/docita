@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { AppPageScaffold, Card, CardContent, CardHeader, CardTitle, DataState, PageHeader, Button } from "@workspace/ui/components";
 import { Activity, ArrowDown, ArrowUp, Cpu, Minus, RefreshCw, Server } from "lucide-react";
-import { apiGet } from "@/lib/api/api-client";
-
-interface Metric { name: string; value: string; change: number; unit: string; }
+import { useApiQuery } from "@/hooks/use-api-query";
 
 /** Real contract for GET /api/v1/internal/performance (getPerformanceMetrics). */
 interface PerformanceMetricsPayload {
@@ -17,31 +15,24 @@ interface PerformanceMetricsPayload {
 }
 
 export function PerformancePage() {
-  const [loading, setLoading] = useState(true);
-  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const { data: perfData, isLoading, refetch } = useApiQuery<PerformanceMetricsPayload>("/api/internal/performance");
 
-  const fetchMetrics = async () => {
-    setLoading(true);
-    try {
-      const data = await apiGet<PerformanceMetricsPayload>("/api/internal/performance");
-      setMetrics([
-        { name: "Avg Response Time", value: String(data.avgResponseTime), change: 0, unit: "ms" },
-        { name: "Requests/min", value: String(data.requestsPerMinute), change: 0, unit: "" },
-        { name: "Error Rate", value: String(data.errorRate), change: 0, unit: "%" },
-        { name: "Uptime", value: data.uptimeFormatted, change: 0, unit: "" },
-        { name: "Errors (last hour)", value: String(data.errorsLastHour), change: 0, unit: "" },
-      ]);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchMetrics(); }, []);
+  const metrics = useMemo(() => {
+    if (!perfData) return [];
+    return [
+      { name: "Avg Response Time", value: String(perfData.avgResponseTime), change: 0, unit: "ms" },
+      { name: "Requests/min", value: String(perfData.requestsPerMinute), change: 0, unit: "" },
+      { name: "Error Rate", value: String(perfData.errorRate), change: 0, unit: "%" },
+      { name: "Uptime", value: perfData.uptimeFormatted, change: 0, unit: "" },
+      { name: "Errors (last hour)", value: String(perfData.errorsLastHour), change: 0, unit: "" },
+    ];
+  }, [perfData]);
 
   return (
     <AppPageScaffold header={<PageHeader title="Performance" description="Application performance metrics and benchmarks"
-      actions={<Button variant="outline" size="sm" onClick={() => { void fetchMetrics(); }} disabled={loading}>
-        <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading performance metrics…">
+      actions={<Button variant="outline" size="sm" onClick={() => { void refetch(); }} disabled={isLoading}>
+        <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
+      <DataState status={isLoading ? "loading" : "success"} loadingMessage="Loading performance metrics…">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {metrics.length === 0 ? (
             <>

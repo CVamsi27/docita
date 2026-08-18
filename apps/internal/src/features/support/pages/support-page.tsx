@@ -2,39 +2,23 @@ import { useState, useEffect, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, Input, PageHeader, PageTabs, Textarea } from "@workspace/ui/components";
 import { Search, Send, MessageSquare } from "lucide-react";
 import { formatCompactDistanceToNow, formatDateTime, enIN } from "@workspace/utils";
-import { apiGet, apiPost } from "@/lib/api/api-client";
+import { apiPost } from "@/lib/api/api-client";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface Thread { threadPhoneNumber: string; senderName?: string | null; lastMessageBody: string; lastMessageAt: string; unreadCount: number; lastMessageType: string; lastMessageDirection: string; }
 interface Message { id: string; body: string; from: string; createdAt: string; direction: string; }
 
 export function SupportPage() {
   const [activeTab, setActiveTab] = useState("whatsapp");
-  const [threads, setThreads] = useState<Thread[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
   const [search, setSearch] = useState("");
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
-  const [loading, setLoading] = useState(true);
 
-  const fetchThreads = async () => {
-    setLoading(true);
-    try {
-      const data = await apiGet<Thread[]>("/api/internal/support/whatsapp");
-      setThreads(data);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  const fetchMessages = async (phone: string) => {
-    try {
-      const data = await apiGet<Message[]>(`/api/internal/support/whatsapp/${phone}/messages`);
-      setMessages(data);
-    } catch { /* ignore */ }
-  };
-
-  useEffect(() => { void fetchThreads(); }, []);
-
-  useEffect(() => { if (selectedPhone) { void fetchMessages(selectedPhone); } }, [selectedPhone]);
+  const { data: threads = [] } = useApiQuery<Thread[]>("/api/internal/support/whatsapp");
+  const { data: messages = [], isLoading: messagesLoading, refetch: refetchMessages } = useApiQuery<Message[]>(
+    selectedPhone ? `/api/internal/support/whatsapp/${selectedPhone}/messages` : "",
+    { enabled: !!selectedPhone },
+  );
 
   const filteredThreads = useMemo(() =>
     threads.filter((t) => !search || t.threadPhoneNumber.includes(search) || (t.senderName?.toLowerCase() || "").includes(search.toLowerCase())),
@@ -46,13 +30,11 @@ export function SupportPage() {
 
   useEffect(() => { if (filteredThreads.length > 0 && !selectedPhone) { setSelectedPhone(filteredThreads[0]?.threadPhoneNumber ?? null); } }, [filteredThreads, selectedPhone]);
 
-  const handleSendReply = () => {
+  const handleSendReply = async () => {
     if (!selectedPhone || !replyMessage.trim()) return;
-    void (async () => {
-      await apiPost(`/api/internal/support/whatsapp/${selectedPhone}/reply`, { message: replyMessage });
-      setReplyMessage("");
-      await fetchMessages(selectedPhone);
-    })();
+    await apiPost(`/api/internal/support/whatsapp/${selectedPhone}/reply`, { message: replyMessage });
+    setReplyMessage("");
+    void refetchMessages();
   };
 
   const tabItems = [
@@ -108,7 +90,7 @@ export function SupportPage() {
                   <CardTitle>{currentThread.senderName || currentThread.threadPhoneNumber}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 p-5">
-                  <DataState status={loading ? "loading" : messages.length === 0 ? "empty" : "success"}
+                  <DataState status={messagesLoading ? "loading" : messages.length === 0 ? "empty" : "success"}
                     loadingMessage="Loading messages…" emptyTitle="No messages yet"
                     emptyDescription="Messages will appear when the conversation starts." emptyIcon={MessageSquare}>
                     <div className="space-y-3 max-h-96 overflow-y-auto">

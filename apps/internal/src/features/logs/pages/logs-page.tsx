@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { AppPageScaffold, Badge, Button, DataState, Input, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { RefreshCw } from "lucide-react";
 import { formatDateTime, enIN } from "@workspace/utils";
-import { apiGet } from "@/lib/api/api-client";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface SystemLog { id: string; timestamp: string; level: string; module: string; message: string; details?: string; }
 
@@ -13,15 +14,11 @@ function isPageSize(value: number): value is PageSize {
 }
 
 export function LogsPage() {
-  const [loading, setLoading] = useState(true);
-  const [logs, setLogs] = useState<SystemLog[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [selectedLevel, setSelectedLevel] = useState("ALL");
   const [selectedModule, setSelectedModule] = useState("ALL");
   const [searchText, setSearchText] = useState("");
   const [selectedLimit, setSelectedLimit] = useState(50);
   const [offset, setOffset] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
 
   const params = useMemo(() => {
     const p = new URLSearchParams();
@@ -30,31 +27,23 @@ export function LogsPage() {
     if (selectedLevel !== "ALL") p.set("level", selectedLevel);
     if (selectedModule !== "ALL") p.set("module", selectedModule);
     if (searchText) p.set("q", searchText);
-    return p.toString();
-  }, [selectedLimit, offset, selectedLevel, selectedModule, searchText]);  const fetchLogs = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await apiGet<{ logs: SystemLog[]; total: number }>(`/api/internal/logs?${params}`);
-      setLogs(data.logs);
-      setTotalCount(data.total);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  }, [params]);
+    return `/api/internal/logs?${p.toString()}`;
+  }, [selectedLimit, offset, selectedLevel, selectedModule, searchText]);
 
-  useEffect(() => { void fetchLogs(); }, [fetchLogs]);
-
-  function handleRefresh() {
-    setRefreshing(true);
-    void fetchLogs().finally(() => { setRefreshing(false); });
-  }
+  const { data, isPending, refetch } = useApiQuery<{ logs: SystemLog[]; total: number }>(params, {
+    placeholderData: keepPreviousData,
+  });
+  const isLoading = isPending;
+  const logs = useMemo(() => data?.logs ?? [], [data?.logs]);
+  const totalCount = data?.total ?? 0;
 
   const moduleOptions = useMemo(() => Array.from(new Set(logs.map((l) => l.module))).sort(), [logs]);
 
   return (
     <AppPageScaffold header={<PageHeader title="System Logs" description="View and filter application logs across all modules" size="compact"
-      actions={<Button variant="outline" size="sm" onClick={() => { handleRefresh(); }} disabled={refreshing}>
-        <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />Refresh</Button>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading logs…">
+      actions={<Button variant="outline" size="sm" onClick={() => { void refetch(); }} disabled={isLoading}>
+        <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />Refresh</Button>} />}>
+      <DataState status={isLoading ? "loading" : "success"} loadingMessage="Loading logs…">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-4 mb-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Severity</label>
@@ -105,7 +94,7 @@ export function LogsPage() {
               <TableHead>Message</TableHead>
             </TableRow></TableHeader>
             <TableBody>
-              {loading ? (
+              {isLoading ? (
                 <TableRow><TableCell colSpan={4} className="h-24 text-center text-muted-foreground">Loading logs…</TableCell></TableRow>
               ) : logs.length === 0 ? (
                 <TableRow><TableCell colSpan={4} className="h-24 text-center text-muted-foreground">No matching logs found</TableCell></TableRow>
@@ -134,8 +123,8 @@ export function LogsPage() {
         <div className="flex items-center justify-between mt-4">
           <p className="text-sm text-muted-foreground">Showing {offset + 1}-{Math.min(offset + selectedLimit, totalCount)} of {totalCount}</p>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled={loading || offset === 0} onClick={() => { setOffset(Math.max(0, offset - selectedLimit)); }}>Previous</Button>
-            <Button variant="outline" size="sm" disabled={loading || offset + selectedLimit >= totalCount} onClick={() => { setOffset(offset + selectedLimit); }}>Next</Button>
+            <Button variant="outline" size="sm" disabled={isLoading || offset === 0} onClick={() => { setOffset(Math.max(0, offset - selectedLimit)); }}>Previous</Button>
+            <Button variant="outline" size="sm" disabled={isLoading || offset + selectedLimit >= totalCount} onClick={() => { setOffset(offset + selectedLimit); }}>Next</Button>
           </div>
         </div>
       </DataState>

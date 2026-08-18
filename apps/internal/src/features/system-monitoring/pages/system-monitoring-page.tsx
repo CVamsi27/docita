@@ -1,11 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Activity, CheckCircle2, Cpu, Database, RefreshCw, Server, Shield, AlertTriangle } from "lucide-react";
-import { apiGet } from "@/lib/api/api-client";
-
-interface HealthCheck { status: string; uptime?: number; version?: string; checks?: Record<string, { status: string; latency?: number; error?: string }>; }
-interface PerformanceData { memory: { heapUsed: number; heapTotal: number; rss: number }; cpu: { user: number; system: number }; }
-interface Endpoint { path: string; method: string; avgLatency: number; count: number; }
+import { useApiQuery } from "@/hooks/use-api-query";
 
 /** Real contract for GET /api/v1/monitoring/health (SystemHealthSchema). */
 interface SystemHealthPayload {
@@ -25,64 +21,52 @@ interface MonitoringPerformancePayload {
 }
 
 export function SystemMonitoringPage() {
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [health, setHealth] = useState<HealthCheck | null>(null);
-  const [performance, setPerformance] = useState<PerformanceData | null>(null);
-  const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [healthData, perfData] = await Promise.all([
-        apiGet<SystemHealthPayload>("/monitoring/health"),
-        apiGet<MonitoringPerformancePayload>("/monitoring/performance"),
-      ]);
-      setHealth({
-        status: healthData.databaseConnected ? "healthy" : "degraded",
-        uptime: healthData.uptime,
-        checks: {
-          "API Server": { status: "healthy", latency: healthData.avgResponseTime },
-          Database: {
-            status: healthData.databaseConnected ? "healthy" : "down",
-            error: healthData.databaseConnected ? undefined : "Connection failed",
-          },
-          "Requests (last hour)": { status: "healthy", latency: healthData.requestsLastHour },
-          "Errors (last hour)": {
-            status: healthData.errorsLastHour > 0 ? "degraded" : "healthy",
-            error: healthData.errorsLastHour > 0 ? `${String(healthData.errorsLastHour)} errors` : undefined,
-          },
+  const { data: healthData, isLoading: healthLoading, refetch: refetchHealth } = useApiQuery<SystemHealthPayload>("/monitoring/health", {
+    refetchInterval: autoRefresh ? 30_000 : false,
+  });
+  const { data: perfData, isLoading: perfLoading } = useApiQuery<MonitoringPerformancePayload>("/monitoring/performance", {
+    refetchInterval: autoRefresh ? 30_000 : false,
+  });
+
+  const loading = healthLoading || perfLoading;
+
+  const health = useMemo(() => {
+    if (!healthData) return null;
+    return {
+      status: healthData.databaseConnected ? "healthy" : "degraded",
+      uptime: healthData.uptime,
+      checks: {
+        "API Server": { status: "healthy", latency: healthData.avgResponseTime } as { status: string; latency?: number; error?: string },
+        Database: {
+          status: healthData.databaseConnected ? "healthy" : "down",
+          error: healthData.databaseConnected ? undefined : "Connection failed",
         },
-      });
-      setPerformance({
-        memory: healthData.memoryUsage,
-        cpu: healthData.cpuUsage,
-      });
-      setEndpoints(perfData.slowestEndpoints.map((ep) => ({
-        path: ep.path,
-        method: ep.method,
-        avgLatency: ep.avgDuration,
-        count: ep.count,
-      })));
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
+        "Requests (last hour)": { status: "healthy", latency: healthData.requestsLastHour } as { status: string; latency?: number; error?: string },
+        "Errors (last hour)": {
+          status: healthData.errorsLastHour > 0 ? "degraded" : "healthy",
+          error: healthData.errorsLastHour > 0 ? `${String(healthData.errorsLastHour)} errors` : undefined,
+        },
+      },
+    } as { status: string; uptime: number; checks: Record<string, { status: string; latency?: number; error?: string }> };
+  }, [healthData]);
 
-  useEffect(() => { void fetchData(); }, []);
+  const performance = useMemo(() => {
+    if (!healthData) return null;
+    return { memory: healthData.memoryUsage, cpu: healthData.cpuUsage };
+  }, [healthData]);
 
-  useEffect(() => {
-    if (!autoRefresh) return;
-    const interval = setInterval(() => { void fetchData(); }, 30000);
-    return () => { clearInterval(interval); };
-  }, [autoRefresh]);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchData();
-    setRefreshing(false);
-  };
+  const endpoints = useMemo(() => {
+    if (!perfData) return [];
+    return perfData.slowestEndpoints.map((ep) => ({
+      path: ep.path,
+      method: ep.method,
+      avgLatency: ep.avgDuration,
+      count: ep.count,
+    }));
+  }, [perfData]);
 
   const heapPercent = performance ? Math.round((performance.memory.heapUsed / performance.memory.heapTotal) * 100) : 0;
 
@@ -90,10 +74,10 @@ export function SystemMonitoringPage() {
     <AppPageScaffold header={<PageHeader title="System Monitoring" description="Live health, performance, and request telemetry" size="compact"
       actions={<div className="flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={() => { setAutoRefresh(!autoRefresh); }}>{autoRefresh ? "Auto: ON" : "Auto: OFF"}</Button>
-        <Button variant="outline" size="sm" onClick={() => { void handleRefresh(); }} disabled={refreshing}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} /> Refresh</Button>
+        <Button variant="outline" size="sm" onClick={() => { void refetchHealth(); }} disabled={healthLoading}>
+          <RefreshCw className={`mr-2 h-4 w-4 ${healthLoading ? "animate-spin" : ""}`} /> Refresh</Button>
       </div>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading system monitoring…">
+      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading system monitoring...">
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); }} className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -111,8 +95,8 @@ export function SystemMonitoringPage() {
                 <CardContent><div className="text-2xl font-semibold tabular-nums">{heapPercent}%</div></CardContent></Card>
               <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Endpoints</CardTitle><Activity className="h-4 w-4 text-muted-foreground" /></CardHeader>
                 <CardContent><div className="text-2xl font-semibold tabular-nums">{endpoints.length}</div></CardContent></Card>
-              <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Version</CardTitle><Database className="h-4 w-4 text-muted-foreground" /></CardHeader>
-                <CardContent><div className="text-lg font-semibold">{health?.version || "-"}</div></CardContent></Card>
+              <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Uptime</CardTitle><Database className="h-4 w-4 text-muted-foreground" /></CardHeader>
+                <CardContent><div className="text-lg font-semibold">{health ? `${Math.floor(health.uptime / 86400)}d ${Math.floor((health.uptime % 86400) / 3600)}h` : "-"}</div></CardContent></Card>
             </div>
 
             <Card><CardHeader><CardTitle>Service Health Checks</CardTitle></CardHeader>
