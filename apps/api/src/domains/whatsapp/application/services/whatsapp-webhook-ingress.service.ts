@@ -15,7 +15,7 @@ import {
 import { WhatsAppMessageStatus } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
-import { parseStringEnumMember } from '@workspace/utils';
+import { parseStringEnumMember, truncatePhone } from '@workspace/utils';
 
 type WebhookChangeValue =
   WhatsAppWebhookPayload['entry'][number]['changes'][number]['value'];
@@ -102,12 +102,12 @@ export class WhatsAppWebhookIngressService {
           );
         } else {
           this.logger.warn(
-            `No matching appointment found for WhatsApp reply from ${phoneNumber}`,
+            `No matching appointment found for WhatsApp reply from ${truncatePhone(phoneNumber)}`,
           );
         }
       } catch (error) {
         this.logger.error(
-          `Error processing incoming message from ${phoneNumber}:`,
+          `Error processing incoming message from ${truncatePhone(phoneNumber)}:`,
           error instanceof Error ? error.stack : error,
         );
       }
