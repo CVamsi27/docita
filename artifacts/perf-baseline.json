@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-08-17T14:14:24.438Z",
+  "capturedAt": "2026-08-19T09:50:55.964Z",
   "appBundleMetrics": {
     "appDir": "/Users/vamsikrishnachandaluri/repos/docita/apps/app",
     "assetsDir": "/Users/vamsikrishnachandaluri/repos/docita/apps/app/dist/assets",
@@ -164,7 +164,7 @@
       "page-transition-loader-CWp4XAW7.js",
       "parse-clinic-app-settings-DlavYmjh.js",
       "parse-user-role-Ct_QG99I.js",
-      "partner-pages-Bb-yA9PW.js",
+      "partner-pages-BkHkoYx5.js",
       "patient-history-B0N35bH6.js",
       "patient-name-DnwiyD1o.js",
       "patients-keq7sgkM.js",
@@ -203,7 +203,7 @@
       "settings-availability-page-DQ7yhfwv.js",
       "settings-clinic-page-CBJCXfEU.js",
       "settings-clinical-page-Dt0ZoGCv.js",
-      "settings-compliance-page-BaM3b6WO.js",
+      "settings-compliance-page-DbyJGdNY.js",
       "settings-consent-template-page-Fu3H5tVS.js",
       "settings-danger-zone-page-BnGU9sh3.js",
       "settings-doctor-profile-page-BZpuzQ1k.js",
