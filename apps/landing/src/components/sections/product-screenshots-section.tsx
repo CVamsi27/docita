@@ -9,70 +9,35 @@ import {
   landingStaggerContainer,
 } from "@/lib/motion-prefs";
 
+interface ProductShotImage {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+
 interface ProductShot {
   id: string;
-  src: string;
+  image: ProductShotImage;
   alt: string;
   eyebrow: string;
   title: string;
   description: string;
-  icon: typeof CalendarDays;
 }
 
-const PRODUCT_SHOTS: ProductShot[] = [
-  {
-    id: "today",
-    src: "/product/today.png",
-    alt: "Today workspace with OPD queue, in-room patient, and right-rail advisor cards.",
-    eyebrow: "Today",
-    title: "Your day, one screen.",
-    description:
-      "Today's queue, in-room patient, waiting count, and advisor cards in a single view. Doctor's morning landing page.",
-    icon: ClipboardList,
-  },
-  {
-    id: "consultation",
-    src: "/product/consultation.png",
-    alt: "Consultation workspace with patient context, SOAP notes, and quick actions.",
-    eyebrow: "Consultation",
-    title: "Patient context stays open.",
-    description:
-      "Timeline, vitals, last prescription, and the active complaint stay on the same screen as the notes you are writing.",
-    icon: Stethoscope,
-  },
-  {
-    id: "prescription",
-    src: "/product/prescription.png",
-    alt: "Prescription builder with templates, dose rules, and PDF preview.",
-    eyebrow: "Prescription",
-    title: "Prescriptions in two clicks.",
-    description:
-      "Templates fill the form, dose rules catch errors, the PDF is shareable on WhatsApp. No Word, no Photoshop, no print queue.",
-    icon: FileText,
-  },
-  {
-    id: "appointments",
-    src: "/product/appointments.png",
-    alt: "Appointments calendar with slots, status pills, and reschedule controls.",
-    eyebrow: "Appointments",
-    title: "Slots, status, follow-ups.",
-    description:
-      "Day, week, and list views. Each slot shows arrival, in-room, completed, and follow-up status. Reschedule in a click.",
-    icon: CalendarDays,
-  },
-  {
-    id: "invoices",
-    src: "/product/invoices.png",
-    alt: "Invoices dashboard with line items, payments, and receipt delivery.",
-    eyebrow: "Invoices",
-    title: "Billing tied to the visit.",
-    description:
-      "Line items inherit the consultation, invoice picks up the procedures, receipt is UPI-ready and sent on WhatsApp.",
-    icon: Receipt,
-  },
-];
+interface ProductScreenshotsSectionProps {
+  shots: ProductShot[];
+}
 
-export function ProductScreenshotsSection() {
+const ICON_MAP: Record<string, typeof CalendarDays> = {
+  today: ClipboardList,
+  consultation: Stethoscope,
+  prescription: FileText,
+  appointments: CalendarDays,
+  invoices: Receipt,
+};
+
+export function ProductScreenshotsSection({ shots }: ProductScreenshotsSectionProps) {
   const reduce = useReducedMotion();
   const item = landingFadeUpVariants(reduce ?? false);
   const stagger = landingStaggerContainer(reduce ?? false, 0.08, 0.04);
@@ -108,8 +73,8 @@ export function ProductScreenshotsSection() {
           whileInView="visible"
           viewport={landingInViewViewport}
         >
-          {PRODUCT_SHOTS.map((shot) => {
-            const Icon = shot.icon;
+          {shots.map((shot) => {
+            const Icon = ICON_MAP[shot.id] ?? CalendarDays;
             return (
               <motion.figure
                 key={shot.id}
@@ -126,13 +91,13 @@ export function ProductScreenshotsSection() {
                 </div>
                 <div className="r2-product-shot-image-wrap">
                   <img
-                    src={shot.src}
+                    src={shot.image.src}
                     alt={shot.alt}
                     loading="lazy"
                     decoding="async"
                     className="r2-product-shot-image"
-                    width={1920}
-                    height={1080}
+                    width={shot.image.width}
+                    height={shot.image.height}
                   />
                 </div>
                 <figcaption className="r2-product-shot-caption">
