@@ -10,7 +10,8 @@ import { AppointmentsModule } from '@/domains/appointments/appointments.module';
 import { WhatsappModule } from '@/domains/whatsapp/whatsapp-clinic.module';
 import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
 import { PublicBookingController } from '@/domains/public-booking/presentation/controllers/public-booking.controller';
-import { PublicBookingService } from '@/domains/public-booking/application/services/public-booking.service';
+import { PublicBookingQueryService } from '@/domains/public-booking/application/services/public-booking-query.service';
+import { PublicBookingCommandService } from '@/domains/public-booking/application/services/public-booking-command.service';
 import { PublicBookingSlotsService } from '@/domains/public-booking/application/services/public-booking-slots.service';
 import { PublicBookingCreationService } from '@/domains/public-booking/application/services/public-booking-creation.service';
 import { PublicBookingSubmitService } from '@/domains/public-booking/application/services/public-booking-submit.service';
@@ -32,11 +33,13 @@ import { PublicBookingTokenService } from '@/domains/public-booking/application/
   controllers: [PublicBookingController],
   providers: [
     { provide: PUBLIC_BOOKING_PERSISTENCE_PORT, useExisting: PrismaService },
-    PublicBookingService,
+    PublicBookingQueryService,
+    PublicBookingCommandService,
     PublicBookingSlotsService,
     PublicBookingCreationService,
     PublicBookingSubmitService,
     PublicBookingTokenService,
   ],
+  exports: [PublicBookingQueryService, PublicBookingCommandService],
 })
 export class PublicBookingModule {}
