@@ -12,6 +12,7 @@ on:
     # (scripts/workflow/detect-workflow-scope.mjs) and gates the heavy job.
     paths:
       - "apps/app/**"
+      - "apps/internal/**"
       - "apps/api/**"
       - "packages/**"
       - "package.json"
