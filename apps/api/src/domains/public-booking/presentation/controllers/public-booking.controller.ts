@@ -13,7 +13,8 @@ import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
-import { PublicBookingService } from '@/domains/public-booking/application/services/public-booking.service';
+import { PublicBookingQueryService } from '@/domains/public-booking/application/services/public-booking-query.service';
+import { PublicBookingCommandService } from '@/domains/public-booking/application/services/public-booking-command.service';
 import { publicBookingSlotsQuerySchema } from '@workspace/types';
 import { getClientIp } from '@/shared/common/http/client-ip';
 
@@ -21,18 +22,21 @@ import { getClientIp } from '@/shared/common/http/client-ip';
 @Controller('public/booking/clinics')
 @Public()
 export class PublicBookingController {
-  constructor(private readonly publicBookingService: PublicBookingService) {}
+  constructor(
+    private readonly queryService: PublicBookingQueryService,
+    private readonly commandService: PublicBookingCommandService,
+  ) {}
 
   @Get(':referralCode')
   @ApiOperation({ summary: 'Public clinic summary for online booking' })
   getClinic(@Param('referralCode') referralCode: string) {
-    return this.publicBookingService.getClinicSummary(referralCode);
+    return this.queryService.getClinicSummary(referralCode);
   }
 
   @Get(':referralCode/doctors')
   @ApiOperation({ summary: 'List doctors available for public booking' })
   listDoctors(@Param('referralCode') referralCode: string) {
-    return this.publicBookingService.listDoctors(referralCode);
+    return this.queryService.listDoctors(referralCode);
   }
 
   @Get(':referralCode/slots')
@@ -43,7 +47,7 @@ export class PublicBookingController {
   ) {
     const parsed = publicBookingSlotsQuerySchema.safeParse(query);
     if (!parsed.success) throw new BadRequestException('Invalid slot query');
-    return this.publicBookingService.listSlots(referralCode, parsed.data);
+    return this.queryService.listSlots(referralCode, parsed.data);
   }
 
   @Throttle({ short: { ttl: 60000, limit: 10 } })
@@ -54,7 +58,7 @@ export class PublicBookingController {
     @Body() body: unknown,
     @Req() req: Request,
   ) {
-    return this.publicBookingService.checkPhoneStatus(
+    return this.commandService.checkPhoneStatus(
       referralCode,
       body,
       getClientIp(req),
@@ -69,7 +73,7 @@ export class PublicBookingController {
     @Body() body: unknown,
     @Req() req: Request,
   ) {
-    return this.publicBookingService.requestOtp(
+    return this.commandService.requestOtp(
       referralCode,
       body,
       getClientIp(req),
@@ -83,7 +87,7 @@ export class PublicBookingController {
     @Param('referralCode') referralCode: string,
     @Body() body: unknown,
   ) {
-    return this.publicBookingService.verifyOtp(referralCode, body);
+    return this.commandService.verifyOtp(referralCode, body);
   }
 
   @Get(':referralCode/context')
@@ -94,7 +98,7 @@ export class PublicBookingController {
     @Param('referralCode') referralCode: string,
     @Headers('authorization') authorization?: string,
   ) {
-    return this.publicBookingService.getBookingContext(
+    return this.queryService.getBookingContext(
       referralCode,
       authorization,
     );
@@ -109,7 +113,7 @@ export class PublicBookingController {
     @Headers('authorization') authorization: string | undefined,
     @Req() req: Request,
   ) {
-    return this.publicBookingService.submitRequest(
+    return this.commandService.submitRequest(
       referralCode,
       body,
       authorization,
