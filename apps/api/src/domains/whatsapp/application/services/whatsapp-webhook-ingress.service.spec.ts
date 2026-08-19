@@ -3,20 +3,22 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { WhatsAppWebhookIngressService } from './whatsapp-webhook-ingress.service';
 import { truncatePhone } from '@workspace/utils';
 import { WhatsAppMessageStatus } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
-import { asType } from '@/test-utils';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 function mockDateNow() {
   return new Date('2026-01-15T10:00:00Z');
 }
 
+type WebhookValue = Parameters<WhatsAppWebhookIngressService['processIncomingMessages']>[0];
+
 function makeMessage(overrides: Record<string, unknown> = {}) {
   return {
     id: 'msg_001',
     from: '919876543210',
-    type: 'text',
+    type: 'text' as const,
     text: { body: 'hello' },
     timestamp: '1705312800',
-    context: undefined as unknown,
     ...overrides,
   };
 }
@@ -39,49 +41,49 @@ function makeWebhookValue(overrides: Record<string, unknown> = {}) {
     messages: [] as ReturnType<typeof makeMessage>[],
     statuses: [] as ReturnType<typeof makeStatus>[],
     ...overrides,
-  };
+  } as unknown as WebhookValue;
 }
 
 describe('WhatsAppWebhookIngressService', () => {
   let service: WhatsAppWebhookIngressService;
 
-  const persistence = {
+  const persistence: any = {
     whatsappMessage: {
-      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue(null),
+      findFirst: jest.fn<any>().mockResolvedValue(null),
     },
     clinic: {
-      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue({ id: 'clinic_1' }),
+      findFirst: jest.fn<any>().mockResolvedValue({ id: 'clinic_1' }),
     },
     patient: {
-      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue(null),
+      findFirst: jest.fn<any>().mockResolvedValue(null),
     },
-    $transaction: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    $transaction: jest.fn<any>(),
     whatsappLog: {
-      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue(null),
-      update: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue({}),
+      findFirst: jest.fn<any>().mockResolvedValue(null),
+      update: jest.fn<any>().mockResolvedValue({}),
     },
     whatsappConversation: {
-      upsert: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue({ id: 'conv_1' }),
+      upsert: jest.fn<any>().mockResolvedValue({ id: 'conv_1' }),
     },
-  } as Record<string, unknown>;
+  };
 
-  const repository = {
-    findMessageByExternalId: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue(null),
-    saveMessage: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue({}),
-  } as Record<string, unknown>;
+  const repository: any = {
+    findMessageByExternalId: jest.fn<any>().mockResolvedValue(null),
+    saveMessage: jest.fn<any>().mockResolvedValue({}),
+  };
 
-  const supportInboxService = {
-    recordIncomingMessages: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue(undefined),
-    updateMessageStatus: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue(undefined),
-  } as Record<string, unknown>;
+  const supportInboxService: any = {
+    recordIncomingMessages: jest.fn<any>().mockResolvedValue(undefined),
+    updateMessageStatus: jest.fn<any>().mockResolvedValue(undefined),
+  };
 
-  const responseHandler = {
-    handlePatientResponseForAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue(undefined),
-  } as Record<string, unknown>;
+  const responseHandler: any = {
+    handlePatientResponseForAppointment: jest.fn<any>().mockResolvedValue(undefined),
+  };
 
-  const appointmentResolver = {
-    resolveForInboundMessage: jest.fn<(...args: unknown[]) => Promise<unknown>>().mockResolvedValue(null),
-  } as Record<string, unknown>;
+  const appointmentResolver: any = {
+    resolveForInboundMessage: jest.fn<any>().mockResolvedValue(null),
+  };
 
   const clock = {
     now: jest.fn(() => mockDateNow()),
@@ -94,12 +96,12 @@ describe('WhatsAppWebhookIngressService', () => {
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     service = new WhatsAppWebhookIngressService(
-      asType<Parameters<typeof WhatsAppWebhookIngressService['constructor']>[0]>(persistence),
-      asType<Parameters<typeof WhatsAppWebhookIngressService['constructor']>[1]>(repository),
-      asType<Parameters<typeof WhatsAppWebhookIngressService['constructor']>[2]>(supportInboxService),
-      asType<Parameters<typeof WhatsAppWebhookIngressService['constructor']>[3]>(responseHandler),
-      asType<Parameters<typeof WhatsAppWebhookIngressService['constructor']>[4]>(appointmentResolver),
-      asType<Parameters<typeof WhatsAppWebhookIngressService['constructor']>[5]>(clock),
+      persistence,
+      repository,
+      supportInboxService,
+      responseHandler,
+      appointmentResolver,
+      clock,
     );
   });
 
@@ -113,9 +115,7 @@ describe('WhatsAppWebhookIngressService', () => {
     it('processes text messages and records conversation', async () => {
       const msg = makeMessage({ type: 'text', text: { body: 'hi' } });
       const value = makeWebhookValue({ messages: [msg] });
-      persistence.$transaction = jest.fn().mockImplementation(async (fn: (tx: typeof persistence) => Promise<void>) => {
-        await fn(persistence as never);
-      });
+      persistence.$transaction = jest.fn<any>().mockImplementation(async (fn: any) => fn(persistence));
 
       await service.processIncomingMessages(value);
 
@@ -128,9 +128,7 @@ describe('WhatsAppWebhookIngressService', () => {
         interactive: { button_reply: { id: 'btn_1', title: 'Yes' } },
       });
       const value = makeWebhookValue({ messages: [msg] });
-      persistence.$transaction = jest.fn().mockImplementation(async (fn: (tx: typeof persistence) => Promise<void>) => {
-        await fn(persistence as never);
-      });
+      persistence.$transaction = jest.fn<any>().mockImplementation(async (fn: any) => fn(persistence));
 
       await service.processIncomingMessages(value);
 
@@ -143,9 +141,7 @@ describe('WhatsAppWebhookIngressService', () => {
         interactive: { list_reply: { id: 'list_1', title: 'Option A' } },
       });
       const value = makeWebhookValue({ messages: [msg] });
-      persistence.$transaction = jest.fn().mockImplementation(async (fn: (tx: typeof persistence) => Promise<void>) => {
-        await fn(persistence as never);
-      });
+      persistence.$transaction = jest.fn<any>().mockImplementation(async (fn: any) => fn(persistence));
 
       await service.processIncomingMessages(value);
 
@@ -158,9 +154,7 @@ describe('WhatsAppWebhookIngressService', () => {
         button: { payload: 'confirm', text: 'Confirm' },
       });
       const value = makeWebhookValue({ messages: [msg] });
-      persistence.$transaction = jest.fn().mockImplementation(async (fn: (tx: typeof persistence) => Promise<void>) => {
-        await fn(persistence as never);
-      });
+      persistence.$transaction = jest.fn<any>().mockImplementation(async (fn: any) => fn(persistence));
 
       await service.processIncomingMessages(value);
 
@@ -179,14 +173,11 @@ describe('WhatsAppWebhookIngressService', () => {
     it('warns when no appointment context is found (truncatePhone redaction)', async () => {
       const msg = makeMessage({ type: 'text', text: { body: 'confirm' } });
       const value = makeWebhookValue({ messages: [msg] });
-      appointmentResolver.resolveForInboundMessage = jest.fn().mockResolvedValue(null);
-      // Stub $transaction to resolve immediately (skip conversation recording internals)
-      persistence.$transaction = jest.fn().mockResolvedValue(undefined);
+      appointmentResolver.resolveForInboundMessage = jest.fn<any>().mockResolvedValue(null);
+      persistence.$transaction = jest.fn<any>().mockResolvedValue(undefined);
 
       await service.processIncomingMessages(value);
 
-      // The warn is emitted when no appointment context is found for the message.
-      // truncatePhone masks the phone to ***3210.
       const warnCalls = (Logger.prototype.warn as jest.Mock).mock.calls.map((c: unknown[]) => String(c[0]));
       const noMatchWarn = warnCalls.find((w) => w.includes('No matching appointment'));
       expect(noMatchWarn).toBeDefined();
@@ -196,9 +187,8 @@ describe('WhatsAppWebhookIngressService', () => {
     it('calls responseHandler when appointment context is found', async () => {
       const msg = makeMessage({ type: 'text', text: { body: 'yes' } });
       const value = makeWebhookValue({ messages: [msg] });
-      appointmentResolver.resolveForInboundMessage = jest.fn().mockResolvedValue({ appointmentId: 'apt_1' });
-      // Stub $transaction to resolve immediately (skip conversation recording internals)
-      persistence.$transaction = jest.fn().mockResolvedValue(undefined);
+      appointmentResolver.resolveForInboundMessage = jest.fn<any>().mockResolvedValue({ appointmentId: 'apt_1' });
+      persistence.$transaction = jest.fn<any>().mockResolvedValue(undefined);
 
       await service.processIncomingMessages(value);
 
@@ -208,7 +198,7 @@ describe('WhatsAppWebhookIngressService', () => {
     it('logs error with truncated phone on processing failure', async () => {
       const msg = makeMessage({ type: 'text', text: { body: 'test' } });
       const value = makeWebhookValue({ messages: [msg] });
-      persistence.$transaction = jest.fn().mockRejectedValue(new Error('db failure'));
+      persistence.$transaction = jest.fn<any>().mockRejectedValue(new Error('db failure'));
 
       await service.processIncomingMessages(value);
 
@@ -225,12 +215,10 @@ describe('WhatsAppWebhookIngressService', () => {
         context: { id: 'ctx_msg_123' },
       });
       const value = makeWebhookValue({ messages: [msg] });
-      persistence.whatsappMessage.findFirst = jest.fn().mockResolvedValue({
+      persistence.whatsappMessage.findFirst = jest.fn<any>().mockResolvedValue({
         conversation: { clinicId: 'clinic_from_ctx' },
       });
-      persistence.$transaction = jest.fn().mockImplementation(async (fn: (tx: typeof persistence) => Promise<void>) => {
-        await fn(persistence as never);
-      });
+      persistence.$transaction = jest.fn<any>().mockResolvedValue(undefined);
 
       await service.processIncomingMessages(value);
 
@@ -255,7 +243,7 @@ describe('WhatsAppWebhookIngressService', () => {
     it('quarantines message when no clinic is resolved', async () => {
       const msg = makeMessage({ type: 'text', text: { body: 'test' } });
       const value = makeWebhookValue({ messages: [msg] });
-      persistence.clinic.findFirst = jest.fn().mockResolvedValue(null);
+      persistence.clinic.findFirst = jest.fn<any>().mockResolvedValue(null);
 
       await service.processIncomingMessages(value);
 
@@ -310,10 +298,10 @@ describe('WhatsAppWebhookIngressService', () => {
     it('syncs domain message status when found', async () => {
       const mockMessage = {
         id: 'dom_msg_1',
-        updateStatus: jest.fn(),
-        setError: jest.fn(),
+        updateStatus: jest.fn<any>(),
+        setError: jest.fn<any>(),
       };
-      repository.findMessageByExternalId = jest.fn().mockResolvedValue(mockMessage);
+      repository.findMessageByExternalId = jest.fn<any>().mockResolvedValue(mockMessage);
 
       const status = makeStatus({ status: 'delivered' });
       const value = makeWebhookValue({ statuses: [status] });
@@ -325,7 +313,7 @@ describe('WhatsAppWebhookIngressService', () => {
     });
 
     it('warns when domain message is not found', async () => {
-      repository.findMessageByExternalId = jest.fn().mockResolvedValue(null);
+      repository.findMessageByExternalId = jest.fn<any>().mockResolvedValue(null);
 
       const status = makeStatus({ status: 'sent' });
       const value = makeWebhookValue({ statuses: [status] });
@@ -340,10 +328,10 @@ describe('WhatsAppWebhookIngressService', () => {
     it('handles failed domain message with error details', async () => {
       const mockMessage = {
         id: 'dom_msg_2',
-        updateStatus: jest.fn(),
-        setError: jest.fn(),
+        updateStatus: jest.fn<any>(),
+        setError: jest.fn<any>(),
       };
-      repository.findMessageByExternalId = jest.fn().mockResolvedValue(mockMessage);
+      repository.findMessageByExternalId = jest.fn<any>().mockResolvedValue(mockMessage);
 
       const status = makeStatus({
         status: 'failed',
