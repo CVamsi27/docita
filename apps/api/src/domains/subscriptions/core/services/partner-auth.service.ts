@@ -123,7 +123,9 @@ export class PartnerAuthService {
    * every subsequent request; the refresh token is a longer-lived
    * JWT of the same shape (no DB row) used to mint new access tokens.
    */
-  async verifyOtp(input: PartnerOtpVerify): Promise<PartnerOtpVerifyInternalResponse> {
+  async verifyOtp(
+    input: PartnerOtpVerify,
+  ): Promise<PartnerOtpVerifyInternalResponse> {
     const phone = this.normalizePhone(input.phone);
     const now = this.clock.now();
 

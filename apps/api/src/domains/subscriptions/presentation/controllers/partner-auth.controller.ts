@@ -64,8 +64,7 @@ export class PartnerAuthController {
   @Post('verify-otp')
   @HttpCode(200)
   @ApiOperation({
-    summary:
-      'Verify OTP and issue partner access token + refresh cookie',
+    summary: 'Verify OTP and issue partner access token + refresh cookie',
   })
   async verifyOtp(
     @Body() body: unknown,
@@ -79,19 +78,15 @@ export class PartnerAuthController {
       await this.authService.verifyOtp(parsed.data);
     // The refresh token is set as an httpOnly cookie — never exposed
     // to JavaScript (unlike localStorage, which is XSS-readable).
-    req.res?.cookie(
-      PARTNER_REFRESH_COOKIE_NAME,
-      result.refreshToken,
-      {
-        path: '/',
-        httpOnly: true,
-        secure: this.configService.isProduction(),
-        sameSite: 'strict',
-        // 30-day TTL (the JWT expiry).
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-        domain: this.configService.getSharedCookieDomain(),
-      },
-    );
+    req.res?.cookie(PARTNER_REFRESH_COOKIE_NAME, result.refreshToken, {
+      path: '/',
+      httpOnly: true,
+      secure: this.configService.isProduction(),
+      sameSite: 'strict',
+      // 30-day TTL (the JWT expiry).
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      domain: this.configService.getSharedCookieDomain(),
+    });
     // Return the access token and referrer metadata to the client.
     // The refresh token is never in the response body.
     return {
@@ -106,8 +101,7 @@ export class PartnerAuthController {
   @Post('refresh')
   @HttpCode(200)
   @ApiOperation({
-    summary:
-      'Rotate the partner access token using the refresh cookie',
+    summary: 'Rotate the partner access token using the refresh cookie',
   })
   async refresh(@Req() req: Request) {
     const refreshToken = req.cookies?.[PARTNER_REFRESH_COOKIE_NAME];

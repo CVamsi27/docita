@@ -51,7 +51,11 @@ export class PublicBookingCommandService {
     rawBody: unknown,
     remoteIp?: string,
   ): Promise<PublicBookingPhoneCheckResponse> {
-    return this.creationService.checkPhoneStatus(referralCode, rawBody, remoteIp);
+    return this.creationService.checkPhoneStatus(
+      referralCode,
+      rawBody,
+      remoteIp,
+    );
   }
 
   async requestOtp(
