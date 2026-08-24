@@ -5,6 +5,7 @@ import {
   type ReminderPersistencePort,
 } from '@/domains/reminders/application/ports/reminder-persistence.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { clockPortTestProvider } from '@/test-utils';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
 import {
@@ -75,6 +76,16 @@ describe('ReminderNotificationService', () => {
       (_request: SendMessageRequest) => Promise<SendMessageResponse>
     >;
   };
+  let emailService: {
+    send: jest.Mock<
+      (_options: {
+        to: string;
+        subject: string;
+        html?: string;
+        text?: string;
+      }) => Promise<{ success: boolean; error?: string }>
+    >;
+  };
 
   const sendMessageMock = {
     execute: jest
@@ -83,6 +94,19 @@ describe('ReminderNotificationService', () => {
         messageId: 'msg-1',
         providerMessageId: 'wamid.ext',
       }),
+  };
+
+  const emailServiceMock = {
+    send: jest
+      .fn<
+        (_options: {
+          to: string;
+          subject: string;
+          html?: string;
+          text?: string;
+        }) => Promise<{ success: boolean; error?: string }>
+      >()
+      .mockResolvedValue({ success: true }),
   };
 
   const mockAppointment: ReminderAppointment = {
@@ -192,6 +216,10 @@ describe('ReminderNotificationService', () => {
           provide: SendMessageUseCase,
           useValue: sendMessageMock,
         },
+        {
+          provide: EmailService,
+          useValue: emailServiceMock,
+        },
         clockPortTestProvider(),
       ],
     }).compile();
@@ -281,36 +309,26 @@ describe('ReminderNotificationService', () => {
   });
 
   describe('sendSmsReminder', () => {
-    it('should send SMS reminder and log to database', async () => {
+    it('records an honest skipped row while no SMS transport is configured', async () => {
       await service.sendSmsReminder(mockAppointment, mockSettings);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
         data: {
           appointmentId: 'appt-1',
           type: 'sms',
-          status: 'sent',
-          sentAt: expect.any(Date),
+          status: 'skipped',
+          error: 'SMS transport not configured',
         },
       });
     });
 
-    it('should replace placeholders in SMS template', async () => {
-      const customSettings = {
-        ...mockSettings,
-        smsTemplate:
-          '{patientName}, appointment with {doctorName} on {appointmentDate}',
-      };
+    it('never records a sent row for SMS', async () => {
+      await service.sendSmsReminder(mockAppointment, mockSettings);
 
-      await service.sendSmsReminder(mockAppointment, customSettings);
-
-      expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
-        data: {
-          appointmentId: 'appt-1',
-          type: 'sms',
-          status: 'sent',
-          sentAt: expect.any(Date),
-        },
-      });
+      const rows = prisma.appointmentReminder.create.mock.calls.map(
+        (call: [{ data: { status: string } }]) => call[0].data.status,
+      );
+      expect(rows).not.toContain('sent');
     });
 
     it('should handle missing phone number gracefully', async () => {
