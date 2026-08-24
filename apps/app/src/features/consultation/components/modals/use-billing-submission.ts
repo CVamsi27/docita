@@ -5,6 +5,8 @@ import {
   useUpdateInvoice,
   type InvoiceListRow,
 } from "@workspace/data-access";
+import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
+import { useClinic } from "@/lib/contexts/clinic-context";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import {
   buildInvoiceLineItems,
@@ -43,13 +45,15 @@ export function useBillingSubmission({
   onOpenChange?: (open: boolean) => void;
 }) {
   const isEditMode = Boolean(existingInvoice?.id);
+  const clinicTimezone =
+    useClinic().clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
   const initialDueDate = useMemo(() => {
     if (!existingInvoice?.dueDate) {
-      return new Date().toISOString().split("T")[0];
+      return formatClinicTodayPickerIso(clinicTimezone);
     }
     const raw = String(existingInvoice.dueDate);
     return raw.length >= 10 ? raw.slice(0, 10) : raw;
-  }, [existingInvoice?.dueDate]);
+  }, [existingInvoice?.dueDate, clinicTimezone]);
 
   const [dueDate, setDueDate] = useState<string>(initialDueDate);
   const [taxRate, setTaxRate] = useState<number>(0);
@@ -105,6 +109,7 @@ export function useBillingSubmission({
           notes,
           status,
           total,
+          dueDate: dueDate || undefined,
         });
         toast.success("Invoice updated");
       } else {
@@ -116,6 +121,7 @@ export function useBillingSubmission({
           notes,
           status,
           total,
+          dueDate: dueDate || undefined,
         });
         toast.success(collectNow ? "Invoice created and marked as paid" : "Invoice created");
       }

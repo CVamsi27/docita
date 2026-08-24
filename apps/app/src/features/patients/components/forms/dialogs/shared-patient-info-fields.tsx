@@ -4,6 +4,7 @@ import type { Control, FieldValues } from "react-hook-form";
 import { rhfPath } from "@workspace/ui/lib/rhf-path";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { DatePicker } from "@workspace/ui/components";
+import { formatClinicPickerDayIsoFromSelection } from "@workspace/utils";
 import { GENDER_OPTIONS } from "./add-patient-dialog-constants";
 
 interface SharedPatientInfoFieldsProps<T extends FieldValues> {
@@ -170,7 +171,9 @@ export function SharedPatientIdentityFields<T extends FieldValues>({
               <DatePicker
                 value={field.value || undefined}
                 onChange={(date) =>
-                  field.onChange(date?.toISOString().slice(0, 10) ?? "")
+                  field.onChange(
+                    date ? formatClinicPickerDayIsoFromSelection(date) : "",
+                  )
                 }
                 placeholder={t("dateOfBirthPlaceholder")}
                 maxDate={new Date()}
