@@ -13,6 +13,7 @@ export const APPOINTMENT_CONTEXT_INCLUDE = {
 
 export type AppointmentContext = {
   id: string;
+  status: string;
   startTime: Date;
   patient: { firstName: string; lastName: string; phoneNumber: string };
   doctor: { id: string; name: string };
@@ -28,6 +29,7 @@ export type DelayContext = {
 
 type AppointmentWithRelations = {
   id: string;
+  status: string;
   startTime: Date;
   patient: {
     firstName: string;
@@ -46,6 +48,7 @@ export function toAppointmentContext(
 
   return {
     id: appointment.id,
+    status: appointment.status,
     startTime: appointment.startTime,
     patient: {
       firstName: appointment.patient.firstName,

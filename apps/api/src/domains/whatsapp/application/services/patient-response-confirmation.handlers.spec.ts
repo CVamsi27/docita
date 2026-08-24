@@ -5,6 +5,7 @@ import type { AppointmentContext } from './patient-response.types';
 describe('resolvePatientConfirmationPlan', () => {
   const appointment = {
     id: 'appt-1',
+    status: 'SCHEDULED',
     startTime: new Date('2026-04-01T10:00:00.000Z'),
     patient: {
       firstName: 'Rahul',

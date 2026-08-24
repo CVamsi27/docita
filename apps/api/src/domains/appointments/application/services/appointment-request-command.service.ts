@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   Logger,
@@ -109,6 +110,24 @@ export class AppointmentRequestCommandService {
     await this.assertDoctorBelongsToClinic(data.doctorId, clinicId);
     const startTime = parseAppointmentRequestDate(data.startTime, 'Start time');
     const endTime = parseAppointmentRequestDate(data.endTime, 'End time');
+
+    // Claim the request before booking so a concurrent second approval (or an
+    // approve/reject race) loses here as a no-op instead of creating a
+    // duplicate appointment.
+    const claimed = await this.appointmentRequestRepository.markReviewed({
+      id,
+      clinicId,
+      status: AppointmentRequestStatus.APPROVED,
+      reviewedById,
+      responseMessage: '',
+      expectedStatus: AppointmentRequestStatus.PENDING,
+    });
+    if (!claimed) {
+      throw new ConflictException(
+        'Appointment request was already reviewed by someone else',
+      );
+    }
+
     const appointmentReason = data.notes ?? request.notes ?? request.reason;
     const appointment =
       await this.appointmentRequestRepository.findMatchingAppointment({
@@ -133,13 +152,13 @@ export class AppointmentRequestCommandService {
           type: data.type ?? 'Standard',
         })
       ).id;
-    const updated = await this.appointmentRequestRepository.markReviewed({
+    const updated = await this.appointmentRequestRepository.update(
       id,
       clinicId,
-      status: AppointmentRequestStatus.APPROVED,
-      reviewedById,
-      responseMessage: `Booked appointment ${appointmentId}`,
-    });
+      {
+        responseMessage: `Booked appointment ${appointmentId}`,
+      },
+    );
     await this.notifyStaffBestEffort({
       clinicId,
       doctorId: data.doctorId,
@@ -171,7 +190,13 @@ export class AppointmentRequestCommandService {
       status: AppointmentRequestStatus.REJECTED,
       reviewedById,
       responseMessage: data.responseMessage,
+      expectedStatus: AppointmentRequestStatus.PENDING,
     });
+    if (!updated) {
+      throw new ConflictException(
+        'Appointment request was already reviewed by someone else',
+      );
+    }
 
     await this.notifyStaffBestEffort({
       clinicId,

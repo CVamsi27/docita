@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { AppointmentRequestStatus } from '@workspace/db';
 import { AppointmentRequestCommandService } from './appointment-request-command.service';
 import type {
@@ -36,6 +40,9 @@ function makeCtx() {
     markReviewed: jest
       .fn<IAppointmentRequestRepository['markReviewed']>()
       .mockResolvedValue(asRequest({ id: 'req-1', patientId: 'patient-1' })),
+    update: jest
+      .fn<IAppointmentRequestRepository['update']>()
+      .mockImplementation(async () => asRequest({ id: 'req-1' })),
     findMatchingAppointment: jest
       .fn<IAppointmentRequestRepository['findMatchingAppointment']>()
       .mockResolvedValue(null),
@@ -128,9 +135,12 @@ describe('AppointmentRequestCommandService.approveRequest', () => {
     expect(ctx.repo.markReviewed).toHaveBeenCalledWith(
       expect.objectContaining({
         status: AppointmentRequestStatus.APPROVED,
-        responseMessage: 'Booked appointment appt-existing',
+        expectedStatus: AppointmentRequestStatus.PENDING,
       }),
     );
+    expect(ctx.repo.update).toHaveBeenCalledWith('req-1', 'clinic-1', {
+      responseMessage: 'Booked appointment appt-existing',
+    });
   });
 
   it('creates a new appointment when none matches and marks the request approved', async () => {
@@ -139,12 +149,20 @@ describe('AppointmentRequestCommandService.approveRequest', () => {
     await ctx.service.approveRequest('req-1', 'clinic-1', 'staff-1', approval);
 
     expect(ctx.appointmentService.createAppointment).toHaveBeenCalledTimes(1);
-    expect(ctx.repo.markReviewed).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: AppointmentRequestStatus.APPROVED,
-        responseMessage: 'Booked appointment appt-new',
-      }),
-    );
+    expect(ctx.repo.update).toHaveBeenCalledWith('req-1', 'clinic-1', {
+      responseMessage: 'Booked appointment appt-new',
+    });
+  });
+
+  it('does not book anything when a concurrent reviewer claimed the request first', async () => {
+    ctx.repo.findByIdAndClinic.mockResolvedValueOnce(pendingRequest);
+    ctx.repo.markReviewed.mockResolvedValueOnce(null);
+
+    await expect(
+      ctx.service.approveRequest('req-1', 'clinic-1', 'staff-1', approval),
+    ).rejects.toThrow(ConflictException);
+    expect(ctx.appointmentService.createAppointment).not.toHaveBeenCalled();
+    expect(ctx.staffNotifications.notifyStaff).not.toHaveBeenCalled();
   });
 
   it('still approves when the staff notification fails (best effort)', async () => {
@@ -192,7 +210,19 @@ describe('AppointmentRequestCommandService.rejectRequest', () => {
       expect.objectContaining({
         status: AppointmentRequestStatus.REJECTED,
         responseMessage: 'No slots this week',
+        expectedStatus: AppointmentRequestStatus.PENDING,
       }),
     );
+  });
+
+  it('rejects with a conflict when a concurrent reviewer claimed the request first', async () => {
+    ctx.repo.findByIdAndClinic.mockResolvedValueOnce(pendingRequest);
+    ctx.repo.markReviewed.mockResolvedValueOnce(null);
+
+    await expect(
+      ctx.service.rejectRequest('req-1', 'clinic-1', 'staff-1', {
+        responseMessage: 'No slots',
+      }),
+    ).rejects.toThrow(ConflictException);
   });
 });

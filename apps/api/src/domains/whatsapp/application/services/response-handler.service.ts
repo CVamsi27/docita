@@ -7,6 +7,7 @@ import {
 import { AppointmentStatus } from '@workspace/db';
 import {
   APPOINTMENT_STATUS_BY_PATIENT_RESPONSE,
+  LEGAL_PREDECESSORS_BY_PATIENT_RESPONSE,
   type PatientResponseType,
 } from '@/domains/whatsapp/application/policies/patient-response.policy';
 import { PatientResponseConfirmationService } from './patient-response-confirmation.service';
@@ -278,9 +279,18 @@ export class ResponseHandlerService {
       return;
     }
 
-    await this.persistence.appointment.update({
-      where: { id: appointment.id },
+    const predecessors =
+      LEGAL_PREDECESSORS_BY_PATIENT_RESPONSE[responseType] ?? [];
+
+    const result = await this.persistence.appointment.updateMany({
+      where: { id: appointment.id, status: { in: [...predecessors] } },
       data: { status: newStatus },
     });
+
+    if (result.count === 0) {
+      this.logger.warn(
+        `Skipped patient reply "${responseType}" for appointment ${appointment.id}: status ${appointment.status} cannot transition to ${newStatus}`,
+      );
+    }
   }
 }

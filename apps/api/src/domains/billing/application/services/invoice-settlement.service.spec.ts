@@ -29,13 +29,27 @@ const settledSession = (amount: number): PaymentSessionDetail =>
   ({ status: PaymentSessionStatus.CAPTURED, amount }) as PaymentSessionDetail;
 
 function makeCtx() {
+  const dbState = { ...invoice(), amountPaidCents: 0 };
   const invoiceRepository = {
     findById: jest
       .fn<IInvoiceRepository['findById']>()
       .mockResolvedValue(invoice()),
     update: jest
       .fn<IInvoiceRepository['update']>()
-      .mockResolvedValue(invoice()),
+      .mockImplementation(
+        async (_id: string, data: Record<string, unknown>) => {
+          const increment = (
+            (data.amountPaidCents ?? {}) as { increment?: number }
+          ).increment;
+          if (typeof increment === 'number') {
+            dbState.amountPaidCents += increment;
+          }
+          if (data.status !== undefined) {
+            dbState.status = data.status as InvoiceStatus;
+          }
+          return { ...dbState };
+        },
+      ),
   };
   const repository = {
     findByInvoiceId: jest
@@ -57,7 +71,7 @@ function makeCtx() {
     clock,
     transactionRunner as unknown as ITransactionRunner,
   );
-  return { service, invoiceRepository, repository };
+  return { service, invoiceRepository, repository, dbState };
 }
 
 const manualPayload = {
@@ -113,7 +127,13 @@ describe('InvoiceSettlementService.markInvoicePaidManually', () => {
     expect(ctx.repository.create).toHaveBeenCalledTimes(1);
     expect(ctx.invoiceRepository.update).toHaveBeenCalledWith(
       'inv-1',
-      { amountPaidCents: 10000, status: InvoiceStatus.PAID },
+      { amountPaidCents: { increment: 10000 } },
+      'clinic-1',
+      expect.anything(),
+    );
+    expect(ctx.invoiceRepository.update).toHaveBeenCalledWith(
+      'inv-1',
+      { status: InvoiceStatus.PAID },
       'clinic-1',
       expect.anything(),
     );
@@ -124,10 +144,60 @@ describe('InvoiceSettlementService.markInvoicePaidManually', () => {
 
     expect(ctx.invoiceRepository.update).toHaveBeenCalledWith(
       'inv-1',
-      { amountPaidCents: 5000, status: InvoiceStatus.PARTIALLY_PAID },
+      { amountPaidCents: { increment: 5000 } },
       'clinic-1',
       expect.anything(),
     );
+    expect(ctx.invoiceRepository.update).toHaveBeenCalledWith(
+      'inv-1',
+      { status: InvoiceStatus.PARTIALLY_PAID },
+      'clinic-1',
+      expect.anything(),
+    );
+  });
+
+  it('concurrent settlements accumulate instead of overwriting (atomic increment)', async () => {
+    // Two overlapping settlements of 4000 each against the same 10000 invoice:
+    // each applies its own increment on top of the committed total.
+    await ctx.service.markInvoicePaidManually({ ...manualPayload, amount: 40 });
+    ctx.invoiceRepository.findById.mockResolvedValueOnce(
+      invoice({ amountPaidCents: 4000 }),
+    );
+    await ctx.service.markInvoicePaidManually({ ...manualPayload, amount: 40 });
+
+    expect(ctx.invoiceRepository.update).toHaveBeenCalledWith(
+      'inv-1',
+      { amountPaidCents: { increment: 4000 } },
+      'clinic-1',
+      expect.anything(),
+    );
+    expect(ctx.invoiceRepository.update).toHaveBeenCalledWith(
+      'inv-1',
+      { status: InvoiceStatus.PARTIALLY_PAID },
+      'clinic-1',
+      expect.anything(),
+    );
+  });
+
+  it('rolls back the whole settlement when a concurrent payment already consumed the balance', async () => {
+    // Validation passed outside the transaction (balance looked sufficient),
+    // but by increment time another committed payment had consumed it.
+    ctx.invoiceRepository.update.mockImplementationOnce(
+      async (_id: string, data: Record<string, unknown>) => {
+        const increment = (
+          (data.amountPaidCents ?? {}) as { increment?: number }
+        ).increment;
+        if (typeof increment === 'number') {
+          ctx.dbState.amountPaidCents += increment;
+        }
+        return { ...ctx.dbState, amountPaidCents: 12000 };
+      },
+    );
+
+    await expect(
+      ctx.service.markInvoicePaidManually({ ...manualPayload, amount: 100 }),
+    ).rejects.toThrow(BadRequestException);
+    expect(ctx.repository.create).toHaveBeenCalled();
   });
 });
 
@@ -167,7 +237,11 @@ describe('InvoiceSettlementService.applyAppointmentAdvance', () => {
   });
 
   it('applies the advance capped to the outstanding balance', async () => {
-    ctx.invoiceRepository.findById.mockResolvedValueOnce(withAdvance(30000));
+    ctx.invoiceRepository.findById.mockResolvedValueOnce({
+      ...withAdvance(30000),
+      amountPaidCents: 4000,
+    } as unknown as InvoiceDetail);
+    ctx.dbState.amountPaidCents = 4000;
     ctx.repository.findByInvoiceId.mockResolvedValueOnce([
       settledSession(4000),
     ]);
@@ -178,7 +252,13 @@ describe('InvoiceSettlementService.applyAppointmentAdvance', () => {
     expect(ctx.repository.create).toHaveBeenCalledTimes(1);
     expect(ctx.invoiceRepository.update).toHaveBeenCalledWith(
       'inv-1',
-      { amountPaidCents: 10000, status: InvoiceStatus.PAID },
+      { amountPaidCents: { increment: 6000 } },
+      'clinic-1',
+      expect.anything(),
+    );
+    expect(ctx.invoiceRepository.update).toHaveBeenCalledWith(
+      'inv-1',
+      { status: InvoiceStatus.PAID },
       'clinic-1',
       expect.anything(),
     );
