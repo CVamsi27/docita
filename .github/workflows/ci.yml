@@ -409,7 +409,7 @@ jobs:
     # queries OSV.dev directly. Covers both PRs and pushes; PRs additionally
     # get the diff-aware `osv-scan` job below. No `runs-on:` — the reusable
     # workflow supplies its own runner.
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.5.0
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.5.1
 
   osv-scan:
     name: OSV Vulnerability Scan
