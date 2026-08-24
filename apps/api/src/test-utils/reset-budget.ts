@@ -36,10 +36,7 @@ export const RESET_FAIL_MS = 15_000;
 export const SCHEMA_PUSH_WARN_MS = 20_000;
 export const MAX_SCHEMA_PUSHES_PER_PROCESS = 1;
 
-function verdict(
-  level: ResetBudgetLevel,
-  message: string,
-): ResetBudgetVerdict {
+function verdict(level: ResetBudgetLevel, message: string): ResetBudgetVerdict {
   return { level, message };
 }
 
@@ -78,7 +75,9 @@ export function evaluateSchemaPushCount(count: number): ResetBudgetVerdict {
   return verdict('pass', '');
 }
 
-export function evaluateSchemaPushDuration(durationMs: number): ResetBudgetVerdict {
+export function evaluateSchemaPushDuration(
+  durationMs: number,
+): ResetBudgetVerdict {
   if (durationMs >= SCHEMA_PUSH_WARN_MS) {
     return verdict(
       'warn',

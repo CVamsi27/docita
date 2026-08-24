@@ -195,7 +195,9 @@ export async function resetDatabase() {
   // Budget guard: a reset that takes tens of seconds means the reset path has
   // regressed (e.g. a reintroduced per-table loop). Fail with a clear message
   // before the 30s jest hook timeout turns it into a generic hook failure.
-  const resetVerdict = evaluateResetDuration(performance.now() - resetStartedAt);
+  const resetVerdict = evaluateResetDuration(
+    performance.now() - resetStartedAt,
+  );
   if (resetVerdict.level === 'fail') {
     throw new Error(resetVerdict.message);
   }
