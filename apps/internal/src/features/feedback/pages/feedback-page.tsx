@@ -14,7 +14,12 @@ function RatingStars({ rating }: { rating: number }) {
 }
 
 export function FeedbackPage() {
-  const { data: feedbacks = [], isLoading: feedbacksLoading, refetch: refetchFeedbacks } = useApiQuery<Feedback[]>("/api/internal/feedback/all");
+  const {
+    data: feedbacks = [],
+    isLoading: feedbacksLoading,
+    isError: feedbacksError,
+    refetch: refetchFeedbacks,
+  } = useApiQuery<Feedback[]>("/api/internal/feedback/all");
   const { data: stats, isLoading: statsLoading } = useApiQuery<FeedbackStats>("/api/internal/feedback/stats");
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const loading = feedbacksLoading || statsLoading;
@@ -23,7 +28,12 @@ export function FeedbackPage() {
     <AppPageScaffold header={<PageHeader title={<span className="flex items-center gap-2"><MessageSquare className="h-7 w-7" /> Feedback Portal</span>}
       description="View and manage user feedback from all clinics" size="compact"
       actions={<Button variant="outline" onClick={() => { void refetchFeedbacks(); }}><RefreshCw className="h-4 w-4 mr-2" /> Refresh</Button>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading feedback..." onRetry={() => { void refetchFeedbacks(); }}>
+      <DataState
+        status={feedbacksError ? "error" : loading ? "loading" : "success"}
+        loadingMessage="Loading feedback..."
+        errorMessage="We could not load user feedback. Please try again."
+        onRetry={() => { void refetchFeedbacks(); }}
+      >
         {stats && (
           <div className="grid gap-4 md:grid-cols-5 mb-6">
             <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total</CardTitle><MessageSquare className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-semibold tabular-nums">{stats.total}</div><p className="text-xs text-muted-foreground">{stats.recentFeedback} recent</p></CardContent></Card>

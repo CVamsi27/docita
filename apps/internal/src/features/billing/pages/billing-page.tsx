@@ -3,6 +3,7 @@ import { AppPageScaffold, Button, Card, CardContent, CardDescription, CardHeader
 import { Activity, Building2, CreditCard, RefreshCw } from "lucide-react";
 import { formatCurrency, WHOLE_AMOUNT_CURRENCY_OPTIONS } from "@workspace/utils";
 import { apiPost } from "@/lib/api/api-client";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { BillingDashboardTabs } from "../components/billing-dashboard-tabs"
 import { useApiQuery } from "@/hooks/use-api-query";
 
@@ -11,7 +12,12 @@ interface Payment { id: string; clinicName: string; planLabel: string; amount: n
 interface BillingMetrics { mrr: number; arr: number; activeSubscriptions: number; churnRate: number; revenueByMonth: Array<{ month: string; revenue: number }>; }
 
 export function BillingPage() {
-  const { data: subscriptions = [], isLoading: subsLoading, refetch } = useApiQuery<Subscription[]>("/api/internal/billing/subscriptions");
+  const {
+    data: subscriptions = [],
+    isLoading: subsLoading,
+    isError: subsError,
+    refetch,
+  } = useApiQuery<Subscription[]>("/api/internal/billing/subscriptions");
   const { data: payments = [], isLoading: paysLoading } = useApiQuery<Payment[]>("/api/internal/billing/payments");
   const { data: metrics, isLoading: metricsLoading } = useApiQuery<BillingMetrics>("/api/internal/billing/metrics");
   const [tierFilter, setTierFilter] = useState("all");
@@ -24,19 +30,36 @@ export function BillingPage() {
     setSending(true);
     try {
       await apiPost(`/api/internal/billing/subscriptions/${subscription.id}/remind`);
-    } catch { /* ignore */ }
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not send the renewal reminder right now. Please try again.",
+      );
+    }
     finally { setSending(false); }
   };
 
   const handleExtendGracePeriod = async (subscription: Subscription): Promise<void> => {
-    await apiPost(`/api/internal/billing/subscriptions/${subscription.id}/extend-grace`, { days: 7 });
-    void refetch();
+    try {
+      await apiPost(`/api/internal/billing/subscriptions/${subscription.id}/extend-grace`, { days: 7 });
+      void refetch();
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not extend the grace period right now. Please try again.",
+      );
+    }
   };
 
   return (
     <AppPageScaffold header={<PageHeader title="Billing Dashboard" description="Monitor subscriptions, revenue, and payment activity" size="compact"
       actions={<Button onClick={() => { void refetch(); }} disabled={loading} variant="outline"><RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading billing dashboard...">
+      <DataState
+        status={subsError ? "error" : loading ? "loading" : "success"}
+        loadingMessage="Loading billing dashboard..."
+        errorMessage="We could not load the billing dashboard. Please try again."
+        onRetry={() => { void refetch(); }}
+      >
         {metrics && (
           <div className="grid gap-4 md:grid-cols-3 mb-6">
             <Card density="compact"><CardHeader className="border-b"><div className="flex items-center justify-between gap-3">

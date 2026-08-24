@@ -15,7 +15,7 @@ interface PerformanceMetricsPayload {
 }
 
 export function PerformancePage() {
-  const { data: perfData, isLoading, refetch } = useApiQuery<PerformanceMetricsPayload>("/api/internal/performance");
+  const { data: perfData, isLoading, isError, refetch } = useApiQuery<PerformanceMetricsPayload>("/api/internal/performance");
 
   const metrics = useMemo(() => {
     if (!perfData) return [];
@@ -32,7 +32,12 @@ export function PerformancePage() {
     <AppPageScaffold header={<PageHeader title="Performance" description="Application performance metrics and benchmarks"
       actions={<Button variant="outline" size="sm" onClick={() => { void refetch(); }} disabled={isLoading}>
         <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} /> Refresh</Button>} />}>
-      <DataState status={isLoading ? "loading" : "success"} loadingMessage="Loading performance metrics…">
+      <DataState
+        status={isError ? "error" : isLoading ? "loading" : "success"}
+        loadingMessage="Loading performance metrics…"
+        errorMessage="We could not load performance metrics. Please try again."
+        onRetry={() => { void refetch(); }}
+      >
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {metrics.length === 0 ? (
             <>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { AppPageScaffold, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, PageHeader } from "@workspace/ui/components";
 import { type CursorPaginationResult, type InternalFacilityLeadView, type InternalOperator } from "@workspace/types";
@@ -11,7 +11,9 @@ import { LeadsTable } from "../components/leads-table";
 
 export function LeadsPage() {
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [items, setItems] = useState<InternalFacilityLeadView[]>([]);
+  const fetchGenerationRef = useRef(0);
   const [hasMore, setHasMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [cursorStack, setCursorStack] = useState<string[]>([]);
@@ -63,16 +65,22 @@ export function LeadsPage() {
 
   const fetchLeads = useCallback(
     async (cursor?: string) => {
+      const generation = ++fetchGenerationRef.current;
       setLoading(true);
+      setLoadError(false);
       try {
         const data = await apiGet<CursorPaginationResult<InternalFacilityLeadView>>(buildQuery(cursor));
+        if (generation !== fetchGenerationRef.current) return;
         setItems(data.items);
         setHasMore(data.hasMore);
         setNextCursor(data.nextCursor);
       } catch {
-        /* keep last-known data */
+        if (generation !== fetchGenerationRef.current) return;
+        setLoadError(true);
       } finally {
-        setLoading(false);
+        if (generation === fetchGenerationRef.current) {
+          setLoading(false);
+        }
       }
     },
     [buildQuery],
@@ -132,7 +140,12 @@ export function LeadsPage() {
     <AppPageScaffold
       header={<PageHeader title="Facility Leads" description="Prospective facilities submitted by referral partners" size="compact" />}
     >
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading leads…">
+      <DataState
+        status={loadError && items.length === 0 ? "error" : loading ? "loading" : "success"}
+        loadingMessage="Loading leads…"
+        errorMessage="We could not load the leads queue. Please try again."
+        onRetry={() => void fetchLeads()}
+      >
         <Card>
           <CardHeader>
             <CardTitle>All Leads</CardTitle>
