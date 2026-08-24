@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createSentryClientConfig } from "./sentry-client-config.js";
 
 // The loader treats NODE_ENV=development as "Sentry disabled" and reads

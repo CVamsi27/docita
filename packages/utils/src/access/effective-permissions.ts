@@ -1,20 +1,18 @@
 import {
-  APP_ACCESS_MATRIX,
   APP_ACCESS_TARGETS,
   APP_PERMISSIONS_BY_ROLE,
-  TIER_SENTINEL_FEATURES,
+  type AppAccessTarget,
+  type ClinicFeatureOverrides,
   getAccessFeature,
-  getAccessPermissions,
   getAccessRequirement,
   getAccessTier,
   isAccessComingSoon,
-  shouldDenyAccessForFrontDeskMode,
-  type AppAccessTarget,
-  type ClinicFeatureOverrides,
   type PlanMode,
+  shouldDenyAccessForFrontDeskMode,
+  Tier,
+  TIER_SENTINEL_FEATURES,
   type TierName,
   type UserRole,
-  Tier,
 } from "@workspace/types";
 import { hasFeatureAccess } from "../billing/tier-rules.js";
 

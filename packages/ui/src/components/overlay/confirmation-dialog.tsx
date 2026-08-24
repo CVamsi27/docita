@@ -65,6 +65,10 @@ export function ConfirmationDialog({
     try {
       await onConfirm();
       onOpenChange(false);
+    } catch {
+      // The consumer owns error messaging (toast, inline copy); keep the
+      // dialog open so the action can be retried instead of leaking an
+      // unhandled rejection to window handlers.
     } finally {
       setIsPending(false);
     }
