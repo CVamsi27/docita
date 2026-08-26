@@ -53,9 +53,7 @@ describe('PublicBookingController (e2e)', () => {
       .expect(200)
       .expect(payload);
 
-    expect(mockQueryService.getClinicSummary).toHaveBeenCalledWith(
-      'ABC123',
-    );
+    expect(mockQueryService.getClinicSummary).toHaveBeenCalledWith('ABC123');
   });
 
   it('GET /public/booking/clinics/:referralCode/context returns 401 without verification', async () => {

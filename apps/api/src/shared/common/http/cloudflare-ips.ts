@@ -42,14 +42,10 @@ export function isCloudflareIp(ip: string | undefined): boolean {
   if (!ip) return false;
   const version = isIP(ip);
   if (version === 4) {
-    return CLOUDFLARE_IPV4_RANGES.some((cidr) =>
-      cidrContains(cidr, ip, 4),
-    );
+    return CLOUDFLARE_IPV4_RANGES.some((cidr) => cidrContains(cidr, ip, 4));
   }
   if (version === 6) {
-    return CLOUDFLARE_IPV6_RANGES.some((cidr) =>
-      cidrContains(cidr, ip, 6),
-    );
+    return CLOUDFLARE_IPV6_RANGES.some((cidr) => cidrContains(cidr, ip, 6));
   }
   return false;
 }
@@ -58,8 +54,7 @@ function cidrContains(cidr: string, ip: string, version: 4 | 6): boolean {
   const [network, prefixRaw] = cidr.split('/');
   const prefix = Number(prefixRaw);
   if (version === 4) {
-    const mask =
-      prefix === 0 ? 0 : (~0 << (32 - prefix)) >>> 0;
+    const mask = prefix === 0 ? 0 : (~0 << (32 - prefix)) >>> 0;
     return (ipv4ToInt(network) & mask) === (ipv4ToInt(ip) & mask);
   }
   const mask = ipv6PrefixMask(prefix);
@@ -89,7 +84,10 @@ function ipv6ToBigInt(ip: string): bigint {
   const doubleColon = ip.indexOf('::');
   if (doubleColon !== -1) {
     const left = ip.slice(0, doubleColon).split(':').filter(Boolean);
-    const right = ip.slice(doubleColon + 2).split(':').filter(Boolean);
+    const right = ip
+      .slice(doubleColon + 2)
+      .split(':')
+      .filter(Boolean);
     const missing = 8 - left.length - right.length;
     return hextetsToBigInt([...left, ...Array(missing).fill('0'), ...right]);
   }

@@ -131,19 +131,25 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
     status,
     reviewedById,
     responseMessage,
+    expectedStatus,
   }: {
     id: string;
     clinicId: string;
     status: AppointmentRequestStatus;
     reviewedById: string;
     responseMessage: string;
+    expectedStatus?: AppointmentRequestStatus;
   }) {
     const reviewerExists = await this.prisma.user.count({
       where: { id: reviewedById, clinicId },
     });
 
-    await this.prisma.appointmentRequest.updateMany({
-      where: { id, clinicId },
+    const result = await this.prisma.appointmentRequest.updateMany({
+      where: {
+        id,
+        clinicId,
+        ...(expectedStatus ? { status: expectedStatus } : {}),
+      },
       data: {
         status,
         reviewedAt: this.clock.now(),
@@ -151,6 +157,10 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
         ...(reviewerExists > 0 ? { reviewedById } : {}),
       },
     });
+
+    if (result.count === 0) {
+      return null;
+    }
 
     return this.requireByIdAndClinic(id, clinicId);
   }

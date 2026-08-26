@@ -11,7 +11,7 @@ import { useApiQuery } from "@/hooks/use-api-query";
 interface Contract { id: string; clinicName: string; tier: string; startDate: string; endDate?: string; status: string; monthlyAmount: number; currency: string; customLimits?: Record<string, number>; notes?: string; }
 
 export function EnterpriseContractsPage() {
-  const { data: contracts = [], isLoading } = useApiQuery<Contract[]>("/api/internal/enterprise-contracts");
+  const { data: contracts = [], isLoading, isError, refetch } = useApiQuery<Contract[]>("/api/internal/enterprise-contracts");
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
 
@@ -20,7 +20,12 @@ export function EnterpriseContractsPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Enterprise Contracts" description="Manage custom enterprise agreements, custom pricing, and contract lifecycle" size="compact" />}>
-      <DataState status={isLoading ? "loading" : "success"} loadingMessage="Loading contracts...">
+      <DataState
+        status={isError ? "error" : isLoading ? "loading" : "success"}
+        loadingMessage="Loading contracts..."
+        errorMessage="We could not load enterprise contracts. Please try again."
+        onRetry={() => { void refetch(); }}
+      >
         <div className="grid gap-4 md:grid-cols-3 mb-6">
           <Card><CardHeader><CardTitle className="text-sm font-medium">Total Contracts</CardTitle></CardHeader><CardContent><p className="text-2xl font-semibold tabular-nums">{contracts.length}</p></CardContent></Card>
           <Card><CardHeader><CardTitle className="text-sm font-medium">Active Contracts</CardTitle></CardHeader><CardContent><p className="text-2xl font-semibold tabular-nums">{activeContracts.length}</p></CardContent></Card>

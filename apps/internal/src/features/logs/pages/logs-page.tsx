@@ -30,7 +30,7 @@ export function LogsPage() {
     return `/api/internal/logs?${p.toString()}`;
   }, [selectedLimit, offset, selectedLevel, selectedModule, searchText]);
 
-  const { data, isPending, refetch } = useApiQuery<{ logs: SystemLog[]; total: number }>(params, {
+  const { data, isPending, isError, refetch } = useApiQuery<{ logs: SystemLog[]; total: number }>(params, {
     placeholderData: keepPreviousData,
   });
   const isLoading = isPending;
@@ -43,7 +43,12 @@ export function LogsPage() {
     <AppPageScaffold header={<PageHeader title="System Logs" description="View and filter application logs across all modules" size="compact"
       actions={<Button variant="outline" size="sm" onClick={() => { void refetch(); }} disabled={isLoading}>
         <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />Refresh</Button>} />}>
-      <DataState status={isLoading ? "loading" : "success"} loadingMessage="Loading logs…">
+      <DataState
+        status={isError ? "error" : isLoading ? "loading" : "success"}
+        loadingMessage="Loading logs…"
+        errorMessage="We could not load the system logs. Please try again."
+        onRetry={() => { void refetch(); }}
+      >
         <div className="grid grid-cols-1 gap-3 md:grid-cols-4 mb-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Severity</label>

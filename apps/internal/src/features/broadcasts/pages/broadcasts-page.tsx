@@ -20,7 +20,7 @@ export function BroadcastsPage() {
   const [useTemplate, setUseTemplate] = useState(true);
   const [csvFileName, setCsvFileName] = useState<string | null>(null);
 
-  const { data: jobs = [], isLoading, refetch } = useApiQuery<BroadcastJob[]>("/api/internal/broadcasts");
+  const { data: jobs = [], isLoading, isError, refetch } = useApiQuery<BroadcastJob[]>("/api/internal/broadcasts");
   const selectedPreset = useMemo(() => PRESETS.find((p) => p.id === presetId), [presetId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,8 +92,9 @@ export function BroadcastsPage() {
         <Card>
           <CardHeader><CardTitle>Broadcast History</CardTitle></CardHeader>
           <CardContent>
-            <DataState status={isLoading ? "loading" : jobs.length === 0 ? "empty" : "success"}
-              loadingMessage="Loading broadcasts…" emptyTitle="No broadcasts yet" emptyDescription="Your broadcast history will appear here." emptyIcon={Megaphone}>
+            <DataState status={isError ? "error" : isLoading ? "loading" : jobs.length === 0 ? "empty" : "success"}
+              loadingMessage="Loading broadcasts…" emptyTitle="No broadcasts yet" emptyDescription="Your broadcast history will appear here." emptyIcon={Megaphone}
+              errorMessage="We could not load the broadcast history. Please try again." onRetry={() => { void refetch(); }}>
               <ul className="space-y-3">
                 {jobs.map((job) => (
                   <li key={job.id} className="rounded-lg border bg-background p-3">

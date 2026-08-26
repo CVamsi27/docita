@@ -23,7 +23,12 @@ const TIER_PRICING_FIELDS = [
 ] as const satisfies readonly (keyof TierPricing)[];
 
 export function PricingPage() {
-  const { data: serverTiers = [], isLoading: tiersLoading } = useApiQuery<TierPricing[]>("/api/internal/billing/pricing/tiers");
+  const {
+    data: serverTiers = [],
+    isLoading: tiersLoading,
+    isError: tiersError,
+    refetch: refetchTiers,
+  } = useApiQuery<TierPricing[]>("/api/internal/billing/pricing/tiers");
   const { data: offers = [], isLoading: offersLoading } = useApiQuery<Offer[]>("/api/internal/billing/pricing/offers");
   const [savingId, setSavingId] = useState<string | null>(null);
   const loading = tiersLoading || offersLoading;
@@ -67,7 +72,12 @@ export function PricingPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Pricing Management" description="Configure tier pricing, limits, and overage rates" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading pricing...">
+      <DataState
+        status={tiersError ? "error" : loading ? "loading" : "success"}
+        loadingMessage="Loading pricing..."
+        errorMessage="We could not load tier pricing. Please try again."
+        onRetry={() => { void refetchTiers(); }}
+      >
         <Tabs defaultValue="tiers" className="space-y-4">
           <TabsList><TabsTrigger value="tiers"><Sparkles className="mr-2 h-4 w-4" /> Tier Pricing</TabsTrigger>
             <TabsTrigger value="offers">Facility Offers</TabsTrigger></TabsList>

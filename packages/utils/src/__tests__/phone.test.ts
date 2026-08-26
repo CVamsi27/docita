@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { truncatePhone } from '../phone';
+import { truncatePhone } from '../phone.js';
 
 describe('truncatePhone', () => {
   it('returns <unset> for undefined input', () => {

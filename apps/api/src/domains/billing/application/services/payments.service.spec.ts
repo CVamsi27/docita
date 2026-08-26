@@ -249,7 +249,7 @@ describe('PaymentsService', () => {
 
       expect(invoiceRepository.update).toHaveBeenCalledWith(
         'inv_1',
-        { amountPaidCents: 50000, status: InvoiceStatus.PAID },
+        { amountPaidCents: { increment: 50000 } },
         'clinic_1',
         expect.anything(),
       );

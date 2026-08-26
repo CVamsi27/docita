@@ -47,6 +47,7 @@ export interface IPaymentSessionRepository {
   findByInvoiceId(
     invoiceId: string,
     clinicId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<PaymentSession[]>;
   /** Settled (CAPTURED/PAID) sessions recorded within [from, to) for a clinic. */
   findSettledByClinicInRange(

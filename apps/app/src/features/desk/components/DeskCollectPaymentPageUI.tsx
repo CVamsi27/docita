@@ -107,15 +107,20 @@ export function DeskCollectPaymentPageUI() {
 
   const handleRecordSubmit = async () => {
     if (!dialogInvoice?.id || !canRecordPayment || !amountIsValid) return;
-    await recordSettlement.mutateAsync({
-      invoiceId: dialogInvoice.id,
-      paymentMethod,
-      amount: Math.round(parsedAmount * 100) / 100,
-      reference: reference.trim() || undefined,
-      notes: notes.trim() || undefined,
-    });
-    setDialogInvoice(null);
-    refetchInvoices();
+    try {
+      await recordSettlement.mutateAsync({
+        invoiceId: dialogInvoice.id,
+        paymentMethod,
+        amount: Math.round(parsedAmount * 100) / 100,
+        reference: reference.trim() || undefined,
+        notes: notes.trim() || undefined,
+      });
+      setDialogInvoice(null);
+      refetchInvoices();
+    } catch {
+      // Failure toast is raised by the settlement hook; keep the dialog open
+      // so the front-desk user can correct and retry.
+    }
   };
 
   return (
@@ -172,7 +177,7 @@ export function DeskCollectPaymentPageUI() {
         isSaving={recordSettlement.isPending}
         formatMoney={formatMoney}
         onOpenChange={(open) => {
-          if (!open) setDialogInvoice(null);
+          if (!open && !recordSettlement.isPending) setDialogInvoice(null);
         }}
         onPaymentMethodChange={setPaymentMethod}
         onAmountChange={setAmount}

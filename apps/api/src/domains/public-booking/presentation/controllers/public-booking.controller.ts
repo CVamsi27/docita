@@ -73,11 +73,7 @@ export class PublicBookingController {
     @Body() body: unknown,
     @Req() req: Request,
   ) {
-    return this.commandService.requestOtp(
-      referralCode,
-      body,
-      getClientIp(req),
-    );
+    return this.commandService.requestOtp(referralCode, body, getClientIp(req));
   }
 
   @Throttle({ short: { ttl: 60000, limit: 10 } })
@@ -98,10 +94,7 @@ export class PublicBookingController {
     @Param('referralCode') referralCode: string,
     @Headers('authorization') authorization?: string,
   ) {
-    return this.queryService.getBookingContext(
-      referralCode,
-      authorization,
-    );
+    return this.queryService.getBookingContext(referralCode, authorization);
   }
 
   @Throttle({ short: { ttl: 60000, limit: 20 } })

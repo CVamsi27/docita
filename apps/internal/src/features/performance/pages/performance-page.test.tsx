@@ -45,16 +45,18 @@ describe("PerformancePage", () => {
     expect(screen.getAllByText("0% from baseline")).toHaveLength(5);
   });
 
-  it("shows dash placeholders when metrics cannot be loaded", async () => {
+  it("shows an error state with retry when metrics cannot be loaded", async () => {
     mockApiGet.mockRejectedValueOnce(new Error("down"));
     render(<PerformancePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Avg Response Time")).toBeInTheDocument();
+      expect(
+        screen.getByText(/could not load performance metrics/i),
+      ).toBeInTheDocument();
     });
 
-    // The three placeholder cards show dashes instead of values.
-    expect(screen.getAllByText("-").length).toBeGreaterThanOrEqual(3);
+    // The error state offers a retry affordance instead of silent dashes.
+    expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
   });
 
   it("re-fetches when Refresh is clicked", async () => {

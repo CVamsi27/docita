@@ -117,11 +117,14 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   async findByInvoiceId(
     invoiceId: string,
     clinicId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<PaymentSession[]> {
-    const sessions = await this.getReadClient().paymentSession.findMany({
-      where: { invoiceId, clinicId },
-      orderBy: { createdAt: 'desc' },
-    });
+    const sessions = await (tx ?? this.getReadClient()).paymentSession.findMany(
+      {
+        where: { invoiceId, clinicId },
+        orderBy: { createdAt: 'desc' },
+      },
+    );
     return sessions.map((session) => this.mapSession(session));
   }
 

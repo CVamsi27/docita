@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useCollectionsByModeReport } from "@workspace/data-access";
+import { useCollectionsByModeReport, useClinicSettings } from "@workspace/data-access";
 import { formatPaymentChannelLabel } from "@workspace/types";
+import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
 import { Card, CardContent, CardHeader, CardTitle, DataState, Label, MicroLabel } from "@workspace/ui/components";
 import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import { Wallet } from "lucide-react";
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 interface DeskCollectionsByModeReportProps {
   formatMoney: (amount: number | undefined) => string;
@@ -19,6 +16,9 @@ export function DeskCollectionsByModeReport({
   formatMoney,
 }: DeskCollectionsByModeReportProps) {
   const { t } = useTranslation("Desk");
+  const { data: clinic } = useClinicSettings();
+  const clinicTimezone = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+  const todayIso = formatClinicTodayPickerIso(clinicTimezone);
   const [from, setFrom] = useState(todayIso);
   const [to, setTo] = useState(todayIso);
 

@@ -36,7 +36,12 @@ export function SystemMonitoringPage() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: healthData, isLoading: healthLoading, refetch: refetchHealth } = useApiQuery<SystemHealthPayload>("/monitoring/health", {
+  const {
+    data: healthData,
+    isLoading: healthLoading,
+    isError: healthError,
+    refetch: refetchHealth,
+  } = useApiQuery<SystemHealthPayload>("/monitoring/health", {
     refetchInterval: autoRefresh ? 30_000 : false,
   });
   const { data: perfData, isLoading: perfLoading } = useApiQuery<MonitoringPerformancePayload>("/monitoring/performance", {
@@ -89,7 +94,12 @@ export function SystemMonitoringPage() {
         <Button variant="outline" size="sm" onClick={() => { void refetchHealth(); }} disabled={healthLoading}>
           <RefreshCw className={`mr-2 h-4 w-4 ${healthLoading ? "animate-spin" : ""}`} /> Refresh</Button>
       </div>} />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading system monitoring...">
+      <DataState
+        status={healthError ? "error" : loading ? "loading" : "success"}
+        loadingMessage="Loading system monitoring..."
+        errorMessage="We could not load system monitoring. Please try again."
+        onRetry={() => { void refetchHealth(); }}
+      >
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); }} className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>

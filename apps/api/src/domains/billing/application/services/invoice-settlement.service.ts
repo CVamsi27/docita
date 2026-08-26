@@ -113,8 +113,6 @@ export class InvoiceSettlementService {
       clinicId: data.clinicId,
       patientId: invoice.patientId,
       totalCents: invoice.totalCents,
-      currentStatus: invoice.status,
-      alreadyPaidCents,
       paymentCents,
       meta: {
         channel: normalizedChannel,
@@ -168,8 +166,6 @@ export class InvoiceSettlementService {
       clinicId,
       patientId,
       totalCents: invoice.totalCents,
-      currentStatus: invoice.status,
-      alreadyPaidCents,
       paymentCents,
       meta: {
         source: 'advance',
@@ -188,27 +184,22 @@ export class InvoiceSettlementService {
 
   /**
    * Persist a settled manual payment session and roll its amount into the
-   * invoice's paid total/status inside one transaction. This is the shared
-   * core of `markInvoicePaidManually` and `applyAppointmentAdvance` — they
-   * differ only in who recorded the payment and what `meta` says about it.
+   * invoice's paid total/status inside one transaction. The paid total is
+   * applied as an atomic increment and the status derived from the fresh
+   * post-increment row, so two concurrent settlements (distinct idempotency
+   * keys) can never overwrite each other's collected amount. This is the
+   * shared core of `markInvoicePaidManually` and `applyAppointmentAdvance` —
+   * they differ only in who recorded the payment and what `meta` says.
    */
   private async recordSettledPayment(params: {
     invoiceId: string;
     clinicId: string;
     patientId: string;
     totalCents: number;
-    currentStatus: InvoiceStatus;
-    alreadyPaidCents: number;
     paymentCents: number;
     meta: Prisma.PaymentSessionCreateInput['meta'];
   }): Promise<{ amountPaidCents: number; status: InvoiceStatus }> {
-    const { amountPaidCents, status } = computeInvoicePaidState({
-      totalCents: params.totalCents,
-      paidCents: params.alreadyPaidCents + params.paymentCents,
-      currentStatus: params.currentStatus,
-    });
-
-    await this.transactionRunner.runInTransaction(async (tx) => {
+    return this.transactionRunner.runInTransaction(async (tx) => {
       await this.repository.create(
         {
           clinic: { connect: { id: params.clinicId } },
@@ -225,15 +216,43 @@ export class InvoiceSettlementService {
         tx,
       );
 
-      await this.invoiceRepository.update(
+      const incremented = await this.invoiceRepository.update(
         params.invoiceId,
-        { amountPaidCents, status },
+        { amountPaidCents: { increment: params.paymentCents } },
         params.clinicId,
         tx,
       );
-    });
 
-    return { amountPaidCents, status };
+      // The pre-transaction balance check can go stale when two settlements
+      // with distinct idempotency keys race. Throwing here rolls back both
+      // the session insert and the increment, so an overpayment is refused
+      // instead of committed past the invoice total.
+      if (
+        params.totalCents > 0 &&
+        incremented.amountPaidCents > params.totalCents
+      ) {
+        throw new BadRequestException(
+          'Payment amount exceeds the outstanding invoice balance',
+        );
+      }
+
+      const { status } = computeInvoicePaidState({
+        totalCents: params.totalCents,
+        paidCents: incremented.amountPaidCents,
+        currentStatus: incremented.status,
+      });
+
+      if (incremented.status !== status) {
+        await this.invoiceRepository.update(
+          params.invoiceId,
+          { status },
+          params.clinicId,
+          tx,
+        );
+      }
+
+      return { amountPaidCents: incremented.amountPaidCents, status };
+    });
   }
 
   private isAdvanceSession(meta: unknown): boolean {

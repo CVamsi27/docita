@@ -3,6 +3,7 @@ import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, Car
 import { CreditCard, DollarSign } from "lucide-react";
 import { formatCurrency, formatDate, enIN } from "@workspace/utils";
 import { apiPost } from "@/lib/api/api-client";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useApiQuery } from "@/hooks/use-api-query";
 
 interface Clinic { id: string; name: string; tier: string; email: string; subscriptionStatus?: string; }
@@ -10,7 +11,12 @@ interface Payment { id: string; clinicName: string; planLabel: string; amount: n
 
 export function PaymentProcessingPage() {
   const { data: clinics = [], isLoading: clinicsLoading } = useApiQuery<Clinic[]>("/api/internal/clinics");
-  const { data: payments = [], isLoading: paymentsLoading, refetch } = useApiQuery<Payment[]>("/api/internal/billing/payments");
+  const {
+    data: payments = [],
+    isLoading: paymentsLoading,
+    isError: paymentsError,
+    refetch,
+  } = useApiQuery<Payment[]>("/api/internal/billing/payments");
   const [processing, setProcessing] = useState(false);
   const [selectedClinic, setSelectedClinic] = useState("");
   const [amount, setAmount] = useState("");
@@ -30,13 +36,23 @@ export function PaymentProcessingPage() {
       });
       setAmount("");
       void refetch();
-    } catch { /* ignore */ }
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not record this payment right now. Please try again.",
+      );
+    }
     finally { setProcessing(false); }
   };
 
   return (
     <AppPageScaffold header={<PageHeader title="Payment Processing" description="Record subscription payments and tier changes" size="compact" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading payment processing...">
+      <DataState
+        status={paymentsError ? "error" : loading ? "loading" : "success"}
+        loadingMessage="Loading payment processing..."
+        errorMessage="We could not load payment processing. Please try again."
+        onRetry={() => { void refetch(); }}
+      >
         <Card className="mb-6">
           <CardHeader><CardTitle>Process Payment</CardTitle><CardDescription>Record a payment and optionally change tier</CardDescription></CardHeader>
           <CardContent className="space-y-4">

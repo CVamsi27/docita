@@ -35,7 +35,10 @@ function csrfHeaders(headers: CsrfHeaders): {
 }
 
 /** Extract a cookie value from Set-Cookie headers (supertest stores them). */
-function extractCookie(headers: Record<string, unknown>, name: string): string | undefined {
+function extractCookie(
+  headers: Record<string, unknown>,
+  name: string,
+): string | undefined {
   const setCookie = headers['set-cookie'] as string[] | undefined;
   if (!setCookie) return undefined;
   for (const entry of setCookie) {
@@ -105,7 +108,9 @@ describe('Partner Portal (e2e)', () => {
       PARTNER_REFRESH_COOKIE_NAME,
     );
     if (!refreshToken) {
-      throw new Error('partner_refresh_token cookie not set on verify-otp response');
+      throw new Error(
+        'partner_refresh_token cookie not set on verify-otp response',
+      );
     }
     return {
       accessToken: response.body.accessToken as string,

@@ -31,9 +31,11 @@ const APPOINTMENT_REMINDER_INCLUDE = {
     select: { id: true, name: true },
   },
   clinic: {
-    select: { id: true, name: true },
+    select: { id: true, name: true, timezone: true },
   },
 } satisfies Prisma.AppointmentInclude;
+
+const HOURLY_CHANNEL_TYPES = ['email', 'sms', 'whatsapp'] as const;
 
 type AppointmentForReminder = Prisma.AppointmentGetPayload<{
   include: typeof APPOINTMENT_REMINDER_INCLUDE;
@@ -130,7 +132,10 @@ export class ReminderSchedulerService {
         }
 
         const now = this.clock.now();
-        const thirtyMinFromNow = new Date(now.getTime() + 30 * 60 * 1000);
+        // The window overlaps the previous tick by five minutes so a failed
+        // or skipped cron run self-heals on the next one; the type-scoped
+        // dedupe lookup below prevents double-sends for that overlap.
+        const twentyFiveMinFromNow = new Date(now.getTime() + 25 * 60 * 1000);
         const thirtyFiveMinFromNow = new Date(now.getTime() + 35 * 60 * 1000);
 
         const clinicIds = allSettings.flatMap((setting) =>
@@ -144,7 +149,7 @@ export class ReminderSchedulerService {
           where: {
             clinicId: { in: clinicIds },
             startTime: {
-              gte: thirtyMinFromNow,
+              gte: twentyFiveMinFromNow,
               lt: thirtyFiveMinFromNow,
             },
             status: {
@@ -154,11 +159,15 @@ export class ReminderSchedulerService {
           include: APPOINTMENT_REMINDER_INCLUDE,
         });
 
+        // Type-scoped dedupe: only a previously SENT whatsapp_30min reminder
+        // suppresses this pass — email/SMS/hourly rows must never mask the
+        // 30-minute nudge the clinic explicitly enabled.
         const existingReminders =
           await this.persistence.appointmentReminder.findMany({
             where: {
               appointmentId: { in: appointments.map((a) => a.id) },
               status: 'sent',
+              type: 'whatsapp_30min',
             },
             select: { appointmentId: true },
           });
@@ -234,17 +243,23 @@ export class ReminderSchedulerService {
       include: APPOINTMENT_REMINDER_INCLUDE,
     });
 
+    // Per-channel dedupe: an already-sent email must never suppress the
+    // WhatsApp/SMS nudges of the same pass, and vice versa.
     const existingReminders =
       await this.persistence.appointmentReminder.findMany({
         where: {
           appointmentId: { in: appointments.map((a) => a.id) },
           status: 'sent',
+          type: { in: [...HOURLY_CHANNEL_TYPES] },
         },
-        select: { appointmentId: true },
+        select: { appointmentId: true, type: true },
       });
-    const existingReminderIds = new Set(
-      existingReminders.map((r) => r.appointmentId),
-    );
+    const sentByType = new Map<string, Set<string>>();
+    for (const row of existingReminders) {
+      const ids = sentByType.get(row.type) ?? new Set<string>();
+      ids.add(row.appointmentId);
+      sentByType.set(row.type, ids);
+    }
 
     if (appointments.length > 0) {
       this.logger.log(
@@ -254,11 +269,7 @@ export class ReminderSchedulerService {
 
     const results = await Promise.allSettled(
       appointments.map((appointment) =>
-        this.sendHourlyAppointmentReminder(
-          appointment,
-          settings,
-          existingReminderIds,
-        ),
+        this.sendHourlyAppointmentReminder(appointment, settings, sentByType),
       ),
     );
     const failures = results.filter((r) => r.status === 'rejected');
@@ -270,10 +281,8 @@ export class ReminderSchedulerService {
   }
 
   /**
-   * Shared by `sendHourlyAppointmentReminder` and
-   * `sendThirtyMinuteWhatsappReminder` — both dispatchers skip appointments
-   * a prior pass already reminded (tracked via the optional dedupe set), so
-   * the "already sent" check stays identical across both reminder cadences.
+   * Dedupe guard for `sendThirtyMinuteWhatsappReminder`: skips appointments
+   * a prior pass already reminded (tracked via the optional dedupe set).
    */
   private reminderAlreadySent(
     appointment: AppointmentForReminder,
@@ -282,35 +291,39 @@ export class ReminderSchedulerService {
     return existingReminderIds?.has(appointment.id) ?? false;
   }
 
-  // The signature and dedupe guard below intentionally mirror
-  // `sendThirtyMinuteWhatsappReminder` — both are `Promise.allSettled` map
-  // callbacks driven by the same `(appointment, settings, existingReminderIds)`
-  // triple and must short-circuit on the same "already sent" check before
-  // their channel-specific dispatch logic (which differs substantially)
-  // begins. That's structural to the dispatcher pattern, not copy-paste drift.
-  // jscpd:ignore-start
+  private hasSentChannelReminder(
+    sentByType: Map<string, Set<string>> | undefined,
+    appointmentId: string,
+    type: string,
+  ): boolean {
+    return sentByType?.get(type)?.has(appointmentId) ?? false;
+  }
+
   private async sendHourlyAppointmentReminder(
     appointment: AppointmentForReminder,
     settings: _ReminderSettings,
-    existingReminderIds?: Set<string>,
+    sentByType?: Map<string, Set<string>>,
   ): Promise<void> {
-    if (this.reminderAlreadySent(appointment, existingReminderIds)) {
-      return;
-    }
-    // jscpd:ignore-end
+    const alreadySent = (type: string) =>
+      this.hasSentChannelReminder(sentByType, appointment.id, type);
 
     if (settings.emailEnabled && appointment.patient.email) {
-      await this.notificationService.sendEmailReminder(appointment, settings);
+      if (!alreadySent('email')) {
+        await this.notificationService.sendEmailReminder(appointment, settings);
+      }
     }
 
     if (settings.smsEnabled && appointment.patient.phoneNumber) {
-      await this.notificationService.sendSmsReminder(appointment, settings);
+      if (!alreadySent('sms')) {
+        await this.notificationService.sendSmsReminder(appointment, settings);
+      }
     }
 
     if (
       settings.whatsappEnabled &&
       appointment.patient.phoneNumber &&
       settings.clinicId &&
+      !alreadySent('whatsapp') &&
       (await isClinicWhatsAppAutomationSendingAllowed(
         this.persistence,
         settings.clinicId,

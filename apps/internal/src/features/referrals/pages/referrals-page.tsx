@@ -45,8 +45,14 @@ interface PayoutSummaryRow {
 }
 
 export function ReferralsPage() {
-  const { data: referrals = [], isLoading, refetch } = useApiQuery<Referral[]>("/api/internal/referrers");
-  const { data: payoutData = [] } = useApiQuery<PayoutSummaryRow[]>("/api/internal/referral-payouts/summary");
+  const {
+    data: referrals = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useApiQuery<Referral[]>("/api/internal/referrers");
+  const { data: payoutData = [], isError: payoutsError } =
+    useApiQuery<PayoutSummaryRow[]>("/api/internal/referral-payouts/summary");
 
   const stats = useMemo(() => ({
     total: referrals.length,
@@ -113,8 +119,12 @@ export function ReferralsPage() {
       }
     >
       <DataState
-        status={isLoading ? "loading" : "success"}
+        status={
+          isError || payoutsError ? "error" : isLoading ? "loading" : "success"
+        }
         loadingMessage="Loading referrals..."
+        errorMessage="We could not load referral partners. Please try again."
+        onRetry={() => void refetch()}
       >
         <div className="grid gap-4 md:grid-cols-3 mb-6">
           <Card>

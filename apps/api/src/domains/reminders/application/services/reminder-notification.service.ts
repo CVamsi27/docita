@@ -17,6 +17,7 @@ import {
   getPatientFullName,
 } from '@workspace/utils';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { isClinicWhatsAppAutomationSendingAllowed } from '@/shared/whatsapp/whatsapp-patient-send-policy.util';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
@@ -43,8 +44,15 @@ interface AppointmentForReminder {
   clinic?: {
     id: string;
     name: string;
+    timezone?: string | null;
   };
 }
+
+const DEFAULT_EMAIL_TEMPLATE = [
+  'Hello {{patientName}},',
+  '',
+  'This is a reminder for your appointment with {{doctorName}} at {{clinicName}} on {{appointmentDate}} at {{appointmentTime}}.',
+].join('\n');
 
 @Injectable()
 export class ReminderNotificationService {
@@ -54,32 +62,52 @@ export class ReminderNotificationService {
     @Inject(REMINDER_PERSISTENCE_PORT)
     private persistence: ReminderPersistencePort,
     private sendMessage: SendMessageUseCase,
+    private readonly emailService: EmailService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
-
   async sendEmailReminder(
     appointment: AppointmentForReminder,
     settings: ReminderSettings,
   ): Promise<void> {
+    const timezone = appointment.clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
     try {
-      this.replacePlaceholders(settings.emailTemplate || '', appointment);
+      if (!appointment.patient.email) {
+        await this.recordReminderOutcome({
+          appointmentId: appointment.id,
+          type: 'email',
+          status: 'skipped',
+          error: 'patient has no email address on file',
+        });
+        return;
+      }
+
       const subject = this.replacePlaceholders(
         settings.emailSubject || 'Appointment Reminder',
         appointment,
+        timezone,
+      );
+      const body = this.replacePlaceholders(
+        settings.emailTemplate || DEFAULT_EMAIL_TEMPLATE,
+        appointment,
+        timezone,
       );
 
-      this.logger.debug(
-        `[EMAIL] Reminder workflow started for appointment ${appointment.id}`,
-      );
-      this.logger.debug(`[EMAIL] Subject: ${subject}`);
+      const result = await this.emailService.send({
+        to: appointment.patient.email,
+        subject,
+        text: body,
+        html: `<div style="font-family:sans-serif;white-space:pre-line">${body}</div>`,
+      });
 
-      await this.persistence.appointmentReminder.create({
-        data: {
-          appointmentId: appointment.id,
-          type: 'email',
-          status: 'sent',
-          sentAt: this.clock.now(),
-        },
+      if (!result.success) {
+        throw new Error(result.error ?? 'email provider rejected the send');
+      }
+
+      await this.recordReminderOutcome({
+        appointmentId: appointment.id,
+        type: 'email',
+        status: 'sent',
+        sentAt: this.clock.now(),
       });
 
       this.logger.log(`Email reminder sent for appointment ${appointment.id}`);
@@ -87,51 +115,30 @@ export class ReminderNotificationService {
       this.logger.error(
         `Failed to send email reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      await this.persistence.appointmentReminder.create({
-        data: {
-          appointmentId: appointment.id,
-          type: 'email',
-          status: 'failed',
-          error: formatCaughtError(error),
-        },
+      await this.recordReminderOutcome({
+        appointmentId: appointment.id,
+        type: 'email',
+        status: 'failed',
+        error: formatCaughtError(error),
       });
     }
   }
 
   async sendSmsReminder(
     appointment: AppointmentForReminder,
-    settings: ReminderSettings,
+    _settings: ReminderSettings,
   ): Promise<void> {
-    try {
-      this.replacePlaceholders(settings.smsTemplate || '', appointment);
-
-      this.logger.debug(
-        `[SMS] Reminder workflow started for appointment ${appointment.id}`,
-      );
-
-      await this.persistence.appointmentReminder.create({
-        data: {
-          appointmentId: appointment.id,
-          type: 'sms',
-          status: 'sent',
-          sentAt: this.clock.now(),
-        },
-      });
-
-      this.logger.log(`SMS reminder sent for appointment ${appointment.id}`);
-    } catch (error) {
-      this.logger.error(
-        `Failed to send SMS reminder: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-      await this.persistence.appointmentReminder.create({
-        data: {
-          appointmentId: appointment.id,
-          type: 'sms',
-          status: 'failed',
-          error: formatCaughtError(error),
-        },
-      });
-    }
+    // No SMS provider transport is wired yet. Record an honest skipped row
+    // (never "sent") so clinics are not misled and dedupe stays accurate.
+    this.logger.warn(
+      `SMS reminders are not configured for this deployment; skipping for appointment ${appointment.id}`,
+    );
+    await this.recordReminderOutcome({
+      appointmentId: appointment.id,
+      type: 'sms',
+      status: 'skipped',
+      error: 'SMS transport not configured',
+    });
   }
 
   async sendWhatsappReminder(
@@ -156,16 +163,17 @@ export class ReminderNotificationService {
       }
 
       const clinicName = appointment.clinic?.name ?? '';
+      const timezone = appointment.clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
 
       const variables: Record<string, string> = {
         patientName: getPatientFullName(appointment.patient),
         doctorName: appointment.doctor.name,
         clinicName,
         date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
-          timezone: DEFAULT_TIMEZONE,
+          timezone,
         }),
         time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM, {
-          timezone: DEFAULT_TIMEZONE,
+          timezone,
         }),
         appointmentType: appointment.type,
         appointmentId: String(appointment.id),
@@ -224,6 +232,25 @@ export class ReminderNotificationService {
         },
       });
     }
+  }
+
+  /** Single audit row per reminder attempt outcome (sent/failed/skipped). */
+  private async recordReminderOutcome(input: {
+    appointmentId: string;
+    type: string;
+    status: 'sent' | 'failed' | 'skipped';
+    sentAt?: Date;
+    error?: string;
+  }): Promise<void> {
+    await this.persistence.appointmentReminder.create({
+      data: {
+        appointmentId: input.appointmentId,
+        type: input.type,
+        status: input.status,
+        ...(input.sentAt ? { sentAt: input.sentAt } : {}),
+        ...(input.error ? { error: input.error } : {}),
+      },
+    });
   }
 
   replacePlaceholders(

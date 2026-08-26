@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { inventoryAddItemFormSchema, type InventoryAddItemFormValues } from "@workspace/types";
+import { formatClinicPickerDayIsoFromSelection } from "@workspace/utils";
 import { FormControl, FormField, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/form-primitives";
 import { CRUDDialog, DatePicker, Form, FormFieldGroup } from "@workspace/ui/components";
 export type InventoryItemFormData = InventoryAddItemFormValues;
@@ -162,7 +163,9 @@ export function InventoryAddItemDialogUI({
                   <DatePicker
                     value={field.value || undefined}
                     onChange={(date) =>
-                      field.onChange(date?.toISOString().slice(0, 10) ?? "")
+                      field.onChange(
+                        date ? formatClinicPickerDayIsoFromSelection(date) : "",
+                      )
                     }
                     placeholder={t("inventoryAddItem.expiryDatePlaceholder")}
                   />

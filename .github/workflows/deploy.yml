@@ -1,32 +1,35 @@
 name: Deploy Production
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - "apps/api/**"
-      - "apps/worker/**"
-      - "apps/app/**"
-      - "apps/internal/**"
-      - "apps/landing/**"
-      - "packages/auth/**"
-      - "packages/data-access/**"
-      - "packages/db/**"
-      - "packages/hooks/**"
-      - "packages/types/**"
-      - "packages/ui/**"
-      - "packages/utils/**"
-      - "scripts/deploy/**"
-      - "scripts/checks/check-worker-size.mjs"
-      - "scripts/workflow/detect-workflow-scope.mjs"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - "turbo.json"
-      - "fly.toml"
-      - "apps/worker/fly.toml"
-      - ".github/workflows/deploy.yml"
+# Deployments paused: all triggers disabled in code (also disabled at the
+# GitHub level). A workflow without an `on:` block never runs. To re-enable,
+# uncomment the `on:` block below.
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - "apps/api/**"
+#       - "apps/worker/**"
+#       - "apps/app/**"
+#       - "apps/internal/**"
+#       - "apps/landing/**"
+#       - "packages/auth/**"
+#       - "packages/data-access/**"
+#       - "packages/db/**"
+#       - "packages/hooks/**"
+#       - "packages/types/**"
+#       - "packages/ui/**"
+#       - "packages/utils/**"
+#       - "scripts/deploy/**"
+#       - "scripts/checks/check-worker-size.mjs"
+#       - "scripts/workflow/detect-workflow-scope.mjs"
+#       - "package.json"
+#       - "pnpm-lock.yaml"
+#       - "pnpm-workspace.yaml"
+#       - "turbo.json"
+#       - "fly.toml"
+#       - "apps/worker/fly.toml"
+#       - ".github/workflows/deploy.yml"
 
 concurrency:
   group: deploy-production-${{ github.ref }}

@@ -15,6 +15,7 @@ describe('ResponseHandlerService', () => {
 
   const mockAppointment = {
     id: 'appt-123',
+    status: 'SCHEDULED',
     startTime: new Date('2026-04-01T10:00:00.000Z'),
     patient: {
       firstName: 'Rahul',
@@ -35,6 +36,9 @@ describe('ResponseHandlerService', () => {
     appointment: {
       findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateMany: jest
+        .fn<(...args: unknown[]) => Promise<{ count: number }>>()
+        .mockResolvedValue({ count: 1 }),
       findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     appointmentResponse: {
@@ -120,8 +124,11 @@ describe('ResponseHandlerService', () => {
         }),
       }),
     );
-    expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
-      where: { id: 'appt-123' },
+    expect(mockPrisma.appointment.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: 'appt-123',
+        status: { in: ['SCHEDULED'] },
+      },
       data: { status: 'CONFIRMED' },
     });
   });
@@ -139,10 +146,43 @@ describe('ResponseHandlerService', () => {
         data: expect.objectContaining({ responseType: 'ON_THE_WAY' }),
       }),
     );
-    expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
-      where: { id: 'appt-123' },
+    expect(mockPrisma.appointment.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: 'appt-123',
+        status: { in: ['SCHEDULED', 'CONFIRMED'] },
+      },
       data: { status: 'CONFIRMED' },
     });
+  });
+
+  it('never cancels a completed visit when the patient replies "no"', async () => {
+    mockPrisma.appointment.findUnique.mockResolvedValue({
+      ...mockAppointment,
+      status: 'COMPLETED',
+    });
+    mockPrisma.appointment.updateMany.mockResolvedValueOnce({ count: 0 });
+
+    await service.handlePatientResponse(
+      'appt-123',
+      'no',
+      '919876543210',
+      'm-no-completed',
+    );
+
+    expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ responseType: 'CANCEL' }),
+      }),
+    );
+    expect(mockPrisma.appointment.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: 'appt-123',
+        status: { in: ['SCHEDULED', 'CONFIRMED', 'RESCHEDULING'] },
+      },
+      data: { status: 'CANCELLED' },
+    });
+    // The conditional update matched nothing; no blind rewrite occurred.
+    expect(mockPrisma.appointment.update).not.toHaveBeenCalled();
   });
 
   it('keeps numeric text from ambiguous partial matching', async () => {

@@ -11,7 +11,7 @@
 // own `BACKEND` URL and exports the Hono `app` as default — the only per-app
 // difference is the public host the proxy runs under.
 
-import type { Hono, Context } from "hono";
+import type { Context, Hono } from "hono";
 import {
   extractApiV1PathSegments,
   proxyUpstreamApiRequest,

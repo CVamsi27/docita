@@ -3,8 +3,11 @@ name: Database Migrations
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-on:
-  workflow_dispatch:
+# Database migrations paused: manual dispatch disabled in code (also disabled
+# at the GitHub level). A workflow without an `on:` block never runs. To
+# re-enable, uncomment the `on:` block below.
+# on:
+#   workflow_dispatch:
 
 jobs:
   migrate-db:
