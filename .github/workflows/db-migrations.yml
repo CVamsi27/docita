@@ -1,0 +1,60 @@
+name: Database Migrations
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+# Database migrations paused: manual dispatch disabled in code (also disabled
+# at the GitHub level). A workflow without an `on:` block never runs. To
+# re-enable, uncomment the `on:` block below.
+# on:
+#   workflow_dispatch:
+
+jobs:
+  migrate-db:
+    name: Apply Prisma Migrations
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      NODE_ENV: production
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret is required."
+            exit 1
+          fi
+          pnpm --filter @workspace/db run db:generate
+
+      - name: Run Prisma Migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret is required."
+            exit 1
+          fi
+          pnpm --filter @workspace/db run db:migrate:safe
+
+      - name: Verify database schema is in sync
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: bash scripts/deploy/verify-db-schema-sync.sh
