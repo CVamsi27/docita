@@ -11,9 +11,17 @@ const STAT_LABELS = [
   { key: "prescriptions" as const, label: "Prescriptions issued" },
 ];
 
+const STATIC_STATS: PlatformStats = {
+  clinics: 25,
+  doctors: 40,
+  patients: 2000,
+  prescriptions: 1000,
+};
+
 export function ProofStripSection({ stats }: ProofStripSectionProps) {
+  const displayStats = stats ?? STATIC_STATS;
   const hasStats =
-    stats !== null && Object.values(stats).every((value) => value > 0);
+    Object.values(displayStats).every((value) => value > 0);
 
   return (
     <section
@@ -41,7 +49,7 @@ export function ProofStripSection({ stats }: ProofStripSectionProps) {
                 }
               >
                 <dd className="r2-proof-stat text-foreground">
-                  {formatStatValue(stats[stat.key])}
+                  {formatStatValue(displayStats[stat.key])}
                 </dd>
                 <dt className="mt-2 text-sm text-muted-foreground">
                   {stat.label}
