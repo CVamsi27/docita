@@ -1,23 +1,14 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   FALLBACK_PRICING_CONFIG,
   formatStatValue,
   formatTierPrice,
+  PLATFORM_STATS,
 } from "./landing-data";
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
-});
-
-// `fetchPlatformStats` keeps a module-level 24h cache, so each test needs a
-// fresh module instance to observe a real fetch instead of the previous
-// test's cached entry.
-async function importFetchPlatformStats() {
-  vi.resetModules();
-  const mod = await import("./landing-data");
-  return mod.fetchPlatformStats;
-}
+// fetchPlatformStats tests removed — backend disabled, static stats used.
+// Restore by uncommenting the fetchPlatformStats tests and re-enabling
+// the fetch function in landing-data.ts.
 
 describe("landing-data", () => {
   describe("formatTierPrice", () => {
@@ -36,73 +27,12 @@ describe("landing-data", () => {
     });
   });
 
-  describe("fetchPlatformStats", () => {
-    it("returns null when live landing data is disabled", async () => {
-      vi.stubEnv("PUBLIC_ENABLE_LIVE_LANDING_DATA", "false");
-      const fetchMock = vi.fn();
-      vi.stubGlobal("fetch", fetchMock);
-      const fetchPlatformStats = await importFetchPlatformStats();
-
-      await expect(fetchPlatformStats("https://landing.docita.work")).resolves.toBeNull();
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
-
-    it("fetches, floors, and returns parsed stats", async () => {
-      vi.stubEnv("PUBLIC_ENABLE_LIVE_LANDING_DATA", "true");
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue(
-          new Response(
-            JSON.stringify({
-              clinics: 1200.7,
-              doctors: 3400,
-              patients: 55000.2,
-              prescriptions: 100000,
-            }),
-            { status: 200 },
-          ),
-        ),
-      );
-      const fetchPlatformStats = await importFetchPlatformStats();
-
-      await expect(fetchPlatformStats("https://landing.docita.work")).resolves.toEqual({
-        clinics: 1200,
-        doctors: 3400,
-        patients: 55000,
-        prescriptions: 100000,
-      });
-    });
-
-    it("returns null and does not throw when the fetch fails", async () => {
-      vi.stubEnv("PUBLIC_ENABLE_LIVE_LANDING_DATA", "true");
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue(new Response("boom", { status: 503 })),
-      );
-      const fetchPlatformStats = await importFetchPlatformStats();
-
-      await expect(fetchPlatformStats("https://landing.docita.work")).resolves.toBeNull();
-    });
-
-    it("returns null for non-numeric or negative stat values", async () => {
-      vi.stubEnv("PUBLIC_ENABLE_LIVE_LANDING_DATA", "true");
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue(
-          new Response(
-            JSON.stringify({
-              clinics: "many",
-              doctors: -5,
-              patients: 100,
-              prescriptions: 200,
-            }),
-            { status: 200 },
-          ),
-        ),
-      );
-      const fetchPlatformStats = await importFetchPlatformStats();
-
-      await expect(fetchPlatformStats("https://landing.docita.work")).resolves.toBeNull();
+  describe("PLATFORM_STATS", () => {
+    it("has positive values for all stat fields", () => {
+      expect(PLATFORM_STATS.clinics).toBeGreaterThan(0);
+      expect(PLATFORM_STATS.doctors).toBeGreaterThan(0);
+      expect(PLATFORM_STATS.patients).toBeGreaterThan(0);
+      expect(PLATFORM_STATS.prescriptions).toBeGreaterThan(0);
     });
   });
 

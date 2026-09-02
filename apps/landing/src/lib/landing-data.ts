@@ -1,16 +1,10 @@
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
-import { fetchLandingJson } from "@/lib/api-fetch";
 
 export interface PlatformStats {
   clinics: number;
   doctors: number;
   patients: number;
   prescriptions: number;
-}
-
-interface PlatformStatsCacheEntry {
-  expiresAt: number;
-  stats: PlatformStats | null;
 }
 
 interface TierPricing {
@@ -170,69 +164,53 @@ export const FALLBACK_PRICING_CONFIG: PricingConfig = {
   tiers: FALLBACK_TIERS,
 };
 
-const PLATFORM_STATS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-let platformStatsCache: PlatformStatsCacheEntry | null = null;
+// fetchPlatformStats disabled — backend removed. Static PLATFORM_STATS used
+// instead. Restore by uncommenting the fetch function and cache below.
+// import { fetchLandingJson } from "@/lib/api-fetch";
+//
+// interface PlatformStatsCacheEntry {
+//   expiresAt: number;
+//   stats: PlatformStats | null;
+// }
+//
+// const PLATFORM_STATS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+// let platformStatsCache: PlatformStatsCacheEntry | null = null;
+//
+// function isLiveLandingDataEnabled(): boolean {
+//   return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] !== "false";
+// }
+//
+// function parseStatValue(value: unknown): number | null {
+//   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return null;
+//   return Math.floor(value);
+// }
+//
+// export async function fetchPlatformStats(baseOrigin?: string): Promise<PlatformStats | null> {
+//   if (!isLiveLandingDataEnabled()) return null;
+//   const now = Date.now();
+//   if (platformStatsCache && platformStatsCache.expiresAt > now) return platformStatsCache.stats;
+//   try {
+//     const payload = await fetchLandingJson<Partial<PlatformStats>>("/public/platform-stats", baseOrigin);
+//     const clinics = parseStatValue(payload.clinics);
+//     const doctors = parseStatValue(payload.doctors);
+//     const patients = parseStatValue(payload.patients);
+//     const prescriptions = parseStatValue(payload.prescriptions);
+//     if (clinics === null || doctors === null || patients === null || prescriptions === null) return null;
+//     const stats = { clinics, doctors, patients, prescriptions };
+//     platformStatsCache = { expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS, stats };
+//     return stats;
+//   } catch {
+//     platformStatsCache = { expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS, stats: null };
+//     return null;
+//   }
+// }
 
-function isLiveLandingDataEnabled(): boolean {
-  return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] !== "false";
-}
-
-function parseStatValue(value: unknown): number | null {
-  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
-    return null;
-  }
-  return Math.floor(value);
-}
-
-export async function fetchPlatformStats(
-  baseOrigin?: string,
-): Promise<PlatformStats | null> {
-  if (!isLiveLandingDataEnabled()) {
-    return null;
-  }
-
-  const now = Date.now();
-  if (platformStatsCache && platformStatsCache.expiresAt > now) return platformStatsCache.stats;
-
-  try {
-    const payload = await fetchLandingJson<Partial<PlatformStats>>(
-      "/public/platform-stats",
-      baseOrigin,
-    );
-
-    const clinics = parseStatValue(payload.clinics);
-    const doctors = parseStatValue(payload.doctors);
-    const patients = parseStatValue(payload.patients);
-    const prescriptions = parseStatValue(payload.prescriptions);
-
-    if (
-      clinics === null ||
-      doctors === null ||
-      patients === null ||
-      prescriptions === null
-    ) return null;
-
-    const stats = {
-      clinics,
-      doctors,
-      patients,
-      prescriptions,
-    };
-    platformStatsCache = {
-      expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS,
-      stats,
-    };
-
-    return stats;
-  } catch {
-    platformStatsCache = {
-      expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS,
-      stats: null,
-    };
-
-    return null;
-  }
-}
+export const PLATFORM_STATS: PlatformStats = {
+  clinics: 25,
+  doctors: 40,
+  patients: 2000,
+  prescriptions: 1000,
+};
 
 export function formatStatValue(value: number): string {
   return formatCountLocale(value);

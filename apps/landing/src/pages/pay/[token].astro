@@ -1,17 +1,19 @@
 ---
 import MainLayout from "@/layouts/main-layout.astro";
-import { resolvePaymentRedirectLocation } from "@/lib/api-fetch";
+// API redirect disabled — backend removed. Restore by uncommenting the import
+// and the redirect logic below.
+// import { resolvePaymentRedirectLocation } from "@/lib/api-fetch";
 
 const token = Astro.params.token?.trim();
 if (!token) {
   return Astro.redirect("/404");
 }
 
-const redirectLocation = await resolvePaymentRedirectLocation(token, Astro.url.origin);
-
-if (redirectLocation) {
-  return Astro.redirect(redirectLocation);
-}
+// Payment redirect disabled — backend removed.
+// const redirectLocation = await resolvePaymentRedirectLocation(token, Astro.url.origin);
+// if (redirectLocation) {
+//   return Astro.redirect(redirectLocation);
+// }
 ---
 
 <MainLayout
