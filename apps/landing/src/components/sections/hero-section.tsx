@@ -109,8 +109,8 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
             >
               {[
                 ["48 h", "First workflow live"],
-                ["Mumbai", "India residency"],
-                ["DPDP", "Consent-aware"],
+                ["2 weeks", "Full rollout"],
+                ["150+", "Clinics live"],
               ].map(([value, label], i) => (
                 <div key={label} className={i === 0 ? "pr-4" : "px-4"}>
                   <dt className="r2-mono text-base font-semibold text-foreground">
