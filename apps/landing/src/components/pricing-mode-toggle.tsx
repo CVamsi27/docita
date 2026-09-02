@@ -25,7 +25,7 @@ export function PricingModeToggle({ selectedMode, billingPeriod, onModeChange, o
               onClick={() => onModeChange(mode)}
               aria-selected={active}
               title={info.helpText}
-              className={cn("rounded-lg px-3.5 py-1.5 text-xs font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              className={cn("rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 active
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -54,7 +54,7 @@ export function PricingModeToggle({ selectedMode, billingPeriod, onModeChange, o
               role="tab"
               onClick={() => onBillingChange(period)}
               aria-selected={active}
-              className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              className={cn("rounded-md px-3 py-1 text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 active
                   ? "bg-foreground text-background shadow-sm"
                   : "text-muted-foreground hover:text-foreground"

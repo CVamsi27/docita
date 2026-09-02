@@ -46,7 +46,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
           initial="hidden"
           animate="visible"
         >
-          <div className="col-span-12 mt-0 sm:mt-4 lg:col-span-7 lg:mt-0 lg:pr-6 xl:col-span-6">
+          <div className="r2-hero-copy col-span-12 mt-0 sm:mt-4 lg:col-span-7 lg:mt-0 lg:pr-6 xl:col-span-6">
             <motion.div variants={item}>
               <span className="r2-eyebrow r2-eyebrow-accent">
                 Clinics & Hospitals
@@ -61,7 +61,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
               <span className="block">
                 One <em>rhythm</em> for your whole OPD floor.
               </span>{" "}
-              <span className="mt-2 block r2-display-sm text-muted-foreground">
+              <span className="mt-2 block font-sans text-xl font-normal leading-snug tracking-tight text-muted-foreground sm:text-2xl">
                 Queue, chart, bill, follow up&mdash;without the shuffle.
               </span>
             </motion.h1>
@@ -105,7 +105,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
 
             <motion.dl
               variants={item}
-              className="mt-10 grid max-w-lg grid-cols-3 divide-x divide-border/60 border-t border-border/60 pt-6"
+              className="r2-hero-metrics mt-10 grid max-w-lg grid-cols-3 divide-x divide-border/60 border-t border-border/60 pt-6"
             >
               {[
                 ["48 h", "First workflow live"],
@@ -126,7 +126,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
 
           <motion.div
             variants={item}
-            className="col-span-12 lg:col-span-5 xl:col-span-6"
+            className="r2-hero-preview col-span-12 lg:col-span-5 xl:col-span-6"
           >
             <HeroProductCard
               state={state}
@@ -159,13 +159,14 @@ function HeroProductCard({
 }: HeroProductCardProps) {
   return (
     <div
-      className="r2-product"
+      className="r2-product r2-product-preview"
       data-state={state}
       onMouseEnter={onHoverStart}
       onMouseLeave={onHoverEnd}
       onFocusCapture={onHoverStart}
       onBlurCapture={onHoverEnd}
-      role="region"                  aria-label="Live practice operations preview"
+      role="region"
+      aria-label="Live practice operations preview"
     >
       <div className="r2-product-chrome">
         <span className="r2-product-chrome-dot" aria-hidden />
@@ -180,7 +181,7 @@ function HeroProductCard({
           <span>Live</span>
         </span>
       </div>
-      <div className="r2-product-stage">
+      <div className="r2-product-stage r2-product-preview-stage">
         <WaitingFrame />
         <ConsultFrame />
         <CheckoutFrame />
@@ -190,6 +191,7 @@ function HeroProductCard({
         className="r2-product-rail"
         role="tablist"
         aria-label="Preview state"
+        aria-orientation="horizontal"
       >
         {STATES.map((s, i) => (
           <button
@@ -197,9 +199,11 @@ function HeroProductCard({
             type="button"
             role="tab"
             aria-selected={state === s}
+            aria-controls={`r2-product-frame-${s}`}
             aria-label={`Show ${s} preview`}
             onClick={() => onSelect(s)}
-            className="group flex flex-1 items-center gap-2 rounded-md py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="r2-product-rail-tab group flex flex-1 items-center gap-2 rounded-md py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            data-selected={state === s ? "true" : "false"}
           >
             <span className="r2-product-rail-dot" />
             <span className="sr-only">{`Step ${i + 1}: ${s}`}</span>
@@ -212,7 +216,7 @@ function HeroProductCard({
 
 function WaitingFrame() {
   return (
-    <div className="r2-product-frame" data-frame="waiting">
+    <div id="r2-product-frame-waiting" className="r2-product-frame" data-frame="waiting">
       <div className="flex items-center justify-between">
         <div>
           <p className="r2-eyebrow">OPD queue</p>
@@ -259,7 +263,7 @@ function WaitingFrame() {
 
 function ConsultFrame() {
   return (
-    <div className="r2-product-frame" data-frame="consult">
+    <div id="r2-product-frame-consult" className="r2-product-frame" data-frame="consult">
       <div className="flex items-center justify-between">
         <div>
           <p className="r2-eyebrow">Consult · Token 07</p>
@@ -319,7 +323,7 @@ function ConsultFrame() {
 
 function CheckoutFrame() {
   return (
-    <div className="r2-product-frame" data-frame="checkout">
+    <div id="r2-product-frame-checkout" className="r2-product-frame" data-frame="checkout">
       <div className="flex items-center justify-between">
         <div>
           <p className="r2-eyebrow">Invoice · Token 07</p>

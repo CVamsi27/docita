@@ -82,7 +82,7 @@ export function ComparisonStripSection() {
           role="table"
           aria-label="Before Docita versus with Docita"
         >
-          <div className="r2-compare-cell r2-compare-cell--before" role="rowheader">
+          <div className="r2-compare-cell r2-compare-cell--before order-2 sm:order-1" role="rowheader">
             <p className="r2-eyebrow flex items-center gap-1.5 text-muted-foreground">
               <X className="h-3 w-3" aria-hidden />
               Before
@@ -102,7 +102,7 @@ export function ComparisonStripSection() {
             ))}
           </div>
 
-          <div className="r2-compare-cell r2-compare-cell--after" role="rowheader">
+          <div className="r2-compare-cell r2-compare-cell--after order-1 sm:order-2" role="rowheader">
             <p className="r2-eyebrow r2-eyebrow-accent flex items-center gap-1.5">
               <CheckCircle2 className="h-3 w-3" aria-hidden />
               With Docita

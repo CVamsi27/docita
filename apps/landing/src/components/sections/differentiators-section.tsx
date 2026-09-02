@@ -120,7 +120,7 @@ export function DifferentiatorsSection() {
                   <PortalListRow key={row.label} row={row} />
                 ))}
               </ul>
-              <p className="mt-3 text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+              <p className="mt-3 rounded-md border border-border/40 bg-muted px-2.5 py-2 text-xs leading-snug text-muted-foreground">
                 AI suggestions are reviewed and signed off by the doctor.
                 We do not generate diagnoses.
               </p>
