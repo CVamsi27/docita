@@ -3022,8 +3022,12 @@ details[open] .r2-faq-icon::after {
 }
 
 @media (min-width: 1024px) {
+  .r2-hero {
+    padding-block: clamp(2rem, 0.5rem + 3vw, 4rem);
+  }
+
   .r2-hero-shell {
-    padding-block: clamp(4.5rem, 8vw, 7.5rem);
+    padding-block: clamp(1.5rem, 2vw, 3rem);
   }
 
   .r2-product {
