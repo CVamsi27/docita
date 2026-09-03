@@ -25,7 +25,7 @@ export function ProofStripSection({ stats }: ProofStripSectionProps) {
 
   return (
     <section
-      className="r2-section r2-section-tight r2-band-base"
+      className="r2-section r2-section-tight r2-band-base r2-proof-band"
       aria-labelledby="r2-proof-heading"
     >
       <div className="ui-page-shell">
