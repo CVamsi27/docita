@@ -4,8 +4,8 @@ import { SUPPORT_EMAIL } from "@workspace/types";
 ---
 
 <footer class="landing-footer text-foreground/80 px-6 py-10">
-  <div class="ui-page-shell grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-    <div class="min-w-0">
+  <div class="ui-page-shell grid grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-5">
+    <div class="col-span-2 min-w-0 sm:col-span-3 md:col-span-1">
       <a href="/" class="inline-flex items-center" aria-label="Docita home">
         <DocitaWordmark className="h-10 w-auto max-w-[11rem]" />
       </a>
@@ -27,7 +27,7 @@ import { SUPPORT_EMAIL } from "@workspace/types";
       </ul>
     </div>
 
-    <div>
+    <div class="hidden md:block">
       <h2 class="font-semibold text-foreground">Deep dives</h2>
       <ul class="mt-4 space-y-2 text-sm">
         <li><a href="/clinic-management-software-india" class="text-foreground/80 transition-colors hover:text-primary">Clinic management software India</a></li>
@@ -77,10 +77,5 @@ import { SUPPORT_EMAIL } from "@workspace/types";
       </a>
     </div>
     <p>© {new Date().getFullYear()} Docita. All rights reserved.</p>
-    <p class="mt-1">
-      Docita is operated by <strong class="font-semibold text-foreground">CHANDALURI VAMSI KRISHNA</strong>, a registered sole proprietorship in India.
-    </p>
-    <p>GSTIN: 36CJPPC6222C1ZI</p>
-    <p>Aparna Cyberscape, Nalagandla, Hyderabad, Telangana 500019</p>
   </div>
 </footer>

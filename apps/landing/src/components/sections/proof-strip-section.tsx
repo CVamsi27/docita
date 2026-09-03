@@ -11,16 +11,17 @@ const STAT_LABELS = [
   { key: "prescriptions" as const, label: "Prescriptions issued" },
 ];
 
-const OPERATING_FACTS = [
-  { value: "Mumbai", label: "India residency · ap-south-1" },
-  { value: "DPDP", label: "Consent-aware workflows" },
-  { value: "Excel ↔ CSV", label: "Bring your patient list" },
-  { value: "Role-based", label: "Reception · doctor · admin" },
-];
+const STATIC_STATS: PlatformStats = {
+  clinics: 25,
+  doctors: 40,
+  patients: 2000,
+  prescriptions: 1000,
+};
 
 export function ProofStripSection({ stats }: ProofStripSectionProps) {
+  const displayStats = stats ?? STATIC_STATS;
   const hasStats =
-    stats !== null && Object.values(stats).every((value) => value > 0);
+    Object.values(displayStats).every((value) => value > 0);
 
   return (
     <section
@@ -37,7 +38,7 @@ export function ProofStripSection({ stats }: ProofStripSectionProps) {
         </h2>
 
         {hasStats ? (
-          <dl className="mt-8 grid grid-cols-2 gap-y-6 sm:grid-cols-4">
+          <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
             {STAT_LABELS.map((stat, i) => (
               <div
                 key={stat.key}
@@ -47,27 +48,16 @@ export function ProofStripSection({ stats }: ProofStripSectionProps) {
                     : "sm:border-r sm:border-border/50 sm:pr-6"
                 }
               >
-                <dt className="r2-eyebrow text-muted-foreground">{stat.label}</dt>
-                <dd className="mt-2 r2-proof-stat text-foreground">
-                  {formatStatValue(stats[stat.key])}
+                <dd className="r2-proof-stat text-foreground">
+                  {formatStatValue(displayStats[stat.key])}
                 </dd>
+                <dt className="mt-2 text-sm text-muted-foreground">
+                  {stat.label}
+                </dt>
               </div>
             ))}
           </dl>
         ) : null}
-
-        <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-border/50 pt-8 sm:grid-cols-4">
-          {OPERATING_FACTS.map((fact) => (
-            <div key={fact.label}>
-              <p className="r2-mono text-sm font-semibold text-foreground">
-                {fact.value}
-              </p>
-              <p className="mt-1 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                {fact.label}
-              </p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );

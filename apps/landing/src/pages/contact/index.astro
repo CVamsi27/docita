@@ -96,18 +96,6 @@ const faqs = [
               </li>
             </ul>
           </article>
-
-          <article class="landing-surface-panel rounded-[var(--radius)] border border-border/70 p-5">
-            <h2 class="ui-section-title text-[var(--fs-2xl)]">Address</h2>
-            <div class="mt-4 space-y-1 ui-helper-text">
-              <p class="font-medium text-foreground">CHANDALURI VAMSI KRISHNA</p>
-              <p>Sole Proprietor, Docita</p>
-              <p>GSTIN: 36CJPPC6222C1ZI</p>
-              <p>Aparna Cyberscape, Nalagandla</p>
-              <p>Hyderabad, Telangana 500019</p>
-              <p>India</p>
-            </div>
-          </article>
         </aside>
 
         <div>
@@ -130,6 +118,10 @@ const faqs = [
   </section>
 </MainLayout>
 
+<!-- Contact form API submission disabled — backend removed.
+     Restore by uncommenting the script below and re-enabling the
+     /api/v1/contact/inquiry endpoint. -->
+<!--
 <script is:inline>
   const root = document.querySelector("[data-contact-inquiry-root]");
 
@@ -316,3 +308,4 @@ const faqs = [
     return row ? decodeURIComponent(row.slice(name.length + 1)) : null;
   }
 </script>
+-->

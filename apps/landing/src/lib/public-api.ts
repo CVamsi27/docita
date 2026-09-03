@@ -25,6 +25,3 @@ export function resolveApiUrl(path: string, baseOrigin = getBaseOrigin()): strin
 
   return `${baseUrl}${path}`;
 }
-
-// fetchLandingJson is exported from api-fetch.ts — import it there directly.
-// getAppBaseUrl was moved to ./get-app-base-url — import from there instead.

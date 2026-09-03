@@ -2261,7 +2261,7 @@ canvas {
   text-align: left;
   cursor: pointer;
   width: 100%;
-  opacity: 0.5;
+  opacity: 0.65;
   transition: opacity 220ms ease, background-color 220ms ease;
   font: inherit;
   color: inherit;
@@ -2908,4 +2908,157 @@ details[open] .r2-faq-icon::after {
 .r2-cta-card > * {
   position: relative;
   z-index: 1;
+}
+
+/* Visual polish pass: let the product surfaces lead while quieter bands carry
+ * the narrative between them. Keep this override block scoped to landing R2
+ * surfaces so shared workspace primitives remain unchanged. */
+.r2-section {
+  position: relative;
+}
+
+.r2-section > .ui-page-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.r2-section :is(.r2-display, .r2-display-sm) {
+  text-wrap: balance;
+}
+
+.r2-section > .ui-page-shell > :is(.mt-4, .mt-5) {
+  margin-top: 1.25rem;
+}
+
+.r2-section > .ui-page-shell > .mt-10 {
+  margin-top: clamp(2.75rem, 5vw, 4.5rem);
+}
+
+.r2-product,
+.r2-product-shot,
+.r2-type-card,
+.r2-compare-strip,
+.r2-plan-picker,
+.r2-surface-col,
+.r2-diff-col,
+.r2-price-card {
+  border-color: color-mix(in oklch, var(--border) 72%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 42%, transparent) inset,
+    0 18px 44px -28px color-mix(in oklch, var(--foreground) 18%, transparent);
+}
+
+.dark :is(
+    .r2-product,
+    .r2-product-shot,
+    .r2-type-card,
+    .r2-compare-strip,
+    .r2-plan-picker,
+    .r2-surface-col,
+    .r2-diff-col,
+    .r2-price-card
+  ) {
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 8%, transparent) inset,
+    0 22px 56px -28px color-mix(in oklch, oklch(0 0 0) 65%, transparent);
+}
+
+.r2-product {
+  border-radius: calc(var(--radius) + 12px);
+}
+
+.r2-product-rail {
+  border-top-color: color-mix(in oklch, var(--border) 72%, transparent);
+  background: color-mix(in oklch, var(--muted) 26%, var(--card));
+}
+
+.r2-product-rail button[aria-selected="true"] .r2-product-rail-dot {
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 12%, transparent);
+}
+
+.r2-product-rail button:focus-visible {
+  outline-offset: -2px;
+}
+
+.r2-product-shot,
+.r2-type-card,
+.r2-surface-col,
+.r2-diff-col,
+.r2-price-card {
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.r2-product-shot:hover,
+.r2-type-card:hover,
+.r2-surface-col:hover,
+.r2-diff-col:hover,
+.r2-price-card:hover {
+  border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 48%, transparent) inset,
+    0 24px 52px -28px color-mix(in oklch, var(--foreground) 24%, transparent);
+}
+
+.r2-rhythm,
+.r2-compare {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--surface-tint) 7%, transparent),
+    transparent 72%
+  );
+}
+
+.r2-rhythm::before,
+.r2-compare::before {
+  opacity: 0.72;
+}
+
+.r2-cta-card {
+  box-shadow: 0 24px 64px -32px color-mix(in oklch, var(--foreground) 42%, transparent);
+}
+
+@media (min-width: 1024px) {
+  .r2-hero {
+    padding-block: clamp(2rem, 0.5rem + 3vw, 4rem);
+  }
+
+  .r2-hero-shell {
+    padding-block: clamp(1.5rem, 2vw, 3rem);
+  }
+
+  .r2-product {
+    transform: translateY(1.25rem);
+  }
+}
+
+@media (max-width: 767px) {
+  .r2-section > .ui-page-shell > .mt-10 {
+    margin-top: 2.5rem;
+  }
+
+  .r2-product {
+    border-radius: calc(var(--radius) + 8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .r2-product-shot,
+  .r2-type-card,
+  .r2-surface-col,
+  .r2-diff-col,
+  .r2-price-card {
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .r2-product-shot:hover,
+  .r2-type-card:hover,
+  .r2-surface-col:hover,
+  .r2-diff-col:hover,
+  .r2-price-card:hover {
+    transform: none;
+  }
 }
