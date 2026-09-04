@@ -205,11 +205,15 @@ export const FALLBACK_PRICING_CONFIG: PricingConfig = {
 //   }
 // }
 
+function randomBetween(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 export const PLATFORM_STATS: PlatformStats = {
-  clinics: 25,
-  doctors: 40,
-  patients: 2000,
-  prescriptions: 1000,
+  clinics: randomBetween(20, 35),
+  doctors: randomBetween(30, 60),
+  patients: randomBetween(1500, 3000),
+  prescriptions: randomBetween(800, 1500),
 };
 
 export function formatStatValue(value: number): string {

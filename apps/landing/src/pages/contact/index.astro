@@ -118,10 +118,10 @@ const faqs = [
   </section>
 </MainLayout>
 
-<!-- Contact form API submission disabled — backend removed.
-     Restore by uncommenting the script below and re-enabling the
-     /api/v1/contact/inquiry endpoint. -->
-<!--
+<!-- Contact form: client-side validation and submission. The inquiry API
+     was removed; a failed POST degrades to a visible error that points
+     users at the email channels above instead of a silent no-op. Accept
+     submissions again by re-enabling the /api/v1/contact/inquiry endpoint. -->
 <script is:inline>
   const root = document.querySelector("[data-contact-inquiry-root]");
 
@@ -308,4 +308,3 @@ const faqs = [
     return row ? decodeURIComponent(row.slice(name.length + 1)) : null;
   }
 </script>
--->

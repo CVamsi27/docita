@@ -22,7 +22,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
           <span className="r2-eyebrow">Last things, then start</span>
         </div>
 
-        <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16">
+        <div className="mt-5 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16">
           <div>
             <h2
               id="r2-faq-heading"

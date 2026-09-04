@@ -14,6 +14,29 @@ test("accessibility smoke", async ({ page }) => {
   );
 });
 
+test("hero live preview controls are keyboard accessible", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const previewRegion = page.getByRole("region", {
+    name: "Live practice operations preview",
+  });
+  await expect(previewRegion).toBeVisible();
+
+  const tablist = page.getByRole("tablist", { name: "Preview state" });
+  await expect(tablist).toBeVisible();
+
+  const tabs = tablist.getByRole("tab");
+  await expect(tabs).toHaveCount(3);
+
+  // Exactly one tab is selected and it stays keyboard focusable.
+  const selectedTabs = tablist.getByRole("tab", { selected: true });
+  await expect(selectedTabs).toHaveCount(1);
+  await selectedTabs.first().focus();
+  await expect(selectedTabs.first()).toBeFocused();
+});
+
 test("pricing toggle has correct ARIA tab semantics", async ({
   page,
 }) => {

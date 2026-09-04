@@ -10,6 +10,7 @@ import { landingFadeUpVariants, landingStaggerContainer } from "@/lib/motion-pre
 
 interface HeroSectionProps {
   appUrl: string;
+  clinicsLive: number;
 }
 
 const STATES = ["waiting", "consult", "checkout"] as const;
@@ -17,11 +18,17 @@ type ProductState = (typeof STATES)[number];
 
 const STATE_DURATION_MS = 5200;
 
-export function HeroSection({ appUrl }: HeroSectionProps) {
+export function HeroSection({ appUrl, clinicsLive }: HeroSectionProps) {
   const reduce = useReducedMotion();
   const [state, setState] = useState<ProductState>("waiting");
   const [paused, setPaused] = useState(false);
   const stateIndexRef = useRef(0);
+
+  const heroMetrics: Array<[string, string]> = [
+    ["48 h", "First workflow live"],
+    ["2 weeks", "Full rollout"],
+    [String(clinicsLive), "Clinics live"],
+  ];
 
   useEffect(() => {
     if (reduce === true || paused) {
@@ -107,11 +114,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
               variants={item}
               className="r2-hero-metrics mt-10 grid max-w-lg grid-cols-3 divide-x divide-border/60 border-t border-border/60 pt-6"
             >
-              {[
-                ["48 h", "First workflow live"],
-                ["2 weeks", "Full rollout"],
-                ["150+", "Clinics live"],
-              ].map(([value, label], i) => (
+              {heroMetrics.map(([value, label], i) => (
                 <div key={label} className={i === 0 ? "pr-4" : "px-4"}>
                   <dt className="r2-mono text-base font-semibold text-foreground">
                     {value}

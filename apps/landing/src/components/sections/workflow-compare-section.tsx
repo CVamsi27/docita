@@ -105,7 +105,7 @@ export function WorkflowCompareSection() {
           </LayoutGroup>
         </div>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
           <CompareColumn
             tone="today"
             data={COMPARE.today}
