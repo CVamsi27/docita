@@ -2167,7 +2167,13 @@ canvas {
 
 .r2-status-pill--waiting {
   background: color-mix(in oklch, var(--warning) 14%, transparent);
-  color: color-mix(in oklch, var(--warning) 70%, var(--foreground) 30%);
+  color: color-mix(in oklch, var(--warning) 55%, var(--foreground) 45%);
+}
+
+/* Pricing “save” badges: success tone deepened toward foreground so the
+ * 11px label keeps >=4.5:1 on the light card while staying vivid in dark. */
+.r2-price-save-badge {
+  color: color-mix(in oklch, var(--success) 60%, var(--foreground) 40%);
 }
 
 .r2-status-pill--in {

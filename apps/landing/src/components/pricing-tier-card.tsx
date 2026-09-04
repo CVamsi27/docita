@@ -66,7 +66,7 @@ export function PricingTierCard({ tier, selectedMode, isYearly, appUrl }: Pricin
           </span>
         </div>
         {yearlySavings !== null ? (
-          <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold text-success">
+          <span className="r2-price-save-badge inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold">
             Save {formatTierPrice(yearlySavings, FALLBACK_PRICING_CONFIG.currency.symbol)} a year
           </span>
         ) : isYearly ? (

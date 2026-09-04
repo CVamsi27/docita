@@ -38,9 +38,9 @@ type PortalRow = { icon: LucideIcon; label: string };
 
 function PortalListRow({ row }: { row: PortalRow }) {
   return (
-    <li className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5">
+    <li className="flex min-w-0 items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5">
       <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
-      <span className="truncate text-foreground">{row.label}</span>
+      <span className="min-w-0 flex-1 truncate text-foreground">{row.label}</span>
     </li>
   );
 }
@@ -69,7 +69,7 @@ export function DifferentiatorsSection() {
         </h2>
 
         <motion.div
-          className="mt-10 grid gap-6 lg:grid-cols-3"
+          className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3"
           variants={stagger}
           initial="hidden"
           whileInView="visible"
