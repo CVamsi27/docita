@@ -86,7 +86,7 @@ const shots = [
   description="One operating layer for Indian clinics and hospitals: queue, EMR, prescriptions, billing, WhatsApp, lab tests, inventory, analytics, and a real patient portal. Two-week rollout."
   structuredData={faqStructuredData}
 >
-  <HeroSection appUrl={appUrl} client:idle />
+  <HeroSection appUrl={appUrl} clinicsLive={PLATFORM_STATS.clinics} client:idle />
   <ProofStripSection stats={PLATFORM_STATS} />
   <ClinicRhythmSection client:visible />
   <SurfaceMapSection client:visible />

@@ -11,15 +11,8 @@ const STAT_LABELS = [
   { key: "prescriptions" as const, label: "Prescriptions issued" },
 ];
 
-const STATIC_STATS: PlatformStats = {
-  clinics: 25,
-  doctors: 40,
-  patients: 2000,
-  prescriptions: 1000,
-};
-
 export function ProofStripSection({ stats }: ProofStripSectionProps) {
-  const displayStats = stats ?? STATIC_STATS;
+  const displayStats = stats ?? { clinics: 0, doctors: 0, patients: 0, prescriptions: 0 };
   const hasStats =
     Object.values(displayStats).every((value) => value > 0);
 
