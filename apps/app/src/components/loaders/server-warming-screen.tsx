@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ServerWarmingScreen as SharedServerWarmingScreen } from "@workspace/ui/components/feedback/server-warming-screen";
-import { useApiAvailability } from "@/hooks/use-api-availability";
+import { useApiAvailability } from "@/lib/api/api-availability";
 import { useNetworkStatus } from "@workspace/data-access";
 
 /** After roughly a minute of failed probes the copy stops promising "a few seconds". */
