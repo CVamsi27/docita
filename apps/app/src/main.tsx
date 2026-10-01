@@ -8,6 +8,7 @@ import { AuthProvider } from "@/lib/auth/auth-provider";
 import { AppProviders } from "@/components/layout/providers";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { SocketProvider } from "@/lib/socket";
+import { startApiAvailabilityCheck } from "@/lib/api/api-availability";
 import { initializeSentryClient } from "@/lib/monitoring/sentry.client.config";
 import { installGlobalErrorHandler } from "@/lib/monitoring/client-error-reporter";
 import { installWebVitalsReporter } from "@/lib/monitoring/web-vitals";
@@ -20,6 +21,9 @@ import "@workspace/ui/styles/globals.css";
 initializeSentryClient();
 installGlobalErrorHandler();
 installWebVitalsReporter();
+// Before render: the availability check must be the app's first request, or the
+// boot traffic it is meant to gate starves it (see startApiAvailabilityCheck).
+startApiAvailabilityCheck();
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
