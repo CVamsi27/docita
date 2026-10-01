@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
 
@@ -90,13 +90,13 @@ export function RolloutSection() {
               hours of the discovery call.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Button asChild className="gap-2">
+              <Button asChild size="default" variant="primary" className="gap-2 font-semibold shadow-xs">
                 <a href="/paper-to-cloud">
                   Read the rollout playbook
                   <ArrowRight className="h-4 w-4" />
                 </a>
               </Button>
-              <Button asChild variant="outline">
+              <Button asChild size="default" variant="outline" className="font-semibold shadow-2xs">
                 <a href="/contact">Talk about migration</a>
               </Button>
             </div>
@@ -116,7 +116,11 @@ export function RolloutSection() {
                 className="r2-rollout-step"
                 variants={item}
               >
-                <p className="r2-rollout-step-marker">{m.marker}</p>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-md border border-primary/25 bg-primary/10 px-2 py-0.5 text-[var(--fs-2xs)] font-mono font-semibold uppercase tracking-wider text-primary">
+                    {m.marker}
+                  </span>
+                </div>
                 <h3 className="mt-2 text-xl font-semibold text-foreground">
                   {m.title}
                 </h3>
@@ -127,9 +131,10 @@ export function RolloutSection() {
                   {m.artifacts.map((a) => (
                     <li
                       key={a}
-                      className="rounded-lg border border-border/60 bg-muted px-3 py-2 r2-mono text-xs leading-snug"
+                      className="flex items-center gap-2 rounded-lg border border-border/70 bg-card/70 px-3 py-2 r2-mono text-xs leading-snug shadow-2xs transition-colors duration-150 hover:border-primary/30 hover:bg-primary/[0.03]"
                     >
-                      {a}
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+                      <span className="truncate">{a}</span>
                     </li>
                   ))}
                 </ul>

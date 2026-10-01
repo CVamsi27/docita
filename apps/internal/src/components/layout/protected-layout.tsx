@@ -98,12 +98,11 @@ export function ProtectedLayout() {
                     <Button
                       key={item.href}
                       type="button"
-                      variant="ghost"
+                      variant={active ? "default" : "ghost"}
                       onClick={() => { void navigate(item.href); }}
-                      className={`h-8 w-full justify-start gap-2.5 rounded-md px-2 py-1.5 text-xs font-normal cursor-pointer ${
-                        active
-                          ? "bg-primary/10 text-primary hover:bg-primary/10"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      aria-current={active ? "page" : undefined}
+                      className={`h-8 w-full justify-start gap-2.5 rounded-md px-2 py-1.5 text-xs cursor-pointer ${
+                        active ? "font-medium" : "font-normal text-muted-foreground"
                       }`}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />

@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary"
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { ChevronLeft, ChevronRight, Command } from "lucide-react";
 import { PageTransitionLoader } from "@/components/loaders/page-transition-loader";
+import { ServerWarmingScreen } from "@/components/loaders/server-warming-screen";
 import { useProtectedWorkspaceAccess, useSidebarAutoCollapse } from "@/components/layout/use-workspace-access";
 import { WorkspaceLoadingSkeleton } from "@/components/layout/workspace-loading-skeleton";
 import { BackButton } from "@/components/navigation/back-button";
@@ -26,7 +27,7 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   const isConsultationDetailRoute = /^\/consultation\/[^/]+/.test(pathname);
 
   return (
-    <header className="flex h-[var(--app-mobile-header-height)] items-center gap-1 border-b bg-background px-2 pt-[env(safe-area-inset-top,0px)] md:hidden" aria-label="Mobile navigation" data-testid="mobile-header">
+    <header className="flex h-[var(--app-mobile-header-height)] items-center gap-1 border-b bg-background px-2 pt-[env(safe-area-inset-top,0px)] lg:hidden" aria-label="Mobile navigation" data-testid="mobile-header">
       <SidebarMobileTrigger onClick={onMenuClick} />
       {isConsultationDetailRoute ? (
         <div className="min-w-0 flex-1" aria-hidden="true" />
@@ -75,7 +76,7 @@ export function ProtectedLayout() {
   useSidebarAutoCollapse({ isLoading, isSettingsRoute, isConsultationDetailRoute, sidebarPanelRef, setIsCollapsed });
 
   if (isLoading) return <WorkspaceLoadingSkeleton />;
-  if (isApiStarting) return <PageTransitionLoader title="Server is warming up…" description="The backend is starting from cold. This takes a few seconds — you'll be connected automatically." />;
+  if (isApiStarting) return <ServerWarmingScreen />;
   if (redirectMessage || !user || !user.clinicId) return <PageTransitionLoader title="Redirecting…" description={redirectMessage ?? "Preparing your workspace…"} />;
 
   return (
@@ -85,11 +86,11 @@ export function ProtectedLayout() {
       </a>
       <div className="flex h-screen overflow-hidden bg-background">
         <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel ref={sidebarPanelRef} defaultSize={18} minSize={15} maxSize={25} className="hidden md:block" collapsible collapsedSize={4} onCollapse={() => setIsCollapsed(true)} onExpand={() => setIsCollapsed(false)}
+          <ResizablePanel ref={sidebarPanelRef} defaultSize={18} minSize={15} maxSize={25} className="hidden lg:block" collapsible collapsedSize={4} onCollapse={() => setIsCollapsed(true)} onExpand={() => setIsCollapsed(false)}
             style={{ transition: isDragging ? "none" : "flex 220ms cubic-bezier(0.16, 1, 0.3, 1)" }}>
             <Sidebar isCollapsed={isCollapsed} onCollapsedChange={(collapsed) => { setIsCollapsed(collapsed); if (collapsed) sidebarPanelRef.current?.collapse(); else sidebarPanelRef.current?.expand(); }} mobileOpen={mobileOpen} onMobileOpenChange={setMobileOpen} />
           </ResizablePanel>
-          <div className="relative hidden md:flex overflow-visible">
+          <div className="relative hidden lg:flex overflow-visible">
             <ResizableHandle onDragging={setIsDragging} />
             <SymbolTooltip label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"} side="right">
               <Button variant="ghost" size="icon" className="absolute top-7 left-1/2 z-30 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none transition-colors hover:cursor-pointer hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0"

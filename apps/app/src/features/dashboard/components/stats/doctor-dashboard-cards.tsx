@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { formatTime } from "@/lib/formatters";
-import { Avatar, AvatarFallback, Badge, Button, Card, CardContent, CardHeader, CardTitle, ListRow, ListRowGroup } from "@workspace/ui/components";
+import { Avatar, AvatarFallback, Badge, Button, Card, CardContent, CardHeader, CardTitle, ListRow, ListRowGroup, LiveDot, MicroLabel } from "@workspace/ui/components";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-import { Play, Stethoscope } from "lucide-react";
+import { Play, Stethoscope, Users } from "lucide-react";
 
 import type { AppointmentListItem } from "@workspace/data-access";
 import { useStartConsultationWithToast } from "@/hooks/use-start-consultation-with-toast";
@@ -33,11 +33,25 @@ export function DoctorDashboardCards({
         <CardHeader className="pb-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
-                <Stethoscope className="h-5 w-5" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-primary/10 text-primary">
+                {currentPatient ? (
+                  <Stethoscope className="h-5 w-5" />
+                ) : (
+                  <Users className="h-5 w-5" />
+                )}
               </div>
               <div className="min-w-0">
-                <CardTitle className="text-lg font-semibold">
+                <MicroLabel className="flex items-center gap-1.5">
+                  {currentPatient ? (
+                    <>
+                      <LiveDot size="sm" tone="primary" />
+                      <span>{t("doctorCards.inConsultation")}</span>
+                    </>
+                  ) : (
+                    <span>{t("doctorCards.queueMicroLabel")}</span>
+                  )}
+                </MicroLabel>
+                <CardTitle className="text-lg font-semibold tracking-tight">
                   {currentPatient ? t("doctorCards.currentPatient") : t("doctorCards.noActiveSession")}
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
@@ -56,9 +70,9 @@ export function DoctorDashboardCards({
         </CardHeader>
         <CardContent>
           {currentPatient ? (
-            <div className="flex flex-col gap-3 rounded-lg bg-muted/30 p-3 sm:flex-row sm:items-center sm:gap-4">
+            <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/[0.03] p-3 sm:flex-row sm:items-center sm:gap-4">
               <Avatar className="h-10 w-10 sm:h-14 sm:w-14 shrink-0">
-                <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-base sm:text-lg font-medium">
+                <AvatarFallback className="border border-primary/30 bg-primary/10 text-primary text-base sm:text-lg font-semibold">
                   {getInitials(
                     currentPatient.patient?.firstName ?? "",
                     currentPatient.patient?.lastName,

@@ -142,8 +142,9 @@ export function PatientHeaderActions({
             })
           }
           data-testid="patient-ask-ai"
+          className="border-primary/30 bg-primary/5 text-foreground hover:bg-primary/10 transition-colors duration-150"
         >
-          <Sparkles className="h-4 w-4 mr-1.5" />
+          <Sparkles className="h-4 w-4 mr-1.5 text-primary" />
           Ask AI
         </Button>
       )}

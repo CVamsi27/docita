@@ -61,7 +61,7 @@ function StepDot({
         className={cn(
           "inline-flex size-[22px] shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-semibold",
           active && "bg-primary text-primary-foreground",
-          done && !active && "bg-success text-white",
+          done && !active && "bg-success text-success-foreground",
           !active && !done && "bg-muted text-muted-foreground",
         )}
       >

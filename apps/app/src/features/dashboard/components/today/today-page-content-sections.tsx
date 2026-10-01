@@ -59,12 +59,12 @@ function TodayHeaderActions({
         <Button
           variant="outline"
           size="sm"
-          className="h-10 min-h-10 flex-1 touch-manipulation sm:h-9 sm:min-h-0 sm:flex-none"
+          className="h-10 min-h-10 flex-1 touch-manipulation sm:h-9 sm:min-h-0 sm:flex-none border-primary/30 bg-primary/5 text-foreground hover:bg-primary/10 transition-colors duration-150"
           onClick={onOpenAskAi}
           aria-label={t("today.askAiAria")}
           data-testid="today-ask-ai"
         >
-          <Sparkles className="size-4 shrink-0" aria-hidden />
+          <Sparkles className="size-4 shrink-0 text-primary" aria-hidden />
           <span className="truncate">{t("today.askAiButton")}</span>
         </Button>
         {canStartConsultation ? (

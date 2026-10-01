@@ -358,8 +358,11 @@
     "editAria": "Edit patient",
     "editLabel": "Edit",
     "tableEmptyTitle": "No patients found",
-    "tableEmptyDescription": "No patients found matching \"{query}\"",
-    "tableEmptyDescriptionFallback": "No patients found"
+    "tableEmptyDescription": "No patients found matching \"{query}\"",      "tableEmptyDescriptionFallback": "No patients found",
+      "paginationShowing_one": "Showing {count} patient",
+      "paginationShowing_other": "Showing {start}-{end} of {count} patients",
+      "paginationPrevious": "Previous",
+      "paginationNext": "Next"
   },
   "metrics": {
     "categoriesTitle": "Categories & Tracked Metrics",

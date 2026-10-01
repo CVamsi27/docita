@@ -54,7 +54,7 @@ export function useInternalResendWelcome(token: string | null | undefined) {
     mutationFn: (referrerId: string) =>
       fetcher<{ ok: true }>(
         `/internal/referrers/${referrerId}/resend-welcome`,
-        { method: "POST", body: {} as unknown as BodyInit },
+        { method: "POST", body: JSON.stringify({}) },
       ),
     onSuccess: () => {
       void queryClient.invalidateQueries({

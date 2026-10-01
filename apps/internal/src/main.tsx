@@ -10,6 +10,7 @@ import { installWebVitalsReporter } from "@/lib/monitoring/web-vitals";
 import { ErrorBoundary } from "@workspace/ui/components/feedback/error-boundary";
 import { DialogStackProvider } from "@workspace/ui/components/overlay/dialog-stack";
 import { ThemeProvider } from "@/components/layout/theme-provider";
+import { ApiAvailabilityGate } from "@/components/layout/api-availability-gate";
 import { logger } from "@/lib/monitoring/logger";
 import { AuthProvider } from "@/lib/auth/auth-provider";
 import "@workspace/ui/styles/globals.css";
@@ -40,18 +41,23 @@ createRoot(rootElement).render(
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <ThemeProvider>
-            <AuthProvider>
-              <DialogStackProvider>
-                <ErrorBoundary
-                  onError={(error, info) => {
-                    logger.error("ErrorBoundary caught", { error, info });
-                  }}
-                >
-                  <App />
-                </ErrorBoundary>
-                <ToasterWrapper />
-              </DialogStackProvider>
-            </AuthProvider>
+            {/* Above AuthProvider: during a platform outage the bootstrap
+                probes would otherwise spin forever; the gate replaces the
+                whole tree with the warming screen until the API answers. */}
+            <ApiAvailabilityGate>
+              <AuthProvider>
+                <DialogStackProvider>
+                  <ErrorBoundary
+                    onError={(error, info) => {
+                      logger.error("ErrorBoundary caught", { error, info });
+                    }}
+                  >
+                    <App />
+                  </ErrorBoundary>
+                  <ToasterWrapper />
+                </DialogStackProvider>
+              </AuthProvider>
+            </ApiAvailabilityGate>
           </ThemeProvider>
         </BrowserRouter>
       </QueryClientProvider>

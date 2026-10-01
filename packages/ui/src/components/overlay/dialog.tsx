@@ -153,7 +153,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("ui-section-title", className)}
+      className={cn("ui-heading-sans", className)}
       {...props}
     />
   );

@@ -32,7 +32,7 @@ export function PatientsTable({
     {
       id: "avatar",
       header: "",
-      width: "50px",
+      width: "7%",
       cell: (patient) => (
         <Avatar className="h-8 w-8 border border-border/70 bg-background/70 text-foreground">
           <AvatarFallback className="border border-border/70 bg-background/70 text-foreground">
@@ -51,15 +51,22 @@ export function PatientsTable({
           onSort={onSort}
         />
       ),
-      cell: (patient) => (
-        <span className="block max-w-[160px] truncate font-medium sm:max-w-xs">
-          {getPatientFullName(patient)}
-        </span>
-      ),
+      width: "37%",
+      cell: (patient) => {
+        const fullName = getPatientFullName(patient);
+        return (
+          <SymbolTooltip label={fullName} delayDuration={600}>
+            <span className="block max-w-[160px] truncate font-medium sm:max-w-xs">
+              {fullName}
+            </span>
+          </SymbolTooltip>
+        );
+      },
     },
     {
       id: "contact",
       header: t("tableColumnContact"),
+      width: "17%",
       hiddenOnMobile: true,
       cell: (patient) => (
         <div className="flex flex-col text-sm">
@@ -78,12 +85,14 @@ export function PatientsTable({
           onSort={onSort}
         />
       ),
+      width: "17%",
       hiddenOnMobile: true,
       cell: (patient) => formatGenderLabel(patient.gender),
     },
     {
       id: "actions",
       header: t("tableColumnActions"),
+      width: "22%",
       align: "right",
       cell: (patient) => {
         const patientId = patient.id;

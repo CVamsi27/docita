@@ -1981,6 +1981,18 @@ This section is the long-form companion to §12. It splits into "posture" (secur
     multi-minute `NestFactory.create` bootstrap continues; per-phase
     timings now log on every boot (`[bootstrap] <phase> +<delta>ms`).
     See ADR [0011](decisions/0011-fly-suspend-cold-start.md) and `fly.toml`.
+    Client-side safety net for host failover, DB outages and deploys: the
+    frontend probes `GET /api/health/ready` (502/503/504 or an intermediary
+    error page = outage), gates every route behind a server-warming screen
+    that retries with backoff, and restores the workspace automatically —
+    without dropping a signed-in session. The store, prober, recovery helpers
+    and gate factory live in [`@workspace/data-access`](../../packages/data-access/src/lib/api-availability.ts);
+    the screen chrome lives in
+    [`@workspace/ui`](../../packages/ui/src/components/feedback/server-warming-screen.tsx).
+    Both SPAs mount it — the clinician app (i18n copy) and the internal
+    console (English literals, gate above `AuthProvider` so bootstrap and
+    login are covered) — via thin per-app binding modules
+    (`apps/<app>/src/lib/api/api-availability.ts`).
 
 ### 28.6 Documentation
 

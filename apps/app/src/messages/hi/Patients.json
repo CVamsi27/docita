@@ -358,8 +358,11 @@
     "editAria": "मरीज़ संपादित करें",
     "editLabel": "संपादित करें",
     "tableEmptyTitle": "कोई मरीज़ नहीं मिला",
-    "tableEmptyDescription": "\"{query}\" से मेल खाता कोई मरीज़ नहीं मिला",
-    "tableEmptyDescriptionFallback": "कोई मरीज़ नहीं मिला"
+    "tableEmptyDescription": "\"{query}\" से मेल खाता कोई मरीज़ नहीं मिला",      "tableEmptyDescriptionFallback": "कोई मरीज़ नहीं मिला",
+      "paginationShowing_one": "कुल {count} मरीज़",
+      "paginationShowing_other": "{count} में से {start}-{end} मरीज़",
+      "paginationPrevious": "पिछला",
+      "paginationNext": "अगला"
   },
   "metrics": {
     "categoriesTitle": "श्रेणियाँ और ट्रैक किए गए मेट्रिक्स",

@@ -8,7 +8,7 @@ const appUrl = getAppBaseUrl();
 ---
 
 <header
-  class="landing-site-header landing-site-header-surface fixed inset-x-0 top-0 z-[60] border-b-2 border-b-primary/12 bg-background"
+  class="landing-site-header landing-site-header-surface fixed inset-x-0 top-0 z-[60] border-b-2 border-b-primary/12 bg-background/95 backdrop-blur-md"
   style="padding-top: env(safe-area-inset-top, 0px);"
 >
   <div class="px-4 sm:px-6">
@@ -52,6 +52,7 @@ const appUrl = getAppBaseUrl();
     <nav
       class="landing-site-nav landing-site-nav--mobile ui-page-shell flex gap-1 overflow-x-auto overscroll-x-contain border-t border-border/50 px-4 pb-2 pt-2 [scrollbar-width:thin] xl:hidden"
       aria-label="Section links"
+      data-scroll="start"
     >
       <a href="/#surface-map" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Surfaces</a>
       <a href="/#product-screenshots" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Inside</a>

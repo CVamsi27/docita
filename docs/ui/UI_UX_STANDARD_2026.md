@@ -87,7 +87,8 @@ These are added in PR F:
 ### 2.2 Typography
 
 - Default sans (Inter) for all UI.
-- Reserve a serif accent (Tailwind's default serif stack via `font-serif`) for hero/empty-state moments only: onboarding hero ("Welcome, Dr. Sharma"), `/today` morning greeting, weekly recap titles. Never for body copy or controls.
+- The serif display face (`--font-heading`, Fraunces) carries **titles only**: `ui-page-title`, `ui-section-title`, `ui-hero-title` — page titles, section headings, card titles, and hero/empty-state moments (onboarding hero "Welcome, Dr. Sharma", `/today` morning greeting, weekly recap titles).
+- Chrome and controls stay **sans**: use `ui-heading-sans` (Inter, `--fs-xl`, semibold) for dialog titles and status/error copy. Never render a control label, dialog title, sheet title, or error message in the serif face.
 - **Auth front door (shared)**: both the clinician login (`AuthBrandingHero`) and the internal admin login (`InternalLoginGreeting`) use the `DaypartGreetingHero` primitive from `@workspace/ui` — serif daypart greeting + live-clock eyebrow (`Today · 09:30` / `आज · 09:30`). Locale-agnostic: callers supply localized strings. The clinician app flips EN / हिंदी via `LocaleToggle` (`aria-pressed`); the internal console is an ops-only tool and stays English-only (no toggle).
 - Keep the hierarchy from `UI_UX_CONTRACT.md` §2: `text-3xl font-bold tracking-tight` for page titles, `text-xs text-muted-foreground` for helper.
 

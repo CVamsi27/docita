@@ -47,7 +47,10 @@ export function Sidebar({ isCollapsed: _isCollapsed = false, mobileOpen = false,
     onMobileOpenChange?.(false);
   }, [location.pathname, onMobileOpenChange]);
 
-  const sidebarFooter = (
+  // Shared between the desktop rail and the mobile sheet so phone users can
+  // reach Settings / Help / Theme / Ask AI at all — the sheet previously
+  // rendered navigation only, leaving those controls unreachable below `md`.
+  const renderSidebarFooter = (onAction?: () => void) => (
     <div className="shrink-0 border-t border-border/60 px-2 py-2 space-y-0.5">
       <SidebarFooterLink to="/settings" icon={Settings} label="Settings" />
       <SidebarFooterLink to="https://docs.docita.work" icon={HelpCircle} label="Help" external />
@@ -55,7 +58,7 @@ export function Sidebar({ isCollapsed: _isCollapsed = false, mobileOpen = false,
         <ThemeToggleWithAppearanceSync className="h-4 w-4" />
         <span className="flex-1 truncate">Theme</span>
       </div>
-      <AskAiButton />
+      <AskAiButton onOpen={onAction} />
     </div>
   );
 
@@ -67,17 +70,17 @@ export function Sidebar({ isCollapsed: _isCollapsed = false, mobileOpen = false,
 
   return (
     <>
-      <aside className="relative hidden md:flex flex-col h-full w-full bg-background/70 backdrop-blur border-r border-border/70">
+      <aside className="relative hidden lg:flex flex-col h-full w-full bg-background/70 backdrop-blur border-r border-border/70">
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/60 px-3">
           <Link to="/today" className="flex h-9 items-center gap-2 rounded-lg px-1 transition-colors hover:opacity-80" aria-label="Docita home">
             <DocitaLogo />
           </Link>
         </div>
         {nav}
-        {sidebarFooter}
+        {renderSidebarFooter()}
       </aside>
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
-        <SheetContent side="left" className="w-72 p-0 flex flex-col gap-0 md:hidden" aria-label="Navigation">
+        <SheetContent side="left" className="w-72 p-0 flex flex-col gap-0 lg:hidden" aria-label="Navigation">
           <SheetHeader className="sr-only"><SheetTitle>Navigation</SheetTitle></SheetHeader>
           <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/60 px-3">
             <Link to="/today" className="flex h-9 items-center gap-2 rounded-lg px-1" aria-label="Docita home"><DocitaLogo /></Link>
@@ -86,6 +89,7 @@ export function Sidebar({ isCollapsed: _isCollapsed = false, mobileOpen = false,
             </SymbolTooltip>
           </div>
           {nav}
+          {renderSidebarFooter(() => onMobileOpenChange?.(false))}
         </SheetContent>
       </Sheet>
     </>
@@ -95,7 +99,7 @@ export function Sidebar({ isCollapsed: _isCollapsed = false, mobileOpen = false,
 export function SidebarMobileTrigger({ onClick }: { onClick: () => void }) {
   return (
     <SymbolTooltip label="Open navigation" side="bottom">
-      <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden" onClick={onClick} aria-label="Open navigation">
+      <Button variant="ghost" size="icon" className="h-9 w-9 lg:hidden" onClick={onClick} aria-label="Open navigation">
         <Menu className="h-5 w-5" />
       </Button>
     </SymbolTooltip>

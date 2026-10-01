@@ -1,4 +1,4 @@
-import { Badge, Button, SymbolTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
+import { Badge, Button, MicroLabel, SymbolTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components";
 import { AlertTriangle, Building2, ChevronLeft, Phone, ShieldAlert } from "lucide-react";
 import { formatDate, formatGenderLabel } from "@/lib/formatters";
 
@@ -81,6 +81,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
             {initials}
           </div>
           <div className="min-w-0">
+            <MicroLabel className="text-muted-foreground/80 mb-0.5">Patient Record</MicroLabel>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="ui-page-title text-[var(--fs-lg)] sm:text-[var(--fs-2xl)] truncate text-foreground">
                 {lastName}, {firstName}

@@ -710,12 +710,50 @@ gh workflow enable 289989847 --repo CVamsi27/docita   # Scale API - IST Business
 gh workflow enable 285712721 --repo CVamsi27/docita   # Synthetic uptime monitoring
 gh workflow list --repo CVamsi27/docita               # confirm both active
 gh run list --repo CVamsi27/docita --workflow <id> --limit 5   # watch the next schedule trigger
-```
-
-If the next trigger fails with the `bom` capacity error again, disable both
+```If the next trigger fails with the `bom` capacity error again, disable both
 again and escalate to the Fly provider for region capacity.
 
 ---
+
+## RB-15: Disabled scheduled workflow (Stop DB - Auto-Restart Guard)
+
+**Status** Informational record — no incident is active. The workflow is
+disabled and no repo-side change can re-enable it; a human must act in the
+GitHub Actions UI (and the target RDS instance must exist again).
+
+**Facts (verified 2026-10-01 via the GitHub API, not inferred)**
+
+- `.github/workflows/stop-db-auto-restart.yml` (Stop DB - Auto-Restart
+  Guard, id `328383419`) reports `state=disabled_manually`.
+- It last ran 2026-09-02T04:21:49Z (schedule event); every recent run failed
+  within ~13 seconds with `DBInstanceNotFound` — the configured
+  `RDS_INSTANCE_ID` secret no longer matches an existing RDS instance.
+- The workflow's purpose is cost control: RDS auto-restarts 7 days after a
+  manual stop, and this job stopped it again. With the instance gone (or
+  replaced by different infrastructure) the job can only fail.
+
+**Consequences while disabled**
+
+- No automated guard against a 7-day RDS auto-restart. If an RDS instance is
+  provisioned again under a different identifier, either update the
+  `RDS_INSTANCE_ID` secret and re-enable the workflow, or delete the
+  workflow file and retire RB-15 with it.
+
+**To re-enable**
+
+```bash
+# 1. Provision/confirm the RDS instance and update the RDS_INSTANCE_ID secret.
+# 2. Re-enable:
+gh workflow enable 328383419 --repo CVamsi27/docita
+gh run list --repo CVamsi27/docita --workflow 328383419 --limit 3
+```
+
+If the instance is permanently retired, remove
+`.github/workflows/stop-db-auto-restart.yml` and this entry instead of
+keeping a dead guard around.
+
+---
+
 
 ## Appendix: contact + escalation matrix
 

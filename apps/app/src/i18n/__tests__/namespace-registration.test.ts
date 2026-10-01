@@ -5,9 +5,20 @@ import { enMessages, hiMessages } from "@/messages";
 
 /**
  * Resolve a dotted key inside a namespace subtree the same way i18next does:
- * walk the path segments and require the final value to be a string.
+ * walk the path segments and require the final value to be a string. Cardinal
+ * plural messages are stored as i18next suffixes (`key_one` / `key_other`), so
+ * a `t("key", { count })` call site resolves through the bare key even though
+ * only the suffixed variants exist.
  */
 function hasKey(tree: unknown, ns: string, key: string): boolean {
+  return (
+    hasExactKey(tree, ns, key) ||
+    (hasExactKey(tree, ns, `${key}_one`) &&
+      hasExactKey(tree, ns, `${key}_other`))
+  );
+}
+
+function hasExactKey(tree: unknown, ns: string, key: string): boolean {
   const root =
     typeof tree === "object" && tree !== null
       ? (tree as Record<string, unknown>)[ns]

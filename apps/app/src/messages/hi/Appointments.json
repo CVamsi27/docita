@@ -46,7 +46,8 @@
     "clearDelay": "विलंब हटाएँ"
   },
   "summaryBar": {
-    "appointment": "{count, plural, one {अपॉइंटमेंट} other {अपॉइंटमेंट}}"
+    "appointment_one": "{count} अपॉइंटमेंट",
+    "appointment_other": "{count} अपॉइंटमेंट"
   },
   "calendarView": {
     "day": "दिन",

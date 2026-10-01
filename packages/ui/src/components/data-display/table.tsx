@@ -13,7 +13,12 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
       <table
         data-slot="table"
         className={cn(
-          "w-full caption-bottom text-sm table-fixed",
+          // `table-fixed` keeps column widths stable, but with `w-full` alone it
+          // divides the container equally — at <=768px that left every column
+          // ~88px and clipped patient names, phone numbers and visit reasons to
+          // ellipsis. The min-width pairs with the container's overflow-x-auto
+          // so a narrow viewport scrolls the table instead of truncating cells.
+          "w-full min-w-[768px] caption-bottom text-sm table-fixed",
           className,
         )}
         {...props}

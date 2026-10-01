@@ -58,12 +58,9 @@ export const usePatients = (options?: UsePatientsOptions) => {
     search: options?.search,
   });
 
-  return useAPIQuery<{
-    items: Patient[];
-    nextCursor?: string;
-    hasMore: boolean;
-    count: number;
-  }>(
+  // Wire shape is the API's `listPatientsResponseSchema` (`items` + `total`);
+  // the app view type for a row is the wider `Patient`.
+  return useAPIQuery<{ items: Patient[]; total: number }>(
     queryKeys.patients.list({
       limit,
       page,
@@ -115,12 +112,7 @@ export const useRecentPatients = (limit: number = 5) => {
   const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
     Feature.BASIC_PATIENT_MANAGEMENT,
   );
-  return useAPIQuery<{
-    items: Patient[];
-    nextCursor?: string;
-    hasMore: boolean;
-    count: number;
-  }>(
+  return useAPIQuery<{ items: Patient[]; total: number }>(
     queryKeys.patients.recent(limit),
     withQueryString("/patients", { limit }),
     {

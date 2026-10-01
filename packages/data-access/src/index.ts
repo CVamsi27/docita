@@ -446,3 +446,27 @@ export type {
   WebVitalsMetricRating,
   WebVitalsReporterOptions,
 } from "./lib/monitoring/web-vitals";
+
+// Platform availability (shared outage store for app + internal)
+export {
+  buildApiHealthProbeUrl,
+  createApiAvailabilityStore,
+  createOutageRecoveryState,
+  createReadinessProber,
+  isPlatformOutageError,
+  recoverFromApiOutage,
+} from "./lib/api-availability";
+export type {
+  ApiAvailabilitySnapshot,
+  ApiAvailabilityStatus,
+  ApiAvailabilityStore,
+  ApiProbeOutcome,
+  ApiUnavailableReason,
+  OutageRecoveryState,
+} from "./lib/api-availability";
+export {
+  createApiAvailability,
+  createUseApiAvailability,
+  useNetworkStatus,
+} from "./hooks/use-api-availability";
+export { createApiAvailabilityGate } from "./provider/api-availability-gate";

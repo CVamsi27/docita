@@ -24,7 +24,7 @@ export function PricingModeToggle({ selectedMode, billingPeriod, onModeChange, o
               role="tab"
               onClick={() => onModeChange(mode)}
               aria-selected={active}
-              title={info.helpText}
+              aria-label={`${info.name}: ${info.helpText}`}
               className={cn("rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 active
                   ? "bg-primary text-primary-foreground shadow-sm"

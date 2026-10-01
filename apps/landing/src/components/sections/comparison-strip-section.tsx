@@ -67,7 +67,7 @@ export function ComparisonStripSection() {
         >
           Fragmented tools <em>versus</em> one operating layer.
         </h2>
-        <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
           A factual comparison, not a smear campaign. Most practices start
           with a mix of these tools&mdash;and pay for it in retyped fields and
           lost follow-ups.
@@ -83,15 +83,21 @@ export function ComparisonStripSection() {
           aria-label="Before Docita versus with Docita"
         >
           <div className="r2-compare-cell r2-compare-cell--before order-2 sm:order-1" role="rowheader">
-            <p className="r2-eyebrow flex items-center gap-1.5 text-muted-foreground">
-              <X className="h-3 w-3" aria-hidden />
-              Before
-            </p>
-            <p className="text-base font-semibold text-foreground">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-md border border-destructive/25 bg-destructive/10 px-2 py-0.5 text-[var(--fs-2xs)] font-mono font-semibold uppercase tracking-wider text-destructive">
+                <X className="h-3 w-3" aria-hidden />
+                Before
+              </span>
+            </div>
+            <p className="mt-1 text-base font-semibold text-foreground">
               Fragmented tools
             </p>
             {COMPARE_ROWS.map((row) => (
-              <div key={row.label} className="r2-compare-row" role="row">
+              <div
+                key={row.label}
+                className="r2-compare-row -mx-1.5 rounded-md px-1.5 transition-colors duration-150 hover:bg-muted/40"
+                role="row"
+              >
                 <p className="r2-compare-row-label" role="rowheader">
                   {row.label}
                 </p>
@@ -103,19 +109,25 @@ export function ComparisonStripSection() {
           </div>
 
           <div className="r2-compare-cell r2-compare-cell--after order-1 sm:order-2" role="rowheader">
-            <p className="r2-eyebrow r2-eyebrow-accent flex items-center gap-1.5">
-              <CheckCircle2 className="h-3 w-3" aria-hidden />
-              With Docita
-            </p>
-            <p className="text-base font-semibold text-foreground">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-[var(--fs-2xs)] font-mono font-semibold uppercase tracking-wider text-primary">
+                <CheckCircle2 className="h-3 w-3" aria-hidden />
+                With Docita
+              </span>
+            </div>
+            <p className="mt-1 text-base font-semibold text-foreground">
               Single operating layer
             </p>
             {COMPARE_ROWS.map((row) => (
-              <div key={row.label} className="r2-compare-row" role="row">
-                <p className="r2-compare-row-label" role="rowheader">
+              <div
+                key={row.label}
+                className="r2-compare-row -mx-1.5 rounded-md px-1.5 transition-colors duration-150 hover:bg-primary/[0.04]"
+                role="row"
+              >
+                <p className="r2-compare-row-label font-medium text-foreground" role="rowheader">
                   {row.label}
                 </p>
-                <p className="r2-compare-row-value" role="cell">
+                <p className="r2-compare-row-value font-medium text-foreground" role="cell">
                   {row.after}
                 </p>
               </div>

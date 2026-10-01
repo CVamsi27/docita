@@ -143,5 +143,41 @@ const structuredDataItems =
     </main>
     <SiteFooter />
     <StickyCta appUrl={appUrl} client:load />
+    <script is:inline>
+      /*
+       * Mobile section-nav affordance: the link row is wider than the phone
+       * viewport, so expose how far it can scroll through `data-scroll` and let
+       * CSS fade the clipped edge. Runs after the nav is in the DOM.
+       */
+      (() => {
+        const nav = document.querySelector('.landing-site-nav--mobile');
+        if (!nav) return;
+
+        const updateNavScrollState = () => {
+          // Above `xl` the row is `display: none` and has no layout box, so
+          // scrollWidth/clientWidth are both 0. Leave the state untouched
+          // instead of declaring it unscrollable — otherwise a resize down to
+          // phone width would clear the edge fade for good.
+          if (nav.clientWidth === 0) return;
+
+          const maxScroll = nav.scrollWidth - nav.clientWidth;
+          if (maxScroll <= 2) {
+            nav.dataset.scroll = 'none';
+            return;
+          }
+          if (nav.scrollLeft <= 2) {
+            nav.dataset.scroll = 'start';
+          } else if (nav.scrollLeft >= maxScroll - 2) {
+            nav.dataset.scroll = 'end';
+          } else {
+            nav.dataset.scroll = 'middle';
+          }
+        };
+
+        nav.addEventListener('scroll', updateNavScrollState, { passive: true });
+        window.addEventListener('resize', updateNavScrollState, { passive: true });
+        updateNavScrollState();
+      })();
+    </script>
   </body>
 </html>

@@ -62,7 +62,8 @@
     "apps/app/src/features/patients/components/details/history/AllergyEditDialog.tsx",
     "apps/app/src/features/consultation/components/consultation-dashboard-nurse-prep.tsx",
     "apps/app/src/features/consultation/components/consultation-dashboard-sections.tsx",
-    "**/main.tsx"
+    "**/main.tsx",
+    "apps/*/src/lib/api/api-availability.ts"
   ],
   "format": [
     "typescript",

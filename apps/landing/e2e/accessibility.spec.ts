@@ -24,7 +24,9 @@ test("hero live preview controls are keyboard accessible", async ({
   });
   await expect(previewRegion).toBeVisible();
 
-  const tablist = page.getByRole("tablist", { name: "Preview state" });
+  const tablist = page.getByRole("tablist", {
+    name: "Preview OPD workflow stages",
+  });
   await expect(tablist).toBeVisible();
 
   const tabs = tablist.getByRole("tab");
