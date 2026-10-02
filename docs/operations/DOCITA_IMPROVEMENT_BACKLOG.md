@@ -35,6 +35,15 @@ This authorized dashboard release uses the existing gate semantics: the absent A
 
 A trigger being enabled is not a successful release. Record the workflow URL, deployed revisions, API/frontend deployment IDs, post-release checks and rollback evidence in the [release checklist](RELEASE_EVIDENCE_CHECKLIST.md). Remove the feature-branch exception after the change is integrated and its release window is closed.
 
+### Release attempt on 2 October: blocked by credentials
+
+The production workflow is active. [Run 37045012210](https://github.com/CVamsi27/docita/actions/runs/37045012210) checked commit `cbec5ee2ca363f3746f066f60eff080e3dc7844b`: API/internal builds, standards, focused dashboard tests and database compatibility passed. The latency baseline remained explicitly skipped. Neither deployment completed:
+
+- Cloudflare rejected the configured token with HTTP 401/code 1000. Replace `CLOUDFLARE_API_TOKEN` following [RB-13](RUNBOOKS.md#rb-13-deploy-blocked--cloudflare-credentials-invalid-cloudflare_api_token).
+- The production API startup smoke exited because `TURNSTILE_SECRET_KEY` was absent. The repository secret and local API production environment both lacked this key at review time. The workflow now forwards that secret and rejects missing configuration before rebuilding. Configure the secret for the actual production Turnstile widget, ensure the Fly API has the same required configuration, and rerun the release.
+
+Do not substitute an invented key, disable bot verification or mark this dashboard live. Authorized internal access, clinician rejection, browser rendering and deployed revision evidence remain pending until a successful release.
+
 The operational dashboard requires no new table or metric seeds. It reads existing records and displays a rolling 30-day UTC window, request sample count and observation coverage. A read-only check on 2 October found retained request telemetry but no appointment, invoice or retained job activity in the selected window. Those records do not establish customer adoption or a before/after performance improvement. Keep aggregate evidence separate from patient information and credentials.
 
 ## P0: establish safe operating boundaries

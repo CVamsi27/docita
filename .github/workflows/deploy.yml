@@ -181,6 +181,7 @@ jobs:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
       APP_URL: https://app.docita.work
       NEXT_PUBLIC_APP_URL: https://app.docita.work
       NEXT_PUBLIC_API_URL: https://api.docita.work/api/v1
@@ -193,6 +194,12 @@ jobs:
       STARTUP_TIMEOUT_SECONDS: 120
     steps:
       - uses: actions/checkout@v7
+      - name: Require production bot-check configuration
+        run: |
+          if [ -z "${TURNSTILE_SECRET_KEY}" ]; then
+            echo "::error title=Required API configuration missing::Set the TURNSTILE_SECRET_KEY repository secret from the production Turnstile widget before releasing the API."
+            exit 1
+          fi
       - name: Prepare pnpm
         run: |
           corepack enable
