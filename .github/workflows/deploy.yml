@@ -1,38 +1,38 @@
 name: Deploy Production
 
-# Deployments paused: all triggers disabled in code (also disabled at the
-# GitHub level). A workflow without an `on:` block never runs. To re-enable,
-# uncomment the `on:` block below.
-# on:
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - "apps/api/**"
-#       - "apps/worker/**"
-#       - "apps/app/**"
-#       - "apps/internal/**"
-#       - "apps/landing/**"
-#       - "packages/auth/**"
-#       - "packages/data-access/**"
-#       - "packages/db/**"
-#       - "packages/hooks/**"
-#       - "packages/types/**"
-#       - "packages/ui/**"
-#       - "packages/utils/**"
-#       - "scripts/deploy/**"
-#       - "scripts/checks/check-worker-size.mjs"
-#       - "scripts/workflow/detect-workflow-scope.mjs"
-#       - "package.json"
-#       - "pnpm-lock.yaml"
-#       - "pnpm-workspace.yaml"
-#       - "turbo.json"
-#       - "fly.toml"
-#       - "apps/worker/fly.toml"
-#       - ".github/workflows/deploy.yml"
+# This exact feature branch is an explicitly authorized production release.
+on:
+  push:
+    branches:
+      - main
+      - fix/actual-operational-metrics
+    paths:
+      - "apps/api/**"
+      - "apps/worker/**"
+      - "apps/app/**"
+      - "apps/internal/**"
+      - "apps/landing/**"
+      - "packages/auth/**"
+      - "packages/data-access/**"
+      - "packages/db/**"
+      - "packages/hooks/**"
+      - "packages/types/**"
+      - "packages/ui/**"
+      - "packages/utils/**"
+      - "scripts/deploy/**"
+      - "scripts/checks/check-worker-size.mjs"
+      - "scripts/workflow/detect-workflow-scope.mjs"
+      - "scripts/workflow/production-branch-scope.mjs"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - "fly.toml"
+      - "apps/worker/fly.toml"
+      - ".github/workflows/deploy.yml"
 
 concurrency:
-  group: deploy-production-${{ github.ref }}
+  group: deploy-production
   cancel-in-progress: false
 
 env:
@@ -62,9 +62,38 @@ jobs:
         id: detect
         run: node scripts/workflow/detect-workflow-scope.mjs deploy
 
-  migrate-db:
-    name: Apply Prisma Migrations
+  validate-release:
+    name: Validate release before production access
     needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - name: Prepare pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.30.3
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build API and internal contracts
+        run: |
+          pnpm --filter @docita/api build
+          pnpm --filter @docita/internal build
+      - name: Verify repository standards
+        run: pnpm verify:standard
+      - name: Verify dashboard API access and calculations
+        if: needs.changes.outputs.api == 'true'
+        run: pnpm --filter @docita/api exec jest internal-operational-metrics --runInBand
+      - name: Verify internal dashboard behavior
+        if: needs.changes.outputs.internal == 'true'
+        run: pnpm --filter @docita/internal test src/features/performance/pages/performance-page.test.tsx
+
+  migrate-db:
+    name: Verify database and apply changed migrations
+    needs: [changes, validate-release]
     if: needs.changes.outputs.api == 'true' || needs.changes.outputs.worker == 'true'
     runs-on: ubuntu-latest
     environment: production
@@ -102,6 +131,7 @@ jobs:
           fi
           echo "Production database reachable."
       - name: Pre-migration RDS snapshot
+        if: needs.changes.outputs.db == 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -130,20 +160,8 @@ jobs:
         run: |
           if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL secret is required."; exit 1; fi
           pnpm --filter @workspace/db run db:generate
-      - name: Resolve failed migrations (if any)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL secret is required."; exit 1; fi
-          pnpm --filter @workspace/db exec prisma migrate resolve --rolled-back 20260618120000_migrate_free_clinics_to_starter 2>/dev/null || true
-          pnpm --filter @workspace/db exec prisma migrate resolve --rolled-back 20260618130000_migrate_front_desk_tiers_to_canonical 2>/dev/null || true
-      - name: Cleanup partial migration state
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL secret is required."; exit 1; fi
-          pnpm --filter @workspace/db exec ts-node scripts/cleanup-partial-migration.ts 2>&1 || true
       - name: Run Prisma Migrations
+        if: needs.changes.outputs.db == 'true'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
@@ -247,6 +265,8 @@ jobs:
 
   gate:
     name: Check Cloudflare deploy credentials
+    needs: [changes, validate-release]
+    if: needs.changes.outputs.app == 'true' || needs.changes.outputs.internal == 'true' || needs.changes.outputs.landing == 'true'
     runs-on: ubuntu-latest
     outputs:
       enabled: ${{ steps.check.outputs.enabled }}
@@ -261,8 +281,8 @@ jobs:
           if [ -z "${CLOUDFLARE_API_TOKEN}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"
             echo "reason=missing-secrets" >> "$GITHUB_OUTPUT"
-            echo "::warning title=Cloudflare deploys disabled::CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID secrets are not set; deploy-app/deploy-internal/deploy-landing are skipped."
-            exit 0
+            echo "::error title=Required Cloudflare deployment unavailable::CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID secrets are not set; deploy-app/deploy-internal/deploy-landing are skipped."
+            exit 1
           fi
           if node scripts/deploy/verify-cloudflare-deploy-credentials.mjs; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
@@ -270,7 +290,8 @@ jobs:
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
             echo "reason=invalid-credentials" >> "$GITHUB_OUTPUT"
-            echo "::warning title=Cloudflare deploys disabled::CLOUDFLARE_API_TOKEN verification failed (HTTP 401, code 1000); deploy-app/deploy-internal/deploy-landing are skipped. Follow RB-13 in docs/operations/RUNBOOKS.md: create a new API token (Edit Cloudflare Workers template), verify it with scripts/deploy/verify-cloudflare-deploy-credentials.mjs, then update the CLOUDFLARE_API_TOKEN repository secret."
+            echo "::error title=Required Cloudflare deployment unavailable::CLOUDFLARE_API_TOKEN verification failed (HTTP 401, code 1000); deploy-app/deploy-internal/deploy-landing are skipped. Follow RB-13 in docs/operations/RUNBOOKS.md: create a new API token (Edit Cloudflare Workers template), verify it with scripts/deploy/verify-cloudflare-deploy-credentials.mjs, then update the CLOUDFLARE_API_TOKEN repository secret."
+            exit 1
           fi
 
   deploy-app:
@@ -302,8 +323,8 @@ jobs:
 
   deploy-internal:
     name: Deploy internal (Cloudflare)
-    needs: [changes, gate]
-    if: needs.gate.outputs.enabled == 'true' && needs.changes.outputs.internal == 'true'
+    needs: [changes, gate, deploy-api]
+    if: always() && needs.gate.outputs.enabled == 'true' && needs.changes.outputs.internal == 'true' && (needs.changes.outputs.api != 'true' || needs.deploy-api.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
