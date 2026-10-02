@@ -9,3 +9,5 @@ export * from "./performance";
 export * from "./audit";
 export * from "./feature-flags";
 export * from "./database-control";
+
+export * from "./operational-metrics";
