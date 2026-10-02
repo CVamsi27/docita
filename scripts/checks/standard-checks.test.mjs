@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { withoutGitEnvironment } from "./test/standards-fixture-env.mjs";
 
 const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -22,13 +23,13 @@ function write(root, file, content) {
   writeFileSync(target, content);
 }
 
-function makeGitFixture(files) {
+function makeGitFixture(files, environment = process.env) {
   const root = mkdtempSync(path.join(tmpdir(), "docita-check-"));
-  execFileSync("git", ["init", "-q"], { cwd: root });
+  execFileSync("git", ["init", "-q"], { cwd: root, env: withoutGitEnvironment(environment) });
   for (const [file, content] of Object.entries(files)) {
     write(root, file, content);
   }
-  execFileSync("git", ["add", "."], { cwd: root });
+  execFileSync("git", ["add", "."], { cwd: root, env: withoutGitEnvironment(environment) });
   return root;
 }
 
@@ -36,7 +37,7 @@ function runCheck(root, name, args = [], env = {}) {
   return spawnSync(NODE, [script(name), ...args], {
     cwd: root,
     encoding: "utf8",
-    env: { ...process.env, DOCITA_CHECK_ROOT: root, ...env },
+    env: withoutGitEnvironment({ ...process.env, DOCITA_CHECK_ROOT: root, ...env }),
   });
 }
 
@@ -287,7 +288,7 @@ test("jsx literal density ratchet: baseline write, growth fails --enforce, refre
     "apps/app/src/features/x/Page.tsx",
     "export function Page() { return <div><span>Hello world</span><span>Extra</span></div>; }\n",
   );
-  execFileSync("git", ["add", "."], { cwd: root });
+  execFileSync("git", ["add", "."], { cwd: root, env: withoutGitEnvironment(process.env) });
   expectFail(
     runCheck(root, "check-jsx-literal-density.mjs", ["--enforce"]),
   );
@@ -1701,5 +1702,45 @@ test("feature-test-density ratchet applies to internal (grandfathered allowlist 
       }),
       "check-feature-test-density.mjs",
     ),
+  );
+});
+
+test("fixture repositories ignore inherited Git hook state", () => {
+  const parent = makeGitFixture({ "parent.txt": "parent" });
+  const inherited = {
+    ...process.env,
+    GIT_DIR: path.join(parent, ".git"),
+    GIT_WORK_TREE: parent,
+    GIT_INDEX_FILE: path.join(parent, ".git", "index"),
+  };
+  const child = makeGitFixture(
+    { "apps/app/src/good.ts": "const value = 1;" },
+    inherited,
+  );
+  expectPass(runCheck(child, "check-no-emoji.mjs", ["--enforce"], inherited));
+  const environment = withoutGitEnvironment(process.env);
+  assert.equal(
+    execFileSync("git", ["config", "--get", "core.bare"], {
+      cwd: parent,
+      env: environment,
+      encoding: "utf8",
+    }).trim(),
+    "false",
+  );
+  assert.equal(
+    execFileSync("git", ["ls-files"], {
+      cwd: parent,
+      env: environment,
+      encoding: "utf8",
+    }).trim(),
+    "parent.txt",
+  );
+  assert.equal(
+    execFileSync("git", ["ls-files"], {
+      cwd: child,
+      env: environment,
+      encoding: "utf8",
+    }).trim(),
+    "apps/app/src/good.ts",
   );
 });
