@@ -172,6 +172,8 @@ export const EnvSchema = z.object({
     .default(5_000_000),
   RLS_ENABLED: z.coerce.boolean().default(false),
   TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
+  /** When true, allows running without Cloudflare Turnstile in production/staging (relying on IP rate limits + lockout). */
+  TURNSTILE_OPTIONAL: envBoolean(false),
   /**
    * Comma-separated list of email addresses allowed to authenticate as
    * Role.INTERNAL. Empty/unset = allow any user with the INTERNAL role

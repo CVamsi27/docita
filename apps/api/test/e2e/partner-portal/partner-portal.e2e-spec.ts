@@ -15,38 +15,14 @@ import {
   resetDatabase,
   closeDatabase,
   getPrismaInstance,
+  captureE2ePressureSnapshot,
 } from '../../setup';
 import { setPrismaInstance } from '../../factories';
 import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { getCsrfHeaders } from '../../csrf-helpers';
+import { csrfHeaders, extractCookie } from '../../http-helpers';
 import { PARTNER_REFRESH_COOKIE_NAME } from '@workspace/types';
-
-interface CsrfHeaders {
-  cookie: string;
-  token: string;
-}
-
-function csrfHeaders(headers: CsrfHeaders): {
-  Cookie: string;
-  'X-XSRF-TOKEN': string;
-} {
-  return { Cookie: headers.cookie, 'X-XSRF-TOKEN': headers.token };
-}
-
-/** Extract a cookie value from Set-Cookie headers (supertest stores them). */
-function extractCookie(
-  headers: Record<string, unknown>,
-  name: string,
-): string | undefined {
-  const setCookie = headers['set-cookie'] as string[] | undefined;
-  if (!setCookie) return undefined;
-  for (const entry of setCookie) {
-    const match = entry.match(new RegExp(`${name}=([^;]+)`));
-    if (match) return match[1];
-  }
-  return undefined;
-}
 
 const PARTNER_PHONE = '+919876543210';
 
@@ -85,6 +61,43 @@ describe('Partner Portal (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let referrerId: string;
+
+  /**
+   * Runs a supertest request and, if it dies at the transport layer, re-raises
+   * it with the connection's own fields plus a pressure snapshot.
+   *
+   * The OTP rejection below failed once inside a full shard run with a bare
+   * `socket hang up`, which names neither the step that died nor the connection
+   * that dropped, so the cause was unclassifiable (backlog T-F1). Only failures
+   * carrying a Node connection code are re-wrapped: a status mismatch from
+   * `.expect(...)` has no `code` and carries neither `status` nor `response`, so
+   * its own readable message must reach the report unchanged.
+   */
+  async function requestWithTransportDiagnostics(
+    label: string,
+    send: () => request.Test,
+  ): Promise<request.Response> {
+    try {
+      return await send();
+    } catch (error) {
+      const failure = error as {
+        message?: string;
+        code?: string;
+        errno?: string;
+        syscall?: string;
+        address?: string;
+        port?: number;
+      };
+      if (typeof failure.code !== 'string') throw error;
+      throw new Error(
+        `${label} failed at the transport layer: ${failure.message ?? 'unknown error'}; ` +
+          `code=${failure.code} errno=${failure.errno ?? 'n/a'} ` +
+          `syscall=${failure.syscall ?? 'n/a'} address=${failure.address ?? 'n/a'} ` +
+          `port=${failure.port ?? 'n/a'} with pressure ` +
+          `${JSON.stringify(await captureE2ePressureSnapshot())}`,
+      );
+    }
+  }
 
   async function obtainTokens(): Promise<{
     accessToken: string;
@@ -239,26 +252,36 @@ describe('Partner Portal (e2e)', () => {
 
     it('rejects a wrong OTP with 401', async () => {
       const csrf = await getCsrfHeaders(app.getHttpServer());
-      await request(app.getHttpServer())
-        .post('/partner/auth/request-otp')
-        .set(csrfHeaders(csrf))
-        .send({ phone: PARTNER_PHONE })
-        .expect(200);
+      await requestWithTransportDiagnostics(
+        'request-otp (wrong-OTP case)',
+        () =>
+          request(app.getHttpServer())
+            .post('/partner/auth/request-otp')
+            .set(csrfHeaders(csrf))
+            .send({ phone: PARTNER_PHONE })
+            .expect(200),
+      );
 
-      await request(app.getHttpServer())
-        .post('/partner/auth/verify-otp')
-        .set(csrfHeaders(csrf))
-        .send({ phone: PARTNER_PHONE, otp: '000000' })
-        .expect(401);
+      await requestWithTransportDiagnostics('verify-otp (wrong-OTP case)', () =>
+        request(app.getHttpServer())
+          .post('/partner/auth/verify-otp')
+          .set(csrfHeaders(csrf))
+          .send({ phone: PARTNER_PHONE, otp: '000000' })
+          .expect(401),
+      );
     });
 
     it('rejects a phone with no outstanding challenge with 401', async () => {
       const csrf = await getCsrfHeaders(app.getHttpServer());
-      await request(app.getHttpServer())
-        .post('/partner/auth/verify-otp')
-        .set(csrfHeaders(csrf))
-        .send({ phone: PARTNER_PHONE, otp: '123456' })
-        .expect(401);
+      await requestWithTransportDiagnostics(
+        'verify-otp (no-challenge case)',
+        () =>
+          request(app.getHttpServer())
+            .post('/partner/auth/verify-otp')
+            .set(csrfHeaders(csrf))
+            .send({ phone: PARTNER_PHONE, otp: '123456' })
+            .expect(401),
+      );
     });
 
     it('rejects a malformed body with 400', async () => {

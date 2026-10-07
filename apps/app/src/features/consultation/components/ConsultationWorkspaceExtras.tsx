@@ -44,10 +44,7 @@ export function ConsultationAfterVisitStrip({
   if (!patientId) return null;
 
   return (
-    <div
-      className="rounded-[var(--radius-md)] border border-border/60 bg-card px-3 py-3 shadow-xs sm:px-4"
-      aria-label="After this visit"
-    >
+    <div className="rounded-[var(--radius-md)] border border-border/60 bg-card px-3 py-3 shadow-xs sm:px-4">
       <MicroLabel className="mb-2 block">After this visit</MicroLabel>
       <div className="flex flex-wrap items-center gap-2">
         <PrimaryActionButtons

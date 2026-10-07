@@ -1,6 +1,7 @@
 // jscpd:ignore-start
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { jsonObjectSchema } from '@workspace/types';
+import { QueueJobOutcome } from '@workspace/db';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -19,10 +20,9 @@ import type {
   QueueJobRow,
 } from './ports/queue-job.repository.port';
 import { WorkerMetricsService } from './worker-metrics.service';
+import { QueueJobLifecycle } from './queue-job-lifecycle';
 
 const POLL_INTERVAL_MS = 2000;
-const STALE_ACTIVE_TIMEOUT_MS = 10 * 60 * 1000;
-const RECOVERY_DELAY_MS = 30 * 1000;
 const DEFAULT_MAX_ATTEMPTS = 5;
 const RETRY_BASE_MS = 1_000;
 const RETRY_MAX_MS = 60_000;
@@ -39,13 +39,16 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   private readonly handlers = new Map<string, QueueJobHandler>();
   private readonly pollers = new Map<string, ReturnType<typeof setInterval>>();
   private readonly activePolls = new Set<string>();
+  private readonly lifecycle: QueueJobLifecycle;
 
   constructor(
     private readonly prisma: PrismaService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
     private readonly queueJobs: QueueJobRepository,
     private readonly metrics?: WorkerMetricsService,
-  ) {}
+  ) {
+    this.lifecycle = new QueueJobLifecycle(queueJobs, clock);
+  }
 
   async enqueue<T extends QueueJobData>(
     name: string,
@@ -136,7 +139,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     const handler = this.handlers.get(name);
     if (!handler) return;
 
-    await this.recoverStaleActiveJobs(name);
+    await this.lifecycle.recoverStaleActiveJobs(name);
 
     const rows = await this.queueJobs.claimNextWaitingJob(name);
 
@@ -151,18 +154,19 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
         row.idempotencyKey,
       );
       if (recent && recent.id !== row.id) {
-        // RLS-BYPASS: background queue workers run without per-request clinic session
-        await this.prisma.runUnrestricted(async () =>
-          this.prisma.queueJob.update({
-            where: { id: row.id },
-            data: {
-              status: 'COMPLETED',
-              completedAt: this.clock.now(),
-              failedReason: 'Skipped: idempotency-key already completed',
-            },
-          }),
-        );
-        this.metrics?.observeJobCompletion(name, 'idempotent_skip');
+        const skipped = await this.lifecycle.acknowledgeClaim(row, {
+          status: 'COMPLETED',
+          completedAt: this.clock.now(),
+          failedReason: 'Skipped: idempotency-key already completed',
+        });
+        if (skipped) {
+          this.metrics?.observeJobCompletion(name, 'idempotent_skip');
+          await this.lifecycle.recordExecution(row, {
+            outcome: QueueJobOutcome.IDEMPOTENT_SKIP,
+            attempt: row.attemptsMade + 1,
+            failedReason: 'Skipped: idempotency-key already completed',
+          });
+        }
         return;
       }
     }
@@ -171,14 +175,18 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     try {
       await handler(job);
 
-      // RLS-BYPASS: background queue workers run without per-request clinic session
-      await this.prisma.runUnrestricted(async () =>
-        this.prisma.queueJob.update({
-          where: { id: row.id },
-          data: { status: 'COMPLETED', completedAt: this.clock.now() },
-        }),
-      );
-      this.metrics?.observeJobCompletion(name, 'completed');
+      const applied = await this.lifecycle.acknowledgeClaim(row, {
+        status: 'COMPLETED',
+        completedAt: this.clock.now(),
+      });
+      if (applied) {
+        this.metrics?.observeJobCompletion(name, 'completed');
+        await this.lifecycle.recordExecution(row, {
+          outcome: QueueJobOutcome.COMPLETED,
+          attempt: row.attemptsMade + 1,
+          durationMs: Date.now() - startedAt,
+        });
+      }
       this.metrics?.observeJobDuration(name, (Date.now() - startedAt) / 1000);
     } catch (error) {
       const failedReason =
@@ -187,36 +195,40 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
 
       if (nextAttemptsMade < row.maxAttempts) {
         const backoffMs = computeBackoffMs(nextAttemptsMade);
-        // RLS-BYPASS: background queue workers run without per-request clinic session
-        await this.prisma.runUnrestricted(async () =>
-          this.prisma.queueJob.update({
-            where: { id: row.id },
-            data: {
-              status: 'DELAYED',
-              attemptsMade: nextAttemptsMade,
-              failedReason,
-              delayedUntil: new Date(Date.now() + backoffMs),
-            },
-          }),
-        );
-        this.metrics?.observeJobCompletion(name, 'retried');
+        const applied = await this.lifecycle.acknowledgeClaim(row, {
+          status: 'DELAYED',
+          attemptsMade: nextAttemptsMade,
+          failedReason,
+          delayedUntil: new Date(Date.now() + backoffMs),
+        });
+        if (applied) {
+          this.metrics?.observeJobCompletion(name, 'retried');
+          await this.lifecycle.recordExecution(row, {
+            outcome: QueueJobOutcome.RETRY_SCHEDULED,
+            attempt: nextAttemptsMade,
+            durationMs: Date.now() - startedAt,
+            failedReason,
+          });
+        }
       } else {
-        // RLS-BYPASS: background queue workers run without per-request clinic session
-        await this.prisma.runUnrestricted(async () =>
-          this.prisma.queueJob.update({
-            where: { id: row.id },
-            data: {
-              status: 'DEAD_LETTERED',
-              attemptsMade: nextAttemptsMade,
-              failedReason,
-              deadLetteredAt: this.clock.now(),
-            },
-          }),
-        );
-        this.metrics?.observeJobCompletion(name, 'dead_lettered');
-        this.logger.error(
-          `Job ${row.id} (${name}) dead-lettered after ${nextAttemptsMade} attempts: ${failedReason}`,
-        );
+        const applied = await this.lifecycle.acknowledgeClaim(row, {
+          status: 'DEAD_LETTERED',
+          attemptsMade: nextAttemptsMade,
+          failedReason,
+          deadLetteredAt: this.clock.now(),
+        });
+        if (applied) {
+          this.metrics?.observeJobCompletion(name, 'dead_lettered');
+          this.logger.error(
+            `Job ${row.id} (${name}) dead-lettered after ${nextAttemptsMade} attempts: ${failedReason}`,
+          );
+          await this.lifecycle.recordExecution(row, {
+            outcome: QueueJobOutcome.DEAD_LETTERED,
+            attempt: nextAttemptsMade,
+            durationMs: Date.now() - startedAt,
+            failedReason,
+          });
+        }
       }
       this.metrics?.observeJobDuration(name, (Date.now() - startedAt) / 1000);
     }
@@ -281,30 +293,25 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       }),
     );
     await this.refreshDlqGauge(row.name);
-    return this.rowToJob(row);
-  }
-
-  private async recoverStaleActiveJobs(name: string): Promise<void> {
-    const nowMs = this.clock.now().getTime();
-    const staleBefore = new Date(nowMs - STALE_ACTIVE_TIMEOUT_MS);
-    const delayedUntil = new Date(nowMs + RECOVERY_DELAY_MS);
-
-    const delayedRows = await this.queueJobs.recoverStaleActiveToDelayed(
-      name,
-      staleBefore,
-      delayedUntil,
-    );
-
-    const failedRows = await this.queueJobs.recoverStaleActiveToFailed(
-      name,
-      staleBefore,
-    );
-
-    if (delayedRows.length > 0 || failedRows.length > 0) {
+    try {
+      await this.queueJobs.appendExecutions([
+        {
+          jobId: row.id,
+          queueName: row.name,
+          outcome: QueueJobOutcome.REPLAYED,
+          attempt: 1,
+          claimToken: null,
+          durationMs: null,
+          failedReason: `Replayed after ${row.replayCount} replay(s)`,
+          occurredAt: this.clock.now(),
+        },
+      ]);
+    } catch (error) {
       this.logger.warn(
-        `Recovered stale ACTIVE jobs for ${name}: delayed=${delayedRows.length}, failed=${failedRows.length}`,
+        `Could not record replay history for job ${jobId}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
+    return this.rowToJob(row);
   }
 
   async getJob<T extends QueueJobData>(

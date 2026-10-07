@@ -10,6 +10,10 @@ import { tap, catchError } from 'rxjs/operators';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { Request, Response } from 'express';
 import { getMonitoringUserContext } from '@/shared/modules/auth/auth/monitoring-user-context';
+import {
+  readCorrelationHeader,
+  resolveCorrelationId,
+} from '@/shared/modules/monitoring/monitoring/rules/telemetry-observation.rules';
 
 function toNumberHeader(value: unknown): number | undefined {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -65,6 +69,15 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       ? parseInt(request.headers['content-length'], 10)
       : undefined;
 
+    // Opaque, and resolved once per request so the ApiRequest row and any
+    // ErrorLog row for the same request carry the same key. The header is
+    // client-controlled, so resolveCorrelationId only reuses values that are
+    // already safe tokens.
+    const correlationId = resolveCorrelationId(
+      readCorrelationHeader(request.headers),
+    );
+    response.setHeader('x-request-id', correlationId);
+
     return next.handle().pipe(
       tap(() => {
         const duration = Date.now() - startTime;
@@ -85,6 +98,8 @@ export class RequestLoggingInterceptor implements NestInterceptor {
           responseSize,
           userAgent,
           ip,
+          correlationId,
+          observedAt: new Date(),
         });
 
         this.logAccess(method, path, statusCode, duration);
@@ -114,6 +129,8 @@ export class RequestLoggingInterceptor implements NestInterceptor {
           userAgent,
           ip,
           error: errorMessage,
+          correlationId,
+          observedAt: new Date(),
         });
 
         this.logAccess(method, path, statusCode, duration);

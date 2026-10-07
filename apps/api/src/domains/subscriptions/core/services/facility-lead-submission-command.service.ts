@@ -13,6 +13,7 @@ import {
 } from '@/domains/subscriptions/application/ports/partner-persistence.port';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import type { IOutboxService } from '@/shared/modules/outbox/outbox.interface';
+import { isUniqueConstraintOn } from '@/shared/common/prisma/unique-constraint';
 import { computeFacilityFingerprint } from './facility-fingerprint';
 import { mapToView } from './facility-lead.mapper';
 
@@ -77,15 +78,32 @@ export class FacilityLeadSubmissionCommandService {
       }
     }
 
-    // 4. Same-phone-but-different-facility dedupe (only reached when the
-    //    fingerprint did not match): conservative `DUPLICATE_ENTRY`, the
-    //    same semantic used for partner phone conflicts.
+    // 4. Same-phone-but-different-facility dedupe: conservative
+    //    `DUPLICATE_ENTRY`, the same semantic used for partner phone
+    //    conflicts.
     if (contactPhone) {
       const duplicate = await this.prisma.facilityLead.findFirst({
         where: { contactPhone: { in: phoneMatchCandidates(contactPhone) } },
-        select: { id: true },
+        select: { id: true, fingerprint: true },
       });
       if (duplicate) {
+        // The fingerprint check and this phone check are separate reads, so a
+        // concurrent submit of the *same* facility can straddle the other
+        // submit's commit: the fingerprint read ran before that commit (no
+        // match) while this read sees its row (phone match). Rejecting there
+        // would classify an exact duplicate as a phone conflict, and which of
+        // the two the caller saw would depend on interleaving. Identical
+        // fingerprints mean it is an exact duplicate, so it takes the review
+        // path the contract documents; a genuinely different facility on the
+        // same phone still conflicts.
+        if (fingerprint && duplicate.fingerprint === fingerprint) {
+          return this.createDuplicateLead(
+            referrerId,
+            input,
+            contactPhone,
+            duplicate.id,
+          );
+        }
         throw new ConflictException({
           message: 'A lead for this facility contact already exists',
           code: 'DUPLICATE_ENTRY',
@@ -281,35 +299,10 @@ export class FacilityLeadSubmissionCommandService {
   }
 }
 
-/**
- * The constrained fields of a P2002. Prisma's classic shape is
- * `meta.target` (string[]); the driver-adapter shape (Prisma 5+ with the
- * new query engine) nests it at `meta.driverAdapterError.cause.constraint
- * .fields`. Both must be recognized or a concurrent-submit race surfaces
- * as a 500 instead of being re-routed.
- */
-function uniqueConstraintTargets(error: unknown): string[] {
-  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return [];
-  if (error.code !== 'P2002') return [];
-  const meta = error.meta as
-    | { target?: unknown; driverAdapterError?: unknown }
-    | undefined;
-  if (!meta) return [];
-  const driverAdapterFields = (
-    meta.driverAdapterError as {
-      cause?: { constraint?: { fields?: unknown } };
-    } | null
-  )?.cause?.constraint?.fields;
-  const target = meta.target ?? driverAdapterFields;
-  return Array.isArray(target)
-    ? target.filter((field): field is string => typeof field === 'string')
-    : [];
-}
-
 function isUniqueConstraintOnIdempotency(error: unknown): boolean {
-  return uniqueConstraintTargets(error).includes('idempotencyKey');
+  return isUniqueConstraintOn(error, 'idempotencyKey');
 }
 
 function isUniqueConstraintOnFingerprint(error: unknown): boolean {
-  return uniqueConstraintTargets(error).includes('fingerprint');
+  return isUniqueConstraintOn(error, 'fingerprint');
 }

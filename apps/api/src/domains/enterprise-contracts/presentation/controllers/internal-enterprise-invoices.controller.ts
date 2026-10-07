@@ -36,6 +36,7 @@ export class InternalEnterpriseInvoicesController {
     return alerts.map((a) => ({
       ...a,
       alertedAt: a.alertedAt.toISOString(),
+      deliveredAt: a.deliveredAt ? a.deliveredAt.toISOString() : null,
     }));
   }
 

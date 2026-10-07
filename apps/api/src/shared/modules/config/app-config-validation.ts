@@ -98,6 +98,9 @@ function assertTurnstileSecret(
   config: z.infer<typeof EnvSchema>,
   runningAsWorker: boolean,
 ) {
+  if (config.TURNSTILE_OPTIONAL) {
+    return;
+  }
   const requiresTurnstile =
     !runningAsWorker &&
     (config.NODE_ENV === 'production' || config.NODE_ENV === 'staging');

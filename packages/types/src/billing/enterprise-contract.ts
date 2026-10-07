@@ -280,9 +280,23 @@ export type EnterpriseContractInvoicePreview = z.infer<
   typeof enterpriseContractInvoicePreviewSchema
 >;
 
+/**
+ * `idempotencyKey` separates **issuance** from **retry**: the caller owns the
+ * key, so a retried request returns the invoice already issued under it instead
+ * of raising a second bill. Required, because an adjustment without a key
+ * double-bills on every retry and adjustment invoices are real money.
+ */
 export const enterpriseAdjustmentInvoiceRequestSchema = z.object({
   label: z.string().min(1).max(120),
   amountCents: z.number().int().positive(),
+  idempotencyKey: z
+    .string()
+    .min(8)
+    .max(120)
+    .regex(
+      /^[A-Za-z0-9._:-]+$/,
+      'idempotencyKey may contain letters, digits, dot, underscore, colon or hyphen',
+    ),
 });
 export type EnterpriseAdjustmentInvoiceRequest = z.infer<
   typeof enterpriseAdjustmentInvoiceRequestSchema

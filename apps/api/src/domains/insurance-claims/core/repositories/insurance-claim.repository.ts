@@ -1,4 +1,35 @@
-import { ClaimStatus, ClaimType, Prisma } from '@workspace/db';
+import {
+  ClaimStatus,
+  ClaimSubmissionStatus,
+  ClaimType,
+  Prisma,
+} from '@workspace/db';
+
+/**
+ * A claim the delivery sweep owes work on.
+ *
+ * `clinicId` is the clinic that owns the claim, resolved the same way the
+ * ownership filter resolves it: a claim with no direct clinic belongs to its
+ * patient's clinic. The sweep runs without an authenticated clinic, so it has
+ * to carry the owning clinic itself rather than filtering by one.
+ */
+export interface PendingClaimSubmission {
+  id: string;
+  clinicId: string;
+  submissionAttempts: number;
+}
+
+/**
+ * Settlement of one delivery attempt, recorded once the caller still holds the
+ * claim token. Shared by the repository interface and its Prisma
+ * implementation so both agree on what a settled submission stores.
+ */
+export interface ClaimSubmissionOutcome {
+  status: ClaimSubmissionStatus;
+  now: Date;
+  externalReference?: string | null;
+  error?: string | null;
+}
 
 export interface ClaimPatientSummary {
   id: string;
@@ -39,6 +70,12 @@ export interface InsuranceClaimRecord {
   settledAt: Date | null;
   notes: string | null;
   denialReason: string | null;
+  submissionStatus: ClaimSubmissionStatus;
+  submissionAttempts: number;
+  submissionClaimedAt: Date | null;
+  submittedToInsurerAt: Date | null;
+  submissionLastError: string | null;
+  externalClaimReference: string | null;
   version: number;
   createdAt: Date;
   updatedAt: Date;
@@ -92,6 +129,36 @@ export interface IInsuranceClaimRepository {
     data: Prisma.InsuranceClaimUncheckedUpdateManyInput,
     event: Prisma.InsuranceClaimEventCreateWithoutClaimInput,
   ): Promise<InsuranceClaimRecord | null>;
+
+  /**
+   * Claims the delivery of a claim to its insurer.
+   *
+   * Bounded by a lease so a process that died mid-send does not strand the
+   * claim, and so two workers never file the same claim twice. The claim's own
+   * status is not touched here: what is being claimed is delivery, which is a
+   * separate fact from "marked submitted".
+   */
+  claimSubmission(
+    id: string,
+    clinicId: string,
+    claimToken: string,
+    now: Date,
+    leaseExpiredBefore: Date,
+  ): Promise<boolean>;
+
+  /** Settles a submission the caller still holds the claim on. */
+  settleSubmission(
+    id: string,
+    clinicId: string,
+    claimToken: string,
+    outcome: ClaimSubmissionOutcome,
+  ): Promise<void>;
+
+  /** Claims whose delivery to the insurer has not been confirmed. */
+  findPendingSubmissions(
+    leaseExpiredBefore: Date,
+    limit: number,
+  ): Promise<PendingClaimSubmission[]>;
   attachDocument(
     claimId: string,
     clinicId: string,

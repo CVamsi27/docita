@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@workspace/db';
+import { ClaimStatus, ClaimSubmissionStatus, Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
+  ClaimSubmissionOutcome,
   IInsuranceClaimRepository,
   InsuranceClaimRecord,
   InsuranceClaimSearchParams,
   PaginatedResult,
+  PendingClaimSubmission,
 } from '@/domains/insurance-claims/core/repositories/insurance-claim.repository';
 
 const CLAIM_DOCUMENT_SELECT = {
@@ -40,6 +42,12 @@ const CLAIM_SELECT = {
   settledAt: true,
   notes: true,
   denialReason: true,
+  submissionStatus: true,
+  submissionAttempts: true,
+  submissionClaimedAt: true,
+  submittedToInsurerAt: true,
+  submissionLastError: true,
+  externalClaimReference: true,
   version: true,
   createdAt: true,
   updatedAt: true,
@@ -219,6 +227,141 @@ export class PrismaInsuranceClaimRepository implements IInsuranceClaimRepository
         select: CLAIM_SELECT,
       });
     });
+  }
+
+  async claimSubmission(
+    id: string,
+    clinicId: string,
+    claimToken: string,
+    now: Date,
+    leaseExpiredBefore: Date,
+  ): Promise<boolean> {
+    const result = await this.prisma.insuranceClaim.updateMany({
+      where: {
+        id,
+        ...this.ownershipFilter(clinicId),
+        // LEGACY_UNVERIFIED claims predate delivery tracking. Re-sending them
+        // would file claims with insurers that may already hold them.
+        submissionStatus: {
+          in: [
+            ClaimSubmissionStatus.NOT_ATTEMPTED,
+            ClaimSubmissionStatus.FAILED,
+            ClaimSubmissionStatus.IN_FLIGHT,
+          ],
+        },
+        // AND, not OR: the ownership filter above also contributes an OR, and a
+        // second top-level OR would silently replace it and drop the tenant
+        // predicate.
+        AND: [
+          {
+            OR: [
+              {
+                submissionStatus: {
+                  in: [
+                    ClaimSubmissionStatus.NOT_ATTEMPTED,
+                    ClaimSubmissionStatus.FAILED,
+                  ],
+                },
+              },
+              {
+                // Only an expired lease may be taken over; a live claim is
+                // another worker's send in progress.
+                submissionStatus: ClaimSubmissionStatus.IN_FLIGHT,
+                submissionClaimedAt: { lt: leaseExpiredBefore },
+              },
+            ],
+          },
+        ],
+      },
+      data: {
+        submissionStatus: ClaimSubmissionStatus.IN_FLIGHT,
+        submissionClaimToken: claimToken,
+        submissionClaimedAt: now,
+        submissionAttempts: { increment: 1 },
+      },
+    });
+    return result.count === 1;
+  }
+
+  async settleSubmission(
+    id: string,
+    clinicId: string,
+    claimToken: string,
+    outcome: ClaimSubmissionOutcome,
+  ): Promise<void> {
+    const sent = outcome.status === ClaimSubmissionStatus.SENT;
+    await this.prisma.insuranceClaim.updateMany({
+      where: {
+        id,
+        ...this.ownershipFilter(clinicId),
+        submissionClaimToken: claimToken,
+        submissionStatus: ClaimSubmissionStatus.IN_FLIGHT,
+      },
+      data: {
+        submissionStatus: outcome.status,
+        // Cleared so the row never reads as in-flight forever.
+        submissionClaimToken: null,
+        submissionClaimedAt: null,
+        submittedToInsurerAt: sent ? outcome.now : null,
+        ...(outcome.externalReference
+          ? { externalClaimReference: outcome.externalReference }
+          : {}),
+        submissionLastError: outcome.error ? outcome.error.slice(0, 500) : null,
+      },
+    });
+  }
+
+  async findPendingSubmissions(
+    leaseExpiredBefore: Date,
+    limit: number,
+  ): Promise<PendingClaimSubmission[]> {
+    const rows = await this.prisma.getReadClient().insuranceClaim.findMany({
+      where: {
+        // Only a claim actually marked submitted is owed a delivery.
+        status: ClaimStatus.SUBMITTED,
+        submissionStatus: {
+          in: [
+            ClaimSubmissionStatus.NOT_ATTEMPTED,
+            ClaimSubmissionStatus.FAILED,
+            ClaimSubmissionStatus.IN_FLIGHT,
+          ],
+        },
+        OR: [
+          {
+            submissionStatus: {
+              in: [
+                ClaimSubmissionStatus.NOT_ATTEMPTED,
+                ClaimSubmissionStatus.FAILED,
+              ],
+            },
+          },
+          {
+            submissionStatus: ClaimSubmissionStatus.IN_FLIGHT,
+            submissionClaimedAt: { lt: leaseExpiredBefore },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        clinicId: true,
+        submissionAttempts: true,
+        // A claim with no direct clinic belongs to its patient's clinic, which
+        // is the clinic the ownership filter would match it under.
+        patient: { select: { clinicId: true } },
+      },
+      orderBy: { submittedAt: 'asc' },
+      take: limit,
+    });
+
+    // A claim with neither its own clinic nor a patient's clinic cannot be
+    // acted on safely, so it is left alone rather than filed blind.
+    return rows
+      .map((row) => ({
+        id: row.id,
+        clinicId: row.clinicId ?? row.patient?.clinicId ?? null,
+        submissionAttempts: row.submissionAttempts,
+      }))
+      .filter((row): row is PendingClaimSubmission => row.clinicId !== null);
   }
 
   async attachDocument(

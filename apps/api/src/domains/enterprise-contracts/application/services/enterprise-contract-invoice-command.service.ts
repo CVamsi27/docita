@@ -17,7 +17,8 @@ import {
   type EnterpriseContract,
 } from '@workspace/db';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import { nanoid } from 'nanoid';
+import { createHash } from 'node:crypto';
+import { type EnterpriseAdjustmentInvoiceRequest } from '@workspace/types';
 
 const MINIMUM_SETUP_FEE_CENTS = 2500_00;
 
@@ -236,9 +237,18 @@ export class EnterpriseContractInvoiceCommandService {
     });
   }
 
+  /**
+   * Raises a custom adjustment bill.
+   *
+   * `idempotencyKey` is required by the request schema and is what makes a
+   * retry safe: the invoice number is derived from it, so re-submitting the
+   * same request upserts the same `SubscriptionPayment` and the same
+   * `EnterpriseContractInvoice` instead of billing the customer twice. Issuing a
+   * genuinely new adjustment means issuing a new key.
+   */
   async generateAdjustmentInvoice(
     contractId: string,
-    payload: { label: string; amountCents: number },
+    payload: EnterpriseAdjustmentInvoiceRequest,
   ) {
     // RLS-BYPASS: enterprise contract administration spans member clinics by design
     return this.persistence.runUnrestricted(async () => {
@@ -248,24 +258,62 @@ export class EnterpriseContractInvoiceCommandService {
           'Custom bill cannot be raised for terminated contracts',
         );
 
+      // Reusing the key with different terms is a caller bug, not a retry:
+      // silently returning the earlier invoice would hide the mismatch.
+      const existing =
+        await this.persistence.enterpriseContractInvoice.findFirst({
+          where: {
+            contractId,
+            kind: EnterpriseInvoiceKind.ADJUSTMENT,
+            subscriptionPayment: {
+              invoiceNumber: this.adjustmentInvoiceNumber(
+                contract.contractNumber,
+                payload.idempotencyKey,
+              ),
+            },
+          },
+          include: { subscriptionPayment: true },
+        });
+      if (existing) {
+        if (
+          existing.amountCents !== payload.amountCents ||
+          (existing.subscriptionPayment?.description ?? '') !==
+            `${payload.label} for enterprise contract ${contract.contractNumber}`
+        ) {
+          throw new BadRequestException(
+            'idempotencyKey was already used for a different adjustment; use a new key to issue another bill',
+          );
+        }
+        return existing;
+      }
+
       const issuedAt = this.clock.now();
-      const invoiceNumber = `ENT-ADJ-${contract.contractNumber}-${nanoid(8)}`;
+      const invoiceNumber = this.adjustmentInvoiceNumber(
+        contract.contractNumber,
+        payload.idempotencyKey,
+      );
       const description = `${payload.label} for enterprise contract ${contract.contractNumber}`;
 
       const invoice = await this.persistence.$transaction(async (tx) => {
-        const payment = await tx.subscriptionPayment.create({
-          data: {
-            clinicId: contract.primaryClinicId,
-            amountCents: payload.amountCents,
-            currency: contract.currency,
-            status: 'pending',
-            invoiceNumber,
-            description,
-          },
+        const payment = await this.upsertContractInvoicePayment(tx, {
+          clinicId: contract.primaryClinicId,
+          invoiceNumber,
+          amountCents: payload.amountCents,
+          currency: contract.currency,
+          description,
         });
 
-        return tx.enterpriseContractInvoice.create({
-          data: {
+        return tx.enterpriseContractInvoice.upsert({
+          where: { subscriptionPaymentId: payment.id },
+          update: {
+            amountCents: payload.amountCents,
+            currency: contract.currency,
+            metadata: {
+              label: payload.label,
+              idempotencyKey: payload.idempotencyKey,
+            },
+          },
+          create: {
             contractId,
             kind: EnterpriseInvoiceKind.ADJUSTMENT,
             subscriptionPaymentId: payment.id,
@@ -274,7 +322,10 @@ export class EnterpriseContractInvoiceCommandService {
             periodStart: issuedAt,
             periodEnd: issuedAt,
             discountPercent: 0,
-            metadata: { label: payload.label },
+            metadata: {
+              label: payload.label,
+              idempotencyKey: payload.idempotencyKey,
+            },
           },
           include: { subscriptionPayment: true },
         });
@@ -285,5 +336,21 @@ export class EnterpriseContractInvoiceCommandService {
       );
       return invoice;
     });
+  }
+
+  /**
+   * Deterministic invoice number for an adjustment key. The key is hashed so
+   * the result stays inside the column width and cannot inject separators into
+   * the `ENT-ADJ-<contract>-<key>` form.
+   */
+  private adjustmentInvoiceNumber(
+    contractNumber: string,
+    idempotencyKey: string,
+  ): string {
+    const digest = createHash('sha256')
+      .update(`${contractNumber}:${idempotencyKey}`)
+      .digest('hex')
+      .slice(0, 16);
+    return `ENT-ADJ-${contractNumber}-${digest}`;
   }
 }

@@ -7,15 +7,12 @@ import { AdminCreateDialog, AdminEditDialog, AdminViewDialog } from "../componen
 import { apiGet, apiPost, apiPatch } from "@/lib/api/api-client";
 import { isRecord } from "@workspace/utils"
 import { useApiQuery } from "@/hooks/use-api-query";
+import { getRoleBadgeVariant, getRoleLabel } from "../lib/admin-role-presentation";
 
 interface Admin { id: string; name: string; email: string; phoneNumber?: string; role: string; appLoginDisabled: boolean; createdAt: string; }
 
 interface ClinicOption { id: string; name: string; }
 
-const LABELS: Record<string, string> = { admin: "Clinic Admin", admin_doctor: "Admin Doctor", ADMIN: "Clinic Admin", ADMIN_DOCTOR: "Admin Doctor" };
-const BADGE: Record<string, "default" | "outline"> = { admin: "outline", admin_doctor: "default", ADMIN: "outline", ADMIN_DOCTOR: "default" };
-const getRoleLabel = (r: string): string => LABELS[r] ?? r;
-const getRoleBadgeV = (r: string): "default" | "outline" => BADGE[r] ?? "outline";
 
 export function AdminsPage() {
   const { data: admins = [], isLoading, error, refetch } = useApiQuery<Admin[]>("/api/internal/admins");
@@ -96,13 +93,13 @@ export function AdminsPage() {
         </div>
         <AdminsTable admins={filteredAdmins} selectedClinic="all" onView={(a) => { setSelectedAdmin(a); setIsViewOpen(true); }}
           onEdit={(a) => { setSelectedAdmin(a); setEditForm({ name: a.name, email: a.email, phoneNumber: a.phoneNumber || "", adminType: a.role === "ADMIN_DOCTOR" ? "admin_doctor" : "admin" }); setIsEditOpen(true); }}
-          onDeactivate={(a) => { setDeactivatingAdmin(a); }} onActivate={(id) => { void handleActivate(id); }} getRoleLabel={getRoleLabel} getRoleBadgeVariant={getRoleBadgeV} />
+          onDeactivate={(a) => { setDeactivatingAdmin(a); }} onActivate={(id) => { void handleActivate(id); }} getRoleLabel={getRoleLabel} getRoleBadgeVariant={getRoleBadgeVariant} />
       </DataState>
       <ConfirmationDialog open={!!deactivatingAdmin} onOpenChange={(o) => { if (!o) setDeactivatingAdmin(null); }}
         title="Deactivate admin?" description="This admin will not be able to sign in until re-enabled."
         confirmText="Deactivate" cancelText="Cancel" type="danger"
         onConfirm={() => { const id = deactivatingAdmin?.id; setDeactivatingAdmin(null); if (id) { void handleDeactivate(id); } }} />
-      <AdminViewDialog open={isViewOpen} onOpenChange={setIsViewOpen} admin={selectedAdmin} getRoleLabel={getRoleLabel} getRoleBadgeVariant={getRoleBadgeV} />
+      <AdminViewDialog open={isViewOpen} onOpenChange={setIsViewOpen} admin={selectedAdmin} getRoleLabel={getRoleLabel} getRoleBadgeVariant={getRoleBadgeVariant} />
       <AdminCreateDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} form={createForm} onFormChange={setCreateForm} clinics={clinics} onCreate={() => { void handleCreate(); }} saving={saving} />
       <AdminEditDialog open={isEditOpen} onOpenChange={setIsEditOpen} form={editForm} onFormChange={setEditForm} onSave={() => { void handleSave(); }} saving={saving} />
     </AppPageScaffold>

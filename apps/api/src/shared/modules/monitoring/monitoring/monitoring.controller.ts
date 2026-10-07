@@ -30,7 +30,11 @@ import {
   AnyResponseDto,
   SecurityMonitoringSummaryResponseDto,
   QueueHealthSummaryResponseDto,
+  BackgroundJobsHealthSummaryResponseDto,
+  TelemetryCoverageResponseDto,
 } from './dto/monitoring.dto';
+import { parseStringEnumMember } from '@workspace/utils';
+import { RouteCategory } from '@workspace/db';
 import {
   ResolveMultipleErrorsSchema,
   ResolveMultipleErrorsDto,
@@ -76,11 +80,27 @@ export class MonitoringController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('clinicId') clinicId?: string,
+    @Query('routeCategory') routeCategory?: string,
   ) {
     return this.monitoringService.getRequestStats(
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
       clinicId,
+      this.toRouteCategory(routeCategory),
+    );
+  }
+
+  /**
+   * Narrows a query to one route family. Unknown values are ignored rather than
+   * rejected so a stale dashboard cannot 500 the monitoring endpoint; the
+   * unfiltered result is always a safe fallback.
+   */
+  private toRouteCategory(value?: string): RouteCategory | undefined {
+    if (!value) {
+      return undefined;
+    }
+    return (
+      parseStringEnumMember(Object.values(RouteCategory), value) ?? undefined
     );
   }
 
@@ -103,10 +123,12 @@ export class MonitoringController {
   async getPerformanceMetrics(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('routeCategory') routeCategory?: string,
   ) {
     return this.monitoringService.getPerformanceMetrics(
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
+      this.toRouteCategory(routeCategory),
     );
   }
 
@@ -213,5 +235,35 @@ export class MonitoringController {
   @ZodSerializerDto(QueueHealthSummaryResponseDto)
   async getQueueHealth() {
     return this.monitoringService.getQueueHealthSummary();
+  }
+
+  /**
+   * Cron heartbeat freshness and outbox backlog age. Both backends already
+   * record this internally but nothing read it back, so a scheduler that
+   * silently stopped and an outbox that stopped draining were both invisible
+   * until someone read the logs.
+   */
+  @Get('background-jobs')
+  @ZodSerializerDto(BackgroundJobsHealthSummaryResponseDto)
+  async getBackgroundJobsHealth() {
+    return this.monitoringService.getBackgroundJobsHealthSummary();
+  }
+
+  /**
+   * What the retained telemetry window can honestly support: first/last retained
+   * request instants, the customer/health-check/internal split, and every
+   * recorded capture gap. Deliberately not an uptime percentage — see
+   * `coverageNote` in the response.
+   */
+  @Get('telemetry-coverage')
+  @ZodSerializerDto(TelemetryCoverageResponseDto)
+  async getTelemetryCoverage(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.monitoringService.getTelemetryCoverage(
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+    );
   }
 }

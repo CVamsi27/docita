@@ -1,31 +1,18 @@
 import { apiFetch, getAuthHeaders } from "@/lib/api/api-client";
 import {
+  onboardingCheckoutResponseSchema,
+  onboardingCompletionResponseSchema,
   onboardingTrialEligibilityResponseSchema,
+  uploadSessionCreateContractResponseSchema,
+  type OnboardingCheckoutResponse,
+  type OnboardingCompletionResponse,
   type PlanMode,
 } from "@workspace/types";
 
+import { api } from "@/lib/api/api-client";
+
 interface OnboardingIdResponse {
   onboardingId: string;
-}
-
-interface UploadSessionCredentials {
-  id: string;
-  uploadSecret: string;
-}
-
-interface CompleteOnboardingResponse {
-  success?: boolean;
-  message?: string;
-  errors?: string[];
-  access_token?: string;
-  user?: unknown;
-}
-
-interface OnboardingCheckoutResponse {
-  orderId: string;
-  amountCents: number;
-  currency: string;
-  razorpayKeyId: string;
 }
 
 function jsonHeaders(): Record<string, string> {
@@ -49,21 +36,29 @@ export async function initializeOnboarding(): Promise<string> {
   return data.onboardingId;
 }
 
-export function createSlaSignatureSession(
-  onboardingId: string,
-): Promise<UploadSessionCredentials> {
-  return apiFetch(`/onboarding/${onboardingId}/sla-signature-session`, {
-    method: "POST",
-    headers: jsonHeaders(),
-    body: JSON.stringify({}),
-  });
+/**
+ * `UploadSessionCredentials` used to be a second hand-written copy of this
+ * response (the other lived in `@/lib/api/upload-session`), declaring only
+ * `id` and `uploadSecret` and checking nothing. The contract also carries
+ * `expiresAt`, which is what tells a caller the 20-minute link has lapsed.
+ */
+export function createSlaSignatureSession(onboardingId: string) {
+  return api.validate(
+    `/onboarding/${onboardingId}/sla-signature-session`,
+    uploadSessionCreateContractResponseSchema,
+    {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({}),
+    },
+  );
 }
 
-export function completeOnboarding(
+export async function completeOnboarding(
   onboardingId: string,
   payload: unknown,
-): Promise<CompleteOnboardingResponse> {
-  return apiFetch<CompleteOnboardingResponse>(
+): Promise<OnboardingCompletionResponse> {
+  const response = await apiFetch<unknown>(
     `/onboarding/${onboardingId}/complete`,
     {
       method: "POST",
@@ -71,6 +66,7 @@ export function completeOnboarding(
       body: JSON.stringify(payload),
     },
   );
+  return onboardingCompletionResponseSchema.parse(response);
 }
 
 export async function getOnboardingTrialEligibility(
@@ -87,7 +83,7 @@ export async function getOnboardingTrialEligibility(
   return onboardingTrialEligibilityResponseSchema.parse(response).eligible;
 }
 
-export function createOnboardingCheckout(params: {
+export async function createOnboardingCheckout(params: {
   onboardingId: string;
   tier: string;
   billingCycle: "MONTHLY" | "YEARLY";
@@ -98,7 +94,7 @@ export function createOnboardingCheckout(params: {
   customerName?: string | null;
   customerPhone?: string;
 }): Promise<OnboardingCheckoutResponse> {
-  return apiFetch<OnboardingCheckoutResponse>(
+  const response = await apiFetch<unknown>(
     `/onboarding/${params.onboardingId}/checkout`,
     {
       method: "POST",
@@ -115,4 +111,5 @@ export function createOnboardingCheckout(params: {
       }),
     },
   );
+  return onboardingCheckoutResponseSchema.parse(response);
 }

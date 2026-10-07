@@ -11,6 +11,7 @@ import { DocumentsWorkerModule } from '@/domains/documents/documents.worker.modu
 import { BillingWorkerModule } from '@/domains/billing/billing.worker.module';
 import { PrescriptionsWorkerModule } from '@/domains/prescriptions/prescriptions.worker.module';
 import { ClinicalSchedulerModule } from '@/domains/clinical/clinical.scheduler.module';
+import { InsuranceClaimsSchedulerModule } from '@/domains/insurance-claims/insurance-claims.scheduler.module';
 import { RemindersSchedulerModule } from '@/domains/reminders/reminders.scheduler.module';
 import { ComplianceSchedulerModule } from '@/shared/modules/compliance/compliance.scheduler.module';
 import { MonitoringSchedulerModule } from '@/shared/modules/monitoring/monitoring/monitoring.scheduler.module';
@@ -63,6 +64,7 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     BillingWorkerModule,
     PrescriptionsWorkerModule,
     ClinicalSchedulerModule,
+    InsuranceClaimsSchedulerModule,
     RemindersSchedulerModule,
     ComplianceSchedulerModule,
     EphemeralStoreSchedulerModule,

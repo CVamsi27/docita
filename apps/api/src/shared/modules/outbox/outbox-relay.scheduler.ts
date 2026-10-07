@@ -6,6 +6,20 @@
  * increment `attempts` and store the last error message; rows past the
  * retry ceiling are left in place for the DLQ alerting path.
  *
+ * Dispatch uses `emitAsync`, not `emit`. `emit` returns synchronously, so a
+ * listener declared as `async` (or any listener returning a promise) would be
+ * abandoned the instant the row was marked `processedAt` — a rejection then
+ * vanished with no record and no retry, silently losing a required effect.
+ * `emitAsync` resolves only when every listener has settled, so the row's
+ * acknowledgment is genuinely the listeners' completion. A listener that
+ * rejects leaves the row unprocessed, which is retryable intent.
+ *
+ * Dispatch is bounded by `DISPATCH_TIMEOUT_MS` so one stuck listener cannot
+ * hold the advisory lock and stall every subsequent tick.
+ *
+ * Delivery is at-least-once: a row that fails after some listeners already
+ * ran will be re-dispatched, so listeners must be idempotent on `__outboxId`.
+ *
  * See docs/architecture/decisions/0010-transactional-outbox.md.
  * check-n-plus-1: allow-file - row handling is batched with Promise.allSettled;
  * the SQL CTE's FOR UPDATE clause trips the regex-only scheduler guard.
@@ -26,12 +40,50 @@ const MAX_ATTEMPTS = 8;
 // 5 seconds.
 const BACKOFF_BASE_MS = 5_000;
 const BACKOFF_CAP_MS = 5 * 60_000;
+// Upper bound on how long one event's listeners may take before the row is
+// treated as failed and retried. Without this, a listener that never settles
+// would hold the advisory lock forever and silently stop the whole outbox.
+const DISPATCH_TIMEOUT_MS = 30_000;
 
 function toPayloadRecord(payload: unknown): Record<string, unknown> {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return {};
   }
   return Object.fromEntries(Object.entries(payload));
+}
+
+/**
+ * Rejects with a timeout error when `promise` does not settle in time.
+ *
+ * The underlying dispatch is not cancelled — EventEmitter2 has no
+ * cancellation — but the row stops blocking this tick and stays retryable,
+ * which is the safe failure mode.
+ */
+function withDispatchTimeout(
+  dispatch: Promise<unknown>,
+  timeoutMs: number,
+  rowId: string,
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(
+        new Error(
+          `listener dispatch exceeded ${timeoutMs}ms (outbox ${rowId})`,
+        ),
+      );
+    }, timeoutMs);
+    timer.unref?.();
+    dispatch.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 }
 
 @Injectable()
@@ -90,12 +142,19 @@ export class OutboxRelayScheduler {
           await Promise.allSettled(
             rows.map(async (row) => {
               try {
-                this.events.emit(row.event_name, {
-                  ...toPayloadRecord(row.payload),
-                  __outboxId: row.id,
-                  __aggregateId: row.aggregate_id,
-                  __clinicId: row.clinic_id,
-                });
+                await withDispatchTimeout(
+                  this.events.emitAsync(row.event_name, {
+                    ...toPayloadRecord(row.payload),
+                    __outboxId: row.id,
+                    __aggregateId: row.aggregate_id,
+                    __clinicId: row.clinic_id,
+                  }),
+                  DISPATCH_TIMEOUT_MS,
+                  row.id,
+                );
+                // Acknowledgment happens only after every listener settled, so
+                // a rejected listener leaves this row retryable instead of
+                // marking a required effect as delivered.
                 await this.prisma.outboxEvent.update({
                   where: { id: row.id },
                   data: {

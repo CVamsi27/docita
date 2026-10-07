@@ -13,7 +13,6 @@
     "bottomBarAria": "Next patient in queue",
     "startNextButton": "Start next",
     "startingButton": "Starting…",
-    "nextPatientButton": "Next patient",
     "startNextAria": "Start next consultation: {name}",
     "nextUpLabel": "Next up",
     "pageDescription": "Your clinic overview for today"

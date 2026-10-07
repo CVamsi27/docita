@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
 import {
+  onboardingCompletionResponseSchema,
   onboardingInitResponseSchema,
   onboardingSessionSchema,
 } from '@workspace/types';
@@ -12,13 +12,12 @@ export class OnboardingSessionResponseDto extends createZodDto(
   onboardingSessionSchema,
 ) {}
 
+// This used to inline a flat `{accessToken, clinicId, userId, email, name,
+// role}` schema. The service returns `OnboardingResult`, which is
+// `{success, clinicId, userId, message, access_token, user, ...}`, so nothing
+// matched: `SafeZodSerializerInterceptor` logged a mismatch warning on every
+// successful clinic registration and passed the response through untrimmed.
+// Wrapping the shared contract makes the annotation describe reality.
 export class OnboardingCompletionResponseDto extends createZodDto(
-  z.object({
-    accessToken: z.string(),
-    clinicId: z.string(),
-    userId: z.string(),
-    email: z.string(),
-    name: z.string(),
-    role: z.string(),
-  }),
+  onboardingCompletionResponseSchema,
 ) {}

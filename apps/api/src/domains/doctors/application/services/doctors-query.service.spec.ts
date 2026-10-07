@@ -63,6 +63,35 @@ describe('DoctorsQueryService', () => {
       expect(result.length).toBeGreaterThanOrEqual(1);
     });
 
+    it('lists only active clinic links and live accounts', async () => {
+      (prisma.doctorClinic.findMany as jest.Mock).mockResolvedValueOnce(
+        [] as never,
+      );
+      (prisma.user.findMany as jest.Mock).mockResolvedValueOnce([] as never);
+
+      await service.findAll('clinic-1');
+
+      // A departed doctor (inactive link) or a soft-deleted account must not
+      // reach the staff picker or the public booking page.
+      expect(prisma.doctorClinic.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            clinicId: 'clinic-1',
+            active: true,
+            doctor: { deletedAt: null },
+          },
+        }),
+      );
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            clinicId: 'clinic-1',
+            deletedAt: null,
+          }),
+        }),
+      );
+    });
+
     it('should de-duplicate doctors appearing in both doctorClinic and user lists', async () => {
       const doctor = {
         id: 'doc-1',

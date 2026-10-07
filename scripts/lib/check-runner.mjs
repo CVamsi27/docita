@@ -3,6 +3,60 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 
 /**
+ * Guard for `git ls-files` output: keeps only paths the working tree still has.
+ *
+ * A deletion stays in the index until it is staged, so an agent that removes a
+ * file and immediately runs a check would otherwise read a path that no longer
+ * exists and crash with ENOENT instead of analysing the code that is actually
+ * present. CI checkouts never hit this; local and multi-agent runs do.
+ *
+ * @param {string} file - relative path from `git ls-files`
+ * @returns {boolean}
+ */
+export function trackedFileExists(file) {
+  return existsSync(file);
+}
+
+/**
+ * Blank out comment bodies so JSX scanners cannot parse prose as markup.
+ *
+ * Comments routinely mention the exact shape a check forbids — writing
+ * `<div aria-label="x" />` to explain why it is wrong is the natural thing to do,
+ * and a scanner that reads it will report a defect that does not exist.
+ * Replaces comment content with spaces while preserving newlines, so offsets
+ * and reported line numbers stay accurate against the original source.
+ *
+ * @param {string} source
+ * @returns {string} same length, same line numbering, comments blanked
+ */
+export function blankJsComments(source) {
+  let out = "";
+  let index = 0;
+  while (index < source.length) {
+    const pair = source.slice(index, index + 2);
+    if (pair === "//") {
+      while (index < source.length && source[index] !== "\n") {
+        out += " ";
+        index += 1;
+      }
+      continue;
+    }
+    if (pair === "/*") {
+      while (index < source.length && source.slice(index, index + 2) !== "*/") {
+        out += source[index] === "\n" ? "\n" : " ";
+        index += 1;
+      }
+      out += "  ";
+      index += 2;
+      continue;
+    }
+    out += source[index];
+    index += 1;
+  }
+  return out;
+}
+
+/**
  * Discover source files tracked by git under root globs,
  * optionally filtered by extension, include, and exclude patterns.
  *

@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Logger } from '@nestjs/common';
 import {
   BadRequestException,
   NotFoundException,
@@ -37,11 +38,15 @@ describe('UploadsService', () => {
     };
   };
   let storageUpload: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+  let storageDelete: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
 
   beforeEach(async () => {
     storageUpload = jest
       .fn<(...args: unknown[]) => Promise<unknown>>()
       .mockResolvedValue('/stored/doc.png');
+    storageDelete = jest
+      .fn<(...args: unknown[]) => Promise<unknown>>()
+      .mockResolvedValue(undefined);
 
     prisma = {
       uploadSession: {
@@ -76,7 +81,7 @@ describe('UploadsService', () => {
           provide: StorageProvider,
           useValue: {
             upload: storageUpload,
-            delete: jest.fn(),
+            delete: storageDelete,
           },
         },
         {
@@ -151,6 +156,110 @@ describe('UploadsService', () => {
 
       expect(out.status).toBe('uploaded');
       expect(storageUpload).toHaveBeenCalled();
+    });
+
+    it('rejects a lost single-use claim and removes its uploaded object', async () => {
+      prisma.uploadSession.findFirst
+        .mockResolvedValueOnce({ ...sessionRow })
+        .mockResolvedValueOnce({ id: sessionRow.id });
+      // The conditional claim matched no row: a concurrent request already
+      // published this session's file.
+      prisma.uploadSession.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(
+        service.updateSession(sessionRow.id, file, {
+          uploadSecret: plaintext,
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(storageUpload).toHaveBeenCalled();
+      expect(storageDelete).toHaveBeenCalledWith('/stored/doc.png');
+    });
+
+    // D01: the object is unreferenced between the upload and the commit of
+    // the claim. A claim write that *throws* (lost connection, timeout) used
+    // to leave the uploaded document in storage with nothing pointing at it.
+    it('removes the uploaded object when the claim write itself fails', async () => {
+      prisma.uploadSession.findFirst.mockResolvedValue({ ...sessionRow });
+      prisma.uploadSession.updateMany.mockRejectedValue(
+        new Error('connection terminated unexpectedly'),
+      );
+
+      await expect(
+        service.updateSession(sessionRow.id, file, {
+          uploadSecret: plaintext,
+        }),
+      ).rejects.toThrow('connection terminated unexpectedly');
+
+      expect(storageUpload).toHaveBeenCalled();
+      expect(storageDelete).toHaveBeenCalledWith('/stored/doc.png');
+    });
+
+    it('deletes the object exactly once when the claim is lost', async () => {
+      prisma.uploadSession.findFirst
+        .mockResolvedValueOnce({ ...sessionRow })
+        .mockResolvedValueOnce({ id: sessionRow.id });
+      prisma.uploadSession.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(
+        service.updateSession(sessionRow.id, file, {
+          uploadSecret: plaintext,
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(storageDelete).toHaveBeenCalledTimes(1);
+    });
+
+    it('surfaces a failed delete instead of swallowing it', async () => {
+      prisma.uploadSession.findFirst.mockResolvedValue({ ...sessionRow });
+      prisma.uploadSession.updateMany.mockRejectedValue(new Error('db down'));
+      storageDelete.mockRejectedValue(new Error('storage unreachable'));
+      const warn = jest
+        .spyOn(Logger.prototype, 'warn')
+        .mockImplementation(() => undefined);
+
+      try {
+        // The original persistence failure is what the caller sees; the failed
+        // delete is logged and left to orphan reconciliation.
+        await expect(
+          service.updateSession(sessionRow.id, file, {
+            uploadSecret: plaintext,
+          }),
+        ).rejects.toThrow('db down');
+
+        expect(storageDelete).toHaveBeenCalledWith('/stored/doc.png');
+        // A cleanup that cannot complete must never be swallowed silently —
+        // it is the only signal that an object is now orphaned.
+        expect(warn).toHaveBeenCalledWith(
+          expect.stringContaining('storage unreachable'),
+        );
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it('does not delete a published object when a later step fails', async () => {
+      // A doctor-signature session is what runs the post-claim user write.
+      const signatureSession = {
+        ...sessionRow,
+        purpose: UploadSessionPurpose.DOCTOR_SIGNATURE,
+        doctorId: 'doctor-1',
+      };
+      prisma.uploadSession.findFirst
+        .mockResolvedValueOnce(signatureSession)
+        .mockResolvedValueOnce({ ...signatureSession, status: 'uploaded' });
+      prisma.uploadSession.updateMany.mockResolvedValue({ count: 1 });
+      // The session row now references the file, so a later failure must not
+      // delete it — that would leave a dangling fileUrl pointing at nothing.
+      prisma.user.updateMany.mockRejectedValue(new Error('user write failed'));
+
+      await expect(
+        service.updateSession(sessionRow.id, file, {
+          uploadSecret: plaintext,
+        }),
+      ).rejects.toThrow('user write failed');
+
+      expect(storageDelete).not.toHaveBeenCalled();
     });
 
     it('throws Unauthorized when uploadSecret is missing', async () => {

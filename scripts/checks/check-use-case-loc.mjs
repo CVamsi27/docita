@@ -9,12 +9,15 @@ import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import process from "node:process";
 
+import { trackedFileExists } from "../lib/check-runner.mjs";
+
 const ROOT = "apps/api/src/domains";
 const SOFT_CAP = 150;
 
 const files = execSync(`git ls-files '${ROOT}'`, { encoding: "utf8" })
   .split("\n")
   .filter(Boolean)
+  .filter(trackedFileExists)
   .filter((f) => /\/application\/use-cases\/[^/]+\.use-case\.ts$/.test(f))
   .filter((f) => !/\.(spec|test)\.ts$/.test(f));
 

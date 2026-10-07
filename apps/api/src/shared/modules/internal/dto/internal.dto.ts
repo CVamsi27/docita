@@ -15,6 +15,7 @@ import {
   internalAdminListEntrySchema,
   internalUserListEntrySchema,
   userSchema,
+  successResponseSchema,
 } from '@workspace/types';
 
 export class InternalClinicListQueryDto extends createZodDto(
@@ -66,6 +67,4 @@ export class InternalUserListWithClinicResponseDto extends createZodDto(
   z.array(internalUserListEntrySchema),
 ) {}
 
-export class SuccessResponseDto extends createZodDto(
-  z.object({ success: z.boolean(), message: z.string().optional() }),
-) {}
+export class SuccessResponseDto extends createZodDto(successResponseSchema) {}

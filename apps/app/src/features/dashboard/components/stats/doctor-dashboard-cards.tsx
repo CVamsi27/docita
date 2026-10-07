@@ -54,11 +54,9 @@ export function DoctorDashboardCards({
                 <CardTitle className="text-lg font-semibold tracking-tight">
                   {currentPatient ? t("doctorCards.currentPatient") : t("doctorCards.noActiveSession")}
                 </CardTitle>
-                <p className="text-xs text-muted-foreground">
-                  {currentPatient
-                    ? t("doctorCards.inConsultation")
-                    : t("doctorCards.startNextPatient")}
-                </p>
+                {/* No supporting line here: with a patient in progress it
+                    repeated the micro-label, and while idle it repeated the
+                    button's own label. MicroLabel + CardTitle is the unit. */}
               </div>
             </div>
             {currentPatient && (

@@ -1,12 +1,13 @@
 "use client";
 
 import { useId, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { PublicBookingProgressChrome } from "@/features/public-booking/public-booking-components";
 import { PUBLIC_BOOKING_MOBILE_CONTENT_TAIL_PAD_CLASS, type PublicBookingMobileStep } from "@/features/public-booking/public-booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";
 import { PublicBookingMobileStepHeading, PublicBookingMobileVisitStep, PublicBookingMobileContactStep, PublicBookingMobileReviewStep, PublicBookingMobileBottomBar } from "./public-booking-mobile-layout-sections";
-import { visitContinueHint, contactContinueHint } from "./public-booking-mobile-layout-helpers";
+import { contactContinueHintKey, visitContinueHintKey } from "./public-booking-mobile-layout-helpers";
 
 const STEP_ORDER: PublicBookingMobileStep[] = ["visit", "contact", "review"];
 
@@ -19,6 +20,7 @@ export function PublicBookingMobileLayout({
 }) {
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const continueHintId = useId();
+  const { t } = useTranslation("PublicBooking");
 
   const mobileStep = c.mobileStep;
   const stepIndex = STEP_ORDER.indexOf(mobileStep);
@@ -34,11 +36,11 @@ export function PublicBookingMobileLayout({
         ? contactCanContinue
         : false;
 
-  const continueBlockedReason =
+  const continueBlockedReasonKey =
     mobileStep === "visit"
-      ? visitContinueHint(visitCanContinue, c.siteKey, c.turnstileToken)
+      ? visitContinueHintKey(visitCanContinue, c.siteKey, c.turnstileToken)
       : mobileStep === "contact"
-        ? contactContinueHint(
+        ? contactContinueHintKey(
             contactCanContinue,
             c.firstName,
             c.lastName,
@@ -47,6 +49,9 @@ export function PublicBookingMobileLayout({
             c.verificationToken,
           )
         : null;
+  const continueBlockedReason = continueBlockedReasonKey
+    ? t(continueBlockedReasonKey)
+    : null;
 
   function goBack() {
     const i = STEP_ORDER.indexOf(c.mobileStep);

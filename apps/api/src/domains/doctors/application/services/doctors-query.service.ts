@@ -103,7 +103,15 @@ export class DoctorsQueryService {
   async findAll(clinicId: string) {
     const [doctorClinics, clinicUsers] = await Promise.all([
       this.persistence.doctorClinic.findMany({
-        where: { clinicId },
+        // Public booking and staff pickers both read this list: a doctor whose
+        // clinic link was deactivated no longer works here, and a soft-deleted
+        // account is not a bookable practitioner. Listing either would expose
+        // a departed/deleted doctor on the public booking page.
+        where: {
+          clinicId,
+          active: true,
+          doctor: { deletedAt: null },
+        },
         include: {
           doctor: {
             select: DOCTOR_CARD_SELECT,
@@ -114,6 +122,7 @@ export class DoctorsQueryService {
         where: {
           clinicId,
           role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },
+          deletedAt: null,
         },
         select: {
           ...DOCTOR_LIST_SELECT,

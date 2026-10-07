@@ -129,7 +129,7 @@ Runs **not** included there by default: `nav-routes-smoke.spec.ts`, `accessibili
 
 Before merging UI that touches layout, tables, tabs, or the protected shell:
 
-1. Run `pnpm mobile:smoke` (runs all four mobile specs via `scripts/perf/mobile-route-smoke.mjs`) with API + app running and `DATABASE_URL` set for portal OTP insertion.
+1. Run `pnpm --filter @docita/app exec playwright test mobile` (the four mobile specs in `apps/app/e2e/`) with API + app running and `DATABASE_URL` set for portal OTP insertion.
 2. Spot-check at **390×844** and **768×1024**: `/today`, `/patients`, `/patients/[id]`, `/invoices/[id]`, `/consultation/[id]`, `/settings?tab=subscription`, portal `/portal/billing`.
 3. Confirm no horizontal page overflow and that the single mobile header exposes search, quick-add, command palette, and Ask AI.
 4. For accessibility changes, run `pnpm audit:app` (desktop + mobile-width authenticated subset in `accessibility.spec.ts`).
@@ -144,7 +144,7 @@ Before merging UI that touches layout, tables, tabs, or the protected shell:
 
 ### Prerequisites
 
-- Node.js `>=22.12.0` (match root `package.json` `engines`)
+- Node.js `>=22.22.0` (match root `package.json` `engines`)
 - pnpm `10.30.3` (match root `package.json` `packageManager`)
 - PostgreSQL 16+ reachable from `DATABASE_URL` in the repo `.env` (local testing)
 - Docker (optional, for running PostgreSQL locally)
@@ -209,16 +209,16 @@ Specs live next to sources under `apps/api/src/**/*.spec.ts`. Guards and decorat
 pnpm --filter @docita/app test:e2e
 
 # Run tests in UI mode (interactive)
-pnpm --filter @docita/app test:e2e:ui
+pnpm --filter @docita/app exec playwright test e2e --ui
 
 # Run tests with browser visible
-pnpm --filter @docita/app test:e2e:headed
+pnpm --filter @docita/app exec playwright test e2e --headed
 
 # Debug tests in browser DevTools
-pnpm --filter @docita/app test:e2e:debug
+pnpm --filter @docita/app exec playwright test e2e --debug
 
 # View test report after run
-pnpm --filter @docita/app test:e2e:report
+pnpm --filter @docita/app exec playwright show-report
 ```
 
 ### Doctor app subscription / billing E2E (`upgrade.spec.ts`, `subscription.spec.ts`)
@@ -572,7 +572,7 @@ lsof -ti:3001 | xargs kill -9
 
 3. **View Playwright report**:
    ```bash
-   pnpm --filter @docita/app test:e2e:report
+   pnpm --filter @docita/app exec playwright show-report
    ```
 
 ## Next Steps

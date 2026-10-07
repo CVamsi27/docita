@@ -189,10 +189,26 @@ jobs:
       - name: Run API startup smoke test
         run: scripts/deploy/test-api-startup.sh
 
+  api-latency-gate:
+    name: API latency budget gate
+    needs: [changes]
+    if: always() && needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Enforce measured API latency budget
+        # R02: a release that declares an API performance budget must carry a
+        # measured staging-soak baseline. This runs `--require-baseline` rather
+        # than `--enforce`, because `--enforce` skips with exit 0 when the
+        # baseline is absent — which is exactly the silent gap R02 exists to
+        # close. No `pnpm install`: the gate imports only node builtins and its
+        # own sibling module.
+        run: node scripts/checks/check-api-latency-budget.mjs --require-baseline
+
   deploy-api:
     name: Deploy API (Fly.io)
-    needs: [changes, migrate-db, api-startup-smoke]
-    if: always() && needs.changes.outputs.api == 'true' && needs.migrate-db.result == 'success' && needs.api-startup-smoke.result == 'success'
+    needs: [changes, migrate-db, api-startup-smoke, api-latency-gate]
+    if: always() && needs.changes.outputs.api == 'true' && needs.migrate-db.result == 'success' && needs.api-startup-smoke.result == 'success' && needs.api-latency-gate.result == 'success'
     runs-on: ubuntu-latest
     environment: production
     env:

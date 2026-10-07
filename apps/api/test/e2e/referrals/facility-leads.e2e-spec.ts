@@ -23,6 +23,7 @@ import { factories, setPrismaInstance } from '../../factories';
 import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { getCsrfHeaders } from '../../csrf-helpers';
+import { csrfHeaders } from '../../http-helpers';
 import { signE2eAccessToken } from '../../e2e-auth-token';
 
 const PARTNER_PHONE = '+919876543210';
@@ -51,13 +52,6 @@ const mockWhatsAppClient: IWhatsAppClient = {
     .mockResolvedValue({ externalId: 'wamid.e2e-partner' }),
   checkHealth: jest.fn().mockResolvedValue(true),
 };
-
-function csrfHeaders(headers: { cookie: string; token: string }): {
-  Cookie: string;
-  'X-XSRF-TOKEN': string;
-} {
-  return { Cookie: headers.cookie, 'X-XSRF-TOKEN': headers.token };
-}
 
 const leadBody = (overrides: Record<string, unknown> = {}) => ({
   facilityName: 'Sunrise Diagnostics',

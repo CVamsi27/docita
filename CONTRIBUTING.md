@@ -44,7 +44,7 @@ Every contribution must follow these foundations. They apply to humans and codin
 
     ```bash
     pnpm db:generate # Generate Prisma Client
-    pnpm db:push     # Push schema changes to DB
+    pnpm db:migrate  # Apply schema changes (Prisma migrations)
     ```
 
 5.  **Run Development Servers**:
@@ -177,7 +177,7 @@ pnpm --filter @docita/api test:watch # Watch mode
 ```bash
 pnpm --filter @docita/app test      # Run all tests
 pnpm --filter @docita/app test:watch # Watch mode
-pnpm --filter @docita/app test:ui    # UI test runner
+pnpm --filter @docita/app test:cov  # Run tests with coverage
 ```
 
 ### Test Writing Guidelines

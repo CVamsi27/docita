@@ -176,27 +176,29 @@ export function FollowUpsPageContent() {
           </CardContent>
         </Card>
 
-        <DataState
-          status={state}
-          loadingMessage={t("loading")}
-          errorMessage={t("error")}
-          onRetry={() => void refetch()}
-          emptyIcon={CalendarCheck}
-          emptyTitle={t("emptyTitle")}
-          emptyDescription={t("emptyDescription")}
-        >
-          <div className="space-y-3">
-            {data.map((followUp) => (
-              <FollowUpCard
-                key={followUp.id}
-                followUp={followUp}
-                isMutating={isMutating}
-                onComplete={(id) => void handleComplete(id)}
-                onCancel={(id) => void handleCancel(id)}
-              />
-            ))}
-          </div>
-        </DataState>
+        <div role="tabpanel" aria-label={followUpViewLabel(view, t)}>
+          <DataState
+            status={state}
+            loadingMessage={t("loading")}
+            errorMessage={t("error")}
+            onRetry={() => void refetch()}
+            emptyIcon={CalendarCheck}
+            emptyTitle={t("emptyTitle")}
+            emptyDescription={t("emptyDescription")}
+          >
+            <div className="space-y-3">
+              {data.map((followUp) => (
+                <FollowUpCard
+                  key={followUp.id}
+                  followUp={followUp}
+                  isMutating={isMutating}
+                  onComplete={(id) => void handleComplete(id)}
+                  onCancel={(id) => void handleCancel(id)}
+                />
+              ))}
+            </div>
+          </DataState>
+        </div>
       </AppPageScaffold>
     </FeatureGate>
   );

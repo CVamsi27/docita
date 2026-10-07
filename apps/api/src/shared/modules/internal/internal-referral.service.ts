@@ -7,6 +7,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { z } from 'zod';
 import { Prisma, ReferralPayoutStatus } from '@workspace/db';
 import { normalizePhoneE164, phoneMatchCandidates } from '@workspace/utils';
+import { isUniqueConstraintOn } from '@/shared/common/prisma/unique-constraint';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
@@ -341,10 +342,7 @@ export class InternalReferralService {
 }
 
 function isUniqueConstraintOnCode(error: unknown): boolean {
-  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return false;
-  if (error.code !== 'P2002') return false;
-  const target = error.meta?.target;
-  return Array.isArray(target) && target.includes('code');
+  return isUniqueConstraintOn(error, 'code');
 }
 
 // ReferrerMessageStatus is imported for use in this service's referrer

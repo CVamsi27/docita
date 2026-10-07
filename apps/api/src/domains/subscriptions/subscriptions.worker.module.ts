@@ -18,6 +18,11 @@ import { BillingWorkerModule } from '@/domains/billing/billing.worker.module';
 import { PaymentsModule } from '@/domains/payments/payments.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 import { CommonServicesModule } from '@/shared/modules/services/common-services.module';
+import { JwtModule } from '@nestjs/jwt';
+import { AppConfigModule } from '@/shared/modules/config/config.module';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { resolveJwtExpiresIn } from '@/shared/modules/config/app-config-jwt.helpers';
+import { DocumentsWorkerModule } from '@/domains/documents/documents.worker.module';
 import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.module';
 
 /**
@@ -32,6 +37,22 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     EmailModule,
     AdminAlertsModule,
     CommonServicesModule,
+    DocumentsWorkerModule,
+    JwtModule.registerAsync({
+      imports: [AppConfigModule],
+      inject: [AppConfigService],
+      useFactory: (configService: AppConfigService) => {
+        const secret =
+          configService.getJwtSecret() ??
+          'worker-jwt-fallback-minimum-32-chars';
+        return {
+          secret,
+          signOptions: {
+            expiresIn: resolveJwtExpiresIn(configService.getJwtExpiration()),
+          },
+        };
+      },
+    }),
   ],
   providers: [
     { provide: SUBSCRIPTION_PERSISTENCE_PORT, useExisting: PrismaService },

@@ -2,6 +2,8 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { LruCache } from '@/shared/common/utils/lru-cache';
 import {
+  CodeCatalogSyncRunOutcome,
+  CodeSyncProvenance,
   IMedicalCodingRepository,
   MedicalCodeSyncRecord,
   SyncedMedicalCodeRecord,
@@ -11,10 +13,17 @@ import {
   CptCode,
   DoctorFavoriteCode,
   Appointment,
+  CodeCatalogSyncRun,
+  CodeCatalogSyncStatus,
+  CodeCatalogSystem,
 } from '@workspace/db';
 
 const CODE_CACHE_TTL_MS = 5 * 60 * 1000;
 const CODE_CACHE_CAPACITY = 512;
+
+/** Catalog systems stamped onto synced rows, mirroring the schema defaults. */
+const ICD_SYSTEM_VERSION = 'ICD-10-CM';
+const CPT_SYSTEM_VERSION = 'HCPCS';
 
 /**
  * Shared `select` for the ICD/CPT sync read paths — both code tables expose
@@ -130,13 +139,20 @@ export class PrismaMedicalCodingRepository
   /**
    * Builds the `update.data` shared by `updateCommonIcdCodes` /
    * `updateCommonCptCodes` — syncing either coding system overwrites the same
-   * three fields and re-marks the record as common.
+   * three fields, re-marks the record as common, and re-stamps provenance so a
+   * row cannot outlive the sync run that last touched it without saying so.
    */
-  private buildCodeUpdateData(code: MedicalCodeSyncRecord) {
+  private buildCodeUpdateData(
+    code: MedicalCodeSyncRecord,
+    provenance: CodeSyncProvenance,
+  ) {
     return {
       description: code.description,
       category: code.category,
       isCommon: true,
+      source: provenance.source,
+      sourceVersion: provenance.sourceVersion,
+      lastSyncedAt: provenance.syncedAt,
     };
   }
 
@@ -274,25 +290,35 @@ export class PrismaMedicalCodingRepository
     });
   }
 
-  async createCommonIcdCodes(records: MedicalCodeSyncRecord[]): Promise<void> {
+  async createCommonIcdCodes(
+    records: MedicalCodeSyncRecord[],
+    provenance: CodeSyncProvenance,
+  ): Promise<void> {
     await this.prisma.icdCode.createMany({
       data: records.map((code) => ({
         code: code.code,
         description: code.description,
         category: code.category,
-        version: 'ICD-10',
+        version: ICD_SYSTEM_VERSION,
         isCommon: true,
+        system: ICD_SYSTEM_VERSION,
+        source: provenance.source,
+        sourceVersion: provenance.sourceVersion,
+        lastSyncedAt: provenance.syncedAt,
       })),
       skipDuplicates: true,
     });
   }
 
-  async updateCommonIcdCodes(records: MedicalCodeSyncRecord[]): Promise<void> {
+  async updateCommonIcdCodes(
+    records: MedicalCodeSyncRecord[],
+    provenance: CodeSyncProvenance,
+  ): Promise<void> {
     await this.prisma.$transaction(
       records.map((code) =>
         this.prisma.icdCode.update({
           where: { code: code.code },
-          data: this.buildCodeUpdateData(code),
+          data: this.buildCodeUpdateData(code, provenance),
         }),
       ),
     );
@@ -307,7 +333,10 @@ export class PrismaMedicalCodingRepository
     });
   }
 
-  async createCommonCptCodes(records: MedicalCodeSyncRecord[]): Promise<void> {
+  async createCommonCptCodes(
+    records: MedicalCodeSyncRecord[],
+    provenance: CodeSyncProvenance,
+  ): Promise<void> {
     await this.prisma.cptCode.createMany({
       data: records.map((code) => ({
         code: code.code,
@@ -315,19 +344,73 @@ export class PrismaMedicalCodingRepository
         category: code.category,
         isCommon: true,
         price: 0,
+        version: CPT_SYSTEM_VERSION,
+        system: CPT_SYSTEM_VERSION,
+        source: provenance.source,
+        sourceVersion: provenance.sourceVersion,
+        lastSyncedAt: provenance.syncedAt,
       })),
       skipDuplicates: true,
     });
   }
 
-  async updateCommonCptCodes(records: MedicalCodeSyncRecord[]): Promise<void> {
+  async updateCommonCptCodes(
+    records: MedicalCodeSyncRecord[],
+    provenance: CodeSyncProvenance,
+  ): Promise<void> {
     await this.prisma.$transaction(
       records.map((code) =>
         this.prisma.cptCode.update({
           where: { code: code.code },
-          data: this.buildCodeUpdateData(code),
+          data: this.buildCodeUpdateData(code, provenance),
         }),
       ),
     );
+  }
+
+  async startCodeSyncRun(run: {
+    system: CodeCatalogSystem;
+    source: string;
+    sourceVersion?: string | null;
+    startedAt: Date;
+  }): Promise<string> {
+    const created = await this.prisma.codeCatalogSyncRun.create({
+      data: {
+        system: run.system,
+        source: run.source,
+        sourceVersion: run.sourceVersion ?? null,
+        status: CodeCatalogSyncStatus.RUNNING,
+        startedAt: run.startedAt,
+      },
+      select: { id: true },
+    });
+    return created.id;
+  }
+
+  async finishCodeSyncRun(
+    runId: string,
+    outcome: CodeCatalogSyncRunOutcome,
+  ): Promise<void> {
+    await this.prisma.codeCatalogSyncRun.update({
+      where: { id: runId },
+      data: {
+        status: outcome.status,
+        finishedAt: outcome.finishedAt,
+        codesSeen: outcome.codesSeen,
+        batchesApplied: outcome.batchesApplied,
+        unitsSkipped: outcome.unitsSkipped,
+        lastUnit: outcome.lastUnit,
+        error: outcome.error ?? null,
+      },
+    });
+  }
+
+  async getLastCodeSyncRun(
+    system: CodeCatalogSystem,
+  ): Promise<CodeCatalogSyncRun | null> {
+    return this.getReadClient().codeCatalogSyncRun.findFirst({
+      where: { system },
+      orderBy: { startedAt: 'desc' },
+    });
   }
 }

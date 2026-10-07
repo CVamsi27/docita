@@ -15,6 +15,12 @@ import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { RequestWithUser } from '@/shared/common/types/common.types';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MAX_FILE_SIZE } from '@workspace/utils';
+import { ZodSerializerDto } from 'nestjs-zod';
+import {
+  UploadSessionCreateResponseDto,
+  UploadSessionResponseDto,
+} from '@/domains/documents/application/dto/uploads.dto';
+import { SlaSignatureSessionStatusDto } from '@/domains/clinics/application/dto/sla-signature-session.dto';
 import {
   assertAllowedFileSignature,
   createTempDiskStorage,
@@ -28,6 +34,11 @@ export class OnboardingSlaSignatureController {
 
   @Public()
   @Post(':onboardingId/sla-signature-session')
+  // Without this serializer the public route returned the whole UploadSession
+  // row that `UploadsService.createSession` builds, including `uploadSecretHash`.
+  // The authenticated `/uploads/session` route already trims it; this one did
+  // not, and it needs no session to reach.
+  @ZodSerializerDto(UploadSessionCreateResponseDto)
   async createSlaSignatureSession(
     @Param('onboardingId') onboardingId: string,
     @Request() req?: RequestWithUser,
@@ -38,6 +49,7 @@ export class OnboardingSlaSignatureController {
 
   @Public()
   @Get(':onboardingId/sla-signature-session/:sessionId/status')
+  @ZodSerializerDto(SlaSignatureSessionStatusDto)
   getSlaSignatureSessionStatus(
     @Param('onboardingId') onboardingId: string,
     @Param('sessionId') sessionId: string,
@@ -50,6 +62,7 @@ export class OnboardingSlaSignatureController {
 
   @Public()
   @Post(':onboardingId/sla-signature-session/:sessionId')
+  @ZodSerializerDto(UploadSessionResponseDto)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: createTempDiskStorage(),

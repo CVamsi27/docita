@@ -40,11 +40,6 @@ import {
 const ACTION_POST_ALLOWLIST = new Set([
   "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-auth.controller.ts|request-otp",
   "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-auth.controller.ts|verify-otp",
-  "apps/api/src/shared/common/controllers/database-operations.controller.ts|backup/full",
-  "apps/api/src/shared/common/controllers/database-operations.controller.ts|backup/schema",
-  "apps/api/src/shared/common/controllers/database-operations.controller.ts|backups/cleanup",
-  "apps/api/src/shared/common/controllers/database-operations.controller.ts|backup/verify",
-  "apps/api/src/shared/common/controllers/database-operations.controller.ts|slow-queries/clear",
   "apps/api/src/shared/modules/auth/auth/auth-login.controller.ts|login",
   "apps/api/src/shared/modules/auth/auth/auth-login.controller.ts|mfa/verify",
   "apps/api/src/shared/modules/auth/auth/auth-password.controller.ts|forgot-password",
@@ -63,7 +58,7 @@ const ACTION_POST_ALLOWLIST = new Set([
  * fixing the handler) fails the check. Bump this ONLY when the ceiling itself
  * is the tracked baseline (see check-jsx-literal-density baselines).
  */
-const ACTION_POST_ALLOWLIST_CEILING = 17;
+const ACTION_POST_ALLOWLIST_CEILING = 12;
 
 const controllerDecorator = /^\s*@Controller\s*\(/;
 const postDecorator = /^\s*@Post\s*\(([^)]*)\)/;

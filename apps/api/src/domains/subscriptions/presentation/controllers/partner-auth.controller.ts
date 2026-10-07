@@ -13,12 +13,16 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ZodSerializerDto } from 'nestjs-zod';
 import type { Request } from 'express';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import {
+  otpRequestAckResponseSchema,
   PARTNER_REFRESH_COOKIE_NAME,
   partnerOtpRequestSchema,
   partnerOtpVerifySchema,
+  partnerOtpVerifyResponseSchema,
+  partnerTokenRefreshResponseSchema,
   type PartnerOtpVerifyResponse,
 } from '@workspace/types';
 import { PartnerAuthService } from '../../core/services/partner-auth.service';
@@ -51,6 +55,7 @@ export class PartnerAuthController {
   @Post('request-otp')
   @HttpCode(200)
   @ApiOperation({ summary: 'Request a partner login OTP via WhatsApp' })
+  @ZodSerializerDto(otpRequestAckResponseSchema)
   async requestOtp(@Body() body: unknown) {
     const parsed = partnerOtpRequestSchema.safeParse(body);
     if (!parsed.success) {
@@ -66,6 +71,7 @@ export class PartnerAuthController {
   @ApiOperation({
     summary: 'Verify OTP and issue partner access token + refresh cookie',
   })
+  @ZodSerializerDto(partnerOtpVerifyResponseSchema)
   async verifyOtp(
     @Body() body: unknown,
     @Req() req: Request,
@@ -103,6 +109,7 @@ export class PartnerAuthController {
   @ApiOperation({
     summary: 'Rotate the partner access token using the refresh cookie',
   })
+  @ZodSerializerDto(partnerTokenRefreshResponseSchema)
   async refresh(@Req() req: Request) {
     const refreshToken = req.cookies?.[PARTNER_REFRESH_COOKIE_NAME];
     if (!refreshToken || typeof refreshToken !== 'string') {

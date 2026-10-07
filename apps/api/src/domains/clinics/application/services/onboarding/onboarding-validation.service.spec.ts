@@ -1,3 +1,4 @@
+import { TIER_LIMITS } from '@workspace/types';
 import { deriveAnnualPrice } from '@workspace/utils';
 import { describe, expect, it } from '@jest/globals';
 import { BadRequestException } from '@nestjs/common';
@@ -72,6 +73,31 @@ describe('OnboardingValidationService', () => {
       expect(() =>
         service.getTierPricing('STARTER', 'MONTHLY', 'INR', 'FRONT_DESK'),
       ).toThrow(BadRequestException);
+    });
+  });
+
+  describe('getTierLimits', () => {
+    it.each([
+      'STARTER',
+      'ESSENTIAL',
+      'PROFESSIONAL',
+      'HOSPITAL',
+      'ENTERPRISE',
+    ] as const)('returns canonical TIER_LIMITS quotas for %s', (tier) => {
+      const limits = TIER_LIMITS[tier];
+
+      expect(service.getTierLimits(tier)).toEqual({
+        includedPatients: limits.patients,
+        includedAppointments: limits.appointments ?? 0,
+        includedStorageGB: limits.storageGB,
+        includedUsers: limits.users ?? 1,
+      });
+    });
+
+    it('does not fall back to Starter quotas for HOSPITAL', () => {
+      expect(service.getTierLimits('HOSPITAL')).not.toEqual(
+        service.getTierLimits('STARTER'),
+      );
     });
   });
 

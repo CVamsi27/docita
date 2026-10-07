@@ -8,6 +8,7 @@ export {
 } from './clinic-usage.port';
 export {
   type IOverageCalculation,
+  type OverageChargeResult,
   OVERAGE_CALCULATION_TOKEN,
 } from './overage-calculation.port';
 export {

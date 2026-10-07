@@ -211,47 +211,37 @@ export function TodayBottomBarSection({
 
   if (!canStartConsultation || !nextPatient) return null;
 
-  if (hasCurrentPatient) {
-    return (
-      <BottomActionBar aria-label={t("today.bottomBarAria")}>
-        <BottomActionBarSlot variant="secondary">
-          <NextPatientPreview nextPatient={nextPatient} />
-        </BottomActionBarSlot>
-        <BottomActionBarSlot variant="primary">
-          <Button
-            className="w-full touch-manipulation"
-            disabled={isStarting || isMutationPending}
-            onClick={onStartNextPatient}
-            aria-label={t("today.startNextAria", { name: getPatientFullName(nextPatient.patient) })}
-          >
-            <Play className="mr-2 size-4" aria-hidden />
-            {isStarting ? t("today.startingButton") : t("today.startNextButton")}
-          </Button>
-        </BottomActionBarSlot>
-      </BottomActionBar>
-    );
-  }
+  const nextPatientName = getPatientFullName(nextPatient.patient);
 
   return (
-    <BottomActionBar>
+    <BottomActionBar aria-label={t("today.bottomBarAria")}>
       <BottomActionBarSlot variant="secondary">
-        <Button
-          variant="outline"
-          className="w-full touch-manipulation"
-          asChild
-        >
-          <Link to="/consultation">{t("today.viewQueueButton")}</Link>
-        </Button>
+        {hasCurrentPatient ? (
+          <NextPatientPreview nextPatient={nextPatient} />
+        ) : (
+          <Button
+            variant="outline"
+            className="w-full touch-manipulation"
+            asChild
+          >
+            <Link to="/consultation">{t("today.viewQueueButton")}</Link>
+          </Button>
+        )}
       </BottomActionBarSlot>
       <BottomActionBarSlot variant="primary">
         <Button
           className="w-full touch-manipulation"
           disabled={isStarting || isMutationPending}
           onClick={onStartNextPatient}
-          aria-label={t("today.startNextAria", { name: getPatientFullName(nextPatient.patient) })}
+          // One label for one action. This used to read "Start next" while a
+          // consult was running and "Next patient" while idle, so the same
+          // button changed name with the doctor's state and the idle label was
+          // absent from this accessible name — a WCAG 2.5.3 failure that breaks
+          // voice control. "Start next" is the leading phrase of the aria-label.
+          aria-label={t("today.startNextAria", { name: nextPatientName })}
         >
           <Play className="mr-2 size-4" aria-hidden />
-          {isStarting ? t("today.startingButton") : t("today.nextPatientButton")}
+          {isStarting ? t("today.startingButton") : t("today.startNextButton")}
         </Button>
       </BottomActionBarSlot>
     </BottomActionBar>

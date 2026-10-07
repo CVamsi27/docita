@@ -63,7 +63,7 @@ The clinician and internal browsers do not talk to `api.docita.work` directly (s
 
 ### 1.3 Stack constraints
 
-- Node ≥ 22.12.0, pnpm 10.30.3 only (workspace-wide, see [`package.json`](../../package.json)).
+- Node ≥ 22.22.0, pnpm 10.30.3 only (workspace-wide, see [`package.json`](../../package.json)).
 - Postgres is the single source of truth; Redis is optional and gated (`scripts/checks/check-cache-redis-required.mjs`).
 - Shared HTTP contracts belong in `packages/types` and API DTOs wrap Zod schemas with `nestjs-zod` `createZodDto`. Frontend forms use `zodResolver`, reusing shared schemas where the HTTP shape matches and composing UI-only form schemas where it does not. `scripts/checks/check-type-duplicates.mjs` catches a narrow class of exported-shape duplication; it is not a proof that all shape drift is impossible.
 
@@ -1791,22 +1791,26 @@ Network exposure is restricted via Cloudflare Access policy (IP allowlist + SSO)
 
 ## 23. Landing site (Astro)
 
-[`apps/landing/`](../../apps/landing/) is a **static-first** marketing surface with a small **edge BFF** for API proxying — not a second clinician app.
+[`apps/landing/`](../../apps/landing/) is a **static-first** marketing surface — not a second clinician app. It has an edge BFF route at `pages/api/[...path].ts`, but that route is **disabled and returns 503** (§23.2, backlog **D-F1**); the landing site currently uses static stats and cannot reach the API.
 
 ### 23.1 Static pages and islands
 
 - Marketing routes are Astro components with minimal React islands only where interactivity is required (booking widgets, payment token pages).
 - No shared JS bundle with `apps/app` — deploy and cache policies stay independent (§21.1).
 
-### 23.2 Edge API proxy (BFF)
+### 23.2 Edge API proxy (BFF) — **currently disabled; returns 503**
 
-[`apps/landing/src/pages/api/[...path].ts`](../../apps/landing/src/pages/api/%5B...path%5D.ts) forwards `/api/*` to the upstream API through an Astro `APIRoute`. It currently carries a small local implementation rather than importing the shared `upstream-api-proxy.ts` helper:
+[`apps/landing/src/pages/api/[...path].ts`](../../apps/landing/src/pages/api/%5B...path%5D.ts) is an Astro `APIRoute` that **no longer forwards anything**. Its proxy body and imports are commented out and the live handler returns `503` for every `/api/*` request. The forwarding implementation — which stripped **hop-by-hop** headers (`connection`, `transfer-encoding`, …), appended `/api/<path>` to `API_PROXY_TARGET`, and stripped transport/CORS response headers — is preserved in comments below the handler, as is [`landing-api-proxy.ts`](../../apps/landing/src/lib/landing-api-proxy.ts).
 
-- Strips **hop-by-hop** headers (`connection`, `transfer-encoding`, …) before forwarding.
-- Appends `/api/<path>` to `API_PROXY_TARGET`.
-- Streams the upstream response and removes transport/CORS response headers.
+Two supporting signals are also disabled, not absent-and-forgotten:
 
-This is conceptually the same edge-BFF pattern as §45, but the public landing surface has different auth and cookie requirements. [`landing-api-proxy.test.ts`](../../apps/landing/src/lib/landing-api-proxy.test.ts) locks down URL/query handling, traversal rejection, request forwarding, and response-header filtering before any future consolidation (§65.5).
+- `apps/landing/wrangler.toml` has `API_PROXY_TARGET` commented out.
+- `PUBLIC_API_URL = "/api/v1"` is **relative**, and [`public-api.ts`](../../apps/landing/src/lib/public-api.ts) resolves a relative base against `window.location.origin` — so every landing API call, not just the contact form, is same-origin and therefore hits this 503.
+- `PUBLIC_ENABLE_LIVE_LANDING_DATA` is commented out ("using static stats"), which is the workaround for the data path being dead.
+
+[`landing-api-proxy.test.ts`](../../apps/landing/src/lib/landing-api-proxy.test.ts) **does not currently test anything**: URL/query handling, traversal rejection, request forwarding and response-header filtering are all commented out behind a single `it.skip` placeholder. Do not read that file as a regression net.
+
+The stated reason for disabling was that the backend was "removed". **That premise is false** — `POST /api/v1/contact/inquiry` is live (`ContactController`, `@Controller('contact')` + `@Public()`, throttled to 3/min). The landing contact form at `src/pages/contact/index.astro` posts to it and has therefore been receiving 503 in production. Tracked as backlog item **D-F1**; restoring the proxy needs a decision, so this section describes the current state rather than the intended one.
 
 ### 23.3 Public flows
 
@@ -1854,7 +1858,7 @@ Prefer `make<Entity>` factories for repeated aggregate fixtures: valid defaults 
 
 ### 25.1 Turborepo + pnpm
 
-`pnpm` is the only supported package manager. The root `packageManager` field pins `pnpm@10.30.3`, `engines.node` requires Node ≥22.12.0, and AGENTS.md makes pnpm-only usage mandatory. There is currently no `preinstall` enforcement hook. Turborepo's task graph parallelizes `build`, `lint`, `test`, and `check-types`; the cache key includes `tsconfig.json` and `pnpm-lock.yaml`.
+`pnpm` is the only supported package manager. The root `packageManager` field pins `pnpm@10.30.3`, `engines.node` requires Node ≥22.22.0, and AGENTS.md makes pnpm-only usage mandatory. There is currently no `preinstall` enforcement hook. Turborepo's task graph parallelizes `build`, `lint`, `test`, and `check-types`; the cache key includes `tsconfig.json` and `pnpm-lock.yaml`.
 
 ### 25.2 Scripts taxonomy
 
@@ -2729,7 +2733,7 @@ AGENTS.md §9.4 defines the existing-user compatibility posture: avoid destructi
 | `eng.traineddata` | Optional ignored local Tesseract data; production image downloads its own copy (§48.5). |
 | `.env.example` | Authoritative env var contract. |
 | `.gitleaks.toml` / `.gitleaks-envtest.json` | Secret scanning. |
-| `.node-version` | Pinned Node (≥22.12.0 per AGENTS.md). |
+| `.node-version` | Pinned Node (≥22.22.0 per AGENTS.md). |
 
 ---
 
@@ -3040,7 +3044,7 @@ Consolidates §28, §56, SSOT 🚧 items, and codebase references. **Not a commi
 | Item | State |
 | --- | --- |
 | React Query stale-time registry | Resolved: `packages/data-access/src/core/stale-time.ts` is canonical; dead package/app tables were removed and prefix behavior is tested |
-| Landing BFF parity | Resolved baseline: Astro proxy remains intentionally separate; helper contract tests cover URL/query handling, traversal rejection, request forwarding, and response-header filtering |
+| Landing BFF parity | **Not resolved — the proxy is disabled (§23.2, D-F1)**. The intended baseline is that the Astro proxy remains intentionally separate and its helper contract tests cover URL/query handling, traversal rejection, request forwarding and response-header filtering. Neither is currently true: the route returns 503 and those tests are commented out behind an `it.skip`. |
 | Appointment instant repair | Dry-run/apply scripts exist; execute against restored production-like data before timezone-sensitive releases |
 | Required-setting rollouts | Resolved: `docs/operations/REQUIRED_SETTING_ROLLOUT_CHECKLIST.md` standardizes expand → backfill → targeted prompt → enforce → contract |
 
@@ -3084,7 +3088,7 @@ The catalog above is intentionally broad. This matrix is the quicker engineering
 | UTC instant storage | Implemented | `@db.Timestamptz(3)`, UTC pool config | Rehearse repair script against restored data |
 | Existing-user compatibility migration | Implemented example | Onboarding backfill + trigger + auth fallback | Reuse as rollout template for required settings |
 | React Query server-state ownership | Implemented | `@workspace/data-access`, provider bridge, canonical stale-time registry | Expand prefix tests when new live-state domains appear |
-| Same-origin edge BFF | Implemented | Next middleware + shared proxy helper; Astro landing BFF helper contract tests | Keep the adapter matrix aligned when edge behavior changes |
+| Same-origin edge BFF | Partial — `apps/app` / `apps/internal` Workers only | Next middleware + shared proxy helper (live); Astro landing BFF is disabled and returns 503 (§23.2, D-F1) | Keep the adapter matrix aligned when edge behavior changes |
 | Feature capability map | Implemented, evolving | `FEATURE_TIER_MAP`, guard checks | Move beyond tier ladder only when packaging requires it |
 | Socket invalidation | Implemented | Socket context + React Query invalidation | Introduce pub/sub only when horizontal fan-out demands it |
 
@@ -3176,7 +3180,7 @@ There are three browser-facing runtimes with two related BFF implementations.
 | --- | --- | --- | --- |
 | `apps/app` | Vite SPA | Hono proxy Worker (`api/index.ts`) → shared proxy helper | Security headers via `public/_headers` |
 | `apps/internal` | Vite SPA | Hono proxy Worker (`api/index.ts`) → shared proxy helper | Headers, portal-route redirect handling |
-| `apps/landing` | Astro | `pages/api/[...path].ts` local BFF | Public-flow proxy with separate cookie assumptions |
+| `apps/landing` | Astro | `pages/api/[...path].ts` local BFF — **disabled, returns 503** (§23.2, D-F1) | Intended: public-flow proxy with separate cookie assumptions |
 
 ### 69.1 Why the proxy Worker matters
 
@@ -3235,7 +3239,7 @@ The highest-value next work is not a broad rewrite.
 1. Define outbox listener retry semantics and add crash-window integration coverage beyond the migrated Razorpay invoice-capture producer.
 2. Rehearse timestamptz repair, migration safety, and RLS effective-role behavior against a restored production-like database.
 3. Classify generic stored-file signed-URL consumers and decide whether any PHI-bearing surface needs a shorter TTL or application-streamed download.
-4. Extend the landing BFF contract matrix when edge behavior adds cookie, streaming, or binary-response requirements.
+4. Extend the landing BFF contract matrix when edge behavior adds cookie, streaming, or binary-response requirements. Blocked until the landing proxy is restored (**D-F1**) — the matrix has nothing to describe while the route returns 503.
 5. Require old-account regression tests for onboarding, auth, tier, and newly required settings.
 6. Add scheduler leases, WebSocket pub/sub, tracing, or richer capability machinery only when production topology or measured failures justify them.
 

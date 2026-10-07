@@ -120,6 +120,45 @@ describe('InvoiceSettlementService.markInvoicePaidManually', () => {
     expect(ctx.repository.create).not.toHaveBeenCalled();
   });
 
+  it('refuses a zero-total invoice instead of recording an empty CAPTURED session', async () => {
+    // Fully discounted / zero-priced line items net the invoice to Rs 0. The
+    // old `balance || invoiceTotal` fallback resolved 0 to a falsy value and
+    // settled 0 paise, appending an endless run of empty payment rows.
+    ctx.invoiceRepository.findById.mockResolvedValueOnce(
+      invoice({ totalCents: 0 }),
+    );
+
+    await expect(
+      ctx.service.markInvoicePaidManually(manualPayload),
+    ).rejects.toThrow('no outstanding balance');
+    expect(ctx.repository.create).not.toHaveBeenCalled();
+  });
+
+  it('refuses a nil balance instead of reporting a phantom overpayment', async () => {
+    // Settled sessions already cover the total but the status has not been
+    // re-derived (e.g. the total was lowered by a later invoice edit).
+    ctx.repository.findByInvoiceId.mockResolvedValueOnce([
+      settledSession(10000),
+    ]);
+    ctx.invoiceRepository.findById.mockResolvedValueOnce(
+      invoice({ status: InvoiceStatus.PARTIALLY_PAID }),
+    );
+
+    await expect(
+      ctx.service.markInvoicePaidManually(manualPayload),
+    ).rejects.toThrow('no outstanding balance');
+    expect(ctx.repository.create).not.toHaveBeenCalled();
+  });
+
+  it('refuses an explicit zero amount rather than settling the full balance', async () => {
+    // An amount of 0 is a deliberate "nothing was collected", not a missing
+    // amount. Treating it as absent would bank the whole balance as paid.
+    await expect(
+      ctx.service.markInvoicePaidManually({ ...manualPayload, amount: 0 }),
+    ).rejects.toThrow('must be greater than zero');
+    expect(ctx.repository.create).not.toHaveBeenCalled();
+  });
+
   it('settles the full balance and marks the invoice PAID', async () => {
     const result = await ctx.service.markInvoicePaidManually(manualPayload);
 

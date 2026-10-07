@@ -55,6 +55,30 @@ export interface IPaymentSessionRepository {
     from: Date,
     to: Date,
   ): Promise<PaymentSession[]>;
+
+  /**
+   * Atomically claims a session for capture. Returns `true` when this call is
+   * the one that moved the session out of a capturable state, `false` when a
+   * concurrent webhook delivery or reconciliation run already captured it.
+   * The conditional UPDATE is the single-winner guarantee: the read-based
+   * replay guard alone lets two concurrent deliveries both proceed.
+   */
+  tryMarkCaptured(
+    id: string,
+    clinicId: string,
+    data: Prisma.PaymentSessionUpdateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<boolean>;
+
+  /**
+   * Recent sessions that still have no provider payment id, oldest first.
+   * Reconciliation reads the provider for each order and applies a captured
+   * payment that no webhook delivery ever recorded.
+   */
+  findReconciliationCandidates(
+    createdSince: Date,
+    take: number,
+  ): Promise<PaymentSessionDetail[]>;
 }
 
 export const PAYMENT_SESSION_REPOSITORY_TOKEN = Symbol(

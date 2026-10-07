@@ -106,7 +106,14 @@
     "historyLoadingLabel": "Loading sent messages…",
     "historyErrorFallback": "We could not load sent messages.",
     "historyEmptyTitle": "No messages yet",
-    "historyEmptyDescription": "No messages have been sent to this patient yet."
+    "historyEmptyDescription": "No messages have been sent to this patient yet.",
+    "status": {
+      "QUEUED": "Queued",
+      "SENT": "Sent",
+      "DELIVERED": "Delivered",
+      "READ": "Read",
+      "FAILED": "Failed"
+    }
   },
   "metricsConfiguration": {
     "cardTitle": "Add Category / Custom Metric Field",
@@ -358,11 +365,12 @@
     "editAria": "Edit patient",
     "editLabel": "Edit",
     "tableEmptyTitle": "No patients found",
-    "tableEmptyDescription": "No patients found matching \"{query}\"",      "tableEmptyDescriptionFallback": "No patients found",
-      "paginationShowing_one": "Showing {count} patient",
-      "paginationShowing_other": "Showing {start}-{end} of {count} patients",
-      "paginationPrevious": "Previous",
-      "paginationNext": "Next"
+    "tableEmptyDescription": "No patients found matching \"{query}\"",
+    "tableEmptyDescriptionFallback": "No patients found",
+    "paginationShowing_one": "Showing {count} patient",
+    "paginationShowing_other": "Showing {start}-{end} of {count} patients",
+    "paginationPrevious": "Previous",
+    "paginationNext": "Next"
   },
   "metrics": {
     "categoriesTitle": "Categories & Tracked Metrics",

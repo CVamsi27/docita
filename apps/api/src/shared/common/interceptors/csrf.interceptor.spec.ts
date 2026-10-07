@@ -307,6 +307,44 @@ describe('CsrfInterceptor', () => {
     expect(() => interceptor.intercept(context, next)).not.toThrow();
   });
 
+  it('allows the public landing contact form to post without CSRF', () => {
+    // The landing BFF lives on docita.work and cannot read the API's httpOnly
+    // XSRF-TOKEN cookie, so a double-submit check can never be satisfied from
+    // that origin. Without this exemption every marketing submission is a 403.
+    const context = createContext({
+      method: 'POST',
+      url: '/api/v1/contact/inquiry',
+      originalUrl: '/api/v1/contact/inquiry',
+    });
+    expect(() => interceptor.intercept(context, next)).not.toThrow();
+  });
+
+  it('still rejects other contact routes and non-POST contact requests without CSRF', () => {
+    // Keep the exemption pinned to exactly one POST route: a sibling
+    // `/contact/*` path, or a GET-shaped read of the same path, must not
+    // inherit the bypass.
+    for (const url of [
+      '/api/v1/contact/subscribe',
+      '/api/v1/contact/inquiry/extra',
+    ]) {
+      const context = createContext({
+        method: 'POST',
+        url,
+        originalUrl: url,
+      });
+      expect(() => interceptor.intercept(context, next)).toThrow(
+        ForbiddenException,
+      );
+    }
+
+    const getContext = createContext({
+      method: 'GET',
+      url: '/api/v1/contact/inquiry',
+      originalUrl: '/api/v1/contact/inquiry',
+    });
+    expect(() => interceptor.intercept(getContext, next)).not.toThrow();
+  });
+
   it('allows signature-authenticated webhook ingress without CSRF', () => {
     // Provider callbacks (Razorpay/ZeptoMail/WhatsApp) are POSTed without a
     // browser session and are authenticated by their own HMAC verification +

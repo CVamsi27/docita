@@ -9,7 +9,9 @@ import {
 import { isRecord } from "@workspace/utils";
 import {
   AUTH_RESPONSE_ERROR_MESSAGE,
+  MFA_CHALLENGE_ERROR_MESSAGE,
   extractAuthPayload,
+  isMfaChallengeResponse,
   parseValidatedUser,
   type User,
 } from "./auth-context-helpers";
@@ -63,12 +65,15 @@ export function useAuthCredentialActions(options: {
       password,
       ...(turnstileToken ? { turnstileToken } : {}),
     });
-    if (loginLockoutUntil && loginLockoutUntil > Date.now()) throw new Error(formatLoginLockoutMessage(loginLockoutUntil));
+    if (loginLockoutUntil && loginLockoutUntil > Date.now())
+      throw new Error(formatLoginLockoutMessage(loginLockoutUntil));
 
     try {
-      const authPayload = extractAuthPayload(
-        await loginMutation.mutateAsync(payload),
-      );
+      const loginResponse = await loginMutation.mutateAsync(payload);
+      if (isMfaChallengeResponse(loginResponse)) {
+        throw new Error(MFA_CHALLENGE_ERROR_MESSAGE);
+      }
+      const authPayload = extractAuthPayload(loginResponse);
       const accessToken = authPayload?.access_token ?? null;
       let userData = authPayload?.user ?? null;
 
@@ -82,7 +87,8 @@ export function useAuthCredentialActions(options: {
 
       if (!userData) throw new Error(AUTH_RESPONSE_ERROR_MESSAGE);
 
-      if (userData.role === "INTERNAL") throw new Error(
+      if (userData.role === "INTERNAL")
+        throw new Error(
           "Internal accounts should use the Internal Console at /internal",
         );
 
@@ -160,7 +166,8 @@ export function useAuthCredentialActions(options: {
       );
     }
 
-    if (!userData) throw new Error(
+    if (!userData)
+      throw new Error(
         "We could not finish creating your account. Please try again.",
       );
 

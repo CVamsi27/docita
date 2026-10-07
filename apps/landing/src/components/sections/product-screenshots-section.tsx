@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   CalendarDays,
@@ -14,6 +21,8 @@ import {
   X,
 } from "lucide-react";
 
+import { useDialogFocus } from "@workspace/ui/lib/dialog-focus";
+import { resolveRovingTablistTarget } from "@workspace/ui/lib/roving-tablist";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   landingFadeUpVariants,
@@ -65,6 +74,32 @@ export function ProductScreenshotsSection({ shots }: ProductScreenshotsSectionPr
   const modalHeadingId = useId();
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
   const [activeShotIndex, setActiveShotIndex] = useState<number | null>(null);
+  const categoryRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const dialogRef = useDialogFocus(activeShotIndex !== null);
+
+  const selectCategoryAt = (index: number) => {
+    const category = CATEGORIES[index];
+    if (!category) return;
+    setActiveCategory(category.id);
+    setActiveShotIndex(null);
+    categoryRefs.current[index]?.focus();
+  };
+
+  // Arrow keys are the only way to reach the inactive filter tabs, which sit at
+  // tabindex -1 so the strip is a single tab stop.
+  const handleCategoryKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const nextIndex = resolveRovingTablistTarget({
+      key: event.key,
+      count: CATEGORIES.length,
+      currentIndex: CATEGORIES.findIndex(
+        (category) => category.id === activeCategory,
+      ),
+    });
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    selectCategoryAt(nextIndex);
+  };
 
   const filteredShots = useMemo(() => {
     if (activeCategory === "clinical") {
@@ -136,15 +171,22 @@ export function ProductScreenshotsSection({ shots }: ProductScreenshotsSectionPr
           className="mt-8 flex flex-wrap items-center gap-2"
           role="tablist"
           aria-label="Filter screens by department"
+          onKeyDown={handleCategoryKeyDown}
         >
-          {CATEGORIES.map((cat) => {
+          {CATEGORIES.map((cat, index) => {
             const isSelected = activeCategory === cat.id;
             return (
               <button
                 key={cat.id}
+                id={`r2-product-tab-${cat.id}`}
                 type="button"
                 role="tab"
+                ref={(node) => {
+                  categoryRefs.current[index] = node;
+                }}
+                tabIndex={isSelected ? 0 : -1}
                 aria-selected={isSelected}
+                aria-controls="r2-product-panel"
                 onClick={() => {
                   setActiveCategory(cat.id);
                   setActiveShotIndex(null);
@@ -163,6 +205,9 @@ export function ProductScreenshotsSection({ shots }: ProductScreenshotsSectionPr
         </div>
 
         <motion.div
+          id="r2-product-panel"
+          role="tabpanel"
+          aria-labelledby={`r2-product-tab-${activeCategory}`}
           className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
           variants={stagger}
           initial="hidden"
@@ -186,6 +231,7 @@ export function ProductScreenshotsSection({ shots }: ProductScreenshotsSectionPr
                 tabIndex={0}
                 role="button"
                 aria-label={`Enlarge ${shot.title}`}
+                aria-haspopup="dialog"
               >
                 <div className="r2-product-shot-frame">
                   <span className="r2-product-chrome-dot" aria-hidden />
@@ -233,9 +279,11 @@ export function ProductScreenshotsSection({ shots }: ProductScreenshotsSectionPr
         {/* High-res Lightbox Modal */}
         {activeShotIndex !== null && filteredShots[activeShotIndex] && (
           <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby={modalHeadingId}
+            tabIndex={-1}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-background/85 backdrop-blur-sm p-4 sm:p-6 md:p-8"
             onClick={() => setActiveShotIndex(null)}
           >

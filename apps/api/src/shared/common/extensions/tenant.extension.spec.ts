@@ -166,6 +166,47 @@ describe('tenant extension scope rules', () => {
     expect(scoped.where).toEqual({ id: 'p1', clinicId: 'clinic-1' });
   });
 
+  it('allows compound unique keys that scope by clinicId', () => {
+    const scoped = applyTenantScopeForTest(
+      'InvoiceSequence',
+      'upsert',
+      {
+        where: {
+          clinicId_financialYear: {
+            clinicId: 'clinic-1',
+            financialYear: '2026-27',
+          },
+        },
+      },
+      'clinic-1',
+    );
+
+    expect(scoped.where).toEqual({
+      clinicId_financialYear: {
+        clinicId: 'clinic-1',
+        financialYear: '2026-27',
+      },
+    });
+  });
+
+  it('rejects compound unique keys scoped to another clinic', () => {
+    expect(() =>
+      applyTenantScopeForTest(
+        'InvoiceSequence',
+        'upsert',
+        {
+          where: {
+            clinicId_financialYear: {
+              clinicId: 'other-clinic',
+              financialYear: '2026-27',
+            },
+          },
+        },
+        'clinic-1',
+      ),
+    ).toThrow(/while in tenant 'clinic-1'/);
+  });
+
   it('rejects indirect tenant-scoped models for unsafe unique operations', () => {
     expect(() =>
       applyTenantScopeForTest(

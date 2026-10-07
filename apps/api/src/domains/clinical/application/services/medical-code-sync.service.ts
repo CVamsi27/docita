@@ -1,24 +1,30 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { CodeCatalogSystem } from '@workspace/db';
 import {
   CODE_CATALOG_PROVIDER,
   CodeCatalogProvider,
 } from '@/domains/clinical/core/providers/code-catalog.provider';
+import { IMedicalCodingRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
 import {
-  IMedicalCodingRepository,
-  MedicalCodeSyncRecord,
-  SyncedMedicalCodeRecord,
-} from '@/domains/clinical/core/repositories/clinical.repository.interface';
+  MedicalCodeSyncRunnerService,
+  type CodeSyncResult,
+} from './medical-code-sync-runner.service';
 
+/**
+ * Per-system wiring for the code catalog sync: which provider stream and which
+ * code-table writers belong to ICD and CPT. The run ledger, batch diffing and
+ * completeness accounting live in {@link MedicalCodeSyncRunnerService}.
+ */
 @Injectable()
 export class MedicalCodeSyncService {
   private readonly logger = new Logger(MedicalCodeSyncService.name);
-  private static readonly UPDATE_BATCH_SIZE = 100;
 
   constructor(
     @Inject('IMedicalCodingRepository')
     private readonly medicalCodingRepository: IMedicalCodingRepository,
     @Inject(CODE_CATALOG_PROVIDER)
     private readonly codeCatalogProvider: CodeCatalogProvider,
+    private readonly runner: MedicalCodeSyncRunnerService,
   ) {}
 
   async syncCommonCodes(): Promise<{ icd: number; cpt: number }> {
@@ -27,109 +33,33 @@ export class MedicalCodeSyncService {
       this.syncCommonCptCodes(),
     ]);
 
-    this.logger.log(`Synced ${icd} ICD codes and ${cpt} CPT codes`);
-    return { icd, cpt };
+    this.logger.log(`Synced ${icd.codes} ICD codes and ${cpt.codes} CPT codes`);
+    return { icd: icd.codes, cpt: cpt.codes };
   }
 
-  async syncCommonIcdCodes(): Promise<number> {
-    const seen = new Set<string>();
-    await this.codeCatalogProvider.streamIcdCodes(async (batch) => {
-      await this.syncCodeBatch({
-        records: batch,
-        findExisting: (codesToFind) =>
-          this.medicalCodingRepository.findExistingIcdCodes(codesToFind),
-        createMany: (data) =>
-          this.medicalCodingRepository.createCommonIcdCodes(data),
-        updateMany: (data) =>
-          this.medicalCodingRepository.updateCommonIcdCodes(data),
-      });
-      batch.forEach((c) => seen.add(c.code));
+  syncCommonIcdCodes(): Promise<CodeSyncResult> {
+    return this.runner.sync({
+      system: CodeCatalogSystem.ICD,
+      stream: (onBatch) => this.codeCatalogProvider.streamIcdCodes(onBatch),
+      findExisting: (codesToFind) =>
+        this.medicalCodingRepository.findExistingIcdCodes(codesToFind),
+      createMany: (data, provenance) =>
+        this.medicalCodingRepository.createCommonIcdCodes(data, provenance),
+      updateMany: (data, provenance) =>
+        this.medicalCodingRepository.updateCommonIcdCodes(data, provenance),
     });
-    return seen.size;
   }
 
-  async syncCommonCptCodes(): Promise<number> {
-    const seen = new Set<string>();
-    await this.codeCatalogProvider.streamCptCodes(async (batch) => {
-      await this.syncCodeBatch({
-        records: batch,
-        findExisting: (codesToFind) =>
-          this.medicalCodingRepository.findExistingCptCodes(codesToFind),
-        createMany: (data) =>
-          this.medicalCodingRepository.createCommonCptCodes(data),
-        updateMany: (data) =>
-          this.medicalCodingRepository.updateCommonCptCodes(data),
-      });
-      batch.forEach((c) => seen.add(c.code));
+  syncCommonCptCodes(): Promise<CodeSyncResult> {
+    return this.runner.sync({
+      system: CodeCatalogSystem.CPT,
+      stream: (onBatch) => this.codeCatalogProvider.streamCptCodes(onBatch),
+      findExisting: (codesToFind) =>
+        this.medicalCodingRepository.findExistingCptCodes(codesToFind),
+      createMany: (data, provenance) =>
+        this.medicalCodingRepository.createCommonCptCodes(data, provenance),
+      updateMany: (data, provenance) =>
+        this.medicalCodingRepository.updateCommonCptCodes(data, provenance),
     });
-    return seen.size;
-  }
-
-  private async syncCodeBatch<
-    TCode extends { code: string; description: string; category: string },
-  >({
-    records,
-    findExisting,
-    createMany,
-    updateMany,
-  }: {
-    records: TCode[];
-    findExisting: (codes: string[]) => Promise<SyncedMedicalCodeRecord[]>;
-    createMany: (records: TCode[]) => Promise<void>;
-    updateMany: (records: MedicalCodeSyncRecord[]) => Promise<void>;
-  }): Promise<void> {
-    if (records.length === 0) {
-      return;
-    }
-
-    const uniqueRecords = [
-      ...new Map(records.map((r) => [r.code, r])).values(),
-    ];
-
-    const existingRecords = await findExisting(
-      uniqueRecords.map((record) => record.code),
-    );
-    const existingByCode = new Map(
-      existingRecords.map((record) => [record.code, record]),
-    );
-
-    const recordsToCreate: TCode[] = [];
-    const recordsToUpdate: TCode[] = [];
-
-    for (const record of uniqueRecords) {
-      const existing = existingByCode.get(record.code);
-      if (!existing) {
-        recordsToCreate.push(record);
-        continue;
-      }
-
-      if (
-        existing.description !== record.description ||
-        existing.category !== record.category ||
-        !existing.isCommon
-      ) {
-        recordsToUpdate.push(record);
-      }
-    }
-
-    if (recordsToCreate.length > 0) {
-      await createMany(recordsToCreate);
-    }
-
-    if (recordsToUpdate.length === 0) {
-      return;
-    }
-
-    for (
-      let index = 0;
-      index < recordsToUpdate.length;
-      index += MedicalCodeSyncService.UPDATE_BATCH_SIZE
-    ) {
-      const batch = recordsToUpdate.slice(
-        index,
-        index + MedicalCodeSyncService.UPDATE_BATCH_SIZE,
-      );
-      await updateMany(batch);
-    }
   }
 }

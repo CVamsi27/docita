@@ -276,7 +276,7 @@ Rules:
 ### 11.4 Query keys and invalidation (`queryKeys`)
 
 - Cache identity lives in the `queryKeys` factory (`packages/data-access/src/lib/
-  query-keys-clinician.ts`; the internal console has `query-keys-internal.ts`). Keys are
+  query-keys-clinician.ts`; `query-keys-app.ts` keys the app-session cache). Keys are
   **arrays, not URLs** — they encode response identity: resource + variant + params
   (`['patients', 'list', { search }]`). The URL may change without cache invalidation; a
   key change always invalidates.

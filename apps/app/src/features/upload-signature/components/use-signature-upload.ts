@@ -6,8 +6,8 @@ import { getUserFacingErrorMessage } from "@workspace/utils";
 import {
   fetchSlaSignatureSessionStatus,
   uploadSlaSignatureSession,
-  type SignatureSessionStatus,
 } from "@/lib/api/sla-signature-session";
+import type { SlaSignatureSessionStatusResponse } from "@workspace/types";
 
 export function useSignatureUpload() {
   const [searchParams] = useSearchParams();
@@ -61,8 +61,10 @@ export function useSignatureUpload() {
     },
   });
 
-  const getCompletedSignatureState = (data: SignatureSessionStatus | undefined) => {
-    const status = data?.status?.toLowerCase();
+  const getCompletedSignatureState = (
+    data: SlaSignatureSessionStatusResponse | undefined,
+  ) => {
+    const status = data?.status.toLowerCase();
     return Boolean(
       data?.uploaded || data?.fileUrl || status === "uploaded" || status === "completed",
     );

@@ -27,6 +27,8 @@ import {
   LogoutRequestDto,
   RefreshTokenSchema,
   LogoutSchema,
+  TokenIssueResponseDto,
+  LogoutResponseDto,
 } from './dto/auth.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AuthenticatedRequest } from '@workspace/types';
@@ -79,6 +81,7 @@ export class AuthSessionController {
   @ApiResponse({ status: 200, description: 'Tokens rotated successfully' })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
   @UsePipes(new ZodValidationPipe(RefreshTokenSchema))
+  @ZodSerializerDto(TokenIssueResponseDto)
   async refresh(
     @Body() dto: RefreshTokenDto,
     @Request() req: RequestWithUser,
@@ -98,6 +101,7 @@ export class AuthSessionController {
   @ApiOperation({ summary: 'Logout and revoke refresh token' })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
   @UsePipes(new ZodValidationPipe(LogoutSchema))
+  @ZodSerializerDto(LogoutResponseDto)
   async logoutUser(
     @Body() dto: LogoutRequestDto,
     @Request() req: RequestWithUser,

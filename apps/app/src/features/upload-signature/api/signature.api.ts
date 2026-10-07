@@ -1,23 +1,9 @@
 import type { UploadResult } from "@workspace/data-access";
+import {
+  signatureTokenValidationResponseSchema,
+  type SignatureTokenValidationResponse,
+} from "@workspace/types";
 import { apiFetch } from "@/lib/api/api-client";
-
-interface ValidateTokenResult {
-  tokenId: string;
-  purpose: string;
-  doctor: {
-    id: string;
-    name: string;
-    email: string;
-    signatureUrl: string | null;
-    signatureStoredUrl?: string | null;
-  } | null;
-  clinic: {
-    id: string;
-    name: string;
-    slaSignatureUrl: string | null;
-    slaSignatureStoredUrl?: string | null;
-  } | null;
-}
 
 export const uploadSignature = async (
   token: string,
@@ -39,7 +25,12 @@ export const uploadSignature = async (
   });
 };
 
-export const validateToken = async (token: string) =>
-  apiFetch<ValidateTokenResult>(`/doctors/signature/validate-token/${token}`, {
-    suppressGlobalErrorToast: true,
-  });
+export const validateToken = async (
+  token: string,
+): Promise<SignatureTokenValidationResponse> => {
+  const response = await apiFetch<unknown>(
+    `/doctors/signature/validate-token/${token}`,
+    { suppressGlobalErrorToast: true },
+  );
+  return signatureTokenValidationResponseSchema.parse(response);
+};

@@ -28,7 +28,7 @@ Backend infrastructure is co-located in Singapore (`sin` region) for low-latency
 - Run Prisma migrations before each API or worker deploy. The production deploy workflow applies migrations whenever `apps/api`, `apps/worker`, or shared API packages change, then blocks Fly deploy until `scripts/deploy/verify-db-schema-sync.sh` passes (no pending migrations, no schema drift). A separate `Database Migrations` workflow also runs on pushes that touch `packages/db/**`.
 - Production app deployments from GitHub Actions must be selective: on push to `main`, deploy only the apps whose related paths changed instead of deploying every app.
 - Use `DATABASE_URL` from AWS RDS for API runtime (set via `fly secrets set DATABASE_URL=...`).
-- Runtime baseline is Node `22.12.x` for local, CI, and Docker builds.
+- Runtime baseline is Node `22.22.x` for local, CI, and Docker builds.
 - Keep API health checks on `GET /api/health/live`.
 - Keep frontend `VITE_API_URL` pointed to the Fly.io app URL. In production the proxy Worker uses `API_PROXY_TARGET` to forward `/api/*` and `/socket.io/*` to the backend. The API process reads its own public URLs from `FRONTEND_URL` / `API_PUBLIC_URL` (legacy `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_API_URL` aliases still accepted during the compatibility rollout).
 - Keep `ENABLE_SCHEDULERS=false` on the API and `ENABLE_SCHEDULERS=true` on the worker once the split is live.

@@ -8,6 +8,7 @@ export type StatusType =
   | "completed"
   | "confirmed"
   | "scheduled"
+  | "checked-in"
   | "cancelled"
   | "pending"
   | "in-progress"
@@ -15,6 +16,7 @@ export type StatusType =
   | "inactive"
   | "draft"
   | "paid"
+  | "partially-paid"
   | "unpaid"
   | "overdue"
   | "success"
@@ -25,7 +27,10 @@ export type StatusType =
   | "no-show"
   | "processing"
   | "ordered"
-  | "sample-collected";
+  | "sample-collected"
+  | "result-ready"
+  | "approved"
+  | "rejected";
 
 export interface StatusBadgeProps {
   
@@ -42,6 +47,7 @@ const statusStyles: Record<StatusType, string> = {
   completed: "badge-completed",
   confirmed: "badge-info",
   scheduled: "badge-processing",
+  "checked-in": "badge-success",
   cancelled: "badge-cancelled",
   pending: "badge-pending",
   waiting: "badge-pending",
@@ -49,13 +55,19 @@ const statusStyles: Record<StatusType, string> = {
   processing: "badge-processing",
   ordered: "badge-muted",
   "sample-collected": "badge-processing",
+  "result-ready": "badge-success",
   "in-progress": "badge-processing",
   active: "badge-active",
   inactive: "badge-inactive",
   draft: "badge-muted",
   paid: "badge-success",
+  "partially-paid": "badge-warning",
   unpaid: "badge-cancelled",
+  // Overdue shares the cancelled tone deliberately: both read as "needs
+  // attention" rather than as two distinct states.
   overdue: "badge-cancelled",
+  approved: "badge-success",
+  rejected: "badge-danger",
   success: "badge-success",
   warning: "badge-warning",
   error: "badge-danger",

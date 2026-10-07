@@ -19,12 +19,22 @@ const requiredChecks = [
   "check:env-vs-globalenv",
   "check:use-case-loc",
   "check:workflow-script-refs",
+  "check:script-name-refs",
+  "check:suppression-ledger",
   "check:jsx-escape-literals",
   "check:api-conformance",
   "check:route-shadowing",
   "check:openai-client-singleton",
   "check:workflow-staleness",
   "check:workspace-resolution",
+  "check:utc-instant-storage",
+  "check:aria-naming-target",
+  "check:user-facing-copy",
+  "check:enum-map-drift",
+  "check:unserved-endpoint",
+  "check:inline-response-dto",
+  "check:internal-only-client-call",
+  "check:test-schema-duplication",
 ];
 
 const violations = requiredChecks

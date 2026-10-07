@@ -8,6 +8,7 @@ import { parseStringEnumMember } from '@workspace/utils';
 const ERROR_SEVERITY_VALUES = Object.values(ErrorSeverity);
 import { ErrorLogInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
+import { TelemetryCaptureRecorder } from '@/shared/modules/monitoring/monitoring/services/telemetry-capture-recorder.service';
 
 @Injectable()
 export class ErrorTrackingService implements OnModuleDestroy {
@@ -17,11 +18,13 @@ export class ErrorTrackingService implements OnModuleDestroy {
   private readonly FLUSH_INTERVAL = 5000;
   private flushTimer: NodeJS.Timeout | null = null;
   private persistenceDisabled = false;
+  private droppedWhileDisabled = 0;
 
   constructor(
     private prisma: PrismaService,
     private monitoringFactory: MonitoringFactory,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly captureRecorder: TelemetryCaptureRecorder,
   ) {
     this.startFlushTimer();
   }
@@ -59,6 +62,13 @@ export class ErrorTrackingService implements OnModuleDestroy {
   }
 
   logError(data: ErrorLogInput): void {
+    if (this.persistenceDisabled) {
+      // Capture is off: count the loss instead of buffering without bound or
+      // returning silently, which is what made the gap unreportable.
+      this.droppedWhileDisabled += 1;
+      return;
+    }
+
     let validatedData: ErrorLogInput;
     try {
       validatedData = this.monitoringFactory.createErrorLog(data);
@@ -81,9 +91,15 @@ export class ErrorTrackingService implements OnModuleDestroy {
     }
   }
 
+  /**
+   * Slices the batch instead of splicing it, and splices only after a
+   * successful write. Splicing first meant a single transient failure
+   * permanently discarded up to 100 error rows with no record — the opposite of
+   * what an error log is for.
+   */
   async flushBuffer(): Promise<void> {
     if (this.persistenceDisabled || this.errorBuffer.length === 0) return;
-    const errorsToFlush = this.errorBuffer.splice(0, this.BATCH_SIZE);
+    const errorsToFlush = this.errorBuffer.slice(0, this.BATCH_SIZE);
     try {
       const writeLogs = async () => {
         await this.prisma.errorLog.createMany({
@@ -109,6 +125,9 @@ export class ErrorTrackingService implements OnModuleDestroy {
                 ERROR_SEVERITY_VALUES,
                 err.severity ?? '',
               ) ?? ErrorSeverity.ERROR,
+            // Joins this error to the ApiRequest row for the same request
+            // without carrying extra identity on either side.
+            correlationId: err.correlationId ?? null,
           })),
           skipDuplicates: true,
         });
@@ -119,16 +138,17 @@ export class ErrorTrackingService implements OnModuleDestroy {
       } else {
         await writeLogs();
       }
+      this.errorBuffer.splice(0, errorsToFlush.length);
+      await this.captureRecorder.flushPending();
       this.logger.debug(`Flushed ${errorsToFlush.length} errors`);
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2021'
       ) {
-        this.persistenceDisabled = true;
-        this.errorBuffer = [];
-        this.logger.warn(
+        this.disablePersistence(
           'ErrorLog table not available. Disabling error persistence and continuing without DB-backed error tracking.',
+          'MISSING_MONITORING_TABLES',
         );
         return;
       }
@@ -136,17 +156,40 @@ export class ErrorTrackingService implements OnModuleDestroy {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P1000'
       ) {
-        this.persistenceDisabled = true;
-        this.errorBuffer = [];
-        this.logger.warn(
+        this.disablePersistence(
           'Disabling error persistence due to database authentication failure. Verify DATABASE_URL credentials.',
+          'DATABASE_AUTH_FAILURE',
         );
         return;
       }
+      // Retained for retry: the buffer is untouched on a transient failure.
       this.logger.error(
         `Failed to write errors to database: ${this.formatError(error)}`,
       );
     }
+  }
+
+  private disablePersistence(message: string, reason: string): void {
+    if (this.persistenceDisabled) {
+      return;
+    }
+    this.persistenceDisabled = true;
+    // The buffer is discarded here, which is a real coverage gap. Recording it
+    // is what stops the dashboard from reading stale rows as current errors.
+    const discarded = this.errorBuffer.length;
+    this.droppedWhileDisabled += discarded;
+    this.errorBuffer = [];
+    this.logger.warn(message);
+    this.captureRecorder.recordDisabled(reason, discarded, 0).catch((error) => {
+      this.logger.warn(
+        `Could not record error-log capture loss: ${this.formatError(error)}`,
+      );
+    });
+  }
+
+  /** Errors this process knows it failed to persist. */
+  getDroppedErrorCount(): number {
+    return this.droppedWhileDisabled;
   }
 
   async getErrorStats(

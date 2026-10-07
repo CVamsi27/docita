@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, CalendarCheck, CheckCircle2, ClipboardList, FileText, MessageSquare, Receipt, Stethoscope } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/form/button";
+import { resolveRovingTablistTarget } from "@workspace/ui/lib/roving-tablist";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { formatStatValue } from "@/lib/landing-data";
@@ -173,6 +179,29 @@ function HeroProductCard({
   onHoverEnd,
   onSelect,
 }: HeroProductCardProps) {
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  const selectTabAt = (index: number) => {
+    const tab = TAB_CONFIG[index];
+    if (!tab) return;
+    onSelect(tab.id);
+    tabRefs.current[index]?.focus();
+  };
+
+  // Arrow keys move selection because the rail is the only way to change the
+  // previewed stage from the keyboard.
+  const handleRailKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const nextIndex = resolveRovingTablistTarget({
+      key: event.key,
+      count: TAB_CONFIG.length,
+      currentIndex: TAB_CONFIG.findIndex((tab) => tab.id === state),
+    });
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    selectTabAt(nextIndex);
+  };
+
   return (
     <div
       className="r2-product r2-product-preview"
@@ -198,9 +227,9 @@ function HeroProductCard({
         </span>
       </div>
       <div className="r2-product-stage r2-product-preview-stage">
-        <WaitingFrame />
-        <ConsultFrame />
-        <CheckoutFrame />
+        <WaitingFrame isActive={state === "waiting"} />
+        <ConsultFrame isActive={state === "consult"} />
+        <CheckoutFrame isActive={state === "checkout"} />
       </div>
 
       <div
@@ -208,14 +237,20 @@ function HeroProductCard({
         role="tablist"
         aria-label="Preview OPD workflow stages"
         aria-orientation="horizontal"
+        onKeyDown={handleRailKeyDown}
       >
-        {TAB_CONFIG.map(({ id: s, label, step, icon: TabIcon, desc }) => {
+        {TAB_CONFIG.map(({ id: s, label, step, icon: TabIcon, desc }, index) => {
           const isSelected = state === s;
           return (
             <button
               key={s}
+              id={`r2-product-tab-${s}`}
               type="button"
               role="tab"
+              ref={(node) => {
+                tabRefs.current[index] = node;
+              }}
+              tabIndex={isSelected ? 0 : -1}
               aria-selected={isSelected}
               aria-controls={`r2-product-frame-${s}`}
               aria-label={`Step ${step}: ${label} (${desc})`}
@@ -248,9 +283,16 @@ function HeroProductCard({
   );
 }
 
-function WaitingFrame() {
+function WaitingFrame({ isActive }: { isActive: boolean }) {
   return (
-    <div id="r2-product-frame-waiting" className="r2-product-frame" data-frame="waiting">
+    <div
+      id="r2-product-frame-waiting"
+      className="r2-product-frame"
+      data-frame="waiting"
+      role="tabpanel"
+      aria-labelledby="r2-product-tab-waiting"
+      aria-hidden={!isActive}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="r2-eyebrow">OPD queue</p>
@@ -295,9 +337,16 @@ function WaitingFrame() {
   );
 }
 
-function ConsultFrame() {
+function ConsultFrame({ isActive }: { isActive: boolean }) {
   return (
-    <div id="r2-product-frame-consult" className="r2-product-frame" data-frame="consult">
+    <div
+      id="r2-product-frame-consult"
+      className="r2-product-frame"
+      data-frame="consult"
+      role="tabpanel"
+      aria-labelledby="r2-product-tab-consult"
+      aria-hidden={!isActive}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="r2-eyebrow">Consult · Token 07</p>
@@ -355,9 +404,16 @@ function ConsultFrame() {
   );
 }
 
-function CheckoutFrame() {
+function CheckoutFrame({ isActive }: { isActive: boolean }) {
   return (
-    <div id="r2-product-frame-checkout" className="r2-product-frame" data-frame="checkout">
+    <div
+      id="r2-product-frame-checkout"
+      className="r2-product-frame"
+      data-frame="checkout"
+      role="tabpanel"
+      aria-labelledby="r2-product-tab-checkout"
+      aria-hidden={!isActive}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="r2-eyebrow">Invoice · Token 07</p>

@@ -62,7 +62,10 @@ describe("WhatsappRecentSentView", () => {
     });
     render(<WhatsappRecentSentView />);
     expect(screen.getByText("Asha Rao")).toBeInTheDocument();
-    expect(screen.getByText("DELIVERED")).toBeInTheDocument();
+    // Translated catalog copy, not the raw UPPER_SNAKE wire token: the badge
+    // previously rendered `DELIVERED` verbatim, which this assertion pinned.
+    expect(screen.getByText("Delivered")).toBeInTheDocument();
+    expect(screen.queryByText("DELIVERED")).not.toBeInTheDocument();
     expect(
       screen.getByText("Your prescription is ready"),
     ).toBeInTheDocument();

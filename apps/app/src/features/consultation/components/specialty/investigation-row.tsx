@@ -345,13 +345,17 @@ function InvestigationAttachUploadLabel({
   InvestigationRowProps,
   "row" | "index" | "uploadingId" | "onAttach"
 >) {
-  const t = useInvestigationTranslations();
   const rowKey = row.id ?? `inv-${index}`;
   const isUploading = uploadingId === rowKey;
   return (
     <label
       className="inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors duration-150 hover:border-primary/50 hover:text-primary has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60"
-      aria-label={t("attachReportAriaLabel")}
+      // No aria-label here. An aria-label on a <label> becomes the control's
+      // accessible name and overrides the visible words, so "Attach a report or
+      // scan" silently replaced "Attach report" as the name — and the two only
+      // differ by an inserted word, which breaks WCAG 2.5.3 in both locales and
+      // defeats voice control. Letting the label text name the input keeps the
+      // two in sync through the uploading state too.
     >
       <AttachmentUploadLabelContent isUploading={isUploading} />
       <input

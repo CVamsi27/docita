@@ -23,6 +23,13 @@ export const CRON_SCHEDULES = {
   SUBSCRIPTION_REMINDER_DAILY: CronExpression.EVERY_DAY_AT_9AM,
   SUBSCRIPTION_REMINDER_HOURLY: CronExpression.EVERY_HOUR,
   BILLING_PAYMENT_REMINDERS: CronExpression.EVERY_DAY_AT_1AM,
+  // Hourly recovery scan for captures whose webhook delivery never landed.
+  PAYMENT_CAPTURE_RECONCILIATION: '20 * * * *',
+  // Recovery sweeps for delivery that was claimed but never settled. The cadence
+  // is wider than the claim lease (5 min / 10 min) so a sweep does not re-claim
+  // a row another worker is still holding.
+  LAB_RESULT_NOTIFICATION_RETRY: '*/5 * * * *',
+  CLAIM_SUBMISSION_RETRY: '*/15 * * * *',
   METRICS_FLUSH: CronExpression.EVERY_10_MINUTES,
   METRICS_AGGREGATE: CronExpression.EVERY_HOUR,
   // 6-field cron — first field is seconds. Outbox relay polls frequently

@@ -164,6 +164,14 @@
         "SKIP_SERVER"
       ]
     },
+    "@workspace/db#test": {
+      "dependsOn": ["build"],
+      "inputs": [
+        "src/**/*.ts",
+        "scripts/**/*.ts",
+        "scripts/**/*.mjs"
+      ]
+    },
     "dev": {
       "cache": false,
       "persistent": true

@@ -22,7 +22,8 @@ initializeSentryClient();
 installGlobalErrorHandler();
 installWebVitalsReporter();
 // Before render: the availability check must be the app's first request, or the
-// boot traffic it is meant to gate starves it (see startApiAvailabilityCheck).
+// boot traffic it is meant to gate is already in flight before it starts (see
+// startApiAvailabilityCheck).
 startApiAvailabilityCheck();
 
 const rootElement = document.getElementById("root");

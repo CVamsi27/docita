@@ -86,6 +86,9 @@ describe('PaymentsService', () => {
     findByInvoiceId: jest.fn<IPaymentSessionRepository['findByInvoiceId']>(),
     findSettledByClinicInRange:
       jest.fn<IPaymentSessionRepository['findSettledByClinicInRange']>(),
+    tryMarkCaptured: jest.fn<IPaymentSessionRepository['tryMarkCaptured']>(),
+    findReconciliationCandidates:
+      jest.fn<IPaymentSessionRepository['findReconciliationCandidates']>(),
   };
 
   const invoiceRepository: jest.Mocked<IInvoiceRepository> = {

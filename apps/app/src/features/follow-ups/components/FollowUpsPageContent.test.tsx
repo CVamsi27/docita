@@ -33,4 +33,13 @@ describe("FollowUpsPageContent (smoke)", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Loading follow-ups...")).toBeInTheDocument();
   });
+
+  it("exposes the worklist as the panel for its view selector", () => {
+    render(<FollowUpsPageContent />);
+
+    expect(screen.getByRole("tablist", { name: /view/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("tabpanel", { name: "Today" }),
+    ).toBeInTheDocument();
+  });
 });

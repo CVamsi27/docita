@@ -1,6 +1,5 @@
 "use client";
 
-// jscpd:ignore-start
 import { useCallback, useEffect, useState } from "react";
 
 export function useLocalStorage<T>(
@@ -37,32 +36,4 @@ export function useLocalStorage<T>(
   );
 
   return [storedValue, setValue];
-}
-
-export function useReadLocalStorage<T>(key: string): T | null {
-// jscpd:ignore-end
-  const [value, setValue] = useState<T | null>(null);
-
-  useEffect(() => {
-    try {
-      const item = window.localStorage.getItem(key);
-      if (item) {
-        setValue(JSON.parse(item));
-      }
-    } catch (_error) {
-      return;
-    }
-  }, [key]);
-
-  return value;
-}
-
-export function useRemoveLocalStorage(key: string): () => void {
-  return useCallback(() => {
-    try {
-      window.localStorage.removeItem(key);
-    } catch (_error) {
-      return;
-    }
-  }, [key]);
 }

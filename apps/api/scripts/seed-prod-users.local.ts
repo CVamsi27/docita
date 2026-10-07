@@ -5,6 +5,7 @@ import {
   PrismaClient,
   Role,
   SubscriptionStatus,
+  createUtcPoolConfig,
 } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import { config } from 'dotenv';
@@ -267,7 +268,7 @@ async function main(): Promise<void> {
   const internalPassword = requireEnv('DOCITA_INTERNAL_ADMIN_PASSWORD');
   const professionalPassword = requireEnv('DOCITA_PROFESSIONAL_USERS_PASSWORD');
 
-  const pool = new Pool({ connectionString: databaseUrl });
+  const pool = new Pool(createUtcPoolConfig(databaseUrl));
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
 

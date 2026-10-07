@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { inventoryMovementTypeSchema } from '@workspace/types';
 
 const trimmedString = (label: string, max = 200) =>
   z.string().trim().min(1, `${label} is required`).max(max);
@@ -44,10 +45,13 @@ export const updateInventoryItemSchema = z
   .strict();
 
 export const inventoryMovementSchema = z.object({
-  type: z.enum(['IN', 'OUT', 'ADJUSTMENT', 'EXPIRED', 'WASTE', 'INITIAL']),
+  type: inventoryMovementTypeSchema,
   quantity: z.number().int().min(1),
   referenceType: z.string().trim().max(80).optional(),
   referenceId: z.string().trim().max(80).optional(),
+  // Stable identity of the business operation. Retrying with the same id
+  // applies once instead of double-counting stock (backlog W03).
+  operationId: z.string().trim().min(1).max(120).optional(),
   notes: z.string().trim().max(500).optional(),
 });
 

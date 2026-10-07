@@ -76,6 +76,17 @@ describe('assertRuntimeSecretRequirements — Turnstile fail-closed (VULN-002)',
     expect(exitSpy).not.toHaveBeenCalled();
   });
 
+  it('boots in production when TURNSTILE_OPTIONAL is true', () => {
+    expect(() =>
+      assertRuntimeSecretRequirements(
+        buildConfig({
+          TURNSTILE_OPTIONAL: true,
+        }),
+      ),
+    ).not.toThrow();
+    expect(exitSpy).not.toHaveBeenCalled();
+  });
+
   it('does not require the secret in development or on the worker', () => {
     expect(() =>
       assertRuntimeSecretRequirements(buildConfig({ NODE_ENV: 'development' })),

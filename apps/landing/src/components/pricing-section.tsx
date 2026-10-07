@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Check } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
-import { type PlanMode } from "@workspace/types";
+import { type PlanMode, PUBLISHED_PLAN_LADDER } from "@workspace/types";
 import { FALLBACK_PRICING_CONFIG } from "@/lib/landing-data";
 import { landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
 
-import { SETUP_START_PRICE, TIER_ORDER } from "./pricing-data";
+import { SETUP_START_PRICE } from "./pricing-data";
 import { PricingTierCard } from "./pricing-tier-card";
 import { PricingModeToggle } from "./pricing-mode-toggle";
 import { PlanPicker } from "./plan-picker";
@@ -25,7 +25,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("yearly");
   const isYearly = billingPeriod === "yearly";
 
-  const orderedTiers = TIER_ORDER
+  const orderedTiers = PUBLISHED_PLAN_LADDER
     .map((id) => FALLBACK_PRICING_CONFIG.tiers.find((tier) => tier.id === id))
     .filter((tier): tier is NonNullable<typeof tier> => Boolean(tier));
 

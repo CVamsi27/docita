@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -12,9 +13,11 @@ import { AppointmentMapper } from '@/domains/appointments/infrastructure/mappers
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import {
   Prisma,
+  QueueTokenStatus,
   AppointmentStatus as PrismaAppointmentStatus,
 } from '@workspace/db';
 import { isPrismaExclusionViolation } from '@/shared/common/utils/prisma-exclusion-violation';
+import { APPOINTMENT_STATUS_TO_PRISMA } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
 
 const APPOINTMENT_OVERLAP_CONSTRAINT = 'Appointment_no_active_overlap';
 
@@ -76,6 +79,14 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
   }
 
   // jscpd:ignore-start
+  /**
+   * Start a consultation as a compare-and-set on the status the caller decided
+   * against. A start that was decided while the visit was live must not win
+   * after the visit finished, so the write only applies while the row still
+   * holds `currentStatus`; a terminal appointment is never reopened. The queue
+   * token carries the same precondition, and both writes share one
+   * transaction so a rejected token rolls the appointment back.
+   */
   async startConsultationTx(
     id: string,
     clinicId: string,
@@ -88,46 +99,99 @@ export class PrismaAppointmentWriteRepository implements IAppointmentWriteReposi
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       // jscpd:ignore-end
-      if (currentStatus !== AppointmentStatusEnum.IN_PROGRESS) {
-        const result = await tx.appointment.updateMany({
+      const result = await tx.appointment.updateMany({
+        where: {
+          id,
+          clinicId,
+          status: APPOINTMENT_STATUS_TO_PRISMA[currentStatus],
+        },
+        data: {
+          status: PrismaAppointmentStatus.IN_PROGRESS,
+          version: { increment: 1 },
+        },
+      });
+      if (result.count === 0) {
+        const current = await tx.appointment.findFirst({
           where: { id, clinicId },
-          data: {
-            status: PrismaAppointmentStatus.IN_PROGRESS,
-            version: { increment: 1 },
-          },
+          select: { status: true },
         });
-        if (result.count === 0) {
+        if (!current) {
           throw new NotFoundException(`Appointment with ID ${id} not found`);
         }
+        throw new ConflictException(
+          `Appointment is now ${current.status} and cannot be reopened; reload it before retrying`,
+        );
       }
 
       if (queueToken) {
         const now = this.clock.now();
         const startTime = queueToken.consultationStart ?? now;
         const calledAt = queueToken.calledAt ?? now;
-        await tx.queueToken.update({
-          where: { id: queueToken.id },
+        const tokenResult = await tx.queueToken.updateMany({
+          where: {
+            id: queueToken.id,
+            status: {
+              in: [QueueTokenStatus.WAITING, QueueTokenStatus.IN_PROGRESS],
+            },
+          },
           data: {
-            status: 'IN_PROGRESS',
+            status: QueueTokenStatus.IN_PROGRESS,
             calledAt,
             consultationStart: startTime,
           },
         });
+        if (tokenResult.count === 0) {
+          throw new ConflictException(
+            'Queue entry already finished; the consultation was not reopened',
+          );
+        }
       }
     });
   }
 
+  /**
+   * Partial update. When the patch moves `status`, the write is a
+   * compare-and-set on `expectedStatus` (the status the caller read), so an
+   * action built against a stale view — an in-flight consultation autosave, a
+   * retried request — cannot reopen a visit that has since finished. Patches
+   * without a status keep the unconditional write: post-completion clinical
+   * edits stay allowed (ADR 0013 §C2.1 defers a write lock for them).
+   * Returns 0 when the row is missing for this clinic; a stale status raises a
+   * conflict instead.
+   */
   async applyPatch(
     id: string,
     clinicId: string,
     patch: Prisma.AppointmentUpdateInput,
+    expectedStatus?: AppointmentStatusEnum,
   ): Promise<number> {
+    const guardsStatus =
+      patch.status !== undefined && expectedStatus !== undefined;
     const result = await this.prisma.appointment
       .updateMany({
-        where: { id, clinicId },
+        where: {
+          id,
+          clinicId,
+          ...(guardsStatus
+            ? { status: APPOINTMENT_STATUS_TO_PRISMA[expectedStatus] }
+            : {}),
+        },
         data: { ...patch, version: { increment: 1 } },
       })
       .catch(translateAppointmentWriteError);
+
+    if (result.count === 0 && guardsStatus) {
+      const current = await this.prisma.appointment.findFirst({
+        where: { id, clinicId },
+        select: { status: true },
+      });
+      if (current) {
+        throw new ConflictException(
+          `Appointment is now ${current.status}; the stale update was not applied`,
+        );
+      }
+    }
+
     return result.count;
   }
 }

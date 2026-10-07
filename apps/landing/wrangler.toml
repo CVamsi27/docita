@@ -25,7 +25,7 @@ DOCITA_CLOUDFLARE = "1"
 APP_URL = "https://docita.work"
 PUBLIC_APP_URL = "https://app.docita.work"
 PUBLIC_API_URL = "/api/v1"
-# API_PROXY_TARGET = "https://api.docita.work"  # disabled — backend removed
+API_PROXY_TARGET = "https://api.docita.work"
 # PUBLIC_ENABLE_LIVE_LANDING_DATA = "true"  # disabled — using static stats
 
 [observability]

@@ -28,7 +28,15 @@ export interface IPortalAuthRepository {
    */
   tryConsumeOtpAttempt(id: string, maxAttempts: number): Promise<boolean>;
 
-  markOtpUsed(id: string): Promise<void>;
+  /**
+   * Atomically claims the single-use OTP by setting `usedAt` only while it
+   * is still null. Returns `true` for the caller that wins the claim (it may
+   * issue a session) and `false` for a concurrent caller that lost a race
+   * despite presenting the same valid code. A read-then-write "mark used"
+   * would let two parallel verifies both pass bcrypt.compare and both mint
+   * sessions from one OTP.
+   */
+  tryMarkOtpUsed(id: string): Promise<boolean>;
 
   createPortalUser(data: {
     email: string;

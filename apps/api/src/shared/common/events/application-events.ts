@@ -45,4 +45,19 @@ export enum ApplicationEvents {
   // listens to materialize the internal Docita-ops notification.
   FACILITY_LEAD_CREATED = 'facility-lead.created',
   FACILITY_LEAD_CONVERTED = 'facility-lead.converted',
+  /**
+   * Emitted once per saturation episode by PoolSaturationHistoryService when
+   * the connection pool has had callers queued beyond its threshold. Routed to
+   * OpsAlertListener; the same condition is always logged locally so the signal
+   * does not depend on a webhook being configured.
+   */
+  POOL_SATURATION_SUSTAINED = 'ops.pool-saturation.sustained',
+  /**
+   * Reserved for a future staleness watcher. Deliberately not emitted yet:
+   * `@TrackHeartbeat` does not record each job's cadence, so judging staleness
+   * needs an owner-maintained name→interval table rather than a guessed
+   * threshold. Tracked as backlog item T-F1-F6; until that table exists,
+   * `GET monitoring/background-jobs` reports `ageMs` for an operator to judge.
+   */
+  SCHEDULER_STALE = 'ops.scheduler.stale',
 }

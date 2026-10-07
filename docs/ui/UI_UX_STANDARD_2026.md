@@ -112,6 +112,7 @@ These are added in PR F:
 - Body: form fields or content.
 - Footer: light secondary action left, dark primary action right.
 - Use `WizardDialog` for multi-step flows (step pips visible).
+- Focus contract: opening moves focus into the dialog, `Tab` cycles inside it, and closing returns focus to the trigger. The Radix-based `Dialog` / `WizardDialog` primitives already do this; bespoke overlays (e.g. the landing lightbox) call `useDialogFocus` from `@workspace/ui/lib/dialog-focus`.
 
 ### 3.2 Forms
 
@@ -137,6 +138,8 @@ These are added in PR F:
 
 - `PageTabs` thin-underline component for in-page section switching (Origin's Overview / Transactions pattern).
 - Tabs sync to the URL (`?tab=`). Always preserve back-compat for old tab values when refactoring.
+- Keyboard: the strip owns one tab stop (roving tabindex: active tab `tabindex="0"`, the rest `-1`) and `ArrowLeft` / `ArrowRight` / `Home` / `End` move focus and selection through `resolveRovingTablistTarget` (`@workspace/ui/lib/roving-tablist`). Every `role="tablist"` must be paired with a `role="tabpanel"` labelled by the active tab.
+- Single-select bars that do **not** switch a panel stay out of the tabs pattern: use `ToggleGroup` (`role="group"` with `aria-pressed` per option), not `role="tablist"` / `role="tab"`.
 
 ### 3.6 Mobile companion patterns (2026 responsive pass)
 

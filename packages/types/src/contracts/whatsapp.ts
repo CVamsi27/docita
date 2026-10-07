@@ -153,6 +153,51 @@ export const whatsappDefaultTemplatesResponseSchema = z.array(z.string());
  * `WhatsappTemplate` rows scoped to a clinic and are surfaced both in the
  * Settings management UI and the per-patient composer's template picker.
  */
+/**
+ * Statuses the `whatsappLog` table can emit (Prisma `WhatsappLogStatus`).
+ * Typed as an enum rather than a loose string so a display map keyed off this
+ * value cannot silently drift — see `whatsapp-status-contracts.test.ts`.
+ */
+export const whatsappLogStatusSchema = z.enum([
+  "QUEUED",
+  "SENT",
+  "DELIVERED",
+  "FAILED",
+  "READ",
+]);
+export type WhatsappLogStatus = z.infer<typeof whatsappLogStatusSchema>;
+
+/**
+ * Statuses the `whatsappTemplate` table can emit (Prisma
+ * `WhatsappTemplateStatus`). The legacy templates controller passes
+ * `row.status` straight through, so these are exactly the wire values.
+ */
+export const whatsappTemplateStatusSchema = z.enum([
+  "DRAFT",
+  "PENDING_APPROVAL",
+  "APPROVED",
+  "REJECTED",
+]);
+export type WhatsappTemplateStatus = z.infer<
+  typeof whatsappTemplateStatusSchema
+>;
+
+/**
+ * Statuses the `whatsappMessage` table can emit (Prisma
+ * `WhatsappMessageStatus`). Distinct from `whatsappLogStatusSchema` above:
+ * it has `PENDING` and no `READ`-vs-`REPLIED` split. `listMessages` in
+ * `prisma-whatsapp-operations.repository.ts` selects the column directly.
+ */
+export const whatsappMessageStatusSchema = z.enum([
+  "SENT",
+  "DELIVERED",
+  "READ",
+  "FAILED",
+  "PENDING",
+  "QUEUED",
+]);
+export type WhatsappMessageStatus = z.infer<typeof whatsappMessageStatusSchema>;
+
 export const whatsappTemplateCategorySchema = z.enum([
   "APPOINTMENT",
   "PRESCRIPTION",
@@ -169,7 +214,7 @@ export const clinicWhatsappTemplateSchema = z.object({
   name: z.string(),
   category: whatsappTemplateCategorySchema,
   content: z.string(),
-  status: z.string(),
+  status: whatsappTemplateStatusSchema,
   isDefault: z.boolean(),
   isActive: z.boolean(),
   updatedAt: z.string().or(z.date()),
@@ -220,7 +265,7 @@ export const clinicWhatsappSentMessageSchema = z.object({
   id: z.string(),
   message: z.string(),
   type: z.string(),
-  status: z.string(),
+  status: whatsappLogStatusSchema,
   phoneNumber: z.string(),
   createdAt: z.string().or(z.date()),
   patientName: z.string().optional(),
@@ -250,7 +295,7 @@ export const clinicWhatsappConversationMessageSchema = z.object({
   direction: z.enum(["INBOUND", "OUTBOUND"]),
   messageType: z.string(),
   content: z.string(),
-  status: z.string(),
+  status: whatsappMessageStatusSchema,
   createdAt: z.string().or(z.date()),
   errorMessage: z.string().nullable(),
 });
@@ -485,11 +530,6 @@ export const createWhatsAppBroadcastRequestSchema = z
   })
   .strict();
 
-export const successResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string().optional(),
-});
-
 export const whatsappStatsDetailedResponseSchema = z.object({
   totalPatients: z.number(),
   subscribers: z.number(),
@@ -547,7 +587,6 @@ export type CreateMedicineReminderRequest = z.infer<
 export type CreateWhatsAppBroadcastRequest = z.infer<
   typeof createWhatsAppBroadcastRequestSchema
 >;
-export type SuccessResponse = z.infer<typeof successResponseSchema>;
 export type WhatsAppStatsDetailedResponse = z.infer<
   typeof whatsappStatsDetailedResponseSchema
 >;

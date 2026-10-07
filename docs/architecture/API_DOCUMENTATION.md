@@ -280,6 +280,12 @@ PATCH /appointments/:id
 
 **Request Body:** partial appointment fields
 
+A patch that carries `status` is a compare-and-set against the status the API
+read for that request: if the appointment moved on in between (a parallel
+completion, for example), the API answers `409 Conflict` instead of applying a
+stale status. Patches without `status` are unconditional, so clinical fields can
+still be edited after a visit is completed.
+
 ### Cancel Appointment
 
 ```http
@@ -751,7 +757,9 @@ All errors pass through the global exception filter and share one shape:
 - `401 Unauthorized`: Missing or invalid authentication
 - `403 Forbidden`: Insufficient permissions
 - `404 Not Found`: Resource not found
-- `409 Conflict`: Duplicate resource
+- `409 Conflict`: Duplicate resource, or a write that lost a race against a
+  state change (for example a status update built before the appointment was
+  completed)
 - `429 Too Many Requests`: Rate limit exceeded
 - `500 Internal Server Error`: Server error
 

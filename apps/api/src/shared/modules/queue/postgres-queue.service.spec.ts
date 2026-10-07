@@ -23,6 +23,7 @@ interface MockRow {
   lastReplayedAt: Date | null;
   failedReason: string | null;
   processedAt: Date | null;
+  claimToken: string | null;
   delayedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -43,6 +44,7 @@ const makeRow = (overrides: Partial<MockRow> = {}): MockRow => ({
   lastReplayedAt: null,
   failedReason: null,
   processedAt: null,
+  claimToken: 'claim-token-1',
   delayedUntil: null,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -73,9 +75,18 @@ describe('PostgresQueueService', () => {
     recoverStaleActiveToFailed: jest
       .fn<QueueJobRepository['recoverStaleActiveToFailed']>()
       .mockResolvedValue([]),
+    applyClaimTransition: jest
+      .fn<QueueJobRepository['applyClaimTransition']>()
+      .mockResolvedValue(true),
     findById: jest.fn<QueueJobRepository['findById']>().mockResolvedValue(null),
     countByStatus: jest
       .fn<QueueJobRepository['countByStatus']>()
+      .mockResolvedValue([]),
+    appendExecutions: jest
+      .fn<QueueJobRepository['appendExecutions']>()
+      .mockResolvedValue(undefined),
+    listExecutions: jest
+      .fn<QueueJobRepository['listExecutions']>()
       .mockResolvedValue([]),
   };
 
@@ -111,6 +122,7 @@ describe('PostgresQueueService', () => {
     queueJobsMock.claimNextWaitingJob.mockResolvedValue([]);
     queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValue([]);
     queueJobsMock.recoverStaleActiveToFailed.mockResolvedValue([]);
+    queueJobsMock.applyClaimTransition.mockResolvedValue(true);
     queueJobsMock.findById.mockResolvedValue(null);
     queueJobsMock.countByStatus.mockResolvedValue([]);
     service = new PostgresQueueService(prisma as never, clock, queueJobsMock);
@@ -176,12 +188,12 @@ describe('PostgresQueueService', () => {
       expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'qj-1', name: 'test-job' }),
       );
-      expect(updateMock).toHaveBeenCalledWith(
+      expect(queueJobsMock.applyClaimTransition).toHaveBeenCalledWith(
+        'qj-1',
+        'claim-token-1',
         expect.objectContaining({
-          data: expect.objectContaining({
-            status: 'COMPLETED',
-            completedAt: expect.any(Date),
-          }),
+          status: 'COMPLETED',
+          completedAt: expect.any(Date),
         }),
       );
     });
@@ -200,14 +212,14 @@ describe('PostgresQueueService', () => {
         service as unknown as { poll: (name: string) => Promise<void> }
       ).poll('test-job');
 
-      expect(updateMock).toHaveBeenCalledWith(
+      expect(queueJobsMock.applyClaimTransition).toHaveBeenCalledWith(
+        'qj-1',
+        'claim-token-1',
         expect.objectContaining({
-          data: expect.objectContaining({
-            status: 'DEAD_LETTERED',
-            failedReason: 'handler failed',
-            deadLetteredAt: expect.any(Date),
-            attemptsMade: 3,
-          }),
+          status: 'DEAD_LETTERED',
+          failedReason: 'handler failed',
+          deadLetteredAt: expect.any(Date),
+          attemptsMade: 3,
         }),
       );
     });
@@ -226,12 +238,15 @@ describe('PostgresQueueService', () => {
         service as unknown as { poll: (name: string) => Promise<void> }
       ).poll('test-job');
 
-      const updateCall = (updateMock.mock.lastCall?.[0] ?? {}) as {
-        data: { status: string; attemptsMade: number; delayedUntil: Date };
-      };
-      expect(updateCall.data.status).toBe('DELAYED');
-      expect(updateCall.data.attemptsMade).toBe(1);
-      expect(updateCall.data.delayedUntil).toBeInstanceOf(Date);
+      const transitionCall = queueJobsMock.applyClaimTransition.mock
+        .lastCall as unknown as [
+        string,
+        string,
+        { status: string; attemptsMade: number; delayedUntil: Date },
+      ];
+      expect(transitionCall[2].status).toBe('DELAYED');
+      expect(transitionCall[2].attemptsMade).toBe(1);
+      expect(transitionCall[2].delayedUntil).toBeInstanceOf(Date);
     });
 
     it('does nothing when no WAITING jobs are available', async () => {
@@ -389,11 +404,14 @@ describe('PostgresQueueService', () => {
         service as unknown as { poll: (name: string) => Promise<void> }
       ).poll('test-job');
 
-      const updateCall = (updateMock.mock.lastCall?.[0] ?? {}) as {
-        data: { status: string; delayedUntil: Date };
-      };
-      const waitMs = updateCall.data.delayedUntil.getTime() - beforeMs;
-      expect(updateCall.data.status).toBe('DELAYED');
+      const transitionCall = queueJobsMock.applyClaimTransition.mock
+        .lastCall as unknown as [
+        string,
+        string,
+        { status: string; delayedUntil: Date },
+      ];
+      const waitMs = transitionCall[2].delayedUntil.getTime() - beforeMs;
+      expect(transitionCall[2].status).toBe('DELAYED');
       expect(waitMs).toBeGreaterThanOrEqual(59_500);
       expect(waitMs).toBeLessThanOrEqual(60_500);
     });
@@ -447,6 +465,382 @@ describe('PostgresQueueService', () => {
         }),
       });
       expect(job.id).toBe('dl-1');
+    });
+  });
+
+  describe('claim fencing', () => {
+    it('stamps a fresh claim token on the claimed row', async () => {
+      // The repository issues the token inside claimNextWaitingJob; the row it
+      // returns must carry it, because every later acknowledgment is fenced on
+      // exactly that value.
+      primePollClaim(makeRow({ status: 'ACTIVE', claimToken: 'token-A' }));
+
+      await service.process(
+        'test-job',
+        jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+      );
+      await (
+        service as unknown as { poll: (name: string) => Promise<void> }
+      ).poll('test-job');
+
+      expect(queueJobsMock.applyClaimTransition).toHaveBeenCalledWith(
+        'qj-1',
+        'token-A',
+        expect.anything(),
+      );
+    });
+
+    it('does not write anything when the claim was already reclaimed', async () => {
+      // Worker A's lease expired; stale recovery released the claim and worker
+      // B took it. A finishing late must not overwrite B's job state.
+      queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValueOnce([
+        makeRow({ id: 'qj-1', status: 'DELAYED', claimToken: null }),
+      ]);
+      queueJobsMock.recoverStaleActiveToFailed.mockResolvedValueOnce([]);
+      queueJobsMock.claimNextWaitingJob.mockResolvedValueOnce([
+        makeRow({ status: 'ACTIVE', claimToken: 'stale-token' }),
+      ]);
+      queueJobsMock.applyClaimTransition.mockResolvedValueOnce(false);
+
+      const handler = jest
+        .fn<QueueJobHandler<QueueJobData>>()
+        .mockResolvedValue(undefined);
+
+      await service.process('test-job', handler);
+      await (
+        service as unknown as { poll: (name: string) => Promise<void> }
+      ).poll('test-job');
+
+      // The handler still ran (the effect happened), but the acknowledgment was
+      // gated: no unguarded prisma.queueJob.update can bypass the claim.
+      expect(handler).toHaveBeenCalled();
+      expect(queueJobsMock.applyClaimTransition).toHaveBeenCalledTimes(1);
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it('reports the lost claim rather than a completion', async () => {
+      // A lost claim must not be mis-reported as a completed job, otherwise
+      // the dashboard would claim work finished that it never durably recorded.
+      const observeJobCompletion =
+        jest.fn<(name: string, outcome: string) => void>();
+      const metrics = {
+        observeJobCompletion,
+        observeJobDuration: jest.fn(),
+        setDlqSize: jest.fn(),
+      };
+      const fencedService = new PostgresQueueService(
+        prisma as never,
+        clock,
+        queueJobsMock,
+        metrics as never,
+      );
+
+      queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValueOnce([]);
+      queueJobsMock.recoverStaleActiveToFailed.mockResolvedValueOnce([]);
+      queueJobsMock.claimNextWaitingJob.mockResolvedValueOnce([
+        makeRow({ status: 'ACTIVE', claimToken: 'stale-token' }),
+      ]);
+      queueJobsMock.applyClaimTransition.mockResolvedValueOnce(false);
+
+      await fencedService.process(
+        'test-job',
+        jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+      );
+      await (
+        fencedService as unknown as { poll: (name: string) => Promise<void> }
+      ).poll('test-job');
+
+      expect(observeJobCompletion).not.toHaveBeenCalledWith(
+        'test-job',
+        'completed',
+      );
+    });
+
+    it('abandons the acknowledgment when the claimed row carries no token', async () => {
+      // A pre-deploy ACTIVE row has claimToken = NULL. There is no claim to
+      // own, so the acknowledgment is skipped rather than applied unfenced.
+      queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValueOnce([]);
+      queueJobsMock.recoverStaleActiveToFailed.mockResolvedValueOnce([]);
+      queueJobsMock.claimNextWaitingJob.mockResolvedValueOnce([
+        makeRow({ status: 'ACTIVE', claimToken: null }),
+      ]);
+
+      await service.process(
+        'test-job',
+        jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+      );
+      await (
+        service as unknown as { poll: (name: string) => Promise<void> }
+      ).poll('test-job');
+
+      expect(queueJobsMock.applyClaimTransition).not.toHaveBeenCalled();
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it('keeps a lost retry acknowledgment from resurrecting a dead-lettered job', async () => {
+      queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValueOnce([]);
+      queueJobsMock.recoverStaleActiveToFailed.mockResolvedValueOnce([]);
+      queueJobsMock.claimNextWaitingJob.mockResolvedValueOnce([
+        makeRow({
+          status: 'ACTIVE',
+          claimToken: 'stale-token',
+          attemptsMade: 2,
+          maxAttempts: 3,
+        }),
+      ]);
+      queueJobsMock.applyClaimTransition.mockResolvedValueOnce(false);
+
+      await service.process(
+        'test-job',
+        jest
+          .fn<QueueJobHandler<QueueJobData>>()
+          .mockRejectedValue(new Error('handler failed')),
+      );
+      await (
+        service as unknown as { poll: (name: string) => Promise<void> }
+      ).poll('test-job');
+
+      // DEAD_LETTERED is what the losing worker wanted to write; with the claim
+      // released, the job's outcome belongs to whoever owns it now.
+      expect(queueJobsMock.applyClaimTransition).toHaveBeenCalledWith(
+        'qj-1',
+        'stale-token',
+        expect.objectContaining({ status: 'DEAD_LETTERED' }),
+      );
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it('fences the idempotency-skip acknowledgment too', async () => {
+      queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValueOnce([]);
+      queueJobsMock.recoverStaleActiveToFailed.mockResolvedValueOnce([]);
+      queueJobsMock.claimNextWaitingJob.mockResolvedValueOnce([
+        makeRow({
+          status: 'ACTIVE',
+          claimToken: 'dup-token',
+          idempotencyKey: 'key-1',
+        }),
+      ]);
+      queueJobsMock.findRecentCompletedByIdempotency.mockResolvedValueOnce(
+        makeRow({ id: 'other-job', idempotencyKey: 'key-1' }),
+      );
+
+      await service.process(
+        'test-job',
+        jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+      );
+      await (
+        service as unknown as { poll: (name: string) => Promise<void> }
+      ).poll('test-job');
+
+      expect(queueJobsMock.applyClaimTransition).toHaveBeenCalledWith(
+        'qj-1',
+        'dup-token',
+        expect.objectContaining({
+          status: 'COMPLETED',
+          failedReason: 'Skipped: idempotency-key already completed',
+        }),
+      );
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * QueueJob.status is current state: a job that failed twice and then
+   * succeeded is indistinguishable from a clean run. These are the rows that
+   * answer "did this retry, and did it recover".
+   */
+  describe('execution history', () => {
+    const pollOnce = async (handler: QueueJobHandler<QueueJobData>) => {
+      await service.process('test-job', handler);
+      await (
+        service as unknown as { poll: (name: string) => Promise<void> }
+      ).poll('test-job');
+    };
+
+    it('records a COMPLETED outcome with attempt and claim token', async () => {
+      primePollClaim(makeRow({ attemptsMade: 0, claimToken: 'token-A' }));
+
+      await pollOnce(
+        jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+      );
+
+      expect(queueJobsMock.appendExecutions).toHaveBeenCalledWith([
+        expect.objectContaining({
+          jobId: 'qj-1',
+          queueName: 'test-job',
+          outcome: 'COMPLETED',
+          attempt: 1,
+          claimToken: 'token-A',
+          occurredAt: new Date('2026-01-15T12:00:00.000Z'),
+        }),
+      ]);
+    });
+
+    it('records a RETRY_SCHEDULED outcome carrying the failure reason', async () => {
+      primePollClaim(makeRow({ attemptsMade: 1, maxAttempts: 3 }));
+
+      await pollOnce(
+        jest
+          .fn<QueueJobHandler<QueueJobData>>()
+          .mockRejectedValue(new Error('transient error')),
+      );
+
+      expect(queueJobsMock.appendExecutions).toHaveBeenCalledWith([
+        expect.objectContaining({
+          outcome: 'RETRY_SCHEDULED',
+          attempt: 2,
+          failedReason: 'transient error',
+        }),
+      ]);
+    });
+
+    it('records DEAD_LETTERED with the final attempt number', async () => {
+      primePollClaim(makeRow({ attemptsMade: 2, maxAttempts: 3 }));
+
+      await pollOnce(
+        jest
+          .fn<QueueJobHandler<QueueJobData>>()
+          .mockRejectedValue(new Error('handler failed')),
+      );
+
+      expect(queueJobsMock.appendExecutions).toHaveBeenCalledWith([
+        expect.objectContaining({
+          outcome: 'DEAD_LETTERED',
+          attempt: 3,
+          failedReason: 'handler failed',
+        }),
+      ]);
+    });
+
+    it('records CLAIM_LOST when the acknowledgment was fenced out', async () => {
+      primePollClaim(makeRow({ attemptsMade: 0, claimToken: 'token-A' }));
+      queueJobsMock.applyClaimTransition.mockResolvedValueOnce(false);
+
+      await pollOnce(
+        jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+      );
+
+      // The handler ran and its result was correctly discarded: that is an
+      // outcome worth keeping, and the only trace that a lease expired.
+      expect(queueJobsMock.appendExecutions).toHaveBeenCalledWith([
+        expect.objectContaining({
+          outcome: 'CLAIM_LOST',
+          failedReason: expect.stringContaining('Claim lost'),
+        }),
+      ]);
+    });
+
+    it('records IDEMPOTENT_SKIP for a duplicate enqueue', async () => {
+      queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValueOnce([]);
+      queueJobsMock.recoverStaleActiveToFailed.mockResolvedValueOnce([]);
+      queueJobsMock.claimNextWaitingJob.mockResolvedValueOnce([
+        makeRow({ idempotencyKey: 'key-1' }),
+      ]);
+      queueJobsMock.findRecentCompletedByIdempotency.mockResolvedValueOnce(
+        makeRow({ id: 'other-job' }),
+      );
+
+      await pollOnce(
+        jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+      );
+
+      expect(queueJobsMock.appendExecutions).toHaveBeenCalledWith([
+        expect.objectContaining({ outcome: 'IDEMPOTENT_SKIP', jobId: 'qj-1' }),
+      ]);
+    });
+
+    it('records STALE_RECOVERED against the real recovered job ids', async () => {
+      queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValueOnce([
+        makeRow({ id: 'qj-stale-1', status: 'DELAYED', attemptsMade: 1 }),
+      ]);
+      queueJobsMock.recoverStaleActiveToFailed.mockResolvedValueOnce([
+        makeRow({ id: 'qj-stale-2', status: 'FAILED', attemptsMade: 5 }),
+      ]);
+      queueJobsMock.claimNextWaitingJob.mockResolvedValueOnce([]);
+
+      await pollOnce(
+        jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+      );
+
+      const records = queueJobsMock.appendExecutions.mock
+        .calls[0]?.[0] as Array<{
+        jobId: string;
+        outcome: string;
+        attempt: number;
+      }>;
+      expect(records).toHaveLength(2);
+      expect(records.map((row) => row.jobId)).toEqual([
+        'qj-stale-1',
+        'qj-stale-2',
+      ]);
+      expect(records.every((row) => row.outcome === 'STALE_RECOVERED')).toBe(
+        true,
+      );
+      expect(records[0]?.attempt).toBe(1);
+      expect(records[1]?.attempt).toBe(5);
+    });
+
+    it('records REPLAYED when a dead-lettered job is replayed', async () => {
+      updateMock.mockResolvedValue(makeRow({ status: 'WAITING' }));
+
+      await service.replayDeadLettered('qj-1');
+
+      expect(queueJobsMock.appendExecutions).toHaveBeenCalledWith([
+        expect.objectContaining({
+          jobId: 'qj-1',
+          outcome: 'REPLAYED',
+          failedReason: 'Replayed after 0 replay(s)',
+        }),
+      ]);
+    });
+
+    it('truncates an oversized failure reason', async () => {
+      primePollClaim(makeRow({ attemptsMade: 0, maxAttempts: 3 }));
+
+      await pollOnce(
+        jest
+          .fn<QueueJobHandler<QueueJobData>>()
+          .mockRejectedValue(new Error('x'.repeat(2000))),
+      );
+
+      const records = queueJobsMock.appendExecutions.mock
+        .calls[0]?.[0] as Array<{
+        failedReason: string;
+      }>;
+      expect(records[0]?.failedReason).toHaveLength(500);
+    });
+
+    /**
+     * History is diagnostics, not the work itself. A failing write must never
+     * turn an applied job transition into a failed poll.
+     */
+    it('does not fail the poll when the history write fails', async () => {
+      primePollClaim(makeRow({ attemptsMade: 0, claimToken: 'token-A' }));
+      queueJobsMock.appendExecutions.mockRejectedValueOnce(
+        new Error('history table missing'),
+      );
+
+      await expect(
+        pollOnce(
+          jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+        ),
+      ).resolves.toBeUndefined();
+      expect(queueJobsMock.applyClaimTransition).toHaveBeenCalled();
+    });
+
+    it('does not write history when the acknowledgment was abandoned for a missing token', async () => {
+      queueJobsMock.recoverStaleActiveToDelayed.mockResolvedValueOnce([]);
+      queueJobsMock.recoverStaleActiveToFailed.mockResolvedValueOnce([]);
+      queueJobsMock.claimNextWaitingJob.mockResolvedValueOnce([
+        makeRow({ status: 'ACTIVE', claimToken: null }),
+      ]);
+
+      await pollOnce(
+        jest.fn<QueueJobHandler<QueueJobData>>().mockResolvedValue(undefined),
+      );
+
+      expect(queueJobsMock.applyClaimTransition).not.toHaveBeenCalled();
+      expect(queueJobsMock.appendExecutions).not.toHaveBeenCalled();
     });
   });
 });

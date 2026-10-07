@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription, AlertTitle, Button, Input, Label, MicroLabel } from "@workspace/ui/components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 
@@ -11,16 +12,17 @@ export function ContactSectionVerification({
   c: PublicBookingPageController;
   requiredMark: ReactNode;
 }) {
+  const { t } = useTranslation("PublicBooking");
+
   return (
     <div className="space-y-3 sm:col-span-2">
       {c.requiresOtp === false ? (
         <Alert className="rounded-[var(--radius-md)] border border-border/70 bg-muted/25 text-left shadow-sm">
           <AlertTitle className="text-[length:var(--fs-sm)]">
-            New to booking here online
+            {t("verification.newPatientTitle")}
           </AlertTitle>
           <AlertDescription className="text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
-            We did not find an existing chart for this phone number at this
-            location yet. Submit your request and staff will confirm your visit.
+            {t("verification.newPatientDescription")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -29,12 +31,10 @@ export function ContactSectionVerification({
         <div className="space-y-3 rounded-[var(--radius-lg)] border border-primary/35 bg-gradient-to-br from-primary/[0.07] to-card p-4 shadow-sm">
           <div className="space-y-1">
             <MicroLabel as="p" className="mt-0">
-              Verify your phone
+              {t("verification.verifyTitle")}
             </MicroLabel>
             <p className="text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
-              This phone matches records at this location. Request a one-time
-              code via WhatsApp, then enter it so we can show your recent
-              visits.
+              {t("verification.verifyDescription")}
             </p>
             <Button
               type="button"
@@ -52,7 +52,7 @@ export function ContactSectionVerification({
                 });
               }}
             >
-              New patient / can&apos;t receive WhatsApp? Continue without code
+              {t("verification.skipOtp")}
             </Button>
           </div>
           <Button
@@ -62,14 +62,15 @@ export function ContactSectionVerification({
             onClick={() => void c.handleRequestOtp()}
             disabled={c.otpRequest.isPending}
           >
-            Send code to WhatsApp
+            {t("verification.sendCode")}
           </Button>
           <div className="grid gap-2">
             <Label
               htmlFor="pb-otp"
               className="text-[length:var(--fs-sm)] font-normal text-muted-foreground"
             >
-              Verification code{requiredMark}
+              {t("verification.codeLabel")}
+              {requiredMark}
             </Label>
             <Input
               id="pb-otp"
@@ -109,7 +110,7 @@ export function ContactSectionVerification({
             onClick={() => void c.handleVerifyOtp()}
             disabled={c.otpVerify.isPending || c.otp.length < 4}
           >
-            Verify and continue
+            {t("verification.verifyAndContinue")}
           </Button>
         </div>
       ) : null}

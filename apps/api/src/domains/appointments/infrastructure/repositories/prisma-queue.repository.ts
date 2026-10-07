@@ -1,13 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma, QueueTokenStatus } from '@workspace/db';
+import { Prisma, QueueToken, QueueTokenStatus } from '@workspace/db';
 import { parseStringEnumMember } from '@workspace/utils';
 
 const QUEUE_TOKEN_STATUS_VALUES = Object.values(QueueTokenStatus);
+
+/** Midnight UTC of the day containing `date`; matches the allocation day scope. */
+function startOfDay(date: Date): Date {
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+}
 import {
   IQueueRepository,
   QueueTokenWithRelations,
   AppointmentForCheckIn,
+  QueueTokenAllocationInput,
 } from '@/domains/appointments/core/repositories/queue.repository.interface';
 
 const TOKEN_WITH_RELATIONS_INCLUDE = {
@@ -141,14 +149,60 @@ export class PrismaQueueRepository implements IQueueRepository {
     return this.prisma.queueToken.create({ data });
   }
 
+  /**
+   * Allocates the next token number for a clinic and inserts the token.
+   *
+   * The previous read-then-write (`findLastTodayTokenNumber` then
+   * `createToken`) let two parallel check-ins read the same maximum and both
+   * insert the same number. Allocation here runs inside one transaction that
+   * holds an advisory lock scoped to (clinic, day), so the read of the current
+   * maximum and the insert cannot interleave. The
+   * (clinicId, tokenDay, tokenNumber) unique constraint is the backstop.
+   *
+   * `tokenDay` is derived from `fromDate` (the clinic-local day start the
+   * caller already resolved), so numbers continue to restart each day.
+   */
+  async allocateToken(
+    data: QueueTokenAllocationInput,
+    fromDate: Date,
+  ): Promise<QueueToken> {
+    const tokenDay = startOfDay(fromDate);
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`queue-token:${data.clinicId}:${tokenDay.toISOString().slice(0, 10)}`}))`;
+
+      const last = await tx.queueToken.findFirst({
+        where: {
+          clinicId: data.clinicId,
+          tokenDay: { equals: tokenDay },
+        },
+        orderBy: { tokenNumber: 'desc' },
+        select: { tokenNumber: true },
+      });
+
+      return tx.queueToken.create({
+        data: { ...data, tokenNumber: (last?.tokenNumber ?? 0) + 1, tokenDay },
+      });
+    });
+  }
+
   async findTokenByIdAndClinic(id: string, clinicId: string) {
     return this.getReadClient().queueToken.findFirst({
       where: { id, clinicId },
     });
   }
 
-  async updateToken(id: string, data: Prisma.QueueTokenUpdateInput) {
-    return this.prisma.queueToken.update({ where: { id }, data });
+  async transitionTokenStatus(
+    id: string,
+    expectedStatuses: QueueTokenStatus[],
+    data: Prisma.QueueTokenUpdateManyMutationInput,
+  ): Promise<QueueToken | null> {
+    const result = await this.prisma.queueToken.updateMany({
+      where: { id, status: { in: expectedStatuses } },
+      data,
+    });
+    if (result.count === 0) return null;
+    return this.prisma.queueToken.findUnique({ where: { id } });
   }
 
   async cancelTodayActiveTokens(clinicId: string, fromDate: Date) {

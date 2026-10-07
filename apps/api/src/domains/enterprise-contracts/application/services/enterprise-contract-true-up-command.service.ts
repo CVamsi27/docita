@@ -4,7 +4,10 @@ import {
   ENTERPRISE_CONTRACT_PERSISTENCE_PORT,
   type EnterpriseContractPersistencePort,
 } from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';
-import { EnterpriseContractStatus } from '@workspace/db';
+import {
+  EnterpriseContractStatus,
+  TrueUpAlertDeliveryStatus,
+} from '@workspace/db';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
@@ -94,7 +97,9 @@ export class EnterpriseContractTrueUpCommandService {
       if (alreadyAlerted) return { alerted: false, observedPercent };
 
       const recipients = this.configService.getInternalAllowedEmails();
-      await this.persistence.enterpriseTrueUpAlert.create({
+      // Recorded first, so a crash mid-send still leaves an audit row; its
+      // delivery status is updated below with what actually happened.
+      const alert = await this.persistence.enterpriseTrueUpAlert.create({
         data: {
           contractId,
           thresholdPercent: contract.trueUpThresholdPercent,
@@ -102,6 +107,14 @@ export class EnterpriseContractTrueUpCommandService {
           ytdOverageCents,
           ytdPlatformCents,
           recipients,
+          deliveryStatus:
+            recipients.length > 0
+              ? TrueUpAlertDeliveryStatus.PENDING
+              : TrueUpAlertDeliveryStatus.UNKNOWN,
+          failureDetail:
+            recipients.length > 0
+              ? null
+              : 'No internal recipients configured; alert was not sent',
         },
       });
       await this.persistence.enterpriseContract.update({
@@ -119,16 +132,57 @@ export class EnterpriseContractTrueUpCommandService {
             ),
           );
           const failed = results.filter((result) => !result.success);
+          const succeeded = results.length - failed.length;
+          const deliveryStatus =
+            failed.length === 0
+              ? TrueUpAlertDeliveryStatus.DELIVERED
+              : succeeded === 0
+                ? TrueUpAlertDeliveryStatus.FAILED
+                : TrueUpAlertDeliveryStatus.PARTIAL;
+          const failureDetail =
+            failed.length > 0
+              ? failed
+                  .map(
+                    (result, index) =>
+                      `${recipients[index] ?? 'unknown'}: ${result.error ?? 'unknown'}`,
+                  )
+                  .join('; ')
+              : null;
+
+          await this.persistence.enterpriseTrueUpAlert.update({
+            where: { id: alert.id },
+            data: {
+              deliveryStatus,
+              deliveredTo: recipients.filter(
+                (_, index) => results[index]?.success === true,
+              ),
+              deliveredAt: failed.length === 0 ? this.clock.now() : null,
+              failureDetail,
+            },
+          });
+
           if (failed.length > 0) {
             this.logger.warn(
               `True-up alert email send failed for ${contract.contractNumber}`,
               {
+                deliveryStatus,
                 failedCount: failed.length,
                 errors: failed.map((result) => result.error ?? 'unknown'),
               },
             );
           }
         } catch (err) {
+          // The alert row exists but delivery is unknown: record that rather
+          // than leaving PENDING to imply a send still in flight.
+          await this.persistence.enterpriseTrueUpAlert.update({
+            where: { id: alert.id },
+            data: {
+              deliveryStatus: TrueUpAlertDeliveryStatus.UNKNOWN,
+              deliveredAt: null,
+              failureDetail:
+                err instanceof Error ? err.message : String(err) || 'unknown',
+            },
+          });
           this.logger.warn(
             `True-up alert email send failed for ${contract.contractNumber}`,
             err instanceof Error ? err : new Error(String(err)),

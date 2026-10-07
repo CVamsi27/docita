@@ -11,6 +11,7 @@ import {
   readTotalFromNlmResponse,
   toNlmRows,
 } from './nlm-coding-mappers';
+import type { CodeStreamOutcome } from '@/domains/clinical/core/providers/code-catalog.provider';
 
 const NLM_ICD_URL = 'https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search';
 const NLM_HCPCS_URL = 'https://clinicaltables.nlm.nih.gov/api/hcpcs/v3/search';
@@ -23,6 +24,8 @@ const NLM_SYNC_MAX_OFFSET = 7500;
 const ICD_SYNC_PREFIXES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const HCPCS_SYNC_PREFIXES = 'ABCDEFGHIJKLMNOPQRSTUV'.split('');
 const ACTIVE_HCPCS_FILTER = 'obsolete:false';
+/** Identifies this upstream in the sync run record. */
+const NLM_SOURCE = 'NLM';
 
 @Injectable()
 export class NlmCodingClient {
@@ -101,13 +104,28 @@ export class NlmCodingClient {
     timeoutMs: number,
     mapper: (code: string, description: string) => T,
     onBatch: (batch: T[]) => Promise<void>,
-  ): Promise<void> {
+  ): Promise<CodeStreamOutcome> {
+    let codesStreamed = 0;
+    let lastUnit: string | null = null;
+
     for (const prefix of prefixes) {
+      // A cooled-down upstream used to `break` silently, so every remaining
+      // prefix was skipped with no record. The run is now reported as
+      // incomplete with those prefixes counted as skipped.
       if (this.isSearchTemporarilyDisabled(system)) {
-        break;
+        const skipped = prefixes.slice(prefixes.indexOf(prefix));
+        return {
+          completed: false,
+          codesStreamed,
+          unitsSkipped: skipped.length,
+          lastUnit,
+          failure: `${system} upstream marked unavailable`,
+          source: NLM_SOURCE,
+        };
       }
 
       let offset = 0;
+      let reachedEnd = false;
 
       while (offset < NLM_SYNC_MAX_OFFSET) {
         let total = 0;
@@ -128,25 +146,65 @@ export class NlmCodingClient {
             timeoutMs,
           ));
         } catch (err) {
+          // Returning here used to look identical to a finished stream. The
+          // remaining prefixes are now counted so the run cannot be labeled
+          // complete.
           this.markSearchUnavailable(
             system,
             err instanceof Error ? err.message : String(err),
           );
-          return;
+          const remaining = prefixes.length - prefixes.indexOf(prefix);
+          return {
+            completed: false,
+            codesStreamed,
+            unitsSkipped: remaining,
+            lastUnit,
+            failure: err instanceof Error ? err.message : String(err),
+            source: NLM_SOURCE,
+          };
         }
 
         if (rows.length === 0) {
+          reachedEnd = true;
           break;
         }
 
         await onBatch(rows.map((row) => mapper(row.code, row.description)));
 
+        codesStreamed += rows.length;
+        lastUnit = prefix;
         offset += rows.length;
 
-        if (rows.length < NLM_SYNC_PAGE_SIZE) break;
-        if (total > 0 && offset >= total) break;
+        if (rows.length < NLM_SYNC_PAGE_SIZE) {
+          reachedEnd = true;
+          break;
+        }
+        if (total > 0 && offset >= total) {
+          reachedEnd = true;
+          break;
+        }
+      }
+
+      if (!reachedEnd) {
+        // The offset ceiling stopped this prefix short of its last page.
+        return {
+          completed: false,
+          codesStreamed,
+          unitsSkipped: prefixes.length - prefixes.indexOf(prefix),
+          lastUnit,
+          failure: `prefix ${prefix} exceeded the ${NLM_SYNC_MAX_OFFSET}-row sync ceiling`,
+          source: NLM_SOURCE,
+        };
       }
     }
+
+    return {
+      completed: true,
+      codesStreamed,
+      unitsSkipped: 0,
+      lastUnit,
+      source: NLM_SOURCE,
+    };
   }
 
   async searchIcdCodes(query: string): Promise<IcdCode[]> {
@@ -220,8 +278,8 @@ export class NlmCodingClient {
 
   async streamIcdCodes(
     onBatch: (batch: IcdCode[]) => Promise<void>,
-  ): Promise<void> {
-    await this.streamByPrefix(
+  ): Promise<CodeStreamOutcome> {
+    return this.streamByPrefix(
       'ICD',
       NLM_ICD_URL,
       ICD_SYNC_PREFIXES,
@@ -234,8 +292,8 @@ export class NlmCodingClient {
 
   async streamCptCodes(
     onBatch: (batch: CptCode[]) => Promise<void>,
-  ): Promise<void> {
-    await this.streamByPrefix(
+  ): Promise<CodeStreamOutcome> {
+    return this.streamByPrefix(
       'HCPCS',
       NLM_HCPCS_URL,
       HCPCS_SYNC_PREFIXES,

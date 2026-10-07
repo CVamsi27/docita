@@ -68,7 +68,7 @@ before enforcement matters. Operators should:
 ## Step 3: dry-run enforcement in staging
 
 ```bash
-RLS_ENABLED=true pnpm --filter @docita/api run start:dev
+RLS_ENABLED=true pnpm --filter @docita/api run dev
 ```
 
 Run the staging E2E smoke pack and the relevant repository unit tests. Any
@@ -101,6 +101,52 @@ After a clean staging dry-run plus 24h of soak with no policy errors:
 3. Watch `pg_stat_activity` and Sentry for `permission denied for table` /
    `new row violates row-level security policy` errors.
 
+
+## Verifying isolation on a live database
+
+Source presence is not an execution result, so enforcement is proven by running
+the two-clinic matrix against a real PostgreSQL instance:
+
+```bash
+pnpm --filter @workspace/db run db:check-tenant-isolation
+```
+
+The matrix executes every tenant operation in a rolled-back transaction using a
+non-owner role and reports three severities:
+
+- `isolation` — scoped reads, primary-key reads, JOINs, cross-tenant
+  INSERT/UPDATE/DELETE, degenerate scope (rls on with no clinic pinned),
+  `SET LOCAL` rollback, session-level `SET` leakage, and `DISCARD ALL`
+  cleanup. A failure here fails the run.
+- `coverage` — every clinicId-bearing table in the live schema has RLS and a
+  `tenant_isolation` policy. A failure fails the run.
+- `precondition` — the configured `DATABASE_URL` role does not bypass RLS, and
+  `docita_app` exists with login. Reported always; gated with
+  `--strict-preconditions` (required for release evidence).
+
+`pnpm check:rls-table-coverage` is the static dual of the `coverage` severity:
+it fails at review time when a migration newer than the last policy sweep
+creates a clinicId-bearing table without enabling row level security, so the
+gap cannot reopen between soak runs.
+
+### Policy coverage history
+
+`20260502143500_add_rls_policies` created the policies with a one-time loop, so
+16 tables added afterwards had no policy and no database-level tenant backstop.
+`20261003000000_complete_rls_policy_coverage` re-applies the same loop
+idempotently; coverage is now 91/91 clinicId-bearing tables. Any future tenant
+table must enable RLS in its own migration.
+
+### Known limitation: nullable clinicId columns
+
+The policy compares `"clinicId" = current_setting('app.current_clinic_id', true)`.
+For the four tables with a nullable `clinicId` (`InsuranceClaim`, `OutboxEvent`,
+`Referrer`, `WhatsAppBroadcastJob`) a row whose `clinicId` is NULL has a NULL
+comparison, which `USING` treats as false and `WITH CHECK` treats as satisfied.
+Such rows are therefore invisible to scoped reads but writable from any scope.
+`OutboxEvent` relies on this: relay rows are written with `clinicId: null` for
+platform events and the relay drains cross-tenant by design. Treat nullable
+`clinicId` as an explicit design decision per table, not a default.
 
 ## App-plane dual: ABAC policies
 

@@ -4,7 +4,10 @@ import {
   type EnterpriseContractPersistencePort,
 } from '@/domains/enterprise-contracts/application/ports/enterprise-contract-persistence.port';
 import { EnterpriseContractStatus } from '@workspace/db';
-import { type UpsertEnterpriseContractRequest } from '@workspace/types';
+import {
+  type EnterpriseAdjustmentInvoiceRequest,
+  type UpsertEnterpriseContractRequest,
+} from '@workspace/types';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { EnterpriseContractsQueryService } from './enterprise-contracts-query.service';
@@ -128,7 +131,7 @@ export class EnterpriseContractsService {
 
   generateAdjustmentInvoice(
     contractId: string,
-    payload: { label: string; amountCents: number },
+    payload: EnterpriseAdjustmentInvoiceRequest,
   ) {
     return this.commandService.generateAdjustmentInvoice(contractId, payload);
   }

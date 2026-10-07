@@ -8,7 +8,13 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ZodSerializerDto, createZodDto } from 'nestjs-zod';
 import { Response } from 'express';
+import { z } from 'zod';
+import {
+  loginWireResponseSchema,
+  otpRequestAckResponseSchema,
+} from '@workspace/types';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { PatientPortalAuthService } from '@/domains/patient-portal/application/services/patient-portal-auth.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -25,14 +31,21 @@ const OTP_ENDPOINT_RATE_LIMIT = {
   },
 } as const;
 
-class RequestOtpDto {
-  phoneNumber!: string;
-}
+// Both routes were hand-written `class { field!: string }` types: the
+// compiler was satisfied but nothing validated at runtime, so a caller
+// sending `{}` reached the service with `undefined`. These validate the
+// shape and reject the request before any OTP lookup or WhatsApp send.
+const requestOtpSchema = z.object({
+  phoneNumber: z.string().min(1, 'phoneNumber is required'),
+});
 
-class VerifyOtpDto {
-  phoneNumber!: string;
-  otp!: string;
-}
+const verifyOtpSchema = z.object({
+  phoneNumber: z.string().min(1, 'phoneNumber is required'),
+  otp: z.string().min(1, 'otp is required'),
+});
+
+export class RequestOtpDto extends createZodDto(requestOtpSchema) {}
+export class VerifyOtpDto extends createZodDto(verifyOtpSchema) {}
 
 @ApiTags('patient-portal-auth')
 @Controller('patient-portal/auth')
@@ -75,6 +88,7 @@ export class PatientPortalAuthController {
   @Post('request-otp')
   @ApiOperation({ summary: 'Request OTP for patient portal login' })
   @ApiResponse({ status: 200, description: 'OTP sent if account exists' })
+  @ZodSerializerDto(otpRequestAckResponseSchema)
   async requestOtp(@Body() dto: RequestOtpDto) {
     if (!dto.phoneNumber)
       throw new BadRequestException('phoneNumber is required');
@@ -87,6 +101,9 @@ export class PatientPortalAuthController {
   @ApiOperation({ summary: 'Verify OTP and log in to patient portal' })
   @ApiResponse({ status: 200, description: 'Successfully logged in' })
   @ApiResponse({ status: 401, description: 'Invalid or expired OTP' })
+  // Raw schema, not a DTO class: `createZodDto` cannot wrap a union
+  // (TS2509). The service returns either an MFA challenge or a session.
+  @ZodSerializerDto(loginWireResponseSchema)
   async verifyOtp(
     @Body() dto: VerifyOtpDto,
     @Res({ passthrough: true }) res: Response,

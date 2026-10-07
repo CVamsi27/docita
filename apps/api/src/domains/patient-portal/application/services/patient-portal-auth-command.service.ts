@@ -98,7 +98,14 @@ export class PatientPortalAuthCommandService {
     const isValid = await bcrypt.compare(otp, otpRecord.otpHash);
     if (!isValid) throw new UnauthorizedException('Invalid OTP');
 
-    await this.repository.markOtpUsed(otpRecord.id);
+    // Single-use claim: two concurrent verifies with the same valid OTP both
+    // reach this point, so only the caller whose conditional UPDATE wins may
+    // mint a session. The loser gets a controlled rejection.
+    const claimed = await this.repository.tryMarkOtpUsed(otpRecord.id);
+    if (!claimed)
+      throw new UnauthorizedException(
+        'This OTP has already been used. Please request a new OTP.',
+      );
 
     const patientWithUser =
       await this.repository.findPatientWithUserByPhone(normalizedPhone);

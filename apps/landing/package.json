@@ -36,14 +36,14 @@
     "@types/react-dom": "^19.1.7",
     "@typescript-eslint/parser": "^8.56.0",
     "@workspace/eslint-config": "workspace:^",
-    "astro": "7.1.5",
+    "astro": "7.3.5",
     "astro-eslint-parser": "^1.4.0",
     "eslint": "^9.32.0",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.5",
     "tailwindcss": "~4.1.11",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.10",
     "vite": "^6.4.3",
+    "vitest": "^4.1.10",
     "wrangler": "4.95.0"
   }
 }

@@ -86,12 +86,7 @@ export class RazorpayOrderAdapter
   async capturePayment(orderId: string): Promise<PaymentGatewayPayment> {
     try {
       const razorpay = this.getClient();
-      const paymentsResponse = await this.withRazorpayTimeout(() =>
-        razorpay.orders.fetchPayments(orderId),
-      );
-      const payments = Array.isArray(paymentsResponse.items)
-        ? paymentsResponse.items
-        : [];
+      const payments = await this.fetchOrderPayments(orderId);
 
       if (!payments.length)
         throw new BadRequestException('No payments found for the given order');
@@ -133,6 +128,24 @@ export class RazorpayOrderAdapter
         error,
       );
       throw new BadRequestException('Failed to capture payment');
+    }
+  }
+
+  /**
+   * Read-only listing used by payment reconciliation. Never captures and
+   * never throws: an unavailable provider returns an empty list so the
+   * scheduler can retry on its next run without failing the whole tick.
+   */
+  async listOrderPayments(orderId: string): Promise<PaymentGatewayPayment[]> {
+    try {
+      const payments = await this.fetchOrderPayments(orderId);
+
+      return payments.map((payment) => this.toPaymentGatewayPayment(payment));
+    } catch (error) {
+      this.logger.warn(`Razorpay listOrderPayments failed for ${orderId}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return [];
     }
   }
 
@@ -189,6 +202,15 @@ export class RazorpayOrderAdapter
       this.logger.error('Failed to verify payment', error);
       return { verified: false };
     }
+  }
+
+  /** Provider payment rows for an order, normalised to a plain array. */
+  private async fetchOrderPayments(orderId: string) {
+    const razorpay = this.getClient();
+    const paymentsResponse = await this.withRazorpayTimeout(() =>
+      razorpay.orders.fetchPayments(orderId),
+    );
+    return Array.isArray(paymentsResponse.items) ? paymentsResponse.items : [];
   }
 
   private parseRazorpayAmount(amount: number | string): number {

@@ -39,7 +39,7 @@ Defined per surface. Violations trigger the alert → runbook chain in §3.
 
 - API latency: `pnpm check:api-latency-budget` (new in P5.9, see
   [`POST_CUTOVER_GAPS.md` §4](../analysis/POST_CUTOVER_GAPS.md))
-- Bundle size: `pnpm check:route-budgets` (Vite-aware, dist/assets scan)
+- Bundle size: `pnpm perf:route-budgets` (Vite-aware, dist/assets scan)
 - Worker bundle: `pnpm check:worker-size` (must emit `index.js`, not
   `worker.js`)
 - Web Vitals: `pnpm check:web-vitals` (P5.8)
@@ -111,8 +111,10 @@ current `main` HEAD:
    @docita/app test` (697+), `pnpm --filter @docita/internal
    test` (48+).
 3. **E2E** — `pnpm --filter @docita/api run test:e2e` (23 suites, 143+ tests).
-4. **Cloudflare build** — `pnpm build:cloudflare:production` for the touched
-   apps.
+4. **Cloudflare build** — run the production Cloudflare build for each
+   touched app (`pnpm --filter @docita/app run build:cloudflare`, or the
+   same with `@docita/internal` / `@docita/landing`) before deployment;
+   CI enforces the same builds (jobs: §7.8).
 5. **Staging smoke** — `pnpm monitor:synthetic` (5 probes).
 6. **Dependency audit** — `pnpm audit --audit-level=high` exits 0.
 7. **Migration reversibility** — `pnpm check:migration-reversibility` for any
@@ -134,9 +136,9 @@ Every release PR must include a rollback section:
   checklist.
 - **Worker**: same as API, scoped to `apps/worker/fly.toml`.
 - **Web apps**: `wrangler rollback` (Cloudflare Pages) — instant, no
-  rebuild. Migrations: `pnpm --filter @workspace/db run db:migrate:down`
-  (only for reversible migrations; irreversible migrations require a
-  forward fix).
+  rebuild. Migrations: revert each applied migration with its own
+  `down.sql` (only for reversible migrations; irreversible migrations
+  require a forward fix) — see the DB migration rollback bullet below.
 - **DB migration rollback**: every Prisma migration ships with a tested
   `down.sql`. `pnpm check:migration-reversibility` enforces this.
 
@@ -248,8 +250,13 @@ rationale and a test.
 **Symptom**: `pnpm check:worker-size` starts failing because a new
 dependency bloats the Worker.
 
-**Fix**: `check:worker-size` (10 KB budget) wired to `verify:standard`.
-Three known offenders (preact, aws-sdk, sharp) are documented in
+**Fix**: `check:worker-size` enforces a 3584 KB gzip budget per Worker
+bundle and chains `app` + `internal` + `landing`. The `app-quality` /
+`internal-quality` / `landing-quality` jobs are where CI runs all of it:
+the `build:cloudflare` builds (§4 item 4) and the per-app caps via
+`check:worker-size:app` / `:internal` / `:landing` (not
+`verify:standard`). Three known offenders (preact, aws-sdk, sharp) are
+documented in
 [`worker-bundle-pre-existing-overage.md`](../operations/worker-bundle-pre-existing-overage.md).
 
 **Owner**: Frontend. **Detection**: CI.
