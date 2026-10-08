@@ -13,7 +13,7 @@
     "deploy:cloudflare": "pnpm run build:cloudflare && wrangler deploy --minify",
     "deploy:cloudflare:staging": "pnpm run build:cloudflare && wrangler deploy --minify --env staging",
     "deploy:cloudflare:production": "pnpm run build:cloudflare && wrangler deploy --minify --env production",
-    "lint": "eslint src/",
+    "lint": "eslint src/ e2e/",
     "typecheck": "tsc --noEmit",
     "check-types": "tsc --noEmit",
     "test": "vitest run",

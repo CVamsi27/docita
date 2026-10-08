@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
   internalGlobalStatsSchema,
+  internalDashboardStatsSchema,
   internalAnalyticsSchema,
   internalPerformanceMetricsSchema,
   internalAIFeatureCatalogSchema,
@@ -24,6 +25,9 @@ export class InternalClinicListQueryDto extends createZodDto(
 
 export class InternalGlobalStatsResponseDto extends createZodDto(
   internalGlobalStatsSchema,
+) {}
+export class InternalDashboardStatsResponseDto extends createZodDto(
+  internalDashboardStatsSchema,
 ) {}
 export class InternalAnalyticsResponseDto extends createZodDto(
   internalAnalyticsSchema,
