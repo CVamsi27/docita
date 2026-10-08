@@ -1,6 +1,9 @@
 # Docita stabilization and product improvement roadmap
 
-Date: 7 October 2026. Status: **draft for review; implementation not approved**.
+Date: 7 October 2026. Status: **approved 8 October 2026; Phase 1 in progress**.
+
+The user approved this roadmap after the preservation commit. The first batch
+follows the [security and validation implementation plan](2026-10-08-stabilization-implementation-plan.md).
 
 This roadmap responds to the request to commit all existing changes, fix issues,
 and improve UI/UX and features, with planning first. It orders the work in the

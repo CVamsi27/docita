@@ -21,7 +21,6 @@ swap_size_mb = 512
   QUEUE_BACKEND = 'postgres'
   CACHE_BACKEND = 'memory'
   ENABLE_SCHEDULERS = 'false'
-  TURNSTILE_OPTIONAL = 'true'
 
 [http_service]
   internal_port = 3001

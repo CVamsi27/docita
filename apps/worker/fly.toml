@@ -20,7 +20,6 @@ swap_size_mb = 512
   QUEUE_BACKEND = 'postgres'
   STORAGE_PROVIDER = 'r2'
   ENABLE_SCHEDULERS = 'true'
-  TURNSTILE_OPTIONAL = 'true'
 
 [[vm]]
   memory = '256mb'

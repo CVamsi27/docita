@@ -42,11 +42,8 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
       imports: [AppConfigModule],
       inject: [AppConfigService],
       useFactory: (configService: AppConfigService) => {
-        const secret =
-          configService.getJwtSecret() ??
-          'worker-jwt-fallback-minimum-32-chars';
         return {
-          secret,
+          secret: configService.getJwtSecret(),
           signOptions: {
             expiresIn: resolveJwtExpiresIn(configService.getJwtExpiration()),
           },
