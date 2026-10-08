@@ -2,7 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
+import {
+  appointmentOverlapResponseSchema,
+  type AppointmentOverlapResponse,
+} from '@workspace/types';
 import { AppModule } from '@/app.module';
+import { AllExceptionsFilter } from '@/shared/modules/error-handling/filters/http-exception.filter';
+import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   setupTestDatabase,
@@ -32,6 +38,7 @@ function futureCalendarDate(): string {
 describe('Booking contention (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let schedulingRules: AppointmentSchedulingRulesService;
   let clinicId: string;
   let doctorId: string;
   let patientId: string;
@@ -50,9 +57,11 @@ describe('Booking contention (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.useLogger(false);
     app.useGlobalPipes(new ZodValidationPipe());
+    app.useGlobalFilters(new AllExceptionsFilter());
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
+    schedulingRules = moduleFixture.get(AppointmentSchedulingRulesService);
     setPrismaInstance(prisma);
   });
 
@@ -111,7 +120,19 @@ describe('Booking contention (e2e)', () => {
     losers: Array<{ status: number; body: unknown }>,
   ) {
     const unexpected = losers.filter((loser) => loser.status !== 400);
-    if (unexpected.length === 0) return;
+    if (unexpected.length === 0) {
+      for (const loser of losers) {
+        const conflict: AppointmentOverlapResponse =
+          appointmentOverlapResponseSchema.parse(loser.body);
+        expect(conflict).toMatchObject({
+          status: 400,
+          code: 'APPOINTMENT_OVERLAP',
+          detail: 'Doctor has conflicting appointment',
+          validationErrors: { startTime: 'Doctor has conflicting appointment' },
+        });
+      }
+      return;
+    }
 
     // Jest takes no message argument and prints only a minimal diff, so the
     // mismatch is raised explicitly to carry each unexpected body and a
@@ -150,6 +171,37 @@ describe('Booking contention (e2e)', () => {
     expect(results.filter((r) => r.status === 400)).toHaveLength(1);
     await expectAllLosersToBeConflicts(results.filter((r) => r.status !== 201));
     expect(await doctorAppointmentCount()).toBe(1);
+  });
+
+  it('returns the canonical conflict when preflight observes the existing visit', async () => {
+    const date = futureCalendarDate();
+    expect((await book(`${date}T10:00`, `${date}T10:30`)).status).toBe(201);
+    const loser = await book(`${date}T10:00`, `${date}T10:30`);
+    await expectAllLosersToBeConflicts([loser]);
+    expect(await doctorAppointmentCount()).toBe(1);
+  });
+
+  it('returns the same conflict when another insert wins after the real preflight read', async () => {
+    const date = futureCalendarDate();
+    const validate =
+      schedulingRules.validateAppointmentOverlap.bind(schedulingRules);
+    const spy = jest.spyOn(schedulingRules, 'validateAppointmentOverlap');
+    spy.mockImplementationOnce(async (...args) => {
+      const snapshot = await validate(...args);
+      expect(snapshot.hasConflict).toBe(false);
+      await factories.appointment(patientId, doctorId, clinicId, {
+        startTime: args[2],
+        endTime: args[3],
+      });
+      return snapshot;
+    });
+    try {
+      const loser = await book(`${date}T10:00`, `${date}T10:30`);
+      await expectAllLosersToBeConflicts([loser]);
+      expect(await doctorAppointmentCount()).toBe(1);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('keeps ordinary sequential bookings working (no false conflicts)', async () => {

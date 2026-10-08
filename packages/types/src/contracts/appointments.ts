@@ -23,6 +23,29 @@ import { vitalSignSchema } from "../clinical/vitals";
 import { prescriptionSchema } from "../clinical/medications";
 import { invoiceSchema } from "../billing/invoices";
 
+export const appointmentOverlapErrorSchema = z.object({
+  code: z.literal("APPOINTMENT_OVERLAP"),
+  detail: z.string().min(1),
+  validationErrors: z.object({ startTime: z.string().min(1) }),
+});
+export type AppointmentOverlapError = z.infer<
+  typeof appointmentOverlapErrorSchema
+>;
+
+export const appointmentOverlapResponseSchema =
+  appointmentOverlapErrorSchema.extend({
+    type: z.literal("about:blank"),
+    title: z.literal("Bad Request"),
+    status: z.literal(400),
+    instance: z.string(),
+    timestamp: z.string().datetime(),
+    stack: z.string().optional(),
+    errorType: z.string().optional(),
+  });
+export type AppointmentOverlapResponse = z.infer<
+  typeof appointmentOverlapResponseSchema
+>;
+
 const patientRefSchema = z.object({
   id: z.string(),
   firstName: z.string(),
@@ -135,9 +158,10 @@ export const startConsultationResponseSchema = z.object({
   status: appointmentStatusSchema,
 });
 
-export const createAppointmentRequestSchema = createAppointmentBaseSchema.extend({
-  clinicId: createAppointmentBaseSchema.shape.clinicId.optional(),
-});
+export const createAppointmentRequestSchema =
+  createAppointmentBaseSchema.extend({
+    clinicId: createAppointmentBaseSchema.shape.clinicId.optional(),
+  });
 
 export const updateAppointmentRequestSchema = updateAppointmentSchema.extend({
   consultationNotes: z.string().optional(),
@@ -178,9 +202,7 @@ export const listAppointmentsQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(500).optional(),
 });
 
-const normalizeDate = (
-  value: string | Date | undefined,
-): Date | undefined => {
+const normalizeDate = (value: string | Date | undefined): Date | undefined => {
   if (!value) return undefined;
   return value instanceof Date ? value : new Date(value);
 };
@@ -329,7 +351,9 @@ export const appointmentRequestListResponseSchema = z.object({
   hasMore: z.boolean(),
 });
 
-export type AppointmentContractResponse = z.infer<typeof appointmentResponseSchema>;
+export type AppointmentContractResponse = z.infer<
+  typeof appointmentResponseSchema
+>;
 export type StartConsultationResponse = z.infer<
   typeof startConsultationResponseSchema
 >;

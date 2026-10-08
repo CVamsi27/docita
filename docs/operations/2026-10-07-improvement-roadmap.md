@@ -4,7 +4,7 @@ Date: 7 October 2026. Status: **approved 8 October 2026; Phase 1 local correctio
 
 The user approved this roadmap after the preservation commit. The first batch
 follows the [security and validation implementation plan](2026-10-08-stabilization-implementation-plan.md).
-Current results are in the [8 October validation record](releases/2026-10-08-stabilization-validation.md): auth startup, landing hydration, enforceable internal audits, dashboard contracts/search/pagination and dependency patches are corrected. Three residual dependency advisories and production evidence still block a clean release. Phases 2–5 remain planned; they are not delivered by this batch.
+Current results are in the [8 October validation record](releases/2026-10-08-stabilization-validation.md): auth startup, landing hydration, enforceable internal audits, dashboard contracts/search/pagination and dependency patches are corrected. Three residual dependency advisories and production evidence still block a clean release. Phase 2 is now in progress: the [appointment overlap slice](2026-10-08-appointment-conflict-plan.md) closes the reproduced T-F1-F3 contract gap locally. Its [acceptance evidence](releases/2026-10-08-appointment-conflict-validation.md) is separate from the earlier stabilization record. Remaining clinical/financial decisions and phases 3–5 are still planned.
 
 This roadmap responds to the request to commit all existing changes, fix issues,
 and improve UI/UX and features, with planning first. It orders the work in the

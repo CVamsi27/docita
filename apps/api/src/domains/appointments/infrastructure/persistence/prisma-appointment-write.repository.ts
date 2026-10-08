@@ -19,14 +19,13 @@ import {
 import { isPrismaExclusionViolation } from '@/shared/common/utils/prisma-exclusion-violation';
 import { APPOINTMENT_STATUS_TO_PRISMA } from '@/domains/appointments/infrastructure/mappers/appointment.mapper';
 
+import { appointmentOverlapProblem } from '@/shared/common/errors/appointment-overlap-problem';
+
 const APPOINTMENT_OVERLAP_CONSTRAINT = 'Appointment_no_active_overlap';
 
 function translateAppointmentWriteError(error: unknown): never {
   if (isPrismaExclusionViolation(error, APPOINTMENT_OVERLAP_CONSTRAINT)) {
-    throw new BadRequestException({
-      code: 'APPOINTMENT_OVERLAP',
-      detail: 'Doctor has conflicting appointment',
-    });
+    throw appointmentOverlapProblem();
   }
 
   throw error;

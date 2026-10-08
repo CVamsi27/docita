@@ -749,6 +749,37 @@ All errors pass through the global exception filter and share one shape:
 - `stack` and `errorType` appear only in development.
 - Messages never contain PHI.
 
+### Appointment overlap errors
+
+A doctor/time overlap rejected by either the scheduling preflight or the database
+race invariant returns HTTP **400** with the same payload:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Doctor has conflicting appointment",
+  "instance": "/api/v1/appointments",
+  "timestamp": "2026-10-08T00:00:00.000Z",
+  "code": "APPOINTMENT_OVERLAP",
+  "validationErrors": {
+    "startTime": "Doctor has conflicting appointment"
+  }
+}
+```
+
+`instance` identifies the actual requested path and `timestamp` the response
+instant. Clients can branch on `code` and highlight `startTime`; conflicting
+appointment IDs and windows are not included. Other validation errors retain
+their existing formats. Successful booking, terminal-status rules and retry
+semantics are unchanged.
+
+Canonical schemas: `appointmentOverlapErrorSchema` and
+`appointmentOverlapResponseSchema` in `packages/types/src/contracts/appointments.ts`.
+The API exception factory and shared data-access parser reuse them. Evidence:
+[8 October overlap acceptance](../operations/releases/2026-10-08-appointment-conflict-validation.md).
+
 ### Common Status Codes
 
 - `200 OK`: Successful request
