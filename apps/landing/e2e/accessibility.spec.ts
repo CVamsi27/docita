@@ -44,6 +44,14 @@ test("hero live preview controls are keyboard accessible", async ({ page }) => {
 
   const tabs = tablist.getByRole("tab");
   await expect(tabs).toHaveCount(3);
+  await page.waitForFunction(() => {
+    const tab = document.querySelector(
+      '[role="tablist"][aria-label="Preview OPD workflow stages"] [role="tab"]',
+    );
+    return Boolean(
+      tab && Object.keys(tab).some((key) => key.startsWith("__react")),
+    );
+  });
 
   // Exactly one tab is selected and it stays keyboard focusable.
   const selectedTabs = tablist.getByRole("tab", { selected: true });
@@ -59,7 +67,7 @@ test("hero live preview controls are keyboard accessible", async ({ page }) => {
   const movedTab = tablist.locator('[role="tab"][aria-selected="true"]');
   await expect(movedTab).toHaveCount(1);
   await expect(movedTab).toBeFocused();
-  expect(await movedTab.getAttribute("id")).not.toBe(selectedId);
+  await expect.poll(() => movedTab.getAttribute("id")).not.toBe(selectedId);
 
   // Only the selected stage is exposed to assistive technology.
   await expect(
@@ -174,6 +182,14 @@ test("pricing toggles expose single-select pressed state", async ({ page }) => {
   // --- Plan mode toggle (Full / Front Desk / Core) ---
   const planModeGroup = page.getByRole("group", { name: "Plan mode" });
   await expect(planModeGroup).toBeVisible();
+  await page.waitForFunction(() => {
+    const button = document.querySelector(
+      '[role="group"][aria-label="Plan mode"] button',
+    );
+    return Boolean(
+      button && Object.keys(button).some((key) => key.startsWith("__react")),
+    );
+  });
 
   const planModeButtons = await expectSinglePressedSelection(planModeGroup);
 
