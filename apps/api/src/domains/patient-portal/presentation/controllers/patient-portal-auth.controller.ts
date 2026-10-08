@@ -87,7 +87,7 @@ export class PatientPortalAuthController {
   @Throttle(OTP_ENDPOINT_RATE_LIMIT)
   @Post('request-otp')
   @ApiOperation({ summary: 'Request OTP for patient portal login' })
-  @ApiResponse({ status: 200, description: 'OTP sent if account exists' })
+  @ApiResponse({ status: 201, description: 'OTP sent if account exists' })
   @ZodSerializerDto(otpRequestAckResponseSchema)
   async requestOtp(@Body() dto: RequestOtpDto) {
     if (!dto.phoneNumber)
@@ -99,7 +99,7 @@ export class PatientPortalAuthController {
   @Throttle(OTP_ENDPOINT_RATE_LIMIT)
   @Post('verify-otp')
   @ApiOperation({ summary: 'Verify OTP and log in to patient portal' })
-  @ApiResponse({ status: 200, description: 'Successfully logged in' })
+  @ApiResponse({ status: 201, description: 'Successfully logged in' })
   @ApiResponse({ status: 401, description: 'Invalid or expired OTP' })
   // Raw schema, not a DTO class: `createZodDto` cannot wrap a union
   // (TS2509). The service returns either an MFA challenge or a session.

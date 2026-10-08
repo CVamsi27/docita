@@ -34,13 +34,13 @@
 
 ## 2. Namespaces inside the root
 
-| Namespace | Path | Gate | Example |
-|---|---|---|---|
-| Clinician API | `/api/v1/<resource>` | auth + tenant + feature guards | `/api/v1/patients`, `/api/v1/invoices` |
-| Internal ops console | `/api/v1/internal/*` | `@InternalApiAccess()` (`Role.INTERNAL`) | `/api/v1/internal/clinics`, `/api/v1/internal/logs` |
-| Ops tooling | `/api/v1/operations/*` | `@Roles(Role.INTERNAL)` | `/api/v1/operations/database/*` |
-| Public unauthenticated | `/api/v1/public/*` | `@Public()` | `/api/v1/public/daily-thought` |
-| Provider webhooks | `/api/v1/webhooks/*` | `@Public()` + signature verification | `/api/v1/webhooks/whatsapp` |
+| Namespace              | Path                   | Gate                                     | Example                                             |
+| ---------------------- | ---------------------- | ---------------------------------------- | --------------------------------------------------- |
+| Clinician API          | `/api/v1/<resource>`   | auth + tenant + feature guards           | `/api/v1/patients`, `/api/v1/invoices`              |
+| Internal ops console   | `/api/v1/internal/*`   | `@InternalApiAccess()` (`Role.INTERNAL`) | `/api/v1/internal/clinics`, `/api/v1/internal/logs` |
+| Ops tooling            | `/api/v1/operations/*` | `@Roles(Role.INTERNAL)`                  | `/api/v1/operations/database/*`                     |
+| Public unauthenticated | `/api/v1/public/*`     | `@Public()`                              | `/api/v1/public/daily-thought`                      |
+| Provider webhooks      | `/api/v1/webhooks/*`   | `@Public()` + signature verification     | `/api/v1/webhooks/whatsapp`                         |
 
 The `/internal/*` and `/public/*` segments are **path namespaces**, not separate prefixes —
 they sit under the same versioned root and are still bound by §1.
@@ -64,13 +64,14 @@ they sit under the same versioned root and are still bound by §1.
 ## 4. HTTP methods and sub-resource RPC exceptions
 
 **Resource verbs:**
+
 - `GET` list / detail (side-effect free; list = one of the pagination shapes in §6).
 - `POST` create → **201** with the created resource.
 - `PATCH` partial update / idempotent state change → 200.
 - `PUT` full replacement only (`PUT /clinics/:id`, `PUT /reminders/settings`).
 - `DELETE` remove → 200 (or 204 when the body is empty).
 
-**No verb URLs.** A path identifies a *resource*, never an action. The HTTP method carries
+**No verb URLs.** A path identifies a _resource_, never an action. The HTTP method carries
 the action; non-CRUD actions are sub-resource verb routes (§4 below). A top-level verb
 segment (`create`, `get`, `update`, `delete`, `list`, `fetch`, `send`, `clear`) is a
 conformance failure — there is no `/get-patients`, `/clinic/get-settings`, or
@@ -105,14 +106,21 @@ PATCH /staff-notifications/mark-read/:id
 ## 5. Status-code rules
 
 - **Defaults:** `GET` 200 · `POST` 201 (created) · `PATCH`/`PUT` 200 · `DELETE` 200/204.
-- **Action `POST`s that create no resource MUST return 200**, declared explicitly:
+- **New action `POST`s that create no resource MUST return 200**, declared explicitly:
   `@HttpCode(HttpStatus.OK)` + `@ApiResponse({ status: 200, ... })`.
   This is the "action POST" class — send / verify / cancel / transition / clear / backup ops.
   Nest's default is 201; if your `@ApiResponse` says 200 but the handler has no
   `@HttpCode(200)`, that is a conformance bug (see the `cd3a9c56f` batch and the
   `database-operations.controller.ts` completion).
-- **Never** return 201 for a side-effect action, and never return 200 for a true create
-  of a new resource row.
+- **Existing auth compatibility exception (2026-10-08):** the twelve auth POSTs
+  listed in [the API reference](API_DOCUMENTATION.md#existing-auth-success-statuses)
+  retain their established HTTP 201 success status. Their Swagger metadata must
+  document 201. The approved roadmap selects documentation parity over a wire
+  change; changing these statuses requires a separate contract review and paired
+  HTTP/client regression evidence. This does not permit mismatched metadata or
+  new action POSTs returning 201.
+- Apart from that existing-auth exception, **never** return 201 for a side-effect
+  action, and never return 200 for a true create of a new resource row.
 - **Error codes:** 400 invalid request · 401 unauthenticated · 403 forbidden ·
   404 not found · 409 conflict (idempotency/replay) · 422 validation (or 400 via the
   Zod pipe) · 429 rate-limited · 5xx server. Bodies follow RFC 9457 problem-details
@@ -151,14 +159,15 @@ Query ints go through `parsePaginationInt` (never `Number(undefined)` → NaN in
 **Shape:** `@Controller('webhooks/<domain>')` + `@Post('<provider>')` (or bare `@Post()`
 when the provider owns the domain):
 
-| Path | Provider | Auth |
-|---|---|---|
-| `/webhooks/whatsapp` (GET + POST) | Meta WhatsApp | `x-hub-signature-256` HMAC + replay window |
-| `/webhooks/payments/razorpay` | Razorpay | `x-razorpay-signature` |
-| `/webhooks/subscriptions/razorpay` | Razorpay | `x-razorpay-signature` |
-| `/webhooks/email/zeptomail` | ZeptoMail | shared-secret `Authorization` header (HMAC fallback) |
+| Path                               | Provider      | Auth                                                 |
+| ---------------------------------- | ------------- | ---------------------------------------------------- |
+| `/webhooks/whatsapp` (GET + POST)  | Meta WhatsApp | `x-hub-signature-256` HMAC + replay window           |
+| `/webhooks/payments/razorpay`      | Razorpay      | `x-razorpay-signature`                               |
+| `/webhooks/subscriptions/razorpay` | Razorpay      | `x-razorpay-signature`                               |
+| `/webhooks/email/zeptomail`        | ZeptoMail     | shared-secret `Authorization` header (HMAC fallback) |
 
 **Mandatory rules for every webhook controller:**
+
 - `@Public()` — providers cannot send bearer tokens.
 - `POST` + `@HttpCode(200)`; always ack 200 (§5) so providers don't retry on our bugs.
 - **Signature verification on the raw body** (`req.rawBody`) via `WebhookVerifierService`
@@ -192,14 +201,14 @@ when the provider owns the domain):
 
 ## 10. Conformance and automation
 
-| Concern | Command |
-|---|---|
-| Controller auth posture declared | `pnpm check:controller-rbac` |
+| Concern                                 | Command                                                          |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| Controller auth posture declared        | `pnpm check:controller-rbac`                                     |
 | Shared Zod contracts, no dup DTO shapes | `pnpm check:contracts-strict`, `pnpm check:zod-interface-parity` |
-| Thin controllers / CQS | `pnpm check:controller-cqs`, `pnpm check:route-thinness` |
-| Tenant-safe auth | `pnpm check:auth-tenant-safety` |
-| No Prisma leakage out of repositories | `pnpm check:prisma-boundary` |
-| Tier gating (no numeric compares) | `pnpm check:tier-comparisons` |
+| Thin controllers / CQS                  | `pnpm check:controller-cqs`, `pnpm check:route-thinness`         |
+| Tenant-safe auth                        | `pnpm check:auth-tenant-safety`                                  |
+| No Prisma leakage out of repositories   | `pnpm check:prisma-boundary`                                     |
+| Tier gating (no numeric compares)       | `pnpm check:tier-comparisons`                                    |
 
 A new or edited controller passes when: it follows §1–§9, all checks above are green for
 the touched areas, and any deviation is recorded in the PR description with a dated note
@@ -228,7 +237,7 @@ controller disagree, the controller is not the only bug: one of them is stale.
   a hook or query key is the §1 double-prefix bug class on the client side.
 - Hooks do not own the fetch. The app injects a session-aware fetcher plus tenant/timezone
   and tier gate via `DataAccessProvider` (`{ fetcher, getClinicId, getClinicTimezone,
-  isTierFeatureEnabled }` in `packages/data-access/src/provider/context.ts`; app wiring in
+isTierFeatureEnabled }` in `packages/data-access/src/provider/context.ts`; app wiring in
   `apps/app/src/providers/data-access-bridge.tsx`). Hooks reach it with
   `useDataAccessFetcher()` / `useDataAccessContext()`. The `enabled` flag of every
   tenant-scoped hook is gated by `isTierFeatureEnabled(Feature.X)` — the client-side twin
@@ -236,15 +245,15 @@ controller disagree, the controller is not the only bug: one of them is stale.
 
 ### 11.2 Hook → route mapping
 
-| Hook family (examples) | Endpoint | Method | Mirrors |
-|---|---|---|---|
-| `usePatients` / `usePatient(id)` | `/patients`, `/patients/:id` | GET | §3, §6 |
-| `useCreatePatient` / `useUpdatePatient` / `useDeletePatient` | `/patients`, `/patients/:id` | POST / PATCH / DELETE | §4, §5 |
-| `useAppointments` / `useAppointment(id)` | `/appointments`, `/appointments/:id` | GET | §3 |
-| `useStartConsultation` / `useCancelAppointment` | `/appointments/:id/start-consultation`, `/appointments/:id/cancel` | POST / PATCH | §4 RPC |
-| `useInvoices` / `useInvoice(id)` / `useCreateInvoice` | `/invoices`, `/invoices/:id` | GET / POST | §3, §5 |
-| `useInsuranceClaims` / `useTransitionInsuranceClaim` | `/insurance-claims`, `/insurance-claims/:id/transition` | GET / POST | §3, §4 |
-| `useClinicWhatsappCampaigns` / `useCancelClinicWhatsappCampaign` | `/whatsapp/operations/campaigns`, `/whatsapp/operations/campaigns/:id/cancel` | GET / POST | whatsapp namespace |
+| Hook family (examples)                                           | Endpoint                                                                      | Method                | Mirrors            |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------- | ------------------ |
+| `usePatients` / `usePatient(id)`                                 | `/patients`, `/patients/:id`                                                  | GET                   | §3, §6             |
+| `useCreatePatient` / `useUpdatePatient` / `useDeletePatient`     | `/patients`, `/patients/:id`                                                  | POST / PATCH / DELETE | §4, §5             |
+| `useAppointments` / `useAppointment(id)`                         | `/appointments`, `/appointments/:id`                                          | GET                   | §3                 |
+| `useStartConsultation` / `useCancelAppointment`                  | `/appointments/:id/start-consultation`, `/appointments/:id/cancel`            | POST / PATCH          | §4 RPC             |
+| `useInvoices` / `useInvoice(id)` / `useCreateInvoice`            | `/invoices`, `/invoices/:id`                                                  | GET / POST            | §3, §5             |
+| `useInsuranceClaims` / `useTransitionInsuranceClaim`             | `/insurance-claims`, `/insurance-claims/:id/transition`                       | GET / POST            | §3, §4             |
+| `useClinicWhatsappCampaigns` / `useCancelClinicWhatsappCampaign` | `/whatsapp/operations/campaigns`, `/whatsapp/operations/campaigns/:id/cancel` | GET / POST            | whatsapp namespace |
 
 Rules:
 
@@ -252,10 +261,10 @@ Rules:
    through `useAPIMutation(endpoint, method)` with `POST | PUT | PATCH | DELETE`. The
    hook's method string must equal the controller decorator — a mismatch is a 404/405 at
    runtime.
-2. **Status expectations mirror §5.** True creates return 201; action POSTs return 200.
-   Client code must not assume one status for all POSTs. When a server action POST is
-   missing `@HttpCode(200)` (the §5 audit class), the client observes 201 — fix the
-   server, never special-case the client.
+2. **Status expectations mirror §5.** True creates return 201; new action POSTs
+   return 200; the twelve documented existing auth POSTs retain 201. Client code
+   must not assume one status for all POSTs. For a documented-200 action missing
+   `@HttpCode(200)`, correct the server contract; do not special-case the client.
 3. **Sub-resource RPC mirrors §4.** Action routes hang off the resource
    (`/appointments/:id/start-consultation`); the hook name is the action, the path is
    resource-first. Never add a hook that calls a verb URL (`/delete-staff-notification`)
@@ -276,7 +285,7 @@ Rules:
 ### 11.4 Query keys and invalidation (`queryKeys`)
 
 - Cache identity lives in the `queryKeys` factory (`packages/data-access/src/lib/
-  query-keys-clinician.ts`; `query-keys-app.ts` keys the app-session cache). Keys are
+query-keys-clinician.ts`; `query-keys-app.ts` keys the app-session cache). Keys are
   **arrays, not URLs** — they encode response identity: resource + variant + params
   (`['patients', 'list', { search }]`). The URL may change without cache invalidation; a
   key change always invalidates.

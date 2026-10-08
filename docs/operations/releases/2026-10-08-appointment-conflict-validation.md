@@ -56,8 +56,8 @@ consumer resolved them. No test assertion or parser fallback was disabled.
 
 The database tests wrote only into the newly owned disposable PostgreSQL 16
 container `docita-codex-overlap-20261008` on localhost port 5547. No production
-credentials or PHI were used. The owned fixture is retained for the next approved auth compatibility checks;
-it will be stopped after those checks.
+credentials or PHI were used. The owned fixture was retained for the subsequent auth compatibility checks,
+then stopped and removed after those checks.
 No UI markup changed, so this batch does not refresh the clinician accessibility
 matrix or claim the earlier authenticated clinician audit gaps are closed.
 

@@ -78,7 +78,7 @@ export class AuthSessionController {
   @Throttle({ short: { ttl: 60000, limit: 10 } })
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
-  @ApiResponse({ status: 200, description: 'Tokens rotated successfully' })
+  @ApiResponse({ status: 201, description: 'Tokens rotated successfully' })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
   @UsePipes(new ZodValidationPipe(RefreshTokenSchema))
   @ZodSerializerDto(TokenIssueResponseDto)
@@ -99,7 +99,7 @@ export class AuthSessionController {
   @Throttle({ short: { ttl: 60000, limit: 20 } })
   @Post('logout')
   @ApiOperation({ summary: 'Logout and revoke refresh token' })
-  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  @ApiResponse({ status: 201, description: 'Logged out successfully' })
   @UsePipes(new ZodValidationPipe(LogoutSchema))
   @ZodSerializerDto(LogoutResponseDto)
   async logoutUser(

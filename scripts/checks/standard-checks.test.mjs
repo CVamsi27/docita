@@ -951,9 +951,7 @@ test("workflow script refs check fails on unparseable and jobless workflow files
     ".github/workflows/ci.yml":
       "name: ci\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - run: pnpm check:real\n",
   };
-  expectPass(
-    runCheck(makeGitFixture(valid), "check-workflow-script-refs.mjs"),
-  );
+  expectPass(runCheck(makeGitFixture(valid), "check-workflow-script-refs.mjs"));
 });
 
 test("suppression ledger check fails when ledger counts drift from allowlist files", () => {
@@ -1022,7 +1020,9 @@ test("workflow script refs check fails on parseable but structurally invalid wor
   // Parses fine but the job has neither steps nor uses.
   expectFail(
     runCheck(
-      workflow("name: ci\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n"),
+      workflow(
+        "name: ci\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n",
+      ),
       "check-workflow-script-refs.mjs",
     ),
   );
@@ -1169,7 +1169,10 @@ test("suppression ledger check scopes section 5 row matching to the section 5 ta
         fixture(
           doc(
             section1,
-            ["| `allowlists/demo.json` | 2 | misplaced outside section 5 |", ""],
+            [
+              "| `allowlists/demo.json` | 2 | misplaced outside section 5 |",
+              "",
+            ],
             [
               "## 5. `scripts/checks/allowlists/` — 1 files, 2 entries",
               "",
@@ -1972,8 +1975,8 @@ export class GoodController {
     ),
   );
 
-  // Allowlisted legacy violations (audit 2026-08-08) do not fail the gate.
-  expectPass(
+  // Formerly allowlisted auth routes now fail on mismatched success metadata.
+  expectFail(
     runCheck(
       makeGitFixture({
         "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-auth.controller.ts": `import { Controller, Post, ApiResponse } from '@nestjs/common';
@@ -1982,6 +1985,26 @@ export class GoodController {
 export class PatientPortalAuthController {
   @Post('request-otp')
   @ApiResponse({ status: 200, description: 'OTP sent' })
+  requestOtp() {
+    return {};
+  }
+}
+`,
+      }),
+      "check-api-conformance.mjs",
+    ),
+  );
+
+  // The preserved auth HTTP 201 contract passes with accurate metadata.
+  expectPass(
+    runCheck(
+      makeGitFixture({
+        "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-auth.controller.ts": `import { Controller, Post, ApiResponse } from '@nestjs/common';
+
+@Controller('patient-portal/auth')
+export class PatientPortalAuthController {
+  @Post('request-otp')
+  @ApiResponse({ status: 201, description: 'OTP sent' })
   requestOtp() {
     return {};
   }

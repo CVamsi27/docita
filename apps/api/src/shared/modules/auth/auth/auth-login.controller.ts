@@ -43,7 +43,7 @@ export class AuthLoginController {
   @Post('login')
   @ApiOperation({ summary: 'User login' })
   @ApiResponse({
-    status: 200,
+    status: 201,
     description: 'Successfully logged in or MFA challenge issued',
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
@@ -76,7 +76,7 @@ export class AuthLoginController {
   @Throttle({ short: { ttl: 60000, limit: 5 } })
   @Post('mfa/verify')
   @ApiOperation({ summary: 'Complete MFA step after password login' })
-  @ApiResponse({ status: 200, description: 'MFA verified, tokens issued' })
+  @ApiResponse({ status: 201, description: 'MFA verified, tokens issued' })
   @ZodSerializerDto(TokenIssueResponseDto)
   async verifyMfa(
     @Body() dto: MfaVerifyDto,

@@ -48,6 +48,32 @@ Base URL: `http://localhost:3001/api` (Development)
 
 ## Authentication
 
+### Existing auth success statuses
+
+These existing POST routes return **HTTP 201** on success. Swagger metadata now
+matches that established wire behavior (compatibility decision, 2026-10-08).
+Paths below include the global prefix and URI version. Response bodies, cookies,
+auth/CSRF checks and failure statuses are unchanged. New action POSTs follow the
+HTTP 200 policy in [API design §5](API_DESIGN_STANDARD.md#5-status-code-rules).
+
+| POST route                                | Success |
+| ----------------------------------------- | ------- |
+| `/api/v1/auth/login`                      | 201     |
+| `/api/v1/auth/mfa/verify`                 | 201     |
+| `/api/v1/auth/forgot-password`            | 201     |
+| `/api/v1/auth/reset-password`             | 201     |
+| `/api/v1/auth/change-password`            | 201     |
+| `/api/v1/auth/check-email`                | 201     |
+| `/api/v1/auth/refresh`                    | 201     |
+| `/api/v1/auth/logout`                     | 201     |
+| `/api/v1/auth/verify-email`               | 201     |
+| `/api/v1/auth/resend-verification`        | 201     |
+| `/api/v1/patient-portal/auth/request-otp` | 201     |
+| `/api/v1/patient-portal/auth/verify-otp`  | 201     |
+
+`GET /api/v1/auth/validate` remains HTTP 200. Register remains a create returning 201. The [acceptance record](../operations/releases/2026-10-08-auth-status-validation.md)
+records the exact local verification and remaining release boundaries.
+
 ### Login
 
 ```http
