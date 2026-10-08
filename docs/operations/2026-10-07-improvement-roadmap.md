@@ -1,9 +1,10 @@
 # Docita stabilization and product improvement roadmap
 
-Date: 7 October 2026. Status: **approved 8 October 2026; Phase 1 in progress**.
+Date: 7 October 2026. Status: **approved 8 October 2026; Phase 1 local corrections verified; release gate blocked**.
 
 The user approved this roadmap after the preservation commit. The first batch
 follows the [security and validation implementation plan](2026-10-08-stabilization-implementation-plan.md).
+Current results are in the [8 October validation record](releases/2026-10-08-stabilization-validation.md): auth startup, landing hydration, enforceable internal audits, dashboard contracts/search/pagination and dependency patches are corrected. Three residual dependency advisories and production evidence still block a clean release. Phases 2–5 remain planned; they are not delivered by this batch.
 
 This roadmap responds to the request to commit all existing changes, fix issues,
 and improve UI/UX and features, with planning first. It orders the work in the
@@ -58,7 +59,7 @@ CSS and images. `apps/landing/src/lib/security-headers.ts` always includes
 development handling to the existing build environment; retain this directive
 and HTTPS protection in production. Cover both environments with header tests.
 
-The [current validation record](releases/2026-10-07-local-preservation-validation.md)
+The [historical preservation record](releases/2026-10-07-local-preservation-validation.md)
 also records an unsharded API E2E heap abort after 38 passing suites at a 4 GB
 heap. Compare the pinned runtime and CI's four-shard topology before choosing a
 runner-memory change. Unit, type, full-build and Cloudflare-build gates pass;
@@ -69,11 +70,11 @@ October release records are context, not evidence for today's tree.
 
 ## Approaches and recommendation
 
-| Approach | Benefit | Cost / limitation |
-| --- | --- | --- |
-| **Stabilize, then improve focused workflows (recommended)** | Preserves existing work; gives each correction or enhancement a reproducible acceptance boundary. | New feature delivery follows the quality and clinical workflow gates. |
-| UI/UX-first sweep | Visible consistency improvements across routes arrive earlier. | Dependency, data-integrity and recovery defects remain while the surface grows. |
-| Broad feature expansion | More product scope lands together. | Review and rollback become harder; unresolved policy/provider decisions can create incorrect behavior. |
+| Approach                                                    | Benefit                                                                                           | Cost / limitation                                                                                      |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Stabilize, then improve focused workflows (recommended)** | Preserves existing work; gives each correction or enhancement a reproducible acceptance boundary. | New feature delivery follows the quality and clinical workflow gates.                                  |
+| UI/UX-first sweep                                           | Visible consistency improvements across routes arrive earlier.                                    | Dependency, data-integrity and recovery defects remain while the surface grows.                        |
+| Broad feature expansion                                     | More product scope lands together.                                                                | Review and rollback become harder; unresolved policy/provider decisions can create incorrect behavior. |
 
 Use the first approach. Commit the already-authorized existing work after local
 validation and secret/artifact review. Record failed or blocked checks explicitly;
@@ -221,12 +222,12 @@ their canonical inputs; contact/provider failures are actionable and controlled.
 
 Complete existing unfinished product scope before inventing new modules:
 
-| Slice | Dependency | Acceptance |
-| --- | --- | --- |
-| Partner signup/profile/lead portal | Existing [partner plan](../REFERRAL_PARTNER_PROGRAM_PLAN.md), approved terms and OTP capability | Signup → verification → consent/profile → lead submission → internal progression E2E, including duplicate and unauthorized cases. |
-| Lead calendar/mobile handoff | Provider credentials, recipient consent, clinic timezone | Stable event/message identity, retry visibility, reschedule/cancellation tests and real provider smoke. |
-| Payout and clinic discount controls | Finance-approved policy, KYC/bank verification | Refund/reversal/hold ledger reconciliation; UI and checkout show the same policy snapshot. |
-| Small-domain gaps | Reproducible tenant/workflow audit for imports, consent, specialty, support | A scoped specification and regression per confirmed gap; no generic replacement engine. |
+| Slice                               | Dependency                                                                                      | Acceptance                                                                                                                        |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Partner signup/profile/lead portal  | Existing [partner plan](../REFERRAL_PARTNER_PROGRAM_PLAN.md), approved terms and OTP capability | Signup → verification → consent/profile → lead submission → internal progression E2E, including duplicate and unauthorized cases. |
+| Lead calendar/mobile handoff        | Provider credentials, recipient consent, clinic timezone                                        | Stable event/message identity, retry visibility, reschedule/cancellation tests and real provider smoke.                           |
+| Payout and clinic discount controls | Finance-approved policy, KYC/bank verification                                                  | Refund/reversal/hold ledger reconciliation; UI and checkout show the same policy snapshot.                                        |
+| Small-domain gaps                   | Reproducible tenant/workflow audit for imports, consent, specialty, support                     | A scoped specification and regression per confirmed gap; no generic replacement engine.                                           |
 
 Each slice gets a reviewed specification, file-level implementation plan, schemas,
 API/client/UI changes, focused tests and operational documentation before coding.
