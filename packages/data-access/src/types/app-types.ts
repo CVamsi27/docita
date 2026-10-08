@@ -8,4 +8,3 @@ export interface AppConstants {
   teethQuadrants: Record<string, number[]>;
   toothConditions: Array<{ value: string; label: string; color: string }>;
 }
-

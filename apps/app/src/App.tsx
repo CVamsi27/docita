@@ -48,7 +48,7 @@ export default function App() {
         {/* ── Setup Routes (auth required, no clinic) ── */}
         <Route element={<SetupLayout />}>
           <Route path="/choose-path" element={<SuspenseWrapper><authPages.ChoosePathPage /></SuspenseWrapper>} />
-          
+
           <Route path="/join-clinic" element={<SuspenseWrapper><authPages.JoinClinicPage /></SuspenseWrapper>} />
           <Route path="/join-request-status" element={<SuspenseWrapper><authPages.JoinRequestStatusPage /></SuspenseWrapper>} />
           <Route path="/onboarding" element={<SuspenseWrapper><authPages.OnboardingPage /></SuspenseWrapper>} />

@@ -52,12 +52,4 @@ export enum ApplicationEvents {
    * does not depend on a webhook being configured.
    */
   POOL_SATURATION_SUSTAINED = 'ops.pool-saturation.sustained',
-  /**
-   * Reserved for a future staleness watcher. Deliberately not emitted yet:
-   * `@TrackHeartbeat` does not record each job's cadence, so judging staleness
-   * needs an owner-maintained name→interval table rather than a guessed
-   * threshold. Tracked as backlog item T-F1-F6; until that table exists,
-   * `GET monitoring/background-jobs` reports `ageMs` for an operator to judge.
-   */
-  SCHEDULER_STALE = 'ops.scheduler.stale',
 }

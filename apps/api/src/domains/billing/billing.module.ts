@@ -40,10 +40,7 @@ import {
     WebhooksController,
     PricingController,
   ],
-  providers: [
-    ...BILLING_SHARED_PROVIDERS,
-    InvoiceEventsListener,
-  ],
+  providers: [...BILLING_SHARED_PROVIDERS, InvoiceEventsListener],
   exports: BILLING_SHARED_EXPORTS,
 })
 export class BillingModule {}
