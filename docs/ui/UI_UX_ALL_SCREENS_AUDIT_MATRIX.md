@@ -21,6 +21,8 @@ Every route below is covered by the shared UI system pass and the relevant app a
 - `apps/internal`: all discovered internal routes were smoked at 1440px and 390px. Result: no horizontal overflow. Role-gated clinic routes correctly rendered the internal-access message without authenticated clinic-admin state. After the smoke pass, the internal theme default was changed from dark to light and core admin routes were rechecked with screenshots under `/tmp/docita-internal-*-light.png`.
 - `apps/app`: **390px Playwright** — `pnpm --filter @docita/app exec playwright test mobile` runs `mobile-forms`, `mobile-protected-routes`, `mobile-portal-routes`, and `mobile-auth-setup` (see `e2e/mobile-route-matrix.ts`). Protected TRACK/SERVICES lists, settings, desk, import, analytics, and dynamic patient/consultation/invoice detail routes are in `mobile-protected-routes.spec.ts` when API + `DATABASE_URL` are available. Portal authenticated routes use OTP fixture insertion (`apps/api/scripts/insert-patient-portal-e2e-otp.ts`). Auth/setup: `/login` and `/forgot-password` in CI; `/reset-password`, `/onboarding`, `/choose-path` are manual or local-only (`skipInCi`). `pnpm audit:app` covers desktop visual/a11y plus a mobile-width axe subset aligned with the protected matrix.
 
+The [10 October Today slice](../operations/releases/2026-10-10-today-ux-validation.md) has 12 enforced authenticated browser cases for primary schedule failure/retry and the scoped AI preview at 360px/1440px in light/dark themes. It covers a synthetic ESSENTIAL clinic with an empty workspace; busy clinical lifecycle and other role/tier combinations remain unverified. The full clinician audit still has the four recorded failures and harness correction in the [separate plan](../operations/2026-10-10-clinician-a11y-plan.md). Historical statuses below are not a fresh whole-app pass.
+
 ## `apps/app` Routes
 
 | Route                                   | Surface        | QA status                                                                                       |
@@ -69,7 +71,7 @@ Every route below is covered by the shared UI system pass and the relevant app a
 | `/specialty`                            | protected app  | Conditional specialty redirect                                                                  |
 | `/specialty/dental-charts`              | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/templates`                            | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
-| `/today`                                | protected app  | Nav smoke + mobile Playwright overflow (390px)                                                  |
+| `/today`                                | protected app  | [10 October acceptance](../operations/releases/2026-10-10-today-ux-validation.md): real error/retry + contextual AI, 360px/1440px light/dark                                                  |
 | `/upgrade`                              | protected app  | Redirects to `/settings?tab=subscription`; treat billing UX via Settings subscription tab       |
 | `/vaccines`                             | protected app  | Nav smoke + app audit; auth-gated locally                                                       |
 | `/whatsapp`                             | protected app  | Operational hub: conversations, campaigns, templates, delivery; mobile route matrix + app audit |

@@ -8,9 +8,9 @@ contracts/search/paging. The [current validation record](releases/2026-10-08-sta
 records the verified local corrections and three remaining dependency advisories.
 The [preservation snapshot](releases/2026-10-07-local-preservation-validation.md)
 is historical; its failures are not today's gate results. Broad product phases and
-production/provider/policy evidence below remain open.
+production/provider/policy evidence below remain open. The [Today UX acceptance record](releases/2026-10-10-today-ux-validation.md) verifies schedule error/retry and an accessible contextual AI preview. Full clinician audit findings are being corrected under the [10 October plan](2026-10-10-clinician-a11y-plan.md).
 
-Updated: **8 October 2026**. Scope: reviewed Docita source, the approved roadmap,
+Updated: **10 October 2026**. Scope: reviewed Docita source, the approved roadmap,
 existing feature plans and historical operational-metrics release evidence. Keep
 this as the entry point for remaining work; detailed implementation belongs in
 linked domain plans and source.
@@ -191,6 +191,11 @@ These are **not** closed with their parent. Each needs its own owner and evidenc
 - **W02-F2 — IPD movement history.** Transfers and discharges record their trail as prose appended to `Admission.notes`. **Next action:** decide whether a structured movement history (who moved a patient, from which bed to which bed, when, why) is required for clinical or billing audit, and if so define the table, retention and backfill. **Done when:** the decision is recorded and either a schema + migration + tests exist, or the prose record is explicitly accepted as sufficient with an owner.
 - **W01-F1 — Appointment status machine.** `AppointmentSchedulingRulesService.canStatusTransition` (`COMPLETED: []`, `CANCELLED: []`) is implemented and unit-tested but no write path calls it; ADR 0013 §C2.1 defers the write lock pending a product decision, with a pinned oracle row and an e2e case that must flip in the same commit. **Done when:** the product decision is recorded and the policy, the oracle row and the e2e baseline flip together.
 - **W01-F2 — Appointment queue retry semantics.** A repeated `POST /queue/complete/:id` on an already completed token is an idempotent no-op, but a repeated `PATCH /appointments/:id` carrying a status answers 409 rather than reporting success. **Next action:** decide the client-facing contract for retried workflow writes (idempotent success vs conflict) and document it for the app. **Done when:** the decision is recorded in `docs/architecture/API_DOCUMENTATION.md` and the corresponding tests pin the chosen behaviour.
+
+## Clinician UX follow-ups
+
+- **UI-TODAY — Schedule recovery and contextual AI preview (closed locally 2026-10-10).** Primary appointment failures now reach the existing error/session-recovery state; retry refetches the real endpoint. The preview has an accessible localized name, context/disclaimer and Escape/focus return; global entry clears stale context. Shared empty-state actions pass dark-mode contrast. [Acceptance](releases/2026-10-10-today-ux-validation.md): ten regressions, 12 authenticated browser cases in four viewport/theme combinations. Full conversational AI, other roles/tiers and busy consultation lifecycle remain open.
+- **UI-AUDIT — Clinician audit enforcement and four collected failures (in progress).** The old harness records axe findings but does not fail on serious/critical violations, and overwrites viewport reports. Patient sort buttons carry invalid ARIA, inventory filter triggers and subscription progress bars lack names, and Settings keyboard scrolling is unreachable. [Plan](2026-10-10-clinician-a11y-plan.md). Close only with enforced scanner regressions and actual authenticated route evidence.
 
 ## Evidence index
 

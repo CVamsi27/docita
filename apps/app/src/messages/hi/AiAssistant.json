@@ -70,5 +70,11 @@
     "frequencyLabel": "Frequency:",
     "durationLabel": "Duration:",
     "noteLabel": "Note: {note}"
+  },
+  "overlay": {
+    "title": "AI से पूछें",
+    "preview": "AI सहायक जल्द उपलब्ध होगा।",
+    "context": "संदर्भ",
+    "disclaimer": "AI के सुझाव चिकित्सीय सलाह नहीं हैं।"
   }
 }

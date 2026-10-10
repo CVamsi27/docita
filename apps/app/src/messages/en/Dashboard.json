@@ -15,7 +15,8 @@
     "startingButton": "Starting…",
     "startNextAria": "Start next consultation: {name}",
     "nextUpLabel": "Next up",
-    "pageDescription": "Your clinic overview for today"
+    "pageDescription": "Your clinic overview for today",
+    "askAiScope": "on today's workspace"
   },
   "todayAdvisorRail": {
     "joinRequestsCategory": "Join requests",

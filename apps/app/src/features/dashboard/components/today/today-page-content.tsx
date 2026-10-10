@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   TodayBottomBarSection,
   TodayPageHeader,
@@ -24,6 +25,7 @@ import { useStartNextPatient } from "./use-start-next-patient";
 import { deriveTodayRailVisibility } from "./today-page-content-helpers";
 
 export function TodayPageContent() {
+  const { t } = useTranslation("Dashboard");
   const { clinic } = useClinic();
   const referralShare = useClinicReferralShare();
   const { canStartConsultation } = usePermissions();
@@ -57,8 +59,9 @@ export function TodayPageContent() {
     [todayAppointments.length, waitingCount],
   );
 
-  const { isMutationPending, handleStartNextPatient } =
-    useStartNextPatient({ nextAppointmentId: nextPatients[0]?.id });
+  const { isMutationPending, handleStartNextPatient } = useStartNextPatient({
+    nextAppointmentId: nextPatients[0]?.id,
+  });
 
   const header = (
     <TodayPageHeader
@@ -68,7 +71,7 @@ export function TodayPageContent() {
       onRefresh={refetchAll}
       canStartConsultation={canStartConsultation}
       onOpenAskAi={() =>
-        openOverlay({ id: "today", label: "on today's workspace" })
+        openOverlay({ id: "today", label: t("today.askAiScope") })
       }
     />
   );
@@ -80,11 +83,7 @@ export function TodayPageContent() {
     return <TodayErrorState header={header} onRetry={refetchAll} />;
   }
   if (isNewClinicDashboard(stats)) {
-    return (
-      <TodayNewClinicEmptyState
-        header={header}
-      />
-    );
+    return <TodayNewClinicEmptyState header={header} />;
   }
 
   const railVisibility = deriveTodayRailVisibility({

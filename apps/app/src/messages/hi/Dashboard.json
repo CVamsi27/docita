@@ -15,7 +15,8 @@
     "startingButton": "शुरू हो रहा है…",
     "startNextAria": "अगला परामर्श शुरू करें: {name}",
     "nextUpLabel": "अगला",
-    "pageDescription": "आज के लिए आपकी क्लिनिक झलक"
+    "pageDescription": "आज के लिए आपकी क्लिनिक झलक",
+    "askAiScope": "आज के कार्यक्षेत्र पर"
   },
   "todayAdvisorRail": {
     "joinRequestsCategory": "शामिल होने के अनुरोध",

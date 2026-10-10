@@ -34,7 +34,8 @@ function readAccessTokenFromLoginResponse(
   if (direct.success) return direct.data.access_token;
 
   const loose = e2eLoginTokenFallbackSchema.safeParse(raw);
-  if (loose.success) return (
+  if (loose.success)
+    return (
       loose.data.access_token ??
       loose.data.accessToken ??
       loose.data.data?.access_token ??
@@ -65,20 +66,16 @@ export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
  * the page runs on `localhost:3000` leaves the session cookie unsent, and every
  * protected route bounces to `/login`.
  */
-const APP_ORIGIN = new URL(
-  process.env["APP_URL"] || "http://localhost:3000",
-).origin;
+const APP_ORIGIN = new URL(process.env["APP_URL"] || "http://localhost:3000")
+  .origin;
 export const TEST_PASSWORD = "Test@123456";
 
 /**
- * The dev/test API is configured with Cloudflare's always-pass Turnstile test
- * secret, so siteverify accepts any token. Sending one keeps these helpers
- * working against an API that has Turnstile *enforced* — which is what a local
- * dev API with a secret key does. Against an API with enforcement off the field
- * is ignored, and against a real Cloudflare key a dummy token is correctly
- * rejected, so this never weakens the production check.
+ * Cloudflare's public test secret accepts the documented dummy token. Test
+ * fixtures must use that secret; production secrets reject this dummy token.
+ * https://developers.cloudflare.com/turnstile/troubleshooting/testing/
  */
-const E2E_TURNSTILE_TOKEN = "e2e-turnstile-test-token";
+const E2E_TURNSTILE_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
 /** Valid 15-char GSTIN for paid INR onboarding in E2E (not a real taxpayer ID). */
 const E2E_PAID_PLAN_GSTIN = "29AABCU9603R1ZX";
 
@@ -103,7 +100,8 @@ async function createTestPaymentDetails(
   razorpaySignature: string;
 }> {
   const keySecret = process.env["RAZORPAY_KEY_SECRET"];
-  if (!keySecret) throw new Error(
+  if (!keySecret)
+    throw new Error(
       "RAZORPAY_KEY_SECRET (test secret) is required to complete paid-plan onboarding in E2E",
     );
 
@@ -343,7 +341,6 @@ async function postWithRetry(
   return lastRes;
 }
 
-
 export async function fetchPatientByApi(
   request: APIRequestContext,
   id: string,
@@ -376,7 +373,7 @@ async function setupTestUserImpl(
   const tier = options.tier ?? "ESSENTIAL";
   const planMode = options.planMode ?? "FULL";
   const isUnpaidEssentialTrial = tier === "ESSENTIAL";
-// jscpd:ignore-end
+  // jscpd:ignore-end
   // Front Desk is mode-only (canonical tier + PlanMode FRONT_DESK) per
   // AGENTS.md §15.8 — the legacy FRONT_DESK* tier enum values are removed.
   const isFrontDesk = planMode === "FRONT_DESK";
@@ -476,7 +473,8 @@ async function setupTestUserImpl(
     uploadSessionCreateContractResponseSchema.safeParse(
       await signatureSessionRes.json(),
     );
-  if (!signatureSessionParsed.success) throw new Error("SLA signature session response was invalid");
+  if (!signatureSessionParsed.success)
+    throw new Error("SLA signature session response was invalid");
   const signatureSession = signatureSessionParsed.data;
   const signatureSessionId = signatureSession.id;
   const signatureUploadSecret = signatureSession.uploadSecret;
@@ -574,7 +572,8 @@ async function setupTestUserImpl(
   }
   const userFromComplete = completeData.user ?? registerData.user;
   const clinicId = userFromComplete.clinicId || completeData.clinicId;
-  if (!clinicId) throw new Error("Onboarding completion did not return a clinicId");
+  if (!clinicId)
+    throw new Error("Onboarding completion did not return a clinicId");
 
   // Guarantee the onboarding admin is email-verified. The pre-onboarding token
   // round-trip can race under load and silently skip, which then bounces the
@@ -734,7 +733,7 @@ export async function setupTestUser(
   const tier = options.tier ?? "ESSENTIAL";
   const planMode = options.planMode ?? "FULL";
   const shouldCache =
-// jscpd:ignore-end
+    // jscpd:ignore-end
     Object.keys(requestHeaders).length === 0 && clinicType === "GENERAL";
 
   if (!shouldCache) {
