@@ -272,7 +272,7 @@
       "defu": "^6.1.5",
       "diff": "^4.0.4",
       "engine.io": "^6.6.10",
-      "handlebars": "^4.7.9",
+      "handlebars": "^4.7.10",
       "hono": "^4.13.7",
       "postcss": "^8.5.18",
       "valibot": "^1.4.2",
