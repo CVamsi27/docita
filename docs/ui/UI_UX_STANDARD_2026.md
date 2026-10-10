@@ -130,7 +130,7 @@ These are added in PR F:
 
 ### 3.4 Lists and tables
 
-- Use `DataTable` from `@workspace/ui` with `stackOnMobile` for clinical lists.
+- Use `DataTable` from `@workspace/ui` with `stackOnMobile` for clinical lists. For externally controlled sorting, set the column's typed `ariaSort` from its existing sort state; `aria-sort` belongs on the column header, never on its action button.
 - Empty/loading/error via `DataState` at the page level (not inline rows).
 - Row primary action visible; secondary actions collapse into an overflow `…` menu (no more than one visible primary per row).
 
@@ -148,7 +148,7 @@ Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind b
 | Primitive                  | Use when                                                                                          |
 | -------------------------- | ------------------------------------------------------------------------------------------------- |
 | `SegmentedControl`         | Queue filters, mobile section tabs, role switchers (pill segmented control)                       |
-| `StepProgress`             | Consultation SOAP steps, wizard section nav on `< md`                                             |
+| `StepProgress`             | Consultation SOAP steps, wizard section nav on `< md`; ordered list items with shared Button actions and `aria-current="step"` |
 | `ListRow` + `ListRowGroup` | `DataTable` `stackOnMobile` card fallback; queue/inbox rows (token · name · meta · time · status) |
 | `BottomActionBar`          | Primary + secondary actions docked at bottom on `< md` (Next patient, save, quick replies)        |
 | `NowServingBoard`          | Today/consultation queue hero (uses `--brand-ink` / `--brand-cyan`; do not duplicate)             |
@@ -176,6 +176,8 @@ Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind b
 - `packages/ui/src/design-tokens.ts` is mirrored from CSS variables (TypeScript object reads from `var(--…)` or is a thin re-export of static values that match CSS). Drift is a release blocker.
 
 ## 7. Test contract (per page)
+
+The clinician accessibility audit must fail on serious/critical axe findings and preserve each project/viewport case separately. Protected audits must render the requested route, a visible main landmark and a level-one heading; consultation detail must show the fixture patient heading rather than an error shell. Nested workspace scroll regions use a named section inside that main and remain keyboard reachable. Navigation or scanner failures are failures. Public-only skips are explicit and do not establish protected-route evidence.
 
 Every page in `apps/app` must have a Playwright spec under `apps/app/e2e/` that asserts at minimum:
 

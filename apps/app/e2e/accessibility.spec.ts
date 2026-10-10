@@ -10,6 +10,7 @@ import {
   setupTestUser,
   type UserData,
 } from "./utils/patient-helpers";
+import { assertAccessibleViolations } from "./utils/accessibility-audit";
 import { VIEWPORT_PRESETS } from "./utils/viewport-presets";
 
 const RESPONSIVE_A11Y_ROUTES = [
@@ -71,6 +72,7 @@ async function runAccessibilityAudit(
   page: import("@playwright/test").Page,
   targetPath: string,
   pageName: string,
+  expectedHeading?: string,
 ) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
@@ -91,25 +93,38 @@ async function runAccessibilityAudit(
     }
   }
 
-  // Wait for the app shell's <main> landmark before injecting axe. Lazy-loaded
-  // routes (e.g. /book/...) render a Suspense fallback that has no landmarks,
-  // and auditing that shell produced false-positive landmark-one-main /
-  // page-has-heading-one violations on <html>. Every audited surface renders
-  // <main> in all of its states, so this resolves as soon as the route
-  // hydrates. If a page genuinely lacks a <main>, the wait times out and we
-  // still proceed so axe reports the real missing-landmark violation instead
-  // of failing the test with a locator timeout.
-  await page
-    .locator("main")
-    .first()
-    .waitFor({ state: "visible", timeout: 20_000 })
-    .catch(() => undefined);
+  await expect(page.locator("main").first()).toBeVisible({ timeout: 20_000 });
+  await expect(
+    page
+      .getByRole("heading", {
+        level: 1,
+        ...(expectedHeading ? { name: expectedHeading, exact: true } : {}),
+      })
+      .first(),
+  ).toBeVisible({ timeout: 20_000 });
+
+  if (expectedHeading) {
+    const heading = page.getByRole("heading", {
+      level: 1,
+      name: expectedHeading,
+      exact: true,
+    });
+    expect(
+      await heading.evaluate((element) => element.scrollWidth <= element.clientWidth),
+      "The consultation patient heading must fit without clipping",
+    ).toBe(true);
+  }
 
   await injectAxe(page);
 
   const violations = await getViolations(page);
+  await test.info().attach("accessibility-violations", {
+    body: JSON.stringify(violations),
+    contentType: "application/json",
+  });
 
-  violationsByPage[targetPath] = {
+  const reportKey = `${test.info().project.name}:${test.info().title}:${targetPath}`;
+  violationsByPage[reportKey] = {
     pageName,
     violationCount: violations.length,
     violations,
@@ -129,7 +144,7 @@ async function runAccessibilityAudit(
     },
   };
 
-  await expect(page.locator("body")).toBeVisible();
+  assertAccessibleViolations(violations);
 }
 
 test.describe("Accessibility Audit - Main App", () => {
@@ -241,6 +256,7 @@ test.describe("Accessibility Audit - Main App", () => {
         page,
         detailPath,
         "Consultation detail (mobile)",
+        "MobileAxe Patient",
       );
     });
   });
@@ -376,7 +392,12 @@ test.describe("Accessibility Audit - Main App", () => {
       page,
     }) => {
       const detailPath = `/consultation/${appointmentId}`;
-      await runAccessibilityAudit(page, detailPath, "Consultation detail");
+      await runAccessibilityAudit(
+        page,
+        detailPath,
+        "Consultation detail",
+        "Axe Patient",
+      );
     });
   });
 
@@ -387,7 +408,10 @@ test.describe("Accessibility Audit - Main App", () => {
     }
 
     const timestamp = new Date().toISOString().split("T")[0];
-    const reportPath = path.join(reportDir, `baseline-app-${timestamp}.json`);
+    const reportPath = path.join(
+      reportDir,
+      `baseline-app-${timestamp}-${test.info().project.name}.json`,
+    );
 
     let totalViolations = 0;
     let totalCritical = 0;

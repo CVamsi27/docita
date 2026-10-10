@@ -10,7 +10,11 @@ Make the audit fail on actual serious/critical findings after collecting them. P
 
 ## Tasks and verification
 
-- [ ] Pin patient header semantics/sort actions, inventory accessible names and both usage surfaces with focused render regressions; record red assertions before corrections.
-- [ ] Repair the four findings through existing primitives/tokens and keyboard behavior. Add a real browser gate regression proving a healthy fixture passes and an unlabelled input fails the same assertion used by the audit.
-- [ ] Run the strict full `pnpm audit:app` with the owned PostgreSQL/API fixture, all configured projects; inspect every finding rather than suppressing it. Recheck Today keyboard/recovery if its shared shell changes.
-- [ ] Run relevant unit tests, typecheck, lint, standards, Knip, color/hygiene and Cloudflare build. Update the matrix, roadmap, backlog and dated acceptance record; commit through normal hooks. Clean up only owned fixture processes/container once both slices finish.
+- [x] Pin patient header semantics/sort actions, inventory accessible names and both usage surfaces with focused render regressions; record red assertions before corrections.
+- [x] Repair the four findings through existing primitives/tokens and keyboard behavior. Add a real browser gate regression proving a healthy fixture passes and an unlabelled input fails the same assertion used by the audit.
+- [x] Run the strict full `pnpm audit:app` with the owned PostgreSQL/API fixture, all configured projects; inspect every finding rather than suppressing it. Recheck Today keyboard/recovery if its shared shell changes.
+- [x] Run relevant unit tests, typecheck, lint, standards, Knip, color/hygiene and Cloudflare build. Update the matrix, roadmap, backlog and dated acceptance record; commit through normal hooks. Clean up only owned fixture processes/container once both slices finish.
+
+The named-meter regressions exposed a second shared Progress defect: the primitive used `value` only for the visual indicator and never passed it to the Radix root, so determinate meters were announced as indeterminate (`aria-valuenow` absent). Forward the existing value to the root; keep percent calculation unchanged and require both real usage surfaces to announce 50 for a 5/10 fixture.
+
+The broader corrected scan retains one moderate Help finding: FAQ questions use level four while the FAQ CardTitle is only a styled div. After the current frozen-tree runs, add a real Help-page heading regression, make the existing FAQ title level two and its questions level three inside CardTitle/CardContent, and repeat the affected browser scans. Keep existing copy, styling and support actions.

@@ -21,7 +21,7 @@ Every route below is covered by the shared UI system pass and the relevant app a
 - `apps/internal`: all discovered internal routes were smoked at 1440px and 390px. Result: no horizontal overflow. Role-gated clinic routes correctly rendered the internal-access message without authenticated clinic-admin state. After the smoke pass, the internal theme default was changed from dark to light and core admin routes were rechecked with screenshots under `/tmp/docita-internal-*-light.png`.
 - `apps/app`: **390px Playwright** — `pnpm --filter @docita/app exec playwright test mobile` runs `mobile-forms`, `mobile-protected-routes`, `mobile-portal-routes`, and `mobile-auth-setup` (see `e2e/mobile-route-matrix.ts`). Protected TRACK/SERVICES lists, settings, desk, import, analytics, and dynamic patient/consultation/invoice detail routes are in `mobile-protected-routes.spec.ts` when API + `DATABASE_URL` are available. Portal authenticated routes use OTP fixture insertion (`apps/api/scripts/insert-patient-portal-e2e-otp.ts`). Auth/setup: `/login` and `/forgot-password` in CI; `/reset-password`, `/onboarding`, `/choose-path` are manual or local-only (`skipInCi`). `pnpm audit:app` covers desktop visual/a11y plus a mobile-width axe subset aligned with the protected matrix.
 
-The [10 October Today slice](../operations/releases/2026-10-10-today-ux-validation.md) has 12 enforced authenticated browser cases for primary schedule failure/retry and the scoped AI preview at 360px/1440px in light/dark themes. It covers a synthetic ESSENTIAL clinic with an empty workspace; busy clinical lifecycle and other role/tier combinations remain unverified. The full clinician audit still has the four recorded failures and harness correction in the [separate plan](../operations/2026-10-10-clinician-a11y-plan.md). Historical statuses below are not a fresh whole-app pass.
+The [10 October Today slice](../operations/releases/2026-10-10-today-ux-validation.md) has 12 enforced authenticated browser cases for primary schedule failure/retry and the scoped AI preview at 360px/1440px in light/dark themes. It covers a synthetic ESSENTIAL clinic with an empty workspace; busy clinical lifecycle and other role/tier combinations remain unverified. The [clinician audit acceptance](../operations/releases/2026-10-10-clinician-a11y-validation.md) now records 160 enforced cases across four viewport projects with zero violations. Consultation also passes actual patient-heading and fit checks at 360px/1440px light/dark. This covers the recorded synthetic role/tier/gated states, not every matrix route or clinical lifecycle. Historical rows below remain historical unless explicitly dated.
 
 ## `apps/app` Routes
 
@@ -37,7 +37,7 @@ The [10 October Today slice](../operations/releases/2026-10-10-today-ux-validati
 | `/billing-locked`                       | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/coding-queue`                         | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/consultation`                         | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
-| `/consultation/[id]`                    | protected app  | Mobile Playwright overflow (390px) + app audit; auth-gated locally                              |
+| `/consultation/[id]`                    | protected app  | 2026-10-10: real consultation patient heading/fit and strict axe, 360px/1440px light/dark; lifecycle writes remain open |
 | `/dashboard`                            | protected app  | Browser smoke + app audit                                                                       |
 | `/daybook`                              | protected app  | Nav smoke + app audit; auth-gated locally                                                       |
 | `/desk/collect-payment`                 | protected app  | Nav smoke + app audit; auth-gated locally                                                       |
@@ -47,7 +47,7 @@ The [10 October Today slice](../operations/releases/2026-10-10-today-ux-validati
 | `/import`                               | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
 | `/import/excel`                         | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/import/ocr`                           | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
-| `/inventory`                            | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
+| `/inventory` | protected app | 2026-10-10: strict authenticated axe and named Select trigger render regression |
 | `/invoices`                             | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
 | `/invoices/new`                         | protected app  | Mobile Playwright overflow (390px) + app audit; auth-gated locally                              |
 | `/invoices/[id]`                        | protected app  | Mobile Playwright overflow (390px) when invoice fixture exists                                  |
@@ -57,13 +57,13 @@ The [10 October Today slice](../operations/releases/2026-10-10-today-ux-validati
 | `/insurance-claims/[id]`                | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/insurance-claims/[id]/edit`           | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/lab-tests`                            | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
-| `/patients`                             | protected app  | Browser smoke + mobile Playwright overflow (390px)                                              |
+| `/patients` | protected app | 2026-10-10: strict authenticated axe across audit projects; sort/header/action render regressions |
 | `/patients/[id]`                        | protected app  | Mobile Playwright overflow (390px) + app audit; auth-gated locally                              |
 | `/prescriptions`                        | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
 | `/prescriptions/[id]`                   | protected app  | Mobile Playwright overflow (390px) when prescription exists                                     |
 | `/profile`                              | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
 | `/referrals`                            | protected app  | Nav smoke + app audit; auth-gated locally                                                       |
-| `/settings`                             | protected app  | Mobile Playwright overflow (390px) + app audit; auth-gated locally                              |
+| `/settings` | protected app | 2026-10-10: strict authenticated settings/subscription axe; named determinate meters and keyboard scroll probe |
 | `/settings/compliance`                  | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/settings/compliance/consent-template` | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/settings/team/join-requests`          | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |

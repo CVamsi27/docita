@@ -45,7 +45,7 @@ test.describe("Today workspace", () => {
     ).toBeVisible();
     if (await isDashboardQueueSectionVisible(page)) {
       await expect(
-        page.getByRole("heading", { name: "Today's queue" }),
+        page.getByRole("heading", { name: "Queue", exact: true, level: 2 }),
       ).toBeVisible();
     } else {
       await expect(
