@@ -24,6 +24,9 @@ describe('DoctorsService', () => {
   let prisma: DoctorPersistencePort;
 
   const mockDoctor = {
+    educationHistory: [],
+    certifications: [],
+    additionalSpecializations: [],
     id: 'doctor-123',
     email: 'doctor@example.com',
     name: 'Dr. John Smith',

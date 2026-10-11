@@ -4,13 +4,53 @@ import {
   type DoctorPersistencePort,
 } from '@/domains/doctors/application/ports/doctor-persistence.port';
 import { Role, HospitalRole } from '@workspace/db';
-import { ACTIVE_SPECIALIZATIONS } from '@workspace/types';
+import {
+  ACTIVE_SPECIALIZATIONS,
+  type DoctorContractResponse,
+} from '@workspace/types';
+
+type OptionalDoctorResponseFields = Pick<
+  DoctorContractResponse,
+  | 'clinicId'
+  | 'specialization'
+  | 'hospitalRole'
+  | 'qualification'
+  | 'registrationNumber'
+  | 'registrationCouncil'
+  | 'registrationStateCode'
+  | 'hprId'
+  | 'licenseNumber'
+  | 'licenseExpiry'
+  | 'signatureUrl'
+  | 'signatureUploadedAt'
+  | 'verificationStatus'
+  | 'verificationSource'
+  | 'verificationRef'
+  | 'verificationReason'
+  | 'verificationCheckedAt'
+  | 'profilePhotoUrl'
+  | 'phoneNumber'
+  | 'bio'
+  | 'yearsOfExperience'
+  | 'consultationFee'
+  | 'registrationCertificateUrl'
+>;
+type NullableDoctorResponseFields = {
+  [Field in keyof OptionalDoctorResponseFields]?:
+    | OptionalDoctorResponseFields[Field]
+    | null;
+};
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
   DOCTOR_DETAIL_SELECT,
 } from '@/shared/common/select-fragments';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
+import {
+  mapDoctorEducationResponse,
+  mapDoctorCertificationResponse,
+  mapDoctorSpecializationResponse,
+} from './doctor-history-response';
 
 @Injectable()
 export class DoctorsQueryService {
@@ -20,21 +60,9 @@ export class DoctorsQueryService {
     private readonly storedFileUrlResolver: StoredFileUrlResolverService,
   ) {}
 
-  async resolveDoctorSignatureUrl<
-    T extends {
-      signatureUrl?: string | null;
-      registrationCertificateUrl?: string | null;
-    },
-  >(
+  async resolveDoctorSignatureUrl<T extends NullableDoctorResponseFields>(
     doctor: T,
-  ): Promise<
-    T & {
-      signatureUrl?: string | null;
-      signatureStoredUrl?: string | null;
-      registrationCertificateUrl?: string | null;
-      registrationCertificateStoredUrl?: string | null;
-    }
-  > {
+  ) {
     const [signature, certificate] = await Promise.all([
       this.storedFileUrlResolver.resolveWithStoredUrl(
         doctor.signatureUrl ?? null,
@@ -46,6 +74,27 @@ export class DoctorsQueryService {
 
     return {
       ...doctor,
+      clinicId: doctor.clinicId ?? undefined,
+      specialization: doctor.specialization ?? undefined,
+      hospitalRole: doctor.hospitalRole ?? undefined,
+      qualification: doctor.qualification ?? undefined,
+      registrationNumber: doctor.registrationNumber ?? undefined,
+      registrationCouncil: doctor.registrationCouncil ?? undefined,
+      registrationStateCode: doctor.registrationStateCode ?? undefined,
+      hprId: doctor.hprId ?? undefined,
+      licenseNumber: doctor.licenseNumber ?? undefined,
+      licenseExpiry: doctor.licenseExpiry ?? undefined,
+      signatureUploadedAt: doctor.signatureUploadedAt ?? undefined,
+      verificationStatus: doctor.verificationStatus ?? undefined,
+      verificationSource: doctor.verificationSource ?? undefined,
+      verificationRef: doctor.verificationRef ?? undefined,
+      verificationReason: doctor.verificationReason ?? undefined,
+      verificationCheckedAt: doctor.verificationCheckedAt ?? undefined,
+      profilePhotoUrl: doctor.profilePhotoUrl ?? undefined,
+      phoneNumber: doctor.phoneNumber ?? undefined,
+      bio: doctor.bio ?? undefined,
+      yearsOfExperience: doctor.yearsOfExperience ?? undefined,
+      consultationFee: doctor.consultationFee ?? undefined,
       signatureUrl: signature.url ?? undefined,
       signatureStoredUrl: signature.storedUrl ?? undefined,
       registrationCertificateUrl: certificate.url ?? undefined,
@@ -58,14 +107,14 @@ export class DoctorsQueryService {
     role: string;
     email: string;
     name: string | null;
-    specialization?: string | null;
-    hospitalRole?: string | null;
+    specialization?: DoctorContractResponse['specialization'] | null;
+    hospitalRole?: DoctorContractResponse['hospitalRole'] | null;
     qualification?: string | null;
     registrationNumber?: string | null;
     registrationCouncil?: string | null;
     registrationStateCode?: string | null;
     hprId?: string | null;
-    verificationStatus?: string | null;
+    verificationStatus?: DoctorContractResponse['verificationStatus'] | null;
     verificationReason?: string | null;
     verificationCheckedAt?: Date | string | null;
     signatureUrl?: string | null;
@@ -189,27 +238,37 @@ export class DoctorsQueryService {
       }
     }
 
-    return this.resolveDoctorSignatureUrl(user);
+    return this.resolveDoctorSignatureUrl({
+      ...user,
+      educationHistory: user.educationHistory.map(mapDoctorEducationResponse),
+      certifications: user.certifications.map(mapDoctorCertificationResponse),
+      additionalSpecializations: user.additionalSpecializations.map(
+        mapDoctorSpecializationResponse,
+      ),
+    });
   }
 
   async getEducationHistory(doctorId: string) {
-    return this.persistence.doctorEducation.findMany({
+    const entries = await this.persistence.doctorEducation.findMany({
       where: { doctorId },
       orderBy: { order: 'asc' },
     });
+    return entries.map(mapDoctorEducationResponse);
   }
 
   async getCertifications(doctorId: string) {
-    return this.persistence.doctorCertification.findMany({
+    const entries = await this.persistence.doctorCertification.findMany({
       where: { doctorId },
       orderBy: { issueDate: 'desc' },
     });
+    return entries.map(mapDoctorCertificationResponse);
   }
 
   async getSpecializations(doctorId: string) {
-    return this.persistence.doctorSpecialization.findMany({
+    const entries = await this.persistence.doctorSpecialization.findMany({
       where: { doctorId },
     });
+    return entries.map(mapDoctorSpecializationResponse);
   }
 
   async listDoctorsForAdminReview() {

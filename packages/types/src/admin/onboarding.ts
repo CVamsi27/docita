@@ -23,9 +23,9 @@ export const onboardingSessionSchema = z.object({
   updatedAt: z.date().or(z.string()),
 });
 
+/** POST /onboarding/initialize allocates a session; progress is read separately. */
 export const onboardingInitResponseSchema = z.object({
   onboardingId: z.string(),
-  step: onboardingStepSchema,
 });
 
 /**

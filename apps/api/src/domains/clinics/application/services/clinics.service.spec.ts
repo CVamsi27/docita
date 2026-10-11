@@ -20,6 +20,7 @@ import { StoredFileUrlResolverService } from '@/domains/documents/application/se
 import { CLINIC_DATA_REPOSITORY_TOKEN } from '@/domains/clinics/core/repositories/clinic-data.repository.interface';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { Role } from '@workspace/db';
+import { clinicResponseSchema } from '@workspace/types';
 import * as bcrypt from 'bcrypt';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
@@ -272,7 +273,7 @@ describe('ClinicsService', () => {
         email: 'clinic@test.com',
       });
 
-      expect(result).toEqual(mockClinic);
+      expect(result).toEqual({ ...mockClinic, logo: undefined });
       expect(clinicFactory.create).toHaveBeenCalledWith({
         name: 'Test Clinic',
         address: '123 Test St',
@@ -311,6 +312,83 @@ describe('ClinicsService', () => {
       );
       expect(clinicDataRepository.findAll).toHaveBeenCalled();
     });
+  });
+
+  describe('clinic response logo contract', () => {
+    it.each(['detail', 'list', 'membership', 'create', 'update'] as const)(
+      'omits an absent logo from the %s response without rejecting the shared contract',
+      async (surface) => {
+        const clinic = {
+          ...mockClinic,
+          logo: null,
+          settings: {},
+          referralCode: 'TST-ABCD',
+        };
+        clinicDataRepository.create.mockResolvedValue(clinic);
+        clinicDataRepository.update.mockResolvedValue(clinic);
+        clinicDataRepository.findById.mockResolvedValue(clinic);
+        clinicDataRepository.findAll.mockResolvedValue([clinic]);
+        clinicDataRepository.findDoctorClinics.mockResolvedValue([{ clinic }]);
+
+        const result =
+          surface === 'detail'
+            ? await service.findOne(clinic.id)
+            : surface === 'list'
+              ? (await service.findAll())[0]
+              : surface === 'membership'
+                ? (await service.getUserClinics('user-123'))[0]
+                : surface === 'create'
+                  ? await service.create({
+                      name: clinic.name,
+                      email: clinic.email,
+                      phone: clinic.phone,
+                      address: clinic.address,
+                      logo: clinic.logo ?? undefined,
+                    })
+                  : await service.update(clinic.id, { name: clinic.name });
+        const response = clinicResponseSchema.parse(result);
+        expect(response.logo).toBeUndefined();
+        expect(response.name).toBe(clinic.name);
+        expect(response.referralCode).toBe(clinic.referralCode);
+      },
+    );
+
+    it.each(['detail', 'list', 'membership', 'create', 'update'] as const)(
+      'preserves a configured logo in the %s response',
+      async (surface) => {
+        const clinic = {
+          ...mockClinic,
+          logo: 'https://example.com/clinic-logo.png',
+          settings: { compactMode: true },
+          referralCode: 'TST-ABCD',
+        };
+        clinicDataRepository.create.mockResolvedValue(clinic);
+        clinicDataRepository.update.mockResolvedValue(clinic);
+        clinicDataRepository.findById.mockResolvedValue(clinic);
+        clinicDataRepository.findAll.mockResolvedValue([clinic]);
+        clinicDataRepository.findDoctorClinics.mockResolvedValue([{ clinic }]);
+
+        const result =
+          surface === 'detail'
+            ? await service.findOne(clinic.id)
+            : surface === 'list'
+              ? (await service.findAll())[0]
+              : surface === 'membership'
+                ? (await service.getUserClinics('user-123'))[0]
+                : surface === 'create'
+                  ? await service.create({
+                      name: clinic.name,
+                      email: clinic.email,
+                      phone: clinic.phone,
+                      address: clinic.address,
+                      logo: clinic.logo ?? undefined,
+                    })
+                  : await service.update(clinic.id, { name: clinic.name });
+        const response = clinicResponseSchema.parse(result);
+        expect(response.logo).toBe(clinic.logo);
+        expect(response.settings).toEqual(clinic.settings);
+      },
+    );
   });
 
   describe('findOne', () => {
