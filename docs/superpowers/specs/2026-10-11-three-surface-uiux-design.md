@@ -1,6 +1,6 @@
 # Docita: landing, clinician app, and internal UI/UX design
 
-Date: 11 October 2026. Status: reviewable design proposal; production implementation has not started. User priority: **all three surfaces**.
+Date: 11 October 2026. Status: visual direction rejected by the user; superseded by [the revised design plan](2026-10-11-three-surface-uiux-design-v2.md). Retain workflow requirements and historical verification below. Production implementation has not started. User priority: **all three surfaces**.
 
 ## Purpose and boundaries
 
