@@ -10,13 +10,23 @@ import {
 const AUDIT_PAGES = [
   { path: "/login", name: "Login", heading: "Docita Internal" },
   { path: "/dashboard", name: "Dashboard", heading: "Dashboard" },
-  {
-    path: "/system-monitoring",
-    name: "System Monitoring",
-    heading: "System Monitoring",
-  },
   { path: "/users", name: "Users", heading: "Team Members" },
+  { path: "/doctors", name: "Doctors", heading: "Doctors" },
   { path: "/admins", name: "Admins", heading: "Admins" },
+  { path: "/analytics", name: "Analytics", heading: "Analytics" },
+  { path: "/performance", name: "Performance", heading: "Operational metrics" },
+  { path: "/billing", name: "Billing", heading: "Billing Dashboard" },
+  { path: "/pricing", name: "Pricing", heading: "Pricing Management" },
+  { path: "/payment-processing", name: "Payment Processing", heading: "Payment Processing" },
+  { path: "/audits", name: "Audits", heading: "Audit Logs" },
+  { path: "/logs", name: "Logs", heading: "System Logs" },
+  { path: "/broadcasts", name: "Broadcasts", heading: "Broadcasts" },
+  { path: "/support", name: "Support", heading: "Support Hub" },
+  { path: "/feedback", name: "Feedback", heading: "Feedback Portal" },
+  { path: "/referrals", name: "Referrals", heading: "Referrals" },
+  { path: "/leads", name: "Leads", heading: "Facility Leads" },
+  { path: "/enterprise-contracts", name: "Enterprise Contracts", heading: "Enterprise Contracts" },
+  { path: "/system-monitoring", name: "System Monitoring", heading: "System Monitoring" },
 ];
 
 test.describe("Accessibility Audit - Internal Admin App", () => {

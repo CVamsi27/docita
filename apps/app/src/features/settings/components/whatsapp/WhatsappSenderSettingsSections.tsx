@@ -48,7 +48,7 @@ export function ModeSelector({
             disabled={disabled}
             onClick={() => onChange(uiToBackend(key))}
             className={[
-              "rounded-lg p-4 text-left h-auto justify-start",
+              "min-w-0 flex-col items-stretch rounded-lg p-4 text-left h-auto justify-start whitespace-normal",
               selected
                 ? "border-primary bg-primary/5 ring-1 ring-primary/20"
                 : "border-border bg-background hover:bg-muted/40",
@@ -56,11 +56,11 @@ export function ModeSelector({
             ].join(" ")}
             aria-label={t("modeAriaLabel", { mode: info.title })}
           >
-            <div className="mb-2 flex items-center gap-2">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
               {key === "DOCITA_MANAGED" ? (
-                <MessageCircle className="size-4 text-primary" />
+                <MessageCircle className="size-4 shrink-0 text-primary" />
               ) : (
-                <ShieldCheck className="size-4 text-primary" />
+                <ShieldCheck className="size-4 shrink-0 text-primary" />
               )}
               <span className="text-sm font-medium">{info.title}</span>
               {selected && (

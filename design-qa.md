@@ -1,6 +1,6 @@
 # Ledger implementation design QA
 
-Date: 11 October 2026. Scope: Today in the clinician app, facility review in the internal Dashboard, internal navigation, and their shared record composition. Landing and additional screen families are deferred by the user's clarification.
+Date: 11 October 2026. Scope: Today in the clinician app, facility review in the internal Dashboard, internal navigation, and their shared record composition. This was the initial implementation slice; the workspace-wide continuation is recorded below. Landing remains deferred.
 
 **Final result: passed**
 
@@ -78,4 +78,38 @@ P3 follow-up: review shortcut density when additional Today tasks exist, and ref
 - [x] Both Cloudflare frontend builds, original-brand asset verification, and clean diff checks.
 - [x] Review phone/desktop themes, empty/error recovery, cursor/filter/stale selection, denied/pending actions, nested overlays, focus return and 320px overflow. Browser console error inspection returned no errors for the final manually reviewed workspace sessions.
 
-Repository standards report the existing API-latency baseline as skipped because its staging-soak artifact is absent. Frontend builds retain the existing large-chunk advisory. Neither is represented as a new UI failure or a measured performance improvement. No API/schema migration, deployment or push is included. Local runtime uses a fresh isolated synthetic database with external notification/provider destinations disabled.
+Repository standards report the existing API-latency baseline as skipped because its staging-soak artifact is absent. Frontend builds retain the existing large-chunk advisory. Neither is represented as a new UI failure or a measured performance improvement. No API/schema migration or deployment is included. Local runtime uses a fresh isolated synthetic database with external notification/provider destinations disabled.
+
+## Workspace-wide final pass
+
+The continuation extends the approved presentation through both protected workspace roots. It applies continuous neutral Card/Section surfaces and page hierarchy to existing routes; it does not claim bespoke redesigns or mutation testing of every page. Semantic warning/selection colors, overlays, clinical save guards, calendars, forms and contained tables retain their existing behavior. Landing remains deferred. Auth/setup and public/partner/patient/lab shells retain their own composition.
+
+Coverage comes from the actual route trees. The clinician smoke test visits all 51 static protected destinations, including settings subpages, clinical/worklists, billing, operations, analytics, help, specialty, imports and gated surfaces. It checks actual light/dark root theme, a visible page heading, main content containment and absence of uncaught errors at desktop and phone widths. Dynamic patient/encounter records remain covered by the existing critical-flow and consultation acceptance tests; this sweep does not invent dynamic fixtures for every specialty detail page.
+
+The expanded internal audit visits all 18 protected destinations plus Login: Dashboard, Users, Doctors, Admins, Analytics, Performance, Billing, Pricing, Payment Processing, Audits, Logs, Broadcasts, Support, Feedback, Referrals, Leads, Enterprise Contracts and System Monitoring.
+
+| Finding | Correction | Acceptance evidence |
+| --- | --- | --- |
+| Settings tiles were mouse-only; Audit Log targeted an unimplemented settings tab | Shared list composition with real React Router links; Audit Log opens and scrolls to the existing compliance section | Settings unit regression, manual section navigation and keyboard Enter browser check |
+| Internal role filters were clickable Cards without pressed semantics | Shared named Buttons with real counts and `aria-pressed`; two-column phone layout | Filter/dialog regressions and desktop/phone captures |
+| Doctor/feedback icon actions and several internal filters lacked names | Record-specific View labels; associated/explicit filter names | Internal units and expanded accessibility audit |
+| Payment Processing consumed a paginated clinic response as an array | Canonical shared schema parsing, `items` consumption and clinic-query retry/error handling | Canonical response fixture, exact one-request payment regression and live route audit |
+| Wide shared tables could not be reached to scroll by keyboard | Focusable scroll container with visible focus outline | Failing-then-passing focus regression and mobile/tablet audits |
+| WhatsApp Sender option descriptions overflowed on desktop | Stack title/description, wrap text and constrain option contents | Real route overflow failure followed by passing theme/viewport sweep |
+| Payment Desk date triggers exceeded their fixed field width | Explicit trigger width within existing date field | Route containment browser regression |
+| Locked Floor page lacked its page identity | Existing locked-page scaffold accepts a tier or feature; gate authorization is unchanged | Real locked-route heading browser regression |
+| Settings' collapsed sidebar clipped its full wordmark and labels | Pass the real collapsed state to existing rail navigation and compact footer controls; mobile sheet remains expanded | Manual corrected brand/form capture and collapsed-shell browser assertions |
+
+Final captures live beside the original approved-board comparisons: `settings-desktop-light.png`, `settings-desktop-dark.png`, `settings-mobile-light.png`, `users-desktop-light.png`, `users-desktop-dark.png`, `users-mobile-light.png`, and `whatsapp-sender-desktop-dark.png`, `floor-locked-desktop-light.png`, and `settings-compact-ai-focus.png`. They show synthetic accounts only. Neutral Cards resolve to transparent backgrounds without shadows; semantic utilities still override that base. The WhatsApp Sender desktop main measured equal client/content widths after correction.
+
+The full app accessibility run passed 160 cases and the expanded internal run passed 76. The additional 40 Login/Today/Settings shell checks after the rail change also passed. Isolated provider configuration was corrected locally when fixture CAPTCHA settings blocked login; product authentication was not changed. Test runtimes use a fresh local synthetic database and disabled external provider destinations.
+
+Final acceptance:
+
+- Full unit suites passed: app 966 tests/184 files, internal 166/29 and shared UI 151/36. A further compact Ask AI keyboard-label/single-open regression passed with focused overlay/settings follow-ups (10 tests), for 1,284 distinct passing unit tests across the runs.
+- Clinician route smoke: 51 static routes in both themes at desktop/phone widths (4 passing cases, 204 route visits), plus a passing local free-trial bootstrap run (51 more visits). The final desktop cases assert the compact brand and Settings/Ask AI controls; locked warnings retain a non-transparent boundary.
+- Accessibility: 160 full app cases, 76 expanded internal cases, and 40 post-rail shell cases passed (276 total).
+- Repository standards, hygiene, Knip, semantic color/contrast checks and clean diff checks passed. The missing staging API-latency baseline remains the previously documented skip.
+- Final lint, app/internal/UI typechecks and both Cloudflare builds passed. Existing large-chunk advisories remain informational.
+
+The compact AI control was manually opened from the rail and closed with Escape; focus returned to the initiating button. Its existing coming-soon state and medical-advice footer are preserved. These refinements add no clinical AI capability or new authorization policy.

@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
+import { useEffect, useRef } from "react";
 import {
   Badge,
   Button,
@@ -161,8 +162,13 @@ interface AuditLogCardProps {
 }
 
 export function AuditLogCard({ recentAuditLogs }: AuditLogCardProps) {
+  const { hash } = useLocation();
+  const auditRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (hash === "#audit-log") auditRef.current?.scrollIntoView({ block: "start" });
+  }, [hash]);
   return (
-    <Card>
+    <Card ref={auditRef} id="audit-log" className="scroll-mt-6">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ClipboardList className="h-5 w-5" />

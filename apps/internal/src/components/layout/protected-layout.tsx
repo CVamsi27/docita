@@ -193,7 +193,7 @@ export function ProtectedLayout() {
       <AppShell
         className="h-dvh overflow-hidden"
         sidebarWidth={collapsed ? "3.5rem" : "14rem"}
-        mainClassName="min-h-0 overflow-y-auto p-4 md:p-6"
+        mainClassName="ui-workspace-ledger min-h-0 overflow-y-auto p-4 md:p-6"
         sidebar={
           <div className="flex h-dvh flex-col border-r border-border/70 bg-background">
             <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/70 px-2">

@@ -226,3 +226,9 @@ For each feature touched (PR C–F), the merging engineer confirms:
 `@workspace/ui/components/layout/record-workspace` composes a continuous worklist with a 20rem contextual region at xl and a shared Sheet below xl. Consumers own selected IDs and derive records from current query results; selection never implies permission to mutate. The optional summary places the active task above a narrow worklist. Supply a named context, description and initiating button ref for keyboard focus return. Today and internal Dashboard use this pattern with their existing data/permission/theme sources.
 
 `CRUDDialog` accepts `returnFocusRef` for controlled dialogs whose action button is outside a Radix DialogTrigger. Keep drafts after failed requests and initialize a newly opened edit from the current canonical record.
+
+### Workspace ledger presentation
+
+Clinician and internal protected main regions opt in with `ui-workspace-ledger`. Neutral shared Card/Section surfaces form continuous sections without lateral frames, shadows or repeated rounded containers. Compact PageHeader headings retain the page typography scale. Semantic background/border utilities, form grouping, contained table scrolling, overlays and clinical save guards remain authoritative. Public/auth/portal and landing shells do not inherit this treatment. Settings destinations use shared Button with React Router Link; operational filters expose named Buttons with `aria-pressed`.
+
+The shared Table scroll container is keyboard focusable with a visible focus outline so wide operational tables remain scrollable on narrow screens.

@@ -47,9 +47,9 @@ export function BroadcastsPage() {
           <CardContent>
             <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-5">
               <div className="space-y-2">
-                <Label>Audience Preset</Label>
+                <Label htmlFor="broadcast-audience">Audience Preset</Label>
                 <Select value={presetId} onValueChange={setPresetId}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="broadcast-audience"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PRESETS.map((p) => <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>)}
                   </SelectContent>

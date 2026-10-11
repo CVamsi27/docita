@@ -51,7 +51,7 @@ describe("internal console shell", () => {
     fireEvent.click(users);
     expect(await screen.findByText("User workspace")).toBeInTheDocument();
     fireEvent.click(
-      screen.getByRole("button", { name: "Switch to dark mode" }),
+      await screen.findByRole("button", { name: "Switch to dark mode" }),
     );
     expect(setTheme).toHaveBeenCalledWith("dark");
     fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
