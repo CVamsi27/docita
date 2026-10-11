@@ -1,6 +1,6 @@
 import { FC, type ReactNode } from "react";
 import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
 import { Button, EmptyState, Form, LoadingState } from "@workspace/ui/components";
 import { FileText, Save } from "lucide-react";
 import { useInvoiceEditLogic } from "@/features/invoices/hooks/use-invoice-edit-logic";
@@ -19,9 +19,12 @@ interface InvoiceEditUIProps {
 
 function withInvoicingGate(node: ReactNode) {
   return (
-    <FeatureGate feature={Feature.INVOICING} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.INVOICING}
+      title="Edit invoice"
+    >
       {node}
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }
 

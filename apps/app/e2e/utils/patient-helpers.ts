@@ -75,7 +75,7 @@ export const TEST_PASSWORD = "Test@123456";
  * fixtures must use that secret; production secrets reject this dummy token.
  * https://developers.cloudflare.com/turnstile/troubleshooting/testing/
  */
-const E2E_TURNSTILE_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
+export const E2E_TURNSTILE_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
 /** Valid 15-char GSTIN for paid INR onboarding in E2E (not a real taxpayer ID). */
 const E2E_PAID_PLAN_GSTIN = "29AABCU9603R1ZX";
 
@@ -149,7 +149,7 @@ async function createTestPaymentDetails(
  */
 const onboardingCheckoutResultSchema = onboardingCheckoutResponseSchema;
 
-/** Next.js `(protected)` patient routes — keep Playwright URLs aligned with the app router. */
+/** Canonical SPA patient routes shared by clinician browser fixtures. */
 export const PATIENTS_LIST_PATH = "/patients";
 
 export function patientDetailPath(patientId: string): string {

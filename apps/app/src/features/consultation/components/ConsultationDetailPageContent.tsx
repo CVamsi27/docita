@@ -3,7 +3,7 @@ import { useParams } from "react-router";
 import { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
 import { useConsultationLeaveNavigation, type ConsultationSaveHandles } from "@/features/consultation/workspace/use-consultation-leave-navigation";
 import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
 import { useSessionRecoveryRedirect } from "@/hooks/use-session-recovery-redirect";
 import { useConsultationCompletion } from "./use-consultation-completion";
 import { useConsultationMarkDone } from "./use-consultation-mark-done";
@@ -17,9 +17,13 @@ import {
 
 export default function ConsultationPage() {
   return (
-    <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.CALENDAR_SLOTS}
+      title="Consultation"
+      description="Manage patient consultations"
+    >
       <ConsultationPageContent />
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }
 

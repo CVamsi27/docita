@@ -31,7 +31,7 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 
 ### Frontend E2E Tests (Playwright)
 
-**Location**: `apps/app/e2e/` (45 spec files, ~1,048 tests) — configuration: `apps/app/playwright.config.ts`; `apps/internal/e2e/` (3 spec files, 44 tests) — configuration: `apps/internal/playwright.config.ts`
+**Location**: `apps/app/e2e/` (49 top-level spec files as of 11 October 2026) — configuration: `apps/app/playwright.config.ts`; `apps/internal/e2e/` (five top-level spec files) — configuration: `apps/internal/playwright.config.ts`. Project and parameterized case counts depend on the selected command.
 
 > **Status (2026-08-02):** the Playwright suite is **ported** to the Vite apps.
 > app runs on port 5173 via `vite preview` against a local API; the CI
@@ -59,7 +59,7 @@ CI runs a **subset** of Playwright on `main` (see below). Run the full suite loc
 
 #### Playwright spec files (doctor app)
 
-Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` / `PATIENTS_LIST_PATH` aligned with Next routes), `e2e/utils/ui-contracts.ts`, `e2e/utils/session.ts`.
+Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` / `PATIENTS_LIST_PATH` aligned with the SPA routes), `e2e/utils/ui-contracts.ts`, `e2e/utils/session.ts`.
 
 | Spec | Focus |
 | ---- | ----- |
@@ -70,7 +70,7 @@ Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` /
 | `clinic-registration.spec.ts` | Clinic onboarding wizard |
 | `clinics.spec.ts` | Clinic-related UI |
 | `consultation.spec.ts` | Consultation workspace |
-| `critical-flows.spec.ts` | High-risk API + UI business flows |
+| `critical-flows.spec.ts` | API-backed appointment, dashboard, timeline, clinic and isolation flows; actual browser journeys live in `patients.spec.ts` and `verify-doctor.spec.ts` |
 | `dashboard.spec.ts` | Dashboard entry and shortcuts |
 | `dental-charts.spec.ts` | Dental specialty charts |
 | `documents.spec.ts` | Documents page |
@@ -94,7 +94,7 @@ Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` /
 | `smart-auth.spec.ts` | Email-first login and signup branching |
 | `subscription.spec.ts` | Subscription lockout / billing-locked |
 | `upgrade.spec.ts` | Subscription tab / upgrade UI |
-| `verify-doctor.spec.ts` | Doctor verification gate |
+| `verify-doctor.spec.ts` | Targeted doctor profile completion and signature reuse |
 | `whatsapp.spec.ts` | WhatsApp inbox |
 
 **Features**:
@@ -203,6 +203,27 @@ pnpm --filter @docita/api test:e2e -- auth.e2e-spec.ts
 Specs live next to sources under `apps/api/src/**/*.spec.ts`. Guards and decorators that call NestJS `Reflector#getAllAndOverride` should stub it through `@/test-utils`: `createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, and `mockGetAllAndOverrideKeyBranch`, using the same metadata key constants the implementation reads (for example `IS_PUBLIC_KEY`, tier keys). Keyed maps avoid brittle `mockReturnValueOnce` ordering on a bare `jest.fn()`.
 
 ### Frontend E2E Tests
+
+The clinician app's normal `pnpm --filter @docita/app run check-types` includes
+`e2e/tsconfig.json`. E2E workspace aliases resolve to package source, so this gate
+also works before generated workspace builds on a clean CI install.
+The app declares `@workspace/auth` as a test dependency for canonical session
+constants. Fallow excludes E2E files, so its dependency allowlist includes that
+intentional test import; the standalone TypeScript gate still resolves it.
+
+Patient and critical-flow specs use isolated real onboarded clinics and parse
+responses through shared contracts. Doctor verification requires an owned local
+API running with `NODE_ENV=development`, `ALLOW_TEST_EMAIL_AUTOVERIFY=false`, and
+`DOCITA_API_E2E=true`: test mode auto-verifies accounts and cannot prove the email
+token round-trip. Keep email delivery pointed at an unavailable localhost SMTP
+port with provider credentials unset; read the verification token only from the
+owned test database. Set matching `APP_URL`, `API_URL`, and explicit test
+`DATABASE_URL`; never use a production database for these fixtures.
+Also set the API's `API_PUBLIC_URL` to that owned API and `FRONTEND_URL` to
+the owned app, so signature display URLs point at the fixture server. Doctor
+journeys preserve Today access and open `/verify-doctor` as a targeted profile
+surface; they require decoded signature images and the stable stored reference
+after reuse.
 
 ```bash
 # Run all frontend E2E tests (headless)

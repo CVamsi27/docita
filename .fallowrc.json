@@ -31,6 +31,7 @@
   "ignoreDependencies": [
     "@nestjs/schematics",
     "@workspace/db",
+    "@workspace/auth",
     "supertest",
     "tsconfig-paths",
     "axe-playwright"

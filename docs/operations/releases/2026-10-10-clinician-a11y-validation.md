@@ -26,7 +26,7 @@ Regressions reproduced the defects before corrections. Concurrent unit attempts 
 | Source lint and repository types | PASS after dependency patch: lint 11 tasks / eight cached; types 29 tasks / 26 cached |
 | Standards, Knip, colors, hygiene | PASS after dependency patch: 68 standards regressions and all gates; optional missing API-latency baseline skipped. Knip, colors and hygiene pass |
 | Changed E2E specs and imported helpers | PASS: scoped standalone TypeScript configuration for accessibility, scanner gate and Today |
-| Entire standalone E2E TypeScript project | FAIL: 17 existing errors in three untouched specs; [separate fixture/contract plan](../2026-10-10-clinician-e2e-harness-plan.md). No whole-E2E typecheck pass is claimed |
+| Entire standalone E2E TypeScript project | Historical 10 October result: FAIL, 17 errors in three legacy specs. The [11 October follow-up](2026-10-10-clinician-e2e-validation.md) closes this gap and adds the whole-E2E project to the normal app typecheck |
 | Full repository build | PASS: 35 tasks / 30 cached; existing large-chunk warnings retained |
 | Clinician Cloudflare production build | PASS; existing >500 kB chunk warning retained |
 

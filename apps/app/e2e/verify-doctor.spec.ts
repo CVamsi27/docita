@@ -1,22 +1,41 @@
 import { randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { expect, test } from "@playwright/test";
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type Page,
+  type Locator,
+} from "@playwright/test";
+import { z } from "zod";
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME } from "@workspace/auth";
+import {
+  clinicResponseSchema,
+  doctorResponseSchema,
+  onboardingCompletionResponseSchema,
+  onboardingInitResponseSchema,
+  registerResponseSchema,
+  signatureUploadResponseSchema,
+  tokenIssueResponseSchema,
+  uploadSessionCreateContractResponseSchema,
+} from "@workspace/types";
 import {
   API_URL,
   createUniqueClientIp,
+  applyUserSession,
+  E2E_TURNSTILE_TOKEN,
   TEST_PASSWORD,
 } from "./utils/patient-helpers";
 import { findRepoRoot, requireRepoDatabaseUrl } from "./utils/repo-root";
 
-type JsonRecord = Record<string, unknown>;
 const APP_ORIGIN = new URL(
   process.env.APP_URL ??
     process.env.PLAYWRIGHT_TEST_BASE_URL ??
-    "http://127.0.0.1:3005",
+    "http://localhost:3000",
 ).origin;
 
 async function addAuthCookies(
-  page: import("@playwright/test").Page,
+  page: Page,
   tokens: { accessToken: string; refreshToken?: string | null },
 ) {
   const accessCookieUrl = `${APP_ORIGIN}/`;
@@ -88,25 +107,7 @@ test.describe("verify-doctor auth cookies", () => {
   });
 });
 
-function asRecord(value: unknown): JsonRecord {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
-  }
-  return Object.fromEntries(Object.entries(value));
-}
-
-function readString(source: JsonRecord, key: string): string | null {
-  const value = source[key];
-  return typeof value === "string" && value.length > 0 ? value : null;
-}
-
-function readAccessToken(source: JsonRecord): string | null {
-  return (
-    readString(source, "access_token") ?? readString(source, "accessToken")
-  );
-}
-
-async function fetchVerificationToken(email: string): Promise<string | null> {
+async function fetchVerificationToken(email: string): Promise<string> {
   const output = execFileSync(
     "node",
     [
@@ -120,25 +121,24 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
         ...process.env,
         DATABASE_URL: requireRepoDatabaseUrl(),
         VERIFICATION_EMAIL: email,
+        TS_NODE_COMPILER_OPTIONS: JSON.stringify({ rootDir: "." }),
       },
       encoding: "utf8",
     },
   ).trim();
 
-  if (!output) return null;
-
-  const parsed = JSON.parse(output) as {
-    emailVerified?: boolean;
-    emailVerificationToken?: string | null;
-  };
-
-  if (parsed.emailVerified) return null;
-
-  return parsed.emailVerificationToken ?? null;
+  // This is a test-only DB script result, not an HTTP response contract.
+  const result = z
+    .object({
+      emailVerified: z.literal(false),
+      emailVerificationToken: z.string().min(1),
+    })
+    .parse(JSON.parse(output));
+  return result.emailVerificationToken;
 }
 
 async function createDoctorWithSignature(
-  request: import("@playwright/test").APIRequestContext,
+  request: APIRequestContext,
   options: { uploadDoctorSignature?: boolean } = {},
 ) {
   const uploadDoctorSignature = options.uploadDoctorSignature ?? false;
@@ -165,8 +165,8 @@ async function createDoctorWithSignature(
     ...e2eHeaders,
   });
   const csrfHeaders = {
-    Cookie: "XSRF-TOKEN=e2e-csrf-token",
-    "X-XSRF-TOKEN": "e2e-csrf-token",
+    Cookie: `${CSRF_COOKIE_NAME}=e2e-csrf-token`,
+    [CSRF_HEADER_NAME]: "e2e-csrf-token",
   };
 
   const registerRes = await request.post(`${API_URL}/auth/register`, {
@@ -177,20 +177,20 @@ async function createDoctorWithSignature(
       firstName: "Verify",
       lastName: "Doctor",
       role: "ADMIN_DOCTOR",
+      turnstileToken: E2E_TURNSTILE_TOKEN,
     },
   });
   if (!registerRes.ok()) {
     throw new Error(`Doctor registration failed: ${await registerRes.text()}`);
   }
 
-  const registerData = asRecord(await registerRes.json());
-  let accessToken = readAccessToken(registerData);
-  expect(accessToken).toBeTruthy();
+  const registerData = registerResponseSchema.parse(await registerRes.json());
+  let accessToken = registerData.access_token;
 
-  const userData = asRecord(registerData.user);
+  const userData = registerData.user;
+  expect(userData.emailVerified).toBe(false);
   if (userData.emailVerified !== true) {
     const verificationToken = await fetchVerificationToken(email);
-    expect(verificationToken).toBeTruthy();
 
     const verifyEmailRes = await request.post(`${API_URL}/auth/verify-email`, {
       headers: csrfHeaders,
@@ -203,11 +203,9 @@ async function createDoctorWithSignature(
         `Email verification failed: ${verifyEmailRes.status()} ${await verifyEmailRes.text()}`,
       );
     }
-    userData.emailVerified = true;
   }
 
-  const doctorId = readString(userData, "id");
-  expect(doctorId).toBeTruthy();
+  const doctorId = userData.id;
 
   const choosePathRes = await request.post(
     `${API_URL}/onboarding/choose-path`,
@@ -229,9 +227,8 @@ async function createDoctorWithSignature(
     data: {},
   });
   expect(initRes.ok()).toBeTruthy();
-  const initData = asRecord(await initRes.json());
-  const onboardingId = readString(initData, "onboardingId");
-  expect(onboardingId).toBeTruthy();
+  const initData = onboardingInitResponseSchema.parse(await initRes.json());
+  const onboardingId = initData.onboardingId;
 
   const signatureSessionRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/sla-signature-session`,
@@ -243,14 +240,11 @@ async function createDoctorWithSignature(
     },
   );
   expect(signatureSessionRes.ok()).toBeTruthy();
-  const signatureSessionData = asRecord(await signatureSessionRes.json());
-  const signatureSessionId = readString(signatureSessionData, "id");
-  expect(signatureSessionId).toBeTruthy();
-  const signatureUploadSecret = readString(
-    signatureSessionData,
-    "uploadSecret",
+  const signatureSessionData = uploadSessionCreateContractResponseSchema.parse(
+    await signatureSessionRes.json(),
   );
-  expect(signatureUploadSecret).toBeTruthy();
+  const signatureSessionId = signatureSessionData.id;
+  const signatureUploadSecret = signatureSessionData.uploadSecret;
 
   const uploadSlaRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${signatureSessionId}`,
@@ -321,13 +315,14 @@ async function createDoctorWithSignature(
     },
   );
   expect(completeRes.ok()).toBeTruthy();
-  const completeData = asRecord(await completeRes.json());
+  const completeData = onboardingCompletionResponseSchema.parse(
+    await completeRes.json(),
+  );
   if (completeData.success !== true) {
     throw new Error(
       `Onboarding completion failed: ${JSON.stringify(completeData)}`,
     );
   }
-  accessToken = readAccessToken(completeData) ?? accessToken;
 
   const loginRes = await request.post(`${API_URL}/auth/login`, {
     headers: {
@@ -337,6 +332,7 @@ async function createDoctorWithSignature(
     data: {
       email,
       password: TEST_PASSWORD,
+      turnstileToken: E2E_TURNSTILE_TOKEN,
     },
   });
   if (!loginRes.ok()) {
@@ -344,8 +340,13 @@ async function createDoctorWithSignature(
       `Post-onboarding login failed: ${loginRes.status()} ${await loginRes.text()}`,
     );
   }
-  const loginData = asRecord(await loginRes.json());
-  accessToken = readAccessToken(loginData) ?? accessToken;
+  const loginData = tokenIssueResponseSchema.parse(await loginRes.json());
+  accessToken = loginData.access_token;
+  expect(loginData.user.emailVerified).toBe(true);
+  expect(loginData.user.onboardingStep).toBe("COMPLETED");
+  const clinicId = loginData.user.clinicId;
+  if (!clinicId) throw new Error("Completed doctor has no clinic association");
+  expect(clinicId).toBe(completeData.clinicId);
 
   if (uploadDoctorSignature) {
     const tokenRes = await request.post(
@@ -358,9 +359,19 @@ async function createDoctorWithSignature(
       },
     );
     expect(tokenRes.ok()).toBeTruthy();
-    const tokenData = asRecord(await tokenRes.json());
-    const uploadToken = readString(tokenData, "token");
-    expect(uploadToken).toBeTruthy();
+    const tokenData: unknown = await tokenRes.json();
+    // The token endpoint has no shared response schema yet; narrow the only
+    // field this fixture consumes instead of casting the untyped response.
+    if (
+      !tokenData ||
+      typeof tokenData !== "object" ||
+      !("token" in tokenData) ||
+      typeof tokenData.token !== "string" ||
+      !tokenData.token
+    ) {
+      throw new Error("Signature token response did not contain a token");
+    }
+    const uploadToken = tokenData.token;
 
     const uploadRes = await request.post(
       `${API_URL}/doctors/signature/upload/${uploadToken}`,
@@ -383,214 +394,170 @@ async function createDoctorWithSignature(
         `Doctor signature upload failed: ${await uploadRes.text()}`,
       );
     }
+    const uploaded = signatureUploadResponseSchema.parse(
+      await uploadRes.json(),
+    );
+    expect(uploaded.purpose).toBe("DOCTOR_PRESCRIPTION");
+    expect(uploaded.signatureStoredUrl).not.toBe("");
   }
 
-  const returnedUser = asRecord(completeData.user ?? registerData.user);
-  const completedClinicId = readString(asRecord(completeData), "clinicId");
-  if (completedClinicId && returnedUser.clinicId !== completedClinicId) {
-    returnedUser.clinicId = completedClinicId;
-  }
-  if (returnedUser.emailVerified !== true) {
-    returnedUser.emailVerified = true;
-  }
-
+  const { cookies } = await request.storageState();
+  const refreshCookie = cookies.find(
+    (cookie) => cookie.name === "refresh_token",
+  );
   return {
+    id: doctorId,
     email,
     doctorId,
+    clinicId,
     accessToken,
-    refreshToken:
-      completeData.refresh_token || registerData.refresh_token || null,
-    user: returnedUser,
+    refreshToken: refreshCookie?.value ?? null,
   };
 }
 
-test.describe("Doctor Verification Flow", () => {
-  let sharedDoctor: Awaited<ReturnType<typeof createDoctorWithSignature>>;
-
-  test.beforeAll(async ({ request }) => {
-    sharedDoctor = await createDoctorWithSignature(request, {
-      uploadDoctorSignature: false,
-    });
+async function getDoctorProfile(
+  request: APIRequestContext,
+  doctor: Awaited<ReturnType<typeof createDoctorWithSignature>>,
+) {
+  const response = await request.get(`${API_URL}/doctors/${doctor.doctorId}`, {
+    headers: { Authorization: `Bearer ${doctor.accessToken}` },
   });
+  expect(response.ok()).toBe(true);
+  return doctorResponseSchema.parse(await response.json());
+}
 
-  test("redirects to verify-doctor and then continues to dashboard after registration save", async ({
+async function saveRegistrationInBrowser(
+  page: Page,
+  registrationNumber: string,
+) {
+  const saved = page.waitForResponse(
+    (response) =>
+      response.request().method() === "PUT" &&
+      response.url().endsWith("/registration-number"),
+  );
+  const registrationInput = page.getByLabel(
+    "Medical council registration number",
+    { exact: true },
+  );
+  await registrationInput.fill(registrationNumber);
+  await expect(registrationInput).toBeFocused();
+  await registrationInput.press("Enter");
+  expect((await saved).ok()).toBe(true);
+  await expect(page).toHaveURL(/\/today(?:\?.*)?$/);
+  await expect(
+    page.getByRole("main").getByRole("heading", { name: "Today", level: 1 }),
+  ).toBeVisible();
+}
+
+async function expectDecodedSignature(image: Locator) {
+  await expect(image).toBeVisible();
+  await expect
+    .poll(() =>
+      image.evaluate(
+        (element) =>
+          element instanceof HTMLImageElement &&
+          element.complete &&
+          element.naturalWidth > 0,
+      ),
+    )
+    .toBe(true);
+}
+
+test.describe("Doctor Verification Flow", () => {
+  test("keeps Today accessible and completes targeted profile registration in the browser", async ({
     page,
     request,
   }) => {
     const doctor = await createDoctorWithSignature(request, {
       uploadDoctorSignature: true,
     });
+    const initialProfile = await getDoctorProfile(request, doctor);
+    expect(initialProfile.registrationNumber).toBeFalsy();
+    expect(initialProfile.signatureUrl).toBeTruthy();
 
-    await addAuthCookies(page, doctor);
-    await page.context().addInitScript(
-      ({ user, token }) => {
-        localStorage.setItem("docita_user", JSON.stringify(user));
-        localStorage.setItem("docita_token", token);
-        document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
-      },
-      { user: doctor.user, token: doctor.accessToken },
-    );
-    await page.route(/\/api(?:\/v1)?\/.*$/, async (route) => {
-      const requestUrl = new URL(route.request().url());
-      const isAuthValidate = /\/api(?:\/v1)?\/auth\/validate$/.test(
-        requestUrl.pathname,
-      );
-      if (isAuthValidate) {
-        await route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          headers: {
-            "access-control-allow-origin": APP_ORIGIN,
-            "access-control-allow-credentials": "true",
-          },
-          body: JSON.stringify({ user: doctor.user }),
-        });
-        return;
-      }
-
-      const isAuthRefresh = /\/api(?:\/v1)?\/auth\/refresh$/.test(
-        requestUrl.pathname,
-      );
-      if (isAuthRefresh) {
-        await route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          headers: {
-            "access-control-allow-origin": APP_ORIGIN,
-            "access-control-allow-credentials": "true",
-          },
-          body: JSON.stringify({ access_token: doctor.accessToken }),
-        });
-        return;
-      }
-
-      const isDoctorUpdate =
-        route.request().method() === "PUT" &&
-        /\/api(?:\/v1)?\/doctors\/[^/]+$/.test(requestUrl.pathname);
-      if (isDoctorUpdate) {
-        const upstream = await request.put(route.request().url(), {
-          headers: {
-            Authorization: `Bearer ${doctor.accessToken}`,
-            Cookie: "XSRF-TOKEN=e2e-csrf-token",
-            "X-XSRF-TOKEN": "e2e-csrf-token",
-          },
-          data: route.request().postDataJSON(),
-        });
-        const upstreamText = await upstream.text();
-        await route.fulfill({
-          status: upstream.status(),
-          headers: {
-            ...upstream.headers(),
-            "access-control-allow-origin": APP_ORIGIN,
-            "access-control-allow-credentials": "true",
-          },
-          body: upstreamText,
-        });
-        return;
-      }
-
-      const response = await route.fetch();
-      await route.fulfill({
-        status: response.status(),
-        headers: {
-          ...response.headers(),
-          "access-control-allow-origin": APP_ORIGIN,
-          "access-control-allow-credentials": "true",
-        },
-        body: await response.body(),
-      });
-    });
+    await applyUserSession(page, doctor, doctor);
+    await page.goto("/today");
+    await expect(page).toHaveURL(/\/today(?:\?.*)?$/);
+    await expect(
+      page.getByRole("main").getByRole("heading", { name: "Today", level: 1 }),
+    ).toBeVisible();
     await page.goto("/verify-doctor");
+    await expect(page).toHaveURL(/\/verify-doctor(?:\?.*)?$/);
+    await expect(
+      page.getByRole("heading", { name: "Verify your profile", level: 1 }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Signature uploaded successfully.", { exact: true }),
+    ).toBeVisible();
 
-    await page.waitForURL(/\/verify-doctor/, { timeout: 30000 });
-    const registrationNumber = `REG-${Date.now()}`;
-    const updateRes = await request.put(
-      `${API_URL}/doctors/${doctor.doctorId}/registration-number`,
-      {
-        headers: {
-          Authorization: `Bearer ${doctor.accessToken}`,
-          "x-docita-e2e": "true",
-        },
-        data: {
-          registrationNumber,
-        },
-      },
+    await expectDecodedSignature(
+      page.getByAltText("Your uploaded signature", { exact: true }),
     );
-    if (!updateRes.ok()) {
-      throw new Error(
-        `Doctor registration update failed: ${updateRes.status()} ${await updateRes.text()}`,
-      );
-    }
 
-    await page.goto("/dashboard");
-    await page.waitForURL(/\/today/, { timeout: 30000 });
+    const registrationNumber = `REG-${randomUUID().slice(0, 8).toUpperCase()}`;
+    await saveRegistrationInBrowser(page, registrationNumber);
+    const persisted = await getDoctorProfile(request, doctor);
+    expect(persisted.registrationNumber).toBe(registrationNumber);
+    expect(persisted.clinicId).toBe(doctor.clinicId);
+    expect(persisted.signatureStoredUrl).toBe(
+      initialProfile.signatureStoredUrl,
+    );
   });
 
-  test("lets admin doctors reuse the onboarding signature during verification", async ({
+  test("lets admin doctors reuse the onboarding signature in the browser", async ({
+    page,
     request,
   }) => {
-    const doctor = sharedDoctor;
+    const doctor = await createDoctorWithSignature(request);
+    const initialProfile = await getDoctorProfile(request, doctor);
+    expect(initialProfile.registrationNumber).toBeFalsy();
+    expect(initialProfile.signatureUrl).toBeFalsy();
 
-    const registrationNumber = `REG-${Date.now()}`;
-    const updateRes = await request.put(
-      `${API_URL}/doctors/${doctor.doctorId}/registration-number`,
-      {
-        headers: {
-          Authorization: `Bearer ${doctor.accessToken}`,
-          "x-docita-e2e": "true",
-        },
-        data: {
-          registrationNumber,
-        },
-      },
-    );
-    if (!updateRes.ok()) {
-      throw new Error(
-        `Doctor registration update failed: ${updateRes.status()} ${await updateRes.text()}`,
-      );
-    }
-
-    const clinicSettingsRes = await request.get(`${API_URL}/clinics/settings`, {
-      headers: {
-        Authorization: `Bearer ${doctor.accessToken}`,
-      },
+    const settingsResponse = await request.get(`${API_URL}/clinics/settings`, {
+      headers: { Authorization: `Bearer ${doctor.accessToken}` },
     });
-    expect(clinicSettingsRes.ok()).toBeTruthy();
-    const clinicSettings = asRecord(await clinicSettingsRes.json());
-    const onboardingSignatureSourceUrl =
-      readString(clinicSettings, "slaSignatureStoredUrl") ??
-      readString(clinicSettings, "slaSignatureUrl");
-    expect(onboardingSignatureSourceUrl).toBeTruthy();
+    expect(settingsResponse.ok()).toBe(true);
+    const settings = clinicResponseSchema.parse(await settingsResponse.json());
+    const onboardingSignature =
+      settings.slaSignatureStoredUrl ?? settings.slaSignatureUrl;
+    if (!onboardingSignature)
+      throw new Error("Onboarding did not persist its SLA signature");
 
-    const reuseOnboardingSignatureRes = await request.put(
-      `${API_URL}/doctors/${doctor.doctorId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${doctor.accessToken}`,
-          Cookie: "XSRF-TOKEN=e2e-csrf-token",
-          "X-XSRF-TOKEN": "e2e-csrf-token",
-        },
-        data: {
-          signatureUrl: onboardingSignatureSourceUrl,
-        },
-      },
+    await applyUserSession(page, doctor, doctor);
+    await page.goto("/verify-doctor");
+    await expect(
+      page.getByRole("heading", { name: "Verify your profile", level: 1 }),
+    ).toBeVisible();
+    await expectDecodedSignature(
+      page.getByAltText("Onboarding signature preview", { exact: true }),
     );
-    expect(reuseOnboardingSignatureRes.ok()).toBeTruthy();
+    const signatureSaved = page.waitForResponse(
+      (response) =>
+        response.request().method() === "PUT" &&
+        new URL(response.url()).pathname.endsWith(
+          `/doctors/${doctor.doctorId}`,
+        ),
+    );
+    await page
+      .getByRole("button", { name: "Use onboarding signature", exact: true })
+      .click();
+    expect((await signatureSaved).ok()).toBe(true);
+    await expect(
+      page.getByText("Signature uploaded successfully.", { exact: true }),
+    ).toBeVisible();
+    expect((await getDoctorProfile(request, doctor)).signatureStoredUrl).toBe(
+      onboardingSignature,
+    );
 
-    const doctorProfileRes = await request.get(
-      `${API_URL}/doctors/${doctor.doctorId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${doctor.accessToken}`,
-        },
-      },
+    await expectDecodedSignature(
+      page.getByAltText("Your uploaded signature", { exact: true }),
     );
-    expect(doctorProfileRes.ok()).toBeTruthy();
-    const doctorProfile = asRecord(await doctorProfileRes.json());
 
-    expect(readString(doctorProfile, "registrationNumber")).toBe(
-      registrationNumber,
-    );
-    expect(readString(doctorProfile, "signatureUrl")).toBeTruthy();
+    const registrationNumber = `REG-${randomUUID().slice(0, 8).toUpperCase()}`;
+    await saveRegistrationInBrowser(page, registrationNumber);
+    const persisted = await getDoctorProfile(request, doctor);
+    expect(persisted.registrationNumber).toBe(registrationNumber);
+    expect(persisted.signatureStoredUrl).toBe(onboardingSignature);
+    expect(persisted.clinicId).toBe(doctor.clinicId);
   });
 });

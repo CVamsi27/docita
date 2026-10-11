@@ -29,8 +29,10 @@ export function resolveDoctorSignatureUrls(params: {
     params.clinic?.slaSignatureStoredUrl ?? null;
   const onboardingSignatureSourceUrl =
     onboardingSignatureStoredUrl ?? onboardingSignatureUrl;
-  const resolvedOnboardingSignatureUrl = onboardingSignatureSourceUrl
-    ? toAbsoluteApiUrl(onboardingSignatureSourceUrl)
+  const onboardingSignatureDisplayUrl =
+    onboardingSignatureUrl || onboardingSignatureSourceUrl;
+  const resolvedOnboardingSignatureUrl = onboardingSignatureDisplayUrl
+    ? toAbsoluteApiUrl(onboardingSignatureDisplayUrl)
     : null;
   const resolvedProfileSignatureUrl = params.profile?.signatureUrl
     ? toAbsoluteApiUrl(params.profile.signatureUrl)

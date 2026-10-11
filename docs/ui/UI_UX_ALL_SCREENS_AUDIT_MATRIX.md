@@ -23,6 +23,8 @@ Every route below is covered by the shared UI system pass and the relevant app a
 
 The [10 October Today slice](../operations/releases/2026-10-10-today-ux-validation.md) has 12 enforced authenticated browser cases for primary schedule failure/retry and the scoped AI preview at 360px/1440px in light/dark themes. It covers a synthetic ESSENTIAL clinic with an empty workspace; busy clinical lifecycle and other role/tier combinations remain unverified. The [clinician audit acceptance](../operations/releases/2026-10-10-clinician-a11y-validation.md) now records 160 enforced cases across four viewport projects with zero violations. Consultation also passes actual patient-heading and fit checks at 360px/1440px light/dark. This covers the recorded synthetic role/tier/gated states, not every matrix route or clinical lifecycle. Historical rows below remain historical unless explicitly dated.
 
+The [11 October clinician journey acceptance](../operations/releases/2026-10-10-clinician-e2e-validation.md) records 28 patient journey cases, four patient preview axe cases, eight doctor journey cases and four fresh patient list/detail cases after page-gate consolidation, all at 360px/1440px in light/dark themes. Doctor signature images must decode, and clinic-associated users retain Today access while completing registration explicitly. Page-gate unit regressions exercise real gate/header/card primitives; Documents and the four Claims routes have denied/allowed wrapper coverage, not claims lifecycle evidence. Sixteen additional locked-state checks for Lab Tests, Daybook, Follow-ups and Analytics pass with zero axe findings at both widths/themes, asserting the actual theme and denied state. The refreshed whole audit passes 160/160, with four fresh reports of 40 cases each and zero findings of any severity. GENERAL/ESSENTIAL unpaid-trial fixtures establish their rendered gate states; enabled premium workflows and external medical-license approval remain unverified.
+
 ## `apps/app` Routes
 
 | Route                                   | Surface        | QA status                                                                                       |
@@ -32,33 +34,34 @@ The [10 October Today slice](../operations/releases/2026-10-10-today-ux-validati
 | `/login`                                | auth           | Mobile Playwright overflow (390px) + multi-device form spec                                     |
 | `/reset-password`                       | auth           | Shared auth shell pass + app audit                                                              |
 | `/ai-assistant`                         | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
-| `/analytics`                            | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
+| `/analytics` | protected app | 2026-10-11: custom upgrade screen H1/navigation preserved; denied/allowed unit branches and locked-state axe at 360px/1440px light/dark |
 | `/appointments`                         | protected app  | Browser smoke + mobile Playwright overflow (390px)                                              |
 | `/billing-locked`                       | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/coding-queue`                         | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/consultation`                         | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
 | `/consultation/[id]`                    | protected app  | 2026-10-10: real consultation patient heading/fit and strict axe, 360px/1440px light/dark; lifecycle writes remain open |
 | `/dashboard`                            | protected app  | Browser smoke + app audit                                                                       |
-| `/daybook`                              | protected app  | Nav smoke + app audit; auth-gated locally                                                       |
+| `/daybook` | protected app | 2026-10-11: denied normal/error heading plus allowed actions tested; locked-state axe at 360px/1440px light/dark |
+| `/follow-ups` | protected app | 2026-10-11: denied heading and allowed loading/worklist unit branches; locked-state axe at 360px/1440px light/dark |
 | `/desk/collect-payment`                 | protected app  | Nav smoke + app audit; auth-gated locally                                                       |
 | `/desk/floor`                           | protected app  | Shared app shell pass + app audit; hospital-gated locally                                       |
-| `/documents`                            | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
+| `/documents` | protected app | 2026-10-11: denied/allowed header/card wrapper unit coverage; mobile browser audit covers the trial gate state |
 | `/hospital/beds`                        | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/import`                               | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
 | `/import/excel`                         | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/import/ocr`                           | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
 | `/inventory` | protected app | 2026-10-10: strict authenticated axe and named Select trigger render regression |
-| `/invoices`                             | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
+| `/invoices` | protected app | 2026-10-11: denied/allowed heading and upgrade/action unit coverage; browser audit covers recorded trial gate state |
 | `/invoices/new`                         | protected app  | Mobile Playwright overflow (390px) + app audit; auth-gated locally                              |
 | `/invoices/[id]`                        | protected app  | Mobile Playwright overflow (390px) when invoice fixture exists                                  |
 | `/invoices/[id]/edit`                   | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
-| `/insurance-claims`                     | protected app  | Nav smoke + app audit; auth-gated locally                                                       |
-| `/insurance-claims/new`                 | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
-| `/insurance-claims/[id]`                | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
-| `/insurance-claims/[id]/edit`           | protected app  | Shared app shell pass + app audit; auth-gated locally                                           |
-| `/lab-tests`                            | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
-| `/patients` | protected app | 2026-10-10: strict authenticated axe across audit projects; sort/header/action render regressions |
-| `/patients/[id]`                        | protected app  | Mobile Playwright overflow (390px) + app audit; auth-gated locally                              |
+| `/insurance-claims` | protected app | 2026-10-11: denied/allowed wrapper units with the real planned-feature card; claims lifecycle remains unverified |
+| `/insurance-claims/new` | protected app | 2026-10-11: denied/allowed wrapper units with the real planned-feature card; claims lifecycle remains unverified |
+| `/insurance-claims/[id]` | protected app | 2026-10-11: denied/allowed wrapper units with the real planned-feature card; claims lifecycle remains unverified |
+| `/insurance-claims/[id]/edit` | protected app | 2026-10-11: denied/allowed wrapper units with the real planned-feature card; claims lifecycle remains unverified |
+| `/lab-tests` | protected app | 2026-10-11: denied/allowed header/card unit coverage; locked-state axe at 360px/1440px light/dark |
+| `/patients` | protected app | 2026-10-11: seven persisted/validation/isolation/retry/preview journeys in four themes/widths; four list/detail cases rerun after page-gate changes |
+| `/patients/[id]` | protected app | 2026-10-11: saved patient identity and list/detail navigation at 360px/1440px light/dark; contextual preview axe/focus return |
 | `/prescriptions`                        | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
 | `/prescriptions/[id]`                   | protected app  | Mobile Playwright overflow (390px) when prescription exists                                     |
 | `/profile`                              | protected app  | Mobile Playwright overflow (390px) + app audit                                                  |
@@ -82,7 +85,7 @@ The [10 October Today slice](../operations/releases/2026-10-10-today-ux-validati
 | `/onboarding`                           | setup          | Shared setup shell pass + app audit                                                             |
 | `/upload-signature/[token]`             | setup/tool     | Shared tool shell pass + app audit                                                              |
 | `/upload-signature/onboarding`          | setup/tool     | Shared tool shell pass + app audit                                                              |
-| `/verify-doctor`                        | setup          | Shared setup shell pass + app audit                                                             |
+| `/verify-doctor` | setup | 2026-10-11: eight real registration/signature-reuse cases at 360px/1440px light/dark, decoded images and preserved Today access |
 | `/verify-email-sent`                    | setup          | Shared setup shell pass + app audit                                                             |
 | `/verify-email`                         | setup          | Shared setup shell pass + app audit                                                             |
 | `/verify-email/verified`                | setup          | Shared setup shell pass + app audit                                                             |
@@ -112,7 +115,7 @@ Internal console pages use shared `AppPageScaffold`, `PageHeader`, and page-leve
 | ----------------------------- | --------------- | -------------------------------------------------------------------------------------------- |
 | `/`                           | internal root   | Desktop/mobile smoke verified                                                                |
 | `/admins`                     | internal admin  | Desktop/mobile smoke verified                                                                |
-| `/analytics`                  | internal admin  | Desktop/mobile smoke verified                                                                |
+| `/analytics` | internal admin | 2026-10-11: custom upgrade screen H1/navigation preserved; denied/allowed unit branches and locked-state axe at 360px/1440px light/dark |
 | `/audits`                     | internal admin  | Desktop/mobile smoke verified; sidebar entry; `AppPageScaffold` + `PageHeader` + `DataState` |
 | `/broadcasts`                 | internal admin  | Desktop/mobile smoke verified                                                                |
 | `/enterprise-contracts`       | internal admin  | Desktop/mobile smoke verified; middleware + mobile nav aligned                               |

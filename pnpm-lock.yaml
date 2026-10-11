@@ -498,6 +498,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.0.4
         version: 6.0.4(vite@8.1.5(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.3))
+      '@workspace/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       axe-playwright:
         specifier: ^2.0.1
         version: 2.2.2(playwright@1.60.0)

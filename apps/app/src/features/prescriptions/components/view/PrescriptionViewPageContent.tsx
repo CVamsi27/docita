@@ -8,7 +8,7 @@ import { LoadingState, EmptyState } from "@workspace/ui/components/feedback/empt
 import { PrintSheet } from "@workspace/ui/components/print-sheet";
 import { Feature } from "@workspace/types";
 import { isRecord } from "@workspace/utils";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canCreatePrescription } from "@/lib/auth/permissions";
@@ -140,7 +140,10 @@ export function PrescriptionViewPageContent() {
     !!prescription.appointmentId;
 
   return (
-    <FeatureGate feature={Feature.DIGITAL_PRESCRIPTIONS} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.DIGITAL_PRESCRIPTIONS}
+      title="Prescription"
+    >
       <div className="flex flex-col gap-6 mx-auto w-full max-w-4xl">
         <div className="print:hidden">
           <PrescriptionHeader
@@ -163,6 +166,6 @@ export function PrescriptionViewPageContent() {
           />
         </PrintSheet>
       </div>
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }

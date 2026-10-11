@@ -132,6 +132,7 @@ These are added in PR F:
 
 - Use `DataTable` from `@workspace/ui` with `stackOnMobile` for clinical lists. For externally controlled sorting, set the column's typed `ariaSort` from its existing sort state; `aria-sort` belongs on the column header, never on its action button.
 - Empty/loading/error via `DataState` at the page level (not inline rows).
+- A denied page retains its own level-one heading and description without protected actions. In the clinician app, use the app-wide `PageFeatureGate` for page-level feature gates; inline gates keep their existing compact locked card. Both paths preserve canonical availability, tier and upgrade behavior.
 - Row primary action visible; secondary actions collapse into an overflow `…` menu (no more than one visible primary per row).
 
 ### 3.5 Tab strips
@@ -162,6 +163,7 @@ Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind b
 - **Permanent affordance**: `AskAiButton` pinned to the sidebar bottom is mandatory.
 - **Overlay**: `AskAiOverlay` is full-screen, with a left history rail ("Today" + prior threads), main chat pane, `PromptInput` at the bottom, contextual scope chip ("on Patient X", "on Consultation #123") above the input, and a footer disclaimer ("AI suggestions are not medical advice.").
 - **Contextual entries**: every primary surface (Today, patient detail, consultation, appointments) renders an "Ask AI" button in its `PageHeader` action slot or topbar. Clicking opens the same overlay pre-scoped to that surface.
+- The current informational preview remains available when external AI processing is disabled. It displays the scope, coming-soon message and disclaimer locally; it sends no patient data. `VITE_AI_ENABLED` and the backend switch continue to gate processing features.
 - **Routes**: `/ai-assistant` remains as a deep-link entrance and renders the same overlay shell; the route exists so palette and bookmarks work.
 
 ## 5. Motion, density, mobile
