@@ -140,6 +140,8 @@ These checks establish layout, navigation, read states and the specified pending
 
 Final acceptance for this pass:
 
+The normal pre-push hook also identified the redirect-only Upgrade feature as missing a translation hook. Its documented i18n-coverage exception reflects the absence of user-facing copy; the destination remains the existing translated subscription workflow. Translation enforcement remains enabled for all other features.
+
 - Clinician route sweep: eight passing cases, covering all 59 route patterns in both themes on desktop and phone (236 route visits), plus all six patient Records sections. Populated record checks include serious/critical axe findings, loaded identity and readable invoice fields.
 - Accessibility: 160 full app cases and 152 internal cases (76 per theme) passed. Internal covers all 18 protected pages and Login on desktop, phone, tablet and laptop.
 - Full unit suites: app 972 tests/186 files, internal 170/30 and shared UI 152/36 passed. The subsequently added permission-hydration regression passed in a focused seven-test run, bringing distinct passing unit coverage to 1,295 tests.
