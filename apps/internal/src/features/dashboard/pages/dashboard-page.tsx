@@ -1,15 +1,10 @@
 import { SearchInput } from "@workspace/ui/components/form/search-input";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { normalizeClinicsList } from "@workspace/data-access/internal";
 import {
   AppPageScaffold,
   Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
   DataState,
   PageHeader,
 } from "@workspace/ui/components";
@@ -19,10 +14,13 @@ import {
   Pill,
   TrendingDown,
   TrendingUp,
-  User,
   Users,
+  User,
 } from "lucide-react";
-import { ClinicList } from "../components/clinic-list";
+import { ClinicList } from "@/features/dashboard/components/clinic-list";
+import { FacilityReview } from "@/features/dashboard/components/facility-review";
+import { RecordWorkspace } from "@workspace/ui/components/layout/record-workspace";
+import { Section } from "@workspace/ui/components/layout/section";
 import { CreateClinicDialog } from "../components/create-clinic-dialog";
 import { defaultDashboardStats, defaultDashboardTrends } from "../types";
 import { useDashboardData } from "@/features/dashboard/hooks/use-dashboard-data";
@@ -32,6 +30,9 @@ export function DashboardPage() {
     undefined,
   ]);
   const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectionMessage, setSelectionMessage] = useState("");
+  const returnFocusRef = useRef<HTMLButtonElement | null>(null);
   const queryClient = useQueryClient();
   const { clinics: clinicsQuery, stats: statsQuery } = useDashboardData(
     cursors[cursors.length - 1],
@@ -44,6 +45,16 @@ export function DashboardPage() {
       .toLocaleLowerCase()
       .includes(search.trim().toLocaleLowerCase()),
   );
+  const selected = filteredClinics.find((clinic) => clinic.id === selectedId);
+  if (selectedId && clinicsQuery.data && !selected) {
+    setSelectedId(null);
+    setSelectionMessage("The selected facility is no longer in this view.");
+  }
+  const handleReview = (clinicId: string, trigger: HTMLButtonElement) => {
+    returnFocusRef.current = trigger;
+    setSelectedId(clinicId);
+    setSelectionMessage("");
+  };
   const loading = clinicsQuery.isLoading || statsQuery.isLoading;
   const error = clinicsQuery.error || statsQuery.error;
   const stats = statsQuery.data ?? defaultDashboardStats;
@@ -53,6 +64,7 @@ export function DashboardPage() {
     void statsQuery.refetch();
   };
   const handleUpdate = () => {
+    setSelectedId(null);
     setCursors([undefined]);
     setSearch("");
     void queryClient.invalidateQueries({
@@ -65,11 +77,13 @@ export function DashboardPage() {
   const handleNextPage = () => {
     const nextCursor = clinicsQuery.data?.nextCursor;
     if (nextCursor) {
+      setSelectedId(null);
       setCursors((prior) => [...prior, nextCursor]);
       setSearch("");
     }
   };
   const handlePreviousPage = () => {
+    setSelectedId(null);
     setCursors((prior) => (prior.length > 1 ? prior.slice(0, -1) : prior));
     setSearch("");
   };
@@ -99,8 +113,7 @@ export function DashboardPage() {
       header={
         <PageHeader
           title="Dashboard"
-          description="Monitor all facilities and platform metrics"
-          size="compact"
+          description="Review facilities and manage access"
           actions={<CreateClinicDialog onClinicCreated={handleUpdate} />}
         />
       }
@@ -111,89 +124,36 @@ export function DashboardPage() {
         errorMessage="We could not load this dashboard. Please refresh and try again."
         onRetry={handleRetry}
       >
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Facilities
-              </CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold tabular-nums">
-                {stats.clinics}
-              </div>
-              {renderTrend(trends.clinicsThisMonth)}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Doctors
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold tabular-nums">
-                {stats.doctors}
-              </div>
-              {renderTrend(trends.doctorsThisMonth)}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Patients
-              </CardTitle>
-              <User className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold tabular-nums">
-                {stats.patients}
-              </div>
-              {renderTrend(trends.patientsThisMonth)}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Invoices
-              </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold tabular-nums">
-                {stats.invoices}
-              </div>
-              {renderTrend(trends.invoicesPercentChange, true)}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Prescriptions
-              </CardTitle>
-              <Pill className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold tabular-nums">
-                {stats.prescriptions}
-              </div>
-              {renderTrend(trends.prescriptionsPercentChange, true)}
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <CardTitle>Facilities</CardTitle>
-                <CardDescription>
-                  Search and browse facilities, 50 per page
-                </CardDescription>
-              </div>
-              <div className="relative w-full md:w-64">
+        <RecordWorkspace
+          contextTitle="Facility review"
+          contextDescription="Review access and contact details before editing."
+          context={
+            selected ? (
+              <FacilityReview
+                clinic={selected}
+                onUpdate={handleUpdate}
+                returnFocusRef={returnFocusRef}
+              />
+            ) : (
+              <p className="py-4 text-sm text-muted-foreground">
+                Select a facility to review its details.
+              </p>
+            )
+          }
+          previewOpen={!!selected}
+          onPreviewOpenChange={(open) => {
+            if (!open) setSelectedId(null);
+          }}
+          returnFocusRef={returnFocusRef}
+        >
+          <Section
+            id="dashboard-facilities"
+            title="Facilities"
+            description="Search facilities on this page · 50 per page"
+            className="rounded-none border-x-0 border-t-0 bg-transparent shadow-none"
+            contentClassName="p-0"
+            actions={
+              <div className="w-full sm:w-64">
                 <SearchInput
                   placeholder="Search facilities"
                   ariaLabel="Search facilities"
@@ -202,16 +162,16 @@ export function DashboardPage() {
                   onClear={() => setSearch("")}
                 />
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
+            }
+          >
             <ClinicList
               clinics={filteredClinics}
               loading={false}
               filtered={search.trim().length > 0}
-              onUpdate={handleUpdate}
+              selectedId={selectedId}
+              onReview={handleReview}
             />
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/70 px-4 py-4">
               <p className="text-sm text-muted-foreground">
                 Page {cursors.length} · {filteredClinics.length} of{" "}
                 {clinics.length} loaded facilities
@@ -239,8 +199,82 @@ export function DashboardPage() {
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </Section>
+        </RecordWorkspace>
+        <p role="status" className="sr-only">
+          {selectionMessage}
+        </p>
+        <Section
+          id="dashboard-platform-summary"
+          title="Platform summary"
+          className="rounded-none border-x-0 border-t-0 bg-transparent shadow-none"
+          contentClassName="p-0"
+        >
+          <div className="grid grid-cols-2 divide-border/60 md:grid-cols-3 lg:grid-cols-5">
+            <div className="space-y-2 px-4 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">
+                  Total Facilities
+                </p>
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <div className="text-2xl font-semibold tabular-nums">
+                  {stats.clinics}
+                </div>
+                {renderTrend(trends.clinicsThisMonth)}
+              </div>
+            </div>
+            <div className="space-y-2 px-4 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">Total Doctors</p>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <div className="text-2xl font-semibold tabular-nums">
+                  {stats.doctors}
+                </div>
+                {renderTrend(trends.doctorsThisMonth)}
+              </div>
+            </div>
+            <div className="space-y-2 px-4 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">Total Patients</p>
+                <User className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <div className="text-2xl font-semibold tabular-nums">
+                  {stats.patients}
+                </div>
+                {renderTrend(trends.patientsThisMonth)}
+              </div>
+            </div>
+            <div className="space-y-2 px-4 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">Total Invoices</p>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <div className="text-2xl font-semibold tabular-nums">
+                  {stats.invoices}
+                </div>
+                {renderTrend(trends.invoicesPercentChange, true)}
+              </div>
+            </div>
+            <div className="space-y-2 px-4 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">Prescriptions</p>
+                <Pill className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <div className="text-2xl font-semibold tabular-nums">
+                  {stats.prescriptions}
+                </div>
+                {renderTrend(trends.prescriptionsPercentChange, true)}
+              </div>
+            </div>
+          </div>
+        </Section>
       </DataState>
     </AppPageScaffold>
   );

@@ -1,6 +1,6 @@
 # Docita: refined ledger workspaces and adoption landing
 
-Date: 11 October 2026. Status: detailed design for review; production implementation has not started. User direction: **keep displayed option 3 for app and internal, refine it, include dark mode, and design landing separately for adoption**.
+Date: 11 October 2026. Status: approved Today and internal facility-review slices implemented locally in light and dark mode; landing is deferred for further design review. User direction: **keep displayed option 3 for app and internal, refine it, include dark mode, and design landing separately for adoption**.
 
 ## 1. Selected direction and scope
 
@@ -217,7 +217,7 @@ App composition changes belong in Today/dashboard features; internal selected re
 ## 8. Delivery and verification
 
 1. Review these refinements and paired themes. Correct raster deviations using the binding specification before treating an image as a faithful implementation target.
-2. Write separate executable plans for A1 Today ledger, I1 facility review, and L1 adoption homepage. Preserve all three as the first balanced cycle; no global route rewrite.
+2. Execute A1 Today ledger and I1 facility review plans first, following the user's clarification. Revisit and plan L1 adoption homepage afterward; no global route rewrite.
 3. Implement using current sources and shared primitives; add behavior tests for selection, active-visit handoff, pagination/edit invalidation, inquiry error recovery and theme preference continuity.
 4. Capture runnable screens at320/390/768/1024/1440px in light/dark; exercise app comfortable/compact modes and existing accent preferences. Test long names, unavailable detail, keyboard focus/overlays, loading/error/empty/denied and failed writes.
 5. Run relevant lint/typechecks/tests/builds and `audit:app`, `audit:internal`, `audit:landing`; theme-token changes additionally require `check:colors`. Broad production changes require repository standards/hygiene/Knip checks and the affected Cloudflare build. No new raster generation counts as those checks.
@@ -241,3 +241,14 @@ Built-in Image Gen received the selected Day ledger image and original brand ass
 Visual review corrected the app's serif patient identity, duplicate continuation actions from the original selected image, and the internal light board's misleading clinic switcher/global search. Both internal themes now identify the operator console and retain scoped page search.
 
 Remaining raster limitations are explicit: generated logos approximate the supplied wordmark; CTA color/texture and type/spacing are not measured token fidelity; landing's embedded app image retains the earlier serif patient label. The written original-brand, sans-serif identity, flat clinical-blue action and semantic theme rules remain binding. Refresh marketing product evidence from the corrected, shipped de-identified screen during implementation. Internal board pagination is illustrative; actual disabled states come from cursor response fields. These images do not establish working controls, contrast scores, response contracts, adoption gains, or production readiness.
+
+
+## Implementation decisions and acceptance (11 October 2026)
+
+The user clarified: **App and internal now; revisit landing afterward.** The Today and facility-review plans are implemented. Other screen-family rows remain design guidance for subsequent composition slices; they are not claimed as implemented by this change.
+
+Today uses Scheduled because the canonical list supplies startTime, not arrival time or a queue token. In Room labels the canonical in-progress appointment, while other rows retain their actual status. The current encounter stays independent of selected preview. Existing app navigation, resizing, theme preferences and topbar composition remain; pinned and topbar Ask AI now open the existing preview shell. Additional global clinic/search/account affordances are a subsequent shell slice, rather than fabricated controls in this ledger change.
+
+Internal lists become ListRow groups below lg so the existing sidebar cannot compress five table columns at tablet width. Facility detail renders all supplied contact fields individually, separate subscription status and real zero counts. Original branding assets are included in internal's static bundle. Billing remains available through the existing navigation.
+
+See [design QA](../../../design-qa.md) for source/capture comparisons, resolved findings, verification evidence and remaining scope. Landing code and its proposed default theme remain deferred; no adoption redesign is included here.

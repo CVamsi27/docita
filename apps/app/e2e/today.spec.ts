@@ -39,6 +39,7 @@ test.describe("Today workspace", () => {
         .getByRole("main")
         .getByRole("heading", { name: "Today", exact: true, level: 1 }),
     ).toBeVisible();
+    await expect(page.getByText(/ · undefined$/)).toHaveCount(0);
     await expectDashboardQueueSectionReady(page);
     await expect(
       page.getByRole("button", { name: "Refresh data" }),

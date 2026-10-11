@@ -1,22 +1,15 @@
 import { Button } from "@workspace/ui/components";
-import { openCommandPaletteFromUi } from "@/components/layout/command-palette-launcher";
+import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 
-/**
- * Sidebar-consistent "Ask AI" trigger. Opens the command palette (which
- * hosts the Ask AI surface) — the same behavior the sidebar footer used
- * before this extraction. Keeping the trigger in one component means the
- * pinned Ask AI entry and any future Ask AI affordance stay visually and
- * behaviorally identical.
- */
 export function AskAiButton({ onOpen }: { onOpen?: () => void } = {}) {
+  const { openOverlay } = useAskAi();
   return (
     <Button
       variant="ghost"
-      onClick={() => {
-        // Mobile callers dismiss the navigation sheet before the palette opens
-        // so the overlay does not stack on top of it.
+      onClick={(event) => {
+        event.currentTarget.focus();
         onOpen?.();
-        openCommandPaletteFromUi();
+        openOverlay();
       }}
       className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors"
     >

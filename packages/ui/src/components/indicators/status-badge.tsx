@@ -33,13 +33,12 @@ export type StatusType =
   | "rejected";
 
 export interface StatusBadgeProps {
-  
   status: StatusType | string;
-  
+
   className?: string;
-  
+
   size?: "sm" | "default";
-  
+
   label?: string;
 }
 
@@ -91,13 +90,11 @@ export function StatusBadge({
     .replace(/_/g, "-") as StatusType;
   const styleClass = statusStyles[normalizedStatus] || statusStyles.info;
   const displayLabel =
-    label ||
-    statusLabels[normalizedStatus] ||
-    humanizeUiLabel(status);
+    label || statusLabels[normalizedStatus] || humanizeUiLabel(status);
 
   return (
     <Badge
-      variant="secondary"
+      variant="semantic"
       className={cn(
         "capitalize font-medium border-0",
         styleClass,
@@ -113,11 +110,10 @@ export function StatusBadge({
 export type PriorityType = "low" | "medium" | "high" | "urgent" | "critical";
 
 export interface PriorityBadgeProps {
-  
   priority: PriorityType | string;
-  
+
   className?: string;
-  
+
   showDot?: boolean;
 }
 
@@ -154,7 +150,7 @@ export function PriorityBadge({
 
   return (
     <Badge
-      variant="secondary"
+      variant="semantic"
       className={cn(
         "capitalize font-medium border-0 gap-1.5",
         styles.bg,
@@ -170,11 +166,10 @@ export function PriorityBadge({
 }
 
 export interface OnlineStatusProps {
-  
   online?: boolean;
-  
+
   label?: string;
-  
+
   className?: string;
 }
 

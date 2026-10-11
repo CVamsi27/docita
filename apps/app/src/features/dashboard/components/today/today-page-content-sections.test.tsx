@@ -3,9 +3,17 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@/test-utils";
 
 import { TodayBottomBarSection } from "./today-page-content-sections";
-import type { AppointmentListItem } from "@workspace/data-access";
+import { appointmentListItemResponseSchema } from "@workspace/types";
 
-const NEXT_PATIENT: AppointmentListItem = {
+const NEXT_PATIENT = appointmentListItemResponseSchema.parse({
+  clinicId: "clinic",
+  patientId: "patient-1",
+  doctorId: "doctor",
+  endTime: "2026-07-13T12:00:00.000Z",
+  status: "scheduled",
+  createdAt: "2026-07-13T00:00:00.000Z",
+  updatedAt: "2026-07-13T00:00:00.000Z",
+  version: 0,
   id: "appt-1",
   startTime: "2026-07-13T11:30:00.000Z",
   patient: {
@@ -13,7 +21,7 @@ const NEXT_PATIENT: AppointmentListItem = {
     firstName: "Riya",
     lastName: "Iyer",
   },
-} as unknown as AppointmentListItem;
+});
 
 describe("TodayBottomBarSection", () => {
   it("renders the in-consult preview with the next patient name and time", () => {
@@ -52,7 +60,9 @@ describe("TodayBottomBarSection", () => {
       "/consultation",
     );
     expect(
-      screen.getByRole("button", { name: /Start next consultation: Riya Iyer/i }),
+      screen.getByRole("button", {
+        name: /Start next consultation: Riya Iyer/i,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -186,5 +196,32 @@ describe("TodayBottomBarSection", () => {
       name: /Start next consultation/i,
     });
     expect(button).toBeDisabled();
+  });
+});
+
+describe("Today current visit dock", () => {
+  it("keeps Continue visible when the current visit has no waiting successor", () => {
+    const currentPatient = appointmentListItemResponseSchema.parse({
+      ...NEXT_PATIENT,
+      id: "active",
+      status: "in-progress",
+    });
+    render(
+      <TodayBottomBarSection
+        canStartConsultation
+        nextPatient={null}
+        hasCurrentPatient
+        currentPatient={currentPatient}
+        isStarting={false}
+        isMutationPending={false}
+        onStartNextPatient={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Continue consultation" }),
+    ).toHaveAttribute("href", "/consultation/active");
+    expect(
+      screen.queryByRole("button", { name: /Start next/ }),
+    ).not.toBeInTheDocument();
   });
 });

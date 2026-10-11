@@ -155,7 +155,7 @@
     "description": "आज के कॉलबैक और नियोजित समीक्षाएँ",
     "viewAll": "फॉलो-अप",
     "loading": "फॉलो-अप लोड हो रहे हैं…",
-    "error": "हम फॉलो-अप लोड नहीं कर सके। पुनः प्रयास करने के लिए फॉलो-अप पेज खोलें।",
+    "error": "फ़ॉलो-अप लोड नहीं हुए। फिर से प्रयास करें।",
     "emptyTitle": "आज कोई फॉलो-अप देय नहीं",
     "emptyDescription": "आज के लिए आप तैयार हैं।",
     "dueDate": "{date} को देय"
@@ -195,5 +195,23 @@
     "copyInviteAriaLabel": "आमंत्रण टेक्स्ट कॉपी करें",
     "copyJoinCodeAriaLabel": "जॉइन कोड कॉपी करें",
     "copyBookingLinkAriaLabel": "बुकिंग लिंक कॉपी करें"
+  },
+  "ledger": {
+    "currentVisit": "वर्तमान परामर्श",
+    "selectedAppointment": "चयनित अपॉइंटमेंट",
+    "scheduled": "निर्धारित समय",
+    "patient": "मरीज़",
+    "status": "स्थिति",
+    "view": "देखें",
+    "selected": "चयनित",
+    "inRoom": "परामर्श में",
+    "reason": "परामर्श का कारण",
+    "returnToCurrent": "वर्तमान परामर्श",
+    "viewPatient": "मरीज़ देखें",
+    "viewAppointmentAria": "अपॉइंटमेंट देखें: {name}",
+    "previewDescription": "सक्रिय परामर्श बदले बिना अपॉइंटमेंट देखें।",
+    "queueDescription": "निर्धारित समय के क्रम में आज के अपॉइंटमेंट",
+    "queueSummary": "{waiting} प्रतीक्षा में · {completed} पूर्ण",
+    "allAppointments": "सभी अपॉइंटमेंट"
   }
 }

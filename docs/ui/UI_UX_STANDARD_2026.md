@@ -220,3 +220,9 @@ For each feature touched (PR C–F), the merging engineer confirms:
 - [ ] Playwright spec covers items 1–5 in §7 (and §7.6 if AI surface).
 - [ ] No raw hex; all colors via tokens.
 - [ ] No app-local duplicates of `@workspace/ui` primitives introduced.
+
+### Record workspaces (11 October 2026)
+
+`@workspace/ui/components/layout/record-workspace` composes a continuous worklist with a 20rem contextual region at xl and a shared Sheet below xl. Consumers own selected IDs and derive records from current query results; selection never implies permission to mutate. The optional summary places the active task above a narrow worklist. Supply a named context, description and initiating button ref for keyboard focus return. Today and internal Dashboard use this pattern with their existing data/permission/theme sources.
+
+`CRUDDialog` accepts `returnFocusRef` for controlled dialogs whose action button is outside a Radix DialogTrigger. Keep drafts after failed requests and initialize a newly opened edit from the current canonical record.

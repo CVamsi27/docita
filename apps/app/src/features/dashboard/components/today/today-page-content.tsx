@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/formatters";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -20,7 +21,6 @@ import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { useSessionRecoveryRedirect } from "@/hooks/use-session-recovery-redirect";
 import { isSessionRecoveryError } from "@/lib/auth/session-recovery";
-import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 import { useStartNextPatient } from "./use-start-next-patient";
 import { deriveTodayRailVisibility } from "./today-page-content-helpers";
 
@@ -35,7 +35,6 @@ export function TodayPageContent() {
     stats,
     todayAppointments,
     completedToday,
-    inProgressToday,
     currentPatient,
     nextPatients,
     waitingCount,
@@ -54,10 +53,14 @@ export function TodayPageContent() {
     onRecovered: refetchAll,
   });
 
-  const summaryLine = useMemo(
-    () => formatDashboardSummary(todayAppointments.length, waitingCount),
-    [todayAppointments.length, waitingCount],
-  );
+  const summaryLine = useMemo(() => {
+    const date = formatDate(new Date(), "EEE, d MMM yyyy", clinic?.timezone);
+    const summary = formatDashboardSummary(
+      todayAppointments.length,
+      waitingCount,
+    );
+    return summary ? `${date} · ${summary}` : date;
+  }, [todayAppointments.length, waitingCount, clinic?.timezone]);
 
   const { isMutationPending, handleStartNextPatient } = useStartNextPatient({
     nextAppointmentId: nextPatients[0]?.id,
@@ -103,11 +106,12 @@ export function TodayPageContent() {
         nextPatients={nextPatients}
         todayAppointments={todayAppointments}
         completedToday={completedToday}
-        inProgressToday={inProgressToday}
         waitingCount={waitingCount}
         pendingJoinRequests={pendingJoinRequests}
         canAccess={canAccess}
-        slotDurationMinutes={clinic?.slotDuration ?? DEFAULT_SLOT_DURATION}
+        timezone={clinic?.timezone}
+        isStarting={isMutationPending}
+        onStartNextPatient={handleStartNextPatient}
         railVisibility={railVisibility}
         referralShare={referralShare}
       />
@@ -115,6 +119,7 @@ export function TodayPageContent() {
         canStartConsultation={canStartConsultation}
         nextPatient={nextPatients[0] ?? null}
         hasCurrentPatient={!!currentPatient}
+        currentPatient={currentPatient}
         isStarting={isMutationPending}
         isMutationPending={isMutationPending}
         onStartNextPatient={handleStartNextPatient}

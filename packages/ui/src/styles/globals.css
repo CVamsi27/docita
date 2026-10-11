@@ -44,7 +44,7 @@
      here than a decorative palette would. */
   --info: oklch(0.51 0.17 256);
   --info-foreground: oklch(0.985 0 0);
-  --success: oklch(0.49 0.15 150);
+  --success: oklch(0.47 0.15 150);
   --success-foreground: oklch(0.985 0 0);
   --warning: oklch(0.51 0.15 75);
   --warning-foreground: oklch(0.985 0 0);
