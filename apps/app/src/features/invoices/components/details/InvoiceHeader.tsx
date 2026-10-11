@@ -71,7 +71,7 @@ export function InvoiceHeader({
         </CardDescription>
       </div>
       <div className="w-full text-left sm:w-auto sm:text-right">
-        <h2 className="ui-section-title mb-1 text-[var(--fs-2xl)] text-primary">
+        <h2 className="ui-section-title mb-1 text-[var(--fs-2xl)] text-foreground">
           {documentTitle}
         </h2>
         <p className="text-sm font-medium text-muted-foreground">

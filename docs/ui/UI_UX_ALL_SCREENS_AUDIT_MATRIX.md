@@ -150,3 +150,15 @@ Internal console pages use shared `AppPageScaffold`, `PageHeader`, and page-leve
 | `/terms`              | legal   | Desktop/mobile smoke verified                              |
 | `/trust`              | landing | Desktop/mobile smoke verified                              |
 | `/whatsapp-workflows` | landing | Desktop/mobile smoke verified                              |
+
+
+## Current workspace completion coverage (2026-10-12)
+
+The dated matrix above is historical; route coverage for this continuation is taken from the current `apps/app/src/App.tsx` and `apps/internal/src/App.tsx` trees. The accepted ledger treatment applies at both protected workspace roots.
+
+- Clinician: 52 static destinations including the Dashboard compatibility redirect, plus seven dynamic patient, encounter, prescription, invoice detail/edit and claim detail/edit patterns. The Upgrade compatibility route now opens the existing Plan & Billing settings workflow.
+- Internal: all 18 protected destinations and Login. Audits assert page identity, the browser title and resolved theme at desktop, phone, tablet and laptop widths.
+- Dynamic record checks exercise populated patient Records sections, the active encounter workspace, prescription identity, invoice identity and editable invoice items. Claims retains its canonical Coming soon state.
+- Public, onboarding and patient/partner/lab portals retain their separate layouts; shared route loading remains bounded and named. Landing adoption work remains deferred.
+
+See [current design QA](../../design-qa.md) for the findings, screenshots, passing-check counts and limits of verification, and [the completion plan](../superpowers/plans/2026-10-12-workspace-page-completion.md) for execution scope. This coverage does not claim every role/tier permutation or all clinical, messaging and payment lifecycle mutations.

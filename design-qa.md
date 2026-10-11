@@ -113,3 +113,43 @@ Final acceptance:
 - Final lint, app/internal/UI typechecks and both Cloudflare builds passed. Existing large-chunk advisories remain informational.
 
 The compact AI control was manually opened from the rail and closed with Escape; focus returned to the initiating button. Its existing coming-soon state and medical-advice footer are preserved. These refinements add no clinical AI capability or new authorization policy.
+
+
+## Record and page-state completion (2026-10-12)
+
+This pass follows the accepted app/internal ledger design. Landing remains deferred. Inventory was checked against the current React Router trees: 59 protected clinician route patterns (52 static destinations including the Dashboard redirect and seven record detail/edit patterns), and 18 protected internal destinations plus Login. Public, onboarding, patient/partner/lab portals retain their separate layouts and existing flow coverage. The shared route loading fallback also applies to those shells.
+
+| Finding | Correction | Evidence |
+| --- | --- | --- |
+| Internal sidebar destinations were buttons, with no ordinary link affordances or collapsed keyboard hints | Button-asChild React Router Links, current-page semantics and shared rail tooltips; ordinary mobile navigation closes its sheet | Shell regressions and real internal route audits |
+| Internal browser titles reverted to the root default under development StrictMode | A single page metadata owner uses React's native head metadata; protected titles derive from the existing navigation labels | Browser title failure reproduced, then Login/Dashboard passed; full audit asserts each title |
+| Disabled PageTabs could still activate, and disabling the current tab removed the tablist from keyboard navigation | Actual disabled buttons and an enabled fallback tab stop | Failing then passing shared tab regressions |
+| Analytics treated a failed billing read as empty revenue | Both data sources participate in the page error and Retry | Real React Query failure/retry regression |
+| Invoice detail/edit and prescription read failures lost page identity or appeared as missing records | Shared page scaffold/header and loading/error/empty states, retrying the existing query | Record-state unit regressions |
+| Prescription read errors raised a toast during render | Visible inline error/retry, with mutation toasts retained in handlers | Rerender regression checks no toast |
+| Invoice update controls remained available during a pending save | Existing saving state disables the footer actions and exposes busy semantics | Pending-update regression |
+| Invoice descriptions were squeezed to 82px despite staying inside the page | Explicit desktop column widths in the existing contained table; phone item cards retained | Real width failure followed by passing record checks |
+| Populated invoice fields and Notes lacked explicit accessible names | Existing translated column labels and associated FormLabel for Notes | Real record axe failures and named-field regressions |
+| Patient/prescription/invoice text lost contrast through extra opacity or small primary-colored text in dark mode | Canonical text tokens without opacity for identities, contact/registration labels and document titles | Real populated light/dark contrast audits |
+| Cold record reads could remain disabled after permission hydration | Subscribe the data-access bridge to the existing permission store, refreshing query eligibility | Failing/passing transition regression including access loss and planned Claims denial |
+| Upgrade displayed inactive controls and a hardcoded obsolete plan list | Compatibility redirect to the canonical Plan & Billing workflow | Route regression and real browser destination/heading assertions |
+
+Populated browser fixtures are created through canonical API schemas in an isolated local synthetic database, with the existing consultation, prescription signature/registration and invoice guards intact. The patient Records tab and all six secondary sections are exercised. Insurance Claims is canonically planned and remains Coming soon on both detail/edit routes; no claim write or access bypass is introduced. Checks preserve real loaded names, invoice line items and encounter workspaces instead of accepting only a heading.
+
+These checks establish layout, navigation, read states and the specified pending-action behavior. They do not establish all role/tier combinations, clinical completion, external message delivery, payment settlement or every lifecycle mutation. External providers are disabled for local review; the existing asynchronous invoice staff-notification listener reported a tenant-context error after a successful invoice fixture write, so notification delivery is not counted as verified.
+
+Final acceptance for this pass:
+
+- Clinician route sweep: eight passing cases, covering all 59 route patterns in both themes on desktop and phone (236 route visits), plus all six patient Records sections. Populated record checks include serious/critical axe findings, loaded identity and readable invoice fields.
+- Accessibility: 160 full app cases and 152 internal cases (76 per theme) passed. Internal covers all 18 protected pages and Login on desktop, phone, tablet and laptop.
+- Full unit suites: app 972 tests/186 files, internal 170/30 and shared UI 152/36 passed. The subsequently added permission-hydration regression passed in a focused seven-test run, bringing distinct passing unit coverage to 1,295 tests.
+- Final lint, app/internal/shared typechecks and both Cloudflare builds passed. Repository standards, hygiene, Knip, duplication and semantic color/contrast checks passed; duplication reports zero clones. The existing missing staging API-latency artifact skip and large frontend chunk advisory remain informational.
+- Staged diff checks passed. Runtime fixtures, private credentials, browser reports and generated logs are excluded from the commit.
+
+Final screenshot evidence is under the implementation capture directory's `page-completion` folder. Clinician desktop captures use 1280×720 CSS/image pixels at density 1; phone captures use 390×844 CSS pixels at density 2.75 (1073×2321 image pixels).
+
+| Surface | Light | Dark |
+| --- | --- | --- |
+| Populated invoice editor, desktop | [Capture](/Users/vamsikrishnachandaluri/.codex-multi-2/visualizations/2026/10/07/01a11799-0f96-7852-adc2-54091a88d93a/ledger-implementation/page-completion/record-4-light-chromium.png) | [Capture](/Users/vamsikrishnachandaluri/.codex-multi-2/visualizations/2026/10/07/01a11799-0f96-7852-adc2-54091a88d93a/ledger-implementation/page-completion/record-4-dark-chromium.png) |
+| Populated invoice editor, phone | [Capture](/Users/vamsikrishnachandaluri/.codex-multi-2/visualizations/2026/10/07/01a11799-0f96-7852-adc2-54091a88d93a/ledger-implementation/page-completion/record-4-light-mobile-chrome.png) | [Capture](/Users/vamsikrishnachandaluri/.codex-multi-2/visualizations/2026/10/07/01a11799-0f96-7852-adc2-54091a88d93a/ledger-implementation/page-completion/record-4-dark-mobile-chrome.png) |
+| Internal Dashboard, desktop | [Capture](/Users/vamsikrishnachandaluri/.codex-multi-2/visualizations/2026/10/07/01a11799-0f96-7852-adc2-54091a88d93a/ledger-implementation/page-completion/internal-dashboard-light-chromium.png) | [Capture](/Users/vamsikrishnachandaluri/.codex-multi-2/visualizations/2026/10/07/01a11799-0f96-7852-adc2-54091a88d93a/ledger-implementation/page-completion/internal-dashboard-dark-chromium.png) |

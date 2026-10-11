@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, useNavigate, useLocation } from "react-router";
+import { Link, Outlet, useLocation } from "react-router";
 import { useAuth } from "@/lib/auth/auth";
 import {
   LayoutDashboard,
@@ -39,6 +39,8 @@ import {
 } from "@workspace/ui/components/overlay/sheet";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { useAppTheme } from "@/components/layout/theme-context";
+import { PageMeta } from "@/components/layout/page-meta";
+import { SidebarRailTooltip } from "@workspace/ui/components/navigation/sidebar-rail-tooltip";
 
 const navItems = [
   {
@@ -99,7 +101,7 @@ function ConsoleNavigation({
   onNavigate,
 }: {
   collapsed: boolean;
-  onNavigate: (href: string) => void;
+  onNavigate: () => void;
 }) {
   const location = useLocation();
   return (
@@ -119,21 +121,40 @@ function ConsoleNavigation({
               const active =
                 location.pathname === item.href ||
                 location.pathname.startsWith(item.href + "/");
-              return (
+              const link = (
                 <Button
                   key={item.href}
-                  type="button"
+                  asChild
                   variant="ghost"
-                  aria-label={item.label}
-                  aria-current={active ? "page" : undefined}
-                  onClick={() => onNavigate(item.href)}
                   className={`h-10 w-full justify-start gap-3 px-2 text-sm ${active ? "bg-muted font-medium text-foreground" : "font-normal text-muted-foreground"}`}
                 >
-                  <item.icon className="size-4 shrink-0" aria-hidden />
-                  {!collapsed ? (
-                    <span className="truncate">{item.label}</span>
-                  ) : null}
+                  <Link
+                    to={item.href}
+                    aria-label={collapsed ? item.label : undefined}
+                    aria-current={active ? "page" : undefined}
+                    onClick={(event) => {
+                      if (
+                        !event.metaKey &&
+                        !event.ctrlKey &&
+                        !event.shiftKey &&
+                        !event.altKey
+                      )
+                        onNavigate();
+                    }}
+                  >
+                    <item.icon className="size-4 shrink-0" aria-hidden />
+                    {!collapsed ? (
+                      <span className="truncate">{item.label}</span>
+                    ) : null}
+                  </Link>
                 </Button>
+              );
+              return collapsed ? (
+                <SidebarRailTooltip key={item.href} label={item.label}>
+                  {link}
+                </SidebarRailTooltip>
+              ) : (
+                link
               );
             })}
           </div>
@@ -174,16 +195,23 @@ function ConsoleFooter({ collapsed }: { collapsed: boolean }) {
 }
 
 export function ProtectedLayout() {
-  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPage = navItems
+    .flatMap((group) => group.items)
+    .find(
+      (item) =>
+        location.pathname === item.href ||
+        location.pathname.startsWith(item.href + "/"),
+    );
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const handleNavigate = (href: string) => {
+  const handleNavigate = () => {
     setMobileOpen(false);
-    void navigate(href);
   };
 
   return (
     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+      <PageMeta title={currentPage?.label ?? "Internal console"} />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"

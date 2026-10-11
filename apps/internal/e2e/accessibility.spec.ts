@@ -7,6 +7,9 @@ import {
   scanAuditRoute,
 } from "./utils/accessibility-audit";
 
+const AUDIT_THEME = process.env["AUDIT_THEME"] === "dark" ? "dark" : "light";
+test.use({ colorScheme: AUDIT_THEME });
+
 const AUDIT_PAGES = [
   { path: "/login", name: "Login", heading: "Docita Internal" },
   { path: "/dashboard", name: "Dashboard", heading: "Dashboard" },
@@ -17,7 +20,11 @@ const AUDIT_PAGES = [
   { path: "/performance", name: "Performance", heading: "Operational metrics" },
   { path: "/billing", name: "Billing", heading: "Billing Dashboard" },
   { path: "/pricing", name: "Pricing", heading: "Pricing Management" },
-  { path: "/payment-processing", name: "Payment Processing", heading: "Payment Processing" },
+  {
+    path: "/payment-processing",
+    name: "Payment Processing",
+    heading: "Payment Processing",
+  },
   { path: "/audits", name: "Audits", heading: "Audit Logs" },
   { path: "/logs", name: "Logs", heading: "System Logs" },
   { path: "/broadcasts", name: "Broadcasts", heading: "Broadcasts" },
@@ -25,8 +32,16 @@ const AUDIT_PAGES = [
   { path: "/feedback", name: "Feedback", heading: "Feedback Portal" },
   { path: "/referrals", name: "Referrals", heading: "Referrals" },
   { path: "/leads", name: "Leads", heading: "Facility Leads" },
-  { path: "/enterprise-contracts", name: "Enterprise Contracts", heading: "Enterprise Contracts" },
-  { path: "/system-monitoring", name: "System Monitoring", heading: "System Monitoring" },
+  {
+    path: "/enterprise-contracts",
+    name: "Enterprise Contracts",
+    heading: "Enterprise Contracts",
+  },
+  {
+    path: "/system-monitoring",
+    name: "System Monitoring",
+    heading: "System Monitoring",
+  },
 ];
 
 test.describe("Accessibility Audit - Internal Admin App", () => {
@@ -107,12 +122,27 @@ test.describe("Accessibility Audit - Internal Admin App", () => {
         pageConfig.path,
         pageConfig.heading,
       );
+      await expect(page).toHaveTitle(
+        `${pageConfig.path === "/login" ? "Admin Login" : pageConfig.name} – Docita Internal`,
+      );
+      await expect(page.locator("html")).toHaveAttribute(
+        "data-theme",
+        AUDIT_THEME,
+      );
       await testInfo.attach("accessibility-violations", {
         body: JSON.stringify(result.violations),
         contentType: "application/json",
       });
       assertAccessibleViolations(result.violations);
       result.status = "passed";
+      const evidenceDir = process.env["WORKSPACE_QA_DIR"];
+      if (evidenceDir)
+        await page.screenshot({
+          path: path.join(
+            evidenceDir,
+            `internal-${pageConfig.name.toLowerCase().replaceAll(" ", "-")}-${AUDIT_THEME}-${testInfo.project.name}.png`,
+          ),
+        });
     });
   }
 

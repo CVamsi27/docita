@@ -12,7 +12,11 @@ const items = [
 describe("PageTabs", () => {
   it("marks the active tab with aria-selected", () => {
     render(
-      <PageTabs items={items} activeId="transactions" onSelect={() => undefined} />,
+      <PageTabs
+        items={items}
+        activeId="transactions"
+        onSelect={() => undefined}
+      />,
     );
     const active = screen.getByRole("tab", { name: /transactions/i });
     expect(active).toHaveAttribute("aria-selected", "true");
@@ -35,6 +39,26 @@ describe("PageTabs", () => {
     render(<PageTabs items={disabledItems} activeId="overview" />);
     const locked = screen.getByRole("tab", { name: /locked/i });
     expect(locked).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("prevents activation of disabled tabs, including the active tab", () => {
+    const onSelect = vi.fn();
+    render(
+      <PageTabs
+        items={[{ id: "locked", label: "Locked", disabled: true }, items[0]]}
+        activeId="locked"
+        onSelect={onSelect}
+      />,
+    );
+    const locked = screen.getByRole("tab", { name: "Locked" });
+    expect(locked).toBeDisabled();
+    expect(locked).toHaveAttribute("tabindex", "-1");
+    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "tabindex",
+      "0",
+    );
+    fireEvent.click(locked);
+    expect(onSelect).not.toHaveBeenCalled();
   });
 
   it("moves focus and selection with arrow keys", () => {

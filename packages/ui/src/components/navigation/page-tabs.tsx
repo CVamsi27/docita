@@ -40,6 +40,8 @@ export function PageTabs({
 }: PageTabsProps) {
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const tabStopId = items.find((item) => item.id === activeId && !item.disabled)?.id
+    ?? items.find((item) => !item.disabled)?.id;
 
   useEffect(() => {
     activeTabRef.current?.scrollIntoView?.({
@@ -125,7 +127,8 @@ export function PageTabs({
               role="tab"
               aria-selected={isActive}
               aria-disabled={item.disabled}
-              tabIndex={isActive ? 0 : -1}
+              disabled={item.disabled}
+              tabIndex={item.id === tabStopId ? 0 : -1}
               className={sharedClass}
               onClick={() => onSelect?.(item.id)}
             >

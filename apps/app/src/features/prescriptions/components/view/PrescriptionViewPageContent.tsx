@@ -1,10 +1,19 @@
 import { useEffect, useRef } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileX } from "lucide-react";
 import { toast } from "sonner";
-import { queryKeys, usePrescription, useResendPrescriptionWhatsApp } from "@workspace/data-access";
-import { LoadingState, EmptyState } from "@workspace/ui/components/feedback/empty-state";
+import {
+  queryKeys,
+  usePrescription,
+  useResendPrescriptionWhatsApp,
+} from "@workspace/data-access";
+import {
+  AppPageScaffold,
+  Button,
+  DataState,
+  PageHeader,
+} from "@workspace/ui/components";
 import { PrintSheet } from "@workspace/ui/components/print-sheet";
 import { Feature } from "@workspace/types";
 import { isRecord } from "@workspace/utils";
@@ -55,6 +64,7 @@ export function PrescriptionViewPageContent() {
     data: prescription,
     isLoading,
     error,
+    refetch,
   } = usePrescription(prescriptionId);
 
   const resendWhatsApp = useResendPrescriptionWhatsApp(prescriptionId);
@@ -97,33 +107,35 @@ export function PrescriptionViewPageContent() {
     window.print();
   };
 
-  if (error) {
-    showUserFacingErrorToast(
-      error,
-      "We could not load this prescription. Please try again.",
-      "load",
-    );
-  }
-
-  if (isLoading) return (
-      <LoadingState
-        message="Loading prescription..."
-        className="min-h-[50vh]"
-      />
-    );
-
-  if (!prescription) {
+  if (isLoading || error || !prescription) {
     return (
-      <EmptyState
-        icon={FileX}
-        title="Prescription not found"
-        description="The prescription you are looking for is unavailable."
-        action={{
-          label: "Back to Prescriptions",
-          onClick: () => navigate("/prescriptions"),
-        }}
-        className="min-h-[50vh]"
-      />
+      <PageFeatureGate
+        feature={Feature.DIGITAL_PRESCRIPTIONS}
+        title="Prescription"
+      >
+        <AppPageScaffold
+          header={
+            <PageHeader
+              title="Prescription"
+              actions={
+                <Button asChild variant="outline">
+                  <Link to="/prescriptions">Back to Prescriptions</Link>
+                </Button>
+              }
+            />
+          }
+        >
+          <DataState
+            status={isLoading ? "loading" : error ? "error" : "empty"}
+            loadingMessage="Loading prescription..."
+            errorMessage="We could not load this prescription. Please try again."
+            onRetry={() => void refetch()}
+            emptyIcon={FileX}
+            emptyTitle="Prescription not found"
+            emptyDescription="The prescription you are looking for is unavailable."
+          />
+        </AppPageScaffold>
+      </PageFeatureGate>
     );
   }
 

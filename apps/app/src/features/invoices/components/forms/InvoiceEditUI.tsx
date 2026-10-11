@@ -1,7 +1,13 @@
 import { FC, type ReactNode } from "react";
 import { Feature } from "@workspace/types";
 import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
-import { Button, EmptyState, Form, LoadingState } from "@workspace/ui/components";
+import {
+  AppPageScaffold,
+  Button,
+  DataState,
+  Form,
+  PageHeader,
+} from "@workspace/ui/components";
 import { FileText, Save } from "lucide-react";
 import { useInvoiceEditLogic } from "@/features/invoices/hooks/use-invoice-edit-logic";
 import { BackButton } from "@/components/navigation/back-button";
@@ -19,10 +25,7 @@ interface InvoiceEditUIProps {
 
 function withInvoicingGate(node: ReactNode) {
   return (
-    <PageFeatureGate
-      feature={Feature.INVOICING}
-      title="Edit invoice"
-    >
+    <PageFeatureGate feature={Feature.INVOICING} title="Edit invoice">
       {node}
     </PageFeatureGate>
   );
@@ -39,24 +42,30 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
     onSubmit,
     invoice,
     isLoading,
+    isSaving,
+    error,
+    refetch,
     totalAmount,
     router,
   } = useInvoiceEditLogic(invoiceId);
 
-  if (isLoading)
-    return withInvoicingGate(<LoadingState message="Loading invoice…" />);
-
-  if (!invoice) {
+  if (isLoading || error || !invoice) {
     return withInvoicingGate(
-      <EmptyState
-        icon={FileText}
-        title="Invoice not found"
-        description="The invoice you are looking for does not exist"
-        action={{
-          label: "Back to Invoices",
-          onClick: () => router("/invoices"),
-        }}
-      />,
+      <AppPageScaffold header={<PageHeader title="Edit invoice" />}>
+        <DataState
+          status={isLoading ? "loading" : error ? "error" : "empty"}
+          loadingMessage="Loading invoice…"
+          errorMessage="We could not load this invoice. Please try again."
+          onRetry={() => void refetch()}
+          emptyIcon={FileText}
+          emptyTitle="Invoice not found"
+          emptyDescription="The invoice you are looking for is unavailable."
+          emptyAction={{
+            label: "Back to Invoices",
+            onClick: () => router("/invoices"),
+          }}
+        />
+      </AppPageScaffold>,
     );
   }
 
@@ -92,11 +101,16 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
 
           <InvoiceNotesSection control={form.control} />
 
-          <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={goBack}>
+          <div className="flex flex-wrap justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={goBack}
+              disabled={isSaving}
+            >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={isSaving} aria-busy={isSaving}>
               <Save className="h-4 w-4 mr-2" />
               Update Invoice
             </Button>
