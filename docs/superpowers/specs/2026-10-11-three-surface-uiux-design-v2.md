@@ -1,6 +1,6 @@
 # Docita UI/UX revision: composition before implementation
 
-Date: 11 October 2026. Status: revised plan and visual exploration; no direction selected and no production implementation authorized by this revision. Priority remains **landing, app, and internal together**.
+Date: 11 October 2026. Status: the user selected displayed option 3 for app/internal and requested separate adoption-oriented landing and dark-mode refinements; see [the detailed selected-direction design](2026-10-11-ledger-and-adoption-detailed-design.md). The exploration below records the selection context. Priority remains **landing, app, and internal together**.
 
 ## What changes from the first proposal
 
