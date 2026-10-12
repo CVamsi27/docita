@@ -305,7 +305,7 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
   }
 
   async findForUpdate(id: string, clinicId: string) {
-    return this.getReadClient().appointment.findFirst({
+    const row = await this.getReadClient().appointment.findFirst({
       where: { id, clinicId },
       select: {
         id: true,
@@ -314,7 +314,10 @@ export class PrismaAppointmentReadRepository implements IAppointmentReadReposito
         doctorId: true,
         startTime: true,
         endTime: true,
+        status: true,
       },
     });
+    if (!row) return null;
+    return { ...row, status: PRISMA_TO_DOMAIN_STATUS[row.status] };
   }
 }

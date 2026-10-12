@@ -4,7 +4,8 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { AppointmentRequestStatus } from '@workspace/db';
+import { AppointmentRequestStatus, Prisma } from '@workspace/db';
+import { createHash } from 'crypto';
 import { AppointmentRequestCommandService } from './appointment-request-command.service';
 import type {
   AppointmentRequestWithRelations,
@@ -46,6 +47,9 @@ function makeCtx() {
     findMatchingAppointment: jest
       .fn<IAppointmentRequestRepository['findMatchingAppointment']>()
       .mockResolvedValue(null),
+    findPendingBySlotKey: jest
+      .fn<IAppointmentRequestRepository['findPendingBySlotKey']>()
+      .mockResolvedValue(null),
     doctorBelongsToClinic: jest
       .fn<IAppointmentRequestRepository['doctorBelongsToClinic']>()
       .mockResolvedValue(true),
@@ -84,6 +88,167 @@ describe('AppointmentRequestCommandService.createPatientRequest', () => {
       } as never),
     ).rejects.toThrow(BadRequestException);
     expect(ctx.repo.create).not.toHaveBeenCalled();
+  });
+});
+
+const slotRequestInput = {
+  preferredDoctorId: 'doctor-1',
+  preferredDate: '2026-07-10T09:00:00Z',
+  requestedSlotStart: '2026-07-10T09:00:00Z',
+  requestedSlotEnd: '2026-07-10T09:30:00Z',
+  reason: 'Cough',
+} as never;
+
+const slotKeyFor = (parts: string[]) =>
+  createHash('sha256').update(parts.join('|')).digest('hex');
+
+const uniqueConstraintError = (target: string[]) =>
+  new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+    code: 'P2002',
+    clientVersion: 'test',
+    meta: { target },
+  });
+
+describe('AppointmentRequestCommandService.createPatientRequest slot hold', () => {
+  let ctx: ReturnType<typeof makeCtx>;
+  beforeEach(() => {
+    ctx = makeCtx();
+  });
+
+  it('returns the existing pending request for a retried submission of the same doctor and slot', async () => {
+    ctx.repo.findPendingBySlotKey.mockResolvedValueOnce(pendingRequest);
+
+    const response = await ctx.service.createPatientRequest(
+      'patient-1',
+      'clinic-1',
+      slotRequestInput,
+    );
+
+    expect(response.id).toBe('req-1');
+    expect(ctx.repo.create).not.toHaveBeenCalled();
+    expect(ctx.staffNotifications.notifyStaff).not.toHaveBeenCalled();
+  });
+
+  it('stores a slot hold key derived from clinic, patient, doctor, and slot start', async () => {
+    await ctx.service.createPatientRequest(
+      'patient-1',
+      'clinic-1',
+      slotRequestInput,
+    );
+
+    expect(ctx.repo.findPendingBySlotKey).toHaveBeenCalledWith(
+      slotKeyFor([
+        'clinic-1',
+        'patient-1',
+        'doctor-1',
+        '2026-07-10T09:00:00.000Z',
+      ]),
+    );
+    expect(ctx.repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pendingSlotKey: slotKeyFor([
+          'clinic-1',
+          'patient-1',
+          'doctor-1',
+          '2026-07-10T09:00:00.000Z',
+        ]),
+      }),
+    );
+  });
+
+  it('does not dedupe another patient, doctor, or time on the same key', async () => {
+    await ctx.service.createPatientRequest(
+      'patient-1',
+      'clinic-1',
+      slotRequestInput,
+    );
+    await ctx.service.createPatientRequest('patient-1', 'clinic-1', {
+      ...(slotRequestInput as object),
+      requestedSlotStart: '2026-07-10T10:00:00Z',
+      requestedSlotEnd: '2026-07-10T10:30:00Z',
+    } as never);
+    await ctx.service.createPatientRequest(
+      'patient-2',
+      'clinic-1',
+      slotRequestInput,
+    );
+    await ctx.service.createPatientRequest('patient-1', 'clinic-1', {
+      ...(slotRequestInput as object),
+      preferredDoctorId: 'doctor-2',
+    } as never);
+
+    const keys = ctx.repo.create.mock.calls.map(
+      ([data]) => data.pendingSlotKey,
+    );
+    expect(keys).toHaveLength(4);
+    expect(new Set(keys).size).toBe(4);
+  });
+
+  it('returns the winner when a concurrent submit claims the same slot (P2002 recovery)', async () => {
+    ctx.repo.findPendingBySlotKey
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(pendingRequest);
+    ctx.repo.create.mockRejectedValueOnce(
+      uniqueConstraintError(['pendingSlotKey']),
+    );
+
+    const response = await ctx.service.createPatientRequest(
+      'patient-1',
+      'clinic-1',
+      slotRequestInput,
+    );
+
+    expect(response.id).toBe('req-1');
+    expect(ctx.repo.findPendingBySlotKey).toHaveBeenCalledTimes(2);
+    expect(ctx.staffNotifications.notifyStaff).not.toHaveBeenCalled();
+  });
+
+  it('rethrows a P2002 on an unrelated constraint instead of hiding it', async () => {
+    const conflict = uniqueConstraintError(['somethingElse']);
+    ctx.repo.create.mockRejectedValueOnce(conflict);
+
+    await expect(
+      ctx.service.createPatientRequest(
+        'patient-1',
+        'clinic-1',
+        slotRequestInput,
+      ),
+    ).rejects.toBe(conflict);
+    expect(ctx.repo.findPendingBySlotKey).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows the slot P2002 when the winner cannot be re-read', async () => {
+    const conflict = uniqueConstraintError(['pendingSlotKey']);
+    ctx.repo.create.mockRejectedValueOnce(conflict);
+
+    await expect(
+      ctx.service.createPatientRequest(
+        'patient-1',
+        'clinic-1',
+        slotRequestInput,
+      ),
+    ).rejects.toBe(conflict);
+  });
+
+  it('skips the slot hold when the request names no slot', async () => {
+    await ctx.service.createPatientRequest('patient-1', 'clinic-1', {
+      preferredDoctorId: 'doctor-1',
+      preferredDate: '2026-07-10T09:00:00Z',
+    } as never);
+
+    expect(ctx.repo.findPendingBySlotKey).not.toHaveBeenCalled();
+    expect(ctx.repo.create.mock.calls[0][0].pendingSlotKey).toBeUndefined();
+  });
+
+  it('skips the slot hold when the request names no doctor', async () => {
+    await ctx.service.createPatientRequest('patient-1', 'clinic-1', {
+      preferredDate: '2026-07-10T09:00:00Z',
+      requestedSlotStart: '2026-07-10T09:00:00Z',
+      requestedSlotEnd: '2026-07-10T09:30:00Z',
+    } as never);
+
+    expect(ctx.repo.findPendingBySlotKey).not.toHaveBeenCalled();
+    expect(ctx.repo.create.mock.calls[0][0].pendingSlotKey).toBeUndefined();
   });
 });
 

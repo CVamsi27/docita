@@ -1,49 +1,51 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import type { SearchEntityType } from './search.types';
+import {
+  searchResultTypeSchema,
+  type SearchEntityType,
+  type SearchResultType,
+} from '@workspace/types';
 import type { ISearchStrategy } from './strategies/search-strategy.interface';
 import { PatientSearchStrategy } from './strategies/patient-search.strategy';
 import { AppointmentSearchStrategy } from './strategies/appointment-search.strategy';
 import { PrescriptionSearchStrategy } from './strategies/prescription-search.strategy';
 
-const SEARCHABLE_ENTITY_TYPES = [
-  'patient',
-  'appointment',
-  'prescription',
-] as const satisfies readonly Exclude<SearchEntityType, 'all'>[];
+/**
+ * The searchable types, read off the wire contract instead of restated here, so
+ * adding a strategy cannot leave this list quietly behind.
+ */
+const SEARCHABLE_ENTITY_TYPES = searchResultTypeSchema.options;
 
 @Injectable()
 export class SearchStrategyRegistry {
-  private readonly strategies: Map<
-    Exclude<SearchEntityType, 'all'>,
-    ISearchStrategy
-  >;
+  private readonly strategies: Map<SearchResultType, ISearchStrategy>;
 
   constructor(
     patientStrategy: PatientSearchStrategy,
     appointmentStrategy: AppointmentSearchStrategy,
     prescriptionStrategy: PrescriptionSearchStrategy,
   ) {
-    this.strategies = new Map<
-      Exclude<SearchEntityType, 'all'>,
-      ISearchStrategy
-    >([
-      ['patient', patientStrategy],
-      ['appointment', appointmentStrategy],
-      ['prescription', prescriptionStrategy],
-    ]);
+    // `Record<SearchResultType, ...>` is the exhaustiveness check: adding a
+    // type to the wire contract without shipping a strategy for it is a
+    // compile error here.
+    const byType: Record<SearchResultType, ISearchStrategy> = {
+      patient: patientStrategy,
+      appointment: appointmentStrategy,
+      prescription: prescriptionStrategy,
+    };
+    const entries: [SearchResultType, ISearchStrategy][] =
+      SEARCHABLE_ENTITY_TYPES.map((type) => [type, byType[type]]);
+    this.strategies = new Map(entries);
   }
 
-  resolveTypes(types: SearchEntityType[]): Exclude<SearchEntityType, 'all'>[] {
+  resolveTypes(types: SearchEntityType[]): SearchResultType[] {
     if (types.includes('all')) {
       return [...SEARCHABLE_ENTITY_TYPES];
     }
 
-    return types.filter(
-      (type): type is Exclude<SearchEntityType, 'all'> => type !== 'all',
-    );
+    return types.filter((type): type is SearchResultType => type !== 'all');
   }
 
-  get(entityType: Exclude<SearchEntityType, 'all'>): ISearchStrategy {
+  get(entityType: SearchResultType): ISearchStrategy {
     const strategy = this.strategies.get(entityType);
     if (!strategy) {
       throw new BadRequestException(

@@ -1,13 +1,20 @@
-import { apiFetch } from "@/lib/api/api-client";
+import { searchResponseSchema } from "@workspace/types";
 
-export interface SearchResult {
-  id: string;
-  type: "patient" | "appointment" | "prescription";
-  title: string;
-  subtitle?: string;
-  meta?: Record<string, unknown>;
-}
+import { api } from "@/lib/api/api-client";
 
-export async function searchGlobal(searchQuery: string): Promise<SearchResult[]> {
-  return apiFetch<SearchResult[]>(`/search?q=${encodeURIComponent(searchQuery)}`);
+/**
+ * `SearchResult` used to be hand-written here and cast over
+ * `apiFetch<SearchResult[]>`, which checked nothing at runtime and had already
+ * dropped the `relevanceScore` the strategies emit. The shape now comes from
+ * the shared contract, and the response is parsed with it so an unknown result
+ * type fails loudly here instead of reaching `searchResultRoutes`, which is
+ * total over the three entity types with no fallback branch.
+ */
+export type { SearchResult } from "@workspace/types";
+
+export async function searchGlobal(searchQuery: string) {
+  return api.validate(
+    `/search?q=${encodeURIComponent(searchQuery)}`,
+    searchResponseSchema,
+  );
 }

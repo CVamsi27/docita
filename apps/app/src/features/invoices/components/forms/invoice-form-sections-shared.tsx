@@ -212,6 +212,7 @@ export function InvoiceNotesSection({
           name="notes"
           render={({ field }) => (
             <FormItem>
+              <FormLabel className="sr-only">{t("formSections.notesTitle")}</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder={t("formSections.notesPlaceholder")}

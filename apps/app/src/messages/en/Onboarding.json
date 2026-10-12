@@ -52,7 +52,8 @@
     "nextStepsBody1": "The facility administrator will review your request and respond within 7 days",
     "nextStepsBody2": "You will receive notifications via WhatsApp and email when your request is reviewed",
     "withdrawingLabel": "Withdrawing…",
-    "withdrawButton": "Withdraw Request"
+    "withdrawButton": "Withdraw Request",
+    "statusPending": "Pending review"
   },
   "weeklyHours": {
     "opens": "Opens",

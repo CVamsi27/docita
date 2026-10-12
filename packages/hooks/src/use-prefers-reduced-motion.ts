@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
  *
  * SSR-safe: starts as `false` and updates after mount.
  */
-export function usePrefersReducedMotion(): boolean {
+function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
 
   useEffect(() => {

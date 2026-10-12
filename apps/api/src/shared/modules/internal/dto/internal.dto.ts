@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
   internalGlobalStatsSchema,
+  internalDashboardStatsSchema,
   internalAnalyticsSchema,
   internalPerformanceMetricsSchema,
   internalAIFeatureCatalogSchema,
@@ -15,6 +16,7 @@ import {
   internalAdminListEntrySchema,
   internalUserListEntrySchema,
   userSchema,
+  successResponseSchema,
 } from '@workspace/types';
 
 export class InternalClinicListQueryDto extends createZodDto(
@@ -23,6 +25,9 @@ export class InternalClinicListQueryDto extends createZodDto(
 
 export class InternalGlobalStatsResponseDto extends createZodDto(
   internalGlobalStatsSchema,
+) {}
+export class InternalDashboardStatsResponseDto extends createZodDto(
+  internalDashboardStatsSchema,
 ) {}
 export class InternalAnalyticsResponseDto extends createZodDto(
   internalAnalyticsSchema,
@@ -66,6 +71,4 @@ export class InternalUserListWithClinicResponseDto extends createZodDto(
   z.array(internalUserListEntrySchema),
 ) {}
 
-export class SuccessResponseDto extends createZodDto(
-  z.object({ success: z.boolean(), message: z.string().optional() }),
-) {}
+export class SuccessResponseDto extends createZodDto(successResponseSchema) {}

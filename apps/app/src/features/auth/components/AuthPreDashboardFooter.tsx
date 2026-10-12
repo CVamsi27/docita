@@ -37,6 +37,7 @@ export function AuthPreDashboardFooter({
             "flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-b border-border/50 pb-4 text-[length:var(--fs-xs)] text-muted-foreground",
             trustRowClassName,
           )}
+          role="list"
           aria-label={t("footer.ariaPrivacy")}
         >
           {AUTH_ASSURANCE_ITEMS.map((item) => {
@@ -44,6 +45,7 @@ export function AuthPreDashboardFooter({
             return (
               <span
                 key={item.labelKey}
+                role="listitem"
                 className="inline-flex items-center gap-1.5"
               >
                 <Icon

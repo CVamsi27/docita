@@ -56,7 +56,7 @@ export class ClinicDataCommandService {
       attempts++;
     }
 
-    return this.repository.create({
+    const clinic = await this.repository.create({
       ...clinicInput,
       logo: data.logo,
       type: data.type,
@@ -66,6 +66,7 @@ export class ClinicDataCommandService {
         : 'TRIALING',
       settings: toInputJsonValue(clinicInput.settings),
     });
+    return { ...clinic, logo: clinic.logo ?? undefined };
   }
 
   async update(id: string, data: UpdateClinicData) {
@@ -84,6 +85,7 @@ export class ClinicDataCommandService {
     return attachResolvedClinicSignatureUrl(
       {
         ...clinic,
+        logo: clinic.logo ?? undefined,
         phoneNumber: clinic.phone,
         gstin: readOptionalString(settings, 'gstin'),
         description: readString(settings, 'description'),

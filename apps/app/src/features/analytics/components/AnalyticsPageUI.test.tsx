@@ -1,5 +1,6 @@
-import { render, screen } from "@/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import type { AnalyticsTab } from "@/features/analytics/hooks/use-analytics-logic";
 import { AnalyticsPageUI } from "./AnalyticsPageUI";
 
@@ -31,9 +32,9 @@ vi.mock("@/hooks/use-clinic-currency", () => ({
   }),
 }));
 
-vi.mock("@/components/auth/feature-gate", () => ({
-  FeatureGate: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  Feature: { ADVANCED_ANALYTICS: "ADVANCED_ANALYTICS" },
+const permissions = vi.hoisted(() => ({ canAccess: vi.fn(() => true) }));
+vi.mock("@/lib/stores/permission-store", () => ({
+  usePermissionStore: () => permissions,
 }));
 
 const baseProps = {
@@ -59,6 +60,55 @@ const baseProps = {
 };
 
 describe("AnalyticsPageUI", () => {
+  beforeEach(() => {
+    permissions.canAccess.mockReturnValue(true);
+  });
+
+  it("preserves the denied page heading and upgrade navigation without clinic metrics or chart tabs", () => {
+    permissions.canAccess.mockReturnValue(false);
+    render(<AnalyticsPageUI {...baseProps} />);
+
+    expect(
+      screen.getByRole("heading", { name: "Analytics", level: 1 }),
+    ).toBeVisible();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(
+      screen.getByRole("heading", {
+        name: "Advanced Analytics Dashboard",
+        level: 2,
+      }),
+    ).toBeVisible();
+    expect(screen.getByText(/Get comprehensive insights/)).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Upgrade to Pro" }),
+    ).toHaveAttribute("href", SUBSCRIPTION_SETTINGS_PATH);
+    expect(
+      screen.getByRole("button", { name: "Back to Dashboard" }),
+    ).toBeVisible();
+    expect(screen.queryByText("150")).not.toBeInTheDocument();
+    expect(screen.queryByText("₹45000")).not.toBeInTheDocument();
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+  });
+
+  it("preserves the allowed heading, overview and chart tab actions", () => {
+    const onTabChange = vi.fn();
+    render(<AnalyticsPageUI {...baseProps} onTabChange={onTabChange} />);
+
+    expect(
+      screen.getByRole("heading", { name: "Analytics", level: 1 }),
+    ).toBeVisible();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getByText("150")).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: "Upgrade to Pro" }),
+    ).not.toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "CPT Revenue" }), {
+      button: 0,
+      ctrlKey: false,
+    });
+    expect(onTabChange).toHaveBeenCalledWith("cpt-revenue");
+  });
+
   it("shows loading state when isLoading is true", () => {
     render(<AnalyticsPageUI {...baseProps} isLoading />);
     expect(screen.getByText("Loading analytics…")).toBeInTheDocument();

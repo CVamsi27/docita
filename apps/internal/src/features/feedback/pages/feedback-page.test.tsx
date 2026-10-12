@@ -48,6 +48,13 @@ const mockFeedbacks = [
 ];
 
 describe("FeedbackPage", () => {
+  it("names feedback view actions by their author", async () => {
+    mockApiGet.mockResolvedValueOnce(mockFeedbacks);
+    mockApiGet.mockResolvedValueOnce(mockStats);
+    render(<FeedbackPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "View feedback: Alice" }));
+    expect(screen.getByRole("dialog", { name: "Feedback Details" })).toBeInTheDocument();
+  });
   beforeEach(() => {
     mockApiGet.mockReset();
   });
@@ -111,7 +118,7 @@ describe("FeedbackPage", () => {
     // Row action: the icon-only Eye button (lucide icons are aria-hidden, so
     // the button has an empty accessible name; the header Refresh button has
     // text and is excluded).
-    fireEvent.click(screen.getAllByRole("button", { name: "" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "View feedback: Alice" }));
 
     const dialog = within(await screen.findByRole("dialog"));
     expect(dialog.getByText("Feedback Details")).toBeInTheDocument();

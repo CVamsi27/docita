@@ -6,6 +6,7 @@ import {
   TENANT_FIELD,
 } from './tenant-scope-policy.types';
 import { coerceTenantUpsertExtensionArgs } from './tenant-scope-policy.coerce';
+import { readPropertyValueRecord } from './tenant-scope-policy.types';
 import {
   DIRECT_SCOPE_EXCLUSIONS,
   getTenantScopeRule,
@@ -229,6 +230,43 @@ function applyTenantUpsertData(
   }
 }
 
+/**
+ * Resolves the clinic a unique operation is scoped to. Compound unique keys
+ * such as `clinicId_financialYear` are clinic-scoped by construction, so a
+ * `where` that nests the tenant field inside one of them is accepted; anything
+ * else stays rejected.
+ */
+function readTenantField(value: PropertyValue): string | undefined {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  const record = readPropertyValueRecord(value);
+  const nested = record?.[TENANT_FIELD];
+  return typeof nested === 'string' ? nested : undefined;
+}
+
+function resolveWhereClinicId(
+  where: Record<string, PropertyValue>,
+): string | undefined {
+  const direct = readTenantField(where[TENANT_FIELD]);
+  if (direct !== undefined) {
+    return direct;
+  }
+
+  for (const [key, value] of Object.entries(where)) {
+    if (!key.startsWith(`${TENANT_FIELD}_`)) {
+      continue;
+    }
+    const nested = readTenantField(value);
+    if (nested !== undefined) {
+      return nested;
+    }
+  }
+
+  return undefined;
+}
+
 function enforceTenantOnUnsafeUniqueOperation(
   model: string,
   operation: string,
@@ -243,7 +281,7 @@ function enforceTenantOnUnsafeUniqueOperation(
   }
 
   const where = args.where ?? {};
-  const whereClinicId = where[TENANT_FIELD];
+  const whereClinicId = resolveWhereClinicId(where);
 
   if (typeof whereClinicId !== 'string') {
     throw new Error(

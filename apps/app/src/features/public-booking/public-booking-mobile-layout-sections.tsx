@@ -1,14 +1,31 @@
 "use client";
 
 import { type RefObject } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, MicroLabel } from "@workspace/ui/components";
-import { PublicBookingHowItWorksSheet, PublicBookingReviewBlock, PublicBookingSummaryPeek } from "@/features/public-booking/public-booking-components";
-import { PUBLIC_BOOKING_STEP_HEADING_SCROLL_MARGIN_CLASS, type PublicBookingMobileStep } from "@/features/public-booking/public-booking-constants";
-import { PublicBookingAppointmentSection, PublicBookingContactSection, PublicBookingPatientContextSection, PublicBookingSubmitAlerts, PublicBookingTurnstileSection } from "@/features/public-booking/public-booking-form-sections";
+import {
+  PublicBookingHowItWorksSheet,
+  PublicBookingReviewBlock,
+  PublicBookingSummaryPeek,
+} from "@/features/public-booking/public-booking-components";
+import {
+  PUBLIC_BOOKING_STEP_HEADING_SCROLL_MARGIN_CLASS,
+  type PublicBookingMobileStep,
+} from "@/features/public-booking/public-booking-constants";
+import {
+  PublicBookingAppointmentSection,
+  PublicBookingContactSection,
+  PublicBookingPatientContextSection,
+  PublicBookingSubmitAlerts,
+  PublicBookingTurnstileSection,
+} from "@/features/public-booking/public-booking-form-sections";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";
 
-import { stepLabel } from "./public-booking-mobile-layout-helpers";
+import {
+  stepDescriptionKey,
+  stepHeadingKey,
+} from "./public-booking-mobile-layout-helpers";
 
 export function PublicBookingMobileStepHeading({
   mobileStep,
@@ -17,6 +34,8 @@ export function PublicBookingMobileStepHeading({
   mobileStep: PublicBookingMobileStep;
   stepHeadingRef: RefObject<HTMLHeadingElement | null>;
 }) {
+  const { t } = useTranslation("PublicBooking");
+
   return (
     <div
       className={cn(
@@ -32,7 +51,7 @@ export function PublicBookingMobileStepHeading({
           aria-live="polite"
         >
           <span className="font-serif font-semibold tracking-tight">
-            {stepLabel(mobileStep)}
+            {t(stepHeadingKey(mobileStep) ?? "")}
           </span>
         </h2>
         {mobileStep === "visit" ? (
@@ -40,11 +59,7 @@ export function PublicBookingMobileStepHeading({
         ) : null}
       </div>
       <p className="mt-1 text-[length:var(--fs-xs)] leading-snug text-muted-foreground sm:text-[length:var(--fs-sm)]">
-        {mobileStep === "visit"
-          ? "Pick a day and tap a time slot. Doctor is optional."
-          : mobileStep === "contact"
-            ? "Enter the phone number this clinic has for you."
-            : "Check everything looks right before sending."}
+        {t(stepDescriptionKey(mobileStep) ?? "")}
       </p>
     </div>
   );
@@ -93,6 +108,7 @@ export function PublicBookingMobileReviewStep({
 }: {
   c: PublicBookingPageController;
 }) {
+  const { t } = useTranslation("PublicBooking");
   const clinic = c.clinic;
   if (!clinic) return null;
 
@@ -101,13 +117,12 @@ export function PublicBookingMobileReviewStep({
       <PublicBookingSubmitAlerts c={c} />
       <PublicBookingReviewBlock c={c} onEdit={c.goToStep} />
       <MicroLabel as="p" className="text-muted-foreground">
-        Submitting sends a request only — the clinic confirms before your visit
-        is final.
+        {t("reviewBlock.description")}
       </MicroLabel>
       {clinic.phone || clinic.address ? (
         <div className="rounded-[var(--radius-lg)] border border-border/60 bg-muted/15 px-4 py-3 shadow-sm">
           <MicroLabel as="p" className="mt-0">
-            Prefer to call?
+            {t("mobileLayout.preferToCall")}
           </MicroLabel>
           {clinic.phone ? (
             <Button
@@ -119,7 +134,7 @@ export function PublicBookingMobileReviewStep({
                 href={`tel:${clinic.phone.replace(/\s+/g, "")}`}
                 className="inline-flex items-center justify-center gap-2 transition-colors duration-150"
               >
-                Call {clinic.name}
+                {t("doneCard.callClinic", { clinicName: clinic.name })}
               </a>
             </Button>
           ) : null}
@@ -151,6 +166,8 @@ export function PublicBookingMobileBottomBar({
   onGoBack: () => void;
   onGoForward: () => void;
 }) {
+  const { t } = useTranslation("PublicBooking");
+
   return (
     <div
       className={cn(
@@ -185,7 +202,7 @@ export function PublicBookingMobileBottomBar({
                 className="h-12 shrink-0 px-4 text-[length:var(--fs-sm)]"
                 onClick={onGoBack}
               >
-                Back
+                {t("mobileLayout.back")}
               </Button>
             ) : (
               <span className="w-[4.5rem] shrink-0 sm:w-20" aria-hidden />
@@ -201,7 +218,7 @@ export function PublicBookingMobileBottomBar({
                   : undefined
               }
             >
-              Continue
+              {t("mobileLayout.continue")}
             </Button>
           </div>
         </div>
@@ -214,7 +231,7 @@ export function PublicBookingMobileBottomBar({
               className="h-12 shrink-0 px-4 text-[length:var(--fs-sm)]"
               onClick={onGoBack}
             >
-              Back
+              {t("mobileLayout.back")}
             </Button>
             <Button
               type="button"
@@ -222,7 +239,9 @@ export function PublicBookingMobileBottomBar({
               disabled={c.submit.isPending || !c.submitRequestReady}
               onClick={() => void c.handleSubmit()}
             >
-              {c.submit.isPending ? "Sending…" : "Send visit request"}
+              {c.submit.isPending
+                ? t("actionPanel.sending")
+                : t("actionPanel.submit")}
             </Button>
           </div>
         </div>

@@ -4,19 +4,25 @@ import { useTranslation } from "react-i18next";
 import { Send } from "lucide-react";
 import { useClinicRecentSentMessages } from "@workspace/data-access";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
-import { Badge } from "@workspace/ui/components/indicators/badge";
+import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
 import { Card, CardContent } from "@workspace/ui/components/indicators/card";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+import type { WhatsappLogStatus } from "@workspace/types";
 import { getClinicTimezoneOrDefault } from "@/lib/utils/clinic-timezone";
 import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import { formatDate } from "@/lib/formatters";
 
-const STATUS_BADGE_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  SENT: "default",
-  DELIVERED: "secondary",
-  READ: "secondary",
-  QUEUED: "outline",
-  FAILED: "destructive",
+/**
+ * Maps a Prisma `WhatsappLogStatus` onto its translated catalog key. The badge
+ * itself is the shared `StatusBadge`, which normalizes UPPER_SNAKE internally,
+ * so only the copy needs a lookup.
+ */
+const STATUS_LABEL_KEY: Record<WhatsappLogStatus, string> = {
+  QUEUED: "recentSent.status.QUEUED",
+  SENT: "recentSent.status.SENT",
+  DELIVERED: "recentSent.status.DELIVERED",
+  READ: "recentSent.status.READ",
+  FAILED: "recentSent.status.FAILED",
 };
 
 function formatRelativeTime(
@@ -78,9 +84,7 @@ export function WhatsappRecentSentView() {
                 <span className="text-sm font-medium">
                   {msg.patientName ?? msg.phoneNumber}
                 </span>
-                <Badge variant={STATUS_BADGE_VARIANT[msg.status] ?? "outline"}>
-                  {msg.status}
-                </Badge>
+                <StatusBadge status={msg.status} size="sm" label={t(STATUS_LABEL_KEY[msg.status])} />
                 <span className="text-xs text-muted-foreground">
                   {formatRelativeTime(msg.createdAt, t, clinicTimezone)}
                 </span>

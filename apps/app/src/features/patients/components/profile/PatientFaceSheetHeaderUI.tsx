@@ -77,11 +77,11 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               </Button>
             </SymbolTooltip>
           )}
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-base font-bold text-primary sm:h-14 sm:w-14 sm:text-lg">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-base font-bold text-foreground sm:h-14 sm:w-14 sm:text-lg">
             {initials}
           </div>
           <div className="min-w-0">
-            <MicroLabel className="text-muted-foreground/80 mb-0.5">Patient Record</MicroLabel>
+            <MicroLabel className="mb-0.5">Patient Record</MicroLabel>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="ui-page-title text-[var(--fs-lg)] sm:text-[var(--fs-2xl)] truncate text-foreground">
                 {lastName}, {firstName}

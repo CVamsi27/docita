@@ -1,5 +1,6 @@
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { DoctorsCommandService } from './doctors-command.service';
+import { doctorResponseSchema } from '@workspace/types';
 import {
   DOCTOR_PERSISTENCE_PORT,
   type DoctorPersistencePort,
@@ -21,7 +22,7 @@ describe('DoctorsCommandService', () => {
   let signatureUploadService: jest.Mocked<SignatureUploadService>;
   let storedFileUrlResolver: jest.Mocked<StoredFileUrlResolverService>;
   let storageProvider: jest.Mocked<StorageProvider>;
-  let queryService: jest.Mocked<DoctorsQueryService>;
+  let queryService: DoctorsQueryService;
   let profileService: jest.Mocked<DoctorProfileService>;
   let adminVerificationService: jest.Mocked<DoctorAdminVerificationCommandService>;
   let doctorRepositoryMock: jest.Mocked<IDoctorRepository>;
@@ -62,11 +63,11 @@ describe('DoctorsCommandService', () => {
 
     storageProvider = {} as jest.Mocked<StorageProvider>;
 
-    queryService = Object.create(
-      DoctorsQueryService.prototype,
-    ) as jest.Mocked<DoctorsQueryService>;
-    queryService.findOne = jest.fn();
-    queryService.resolveDoctorSignatureUrl = jest.fn() as never;
+    storedFileUrlResolver.resolveWithStoredUrl = jest
+      .fn<StoredFileUrlResolverService['resolveWithStoredUrl']>()
+      .mockResolvedValue({ url: null, storedUrl: null });
+    queryService = new DoctorsQueryService(prisma, storedFileUrlResolver);
+    queryService.findOne = jest.fn<DoctorsQueryService['findOne']>();
 
     profileService = Object.create(
       DoctorProfileService.prototype,
@@ -100,6 +101,36 @@ describe('DoctorsCommandService', () => {
   });
 
   describe('create', () => {
+    it('maps a newly created doctor through the canonical response without nullable optional fields', async () => {
+      doctorRepositoryMock.createDoctorWithClinic.mockResolvedValueOnce({
+        id: 'doc-new',
+        email: 'new-doctor@example.com',
+        name: 'New Doctor',
+        role: Role.DOCTOR,
+        specialization: null,
+        hospitalRole: null,
+        qualification: null,
+      });
+      const result = await service.create('clinic-1', {
+        email: 'new-doctor@example.com',
+        password: 'Test@123456',
+        name: 'New Doctor',
+      });
+      const parsed = doctorResponseSchema.parse(result);
+      expect(parsed.id).toBe('doc-new');
+      expect(parsed.specialization).toBeUndefined();
+      expect(parsed.hospitalRole).toBeUndefined();
+      expect(parsed.qualification).toBeUndefined();
+      expect(
+        doctorVerificationService.verifyAndPersistDoctorVerification,
+      ).toHaveBeenCalledWith('doc-new');
+      expect(doctorRepositoryMock.createDoctorWithClinic).toHaveBeenCalledWith(
+        expect.objectContaining({ clinicId: 'clinic-1' }),
+        expect.objectContaining({ clinicId: 'clinic-1' }),
+        undefined,
+      );
+    });
+
     it('should create a doctor and trigger verification', async () => {
       const user = {
         id: 'doc-1',

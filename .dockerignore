@@ -67,11 +67,15 @@ coverage
 .next
 .nuxt
 out
+artifacts
+.freebuff
+.fallow
 
 # Frontend apps not needed for API build
 apps/landing
 apps/admin
 apps/app
+apps/internal
 
 # UI package not needed for API (types package IS needed)
 packages/ui

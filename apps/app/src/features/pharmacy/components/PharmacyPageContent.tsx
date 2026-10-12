@@ -5,7 +5,7 @@ import { AppPageScaffold, Card, CardContent, CardHeader, CardTitle, EmptyState, 
 import { Feature } from "@workspace/types";
 import { useTranslation } from "react-i18next";
 import { ClipboardList, Pill } from "lucide-react";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
 
 function usePharmacyPageTranslations() {
   const { t } = useTranslation("Pharmacy");
@@ -16,7 +16,11 @@ export function PharmacyPageContent() {
 // jscpd:ignore-end
   const t = usePharmacyPageTranslations();
   return (
-    <FeatureGate feature={Feature.INVENTORY} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.INVENTORY}
+      title={t("page.pageTitle")}
+      description={t("page.pageDescription")}
+    >
       <AppPageScaffold
         header={
           <PageHeader
@@ -74,6 +78,6 @@ export function PharmacyPageContent() {
           </CardContent>
         </Card>
       </AppPageScaffold>
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }

@@ -1,5 +1,7 @@
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
+import { useTranslation } from "react-i18next";
 import { AddAppointmentDialogContainer } from "@/features/appointments";
 import { AddPatientDialog, EditPatientDialog } from "@/features/patients/components/forms/PatientDialogs";
 
@@ -8,11 +10,16 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { PatientsPageUI } from "./PatientsPageUI";
 
 export function PatientsPageContainer() {
+  const { t } = useTranslation("Patients.list");
   const { state, handlers } = usePatientsLogic();
   const { canStartConsultation } = usePermissions();
 
   return (
-    <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.BASIC_PATIENT_MANAGEMENT}
+      title={t("pageTitle")}
+      description={t("pageDescription")}
+    >
       <PatientsPageUI
         isLoading={state.isLoading}
         error={state.error}
@@ -63,6 +70,6 @@ export function PatientsPageContainer() {
           onAppointmentAdded={async () => undefined}
         />
       </FeatureGate>
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }

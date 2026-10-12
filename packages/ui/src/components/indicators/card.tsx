@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@workspace/ui/lib/utils";
 
 const cardVariants = cva(
-  "ui-card-surface flex flex-col gap-4 py-4 sm:gap-5 sm:py-5",
+  "ui-card-surface flex min-w-0 flex-col gap-4 py-4 sm:gap-5 sm:py-5",
   {
     variants: {
       interaction: {

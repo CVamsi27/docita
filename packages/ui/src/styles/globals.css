@@ -44,7 +44,7 @@
      here than a decorative palette would. */
   --info: oklch(0.51 0.17 256);
   --info-foreground: oklch(0.985 0 0);
-  --success: oklch(0.49 0.15 150);
+  --success: oklch(0.47 0.15 150);
   --success-foreground: oklch(0.985 0 0);
   --warning: oklch(0.51 0.15 75);
   --warning-foreground: oklch(0.985 0 0);
@@ -623,6 +623,19 @@ html.dark[data-accent="slate"] {
   .ui-panel-muted {
     border-radius: var(--radius);
     @apply border border-border/70 bg-muted/25 text-foreground shadow-sm;
+  }
+
+  /* Opt-in workspace composition; semantic utility surfaces remain authoritative. */
+  .ui-workspace-ledger :is(.ui-card-surface, .ui-panel):not(.surface-warning, .surface-danger, .surface-info, .surface-success, .surface-muted, .surface-tint, .surface-warm) {
+    border-radius: 0;
+    border-inline-width: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .ui-workspace-ledger h1.ui-section-title {
+    font-size: var(--fs-3xl);
+    line-height: var(--lh-tight);
   }
 
   .icon-warning {

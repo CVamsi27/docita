@@ -31,7 +31,7 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 
 ### Frontend E2E Tests (Playwright)
 
-**Location**: `apps/app/e2e/` (45 spec files, ~1,048 tests) — configuration: `apps/app/playwright.config.ts`; `apps/internal/e2e/` (3 spec files, 44 tests) — configuration: `apps/internal/playwright.config.ts`
+**Location**: `apps/app/e2e/` (49 top-level spec files as of 11 October 2026) — configuration: `apps/app/playwright.config.ts`; `apps/internal/e2e/` (five top-level spec files) — configuration: `apps/internal/playwright.config.ts`. Project and parameterized case counts depend on the selected command.
 
 > **Status (2026-08-02):** the Playwright suite is **ported** to the Vite apps.
 > app runs on port 5173 via `vite preview` against a local API; the CI
@@ -59,7 +59,7 @@ CI runs a **subset** of Playwright on `main` (see below). Run the full suite loc
 
 #### Playwright spec files (doctor app)
 
-Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` / `PATIENTS_LIST_PATH` aligned with Next routes), `e2e/utils/ui-contracts.ts`, `e2e/utils/session.ts`.
+Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` / `PATIENTS_LIST_PATH` aligned with the SPA routes), `e2e/utils/ui-contracts.ts`, `e2e/utils/session.ts`.
 
 | Spec | Focus |
 | ---- | ----- |
@@ -70,7 +70,7 @@ Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` /
 | `clinic-registration.spec.ts` | Clinic onboarding wizard |
 | `clinics.spec.ts` | Clinic-related UI |
 | `consultation.spec.ts` | Consultation workspace |
-| `critical-flows.spec.ts` | High-risk API + UI business flows |
+| `critical-flows.spec.ts` | API-backed appointment, dashboard, timeline, clinic and isolation flows; actual browser journeys live in `patients.spec.ts` and `verify-doctor.spec.ts` |
 | `dashboard.spec.ts` | Dashboard entry and shortcuts |
 | `dental-charts.spec.ts` | Dental specialty charts |
 | `documents.spec.ts` | Documents page |
@@ -94,7 +94,7 @@ Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` /
 | `smart-auth.spec.ts` | Email-first login and signup branching |
 | `subscription.spec.ts` | Subscription lockout / billing-locked |
 | `upgrade.spec.ts` | Subscription tab / upgrade UI |
-| `verify-doctor.spec.ts` | Doctor verification gate |
+| `verify-doctor.spec.ts` | Targeted doctor profile completion and signature reuse |
 | `whatsapp.spec.ts` | WhatsApp inbox |
 
 **Features**:
@@ -129,7 +129,7 @@ Runs **not** included there by default: `nav-routes-smoke.spec.ts`, `accessibili
 
 Before merging UI that touches layout, tables, tabs, or the protected shell:
 
-1. Run `pnpm mobile:smoke` (runs all four mobile specs via `scripts/perf/mobile-route-smoke.mjs`) with API + app running and `DATABASE_URL` set for portal OTP insertion.
+1. Run `pnpm --filter @docita/app exec playwright test mobile` (the four mobile specs in `apps/app/e2e/`) with API + app running and `DATABASE_URL` set for portal OTP insertion.
 2. Spot-check at **390×844** and **768×1024**: `/today`, `/patients`, `/patients/[id]`, `/invoices/[id]`, `/consultation/[id]`, `/settings?tab=subscription`, portal `/portal/billing`.
 3. Confirm no horizontal page overflow and that the single mobile header exposes search, quick-add, command palette, and Ask AI.
 4. For accessibility changes, run `pnpm audit:app` (desktop + mobile-width authenticated subset in `accessibility.spec.ts`).
@@ -144,7 +144,7 @@ Before merging UI that touches layout, tables, tabs, or the protected shell:
 
 ### Prerequisites
 
-- Node.js `>=22.12.0` (match root `package.json` `engines`)
+- Node.js `>=22.22.0` (match root `package.json` `engines`)
 - pnpm `10.30.3` (match root `package.json` `packageManager`)
 - PostgreSQL 16+ reachable from `DATABASE_URL` in the repo `.env` (local testing)
 - Docker (optional, for running PostgreSQL locally)
@@ -204,21 +204,42 @@ Specs live next to sources under `apps/api/src/**/*.spec.ts`. Guards and decorat
 
 ### Frontend E2E Tests
 
+The clinician app's normal `pnpm --filter @docita/app run check-types` includes
+`e2e/tsconfig.json`. E2E workspace aliases resolve to package source, so this gate
+also works before generated workspace builds on a clean CI install.
+The app declares `@workspace/auth` as a test dependency for canonical session
+constants. Fallow excludes E2E files, so its dependency allowlist includes that
+intentional test import; the standalone TypeScript gate still resolves it.
+
+Patient and critical-flow specs use isolated real onboarded clinics and parse
+responses through shared contracts. Doctor verification requires an owned local
+API running with `NODE_ENV=development`, `ALLOW_TEST_EMAIL_AUTOVERIFY=false`, and
+`DOCITA_API_E2E=true`: test mode auto-verifies accounts and cannot prove the email
+token round-trip. Keep email delivery pointed at an unavailable localhost SMTP
+port with provider credentials unset; read the verification token only from the
+owned test database. Set matching `APP_URL`, `API_URL`, and explicit test
+`DATABASE_URL`; never use a production database for these fixtures.
+Also set the API's `API_PUBLIC_URL` to that owned API and `FRONTEND_URL` to
+the owned app, so signature display URLs point at the fixture server. Doctor
+journeys preserve Today access and open `/verify-doctor` as a targeted profile
+surface; they require decoded signature images and the stable stored reference
+after reuse.
+
 ```bash
 # Run all frontend E2E tests (headless)
 pnpm --filter @docita/app test:e2e
 
 # Run tests in UI mode (interactive)
-pnpm --filter @docita/app test:e2e:ui
+pnpm --filter @docita/app exec playwright test e2e --ui
 
 # Run tests with browser visible
-pnpm --filter @docita/app test:e2e:headed
+pnpm --filter @docita/app exec playwright test e2e --headed
 
 # Debug tests in browser DevTools
-pnpm --filter @docita/app test:e2e:debug
+pnpm --filter @docita/app exec playwright test e2e --debug
 
 # View test report after run
-pnpm --filter @docita/app test:e2e:report
+pnpm --filter @docita/app exec playwright show-report
 ```
 
 ### Doctor app subscription / billing E2E (`upgrade.spec.ts`, `subscription.spec.ts`)
@@ -572,7 +593,7 @@ lsof -ti:3001 | xargs kill -9
 
 3. **View Playwright report**:
    ```bash
-   pnpm --filter @docita/app test:e2e:report
+   pnpm --filter @docita/app exec playwright show-report
    ```
 
 ## Next Steps
@@ -604,3 +625,23 @@ For issues or questions:
 - [Supertest Documentation](https://github.com/visionmedia/supertest)
 - [Playwright Documentation](https://playwright.dev/)
 - [Prisma Testing Guide](https://www.prisma.io/docs/guides/testing)
+
+### PR CI failure diagnostics
+
+Changed-test jobs fetch main without a depth limit after a full-history
+checkout. A later `git fetch --depth=1` can mark main as shallow again and
+remove the merge base required by Jest `--changedSince` and Vitest `--changed`.
+The standards suite exercises these fetch commands against a diverged Git fixture.
+API CI allocates a 4 GiB Node heap for the production and spec typechecks.
+
+OSV runs both full and PR differential scans. The repository currently has
+Code Scanning disabled, so `upload-sarif: false` skips the dashboard upload;
+scan failures still block CI and SARIF reports remain in Actions artifacts.
+See [Security Allowlist](../compliance/SECURITY_ALLOWLIST.md) for dated exceptions.
+Doctor browser fixtures accept test-mode auto-verified registrations and still
+verify email explicitly when the API returns an unverified user. The completed
+fixture must have a verified email and completed onboarding before UI assertions.
+
+Paused deployment and database-migration workflows retain a valid `on` block
+that ignores all branch and tag pushes. Removing `on` causes GitHub to emit a
+workflow validation failure, even when deployments are intended to be paused.

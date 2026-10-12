@@ -1,8 +1,5 @@
 name: Database Migrations
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 # Paused: ignore every branch and tag push. GitHub requires a valid on block.
 # Replace this block with the commented triggers below to resume deployments.
 on:
@@ -12,6 +9,9 @@ on:
 
 # on:
 #   workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   migrate-db:

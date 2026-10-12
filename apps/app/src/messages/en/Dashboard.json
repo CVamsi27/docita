@@ -13,10 +13,10 @@
     "bottomBarAria": "Next patient in queue",
     "startNextButton": "Start next",
     "startingButton": "Starting…",
-    "nextPatientButton": "Next patient",
     "startNextAria": "Start next consultation: {name}",
     "nextUpLabel": "Next up",
-    "pageDescription": "Your clinic overview for today"
+    "pageDescription": "Your clinic overview for today",
+    "askAiScope": "on today's workspace"
   },
   "todayAdvisorRail": {
     "joinRequestsCategory": "Join requests",
@@ -155,7 +155,7 @@
     "description": "Callbacks and planned reviews for today",
     "viewAll": "Follow-ups",
     "loading": "Loading follow-ups…",
-    "error": "We could not load follow-ups. Open the follow-ups page to retry.",
+    "error": "We could not load follow-ups. Try again.",
     "emptyTitle": "No follow-ups due today",
     "emptyDescription": "You are caught up for today.",
     "dueDate": "Due {date}"
@@ -195,5 +195,23 @@
     "copyInviteAriaLabel": "Copy invite text",
     "copyJoinCodeAriaLabel": "Copy join code",
     "copyBookingLinkAriaLabel": "Copy booking link"
+  },
+  "ledger": {
+    "currentVisit": "Current visit",
+    "selectedAppointment": "Selected appointment",
+    "scheduled": "Scheduled",
+    "patient": "Patient",
+    "status": "Status",
+    "view": "View",
+    "selected": "Selected",
+    "inRoom": "In room",
+    "reason": "Reason for visit",
+    "returnToCurrent": "Current visit",
+    "viewPatient": "View patient",
+    "viewAppointmentAria": "View appointment: {name}",
+    "previewDescription": "Preview the appointment without changing the active consultation.",
+    "queueDescription": "Today’s appointments in scheduled order",
+    "queueSummary": "{waiting} waiting · {completed} completed",
+    "allAppointments": "All appointments"
   }
 }

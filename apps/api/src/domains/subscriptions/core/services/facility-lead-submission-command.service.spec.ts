@@ -117,6 +117,42 @@ describe('FacilityLeadSubmissionCommandService', () => {
       expect(ctx.outbox.append).not.toHaveBeenCalled();
     });
 
+    it('routes a concurrent same-facility submit that only the phone check sees to DUPLICATE_REVIEW', async () => {
+      // The fingerprint pre-check and the phone dedupe are separate reads, so
+      // a concurrent submit of the same facility can straddle the other
+      // submit's commit: the fingerprint read saw nothing, the phone read saw
+      // its row. That is an exact duplicate, so it must be held for review —
+      // rejecting it would make the answer depend on interleaving.
+      ctx.facilityLead.findUnique.mockResolvedValue(null);
+      ctx.facilityLead.findFirst
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          id: 'concurrent-1',
+          fingerprint: computeFacilityFingerprint({
+            facilityName: submitInput.facilityName,
+            address: submitInput.address,
+            contactPhone: submitInput.contactPhone ?? '',
+          }),
+        });
+      ctx.facilityLead.create.mockResolvedValue(
+        leadRow({ status: 'DUPLICATE_REVIEW', duplicateOfId: 'concurrent-1' }),
+      );
+
+      const view = await service().submitLead('r1', {
+        ...submitInput,
+        idempotencyKey: 'lead-key-race000001',
+      });
+
+      const data = (
+        ctx.facilityLead.create.mock.calls[0][0] as {
+          data: Record<string, unknown>;
+        }
+      ).data;
+      expect(data.status).toBe('DUPLICATE_REVIEW');
+      expect(data.duplicateOfId).toBe('concurrent-1');
+      expect(view.status).toBe('DUPLICATE_REVIEW');
+    });
+
     it('routes an exact fingerprint match to DUPLICATE_REVIEW linked to the original', async () => {
       ctx.facilityLead.findUnique.mockResolvedValue(null);
       // Fingerprint pre-check finds the original facility.

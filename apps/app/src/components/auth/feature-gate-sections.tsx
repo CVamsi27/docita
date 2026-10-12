@@ -65,7 +65,7 @@ export function LockedFeatureCard({
           <Lock className="h-5 w-5" />
           {title || "Feature Locked"}
         </CardTitle>
-        <CardDescription className="text-warning/80">
+        <CardDescription className="text-muted-foreground">
           {description ||
             `This feature requires the ${tierInfo?.name || "higher"} plan or above.`}
         </CardDescription>

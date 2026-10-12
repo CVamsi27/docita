@@ -15,9 +15,6 @@ export const ResetPasswordPage = lazy(() =>
 export const ChoosePathPage = lazy(() =>
   import("@/features/setup/pages/choose-path").then((m) => ({ default: m.ChoosePathPage })),
 );
-export const ClinicSelectionPage = lazy(() =>
-  import("@/features/setup/pages/clinic-selection-page").then((m) => ({ default: m.ClinicSelectionPage })),
-);
 export const JoinClinicPage = lazy(() =>
   import("@/features/setup/pages/join-clinic-page").then((m) => ({ default: m.JoinClinicPage })),
 );

@@ -72,14 +72,19 @@ export class PrismaPortalAuthRepository implements IPortalAuthRepository {
     return result.count === 1;
   }
 
-  async markOtpUsed(id: string): Promise<void> {
+  async tryMarkOtpUsed(id: string): Promise<boolean> {
+    // Single-use claim: `usedAt: null` is the contract, not an optimization.
+    // Concurrent verifies with the same valid OTP both pass attempt
+    // consumption and bcrypt.compare; only the caller whose conditional
+    // UPDATE matches the row may issue a session.
     // RLS-BYPASS: patient portal identity is scoped by patient token, not clinic RLS
-    await this.prisma.runUnrestricted(async () =>
-      this.prisma.patientOtp.update({
-        where: { id },
+    const result = await this.prisma.runUnrestricted(async () =>
+      this.prisma.patientOtp.updateMany({
+        where: { id, usedAt: null },
         data: { usedAt: this.clock.now() },
       }),
     );
+    return result.count === 1;
   }
 
   async createPortalUser(data: {

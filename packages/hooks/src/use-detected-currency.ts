@@ -1,11 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  isRecord,
-  parseSupportedCurrency,
-  countryCodeToCurrency as resolveCurrencyForCountry,
-} from "@workspace/utils";
+import { isRecord, parseSupportedCurrency } from "@workspace/utils";
 
 type SupportedCurrency =
   | "INR"
@@ -57,7 +53,7 @@ function writeCache(currency: SupportedCurrency) {
   }
 }
 
-export function guessCurrencyFromTimezone(): SupportedCurrency {
+function guessCurrencyFromTimezone(): SupportedCurrency {
   if (typeof Intl === "undefined") return "USD";
 
   try {
@@ -94,10 +90,6 @@ export function guessCurrencyFromTimezone(): SupportedCurrency {
   }
 
   return "USD";
-}
-
-export function countryCodeToCurrency(code: string): SupportedCurrency {
-  return parseSupportedCurrency(resolveCurrencyForCountry(code));
 }
 
 export function useDetectedCurrency() {

@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
+import { appointmentOverlapErrorSchema } from '@workspace/types';
 import { ZodValidationException } from 'nestjs-zod';
 import { ZodError, ZodIssue } from 'zod';
 import { Request } from 'express';
@@ -126,6 +127,17 @@ function resolveHttpException(
 ): ResolvedExceptionResponse | null {
   if (!(exception instanceof HttpException)) return null;
   const exceptionResponse = exception.getResponse();
+  const overlap = appointmentOverlapErrorSchema.safeParse(exceptionResponse);
+  if (exception.getStatus() === HttpStatus.BAD_REQUEST && overlap.success) {
+    return {
+      status: HttpStatus.BAD_REQUEST,
+      message: overlap.data.detail,
+      errorType: exception.name || 'HttpException',
+      errorStack: exception.stack,
+      details: overlap.data.validationErrors,
+      errorCode: overlap.data.code,
+    };
+  }
   const causeIssues = readZodIssuesFromCause(getErrorCause(exception));
   if (causeIssues) {
     return {

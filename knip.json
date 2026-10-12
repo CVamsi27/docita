@@ -25,7 +25,6 @@
         "@nestjs/event-emitter",
         "@nestjs/jwt",
         "@nestjs/passport",
-        "@nestjs/schedule",
         "@nestjs/serve-static",
         "@nestjs/swagger",
         "@nestjs/terminus",
@@ -110,10 +109,7 @@
     },
     "apps/landing": {
       "playwright": false,
-      "entry": [
-        "src/pages/**/*.astro",
-        "src/lib/api-fetch.ts"
-      ],
+      "entry": ["src/pages/**/*.astro"],
       "ignoreDependencies": ["tailwindcss", "sharp"]
     },
     "apps/app": {

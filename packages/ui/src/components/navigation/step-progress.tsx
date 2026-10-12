@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Check } from "lucide-react";
+import { Button } from "@workspace/ui/components/form/button";
 import { cn } from "@workspace/ui/lib/utils";
 
 export interface StepProgressItem {
@@ -37,29 +38,15 @@ function StepDot({
   compact?: boolean;
   onClick?: () => void;
 }) {
-  const interactive = Boolean(onClick);
-  const Wrapper = interactive ? "button" : "div";
-
-  return (
-    <Wrapper
-      type={interactive ? "button" : undefined}
-      onClick={onClick}
-      aria-current={active ? "step" : undefined}
-      aria-label={label}
-      className={cn(
-        "flex items-center gap-2",
-        active
-          ? "text-primary"
-          : done
-            ? "text-foreground"
-            : "text-muted-foreground",
-        interactive &&
-          "touch-manipulation rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-      )}
-    >
+  const className = cn(
+    "flex items-center gap-2 text-foreground",
+    !active && !done && "text-muted-foreground",
+  );
+  const content = (
+    <>
       <span
         className={cn(
-          "inline-flex size-[22px] shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-semibold",
+          "inline-flex size-[22px] shrink-0 items-center justify-center rounded-full font-mono text-[var(--fs-2xs)] font-semibold",
           active && "bg-primary text-primary-foreground",
           done && !active && "bg-success text-success-foreground",
           !active && !done && "bg-muted text-muted-foreground",
@@ -69,15 +56,34 @@ function StepDot({
       </span>
       {!compact ? (
         <span
-          className={cn(
-            "text-sm",
-            active ? "font-semibold" : "font-medium",
-          )}
+          className={cn("text-sm", active ? "font-semibold" : "font-medium")}
         >
           {label}
         </span>
-      ) : null}
-    </Wrapper>
+      ) : (
+        <span className="sr-only">{label}</span>
+      )}
+    </>
+  );
+  return onClick ? (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      aria-current={active ? "step" : undefined}
+      aria-label={label}
+      className={cn(className, "h-auto p-0 touch-manipulation")}
+    >
+      {content}
+    </Button>
+  ) : (
+    <div
+      aria-current={active ? "step" : undefined}
+      className={className}
+    >
+      {content}
+    </div>
   );
 }
 
@@ -103,21 +109,24 @@ export function StepProgress({
         <span className="ui-eyebrow">{progressPct}% complete</span>
         {trailing}
       </div>
-      <div
+      <ol
         role="list"
         aria-label={ariaLabel}
         className={cn(
-          "flex items-center gap-2 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:thin]",
+          "m-0 flex list-none items-center gap-2 p-0 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:thin]",
           compact && "gap-3",
         )}
       >
         {items.map((item, index) => (
-          <React.Fragment key={item.id}>
+          <li
+            key={item.id}
+            className={cn(
+              "flex shrink-0 items-center gap-2",
+              compact && "gap-3",
+            )}
+          >
             {index > 0 ? (
-              <span
-                className="shrink-0 text-border"
-                aria-hidden
-              >
+              <span className="shrink-0 text-border" aria-hidden>
                 —
               </span>
             ) : null}
@@ -129,9 +138,9 @@ export function StepProgress({
               compact={compact}
               onClick={onSelect ? () => onSelect(item.id) : undefined}
             />
-          </React.Fragment>
+          </li>
         ))}
-      </div>
+      </ol>
     </div>
   );
 }

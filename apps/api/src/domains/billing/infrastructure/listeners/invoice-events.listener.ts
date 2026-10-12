@@ -27,7 +27,7 @@ export class InvoiceEventsListener {
     this.logger.log(`Ensuring payment session for invoice ${invoiceId}`);
 
     const invoice = await this.prisma.invoice.findUnique({
-      where: { id: invoiceId },
+      where: { id: invoiceId, clinicId },
       include: {
         patient: { select: { id: true, phoneNumber: true } },
         paymentSessions: {

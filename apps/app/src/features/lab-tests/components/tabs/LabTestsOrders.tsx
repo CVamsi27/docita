@@ -43,6 +43,9 @@ export function LabOrderActionsCell({
 }) {
   const { t } = useTranslation("LabTests");
   const isPaid = Boolean(test.paidAt);
+  // `test.status` is UPPER_SNAKE per `labTestOrderStatusSchema`; the previous
+  // lowercase comparison never matched, so completed orders read "Details".
+  const isComplete = test.status === "COMPLETED";
   return (
     <div className="flex items-center justify-end gap-1">
       {canVerifyPayment && !isPaid ? (
@@ -52,10 +55,10 @@ export function LabOrderActionsCell({
           <span className="hidden sm:inline">{t("orders.verify")}</span>
         </Button>
       ) : null}
-      <SymbolTooltip label={test.status === "completed" ? t("orders.viewResults") : t("orders.details")}>
+      <SymbolTooltip label={isComplete ? t("orders.viewResults") : t("orders.details")}>
         <Button variant="ghost" size="sm" className="gap-1">
           <FileText className="h-4 w-4" />
-          <span className="hidden sm:inline">{test.status === "completed" ? t("orders.viewResults") : t("orders.details")}</span>
+          <span className="hidden sm:inline">{isComplete ? t("orders.viewResults") : t("orders.details")}</span>
         </Button>
       </SymbolTooltip>
     </div>

@@ -4,6 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { toCents } from '@workspace/utils';
+import { inventoryMovementDelta } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   type CreateInventoryItemData,
@@ -13,10 +14,12 @@ import {
   type InventoryItemFilters,
   InventoryItemWithMovements,
   type InventoryMovement,
+  type InventoryReconciliation,
   type InventoryStats,
   type UpdateInventoryItemData,
 } from '@/domains/inventory/core/repositories/inventory.repository.interface';
 import { Prisma } from '@workspace/db';
+import { isRecord } from '@workspace/utils';
 
 @Injectable()
 export class PrismaInventoryRepository implements IInventoryRepository {
@@ -187,44 +190,104 @@ export class PrismaInventoryRepository implements IInventoryRepository {
     return updated;
   }
 
+  async countMovements(itemId: string): Promise<number> {
+    return this.getReadClient().inventoryMovement.count({
+      where: { inventoryItemId: itemId },
+    });
+  }
+
+  async reconcileLedger(clinicId: string): Promise<InventoryReconciliation[]> {
+    // One aggregate over the clinic's items and their movements. The ledger
+    // total applies the shared sign convention to every row, so it has to match
+    // `InventoryItem.quantity` exactly when the ledger is authoritative.
+    const items = await this.getReadClient().inventoryItem.findMany({
+      where: { clinicId },
+      select: {
+        id: true,
+        quantity: true,
+        movements: { select: { type: true, quantity: true } },
+      },
+    });
+
+    return items.map((item) => {
+      const ledgerTotal = item.movements.reduce(
+        (total, movement) =>
+          total + inventoryMovementDelta(movement.type, movement.quantity),
+        0,
+      );
+      return {
+        itemId: item.id,
+        stockQuantity: item.quantity,
+        ledgerQuantity: ledgerTotal,
+        drift: item.quantity - ledgerTotal,
+      };
+    });
+  }
+
   async addMovementAndUpdateQuantity(
     itemId: string,
     clinicId: string,
     movementData: CreateInventoryMovementData,
     quantityDelta: number,
   ): Promise<InventoryMovement> {
-    return this.prisma.$transaction(async (tx) => {
-      const where: Prisma.InventoryItemWhereInput = { id: itemId, clinicId };
+    const { operationId, ...rest } = movementData;
 
-      if (quantityDelta < 0) {
-        where.quantity = { gte: Math.abs(quantityDelta) };
-      }
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const where: Prisma.InventoryItemWhereInput = { id: itemId, clinicId };
 
-      const updateResult = await tx.inventoryItem.updateMany({
-        where,
-        data: { quantity: { increment: quantityDelta } },
-      });
-
-      if (updateResult.count === 0) {
-        const existing = await tx.inventoryItem.findUnique({
-          where: { id: itemId },
-          select: { quantity: true },
-        });
-        if (!existing) {
-          throw new NotFoundException(`Inventory item ${itemId} not found`);
+        if (quantityDelta < 0) {
+          where.quantity = { gte: Math.abs(quantityDelta) };
         }
-        throw new BadRequestException(
-          `Insufficient stock: requested ${Math.abs(quantityDelta)} but only ${existing.quantity} available`,
-        );
-      }
 
-      return tx.inventoryMovement.create({
-        data: {
-          inventoryItem: { connect: { id: itemId } },
-          clinic: { connect: { id: clinicId } },
-          ...movementData,
-        },
+        const updateResult = await tx.inventoryItem.updateMany({
+          where,
+          data: { quantity: { increment: quantityDelta } },
+        });
+
+        if (updateResult.count === 0) {
+          const existing = await tx.inventoryItem.findUnique({
+            where: { id: itemId },
+            select: { quantity: true },
+          });
+          if (!existing) {
+            throw new NotFoundException(`Inventory item ${itemId} not found`);
+          }
+          throw new BadRequestException(
+            `Insufficient stock: requested ${Math.abs(quantityDelta)} but only ${existing.quantity} available`,
+          );
+        }
+
+        const item = await tx.inventoryItem.findUniqueOrThrow({
+          where: { id: itemId },
+          select: { unit: true },
+        });
+
+        return tx.inventoryMovement.create({
+          data: {
+            inventoryItem: { connect: { id: itemId } },
+            clinic: { connect: { id: clinicId } },
+            ...rest,
+            // Stamp the unit so the ledger stays self-describing after a
+            // re-unitise instead of silently reinterpreting old rows.
+            unit: item.unit,
+            ...(operationId ? { operationId } : {}),
+          },
+        });
       });
-    });
+    } catch (error) {
+      // Operation identity: the unique (clinicId, operationId) index rejected
+      // this retry. The whole transaction rolled back, so the quantity
+      // increment never happened — returning the winning movement is what
+      // makes a retried operation apply exactly once.
+      if (!operationId || !isRecord(error) || error.code !== 'P2002') {
+        throw error;
+      }
+      const existing = await this.getReadClient().inventoryMovement.findFirst({
+        where: { clinicId, operationId },
+      });
+      if (!existing) throw error;
+      return existing;
+    }
   }
 }

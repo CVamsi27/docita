@@ -134,7 +134,7 @@ test.describe("Internal Admin - Protected Pages", () => {
     { path: "/system-monitoring", name: "System Monitoring", heading: /monitor|system/i },
   ];
 
-  for (const { path, name, heading } of PAGES) {
+  for (const { path, name } of PAGES) {
     test(`${name} page loads and shows content`, async ({ page }) => {
       guard(session);
       await injectSession(page, session);

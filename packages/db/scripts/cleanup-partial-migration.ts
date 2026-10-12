@@ -10,12 +10,18 @@
  * cleanly. It is idempotent — safe to run multiple times.
  */
 import { Pool } from "pg";
+import { createUtcPoolConfig } from "../src/utc-pool-config";
 
-const DATABASE_URL = process.env.DATABASE_URL;
-if (!DATABASE_URL) {
-  process.stderr.write("DATABASE_URL is required.\n");
-  process.exit(1);
+function requireDatabaseUrl(): string {
+  const value = process.env.DATABASE_URL;
+  if (!value) {
+    process.stderr.write("DATABASE_URL is required.\n");
+    process.exit(1);
+  }
+  return value;
 }
+
+const DATABASE_URL = requireDatabaseUrl();
 
 const CLEANUP_SQL = `
 -- 1. Revert partial ClinicTier_new recreation.
@@ -48,7 +54,7 @@ END $$;
 `;
 
 async function main() {
-  const pool = new Pool({ connectionString: DATABASE_URL });
+  const pool = new Pool(createUtcPoolConfig(DATABASE_URL));
   try {
     const client = await pool.connect();
     try {

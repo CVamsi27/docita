@@ -59,7 +59,7 @@ export interface IAppointmentReadRepository {
     } | null;
   } | null>;
 
-  /** Narrow read used before applying partial updates (ownership + schedule diffing). */
+  /** Narrow read used before applying partial updates (ownership + schedule diffing + observed status). */
   findForUpdate(
     id: string,
     clinicId: string,
@@ -70,6 +70,7 @@ export interface IAppointmentReadRepository {
     doctorId: string;
     startTime: Date;
     endTime: Date;
+    status: AppointmentStatusEnum;
   } | null>;
 }
 

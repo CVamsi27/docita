@@ -7,7 +7,17 @@ import { RequestLogService } from './services/request-log.service';
 import { ErrorTrackingService } from './services/error-tracking.service';
 import { MetricsService } from './services/metrics.service';
 import { HealthCheckService } from './services/health-check.service';
+import { TelemetryCaptureRecorder } from './services/telemetry-capture-recorder.service';
+import type {
+  PerformanceMetrics,
+  QueueHealthSummary,
+  BackgroundJobsHealthSummary,
+  RequestStats,
+  TelemetryCoverage,
+} from '@workspace/types';
+import type { RouteCategory } from '@workspace/db';
 
+/** Facade over the monitoring pipeline. */
 @Injectable()
 export class MonitoringService implements OnModuleDestroy {
   private readonly logger = new Logger(MonitoringService.name);
@@ -17,6 +27,7 @@ export class MonitoringService implements OnModuleDestroy {
     private readonly errorTrackingService: ErrorTrackingService,
     private readonly metricsService: MetricsService,
     private readonly healthCheckService: HealthCheckService,
+    private readonly captureRecorder: TelemetryCaptureRecorder,
   ) {}
 
   onModuleDestroy() {
@@ -93,16 +104,14 @@ export class MonitoringService implements OnModuleDestroy {
     startDate?: Date,
     endDate?: Date,
     clinicId?: string,
-  ): Promise<{
-    totalRequests: number;
-    successfulRequests: number;
-    failedRequests: number;
-    avgResponseTime: number;
-    requestsByPath: { path: string; count: number; avgDuration: number }[];
-    requestsByStatus: { statusCode: number; count: number }[];
-    requestsByHour: { hour: number; count: number }[];
-  }> {
-    return this.requestLogService.getRequestStats(startDate, endDate, clinicId);
+    routeCategory?: RouteCategory,
+  ): Promise<RequestStats> {
+    return this.requestLogService.getRequestStats(
+      startDate,
+      endDate,
+      clinicId,
+      routeCategory,
+    );
   }
 
   async getErrorStats(
@@ -135,18 +144,13 @@ export class MonitoringService implements OnModuleDestroy {
   async getPerformanceMetrics(
     startDate?: Date,
     endDate?: Date,
-  ): Promise<{
-    slowestEndpoints: {
-      path: string;
-      method: string;
-      avgDuration: number;
-      maxDuration: number;
-      count: number;
-    }[];
-    responseTimeDistribution: { range: string; count: number }[];
-    throughputByMinute: { minute: string; count: number }[];
-  }> {
-    return this.metricsService.getPerformanceMetrics(startDate, endDate);
+    routeCategory?: RouteCategory,
+  ): Promise<PerformanceMetrics> {
+    return this.metricsService.getPerformanceMetrics(
+      startDate,
+      endDate,
+      routeCategory,
+    );
   }
 
   async getSystemHealth() {
@@ -216,7 +220,29 @@ export class MonitoringService implements OnModuleDestroy {
     return this.metricsService.getSecurityMonitoringSummary(startDate, endDate);
   }
 
-  async getQueueHealthSummary() {
+  async getQueueHealthSummary(): Promise<QueueHealthSummary> {
     return this.metricsService.getQueueHealthSummary();
+  }
+
+  /**
+   * Cron heartbeat freshness and outbox backlog age. Both backends already
+   * record this internally; this makes it readable without log archaeology.
+   */
+  async getBackgroundJobsHealthSummary(): Promise<BackgroundJobsHealthSummary> {
+    return this.metricsService.getBackgroundJobsHealthSummary();
+  }
+
+  /**
+   * What the retained telemetry window can honestly support. Not uptime: the
+   * response says so in `coverageNote`, and returns first/last retained instants
+   * plus recorded gaps rather than an availability percentage.
+   */
+  async getTelemetryCoverage(
+    windowStart?: Date,
+    windowEnd?: Date,
+  ): Promise<TelemetryCoverage> {
+    const end = windowEnd ?? new Date();
+    const start = windowStart ?? new Date(end.getTime() - 24 * 60 * 60 * 1000);
+    return this.captureRecorder.getCoverage(start, end);
   }
 }

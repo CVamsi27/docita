@@ -10,6 +10,8 @@
 
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+
+import { trackedFileExists } from "../lib/check-runner.mjs";
 import process from "node:process";
 
 const ROOTS = ["apps/app", "apps/internal"];
@@ -67,7 +69,8 @@ const FILE_RE = /\.[jt]sx?$/;
 const files = ROOTS.flatMap((root) =>
   execSync(`git ls-files '${root}'`, { encoding: "utf8" })
     .split("\n")
-    .filter(Boolean),
+    .filter(Boolean)
+    .filter(trackedFileExists),
 ).filter((f) => FILE_RE.test(f));
 
 const findings = [];

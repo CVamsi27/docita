@@ -16,6 +16,16 @@ export class DatabasePoolingService {
 
   constructor(private configService: AppConfigService) {}
 
+  /**
+   * A **computed suggestion**, not the pool the API actually connects through.
+   *
+   * `PrismaService` builds its pool from `DATABASE_CONSTANTS`
+   * (`POOL_MAX_PRODUCTION` = 15, `POOL_MAX_DEVELOPMENT` = 5), so this returns a
+   * different `max` from the running client on any host where
+   * `cpuCount * 5 + 10` is not 15. Use it for capacity planning only; read live
+   * counters from `PrismaService.getPoolSaturation()`, exposed at
+   * `GET /operations/database/pooling/saturation`.
+   */
   getOptimalPoolConfig(_nodeCount: number = 1): PoolConfig {
     const isProduction = this.configService.isProduction();
     const cpuCount = this.configService.getCpuCount();
@@ -60,7 +70,7 @@ export class DatabasePoolingService {
   logPoolConfig(): void {
     const config = this.getOptimalPoolConfig();
     this.logger.log(
-      `Database Connection Pool Config: min=${config.min} max=${config.max} idle=${config.idleTimeoutMillis}ms connect=${config.connectionTimeoutMillis}ms`,
+      `Database Connection Pool suggestion (advisory, not applied): min=${config.min} max=${config.max} idle=${config.idleTimeoutMillis}ms connect=${config.connectionTimeoutMillis}ms`,
     );
   }
 }

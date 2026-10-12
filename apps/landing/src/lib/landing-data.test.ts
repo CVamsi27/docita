@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { PUBLISHED_PLAN_LADDER } from "@workspace/types";
 import {
   FALLBACK_PRICING_CONFIG,
   formatStatValue,
@@ -84,6 +85,14 @@ describe("landing-data", () => {
         symbol: "₹",
         name: "Indian Rupee",
       });
+    });
+
+    it("lists exactly the published plan ladder, without legacy SKUs", () => {
+      // The public pricing surface must only ever offer SKUs the canonical
+      // ladder publishes; the retirable Front Desk SKUs live on as plan modes.
+      expect(FALLBACK_PRICING_CONFIG.tiers.map((tier) => tier.id)).toEqual([
+        ...PUBLISHED_PLAN_LADDER,
+      ]);
     });
 
     it("lists at least the starter tier with numeric monthly pricing", () => {

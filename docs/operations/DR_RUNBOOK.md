@@ -1,7 +1,14 @@
 # Disaster Recovery Runbook
 
-> **Status**: initial. Last drill: never. Schedule first drill within 30
-> days of this file landing. SYSTEM_DESIGN_AND_PATTERNS.md §28.1 item 7.
+> **Status**: initial. Last drill: never (as of 2026-10-03). Schedule first
+> drill within 30 days of this file landing. SYSTEM_DESIGN_AND_PATTERNS.md
+> §28.1 item 7.
+>
+> The RTO/RPO values in the table below are **unverified targets**, not measured
+> capabilities — no drill has been run and `docs/operations/dr-drills/` does not
+> exist. Do not quote them as guarantees until a drill record exists. See
+> [ADR 0016](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md)
+> (backlog C01).
 
 ## Scope
 

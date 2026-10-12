@@ -8,7 +8,7 @@ import { PortalLayout } from "./components/layout/portal-layout";
 import { LabPortalLayout } from "./components/layout/lab-portal-layout";
 import { ToolsLayout } from "./components/layout/tools-layout";
 import { PublicRoute } from "./components/layout/public-route";
-import { PageTransitionLoader } from "./components/loaders/page-transition-loader";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import * as authPages from "@/routes/route-pages-auth";
 import * as clinicalPages from "@/routes/route-pages-clinical";
 import * as settingsPages from "@/routes/route-pages-settings";
@@ -19,9 +19,7 @@ import * as toolsPages from "@/routes/route-pages-tools";
 
 function PageLoader() {
   return (
-    <div className="flex h-screen items-center justify-center">
-      <PageTransitionLoader title="Loading…" />
-    </div>
+    <DataState status="loading" loadingMessage="Loading…" className="min-h-[50vh]" />
   );
 }
 
@@ -48,7 +46,7 @@ export default function App() {
         {/* ── Setup Routes (auth required, no clinic) ── */}
         <Route element={<SetupLayout />}>
           <Route path="/choose-path" element={<SuspenseWrapper><authPages.ChoosePathPage /></SuspenseWrapper>} />
-          <Route path="/clinic-selection" element={<SuspenseWrapper><authPages.ClinicSelectionPage /></SuspenseWrapper>} />
+
           <Route path="/join-clinic" element={<SuspenseWrapper><authPages.JoinClinicPage /></SuspenseWrapper>} />
           <Route path="/join-request-status" element={<SuspenseWrapper><authPages.JoinRequestStatusPage /></SuspenseWrapper>} />
           <Route path="/onboarding" element={<SuspenseWrapper><authPages.OnboardingPage /></SuspenseWrapper>} />

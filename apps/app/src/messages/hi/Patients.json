@@ -106,7 +106,14 @@
     "historyLoadingLabel": "भेजे गए संदेश लोड हो रहे हैं…",
     "historyErrorFallback": "हम भेजे गए संदेश लोड नहीं कर सके।",
     "historyEmptyTitle": "अभी तक कोई संदेश नहीं",
-    "historyEmptyDescription": "अभी तक इस रोगी को कोई संदेश नहीं भेजा गया है।"
+    "historyEmptyDescription": "अभी तक इस रोगी को कोई संदेश नहीं भेजा गया है।",
+    "status": {
+      "QUEUED": "कतार में",
+      "SENT": "भेजा गया",
+      "DELIVERED": "पहुँच गया",
+      "READ": "पढ़ा गया",
+      "FAILED": "विफल"
+    }
   },
   "metricsConfiguration": {
     "cardTitle": "श्रेणी / कस्टम मीट्रिक फ़ील्ड जोड़ें",
@@ -358,11 +365,12 @@
     "editAria": "मरीज़ संपादित करें",
     "editLabel": "संपादित करें",
     "tableEmptyTitle": "कोई मरीज़ नहीं मिला",
-    "tableEmptyDescription": "\"{query}\" से मेल खाता कोई मरीज़ नहीं मिला",      "tableEmptyDescriptionFallback": "कोई मरीज़ नहीं मिला",
-      "paginationShowing_one": "कुल {count} मरीज़",
-      "paginationShowing_other": "{count} में से {start}-{end} मरीज़",
-      "paginationPrevious": "पिछला",
-      "paginationNext": "अगला"
+    "tableEmptyDescription": "\"{query}\" से मेल खाता कोई मरीज़ नहीं मिला",
+    "tableEmptyDescriptionFallback": "कोई मरीज़ नहीं मिला",
+    "paginationShowing_one": "कुल {count} मरीज़",
+    "paginationShowing_other": "{count} में से {start}-{end} मरीज़",
+    "paginationPrevious": "पिछला",
+    "paginationNext": "अगला"
   },
   "metrics": {
     "categoriesTitle": "श्रेणियाँ और ट्रैक किए गए मेट्रिक्स",

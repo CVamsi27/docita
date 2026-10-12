@@ -15,7 +15,7 @@ interface CursorPaginationOptions<T> {
 
   where?: PrismaQuery;
 
-  orderBy?: PrismaQuery;
+  orderBy?: PrismaQuery | PrismaQuery[];
 
   select?: PrismaQuery;
 
@@ -41,7 +41,7 @@ export async function paginateWithCursor<T>(
   const queryOptions: {
     take: number;
     where: PrismaQuery;
-    orderBy: PrismaQuery;
+    orderBy: PrismaQuery | PrismaQuery[];
     cursor?: { id: string };
     skip?: number;
     select?: PrismaQuery;

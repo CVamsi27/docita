@@ -4,7 +4,11 @@ import path from 'path';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import { createUtcPoolConfig } from '@workspace/db';
+import {
+  createUtcPoolConfig,
+  createPoolSaturationProbe,
+  type PoolSaturationProbe,
+} from '@workspace/db';
 
 import {
   evaluateResetDuration,
@@ -13,6 +17,8 @@ import {
 } from '@/test-utils/reset-budget';
 
 let prisma: TestPrismaClient;
+/** The pool every suite in this process shares, kept for pressure reporting. */
+let testPoolSaturation: PoolSaturationProbe | null = null;
 
 type TestPrismaClient = PrismaClient & {
   getReadClient(): PrismaClient;
@@ -40,6 +46,7 @@ export function setupTestDatabase() {
     );
 
   const pool = new Pool(createUtcPoolConfig({ connectionString: testDbUrl }));
+  testPoolSaturation = createPoolSaturationProbe(pool);
   const adapter = new PrismaPg(pool);
   const rawPrisma = new PrismaClient({ adapter });
 
@@ -78,6 +85,28 @@ export function setupTestDatabase() {
       if (pushVerdict.level === 'warn') {
         process.stderr.write(`[reset-budget] ${pushVerdict.message}\n`);
       }
+
+      // `db push` cannot express objects that only exist in migrations
+      // (EXCLUDE constraints, triggers, and their extensions). Apply them
+      // so the test database carries the same invariants production runs
+      // with — otherwise concurrency tests pass or fail differently than
+      // production would (W01 booking race, onboarding preservation).
+      execSync(
+        `pnpm exec prisma db execute --file "${path.join(
+          __dirname,
+          'fixtures',
+          'migration-only-ddl.sql',
+        )}"`,
+        {
+          cwd: path.join(__dirname, '../../..', 'packages/db'),
+          env: {
+            ...process.env,
+            DATABASE_URL: testDbUrl,
+          },
+          stdio: 'pipe',
+        },
+      );
+
       schemaPrepared = true;
     }
   } catch (error) {
@@ -90,7 +119,7 @@ export function setupTestDatabase() {
     const stdout = execError.stdout?.toString().trim();
     throw new Error(
       [
-        'Failed to prepare test database with `prisma db push --force-reset`.',
+        'Failed to prepare test database (prisma db push or the migration-only DDL fixture).',
         `DATABASE_URL=${testDbUrl}`,
         stderr ? `stderr: ${stderr}` : undefined,
         stdout ? `stdout: ${stdout}` : undefined,
@@ -129,6 +158,11 @@ export async function resetDatabase() {
     'InventoryMovement',
     'InventoryItem',
     'QueueToken',
+    'QueueJob',
+    'Admission',
+    'Bed',
+    'Room',
+    'Ward',
     'AppointmentReminder',
     'ReminderSettings',
     'PatientMergeSuggestion',
@@ -214,4 +248,56 @@ export async function closeDatabase() {
 
 export function getPrismaInstance() {
   return prisma;
+}
+
+/**
+ * Pressure snapshot for intermittent failures: how many backends are connected
+ * to the test database and in what state, plus this process's heap and uptime.
+ *
+ * A full 2/4-shard run packs many heavy suites into one process, and failures
+ * seen only in that context (an untranslated 500, a `socket hang up`) are
+ * prohibitively expensive to reproduce. Assertions in the suites that have
+ * shown them embed this snapshot in the failure message, so the next occurrence
+ * carries its own cause instead of needing an 8-minute reproduction loop.
+ *
+ * `pool` reports the shared test pool's own saturation. `pg_stat_activity`
+ * alone cannot distinguish "PostgreSQL is slow" from "every caller is queued
+ * for a connection", which is the distinction the pool counters make.
+ */
+export async function captureE2ePressureSnapshot(): Promise<
+  Record<string, unknown>
+> {
+  const heap = process.memoryUsage();
+  let dbActivity: Record<string, unknown> | null = null;
+
+  const testDbUrl = process.env.DATABASE_URL;
+  if (testDbUrl) {
+    const pool = new Pool(createUtcPoolConfig({ connectionString: testDbUrl }));
+    try {
+      const rows = await pool.query<{ state: string; count: string }>(
+        `SELECT COALESCE(state, 'unknown') AS state, count(*)::text AS count
+         FROM pg_stat_activity
+         WHERE datname = current_database()
+         GROUP BY 1
+         ORDER BY 1`,
+      );
+      dbActivity = Object.fromEntries(
+        rows.rows.map((row) => [row.state, Number(row.count)]),
+      );
+    } catch (error) {
+      dbActivity = {
+        error: error instanceof Error ? error.message : 'unknown error',
+      };
+    } finally {
+      await pool.end();
+    }
+  }
+
+  return {
+    heapUsedMb: Math.round(heap.heapUsed / 1024 / 1024),
+    rssMb: Math.round(heap.rss / 1024 / 1024),
+    processUptimeSeconds: Math.round(process.uptime()),
+    pool: testPoolSaturation?.snapshot() ?? 'not initialized',
+    dbActivity,
+  };
 }

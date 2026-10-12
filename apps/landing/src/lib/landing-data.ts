@@ -36,7 +36,8 @@ const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "STARTER",
     name: "Starter",
-    description: "Core clinical workflows for solo practitioners moving off paper",
+    description:
+      "Core clinical workflows for solo practitioners moving off paper",
     tagline: "Go digital from day one",
     pricing: { monthly: 499, yearly: 4990, currency: "₹" },
     features: [
@@ -45,48 +46,6 @@ const FALLBACK_TIERS: TierConfig[] = [
       "Patient profiles & visit history",
       "Excel import & CSV export",
       "Single doctor",
-    ],
-  },
-  {
-    id: "FRONT_DESK",
-    name: "Front desk · Solo",
-    description:
-      "Reception-first scheduling and billing without full in-app clinical workflows",
-    tagline: "Reception and operations",
-    pricing: { monthly: 799, yearly: 7990, currency: "₹" },
-    features: [
-      "Scheduling and queue",
-      "Patients and invoicing",
-      "WhatsApp within plan limits",
-      "Schedule-only doctor profiles",
-    ],
-  },
-  {
-    id: "FRONT_DESK_CLINIC",
-    name: "Front desk · Clinic",
-    description:
-      "Multi-desk reception for growing clinics without clinical workspaces",
-    tagline: "Multi-desk reception",
-    pricing: { monthly: 1249, yearly: 12490, currency: "₹" },
-    features: [
-      "Up to 25 staff users",
-      "3,000 appointments / month",
-      "Supervisor and billing-only roles",
-      "WhatsApp messaging (2,000 msgs)",
-    ],
-  },
-  {
-    id: "FRONT_DESK_HOSPITAL",
-    name: "Front desk · Hospital",
-    description:
-      "Hospital-scale reception ops with multi-location queues and handover",
-    tagline: "Hospital reception",
-    pricing: { monthly: 3999, yearly: 39990, currency: "₹" },
-    features: [
-      "Up to 150 staff users",
-      "15,000 appointments / month",
-      "Multi-OPD queue routing",
-      "Shift handover and dedicated CSM",
     ],
   },
   {
@@ -198,7 +157,12 @@ function parsePlatformStats(raw: unknown): PlatformStats | null {
     return null;
   }
   const values = new Map(Object.entries(parsed));
-  const stats: PlatformStats = { clinics: 0, doctors: 0, patients: 0, prescriptions: 0 };
+  const stats: PlatformStats = {
+    clinics: 0,
+    doctors: 0,
+    patients: 0,
+    prescriptions: 0,
+  };
   for (const key of PLATFORM_STAT_KEYS) {
     const value = values.get(key);
     if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {

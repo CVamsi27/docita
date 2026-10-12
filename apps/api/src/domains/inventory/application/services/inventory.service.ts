@@ -38,9 +38,10 @@ export class InventoryService {
   updateItem(
     clinicId: string,
     id: string,
-    data: Parameters<InventoryCommandService['updateItem']>[2],
+    userId: string,
+    data: Parameters<InventoryCommandService['updateItem']>[3],
   ) {
-    return this.commandService.updateItem(clinicId, id, data);
+    return this.commandService.updateItem(clinicId, id, userId, data);
   }
 
   deleteItem(clinicId: string, id: string) {

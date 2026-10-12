@@ -95,11 +95,25 @@ export class InvoiceSettlementService {
     const alreadyPaidCents = sumSettledPaymentCents(existingSessions);
     const balanceDueCents = Math.max(0, invoice.totalCents - alreadyPaidCents);
 
-    const invoiceTotal = invoice.totalCents / 100;
+    // A nil balance means there is genuinely nothing to collect: either the
+    // invoice nets to zero (fully discounted / zero-priced line items) or a
+    // later edit already covered what was paid. Falling back to the invoice
+    // total here would either record a zero-amount CAPTURED session or report
+    // a phantom overpayment, so refuse up front with an accurate reason.
+    if (balanceDueCents <= 0) {
+      throw new BadRequestException(
+        'Invoice has no outstanding balance to settle.',
+      );
+    }
+
     const resolvedAmount =
-      typeof data.amount === 'number' && data.amount > 0
-        ? data.amount
-        : balanceDueCents / 100 || invoiceTotal;
+      typeof data.amount === 'number' ? data.amount : balanceDueCents / 100;
+    if (resolvedAmount <= 0) {
+      throw new BadRequestException(
+        'Payment amount must be greater than zero.',
+      );
+    }
+
     const paymentCents = toPaiseAmount(resolvedAmount);
 
     if (paymentCents > balanceDueCents) {

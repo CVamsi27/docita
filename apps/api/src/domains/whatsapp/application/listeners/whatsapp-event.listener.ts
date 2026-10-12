@@ -81,12 +81,14 @@ export class WhatsappEventListener {
 
     try {
       const invoice = await this.persistence.invoice.findUnique({
-        where: { id: event.invoiceId },
+        where: { id: event.invoiceId, clinicId: event.clinicId },
         include: {
           patient: { select: { firstName: true, lastName: true } },
         },
       });
-      const patientName = invoice?.patient
+      if (!invoice) return;
+
+      const patientName = invoice.patient
         ? getPatientFullName(invoice.patient).trim()
         : 'a patient';
       const amountDisplay = invoice?.total ?? event.amountPaise / 100;

@@ -266,7 +266,7 @@ Run the smallest applicable set per phase, full set at phase boundaries (this is
 | --- | --- |
 | Types/attributes | `pnpm --filter @workspace/types run check-types`; authorization-schema unit tests |
 | Engine/package | `pnpm --filter @workspace/authorization run check-types` + tests; `pnpm check:circular:enforce` |
-| Parity | `pnpm check:abac-parity` (differential); per-resource e2e specs; `rbac-high-risk-matrix` + `rbac-403-verification` still green |
+| Parity | `pnpm check:policy-resolver-coverage` (differential); per-resource e2e specs; `rbac-high-risk-matrix` + `rbac-403-verification` still green |
 | Full gate | `pnpm verify:standard`; `pnpm knip`; `pnpm lint`; `pnpm turbo check-types --continue`; `pnpm test`; `pnpm build`; `pnpm check:prisma-boundary`; `pnpm check:controller-rbac`; `pnpm check:auth-tenant-safety`; `pnpm check:rls-rollout-readiness` |
 
 ## 8) Definition of Done for the ABAC migration

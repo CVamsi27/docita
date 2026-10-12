@@ -47,7 +47,16 @@
   },
   "summaryBar": {
     "appointment_one": "{count} अपॉइंटमेंट",
-    "appointment_other": "{count} अपॉइंटमेंट"
+    "appointment_other": "{count} अपॉइंटमेंट",
+    "status": {
+      "scheduled": "निर्धारित",
+      "confirmed": "पुष्ट",
+      "checked-in": "उपस्थित",
+      "in-progress": "चल रहा है",
+      "completed": "पूर्ण",
+      "cancelled": "रद्द",
+      "no-show": "नहीं आए"
+    }
   },
   "calendarView": {
     "day": "दिन",

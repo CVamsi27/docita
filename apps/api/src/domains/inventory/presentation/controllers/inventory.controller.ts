@@ -83,8 +83,8 @@ export class InventoryController {
     @Param('id') id: string,
     @Body() body: UpdateInventoryItemDto,
   ) {
-    const { clinicId } = getClinicStaffRequestContext(req);
-    return this.inventoryService.updateItem(clinicId, id, body);
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    return this.inventoryService.updateItem(clinicId, id, userId, body);
   }
 
   @Delete(':id')

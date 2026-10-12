@@ -5,12 +5,15 @@ import { formatCurrency, formatDate, enIN } from "@workspace/utils";
 import { apiPost } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { useApiQuery } from "@/hooks/use-api-query";
+import { internalClinicListResponseSchema, type InternalClinicListResponse } from "@workspace/types";
 
-interface Clinic { id: string; name: string; tier: string; email: string; subscriptionStatus?: string; }
 interface Payment { id: string; clinicName: string; planLabel: string; amount: number; currency: string; status: string; paidAt?: string; }
 
 export function PaymentProcessingPage() {
-  const { data: clinics = [], isLoading: clinicsLoading } = useApiQuery<Clinic[]>("/api/internal/clinics");
+  const { data: clinicPage, isLoading: clinicsLoading, isError: clinicsError, refetch: refetchClinics } = useApiQuery<InternalClinicListResponse>("/api/internal/clinics", {
+    select: (response) => internalClinicListResponseSchema.parse(response),
+  });
+  const clinics = clinicPage?.items ?? [];
   const {
     data: payments = [],
     isLoading: paymentsLoading,
@@ -48,28 +51,28 @@ export function PaymentProcessingPage() {
   return (
     <AppPageScaffold header={<PageHeader title="Payment Processing" description="Record subscription payments and tier changes" size="compact" />}>
       <DataState
-        status={paymentsError ? "error" : loading ? "loading" : "success"}
+        status={paymentsError || clinicsError ? "error" : loading ? "loading" : "success"}
         loadingMessage="Loading payment processing..."
         errorMessage="We could not load payment processing. Please try again."
-        onRetry={() => { void refetch(); }}
+        onRetry={() => { void refetch(); void refetchClinics(); }}
       >
         <Card className="mb-6">
           <CardHeader><CardTitle>Process Payment</CardTitle><CardDescription>Record a payment and optionally change tier</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Clinic</Label>
+              <Label htmlFor="payment-clinic">Clinic</Label>
               <Select value={selectedClinic} onValueChange={(v) => { setSelectedClinic(v); }}>
-                <SelectTrigger><SelectValue placeholder="Select a clinic" /></SelectTrigger>
+                <SelectTrigger id="payment-clinic"><SelectValue placeholder="Select a clinic" /></SelectTrigger>
                 <SelectContent>{clinics.map((c) => <SelectItem key={c.id} value={c.id}>{c.name} ({c.tier})</SelectItem>)}</SelectContent>
               </Select>
             </div>
             {selectedClinic && (
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Amount</Label>
-                  <Input type="number" value={amount} onChange={(e) => { setAmount(e.target.value); }} placeholder="Enter amount" /></div>
-                <div className="space-y-2"><Label>New Tier</Label>
+                <div className="space-y-2"><Label htmlFor="payment-amount">Amount</Label>
+                  <Input id="payment-amount" type="number" value={amount} onChange={(e) => { setAmount(e.target.value); }} placeholder="Enter amount" /></div>
+                <div className="space-y-2"><Label htmlFor="payment-tier">New Tier</Label>
                   <Select value={newTier} onValueChange={(v) => { setNewTier(v); }}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="payment-tier"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="STARTER">Starter</SelectItem>
                       <SelectItem value="ESSENTIAL">Essential</SelectItem>

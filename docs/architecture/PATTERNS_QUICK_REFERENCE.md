@@ -318,7 +318,7 @@ CDN logs. Use the app's own proxy route.
 | `pnpm check:circular:enforce` fails on a new NestJS module                                     | The two intentional cycles (auth↔clinics, whatsapp↔support-whatsapp) are allowlisted; any new cycle must be fixed with `forwardRef` or split |
 | `pnpm check:client-storage-usage` flags `localStorage.setItem`                                  | Add `check-client-storage-usage: allow-file — <no-PHI rationale>`; never store PHI in localStorage |
 | `pnpm check:jsx-literal-density` fails after adding a page                                       | Audit the literals: brand strings → constants, UI copy → en.json/hi.json, dates → `Intl.DateTimeFormat` |
-| `pnpm check:circular-deps` finds a cycle through the new feature barrel                        | Re-export from a single index; use `@/features/<feature>` for cross-feature imports               |
+| `pnpm check:circular` finds a cycle through the new feature barrel                        | Re-export from a single index; use `@/features/<feature>` for cross-feature imports               |
 | `pnpm check:route-thinness` flags a >180-line route page                                         | Split into `*-page.tsx` + `*-page-sections.tsx`                                                   |
 | `pnpm check:file-size-budget` flags a >400-line file                                            | Apply the [split criteria in AGENTS.md §15.5](https://github.com/vamsikrishnachandaluri/repos/docita/AGENTS.md#15-pattern-catalogue) |
 

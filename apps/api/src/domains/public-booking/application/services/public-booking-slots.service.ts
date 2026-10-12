@@ -12,6 +12,7 @@ import {
 } from '@/domains/public-booking/application/ports/public-booking-persistence.port';
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
 import { SlotGenerationService } from '@/domains/doctors/application/services/slot-generation.service';
+import { doctorBelongsToClinic as lookupDoctorClinicMembership } from '@/shared/common/prisma/doctor-clinic-membership';
 import {
   resolveClinicByReferralCode,
   withBookingTenant,
@@ -71,27 +72,18 @@ export class PublicBookingSlotsService {
     ).toISOString();
   }
 
-  private async doctorBelongsToClinic(
+  /**
+   * Public slot probing must not reveal a departed (inactive link) or
+   * soft-deleted doctor; the shared membership rule excludes both.
+   */
+  private doctorBelongsToClinic(
     doctorId: string,
     clinicId: string,
   ): Promise<boolean> {
-    const [directUser, linkedClinic] = await Promise.all([
-      this.persistence.user.count({
-        where: {
-          id: doctorId,
-          clinicId,
-          role: { in: ['DOCTOR', 'ADMIN_DOCTOR'] },
-        },
-      }),
-      this.persistence.doctorClinic.count({
-        where: {
-          doctorId,
-          clinicId,
-          active: true,
-        },
-      }),
-    ]);
-    return directUser > 0 || linkedClinic > 0;
+    return lookupDoctorClinicMembership(this.persistence, {
+      doctorId,
+      clinicId,
+    });
   }
 
   async listSlots(

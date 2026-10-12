@@ -31,6 +31,7 @@ export interface CRUDDialogProps {
   contentClassName?: string;
   disabled?: boolean;
   children: React.ReactNode;
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
 }
 
 export function CRUDDialog({
@@ -46,6 +47,7 @@ export function CRUDDialog({
   contentClassName,
   disabled = false,
   children,
+  returnFocusRef,
 }: CRUDDialogProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +65,12 @@ export function CRUDDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn("sm:max-w-[500px]", contentClassName)}
+        onCloseAutoFocus={(event) => {
+          if (returnFocusRef?.current?.isConnected) {
+            event.preventDefault();
+            returnFocusRef.current.focus();
+          }
+        }}
         onInteractOutside={preventWhenLoadingOrDisabled(isLoading, disabled)}
         onEscapeKeyDown={preventEscapeWhenLoadingOrDisabled(
           isLoading,
@@ -75,7 +83,7 @@ export function CRUDDialog({
         </DialogHeader>
 
         <form
-// jscpd:ignore-end
+          // jscpd:ignore-end
           onSubmit={handleSubmit}
           noValidate
           className="flex flex-col gap-5"

@@ -1,5 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { SearchInput, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
+import {
+  SearchInput,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components";
 
 interface InventoryFiltersProps {
   searchQuery: string;
@@ -31,7 +38,10 @@ export function InventoryFilters({
         ariaLabel={t("searchAriaLabel")}
       />
       <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-        <SelectTrigger className="w-full md:w-[180px]">
+        <SelectTrigger
+          className="w-full md:w-[180px]"
+          aria-label={t("categoryPlaceholder")}
+        >
           <SelectValue placeholder={t("categoryPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
@@ -44,7 +54,10 @@ export function InventoryFilters({
         </SelectContent>
       </Select>
       <Select value={stockFilter} onValueChange={setStockFilter}>
-        <SelectTrigger className="w-full md:w-[180px]">
+        <SelectTrigger
+          className="w-full md:w-[180px]"
+          aria-label={t("stockPlaceholder")}
+        >
           <SelectValue placeholder={t("stockPlaceholder")} />
         </SelectTrigger>
         <SelectContent>

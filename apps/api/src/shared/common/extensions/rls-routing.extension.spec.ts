@@ -5,6 +5,7 @@ import {
   runWithActiveTx,
 } from '@/shared/modules/rls/active-tx.storage';
 import type { Prisma } from '@workspace/db';
+import { asType } from '@/test-utils';
 
 /**
  * Exercises the routing core extracted from the Prisma extension factory:
@@ -21,6 +22,41 @@ import type { Prisma } from '@workspace/db';
 
 describe('rls-routing extension', () => {
   const handler = routeOperationThroughActiveTx;
+
+  it('routes overlapping sibling reads through the same transaction', async () => {
+    let release: () => void = () => undefined;
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const tx = asType<Prisma.TransactionClient>({
+      patient: {
+        findMany: async ({ marker }: { marker: string }) => {
+          expect(activeTxStorage.getStore()?.tx).toBeNull();
+          if (marker === 'first') await pending;
+          return `scoped-${marker}`;
+        },
+      },
+    });
+
+    const results = await runWithActiveTx(tx, async () => {
+      const first = handler({
+        model: 'Patient',
+        operation: 'findMany',
+        args: { marker: 'first' },
+        query: async () => 'unscoped-first',
+      });
+      const second = handler({
+        model: 'Patient',
+        operation: 'findMany',
+        args: { marker: 'second' },
+        query: async () => 'unscoped-second',
+      });
+      release();
+      return Promise.all([first, second]);
+    });
+
+    expect(results).toEqual(['scoped-first', 'scoped-second']);
+  });
 
   it('passes through to the original query when no active tx is set', async () => {
     const args = { where: { id: 'x' } };

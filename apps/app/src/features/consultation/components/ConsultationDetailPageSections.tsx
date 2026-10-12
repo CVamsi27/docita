@@ -6,9 +6,13 @@ import { ConsultationLeaveDialog } from "@/features/consultation/components/Cons
 import { ConsultationVitalsProvider } from "@/features/consultation/workspace/consultation-vitals-provider";
 import { ConsultationLeaveNavigationProvider } from "@/features/consultation/workspace/consultation-leave-navigation-context";
 import type { ConsultationSaveHandles } from "@/features/consultation/workspace/use-consultation-leave-navigation";
-import { formatChiefComplaintSummary, getPatientFullName } from "@workspace/utils";
+import {
+  formatChiefComplaintSummary,
+  getPatientFullName,
+} from "@workspace/utils";
 import { Stethoscope } from "lucide-react";
 import type { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
+import { usePatientWithMedicalHistory } from "@workspace/data-access";
 
 type ConsultationState = ReturnType<typeof useConsultationLogic>["state"];
 type AppointmentData = NonNullable<ConsultationState["appointmentData"]>;
@@ -156,8 +160,12 @@ export function ConsultationMainContent({
   canMarkDone,
   markDoneDisabledReason,
 }: ConsultationMainContentProps) {
-  const patientName = appointmentData.patient
-    ? getPatientFullName(appointmentData.patient)
+  const { data: patient } = usePatientWithMedicalHistory(
+    appointmentData.patientId ?? "",
+  );
+  const headerPatient = patient ?? appointmentData.patient;
+  const patientName = headerPatient
+    ? getPatientFullName(headerPatient)
     : "Patient";
 
   const MobileSidebar = (

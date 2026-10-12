@@ -13,7 +13,7 @@
     "deploy:cloudflare": "pnpm run build:cloudflare && wrangler deploy --minify",
     "deploy:cloudflare:staging": "pnpm run build:cloudflare && wrangler deploy --minify --env staging",
     "deploy:cloudflare:production": "pnpm run build:cloudflare && wrangler deploy --minify --env production",
-    "lint": "eslint src/",
+    "lint": "eslint src/ e2e/",
     "typecheck": "tsc --noEmit",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
@@ -52,7 +52,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.39.0",
     "vite": "^6.4.2",
-    "vitest": "^4.1.10",
+    "vitest": "^4.1.11",
     "wrangler": "^4.90.0"
   }
 }

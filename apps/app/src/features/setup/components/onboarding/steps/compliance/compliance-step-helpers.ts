@@ -79,7 +79,7 @@ export async function fetchQrSessionStatus(
     activeOnboardingId,
     sessionId,
   );
-  const status = data.status?.toLowerCase();
+  const status = data.status.toLowerCase();
   return Boolean(
     data.uploaded || data.fileUrl || status === "uploaded" || status === "completed",
   );

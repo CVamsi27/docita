@@ -23,6 +23,7 @@ import { factories, setPrismaInstance } from '../../factories';
 import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { getCsrfHeaders } from '../../csrf-helpers';
+import { csrfHeaders } from '../../http-helpers';
 import { signE2eAccessToken } from '../../e2e-auth-token';
 
 const PARTNER_PHONE = '+919876543210';
@@ -51,13 +52,6 @@ const mockWhatsAppClient: IWhatsAppClient = {
     .mockResolvedValue({ externalId: 'wamid.e2e-partner' }),
   checkHealth: jest.fn().mockResolvedValue(true),
 };
-
-function csrfHeaders(headers: { cookie: string; token: string }): {
-  Cookie: string;
-  'X-XSRF-TOKEN': string;
-} {
-  return { Cookie: headers.cookie, 'X-XSRF-TOKEN': headers.token };
-}
 
 const leadBody = (overrides: Record<string, unknown> = {}) => ({
   facilityName: 'Sunrise Diagnostics',
@@ -738,22 +732,30 @@ describe('Facility Leads (e2e)', () => {
         .send(leadBody())
         .expect(200);
 
-      // Drive the outbox relay manually (the cron is disabled in tests) so
-      // the listener materializes the internal notification. The relay does
-      // not await async listeners, so poll briefly for the row.
+      // Acknowledgment requires the subscriber's persisted notification.
       await outboxRelay.drain();
-      let notification = await prisma.facilityLeadNotification.findFirst({
+      const notification = await prisma.facilityLeadNotification.findFirst({
         where: { leadId: created.body.id, kind: 'LEAD_CREATED' },
       });
-      for (let attempt = 0; !notification && attempt < 20; attempt += 1) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        notification = await prisma.facilityLeadNotification.findFirst({
-          where: { leadId: created.body.id, kind: 'LEAD_CREATED' },
-        });
-      }
       expect(notification).not.toBeNull();
       expect(notification?.status).toBe('DELIVERED');
       expect(notification?.channel).toBe('internal');
+      // Simulate a lost acknowledgment after delivery: redelivery must reuse
+      // the existing notification's unique (leadId, kind) key.
+      await prisma.outboxEvent.updateMany({
+        where: {
+          aggregateId: created.body.id,
+          eventName: 'facility-lead.created',
+        },
+        data: { processedAt: null, nextAttemptAt: null },
+      });
+      await outboxRelay.drain();
+      expect(
+        await prisma.facilityLeadNotification.count({
+          where: { leadId: created.body.id, kind: 'LEAD_CREATED' },
+        }),
+      ).toBe(1);
+
       const payload = notification?.payload as Record<string, unknown>;
       expect(payload).toMatchObject({
         leadId: created.body.id,

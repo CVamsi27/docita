@@ -81,6 +81,31 @@ failure the atomic claim has already incremented `attempts`; the relay writes
 After the attempt ceiling the row remains available for the outbox alerting
 and operator-drain path.
 
+### Acknowledgment semantics (amended 2026-10-03)
+
+The relay dispatches with `emitAsync`, not `emit`. `emit` returns
+synchronously, so a listener declared `async` (or any listener returning a
+promise) was abandoned the instant `processedAt` was written: a rejection
+vanished with no record and no retry. `emitAsync` resolves only once every
+listener has settled, which makes the row's acknowledgment genuinely the
+listeners' completion.
+
+Two consequences:
+
+- **Listener failure leaves retryable intent.** A rejecting listener leaves the
+  row unprocessed with `lastError` and `nextAttemptAt` set, so the effect is
+  retried rather than silently lost.
+- **Delivery is at-least-once.** A row that fails after some listeners already
+  ran is re-dispatched to all of them, so listeners must be idempotent on the
+  `__outboxId` carried in the payload.
+
+Dispatch is bounded by a 30s per-event timeout so a listener that never settles
+is treated as a failure (and retried) rather than holding the advisory lock and
+stalling every later tick. The underlying dispatch is not cancelled —
+EventEmitter2 has no cancellation — so a timed-out listener may still complete
+its work after the row has been re-queued. That is the same at-least-once
+tradeoff, and it is why listener idempotency is required rather than optional.
+
 ## Follow-up: migrate existing direct emits to outbox
 
 Ten command-path sites currently carry `allow-direct-emit:` markers (recorded

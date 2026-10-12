@@ -19,10 +19,9 @@
  *    say 200. Action POSTs (send / verify / cancel / transition / clear /
  *    backup) MUST carry `@HttpCode(HttpStatus.OK)`.
  *
- * The action-post class carries a tracked allowlist of the violations found
- * in the 2026-08-08 conformance audit (17 handlers). Fix each by adding
- * `@HttpCode(HttpStatus.OK)`, then delete its entry. The route-prefix class
- * fails immediately on any new occurrence.
+ * Both classes now have zero tolerance. Existing auth POSTs retain HTTP 201
+ * under the documented compatibility decision in the standard; their Swagger
+ * metadata must accurately say 201. New action POSTs explicitly use HTTP 200.
  */
 
 import fs from "node:fs";
@@ -32,30 +31,10 @@ import {
 } from "../lib/check-runner.mjs";
 
 /**
- * Known §5 action-POST violations (audit 2026-08-08; see
- * docs/architecture/API_DESIGN_STANDARD.md §5). Key: `<file>|<route>`.
- * Each entry is fixed by adding `@HttpCode(HttpStatus.OK)` to the handler and
- * then removing the entry — the allowlist must never grow.
+ * The audit allowlist is empty as of 2026-10-08. Keep a zero ceiling so a new
+ * documented-200/default-201 mismatch cannot be hidden. Key: `<file>|<route>`.
  */
-const ACTION_POST_ALLOWLIST = new Set([
-  "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-auth.controller.ts|request-otp",
-  "apps/api/src/domains/patient-portal/presentation/controllers/patient-portal-auth.controller.ts|verify-otp",
-  "apps/api/src/shared/common/controllers/database-operations.controller.ts|backup/full",
-  "apps/api/src/shared/common/controllers/database-operations.controller.ts|backup/schema",
-  "apps/api/src/shared/common/controllers/database-operations.controller.ts|backups/cleanup",
-  "apps/api/src/shared/common/controllers/database-operations.controller.ts|backup/verify",
-  "apps/api/src/shared/common/controllers/database-operations.controller.ts|slow-queries/clear",
-  "apps/api/src/shared/modules/auth/auth/auth-login.controller.ts|login",
-  "apps/api/src/shared/modules/auth/auth/auth-login.controller.ts|mfa/verify",
-  "apps/api/src/shared/modules/auth/auth/auth-password.controller.ts|forgot-password",
-  "apps/api/src/shared/modules/auth/auth/auth-password.controller.ts|reset-password",
-  "apps/api/src/shared/modules/auth/auth/auth-password.controller.ts|change-password",
-  "apps/api/src/shared/modules/auth/auth/auth-registration.controller.ts|check-email",
-  "apps/api/src/shared/modules/auth/auth/auth-session.controller.ts|refresh",
-  "apps/api/src/shared/modules/auth/auth/auth-session.controller.ts|logout",
-  "apps/api/src/shared/modules/auth/auth/auth-verification.controller.ts|verify-email",
-  "apps/api/src/shared/modules/auth/auth/auth-verification.controller.ts|resend-verification",
-]);
+const ACTION_POST_ALLOWLIST = new Set();
 
 /**
  * Ratchet ceiling for the action-post allowlist. The list is a shrinking
@@ -63,7 +42,7 @@ const ACTION_POST_ALLOWLIST = new Set([
  * fixing the handler) fails the check. Bump this ONLY when the ceiling itself
  * is the tracked baseline (see check-jsx-literal-density baselines).
  */
-const ACTION_POST_ALLOWLIST_CEILING = 17;
+const ACTION_POST_ALLOWLIST_CEILING = 0;
 
 const controllerDecorator = /^\s*@Controller\s*\(/;
 const postDecorator = /^\s*@Post\s*\(([^)]*)\)/;
@@ -157,5 +136,5 @@ for (const file of files) {
 reportFindingsAndExit("API route conformance check", findings, {
   failAlways: true,
   extraMessage:
-    "See docs/architecture/API_DESIGN_STANDARD.md §1 (route-prefix) and §5 (action-post-status). Allowlisted action POSTs are fixed by adding @HttpCode(HttpStatus.OK) and removing the allowlist entry.",
+    "See docs/architecture/API_DESIGN_STANDARD.md §1 (route-prefix) and §5 (action-post-status). No conformance allowances remain; existing auth HTTP 201 contracts must document 201.",
 });

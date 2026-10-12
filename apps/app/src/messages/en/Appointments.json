@@ -47,7 +47,16 @@
   },
   "summaryBar": {
     "appointment_one": "{count} appointment",
-    "appointment_other": "{count} appointments"
+    "appointment_other": "{count} appointments",
+    "status": {
+      "scheduled": "Scheduled",
+      "confirmed": "Confirmed",
+      "checked-in": "Checked In",
+      "in-progress": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "no-show": "No Show"
+    }
   },
   "calendarView": {
     "day": "Day",

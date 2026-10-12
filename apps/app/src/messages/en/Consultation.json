@@ -41,7 +41,6 @@
     "removeInvestigationTooltip": "Remove investigation",
     "removeAttachmentTooltip": "Remove attachment",
     "viewAttachment": "View attachment",
-    "attachReportAriaLabel": "Attach a report or scan",
     "attachReport": "Attach report",
     "uploading": "Uploading…"
   },

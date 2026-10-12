@@ -14,6 +14,9 @@
 //    copy strings; out of scope.
 //  - the `eng.traineddata` Tesseract language model (binary, contains
 //    sample glyphs for OCR training).
+//  - this check's own test fixtures. A fixture asserting the check fires
+//    has to contain the forbidden glyph by construction, so scanning it
+//    reports the test suite as a violation forever.
 //
 // Allow-list matches the (small) set of pictographic glyphs the UI
 // standard tolerates: U+2318 (Mac command) and U+2325 (Mac option) for
@@ -34,6 +37,10 @@ const EMOJI_RE = /[\u{1F000}-\u{1FFFF}\u{1F1E6}-\u{1F1FF}]/gu;
 
 const files = gitLsSourceFiles(['apps', 'packages', 'scripts'], {
   extensions: ['.ts', '.tsx', '.js', '.mjs', '.cjs', '.jsx', '.astro'],
+  // The `[mc]?[jt]sx?` tail matters: the only offender is a `.test.mjs`
+  // fixture, and a `[tj]sx?` tail silently failed to match `.mjs`, so the
+  // exclusion appeared to do nothing.
+  exclude: [/\.(test|spec|stories)\.[mc]?[jt]sx?$/],
 });
 
 const findings = [];

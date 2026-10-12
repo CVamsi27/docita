@@ -27,12 +27,6 @@ export function getMinimumTierForFeature(feature: Feature): Tier {
   return FEATURE_TIER_MAP[feature];
 }
 
-export function assertNotIntelligenceComparison(tier: Tier): void {
-  if (tier === Tier.INTELLIGENCE) throw new Error(
-      'Tier.INTELLIGENCE must use feature access checks, not numeric tier comparisons.',
-    );
-}
-
 export function deriveAnnualPrice(monthly: number): number {
   return Math.round(monthly * 10);
 }
@@ -92,7 +86,7 @@ export function hasFeatureAccess(
     return overrides[feature] === true;
   }
 
-  const requiredTier = FEATURE_TIER_MAP[feature];
+  const requiredTier = getMinimumTierForFeature(feature);
 
   if (requiredTier === Tier.INTELLIGENCE) return hasIntelligence;
 
@@ -114,10 +108,6 @@ export function getFeaturesForTier(tier: TierName): Feature[] {
   return Object.keys(FEATURE_TIER_MAP)
     .filter(isFeatureKey)
     .filter((feature) => hasFeatureAccess(tier, feature, false));
-}
-
-export function getAllFeaturesUpToTier(tier: TierName): Feature[] {
-  return getFeaturesForTier(tier);
 }
 
 export function getIntelligenceBundlePrice(): number {

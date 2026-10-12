@@ -28,7 +28,7 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
   const router = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
 
-  const { data: invoice, isLoading } = useInvoice(invoiceId);
+  const { data: invoice, isLoading, error, refetch } = useInvoice(invoiceId);
 
   const updateInvoice = useUpdateInvoice(invoiceId);
 
@@ -110,6 +110,8 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
     onSubmit,
     invoice,
     isLoading,
+    error,
+    refetch,
     isSaving,
     totalAmount,
     router,

@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@workspace/ui/components/form/button";
 import { MicroLabel, Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@workspace/ui/components";
 import { formatDate } from "@workspace/utils";
@@ -19,6 +20,7 @@ export function PublicBookingSummaryPeek({
   selectedStart: string | null;
   selectedEnd: string | null;
 }) {
+  const { t } = useTranslation("PublicBooking");
   const hasSlot = Boolean(selectedCalendarDay && selectedStart && selectedEnd);
   const hasAll = Boolean(selectedDoctorName) && hasSlot;
   const hasAny = Boolean(selectedDoctorName) || hasSlot;
@@ -46,7 +48,7 @@ export function PublicBookingSummaryPeek({
               ? "border-primary/40 bg-primary/[0.06] hover:bg-primary/[0.09]"
               : "border-border/70 bg-muted/25 hover:bg-muted/40",
           )}
-          aria-label="Your request summary"
+          aria-label={`${t("summaryPeek.yourVisit")}: ${line ?? t("summaryPeek.empty")}`}
         >
           <span className="min-w-0 flex-1">
             <MicroLabel
@@ -56,7 +58,7 @@ export function PublicBookingSummaryPeek({
                 hasAny ? "text-primary/80" : "text-muted-foreground",
               )}
             >
-              Your visit
+              {t("summaryPeek.yourVisit")}
             </MicroLabel>
             <span
               className={cn(
@@ -64,7 +66,7 @@ export function PublicBookingSummaryPeek({
                 hasAny ? "text-foreground" : "text-muted-foreground/80",
               )}
             >
-              {line ?? "No day or slot selected yet"}
+              {line ?? t("summaryPeek.empty")}
             </span>
           </span>
           <ChevronDown
@@ -82,10 +84,10 @@ export function PublicBookingSummaryPeek({
       >
         <SheetHeader className="border-b border-border/50 px-4 pb-3 pt-2 text-left sm:px-6">
           <SheetTitle className="text-left text-[length:var(--fs-lg)]">
-            Your request
+            {t("summaryPeek.sheetTitle")}
           </SheetTitle>
           <SheetDescription className="text-left text-[length:var(--fs-xs)]">
-            Doctor, day, and time for this visit request.
+            {t("summaryPeek.sheetDescription")}
           </SheetDescription>
         </SheetHeader>
         <div className="px-4 py-4 sm:px-6">

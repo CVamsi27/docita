@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Outlet, useLocation } from "react-router";
 import { Sidebar, SidebarMobileTrigger } from "@/components/navigation/sidebar";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useCanGoBack } from "@/hooks/use-can-go-back";
 import { DesktopTopBar } from "@/components/layout/desktop-top-bar";
 import { TopBarActions } from "@/components/layout/top-bar-actions";
@@ -55,7 +56,7 @@ function ProtectedMainArea({ isConsultationDetailRoute }: { isConsultationDetail
 
   return (
     <>
-      <main id="main-content" className={`${mainClassName} animate-fade-up`} aria-label="Main content">
+      <main id="main-content" tabIndex={0} className={`ui-workspace-ledger ${mainClassName} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring`} aria-label="Main content">
         <ErrorBoundary><Outlet /></ErrorBoundary>
       </main>
     </>
@@ -64,6 +65,7 @@ function ProtectedMainArea({ isConsultationDetailRoute }: { isConsultationDetail
 
 export function ProtectedLayout() {
   const location = useLocation();
+  const { canStartConsultation } = usePermissions();
   const pathname = location.pathname;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -109,7 +111,7 @@ export function ProtectedLayout() {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
-      <FloatingStartConsultation />
+      <FloatingStartConsultation canStartConsultation={canStartConsultation} />
       <CommandPalette />
       <AskAiOverlay />
     </ProvidersWrapper>

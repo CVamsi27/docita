@@ -1,8 +1,8 @@
 "use client";
 
 import { ShieldCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription, AlertTitle, Button, Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@workspace/ui/components";
-import { bookingSteps } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
 
 export function PublicBookingHowItWorksSheet({
@@ -16,6 +16,14 @@ export function PublicBookingHowItWorksSheet({
    */
   appearance?: "link" | "chip" | "inline";
 }) {
+  const { t } = useTranslation("PublicBooking");
+  // Keys are passed to t() inline (not via a key array) so the namespace
+  // registration test can statically resolve every one of them.
+  const steps = [
+    { id: "chooseDay", label: t("howItWorks.steps.chooseDay") },
+    { id: "shareContact", label: t("howItWorks.steps.shareContact") },
+    { id: "sendRequest", label: t("howItWorks.steps.sendRequest") },
+  ];
   const isChip = appearance === "chip";
   const isInline = appearance === "inline";
   return (
@@ -35,7 +43,7 @@ export function PublicBookingHowItWorksSheet({
             triggerClassName,
           )}
         >
-          How this works
+          {t("howItWorks.trigger")}
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -49,10 +57,10 @@ export function PublicBookingHowItWorksSheet({
       >
         <SheetHeader className="border-b border-border/50 px-4 pb-3 pt-2 text-left sm:px-6">
           <SheetTitle className="text-left text-[length:var(--fs-lg)]">
-            How booking works
+            {t("howItWorks.title")}
           </SheetTitle>
           <SheetDescription className="text-left text-[length:var(--fs-xs)]">
-            Three quick steps before the clinic confirms your visit.
+            {t("howItWorks.description")}
           </SheetDescription>
         </SheetHeader>
         <div
@@ -64,20 +72,19 @@ export function PublicBookingHowItWorksSheet({
           )}
         >
           <ol className="list-decimal space-y-2 pl-5 text-[length:var(--fs-sm)] leading-relaxed text-muted-foreground">
-            {bookingSteps.map((step) => (
-              <li key={step}>
-                <span className="font-medium text-foreground">{step}</span>
+            {steps.map(({ id, label }) => (
+              <li key={id}>
+                <span className="font-medium text-foreground">{label}</span>
               </li>
             ))}
           </ol>
           <Alert className="mt-4 rounded-[var(--radius-md)] border border-border/70 bg-background shadow-sm [&>svg]:left-3 [&>svg]:top-3 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:text-primary [&>svg~*]:pl-6">
             <ShieldCheck className="shrink-0" aria-hidden />
             <AlertTitle className="mb-0.5 text-[length:var(--fs-2xs)] font-semibold tracking-wide">
-              Private booking link
+              {t("howItWorks.privacyTitle")}
             </AlertTitle>
             <AlertDescription className="text-[length:var(--fs-2xs)] leading-snug text-muted-foreground">
-              Only you and this care team see what you enter. Submitting is a
-              request until staff confirms your visit.
+              {t("howItWorks.privacyBody")}
             </AlertDescription>
           </Alert>
         </div>

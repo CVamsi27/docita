@@ -59,7 +59,7 @@ export function DoctorsPage() {
                     </Badge>
                     {doctor.verificationReason && <span className="text-xs text-muted-foreground">{doctor.verificationReason}</span>}
                   </div></TableCell>
-                  <TableCell className="text-right"><Button variant="ghost" size="sm" onClick={() => { setSelectedDoctor(doctor); setIsViewOpen(true); }}><Eye className="h-4 w-4" /></Button></TableCell>
+                  <TableCell className="text-right"><Button variant="ghost" size="sm" aria-label={`View doctor: ${doctor.name}`} onClick={() => { setSelectedDoctor(doctor); setIsViewOpen(true); }}><Eye className="h-4 w-4" /></Button></TableCell>
                 </TableRow>
               ))}</TableBody></Table></div>
             )}

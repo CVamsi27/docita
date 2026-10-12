@@ -95,7 +95,7 @@ pnpm check:pdf-bearer-cap
 pnpm check:razorpay-adapters
 pnpm check:client-storage-usage
 pnpm check:form-schema-extends
-pnpm check:contract-strictness
+pnpm check:contracts-strict
 pnpm check:json-parse-guarded
 pnpm check:json-column-zod
 pnpm check:non-null-assertion
@@ -114,7 +114,7 @@ pnpm knip                          # unused exports/types/deps
 pnpm --filter @docita/api run test:e2e   # 23 suites, 143+ tests
 
 # Cloudflare build
-pnpm build:cloudflare:production
+pnpm --filter @docita/app run build:cloudflare   # and @docita/internal for its changes
 
 # Synthetic probes
 pnpm monitor:synthetic

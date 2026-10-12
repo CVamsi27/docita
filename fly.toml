@@ -3,13 +3,14 @@ app = 'docita-api'
 # shelved bom capacity; shifted to 'sin' (Singapore) as the closest gateway
 # region. CI deploys use this value via fly-deploy-in-primary-region.sh.
 primary_region = 'sin'
+swap_size_mb = 512
 
 [build]
   dockerfile = 'apps/api/Dockerfile'
 
 [env]
   NODE_ENV = 'production'
-  NODE_MAX_OLD_SPACE_SIZE_MB = '1536'
+  NODE_MAX_OLD_SPACE_SIZE_MB = '384'
   PORT = '3001'
   APP_URL = 'https://app.docita.work'
   NEXT_PUBLIC_APP_URL = 'https://app.docita.work'
@@ -24,9 +25,6 @@ primary_region = 'sin'
 [http_service]
   internal_port = 3001
   force_https = true
-  # Keep one machine running during IST business hours (8:30 AM–8:30 PM) and
-  # zero during off-hours. The scale-api-hours.yml workflow adjusts the count
-  # on a schedule; this floor allows the off-hours zero-machine state.
   auto_stop_machines = 'suspend'
   auto_start_machines = true
   min_machines_running = 0
@@ -36,20 +34,15 @@ primary_region = 'sin'
     hard_limit = 100
     soft_limit = 60
 
-[checks]
-  [checks.health]
-    port = 3001
-    type = 'http'
+  [[http_service.checks]]
     interval = '15s'
     timeout = '5s'
-    # grace_period is the safety net for deploys, host migration, and OOM
-    # recovery. The steady-state clinician path stays on the running floor.
-    grace_period = '240s'
+    grace_period = '30s'
     method = 'GET'
     path = '/api/health/live'
 
 [[vm]]
-  memory = '2gb'
+  memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 2048
+  memory_mb = 512

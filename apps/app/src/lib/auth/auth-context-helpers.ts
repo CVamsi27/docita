@@ -1,7 +1,8 @@
 import {
   appAuthUserSchema,
-  loginResponseSchema,
+  mfaChallengeResponseSchema,
   registerResponseSchema,
+  tokenIssueResponseSchema,
   validateSessionResponseSchema,
   type AppAuthUser,
 } from "@workspace/types";
@@ -16,6 +17,21 @@ interface AuthPayload {
 
 export const AUTH_RESPONSE_ERROR_MESSAGE =
   "We could not sign you in right now. Please try again.";
+
+/**
+ * Shown instead of the generic failure when `POST /auth/login` answers with an
+ * MFA challenge. The API issues no session in that case, so the sign-in
+ * genuinely cannot complete here — and telling the user "we could not sign you
+ * in, please try again" sends them round the password loop for a credential
+ * that was correct.
+ */
+export const MFA_CHALLENGE_ERROR_MESSAGE =
+  "This account needs two-factor authentication, which the web app cannot complete yet. Ask your clinic administrator for help signing in.";
+
+/** True when the login response is an MFA challenge rather than a session. */
+export function isMfaChallengeResponse(raw: unknown): boolean {
+  return mfaChallengeResponseSchema.safeParse(raw).success;
+}
 
 export const VERIFICATION_EMAIL_STATUS_STORAGE_KEY =
   "docita_verification_email_status";
@@ -43,7 +59,7 @@ export function extractAuthPayload(raw: unknown): AuthPayload | null {
     };
   }
 
-  const directLogin = loginResponseSchema.safeParse(raw);
+  const directLogin = tokenIssueResponseSchema.safeParse(raw);
   if (directLogin.success) {
     return {
       access_token: directLogin.data.access_token,
@@ -63,7 +79,7 @@ export function extractAuthPayload(raw: unknown): AuthPayload | null {
       };
     }
 
-    const nestedLogin = loginResponseSchema.safeParse(nested);
+    const nestedLogin = tokenIssueResponseSchema.safeParse(nested);
     if (nestedLogin.success) {
       return {
         access_token: nestedLogin.data.access_token,
@@ -129,9 +145,7 @@ export function clearSensitiveClientStorageOnLogout(): void {
     for (let i = 0; i < window.sessionStorage.length; i++) {
       const key = window.sessionStorage.key(i);
       if (!key) continue;
-      if (
-        SESSION_STORAGE_PREFIXES_TO_CLEAR.some((p) => key.startsWith(p))
-      ) {
+      if (SESSION_STORAGE_PREFIXES_TO_CLEAR.some((p) => key.startsWith(p))) {
         toRemove.push(key);
       }
     }

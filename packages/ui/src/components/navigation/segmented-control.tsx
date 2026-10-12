@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@workspace/ui/lib/utils";
+import { resolveRovingTablistTarget } from "@workspace/ui/lib/roving-tablist";
 
 export interface SegmentedControlItem {
   id: string;
@@ -30,16 +31,37 @@ export function SegmentedControl({
   className,
   size = "default",
 }: SegmentedControlProps) {
+  const tabRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const activeIndex = items.findIndex((item) => item.id === activeId);
+    const nextIndex = resolveRovingTablistTarget({
+      key: event.key,
+      count: items.length,
+      currentIndex: activeIndex,
+      isDisabled: (index) => items[index]?.disabled === true,
+    });
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+
+    const nextItem = items[nextIndex];
+    tabRefs.current[nextIndex]?.focus();
+    if (nextItem) onSelect(nextItem.id);
+  };
+
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
+      aria-orientation="horizontal"
+      onKeyDown={handleKeyDown}
       className={cn(
         "flex gap-1 rounded-[10px] bg-muted p-[3px]",
         className,
       )}
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         const isActive = item.id === activeId;
         return (
           <button
@@ -48,6 +70,10 @@ export function SegmentedControl({
             role="tab"
             aria-selected={isActive}
             disabled={item.disabled}
+            ref={(node) => {
+              tabRefs.current[index] = node;
+            }}
+            tabIndex={isActive ? 0 : -1}
             onClick={() => onSelect(item.id)}
             className={cn(
               "flex-1 rounded-[7px] border-0 font-medium transition-colors duration-150",

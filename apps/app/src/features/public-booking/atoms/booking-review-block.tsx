@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Button, MicroLabel } from "@workspace/ui/components";
 import { formatDate, getPatientFullName } from "@workspace/utils";
 import { formatTime } from "@/lib/formatters";
@@ -21,6 +22,8 @@ function ReviewRow({
   fieldId?: string;
   onEdit: (step: PublicBookingMobileStep, fieldId?: string) => void;
 }) {
+  const { t } = useTranslation("PublicBooking");
+
   return (
     <div className="flex min-w-0 items-start justify-between gap-3 border-b border-border/50 py-3 last:border-b-0">
       <div className="min-w-0 flex-1 space-y-0.5">
@@ -38,7 +41,7 @@ function ReviewRow({
         className="h-8 shrink-0 px-2 text-[length:var(--fs-xs)]"
         onClick={() => onEdit(editStep, fieldId)}
       >
-        Edit
+        {t("reviewBlock.edit")}
       </Button>
     </div>
   );
@@ -51,6 +54,7 @@ export function PublicBookingReviewBlock({
   c: PublicBookingPageController;
   onEdit: (step: PublicBookingMobileStep, fieldId?: string) => void;
 }) {
+  const { t } = useTranslation("PublicBooking");
   const patient =
     c.firstName.trim() || c.lastName.trim() ? getPatientFullName(c) : "—";
 
@@ -61,9 +65,60 @@ export function PublicBookingReviewBlock({
   const timeLabel =
     c.selectedStart && c.selectedEnd
       ? `${formatTime(c.selectedStart)} – ${formatTime(c.selectedEnd)}`
-      : "Date only (no slot)";
+      : t("reviewBlock.dateOnly");
 
   const doctorLabel = c.selectedDoctorName ?? "—";
+
+  const rows: Array<{
+    id: string;
+    label: string;
+    value: string;
+    editStep: PublicBookingMobileStep;
+    fieldId?: string;
+  }> = [
+    {
+      id: "doctor",
+      label: t("reviewBlock.rows.doctor"),
+      value: doctorLabel,
+      editStep: "visit",
+      fieldId: PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.doctor,
+    },
+    {
+      id: "day",
+      label: t("reviewBlock.rows.day"),
+      value: dayLabel,
+      editStep: "visit",
+      fieldId: PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.preferredDay,
+    },
+    {
+      id: "time",
+      label: t("reviewBlock.rows.time"),
+      value: timeLabel,
+      editStep: "visit",
+      fieldId: PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.openTimes,
+    },
+    {
+      id: "patient",
+      label: t("reviewBlock.rows.patient"),
+      value: patient,
+      editStep: "contact",
+      fieldId: PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.phone,
+    },
+    {
+      id: "phone",
+      label: t("reviewBlock.rows.phone"),
+      value: c.phone.trim() || "—",
+      editStep: "contact",
+      fieldId: PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.phone,
+    },
+    {
+      id: "reason",
+      label: t("reviewBlock.rows.reasonForVisit"),
+      value: c.reason.trim() || "—",
+      editStep: "contact",
+      fieldId: PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.reason,
+    },
+  ];
 
   return (
     <div
@@ -75,59 +130,19 @@ export function PublicBookingReviewBlock({
     >
       <div className={cn(bookingSectionHeaderBar, "px-4 py-3 sm:px-5 sm:py-4")}>
         <MicroLabel as="h2" className="mt-0">
-          Review
+          {t("reviewBlock.review")}
         </MicroLabel>
         <p className="mt-1 font-serif text-[length:var(--fs-xl)] font-semibold tracking-tight text-foreground">
-          Confirm before you send
+          {t("reviewBlock.confirmTitle")}
         </p>
         <p className="mt-1 text-[length:var(--fs-xs)] leading-relaxed text-muted-foreground">
-          Submitting sends a request only — the clinic confirms before your
-          visit is final.
+          {t("reviewBlock.description")}
         </p>
       </div>
       <div className="px-4 pb-4 pt-0 sm:px-5">
-        <ReviewRow
-          label="Doctor"
-          value={doctorLabel}
-          editStep="visit"
-          fieldId={PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.doctor}
-          onEdit={onEdit}
-        />
-        <ReviewRow
-          label="Day"
-          value={dayLabel}
-          editStep="visit"
-          fieldId={PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.preferredDay}
-          onEdit={onEdit}
-        />
-        <ReviewRow
-          label="Time"
-          value={timeLabel}
-          editStep="visit"
-          fieldId={PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.openTimes}
-          onEdit={onEdit}
-        />
-        <ReviewRow
-          label="Patient"
-          value={patient}
-          editStep="contact"
-          fieldId={PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.phone}
-          onEdit={onEdit}
-        />
-        <ReviewRow
-          label="Phone"
-          value={c.phone.trim() || "—"}
-          editStep="contact"
-          fieldId={PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.phone}
-          onEdit={onEdit}
-        />
-        <ReviewRow
-          label="Reason for visit"
-          value={c.reason.trim() || "—"}
-          editStep="contact"
-          fieldId={PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS.reason}
-          onEdit={onEdit}
-        />
+        {rows.map((row) => (
+          <ReviewRow key={row.id} {...row} onEdit={onEdit} />
+        ))}
       </div>
     </div>
   );

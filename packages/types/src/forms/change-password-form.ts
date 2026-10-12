@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { passwordSchema } from "../contracts/auth";
+import {
+  NEW_PASSWORD_DIFFERENT_MESSAGE,
+  passwordSchema,
+  passwordsMustDiffer,
+} from "../contracts/auth";
 
 /** Clinician settings form: includes confirm-password field not sent to the API. */
 // allow-no-base-schema: owner=app-platform reason=ui-confirm-password review=2026-09-30
@@ -13,8 +17,8 @@ export const changePasswordFormSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   })
-  .refine((data) => data.currentPassword !== data.newPassword, {
-    message: "New password must be different from current password",
+  .refine(passwordsMustDiffer, {
+    message: NEW_PASSWORD_DIFFERENT_MESSAGE,
     path: ["newPassword"],
   });
 

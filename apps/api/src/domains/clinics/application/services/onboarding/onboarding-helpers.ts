@@ -3,6 +3,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UploadSessionPurpose } from '@workspace/db';
 import { type ClinicPersistencePort } from '@/domains/clinics/application/ports/clinic-persistence.port';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
+import type { SlaSignatureSessionStatusResponse } from '@workspace/types';
 
 /**
  * Returns true if any clinic linked to a user with the given email already has
@@ -98,7 +99,7 @@ export async function getSlaSignatureSessionStatus(
   persistence: ClinicPersistencePort,
   onboardingId: string,
   sessionId: string,
-): Promise<{ status: string; uploaded: boolean; fileUrl: string | null }> {
+): Promise<SlaSignatureSessionStatusResponse> {
   void onboardingId;
   const session = await persistence.uploadSession.findUnique({
     where: { id: sessionId },

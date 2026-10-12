@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { mfaChallengeResponseSchema } from "@workspace/types";
 import { useAuth, type InternalUser } from "@/lib/auth/auth";
 import { getMainAppLoginUrl } from "@/lib/auth/use-auth-session";
 import { client } from "@/lib/api/api-client";
@@ -37,6 +38,14 @@ export function LoginPage() {
     setLoading(true);
     try {
       const data = await loginMutation.mutateAsync({ email, password });
+      if (mfaChallengeResponseSchema.safeParse(data).success) {
+        // The API issues no session for an MFA challenge, so the sign-in
+        // cannot complete here. Saying "check your details" would send staff
+        // round the password loop for a credential that was right.
+        throw new Error(
+          "This account needs two-factor authentication, which the console cannot complete yet. Ask an administrator for help signing in.",
+        );
+      }
       if (!data?.user)
         throw new Error("We could not sign you in. Please try again.");
       if (data.user.role !== "INTERNAL") {

@@ -57,6 +57,16 @@ Map your concern to a script, then `Read` it to see the pattern:
 | Suspense + error boundary paired                                    | [`check-suspense-error-boundary-pair.mjs`](check-suspense-error-boundary-pair.mjs)               |
 | No duplicate shared paths                                           | [`check-no-duplicate-shared-paths.mjs`](check-no-duplicate-shared-paths.mjs)                     |
 | Native button types                                                 | [`check-native-button-types.mjs`](check-native-button-types.mjs)                                 |
+| Naming ARIA lands on a role, not a bare container                  | [`check-aria-naming-target.mjs`](check-aria-naming-target.mjs)                                   |
+| Untranslated JSX copy does not grow (ratchet)                      | [`check-jsx-literal-density.mjs`](check-jsx-literal-density.mjs)                                 |
+| Untranslated copy in pure helpers does not grow (ratchet)          | [`check-user-facing-copy.mjs`](check-user-facing-copy.mjs)                                     |
+| UPPER_SNAKE display map keys match a Prisma enum member    | [`check-enum-map-drift.mjs`](check-enum-map-drift.mjs)                                             |
+| Client API paths are served by some controller            | [`check-unserved-endpoint.mjs`](check-unserved-endpoint.mjs)                                       |
+| Response DTO schemas come from a shared contract       | [`check-inline-response-dto.mjs`](check-inline-response-dto.mjs)                                 |
+| Clinician app never calls an INTERNAL-only endpoint    | [`check-internal-only-client-call.mjs`](check-internal-only-client-call.mjs)                     |
+| Test helpers do not redeclare a shared wire contract | [`check-test-schema-duplication.mjs`](check-test-schema-duplication.mjs)                         |
+| `<label>` does not override its own text with `aria-label` (2.5.3)  | [`check-aria-naming-target.mjs`](check-aria-naming-target.mjs)                                   |
+| Accessible name contains the words shown on screen (2.5.3)         | [`check-aria-naming-target.mjs`](check-aria-naming-target.mjs)                                   |
 | Native UI affordances use shared primitives                         | [`check-native-ui-affordances.mjs`](check-native-ui-affordances.mjs)                             |
 | Responsive `DataTable` mobile renderers                             | [`check-responsive-data-tables.mjs`](check-responsive-data-tables.mjs)                           |
 | Filename casing                                                     | [`check-filename-case.mjs`](check-filename-case.mjs)                                             |
@@ -89,6 +99,8 @@ Map your concern to a script, then `Read` it to see the pattern:
 | Feature test density                                                | [`check-feature-test-density.mjs`](check-feature-test-density.mjs)                               |
 | **PDF / data pipeline**                                             |                                                                                                  |
 | PDF pipeline shape                                                  | [`check-pdf-pipeline.mjs`](check-pdf-pipeline.mjs)                                               |
+| **Datetime / storage correctness**                                  |                                                                                                  |
+| `DateTime` columns are `timestamptz`, pools read in UTC            | [`check-utc-instant-storage.mjs`](check-utc-instant-storage.mjs)                                 |
 | **Migrations**                                                      |                                                                                                  |
 | Migration prefix collisions                                         | [`check-migration-prefix-collision.mjs`](check-migration-prefix-collision.mjs)                   |
 | Migration reversibility                                             | [`check-migration-reversibility.mjs`](check-migration-reversibility.mjs)                         |

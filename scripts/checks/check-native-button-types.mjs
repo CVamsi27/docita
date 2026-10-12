@@ -7,7 +7,9 @@ import {
   reportFindingsAndExit,
 } from "../lib/check-runner.mjs";
 
-const BUTTON_TAG_PATTERN = /<button\b[\s\S]*?>/g;
+// `=>` is consumed as a unit: an arrow-function prop placed before `type`
+// (for example a ref callback) must not truncate the match at its `>`.
+const BUTTON_TAG_PATTERN = /<button\b(?:=>|[^>])*>/g;
 const TYPE_ATTRIBUTE_PATTERN = /\btype\s*=/;
 
 const files = gitLsSourceFiles(["apps", "packages"], {

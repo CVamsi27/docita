@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { DashboardSharedWorkspace } from "@/features/dashboard/components/layout/dashboard-shared-workspace";
+import { TodayLedger } from "@/features/dashboard/components/today/today-ledger";
 import { DashboardRefreshControl } from "@/features/dashboard/components/layout/dashboard-refresh-control";
 import { ClinicReferralShareToolbar } from "@/features/dashboard/components/layout/clinic-referral-share-toolbar";
 import { TodayAdvisorRail } from "@/features/dashboard/components/advisor/today-advisor-rail";
@@ -14,7 +14,10 @@ import {
   BottomActionBar,
   BottomActionBarSlot,
 } from "@workspace/ui/components/layout/bottom-action-bar";
-import { Avatar, AvatarFallback } from "@workspace/ui/components/indicators/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@workspace/ui/components/indicators/avatar";
 import { cn } from "@workspace/ui/lib/utils";
 import { Play, Sparkles } from "lucide-react";
 import { formatDate, getPatientFullName } from "@workspace/utils";
@@ -44,7 +47,7 @@ function TodayHeaderActions({
     <div
       className={cn(
         "flex w-full min-w-0 flex-col gap-2.5",
-        "rounded-[var(--radius-md)] border border-border/70 bg-muted/25 p-3 shadow-sm ring-1 ring-border/25",
+        "border-b border-border/60 pb-3",
         "sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:ring-0",
       )}
     >
@@ -60,7 +63,10 @@ function TodayHeaderActions({
           variant="outline"
           size="sm"
           className="h-10 min-h-10 flex-1 touch-manipulation sm:h-9 sm:min-h-0 sm:flex-none border-primary/30 bg-primary/5 text-foreground hover:bg-primary/10 transition-colors duration-150"
-          onClick={onOpenAskAi}
+          onClick={(event) => {
+            event.currentTarget.focus();
+            onOpenAskAi();
+          }}
           aria-label={t("today.askAiAria")}
           data-testid="today-ask-ai"
         >
@@ -69,7 +75,7 @@ function TodayHeaderActions({
         </Button>
         {canStartConsultation ? (
           <Button
-            variant="default"
+            variant="ghost"
             size="sm"
             className="h-10 min-h-10 flex-1 touch-manipulation sm:h-9 sm:min-h-0 sm:flex-none"
             asChild
@@ -86,11 +92,6 @@ interface TodayPageHeaderProps extends TodayHeaderActionsProps {
   summaryLine?: string;
 }
 
-/**
- * Wraps `PageHeader` + `TodayHeaderActions` for the "Today" page — split out
- * so `TodayPageContent` doesn't need to assemble the header JSX shape inline
- * before every render branch (loading/error/empty/loaded all share it).
- */
 export function TodayPageHeader({
   summaryLine,
   lastDataUpdatedAtMs,
@@ -146,9 +147,8 @@ function TodayRightRailSection({
       aria-labelledby="today-rail-heading"
       className={cn(
         "flex w-full min-w-0 shrink-0 flex-col gap-4",
-        "rounded-[var(--radius-lg)] border border-border/70 bg-card p-4 shadow-sm ring-1 ring-border/30",
-        "sm:p-5",
-        "xl:sticky xl:top-4 xl:w-72 xl:max-w-[20rem] xl:self-start xl:bg-card/95 xl:backdrop-blur-sm 2xl:w-80",
+        "border-t border-border/70 pt-5",
+        "sm:grid sm:grid-cols-2 sm:items-start",
       )}
     >
       <h2 className="sr-only" id="today-rail-heading">
@@ -188,70 +188,87 @@ interface TodayBottomBarSectionProps {
   canStartConsultation: boolean;
   nextPatient: TodayDashboardState["nextPatients"][number] | null;
   hasCurrentPatient: boolean;
+  currentPatient?: TodayDashboardState["currentPatient"];
   isStarting: boolean;
   isMutationPending: boolean;
   onStartNextPatient: () => void;
 }
 
-/**
- * Persistent docked action bar. The "Next patient" CTA stays visible whether
- * or not a consultation is currently in progress so the doctor can see who
- * is up next and start the consult in one click without opening the queue.
- * When no consult is active we also surface the secondary "View queue" link.
- */
+/** Preserve current encounter access even when nobody is waiting. */
 export function TodayBottomBarSection({
   canStartConsultation,
   nextPatient,
   hasCurrentPatient,
+  currentPatient,
   isStarting,
   isMutationPending,
   onStartNextPatient,
 }: TodayBottomBarSectionProps) {
   const { t } = useTranslation("Dashboard");
 
-  if (!canStartConsultation || !nextPatient) return null;
+  if (!canStartConsultation || (!nextPatient && !currentPatient)) return null;
 
-  if (hasCurrentPatient) {
+  if (currentPatient) {
     return (
       <BottomActionBar aria-label={t("today.bottomBarAria")}>
-        <BottomActionBarSlot variant="secondary">
-          <NextPatientPreview nextPatient={nextPatient} />
-        </BottomActionBarSlot>
+        {nextPatient ? (
+          <BottomActionBarSlot variant="secondary">
+            <Button
+              variant="outline"
+              disabled={isStarting || isMutationPending}
+              onClick={onStartNextPatient}
+              aria-label={t("today.startNextAria", {
+                name: getPatientFullName(nextPatient.patient),
+              })}
+            >
+              {t(isStarting ? "today.startingButton" : "today.startNextButton")}
+            </Button>
+          </BottomActionBarSlot>
+        ) : null}
         <BottomActionBarSlot variant="primary">
           <Button
-            className="w-full touch-manipulation"
-            disabled={isStarting || isMutationPending}
-            onClick={onStartNextPatient}
-            aria-label={t("today.startNextAria", { name: getPatientFullName(nextPatient.patient) })}
+            variant="primary"
+            asChild
+            className="h-full w-full whitespace-normal"
           >
-            <Play className="mr-2 size-4" aria-hidden />
-            {isStarting ? t("today.startingButton") : t("today.startNextButton")}
+            <Link to={`/consultation/${currentPatient.id}`}>
+              {t("schedule.continueConsultation")}
+            </Link>
           </Button>
         </BottomActionBarSlot>
       </BottomActionBar>
     );
   }
+  if (!nextPatient) return null;
+
+  const nextPatientName = getPatientFullName(nextPatient.patient);
 
   return (
-    <BottomActionBar>
+    <BottomActionBar aria-label={t("today.bottomBarAria")}>
       <BottomActionBarSlot variant="secondary">
-        <Button
-          variant="outline"
-          className="w-full touch-manipulation"
-          asChild
-        >
-          <Link to="/consultation">{t("today.viewQueueButton")}</Link>
-        </Button>
+        {hasCurrentPatient ? (
+          <NextPatientPreview nextPatient={nextPatient} />
+        ) : (
+          <Button
+            variant="outline"
+            className="w-full touch-manipulation"
+            asChild
+          >
+            <Link to="/consultation">{t("today.viewQueueButton")}</Link>
+          </Button>
+        )}
       </BottomActionBarSlot>
       <BottomActionBarSlot variant="primary">
         <Button
+          variant="primary"
           className="w-full touch-manipulation"
           disabled={isStarting || isMutationPending}
           onClick={onStartNextPatient}
-          aria-label={t("today.startNextAria", { name: getPatientFullName(nextPatient.patient) })}
+          // Keep the visible action phrase in its accessible name for voice control.
+          aria-label={t("today.startNextAria", { name: nextPatientName })}
         >
           <Play className="mr-2 size-4" aria-hidden />
-          {isStarting ? t("today.startingButton") : t("today.nextPatientButton")}
+          {isStarting ? t("today.startingButton") : t("today.startNextButton")}
         </Button>
       </BottomActionBarSlot>
     </BottomActionBar>
@@ -303,21 +320,17 @@ interface TodayWorkspaceLayoutProps {
   nextPatients: TodayDashboardState["nextPatients"];
   todayAppointments: TodayDashboardState["todayAppointments"];
   completedToday: number;
-  inProgressToday: number;
   waitingCount: number;
   pendingJoinRequests: number;
   canAccess: TodayDashboardState["canAccess"];
-  slotDurationMinutes: number;
+  isStarting: boolean;
+  onStartNextPatient: () => void;
+  timezone?: string;
   railVisibility: TodayRailVisibility;
   referralShare: TodayReferralShare;
 }
 
-/**
- * Main "Today" content layout — the shared workspace + widgets column plus
- * the conditional sharing/advisor rail. Split out of `TodayPageContent` so
- * the layout composition is independent of the data-fetching/derivation
- * wiring (the orchestrator only decides *whether* to render this).
- */
+/** Keeps queue and current visit ahead of follow-ups and operational tasks. */
 export function TodayWorkspaceLayout({
   stats,
   canStartConsultation,
@@ -325,43 +338,39 @@ export function TodayWorkspaceLayout({
   nextPatients,
   todayAppointments,
   completedToday,
-  inProgressToday,
   waitingCount,
   pendingJoinRequests,
   canAccess,
-  slotDurationMinutes,
   railVisibility,
   referralShare,
+  isStarting,
+  onStartNextPatient,
+  timezone,
 }: TodayWorkspaceLayoutProps) {
   const showBottomBarPadding =
-    canStartConsultation && nextPatients[0];
+    canStartConsultation && (currentPatient || nextPatients[0]);
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-col gap-6 xl:flex-row xl:items-start xl:gap-8",
-        showBottomBarPadding && "pb-24 md:pb-0",
+        "min-w-0 space-y-6",
+        showBottomBarPadding && "pb-28 md:pb-0",
       )}
     >
-      <div className="min-w-0 flex-1">
-        <DashboardSharedWorkspace
-          mode="today"
-          todayAppointments={todayAppointments}
-          completedToday={completedToday}
-          inProgressToday={inProgressToday}
-          currentPatient={currentPatient}
-          nextPatients={nextPatients}
-          waitingCount={waitingCount}
-          pendingJoinRequests={pendingJoinRequests}
-          uncodedVisits={stats.uncodedVisits}
-          slotDurationMinutes={slotDurationMinutes}
-        >
-          <TodayMainWidgets
-            appointments={todayAppointments}
-            uncodedVisits={stats.uncodedVisits}
-            canAccess={canAccess}
-          />
-        </DashboardSharedWorkspace>
-      </div>
+      <TodayLedger
+        appointments={todayAppointments}
+        currentPatient={currentPatient}
+        nextPatient={nextPatients[0]}
+        canStartConsultation={canStartConsultation}
+        waitingCount={waitingCount}
+        completedToday={completedToday}
+        timezone={timezone}
+        isStarting={isStarting}
+        onStartNextPatient={onStartNextPatient}
+      />
+      <TodayMainWidgets
+        uncodedVisits={stats.uncodedVisits}
+        canAccess={canAccess}
+      />
       {railVisibility.showTodayRightColumn ? (
         <TodayRightRailSection
           hasShareRailContent={railVisibility.hasShareRailContent}

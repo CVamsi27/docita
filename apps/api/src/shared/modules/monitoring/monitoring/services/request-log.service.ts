@@ -1,7 +1,8 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma } from '@workspace/db';
+import { Prisma, RouteCategory } from '@workspace/db';
+import type { RequestStats } from '@workspace/types';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import { isRecord } from '@workspace/utils';
 import { isDatabaseAuthError } from '@/shared/common/utils/is-database-auth-error';
@@ -11,6 +12,22 @@ import {
 } from '@/shared/modules/monitoring/monitoring/ports/api-request-metrics.repository.port';
 import { ApiRequestInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
+import {
+  classifyRouteCategory,
+  isValidLatencySample,
+  toRouteCategoryBreakdown,
+} from '@/shared/modules/monitoring/monitoring/rules/telemetry-observation.rules';
+import { TelemetryCaptureRecorder } from '@/shared/modules/monitoring/monitoring/services/telemetry-capture-recorder.service';
+
+/**
+ * Hard ceiling on the in-memory buffer.
+ *
+ * While persistence is down the buffer is retained for retry, which previously
+ * grew without limit and took the process down with it. When the ceiling is hit
+ * the oldest rows are discarded and the loss is recorded as a capture event
+ * rather than happening silently.
+ */
+const MAX_BUFFER_SIZE = 10_000;
 
 @Injectable()
 export class RequestLogService implements OnModuleDestroy {
@@ -22,6 +39,8 @@ export class RequestLogService implements OnModuleDestroy {
   private persistenceDisabled = false;
   private flushInProgress = false;
   private loggedPersistenceDisabledReason = false;
+  private droppedWhileDisabled = 0;
+  private droppedWhileTruncated = 0;
 
   constructor(
     private prisma: PrismaService,
@@ -29,6 +48,7 @@ export class RequestLogService implements OnModuleDestroy {
     @Inject(API_REQUEST_METRICS_REPOSITORY_TOKEN)
     private readonly apiRequestMetrics: ApiRequestMetricsRepository,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
+    private readonly captureRecorder: TelemetryCaptureRecorder,
   ) {
     this.startFlushTimer();
   }
@@ -55,6 +75,9 @@ export class RequestLogService implements OnModuleDestroy {
 
   logRequest(data: ApiRequestInput): void {
     if (this.persistenceDisabled) {
+      // Capture is off. Counting here is what makes the gap reportable: an
+      // early return without a counter is the original defect.
+      this.droppedWhileDisabled += 1;
       return;
     }
 
@@ -71,11 +94,34 @@ export class RequestLogService implements OnModuleDestroy {
 
     this.requestBuffer.push(validatedData);
 
+    this.enforceBufferCeiling();
+
     if (this.requestBuffer.length >= this.BATCH_SIZE) {
       this.flushBuffer().catch((error) => {
         this.logger.error('Failed to flush request buffer', error);
       });
     }
+  }
+
+  /**
+   * Discards the oldest rows when the buffer exceeds MAX_BUFFER_SIZE. An outage
+   * must not convert telemetry buffering into an out-of-memory kill; the loss is
+   * recorded so coverage reports it.
+   */
+  private enforceBufferCeiling(): void {
+    if (this.requestBuffer.length <= MAX_BUFFER_SIZE) {
+      return;
+    }
+    const overflow = this.requestBuffer.length - MAX_BUFFER_SIZE;
+    this.requestBuffer.splice(0, overflow);
+    this.droppedWhileTruncated += overflow;
+    this.captureRecorder
+      .recordTruncated('BUFFER_OVERFLOW', overflow, this.requestBuffer.length)
+      .catch((error) => {
+        this.logger.warn(
+          `Could not record telemetry truncation: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      });
   }
 
   async flushBuffer(): Promise<void> {
@@ -107,6 +153,20 @@ export class RequestLogService implements OnModuleDestroy {
             ip: req.ip,
             error: req.error,
             errorStack: req.errorStack,
+            // Health probes and internal staff traffic are separated from
+            // customer operations so volume and latency reporting can exclude
+            // them. Classified from the path here, not at the producer, so every
+            // source of an ApiRequestInput gets the same answer.
+            routeCategory: classifyRouteCategory(req.path),
+            // Opaque join key for the matching ErrorLog row. Carries no
+            // identity, so a request and its error can be tied together without
+            // either carrying more personal data than it already does.
+            correlationId: req.correlationId,
+            // The instant the request finished. createdAt stays the row insert
+            // time, which after an outage can be hours late; window queries read
+            // observedAt so a late flush cannot distort a settled hour.
+            observedAt: req.observedAt ?? this.clock.now(),
+            latencyValid: isValidLatencySample(req.duration),
             metadata:
               req.metadata !== undefined
                 ? toPrismaInputJsonValue(req.metadata)
@@ -116,11 +176,13 @@ export class RequestLogService implements OnModuleDestroy {
         });
       });
       this.requestBuffer.splice(0, requestsToFlush.length);
+      await this.captureRecorder.flushPending();
       this.logger.debug(`Flushed ${requestsToFlush.length} requests`);
     } catch (error) {
       if (isDatabaseAuthError(error)) {
         this.disablePersistence(
           'Disabling request-log database persistence due to database authentication failure. Verify DATABASE_URL credentials.',
+          'DATABASE_AUTH_FAILURE',
         );
         return;
       }
@@ -128,6 +190,7 @@ export class RequestLogService implements OnModuleDestroy {
       if (this.isMissingApiRequestTableError(error)) {
         this.disablePersistence(
           'Disabling request-log database persistence because monitoring tables are missing. Run Prisma migrations (the migration that creates "ApiRequest").',
+          'MISSING_MONITORING_TABLES',
         );
         return;
       }
@@ -138,16 +201,34 @@ export class RequestLogService implements OnModuleDestroy {
     }
   }
 
-  private disablePersistence(message: string): void {
-    this.persistenceDisabled = true;
-    this.requestBuffer = [];
-
-    if (this.loggedPersistenceDisabledReason) {
+  private disablePersistence(message: string, reason: string): void {
+    if (this.persistenceDisabled) {
       return;
     }
 
+    this.persistenceDisabled = true;
+    // The buffer is being discarded. That is a real coverage gap, so it is
+    // counted and recorded rather than vanishing: without this the dashboard
+    // reads the previous rows as if they were current traffic.
+    const discarded = this.requestBuffer.length;
+    this.droppedWhileDisabled += discarded;
+    this.requestBuffer = [];
     this.loggedPersistenceDisabledReason = true;
+
     this.logger.warn(message);
+    this.captureRecorder.recordDisabled(reason, discarded, 0).catch((error) => {
+      this.logger.warn(
+        `Could not record telemetry capture loss: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    });
+  }
+
+  /**
+   * Number of requests this process knows it failed to persist. Exposed for
+   * tests and for the coverage report.
+   */
+  getDroppedRequestCount(): number {
+    return this.droppedWhileDisabled + this.droppedWhileTruncated;
   }
 
   private isMissingApiRequestTableError(error: unknown): boolean {
@@ -193,24 +274,25 @@ export class RequestLogService implements OnModuleDestroy {
     startDate?: Date,
     endDate?: Date,
     clinicId?: string,
-  ): Promise<{
-    totalRequests: number;
-    successfulRequests: number;
-    failedRequests: number;
-    avgResponseTime: number;
-    requestsByPath: { path: string; count: number; avgDuration: number }[];
-    requestsByStatus: { statusCode: number; count: number }[];
-    requestsByHour: { hour: number; count: number }[];
-  }> {
+    routeCategory?: RouteCategory,
+  ): Promise<RequestStats> {
     const where: Prisma.ApiRequestWhereInput = {};
+    // observedAt, not createdAt: a row flushed hours late after an outage still
+    // belongs to the hour the request completed in.
     if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
+      where.observedAt = {};
+      if (startDate) where.observedAt.gte = startDate;
+      if (endDate) where.observedAt.lte = endDate;
     }
     if (clinicId) where.clinicId = clinicId;
+    if (routeCategory) where.routeCategory = routeCategory;
 
-    const metricsFilter = { startDate, endDate, clinicId };
+    // Latency figures only ever average valid samples.
+    const validWhere: Prisma.ApiRequestWhereInput = {
+      ...where,
+      latencyValid: true,
+    };
+    const metricsFilter = { startDate, endDate, clinicId, routeCategory };
 
     const [
       totalRequests,
@@ -220,6 +302,8 @@ export class RequestLogService implements OnModuleDestroy {
       requestsByPath,
       requestsByStatus,
       requestsByHourRows,
+      byCategoryRows,
+      invalidLatencySamples,
     ] = await Promise.all([
       this.prisma.apiRequest.count({ where }),
       this.prisma.apiRequest.count({
@@ -229,12 +313,12 @@ export class RequestLogService implements OnModuleDestroy {
         where: { ...where, statusCode: { gte: 400 } },
       }),
       this.prisma.apiRequest.aggregate({
-        where,
+        where: validWhere,
         _avg: { duration: true },
       }),
       this.prisma.apiRequest.groupBy({
         by: ['path'],
-        where,
+        where: validWhere,
         _count: { id: true },
         _avg: { duration: true },
         orderBy: { _count: { id: 'desc' } },
@@ -247,6 +331,14 @@ export class RequestLogService implements OnModuleDestroy {
         orderBy: { statusCode: 'asc' },
       }),
       this.apiRequestMetrics.getRequestsByHour(metricsFilter),
+      this.prisma.apiRequest.groupBy({
+        by: ['routeCategory'],
+        where,
+        _count: { id: true },
+      }),
+      this.prisma.apiRequest.count({
+        where: { ...where, latencyValid: false },
+      }),
     ]);
 
     return {
@@ -267,6 +359,8 @@ export class RequestLogService implements OnModuleDestroy {
         hour: row.hour,
         count: Number(row.count),
       })),
+      byRouteCategory: toRouteCategoryBreakdown(byCategoryRows),
+      invalidLatencySamples,
     };
   }
 

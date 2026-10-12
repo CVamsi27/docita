@@ -128,7 +128,7 @@ export class DoctorsCommandService {
       created.id,
     );
 
-    return created;
+    return this.queryService.resolveDoctorSignatureUrl(created);
   }
 
   async update(id: string, data: UpdateDoctorData, clinicId?: string) {

@@ -1,0 +1,721 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-02T18:10:56.187Z",
+  "totalFindings": 131,
+  "perFile": {
+    "apps/app/src/features/ai-assistant/hooks/use-ai-assistant-logic.ts": [
+      {
+        "line": 65,
+        "name": "description",
+        "value": "Amoxicillin may increase the anticoagulant effect of warfarin. Monitor INR closely."
+      }
+    ],
+    "apps/app/src/features/appointments/components/sections/requests/request-row-helpers.ts": [
+      {
+        "line": 19,
+        "name": "label",
+        "value": "Call the front desk to confirm"
+      },
+      {
+        "line": 24,
+        "name": "label",
+        "value": "No slots at requested time"
+      },
+      {
+        "line": 29,
+        "name": "label",
+        "value": "Doctor unavailable"
+      },
+      {
+        "line": 31,
+        "name": "label",
+        "value": "Custom message…"
+      }
+    ],
+    "apps/app/src/features/auth/lib/auth-page-copy.ts": [
+      {
+        "line": 13,
+        "name": "title",
+        "value": "Welcome to Docita"
+      },
+      {
+        "line": 15,
+        "name": "description",
+        "value": "Use your work email to sign in or create an account"
+      },
+      {
+        "line": 21,
+        "name": "description",
+        "value": "Sign in to your workspace"
+      },
+      {
+        "line": 25,
+        "name": "title",
+        "value": "Create your account"
+      },
+      {
+        "line": 27,
+        "name": "description",
+        "value": "Get started with Docita"
+      }
+    ],
+    "apps/app/src/features/consultation/components/modals/billing-modal-helpers.ts": [
+      {
+        "line": 14,
+        "name": "description",
+        "value": "Consultation Fee"
+      },
+      {
+        "line": 78,
+        "name": "description",
+        "value": "Tax (${taxRate}%)"
+      },
+      {
+        "line": 86,
+        "name": "description",
+        "value": "Discount (${discountType === "
+      }
+    ],
+    "apps/app/src/features/consultation/components/specialty/vision-exam-fields.ts": [
+      {
+        "line": 23,
+        "name": "label",
+        "value": "Cylinder (Cyl)"
+      },
+      {
+        "line": 27,
+        "name": "placeholder",
+        "value": "Near visual acuity"
+      }
+    ],
+    "apps/app/src/features/consultation/components/use-consultation-mark-done.ts": [
+      {
+        "line": 47,
+        "name": "title",
+        "value": "Mark consultation done?"
+      },
+      {
+        "line": 48,
+        "name": "description",
+        "value": "This will finalize the visit, lock the chart, and send the prescription and invoice to ..."
+      },
+      {
+        "line": 76,
+        "name": "description",
+        "value": "We saved the consultation, but could not finalize the prescription. You can review it l..."
+      }
+    ],
+    "apps/app/src/features/consultation/state/useConsultationAutosave.ts": [
+      {
+        "line": 143,
+        "name": "message",
+        "value": "Could not save consultation draft."
+      },
+      {
+        "line": 193,
+        "name": "message",
+        "value": "Could not create prescription."
+      }
+    ],
+    "apps/app/src/features/consultation/workspace/consultation-section-registry.ts": [
+      {
+        "line": 94,
+        "name": "subtitle",
+        "value": "Patient reports"
+      },
+      {
+        "line": 117,
+        "name": "subtitle",
+        "value": "Rx & follow-up"
+      },
+      {
+        "line": 136,
+        "name": "subtitle",
+        "value": "Tooth charting"
+      },
+      {
+        "line": 170,
+        "name": "label",
+        "value": "Cardiology Exam"
+      },
+      {
+        "line": 172,
+        "name": "subtitle",
+        "value": "Cardiac findings"
+      },
+      {
+        "line": 182,
+        "name": "label",
+        "value": "Dermatology Exam"
+      },
+      {
+        "line": 194,
+        "name": "label",
+        "value": "Gynecology Exam"
+      },
+      {
+        "line": 223,
+        "name": "subtitle",
+        "value": "Labs & imaging"
+      }
+    ],
+    "apps/app/src/features/consultation/workspace/shell/consultation-palette-actions.ts": [
+      {
+        "line": 36,
+        "name": "label",
+        "value": "Go to ${section.label}"
+      },
+      {
+        "line": 44,
+        "name": "label",
+        "value": "Back to OPD queue"
+      },
+      {
+        "line": 56,
+        "name": "label",
+        "value": "Patient prescriptions"
+      },
+      {
+        "line": 71,
+        "name": "label",
+        "value": "Patient lab tests"
+      },
+      {
+        "line": 86,
+        "name": "label",
+        "value": "Note templates"
+      },
+      {
+        "line": 97,
+        "name": "label",
+        "value": "Add chief complaint"
+      },
+      {
+        "line": 111,
+        "name": "label",
+        "value": "Add medication"
+      },
+      {
+        "line": 129,
+        "name": "label",
+        "value": "Save consultation"
+      }
+    ],
+    "apps/app/src/features/dashboard/components/alerts/dashboard-alerts-builder.ts": [
+      {
+        "line": 52,
+        "name": "title",
+        "value": "Good morning! You have ${input.todayAppointments} appointment${pluralSuffix(input.today..."
+      },
+      {
+        "line": 67,
+        "name": "title",
+        "value": "${input.patientsWaiting} patients are waiting"
+      },
+      {
+        "line": 68,
+        "name": "description",
+        "value": "Consider expediting consultations"
+      },
+      {
+        "line": 85,
+        "name": "title",
+        "value": "Next: ${input.nextPatientName}"
+      },
+      {
+        "line": 86,
+        "name": "description",
+        "value": "Ready for consultation"
+      },
+      {
+        "line": 88,
+        "name": "label",
+        "value": "Start Consultation"
+      },
+      {
+        "line": 102,
+        "name": "title",
+        "value": "${input.uncodedVisits} visit${pluralSuffix(input.uncodedVisits)} pending coding"
+      },
+      {
+        "line": 118,
+        "name": "title",
+        "value": "${input.pendingJoinRequests} join request${pluralSuffix(input.pendingJoinRequests)} wai..."
+      },
+      {
+        "line": 119,
+        "name": "description",
+        "value": "Open the review queue to approve or reject new staff requests"
+      },
+      {
+        "line": 122,
+        "name": "label",
+        "value": "Review requests"
+      },
+      {
+        "line": 146,
+        "name": "title",
+        "value": "Halfway through today"
+      },
+      {
+        "line": 147,
+        "name": "description",
+        "value": "${input.completedAppointments} of ${input.todayAppointments} appointments completed"
+      },
+      {
+        "line": 161,
+        "name": "title",
+        "value": "All appointments completed for today!"
+      },
+      {
+        "line": 177,
+        "name": "title",
+        "value": "${remaining} appointment${pluralSuffix(remaining)} remaining"
+      },
+      {
+        "line": 178,
+        "name": "description",
+        "value": "End of day approaching"
+      }
+    ],
+    "apps/app/src/features/desk/components/desk-collect-payment-helpers.ts": [
+      {
+        "line": 27,
+        "name": "label",
+        "value": "Card (POS / swipe machine)"
+      },
+      {
+        "line": 28,
+        "name": "label",
+        "value": "UPI / QR (e.g. PhonePe)"
+      },
+      {
+        "line": 29,
+        "name": "label",
+        "value": "Pine Labs terminal"
+      },
+      {
+        "line": 30,
+        "name": "label",
+        "value": "Other card terminal"
+      },
+      {
+        "line": 31,
+        "name": "label",
+        "value": "Other online payment"
+      }
+    ],
+    "apps/app/src/features/patients/components/forms/dialogs/abha-verification-errors.ts": [
+      {
+        "line": 22,
+        "name": "message",
+        "value": "ABDM is turned off for this facility. Enable it in settings after credentials are avail..."
+      },
+      {
+        "line": 29,
+        "name": "message",
+        "value": "ABDM is not configured for this environment. The ABHA value was saved but not verified."
+      },
+      {
+        "line": 36,
+        "name": "message",
+        "value": "ABHA could not be verified. Check the value and try again."
+      },
+      {
+        "line": 47,
+        "name": "message",
+        "value": "ABDM is not configured for this environment. The ABHA value was saved but not verified."
+      },
+      {
+        "line": 53,
+        "name": "message",
+        "value": "ABHA could not be verified. Check the value and try again."
+      },
+      {
+        "line": 59,
+        "name": "message",
+        "value": "ABHA verified successfully"
+      }
+    ],
+    "apps/app/src/features/patients/components/forms/dialogs/add-patient-dialog-constants.ts": [
+      {
+        "line": 15,
+        "name": "label",
+        "value": "Prefer not to say"
+      }
+    ],
+    "apps/app/src/features/patients/components/forms/dialogs/use-add-patient-dialog.ts": [
+      {
+        "line": 32,
+        "name": "message",
+        "value": "Enter an ABHA address to verify after the patient record is saved."
+      },
+      {
+        "line": 142,
+        "name": "message",
+        "value": "Enter an ABHA address to verify after the patient record is saved."
+      }
+    ],
+    "apps/app/src/features/settings/components/compliance/compliance-settings-constants.ts": [
+      {
+        "line": 13,
+        "name": "description",
+        "value": "Medical records retained per DPDP Act 2023 guidelines"
+      },
+      {
+        "line": 18,
+        "name": "description",
+        "value": "Appointment logs retained for continuity of care"
+      },
+      {
+        "line": 23,
+        "name": "description",
+        "value": "System access and data change logs"
+      },
+      {
+        "line": 28,
+        "name": "description",
+        "value": "Prescription records per clinical documentation standards"
+      },
+      {
+        "line": 44,
+        "name": "label",
+        "value": "Access request"
+      },
+      {
+        "line": 45,
+        "name": "label",
+        "value": "Deletion review"
+      },
+      {
+        "line": 46,
+        "name": "label",
+        "value": "Consent withdrawal"
+      },
+      {
+        "line": 47,
+        "name": "label",
+        "value": "Correction request"
+      }
+    ],
+    "apps/app/src/features/settings/components/compliance/consent-template-data-categories.ts": [
+      {
+        "line": 11,
+        "name": "title",
+        "value": "Identity & Demographics"
+      },
+      {
+        "line": 24,
+        "name": "title",
+        "value": "Contact Information"
+      },
+      {
+        "line": 35,
+        "name": "title",
+        "value": "Emergency Contact"
+      },
+      {
+        "line": 46,
+        "name": "title",
+        "value": "Insurance & Billing"
+      },
+      {
+        "line": 57,
+        "name": "title",
+        "value": "Clinical Observations & Vitals"
+      },
+      {
+        "line": 70,
+        "name": "title",
+        "value": "Medical History"
+      },
+      {
+        "line": 84,
+        "name": "title",
+        "value": "Social & Lifestyle History"
+      },
+      {
+        "line": 95,
+        "name": "title",
+        "value": "Consultations, Diagnoses & Treatment"
+      },
+      {
+        "line": 107,
+        "name": "title",
+        "value": "Safety Flags & Advance Directives"
+      },
+      {
+        "line": 119,
+        "name": "title",
+        "value": "Communication Preferences"
+      },
+      {
+        "line": 130,
+        "name": "title",
+        "value": "Digital Audit Trail"
+      }
+    ],
+    "apps/app/src/features/settings/components/doctor-profile/registration-certificate-upload.helpers.ts": [
+      {
+        "line": 28,
+        "name": "message",
+        "value": "Choose a PDF, JPEG, or PNG certificate"
+      },
+      {
+        "line": 34,
+        "name": "message",
+        "value": "Choose a certificate smaller than 5 MB"
+      }
+    ],
+    "apps/app/src/features/settings/components/management/use-member-management.ts": [
+      {
+        "line": 77,
+        "name": "title",
+        "value": "Remove team member"
+      },
+      {
+        "line": 78,
+        "name": "description",
+        "value": "Remove ${selectedMember.name || "
+      }
+    ],
+    "apps/app/src/features/setup/components/onboarding/forms/clinic-registration-form-helpers.ts": [
+      {
+        "line": 16,
+        "name": "label",
+        "value": "Facility Details"
+      }
+    ],
+    "apps/app/src/features/setup/components/onboarding/steps/compliance/compliance-step-helpers.ts": [
+      {
+        "line": 45,
+        "name": "title",
+        "value": "Service Level Agreement"
+      },
+      {
+        "line": 46,
+        "name": "summary",
+        "value": "Platform uptime, support timelines, incident response, and governance commitments"
+      },
+      {
+        "line": 52,
+        "name": "title",
+        "value": "Privacy Policy & Data Consent"
+      },
+      {
+        "line": 53,
+        "name": "summary",
+        "value": "How patient data is collected, stored, and processed under DPDP regulations"
+      },
+      {
+        "line": 59,
+        "name": "title",
+        "value": "Data Processing Agreement"
+      },
+      {
+        "line": 60,
+        "name": "summary",
+        "value": "Your obligations in the data fiduciary role and our role in the data processor role"
+      }
+    ],
+    "apps/app/src/features/setup/components/onboarding/steps/team-invite-step-constants.ts": [
+      {
+        "line": 33,
+        "name": "description",
+        "value": "Can manage consultations, notes, and clinical workflows"
+      },
+      {
+        "line": 38,
+        "name": "description",
+        "value": "Can support patient care, review charts, and record vitals"
+      },
+      {
+        "line": 43,
+        "name": "description",
+        "value": "Can handle appointments, front desk, and patient check-in"
+      },
+      {
+        "line": 48,
+        "name": "description",
+        "value": "Can manage clinic operations, members, and billing settings"
+      },
+      {
+        "line": 53,
+        "name": "description",
+        "value": "Doctor with admin access who can help manage members and permissions"
+      }
+    ],
+    "apps/app/src/features/setup/components/verify-doctor/helpers.ts": [
+      {
+        "line": 51,
+        "name": "label",
+        "value": "Upload Digital Signature"
+      },
+      {
+        "line": 52,
+        "name": "description",
+        "value": "Required to generate prescriptions and medical documents"
+      },
+      {
+        "line": 57,
+        "name": "label",
+        "value": "Medical Registration Number"
+      },
+      {
+        "line": 58,
+        "name": "description",
+        "value": "Registration number and jurisdiction details for council verification"
+      }
+    ],
+    "apps/app/src/features/setup/hooks/clinic-registration-helpers.ts": [
+      {
+        "line": 71,
+        "name": "errorMessage",
+        "value": "${ERROR_PENDING_ITEMS}: ${missing.join("
+      }
+    ],
+    "apps/app/src/features/setup/hooks/onboarding-plan-checkout.ts": [
+      {
+        "line": 61,
+        "name": "description",
+        "value": "${tier} ${billingCycle} subscription"
+      }
+    ],
+    "apps/app/src/features/setup/hooks/use-submit-registration-action.ts": [
+      {
+        "line": 78,
+        "name": "description",
+        "value": "Your facility has been registered. Redirecting…"
+      }
+    ],
+    "apps/app/src/features/setup/schemas/clinic-details-refinement.ts": [
+      {
+        "line": 21,
+        "name": "message",
+        "value": "Please enter a valid email address"
+      },
+      {
+        "line": 31,
+        "name": "message",
+        "value": "Enter your phone number"
+      },
+      {
+        "line": 47,
+        "name": "message",
+        "value": "Enter a valid phone number for ${country}"
+      },
+      {
+        "line": 56,
+        "name": "message",
+        "value": "Enter address line 1"
+      },
+      {
+        "line": 65,
+        "name": "message",
+        "value": "Enter the city"
+      },
+      {
+        "line": 74,
+        "name": "message",
+        "value": "Enter the state or province"
+      },
+      {
+        "line": 85,
+        "name": "message",
+        "value": "Pin the clinic on the map to continue"
+      }
+    ],
+    "apps/app/src/features/subscription/components/pricing/comparison-table-data.ts": [
+      {
+        "line": 13,
+        "name": "label",
+        "value": "Patient Records"
+      },
+      {
+        "line": 25,
+        "name": "label",
+        "value": "Clinical Workflows"
+      },
+      {
+        "line": 40,
+        "name": "label",
+        "value": "Scheduling & Queues"
+      },
+      {
+        "line": 52,
+        "name": "label",
+        "value": "Billing & Payments"
+      },
+      {
+        "line": 64,
+        "name": "label",
+        "value": "Team & Access Control"
+      },
+      {
+        "line": 81,
+        "name": "label",
+        "value": "Scale & Integrations"
+      }
+    ],
+    "apps/app/src/features/subscription/lib/billing-workspace-status-notice.ts": [
+      {
+        "line": 31,
+        "name": "title",
+        "value": "Your subscription has expired"
+      },
+      {
+        "line": 32,
+        "name": "description",
+        "value": "Some features may be limited. Renew to restore full access."
+      },
+      {
+        "line": 41,
+        "name": "title",
+        "value": "Payment overdue"
+      },
+      {
+        "line": 42,
+        "name": "description",
+        "value": "Your plan access will be restricted if not paid soon."
+      },
+      {
+        "line": 52,
+        "name": "title",
+        "value": "Grace period active"
+      },
+      {
+        "line": 53,
+        "name": "description",
+        "value": "Your subscription ended ${planStripDaysLeft !== null ? "
+      },
+      {
+        "line": 64,
+        "name": "title",
+        "value": "Trial period — ${daysLeft !== null ? "
+      },
+      {
+        "line": 65,
+        "name": "description",
+        "value": "Choose a plan to continue using all features after the trial."
+      },
+      {
+        "line": 75,
+        "name": "title",
+        "value": "Payment past due"
+      },
+      {
+        "line": 76,
+        "name": "description",
+        "value": "Please update your payment method to continue uninterrupted service."
+      }
+    ],
+    "apps/internal/src/features/referrals/lib/referrer-form-helpers.ts": [
+      {
+        "line": 16,
+        "name": "label",
+        "value": "Marketing person"
+      }
+    ]
+  },
+  "note": "Auto-generated by scripts/checks/check-user-facing-copy.mjs --baseline. Do not edit by hand; re-run the check after converting display copy through t(). Each entry is one display-shaped prose binding in a pure (non-JSX) feature module. Short enum-style lookup tables are out of scope by design — see the check header for the limitation."
+}

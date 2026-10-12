@@ -166,10 +166,22 @@ describe('Lab-order ABAC policy (e2e, C4)', () => {
     const clinicA = await makeClinic();
     const { token } = await signStaff(clinicA.id, Role.ADMIN);
 
-    await request(app.getHttpServer())
+    // This case has failed exactly once, inside a full shard run, with a 200.
+    // `getOrderById` throws NotFoundException unconditionally, so a 200 cannot
+    // come from that handler — the observed body is reported on failure so the
+    // next occurrence says which route answered instead of just "got 200"
+    // (backlog T-F1). Jest prints only a minimal diff and takes no message
+    // argument, so a mismatch is raised explicitly to carry the body.
+    const response = await request(app.getHttpServer())
       .get('/clinical/lab-tests/orders/order-does-not-exist')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(404);
+      .set('Authorization', `Bearer ${token}`);
+
+    if (response.status !== 404) {
+      throw new Error(
+        `expected 404 for an unknown lab order id; observed ${response.status} with body ${JSON.stringify(response.body)}`,
+      );
+    }
+    expect(response.status).toBe(404);
   });
 
   it('unauthenticated request is rejected (401)', async () => {

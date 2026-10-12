@@ -1,6 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
+import { useTranslation } from "react-i18next";
 import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { formatTime } from "@/lib/formatters";
@@ -14,11 +15,12 @@ export function SlotGridTimeRangeFilters({
   useNoneValue: boolean;
 }) {
   const noneVal = useNoneValue ? "__none__" : "";
+  const { t } = useTranslation("PublicBooking");
   return (
     <>
       <div className="grid gap-2">
         <Label className="text-[length:var(--fs-xs)] font-normal text-muted-foreground">
-          Time range (from)
+          {t("slotFilters.fromLabel")}
         </Label>
         <Select
           value={useNoneValue ? c.timeRangeStart || noneVal : c.timeRangeStart}
@@ -34,10 +36,10 @@ export function SlotGridTimeRangeFilters({
           }}
         >
           <SelectTrigger className="h-11 rounded-[var(--radius-md)] border-border/70 bg-background shadow-sm">
-            <SelectValue placeholder="Any time" />
+            <SelectValue placeholder={t("slotFilters.anyTime")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={noneVal}>Any time</SelectItem>
+            <SelectItem value={noneVal}>{t("slotFilters.anyTime")}</SelectItem>
             {c.timeRangeOptions.starts.map((t) => (
               <SelectItem key={t} value={t}>
                 {formatTime(t)}
@@ -48,7 +50,7 @@ export function SlotGridTimeRangeFilters({
       </div>
       <div className="grid gap-2">
         <Label className="text-[length:var(--fs-xs)] font-normal text-muted-foreground">
-          Time range (to)
+          {t("slotFilters.toLabel")}
         </Label>
         <Select
           value={useNoneValue ? c.timeRangeEnd || noneVal : c.timeRangeEnd}
@@ -57,10 +59,10 @@ export function SlotGridTimeRangeFilters({
           }
         >
           <SelectTrigger className="h-11 rounded-[var(--radius-md)] border-border/70 bg-background shadow-sm">
-            <SelectValue placeholder="Any time" />
+            <SelectValue placeholder={t("slotFilters.anyTime")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={noneVal}>Any time</SelectItem>
+            <SelectItem value={noneVal}>{t("slotFilters.anyTime")}</SelectItem>
             {c.timeRangeOptions.ends.map((t) => (
               <SelectItem key={t} value={t}>
                 {formatTime(t)}

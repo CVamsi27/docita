@@ -10,6 +10,7 @@ import { Request } from 'express';
 import { createZodDto, ZodSerializerDto } from 'nestjs-zod';
 import { ErrorSeverity } from '@workspace/db';
 import { z } from 'zod';
+import { successResponseSchema } from '@workspace/types';
 import { getMonitoringUserContext } from '@/shared/modules/auth/auth/monitoring-user-context';
 import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
@@ -31,7 +32,7 @@ const ClientErrorReportSchema = z.object({
 class ClientErrorReportDto extends createZodDto(ClientErrorReportSchema) {}
 
 class ClientErrorReportResponseDto extends createZodDto(
-  z.object({ success: z.boolean() }),
+  successResponseSchema.pick({ success: true }),
 ) {}
 
 @Controller('monitoring/client-errors')
