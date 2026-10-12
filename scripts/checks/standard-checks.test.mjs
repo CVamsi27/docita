@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import "./ci-security-workflow.test.mjs";
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
