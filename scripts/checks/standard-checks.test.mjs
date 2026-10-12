@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import "./docker-workspace-resolution.test.mjs";
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

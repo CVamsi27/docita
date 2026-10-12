@@ -72,12 +72,9 @@ COPY --from=deps --chown=nodejs:nodejs /app/apps/worker/dist ./apps/worker/dist
 
 RUN mkdir -p /app/node_modules/@workspace && \
     rm -rf /app/node_modules/@workspace/auth /app/node_modules/@workspace/authorization /app/node_modules/@workspace/db && \
-    cp -R /app/packages/auth/dist /app/node_modules/@workspace/auth && \
-    cp /app/packages/auth/package.json /app/node_modules/@workspace/auth/ && \
-    cp -R /app/packages/authorization/dist /app/node_modules/@workspace/authorization && \
-    cp /app/packages/authorization/package.json /app/node_modules/@workspace/authorization/ && \
-    cp -R /app/packages/db/dist /app/node_modules/@workspace/db && \
-    cp /app/packages/db/package.json /app/node_modules/@workspace/db/ && \
+    ln -s /app/packages/auth /app/node_modules/@workspace/auth && \
+    ln -s /app/packages/authorization /app/node_modules/@workspace/authorization && \
+    ln -s /app/packages/db /app/node_modules/@workspace/db && \
     ln -s /app/apps/worker/dist /app/dist
 
 RUN mkdir -p /app/uploads/temp
