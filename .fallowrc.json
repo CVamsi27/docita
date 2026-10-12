@@ -45,6 +45,7 @@
     "**/*.spec.mjs",
     "**/e2e/**",
     "**/test/**",
+    "apps/api/src/test-utils/**",
     "**/next-env.d.ts",
     "docs/**"
   ],
