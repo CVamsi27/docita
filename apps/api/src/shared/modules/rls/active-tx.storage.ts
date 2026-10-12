@@ -12,12 +12,11 @@ type Tx = Prisma.TransactionClient;
  * while the rest of the application unwittingly queries through another
  * pool connection.
  *
- * The store entry is intentionally a mutable object so the routing
- * extension can temporarily clear `tx` (set it to `null`) on the
- * nested call without losing the outer reference for sibling queries.
+ * Detachment creates a child ALS scope rather than mutating the shared
+ * request store, so concurrent sibling queries retain their transaction.
  */
 interface ActiveTxStore {
-  tx: Tx | null;
+  readonly tx: Tx | null;
 }
 
 export const activeTxStorage = new AsyncLocalStorage<ActiveTxStore>();
@@ -39,11 +38,5 @@ export function runWithActiveTx<T>(tx: Tx, fn: () => Promise<T>): Promise<T> {
 export async function runOutsideActiveTx<T>(fn: () => Promise<T>): Promise<T> {
   const store = activeTxStorage.getStore();
   if (!store?.tx) return fn();
-  const previousTx = store.tx;
-  store.tx = null;
-  try {
-    return await fn();
-  } finally {
-    store.tx = previousTx;
-  }
+  return activeTxStorage.run({ tx: null }, fn);
 }
