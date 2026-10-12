@@ -1,8 +1,12 @@
 name: Deploy Production
 
-# Deployments paused: all triggers disabled in code (also disabled at the
-# GitHub level). A workflow without an `on:` block never runs. To re-enable,
-# uncomment the `on:` block below.
+# Paused: ignore every branch and tag push. GitHub requires a valid on block.
+# Replace this block with the commented triggers below to resume deployments.
+on:
+  push:
+    branches-ignore: ["**"]
+    tags-ignore: ["**"]
+
 # on:
 #   push:
 #     branches:

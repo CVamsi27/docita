@@ -1,13 +1,17 @@
 name: Database Migrations
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+# Paused: ignore every branch and tag push. GitHub requires a valid on block.
+# Replace this block with the commented triggers below to resume deployments.
+on:
+  push:
+    branches-ignore: ["**"]
+    tags-ignore: ["**"]
 
-# Database migrations paused: manual dispatch disabled in code (also disabled
-# at the GitHub level). A workflow without an `on:` block never runs. To
-# re-enable, uncomment the `on:` block below.
 # on:
 #   workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   migrate-db:

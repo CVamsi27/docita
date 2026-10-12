@@ -641,3 +641,7 @@ See [Security Allowlist](../compliance/SECURITY_ALLOWLIST.md) for dated exceptio
 Doctor browser fixtures accept test-mode auto-verified registrations and still
 verify email explicitly when the API returns an unverified user. The completed
 fixture must have a verified email and completed onboarding before UI assertions.
+
+Paused deployment and database-migration workflows retain a valid `on` block
+that ignores all branch and tag pushes. Removing `on` causes GitHub to emit a
+workflow validation failure, even when deployments are intended to be paused.
