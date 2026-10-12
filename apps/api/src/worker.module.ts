@@ -25,8 +25,9 @@ import { EphemeralStoreSchedulerModule } from '@/shared/modules/ephemeral-store/
 import { OutboxModule } from '@/shared/modules/outbox/outbox.module';
 import { CronHeartbeatModule } from '@/shared/modules/schedule/cron-heartbeat.module';
 import { buildPinoOptions } from '@/shared/modules/observability/pino-options.factory';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
-const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
+const ENABLE_SCHEDULERS = !isCronDisabledInThisProcess();
 
 @Module({
   imports: [
@@ -57,7 +58,11 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     }),
     CacheConfigModule,
     // jscpd:ignore-end
-    ...(ENABLE_SCHEDULERS ? [ScheduleModule.forRoot()] : []),
+    ScheduleModule.forRoot({
+      cronJobs: ENABLE_SCHEDULERS,
+      intervals: ENABLE_SCHEDULERS,
+      timeouts: ENABLE_SCHEDULERS,
+    }),
     EventsModule,
     PrismaWorkerModule,
     DocumentsWorkerModule,

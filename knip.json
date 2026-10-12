@@ -25,7 +25,6 @@
         "@nestjs/event-emitter",
         "@nestjs/jwt",
         "@nestjs/passport",
-        "@nestjs/schedule",
         "@nestjs/serve-static",
         "@nestjs/swagger",
         "@nestjs/terminus",
