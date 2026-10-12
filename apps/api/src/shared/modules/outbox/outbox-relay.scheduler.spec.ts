@@ -1,6 +1,7 @@
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { PrismaService } from '@/prisma/prisma.service';
 import { asType } from '@/test-utils';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { OutboxRelayScheduler } from './outbox-relay.scheduler';
 
 describe('OutboxRelayScheduler', () => {
@@ -40,12 +41,14 @@ describe('OutboxRelayScheduler', () => {
         outboxEvent: { update, findUnique },
       }),
       asType<EventEmitter2>({
+        hasListeners: jest.fn().mockReturnValue(true),
         // `emit` is present so a regression back to synchronous emission
         // behaves like the code it replaced instead of throwing.
         emit: jest.fn().mockReturnValue(true),
         emitAsync: jest.fn().mockResolvedValue([undefined]),
         ...emitter,
       }),
+      asType<AppConfigService>({ isRlsEnabled: () => false }),
     );
 
     return { scheduler, update, findUnique };

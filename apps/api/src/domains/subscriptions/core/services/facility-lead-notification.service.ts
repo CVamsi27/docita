@@ -31,11 +31,8 @@ function leadsQueueDeepLink(leadId: string): string {
  * recorded on the notification row (status FAILED + error) so the delivery
  * state is visible in the internal portal.
  *
- * The listener is best-effort, following the referrer-welcome pattern: the
- * outbox relay marks the event `processedAt` after `emit` (async listeners
- * are fire-and-forget), so a failure here is surfaced on the notification
- * row rather than retried. The durable event itself lives in the outbox
- * table with the relay's existing retry/DLQ bookkeeping.
+ * The relay awaits delivery before acknowledging its row. Failed deliveries
+ * retain the operator-visible FAILED row and reject so the outbox can retry.
  *
  * The payload is deliberately PII-redacted: facility name/location, partner
  * name, consent state, and a deep link into the portal — no contact phone
@@ -52,12 +49,20 @@ export class FacilityLeadNotificationService {
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
-  @OnEvent(ApplicationEvents.FACILITY_LEAD_CREATED, { async: true })
+  @OnEvent(ApplicationEvents.FACILITY_LEAD_CREATED, {
+    async: true,
+    promisify: true,
+    suppressErrors: false,
+  })
   async onLeadCreated(payload: { leadId: string }): Promise<void> {
     await this.materialize(payload.leadId, 'LEAD_CREATED');
   }
 
-  @OnEvent(ApplicationEvents.FACILITY_LEAD_CONVERTED, { async: true })
+  @OnEvent(ApplicationEvents.FACILITY_LEAD_CONVERTED, {
+    async: true,
+    promisify: true,
+    suppressErrors: false,
+  })
   async onLeadConverted(payload: { leadId: string }): Promise<void> {
     await this.materialize(payload.leadId, 'LEAD_CONVERTED');
   }
@@ -149,10 +154,7 @@ export class FacilityLeadNotificationService {
             : String(nestedError),
         );
       }
-      // Deliberately do not re-throw: the relay's emit is fire-and-forget
-      // for async listeners, so a rejection here would be unhandled and the
-      // relay would still mark the event processed. The FAILED row above is
-      // the operator-visible delivery state.
+      throw error;
     }
   }
 }

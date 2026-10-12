@@ -32,6 +32,15 @@ import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { CRON_SCHEDULES } from '@/shared/schedule/cron-schedules';
 import { TrackHeartbeat } from '@/shared/modules/schedule/cron-heartbeat';
 import { withAdvisoryLock } from '@/shared/common/utils/postgres-advisory-lock';
+import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
+import {
+  runOutsideActiveTx,
+  runWithActiveTx,
+} from '@/shared/modules/rls/active-tx.storage';
+import { applyRlsScope } from '@/shared/modules/rls/apply-rls-scope';
+import { getRlsRequestTransactionOptions } from '@/shared/common/database-transaction-options';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { DATABASE_CONSTANTS } from '@/shared/modules/config/app-constants';
 
 const BATCH_SIZE = 200;
 const MAX_ATTEMPTS = 8;
@@ -94,7 +103,40 @@ export class OutboxRelayScheduler {
   constructor(
     private readonly prisma: PrismaService,
     private readonly events: EventEmitter2,
+    private readonly config: AppConfigService,
   ) {}
+
+  private getBatchSize(): number {
+    if (!this.config.isRlsEnabled()) return BATCH_SIZE;
+    const poolMax = this.config.isProduction()
+      ? DATABASE_CONSTANTS.POOL_MAX_PRODUCTION
+      : DATABASE_CONSTANTS.POOL_MAX_DEVELOPMENT;
+    // Each clinic dispatch holds a connection. Reserve one for the advisory
+    // lock and one for acknowledgments rather than consuming retry attempts
+    // on rows that cannot acquire a transaction from the same pool.
+    return Math.min(BATCH_SIZE, Math.max(1, poolMax - 2));
+  }
+
+  private dispatchInTenantScope(
+    clinicId: string | null,
+    eventName: string,
+    payload: Record<string, unknown>,
+  ): Promise<void> {
+    return runOutsideActiveTx(() => {
+      const dispatch = () =>
+        runWithTenant({ clinicId: clinicId ?? undefined }, async () => {
+          await this.events.emitAsync(eventName, payload);
+        });
+      if (!clinicId || !this.config.isRlsEnabled()) return dispatch();
+
+      // Workers have no request interceptor: bind every subscriber's queries
+      // to a fresh connection carrying this row's database-level RLS scope.
+      return this.prisma.$transaction(async (tx) => {
+        await applyRlsScope(tx, clinicId);
+        return runWithActiveTx(tx, dispatch);
+      }, getRlsRequestTransactionOptions());
+    });
+  }
 
   @Cron(CRON_SCHEDULES.OUTBOX_RELAY, {
     disabled: isCronDisabledInThisProcess(),
@@ -128,7 +170,7 @@ export class OutboxRelayScheduler {
                 AND ("nextAttemptAt" IS NULL OR "nextAttemptAt" <= ${now})
               ORDER BY "createdAt" ASC
               FOR UPDATE SKIP LOCKED
-              LIMIT ${BATCH_SIZE}
+              LIMIT ${this.getBatchSize()}
             )
             UPDATE "OutboxEvent" o
             SET "attempts" = o."attempts" + 1,
@@ -142,9 +184,23 @@ export class OutboxRelayScheduler {
           await Promise.allSettled(
             rows.map(async (row) => {
               try {
+                if (!this.events.hasListeners(row.event_name)) {
+                  throw new Error(
+                    `No subscriber registered for ${row.event_name}`,
+                  );
+                }
+                const payload = toPayloadRecord(row.payload);
+                if (
+                  payload.clinicId !== undefined &&
+                  payload.clinicId !== row.clinic_id
+                ) {
+                  throw new Error(
+                    'Outbox payload clinic does not match persisted clinic',
+                  );
+                }
                 await withDispatchTimeout(
-                  this.events.emitAsync(row.event_name, {
-                    ...toPayloadRecord(row.payload),
+                  this.dispatchInTenantScope(row.clinic_id, row.event_name, {
+                    ...payload,
                     __outboxId: row.id,
                     __aggregateId: row.aggregate_id,
                     __clinicId: row.clinic_id,
@@ -194,6 +250,7 @@ export class OutboxRelayScheduler {
             }),
           );
         },
+        DISPATCH_TIMEOUT_MS * 2,
       );
 
       if (acquired === null) {
