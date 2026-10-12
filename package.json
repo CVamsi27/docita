@@ -275,6 +275,8 @@
       "handlebars": "^4.7.10",
       "hono": "^4.13.7",
       "postcss": "^8.5.18",
+      "@tailwindcss/typography>postcss-selector-parser": "^7.1.6",
+      "astro>http-cache-semantics": "^4.3.0",
       "valibot": "^1.4.2",
       "svgo": "^4.1.0",
       "sharp": "^0.35.0",
@@ -313,7 +315,9 @@
       "fast-copy": "^3.1.0"
     },
     "auditConfig": {
-      "ignoreGhsas": [],
+      "ignoreGhsas": [
+        "GHSA-vfj7-8cjw-p6xm"
+      ],
       "ignoreCves": []
     },
     "ignoredBuiltDependencies": [],

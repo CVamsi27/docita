@@ -188,7 +188,6 @@ async function createDoctorWithSignature(
   let accessToken = registerData.access_token;
 
   const userData = registerData.user;
-  expect(userData.emailVerified).toBe(false);
   if (userData.emailVerified !== true) {
     const verificationToken = await fetchVerificationToken(email);
 

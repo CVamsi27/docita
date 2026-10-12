@@ -90,6 +90,9 @@ jobs:
 
   api-quality:
     name: API Unit Checks
+    env:
+      # Production and spec typechecking exceed the default 2 GiB heap.
+      NODE_OPTIONS: --max-old-space-size=4096
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
@@ -130,7 +133,7 @@ jobs:
         run: pnpm --filter @docita/api run check-types
 
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test API (changed only)
         run: pnpm --filter @docita/api run test:ci --changedSince=origin/main
   api-e2e:
@@ -245,7 +248,7 @@ jobs:
         run: pnpm --filter @docita/app run check-types
 
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test app (changed only)
         run: pnpm --filter @docita/app run test -- --changed=origin/main
 
@@ -302,7 +305,7 @@ jobs:
         run: pnpm --filter @docita/internal run check-types
 
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test internal (changed only)
         run: pnpm --filter @docita/internal run test -- --changed=origin/main
 
@@ -405,7 +408,7 @@ jobs:
         run: pnpm --filter @docita/worker run check-types
 
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test worker (changed only)
         run: pnpm --filter @docita/worker run test:ci --changedSince=origin/main
 
@@ -417,28 +420,25 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    # The previous `pnpm audit --audit-level=high` step relied on the
-    # registry.npmjs.org audit endpoint, which npm retired in 2025 — that
-    # endpoint now returns 410. Switched to OSV-Scanner via the
-    # google/osv-scanner-action reusable workflow (the non-PR variant), which
-    # queries OSV.dev directly. Covers both PRs and pushes; PRs additionally
-    # get the diff-aware `osv-scan` job below. No `runs-on:` — the reusable
-    # workflow supplies its own runner.
+    # Full OSV scan complements the PR diff scan below. Both retain artifacts.
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.5.1
+    with:
+      # Code Scanning is disabled; retain report artifacts and vulnerability gates.
+      upload-sarif: false
 
   osv-scan:
     name: OSV Vulnerability Scan
     needs: changes
-    # PR-only: flags new vulnerabilities introduced by the PR against base.
-    # Pushes to main are covered by the `Security Audit` job above (OSV) plus
-    # OSV upstream advisories surfacing in dependabot. Keeping this PR-gated
-    # avoids failing main on transient upstream advisories.
+    # PR-only: flags new vulnerabilities introduced against the base branch.
+    # The full Security Audit above also checks existing dependencies.
     if: github.event_name == 'pull_request' && needs.changes.outputs.dependencies == 'true'
     permissions:
       actions: read
       contents: read
       security-events: write
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.5.1
+    with:
+      upload-sarif: false
 
   validate-migrations:
     name: Validate Migrations

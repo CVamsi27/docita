@@ -625,3 +625,19 @@ For issues or questions:
 - [Supertest Documentation](https://github.com/visionmedia/supertest)
 - [Playwright Documentation](https://playwright.dev/)
 - [Prisma Testing Guide](https://www.prisma.io/docs/guides/testing)
+
+### PR CI failure diagnostics
+
+Changed-test jobs fetch main without a depth limit after a full-history
+checkout. A later `git fetch --depth=1` can mark main as shallow again and
+remove the merge base required by Jest `--changedSince` and Vitest `--changed`.
+The standards suite exercises these fetch commands against a diverged Git fixture.
+API CI allocates a 4 GiB Node heap for the production and spec typechecks.
+
+OSV runs both full and PR differential scans. The repository currently has
+Code Scanning disabled, so `upload-sarif: false` skips the dashboard upload;
+scan failures still block CI and SARIF reports remain in Actions artifacts.
+See [Security Allowlist](../compliance/SECURITY_ALLOWLIST.md) for dated exceptions.
+Doctor browser fixtures accept test-mode auto-verified registrations and still
+verify email explicitly when the API returns an unverified user. The completed
+fixture must have a verified email and completed onboarding before UI assertions.
