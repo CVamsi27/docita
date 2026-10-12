@@ -27,6 +27,7 @@ on:
 #       - "scripts/deploy/**"
 #       - "scripts/checks/check-worker-size.mjs"
 #       - "scripts/workflow/detect-workflow-scope.mjs"
+#       - "scripts/workflow/production-branch-scope.mjs"
 #       - "package.json"
 #       - "pnpm-lock.yaml"
 #       - "pnpm-workspace.yaml"
@@ -36,7 +37,7 @@ on:
 #       - ".github/workflows/deploy.yml"
 
 concurrency:
-  group: deploy-production-${{ github.ref }}
+  group: deploy-production
   cancel-in-progress: false
 
 env:
@@ -66,9 +67,38 @@ jobs:
         id: detect
         run: node scripts/workflow/detect-workflow-scope.mjs deploy
 
-  migrate-db:
-    name: Apply Prisma Migrations
+  validate-release:
+    name: Validate release before production access
     needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - name: Prepare pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.30.3
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build API and internal contracts
+        run: |
+          pnpm --filter @docita/api build
+          pnpm --filter @docita/internal build
+      - name: Verify repository standards
+        run: pnpm verify:standard
+      - name: Verify dashboard API access and calculations
+        if: needs.changes.outputs.api == 'true'
+        run: pnpm --filter @docita/api exec jest internal-operational-metrics --runInBand
+      - name: Verify internal dashboard behavior
+        if: needs.changes.outputs.internal == 'true'
+        run: pnpm --filter @docita/internal test src/features/performance/pages/performance-page.test.tsx
+
+  migrate-db:
+    name: Verify database and apply changed migrations
+    needs: [changes, validate-release]
     if: needs.changes.outputs.api == 'true' || needs.changes.outputs.worker == 'true'
     runs-on: ubuntu-latest
     environment: production
@@ -106,6 +136,7 @@ jobs:
           fi
           echo "Production database reachable."
       - name: Pre-migration RDS snapshot
+        if: needs.changes.outputs.db == 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -134,20 +165,8 @@ jobs:
         run: |
           if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL secret is required."; exit 1; fi
           pnpm --filter @workspace/db run db:generate
-      - name: Resolve failed migrations (if any)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL secret is required."; exit 1; fi
-          pnpm --filter @workspace/db exec prisma migrate resolve --rolled-back 20260618120000_migrate_free_clinics_to_starter 2>/dev/null || true
-          pnpm --filter @workspace/db exec prisma migrate resolve --rolled-back 20260618130000_migrate_front_desk_tiers_to_canonical 2>/dev/null || true
-      - name: Cleanup partial migration state
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL secret is required."; exit 1; fi
-          pnpm --filter @workspace/db exec ts-node scripts/cleanup-partial-migration.ts 2>&1 || true
       - name: Run Prisma Migrations
+        if: needs.changes.outputs.db == 'true'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
@@ -167,6 +186,7 @@ jobs:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
       APP_URL: https://app.docita.work
       NEXT_PUBLIC_APP_URL: https://app.docita.work
       NEXT_PUBLIC_API_URL: https://api.docita.work/api/v1
@@ -179,6 +199,12 @@ jobs:
       STARTUP_TIMEOUT_SECONDS: 120
     steps:
       - uses: actions/checkout@v7
+      - name: Require production bot-check configuration
+        run: |
+          if [ -z "${TURNSTILE_SECRET_KEY}" ]; then
+            echo "::error title=Required API configuration missing::Set the TURNSTILE_SECRET_KEY repository secret from the production Turnstile widget before releasing the API."
+            exit 1
+          fi
       - name: Prepare pnpm
         run: |
           corepack enable
@@ -267,6 +293,8 @@ jobs:
 
   gate:
     name: Check Cloudflare deploy credentials
+    needs: [changes, validate-release]
+    if: needs.changes.outputs.app == 'true' || needs.changes.outputs.internal == 'true' || needs.changes.outputs.landing == 'true'
     runs-on: ubuntu-latest
     outputs:
       enabled: ${{ steps.check.outputs.enabled }}
@@ -318,12 +346,13 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
         run: pnpm --filter @docita/app run deploy:cloudflare:production
 
   deploy-internal:
     name: Deploy internal (Cloudflare)
-    needs: [changes, gate]
-    if: needs.gate.outputs.enabled == 'true' && needs.changes.outputs.internal == 'true'
+    needs: [changes, gate, deploy-api]
+    if: always() && needs.gate.outputs.enabled == 'true' && needs.changes.outputs.internal == 'true' && (needs.changes.outputs.api != 'true' || needs.deploy-api.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

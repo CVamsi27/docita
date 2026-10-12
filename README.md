@@ -11,6 +11,10 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 - **API**: [https://api.docita.work](https://api.docita.work)
 - **Repository**: [https://github.com/CVamsi27/docita](https://github.com/CVamsi27/docita)
 
+## Improvement and release work
+
+The [improvement backlog](docs/operations/DOCITA_IMPROVEMENT_BACKLOG.md) records known implementation gaps, missing release evidence, priorities and acceptance checks across the product.
+
 ## Features
 
 - **Smart Scheduling**: Drag-and-drop calendar with automated reminders.

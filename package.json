@@ -27,7 +27,7 @@
     "test:api-startup": "bash scripts/deploy/test-api-startup.sh",
     "test": "turbo test --concurrency=1",
     "test:unit:local": "pnpm --filter @workspace/utils run test && pnpm --filter @workspace/ui run test && pnpm --filter @docita/app run test && pnpm --filter @docita/internal run test && pnpm --filter @docita/api run test",
-    "test:standards-checks": "node --test scripts/checks/standard-checks.test.mjs scripts/checks/check-batch-2.test.mjs",
+    "test:standards-checks": "node --test scripts/checks/standard-checks.test.mjs scripts/checks/check-batch-2.test.mjs scripts/checks/production-branch-scope.test.mjs",
     "test:api": "turbo test --filter=@docita/api",
     "test:app": "turbo test --filter=@docita/app",
     "test:landing": "pnpm --filter @docita/landing run test:critical-flows",

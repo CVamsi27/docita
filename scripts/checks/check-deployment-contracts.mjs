@@ -248,6 +248,11 @@ try {
   );
 
   if (hasDeployWorkflow) {
+    assertIncludes(
+      deployWorkflowSource,
+      "TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}",
+      "Production API startup smoke must receive the required Turnstile secret.",
+    );
     for (const requiredGuard of [
       "always() && needs.changes.outputs.api == 'true'",
       "always() && needs.changes.outputs.worker == 'true'",

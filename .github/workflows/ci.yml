@@ -256,6 +256,8 @@ jobs:
         # M2: run on every app PR, not just dispatch. The RB-13 credential
         # gate has been skipping Cloudflare deploys, so the deploy-time
         # wrangler bundle (apps/app/api/index.ts) was never verified.
+        env:
+          VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
         run: pnpm --filter @docita/app run build:cloudflare
 
       - name: Smoke-bundle Hono worker (wrangler dry-run)
@@ -415,30 +417,36 @@ jobs:
   security-audit:
     name: Security Audit
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.dependencies == 'true'
+    if: github.event_name != 'pull_request' && needs.changes.outputs.dependencies == 'true'
     permissions:
       actions: read
       contents: read
       security-events: write
-    # Full OSV scan complements the PR diff scan below. Both retain artifacts.
+    # Full scans block vulnerable dependency changes on manual CI runs.
+    # PRs use the diff-aware job below so inherited advisories do not block
+    # unrelated changes. The reusable workflow supplies its own runner.
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.6.0
     with:
-      # Code Scanning is disabled; retain report artifacts and vulnerability gates.
-      upload-sarif: false
+      fail-on-vuln: true
+      # SARIF is always retained as an Actions artifact. The Security tab
+      # requires code scanning, which is currently unavailable on this repo.
+      upload-sarif: ${{ vars.OSV_UPLOAD_SARIF == 'true' }}
 
   osv-scan:
     name: OSV Vulnerability Scan
     needs: changes
-    # PR-only: flags new vulnerabilities introduced against the base branch.
-    # The full Security Audit above also checks existing dependencies.
-    if: github.event_name == 'pull_request' && needs.changes.outputs.dependencies == 'true'
+    # PR-only: flags new vulnerabilities introduced by the PR against base.
+    # Existing advisories remain visible in the full scan on manual CI runs
+    # and in Dependabot; this comparison blocks vulnerabilities added by a PR.
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft != true && needs.changes.outputs.dependencies == 'true'
     permissions:
       actions: read
       contents: read
       security-events: write
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.6.0
     with:
-      upload-sarif: false
+      fail-on-vuln: true
+      upload-sarif: ${{ vars.OSV_UPLOAD_SARIF == 'true' }}
 
   validate-migrations:
     name: Validate Migrations
