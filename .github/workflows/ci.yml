@@ -245,6 +245,8 @@ jobs:
         # M2: run on every app PR, not just dispatch. The RB-13 credential
         # gate has been skipping Cloudflare deploys, so the deploy-time
         # wrangler bundle (apps/app/api/index.ts) was never verified.
+        env:
+          VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
         run: pnpm --filter @docita/app run build:cloudflare
 
       - name: Smoke-bundle Hono worker (wrangler dry-run)
