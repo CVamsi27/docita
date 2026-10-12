@@ -402,7 +402,7 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    # Full scans block vulnerable dependency changes on pushes and manual runs.
+    # Full scans block vulnerable dependency changes on manual CI runs.
     # PRs use the diff-aware job below so inherited advisories do not block
     # unrelated changes. The reusable workflow supplies its own runner.
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.6.0
@@ -416,9 +416,8 @@ jobs:
     name: OSV Vulnerability Scan
     needs: changes
     # PR-only: flags new vulnerabilities introduced by the PR against base.
-    # Pushes to main are covered by the `Security Audit` job above (OSV) plus
-    # OSV upstream advisories surfacing in dependabot. Keeping this PR-gated
-    # avoids failing main on transient upstream advisories.
+    # Existing advisories remain visible in the full scan on manual CI runs
+    # and in Dependabot; this comparison blocks vulnerabilities added by a PR.
     if: github.event_name == 'pull_request' && github.event.pull_request.draft != true && needs.changes.outputs.dependencies == 'true'
     permissions:
       actions: read
