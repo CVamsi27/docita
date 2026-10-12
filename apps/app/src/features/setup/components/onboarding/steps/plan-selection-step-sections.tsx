@@ -135,7 +135,7 @@ export const PlanModeBar: FC<PlanModeBarProps> = ({
     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div
         className="inline-flex shrink-0 items-center gap-1 rounded-full border bg-muted/40 p-1"
-        role="tablist"
+        role="group"
         aria-label={t("planModeAriaLabel")}
       >
         {PLAN_MODES.map((mode) => {

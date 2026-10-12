@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { InventoryCommandService } from './inventory-command.service';
 import { InventoryQueryService } from './inventory-query.service';
@@ -39,6 +43,8 @@ describe('InventoryService', () => {
       findItemByClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       createItem: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       updateItem: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      countMovements: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      reconcileLedger: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       addMovementAndUpdateQuantity:
         jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
@@ -144,11 +150,18 @@ describe('InventoryService', () => {
   });
 
   describe('updateItem', () => {
+    beforeEach(() => {
+      repo.countMovements.mockResolvedValue(0);
+      repo.addMovementAndUpdateQuantity.mockResolvedValue({ id: 'mov-1' });
+    });
+
     it('throws NotFoundException when item not found', async () => {
       repo.findItemByClinic.mockResolvedValue(null);
 
       await expect(
-        service.updateItem('clinic-1', 'nonexistent', { name: 'Updated' }),
+        service.updateItem('clinic-1', 'nonexistent', 'user-1', {
+          name: 'Updated',
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -184,10 +197,116 @@ describe('InventoryService', () => {
       repo.findItemByClinic.mockResolvedValue(mockItem);
       repo.updateItem.mockResolvedValue({ ...mockItem, name: 'Updated' });
 
-      const result = await service.updateItem('clinic-1', 'item-1', {
+      const result = await service.updateItem('clinic-1', 'item-1', 'user-1', {
         name: 'Updated',
       });
       expect(result.name).toBe('Updated');
+    });
+
+    // W03: the ledger is authoritative for stock, so a balance edit has to
+    // leave an auditable movement rather than write `quantity` directly. A
+    // downward correction has to be distinguishable from an upward one, or the
+    // ledger would reconstruct it with the wrong sign.
+    it('records a downward balance edit as an ADJUSTMENT_OUT movement', async () => {
+      repo.findItemByClinic.mockResolvedValue({ ...mockItem, quantity: 100 });
+      repo.updateItem.mockResolvedValue({ ...mockItem, quantity: 70 });
+
+      await service.updateItem('clinic-1', 'item-1', 'user-1', {
+        quantity: 70,
+      });
+
+      expect(repo.addMovementAndUpdateQuantity).toHaveBeenCalledWith(
+        'item-1',
+        'clinic-1',
+        expect.objectContaining({ type: 'ADJUSTMENT_OUT', quantity: 30 }),
+        -30,
+      );
+      // The balance itself is never handed to the metadata update.
+      expect(repo.updateItem).toHaveBeenCalledWith(
+        'item-1',
+        expect.not.objectContaining({ quantity: expect.anything() }),
+        'clinic-1',
+      );
+    });
+
+    it('records an increase as a positive adjustment', async () => {
+      repo.findItemByClinic.mockResolvedValue({ ...mockItem, quantity: 100 });
+      repo.updateItem.mockResolvedValue({ ...mockItem, quantity: 140 });
+
+      await service.updateItem('clinic-1', 'item-1', 'user-1', {
+        quantity: 140,
+      });
+
+      expect(repo.addMovementAndUpdateQuantity).toHaveBeenCalledWith(
+        'item-1',
+        'clinic-1',
+        expect.objectContaining({ type: 'ADJUSTMENT', quantity: 40 }),
+        40,
+      );
+    });
+
+    it('does not record a movement when the balance is unchanged', async () => {
+      repo.findItemByClinic.mockResolvedValue({ ...mockItem, quantity: 100 });
+      repo.updateItem.mockResolvedValue(mockItem);
+
+      await service.updateItem('clinic-1', 'item-1', 'user-1', {
+        quantity: 100,
+      });
+
+      expect(repo.addMovementAndUpdateQuantity).not.toHaveBeenCalled();
+    });
+
+    it('applies metadata and the correction together when both are supplied', async () => {
+      repo.findItemByClinic.mockResolvedValue({ ...mockItem, quantity: 100 });
+      repo.updateItem.mockResolvedValue({ ...mockItem, quantity: 90 });
+
+      await service.updateItem('clinic-1', 'item-1', 'user-1', {
+        quantity: 90,
+        name: 'Renamed',
+      });
+
+      expect(repo.addMovementAndUpdateQuantity).toHaveBeenCalled();
+      expect(repo.updateItem).toHaveBeenCalledWith(
+        'item-1',
+        { name: 'Renamed', expiryDate: undefined },
+        'clinic-1',
+      );
+    });
+
+    it('refuses to change the unit once the item has recorded movements', async () => {
+      repo.findItemByClinic.mockResolvedValue({ ...mockItem, unit: 'tablets' });
+      repo.countMovements.mockResolvedValue(3);
+
+      await expect(
+        service.updateItem('clinic-1', 'item-1', 'user-1', {
+          unit: 'capsules',
+        }),
+      ).rejects.toThrow(ConflictException);
+      expect(repo.updateItem).not.toHaveBeenCalled();
+    });
+
+    it('allows a unit change before any movement exists', async () => {
+      repo.findItemByClinic.mockResolvedValue({ ...mockItem, unit: 'tablets' });
+      repo.countMovements.mockResolvedValue(0);
+      repo.updateItem.mockResolvedValue({ ...mockItem, unit: 'capsules' });
+
+      const result = await service.updateItem('clinic-1', 'item-1', 'user-1', {
+        unit: 'capsules',
+      });
+
+      expect(result.unit).toBe('capsules');
+    });
+
+    it('allows a no-op unit change once movements exist', async () => {
+      repo.findItemByClinic.mockResolvedValue({ ...mockItem, unit: 'tablets' });
+      repo.countMovements.mockResolvedValue(3);
+      repo.updateItem.mockResolvedValue(mockItem);
+
+      await service.updateItem('clinic-1', 'item-1', 'user-1', {
+        unit: 'tablets',
+      });
+
+      expect(repo.updateItem).toHaveBeenCalled();
     });
   });
 
@@ -251,6 +370,41 @@ describe('InventoryService', () => {
           quantity: 999,
         }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('forwards the operation identity so a retry applies once', async () => {
+      repo.addMovementAndUpdateQuantity.mockResolvedValue({});
+
+      await service.addMovement('clinic-1', 'item-1', 'user-1', {
+        type: 'IN',
+        quantity: 40,
+        operationId: 'po-8821-line-3',
+      });
+
+      expect(repo.addMovementAndUpdateQuantity).toHaveBeenCalledWith(
+        'item-1',
+        'clinic-1',
+        expect.objectContaining({ operationId: 'po-8821-line-3' }),
+        40,
+      );
+    });
+
+    it('treats EXPIRED and WASTE as outflows', async () => {
+      repo.addMovementAndUpdateQuantity.mockResolvedValue({});
+
+      await service.addMovement('clinic-1', 'item-1', 'user-1', {
+        type: 'EXPIRED',
+        quantity: 4,
+      });
+      await service.addMovement('clinic-1', 'item-1', 'user-1', {
+        type: 'WASTE',
+        quantity: 4,
+      });
+
+      const deltas = repo.addMovementAndUpdateQuantity.mock.calls.map(
+        (call) => call[3],
+      );
+      expect(deltas).toEqual([-4, -4]);
     });
   });
 });

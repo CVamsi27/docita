@@ -122,7 +122,18 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
   return (
     <FeatureGate
       feature={Feature.ADVANCED_ANALYTICS}
-      fallback={<AnalyticsUpgradeState />}
+      fallback={
+        <AppPageScaffold
+          header={
+            <PageHeader
+              title={t("page.title")}
+              description={t("page.description")}
+            />
+          }
+        >
+          <AnalyticsUpgradeState />
+        </AppPageScaffold>
+      }
     >
       <AppPageScaffold
         header={

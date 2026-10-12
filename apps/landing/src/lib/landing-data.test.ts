@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { PUBLISHED_PLAN_LADDER } from "@workspace/types";
 import {
   FALLBACK_PRICING_CONFIG,
   formatStatValue,
@@ -6,9 +7,18 @@ import {
   PLATFORM_STATS,
 } from "./landing-data";
 
-// fetchPlatformStats tests removed — backend disabled, static stats used.
-// Restore by uncommenting the fetchPlatformStats tests and re-enabling
-// the fetch function in landing-data.ts.
+/** Re-imports the module after stubbing PUBLIC_PLATFORM_STATS, since the value is parsed at module load. */
+async function loadStatsWith(raw: string | undefined) {
+  vi.resetModules();
+  if (raw === undefined) {
+    vi.stubEnv("PUBLIC_PLATFORM_STATS", "");
+  } else {
+    vi.stubEnv("PUBLIC_PLATFORM_STATS", raw);
+  }
+  const mod = await import("./landing-data");
+  vi.unstubAllEnvs();
+  return mod.PLATFORM_STATS;
+}
 
 describe("landing-data", () => {
   describe("formatTierPrice", () => {
@@ -28,11 +38,43 @@ describe("landing-data", () => {
   });
 
   describe("PLATFORM_STATS", () => {
-    it("has positive values for all stat fields", () => {
-      expect(PLATFORM_STATS.clinics).toBeGreaterThan(0);
-      expect(PLATFORM_STATS.doctors).toBeGreaterThan(0);
-      expect(PLATFORM_STATS.patients).toBeGreaterThan(0);
-      expect(PLATFORM_STATS.prescriptions).toBeGreaterThan(0);
+    it("publishes nothing when PUBLIC_PLATFORM_STATS is not provisioned", async () => {
+      // The marketing site must never invent an operating count; unprovisioned
+      // means the hero drops the claim and the proof strip does not render.
+      expect(PLATFORM_STATS).toBeNull();
+      await expect(loadStatsWith(undefined)).resolves.toBeNull();
+    });
+
+    it("parses provisioned figures without randomizing them", async () => {
+      const raw = JSON.stringify({
+        clinics: 12,
+        doctors: 34,
+        patients: 5600,
+        prescriptions: 21000,
+      });
+      const first = await loadStatsWith(raw);
+      const second = await loadStatsWith(raw);
+      expect(first).toEqual({
+        clinics: 12,
+        doctors: 34,
+        patients: 5600,
+        prescriptions: 21000,
+      });
+      expect(second).toEqual(first);
+    });
+
+    it("rejects malformed, partial and non-positive payloads", async () => {
+      await expect(loadStatsWith("not json")).resolves.toBeNull();
+      await expect(loadStatsWith("{}")).resolves.toBeNull();
+      await expect(
+        loadStatsWith('{"clinics":1,"doctors":2,"patients":3}'),
+      ).resolves.toBeNull();
+      await expect(
+        loadStatsWith(
+          '{"clinics":0,"doctors":2,"patients":3,"prescriptions":4}',
+        ),
+      ).resolves.toBeNull();
+      await expect(loadStatsWith("[]")).resolves.toBeNull();
     });
   });
 
@@ -43,6 +85,14 @@ describe("landing-data", () => {
         symbol: "₹",
         name: "Indian Rupee",
       });
+    });
+
+    it("lists exactly the published plan ladder, without legacy SKUs", () => {
+      // The public pricing surface must only ever offer SKUs the canonical
+      // ladder publishes; the retirable Front Desk SKUs live on as plan modes.
+      expect(FALLBACK_PRICING_CONFIG.tiers.map((tier) => tier.id)).toEqual([
+        ...PUBLISHED_PLAN_LADDER,
+      ]);
     });
 
     it("lists at least the starter tier with numeric monthly pricing", () => {

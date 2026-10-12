@@ -24,14 +24,14 @@ export class UsageAggregationService {
 
     // RLS-BYPASS: usage aggregation rolls up metrics across clinics
     await this.usageRepository.runUnrestricted(async () => {
-      const { yesterday, endOfYesterday } = this.getYesterdayRange();
+      const { yesterday } = this.getYesterdayRange();
 
       const clinicIds =
         await this.usageRepository.findActiveSubscriptionClinicIds();
 
       const results = await Promise.allSettled(
         clinicIds.map((clinicId) =>
-          this.aggregateForClinic(clinicId, yesterday, endOfYesterday),
+          this.aggregateForClinic(clinicId, yesterday),
         ),
       );
       let successCount = 0;
@@ -54,11 +54,7 @@ export class UsageAggregationService {
     });
   }
 
-  private async aggregateForClinic(
-    clinicId: string,
-    periodStart: Date,
-    periodEnd: Date,
-  ) {
+  private async aggregateForClinic(clinicId: string, usageDay: Date) {
     const [plan, addOns] = await Promise.all([
       this.usageRepository.findSubscriptionPlan(clinicId),
       this.usageRepository.findActiveAddOns(clinicId),
@@ -70,16 +66,14 @@ export class UsageAggregationService {
       this.aggregateUsageType(
         clinicId,
         'WHATSAPP_MESSAGES',
-        periodStart,
-        periodEnd,
+        usageDay,
         resolvedPlan,
         addOns.find((a) => a.addOnType === 'WHATSAPP'),
       ),
       this.aggregateUsageType(
         clinicId,
         'AI_CREDITS',
-        periodStart,
-        periodEnd,
+        usageDay,
         resolvedPlan,
         addOns.find((a) => a.addOnType === 'INTELLIGENCE'),
       ),
@@ -97,16 +91,30 @@ export class UsageAggregationService {
   private async aggregateUsageType(
     clinicId: string,
     type: UsageType,
-    start: Date,
-    end: Date,
+    usageDay: Date,
     plan: string,
     addOn?: ActiveAddOnSnapshot,
   ) {
+    // The record is keyed by month, so the value written has to be the month's
+    // total derived from the usage ledger — not yesterday's slice. Summing the
+    // whole month makes a rerun of the same day idempotent (it recomputes the
+    // same total) and makes a missed day self-heal on the next run.
+    const monthStart = new Date(usageDay.getFullYear(), usageDay.getMonth(), 1);
+    const monthEnd = new Date(
+      usageDay.getFullYear(),
+      usageDay.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
+
     const quantity = await this.usageRepository.sumUsage(
       clinicId,
       type,
-      start,
-      end,
+      monthStart,
+      monthEnd,
     );
     if (quantity === 0) return;
 
@@ -124,17 +132,6 @@ export class UsageAggregationService {
       }
     }
 
-    const monthStart = new Date(start.getFullYear(), start.getMonth(), 1);
-    const monthEnd = new Date(
-      start.getFullYear(),
-      start.getMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-      999,
-    );
-
     await this.usageRepository.upsertUsageRecord({
       clinicId,
       type,
@@ -142,6 +139,8 @@ export class UsageAggregationService {
       periodEnd: monthEnd,
       quantity,
       includedQuota: included,
+      // Derived from the month total, so it tracks usage instead of freezing
+      // at whatever the first day of the month happened to compute.
       overageUnits: Math.max(0, quantity - included),
     });
   }

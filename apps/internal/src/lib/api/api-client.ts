@@ -6,6 +6,7 @@ import {
 import { isRecord } from "@workspace/utils";
 import { API_URL } from "./api-config";
 import { assertInternalPortalApiRequest } from "./internal-portal-api-paths";
+import { isPlatformOutageError, reportApiUnavailable, trackApiResponse } from "./api-availability";
 import { internalSession } from "@/lib/auth/session";
 
 let authLogoutCallback: ((reason: string) => void) | null = null;
@@ -24,6 +25,9 @@ export const client = getAPIClient({
   },
   onFetchResponse: (response) => {
     internalSession.captureCsrfFromResponse(response);
+    // Feed every response to the availability store: gateway failures raise an
+    // outage suspicion, successful responses clear one.
+    trackApiResponse(response);
   },
   onRequest: (config: RequestConfig): RequestConfig => {
     const mutating = ["POST", "PUT", "PATCH", "DELETE"];
@@ -36,6 +40,12 @@ export const client = getAPIClient({
     return config;
   },
   onError: async (error: APIError) => {
+    // Network/timeout failures and gateway statuses feed the outage gate so
+    // the console shows the warming screen while the API recovers.
+    if (isPlatformOutageError(error)) {
+      reportApiUnavailable();
+    }
+
     if (error.status === 401) {
       if (internalSession.getToken()) {
         const refreshed = await internalSession.refreshAccessToken();

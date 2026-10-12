@@ -12,9 +12,11 @@ const STAT_LABELS = [
 ];
 
 export function ProofStripSection({ stats }: ProofStripSectionProps) {
-  const displayStats = stats ?? { clinics: 0, doctors: 0, patients: 0, prescriptions: 0 };
-  const hasStats =
-    Object.values(displayStats).every((value) => value > 0);
+  // No provisioned figures means no operating-proof band: an empty strip, or a
+  // synthesized one, would claim more than we can verify.
+  if (!stats || !Object.values(stats).every((value) => value > 0)) {
+    return null;
+  }
 
   return (
     <section
@@ -30,27 +32,25 @@ export function ProofStripSection({ stats }: ProofStripSectionProps) {
           Operating proof and platform stats
         </h2>
 
-        {hasStats ? (
-          <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
-            {STAT_LABELS.map((stat, i) => (
-              <div
-                key={stat.key}
-                className={
-                  i === STAT_LABELS.length - 1
-                    ? ""
-                    : "sm:border-r sm:border-border/50 sm:pr-6"
-                }
-              >
-                <dd className="r2-proof-stat text-foreground">
-                  {formatStatValue(displayStats[stat.key])}
-                </dd>
-                <dt className="mt-2 text-sm text-muted-foreground">
-                  {stat.label}
-                </dt>
-              </div>
-            ))}
-          </dl>
-        ) : null}
+        <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
+          {STAT_LABELS.map((stat, i) => (
+            <div
+              key={stat.key}
+              className={
+                i === STAT_LABELS.length - 1
+                  ? ""
+                  : "sm:border-r sm:border-border/50 sm:pr-6"
+              }
+            >
+              <dd className="r2-proof-stat text-foreground">
+                {formatStatValue(stats[stat.key])}
+              </dd>
+              <dt className="mt-2 text-sm text-muted-foreground">
+                {stat.label}
+              </dt>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );

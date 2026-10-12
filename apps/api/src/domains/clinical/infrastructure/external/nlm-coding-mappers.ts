@@ -33,6 +33,17 @@ const ICD_CATEGORY_MAP: Record<string, string> = {
 
 const SYNTHETIC_DATE = new Date(0);
 
+/**
+ * Catalog systems for rows this mapper produces. Kept as literals rather than
+ * read from Prisma because these mappers build unsaved, in-memory code objects;
+ * the persisted provenance is stamped later by the sync repository.
+ */
+const ICD_SYSTEM_VERSION = 'ICD-10-CM';
+const ICD_VERSION_LABEL = 'ICD-10';
+const CPT_SYSTEM_VERSION = 'HCPCS';
+/** Rows built outside a sync have no known upstream. */
+const UNKNOWN_SOURCE = 'UNKNOWN';
+
 export function cptCategory(code: string): string {
   if (/^[A-Z]/i.test(code)) return 'HCPCS';
   const num = parseInt(code, 10);
@@ -81,8 +92,12 @@ export function mapIcd(
     code,
     description,
     category: ICD_CATEGORY_MAP[code[0].toUpperCase()] ?? 'Other',
-    version: 'ICD-10',
+    version: ICD_VERSION_LABEL,
     isCommon,
+    system: ICD_SYSTEM_VERSION,
+    source: UNKNOWN_SOURCE,
+    sourceVersion: null,
+    lastSyncedAt: null,
     createdAt: SYNTHETIC_DATE,
     updatedAt: SYNTHETIC_DATE,
   };
@@ -100,6 +115,11 @@ export function mapCpt(
     category: cptCategory(code),
     isCommon,
     price: 0,
+    version: CPT_SYSTEM_VERSION,
+    system: CPT_SYSTEM_VERSION,
+    source: UNKNOWN_SOURCE,
+    sourceVersion: null,
+    lastSyncedAt: null,
     createdAt: SYNTHETIC_DATE,
     updatedAt: SYNTHETIC_DATE,
   };

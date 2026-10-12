@@ -4,6 +4,7 @@ import { ClinicManagementService } from './clinic-management.service';
 
 describe('ClinicManagementService admin lifecycle', () => {
   const prisma = {
+    clinic: { findMany: jest.fn(), count: jest.fn() },
     user: {
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -25,6 +26,22 @@ describe('ClinicManagementService admin lifecycle', () => {
       clinicFactory,
       userFactory,
     );
+  });
+
+  it('orders clinic cursor pages deterministically when creation times tie', async () => {
+    prisma.clinic.findMany.mockResolvedValue([]);
+    const page = await service.getAllClinics({ limit: 50 });
+    expect(prisma.clinic.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      }),
+    );
+    expect(page).toEqual({
+      items: [],
+      nextCursor: undefined,
+      hasMore: false,
+      count: 0,
+    });
   });
 
   it('deactivateAdmin sets appLoginDisabled to true', async () => {

@@ -3,6 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import * as dotenv from "dotenv";
 import * as path from "path";
+import { createUtcPoolConfig } from "../src/utc-pool-config";
 
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
@@ -12,7 +13,7 @@ function getConnectionString(): string {
   return value;
 }
 
-const pool = new Pool({ connectionString: getConnectionString() });
+const pool = new Pool(createUtcPoolConfig(getConnectionString()));
 const adapter = new PrismaPg(pool);
 
 const prisma = new PrismaClient({ adapter });

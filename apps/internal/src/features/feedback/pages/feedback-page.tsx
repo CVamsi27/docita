@@ -66,7 +66,7 @@ export function FeedbackPage() {
                       {fb.generalComments && <p className="text-sm text-muted-foreground line-clamp-2">{fb.generalComments}</p>}
                     </div>
                     <div className="flex gap-2 ml-4">
-                      <Button variant="outline" size="sm" onClick={() => { setSelectedFeedback(fb); }}><Eye className="h-4 w-4" /></Button>
+                      <Button variant="outline" size="sm" aria-label={`View feedback: ${fb.user.name}`} onClick={() => { setSelectedFeedback(fb); }}><Eye className="h-4 w-4" /></Button>
                     </div>
                   </div>
                 ))}

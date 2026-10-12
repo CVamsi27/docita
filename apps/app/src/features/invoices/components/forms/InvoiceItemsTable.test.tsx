@@ -39,13 +39,15 @@ vi.mock("react-i18next", () => ({
       params?: Record<string, string | number>,
     ): string => {
       const path = ns ? `${ns}.${key}` : key;
-      const resolved = path.split(".").reduce<unknown>(
-        (acc, part) =>
-          acc && typeof acc === "object"
-            ? (acc as Record<string, unknown>)[part]
-            : undefined,
-        invoiceMessages,
-      );
+      const resolved = path
+        .split(".")
+        .reduce<unknown>(
+          (acc, part) =>
+            acc && typeof acc === "object"
+              ? (acc as Record<string, unknown>)[part]
+              : undefined,
+          invoiceMessages,
+        );
       if (typeof resolved !== "string") return key;
       return resolved.replace(/\{name\}/g, String(params?.name ?? ""));
     };
@@ -78,10 +80,30 @@ describe("InvoiceItemsTable", () => {
       />,
     );
 
-    expect(within(desktopTable()).getByDisplayValue("Consultation")).toBeInTheDocument();
-    expect(within(desktopTable()).getByText("Healthcare exempt")).toBeInTheDocument();
-    expect(within(desktopTable()).getByDisplayValue("0")).toBeDisabled();
-    expect(within(desktopTable()).getByPlaceholderText("HSN code")).toBeInTheDocument();
+    expect(
+      within(desktopTable()).getByDisplayValue("Consultation"),
+    ).toBeInTheDocument();
+    expect(
+      within(desktopTable()).getByText("Healthcare exempt"),
+    ).toBeInTheDocument();
+    expect(
+      within(desktopTable()).getByRole("spinbutton", { name: "GST %" }),
+    ).toBeDisabled();
+    expect(
+      within(desktopTable()).getByRole("spinbutton", { name: "Qty" }),
+    ).toHaveValue(1);
+    expect(
+      within(desktopTable()).getByRole("spinbutton", { name: "Unit price" }),
+    ).toHaveValue(500);
+    expect(
+      within(desktopTable()).getByRole("combobox", {
+        name: "Tax",
+        exact: true,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(desktopTable()).getByPlaceholderText("HSN code"),
+    ).toBeInTheDocument();
     expect(within(desktopTable()).getByText("Rs 500")).toBeInTheDocument();
   });
 

@@ -1,8 +1,6 @@
-// check-as-cast-density: allow-file — `configService.getJwtExpiration()`
-// returns `string | number`; we feed it into `expiresIn` which wants
-// `number`. The double-cast is the documented bridge.
 import { JwtModule } from '@nestjs/jwt';
 import { Module } from '@nestjs/common';
+import { resolveJwtExpiresIn } from '@/shared/modules/config/app-config-jwt.helpers';
 import {
   ResumeSubscriptionPaymentUseCase,
   SchedulePlanChangeUseCase,
@@ -58,11 +56,7 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
       useFactory: (configService: AppConfigService) => ({
         secret: configService.getJwtSecret(),
         signOptions: {
-          // getJwtExpiration returns a string like '15m'; nestjs-jwt
-          // accepts StringValue, which is a string literal type
-          // cast at runtime. The cast is safe because the value is
-          // never user-controlled.
-          expiresIn: configService.getJwtExpiration() as unknown as number,
+          expiresIn: resolveJwtExpiresIn(configService.getJwtExpiration()),
         },
       }),
     }),

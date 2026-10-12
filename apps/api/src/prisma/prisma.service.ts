@@ -7,7 +7,12 @@ import {
 import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { createUtcPoolConfig } from '@workspace/db';
+import {
+  createUtcPoolConfig,
+  createPoolSaturationProbe,
+  type PoolSaturationProbe,
+  type PoolSaturationSnapshot,
+} from '@workspace/db';
 import { tenantExtension } from '@/shared/common/extensions/tenant.extension';
 import { createEncryptionExtension } from '@/shared/common/extensions/encryption.extension';
 import { auditImmutabilityExtension } from '@/shared/common/extensions/audit-immutability.extension';
@@ -27,6 +32,14 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   private readonly logger = new Logger(PrismaService.name);
+  /**
+   * The pool actually backing this client. Kept so operations endpoints can
+   * report live saturation instead of a computed configuration: the pool values
+   * come from DATABASE_CONSTANTS, while `DatabasePoolingService` returns a
+   * separate `cpuCount * 5 + 10` suggestion that nothing applies.
+   */
+  private readonly pool: Pool;
+  private readonly saturation: PoolSaturationProbe;
 
   constructor(
     private encryptionService: EncryptionService,
@@ -57,10 +70,23 @@ export class PrismaService
       log: [],
       transactionOptions: getDefaultTransactionOptions(),
     });
+
+    this.pool = pool;
+    this.saturation = createPoolSaturationProbe(pool);
   }
 
   getReadClient(): PrismaClient {
     return this;
+  }
+
+  /**
+   * Live saturation of the pool this client actually uses. `queuedForMs` is the
+   * only signal here that a request is waiting for a *connection* rather than
+   * for the database, which is the condition behind unexplained latency spikes
+   * and behind the untranslated pool-timeout path in `PrismaRetryInterceptor`.
+   */
+  getPoolSaturation(): PoolSaturationSnapshot {
+    return this.saturation.snapshot();
   }
 
   onModuleInit(): void {

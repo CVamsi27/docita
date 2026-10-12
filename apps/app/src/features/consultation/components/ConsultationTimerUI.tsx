@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@workspace/ui/components/form/button";
 import { Badge } from "@workspace/ui/components/indicators/badge";
+import { MicroLabel } from "@workspace/ui/components/indicators/micro-label";
 import {
   Tooltip,
   TooltipContent,
@@ -80,9 +81,9 @@ export function ConsultationTimerUI({
       <PopoverContent className="w-[min(100vw-2rem,16rem)] p-4" align="end">
         <div className="space-y-4">
           <div className="text-center">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+            <MicroLabel className="mb-1">
               {t("timer.popoverTitle")}
-            </p>
+            </MicroLabel>
             <p
               className={cn(
                 "text-[var(--fs-3xl)] font-semibold font-mono tabular-nums leading-[var(--lh-tight)]",

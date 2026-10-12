@@ -172,6 +172,13 @@ describe("useClinicRegistrationFlow", () => {
         return new Response(
           JSON.stringify({
             success: false,
+            // Both failure paths on the server (`buildValidationFailureResult`
+            // and `handleOnboardingFailure`) always emit these, as empty strings
+            // when the records were never created. The previous fixture omitted
+            // them, which is why it slipped past
+            // `onboardingCompletionResponseSchema.parse`.
+            clinicId: "",
+            userId: "",
             message: "Onboarding failed. Please try again.",
             errors: ["Onboarding session not found or expired"],
           }),

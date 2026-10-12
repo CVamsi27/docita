@@ -1,61 +1,122 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table";
-import { Badge } from "@workspace/ui/components/indicators/badge";
-import { EditClinicDialog } from "./edit-clinic-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/data-display/table";
+import {
+  ListRow,
+  ListRowGroup,
+} from "@workspace/ui/components/data-display/list-row";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
+import { StatusBadge } from "@workspace/ui/components/indicators/status-badge";
+import { Button } from "@workspace/ui/components/form/button";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Building2 } from "lucide-react";
+import type { InternalClinicListEntry } from "@workspace/types";
 
-interface Clinic {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  tier?: string;
-  type?: string;
-  active?: boolean;
-  settings?: Record<string, unknown>;
-  _count?: { users: number; patients: number };
+interface ClinicListProps {
+  clinics: InternalClinicListEntry[];
+  loading: boolean;
+  filtered?: boolean;
+  selectedId: string | null;
+  onReview: (clinicId: string, trigger: HTMLButtonElement) => void;
 }
 
-export function ClinicList({ clinics, loading, onUpdate }: { clinics: Clinic[]; loading: boolean; onUpdate: () => void }) {
-  if (loading) return <div className="flex h-24 items-center justify-center text-muted-foreground">Loading facilities…</div>;
-  if (clinics.length === 0) return (
-    <div className="flex flex-col items-center justify-center h-64 text-center">
-      <Building2 className="h-10 w-10 text-muted-foreground mb-4" />
-      <h3 className="text-lg font-medium">No facilities yet</h3>
-      <p className="text-sm text-muted-foreground mt-1">Add your first facility to get started.</p>
-    </div>
+export function ClinicList({
+  clinics,
+  loading,
+  filtered = false,
+  selectedId,
+  onReview,
+}: ClinicListProps) {
+  const reviewButton = (clinic: InternalClinicListEntry) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      aria-label={`Review facility: ${clinic.name}`}
+      aria-pressed={selectedId === clinic.id}
+      onClick={(event) => onReview(clinic.id, event.currentTarget)}
+    >
+      Review
+    </Button>
   );
 
   return (
-    <div className="overflow-x-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead><TableHead>Contact</TableHead><TableHead>Tier</TableHead>
-            <TableHead>Type</TableHead><TableHead>Users</TableHead><TableHead>Patients</TableHead>
-            <TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {clinics.map((clinic) => (
-            <TableRow key={clinic.id}>
-              <TableCell className="font-medium"><div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-background/70 text-xs font-bold text-primary">
-                  {clinic.name.substring(0, 2).toUpperCase()}</div>{clinic.name}</div></TableCell>
-              <TableCell><div className="flex flex-col text-sm"><span>{clinic.email || "-"}</span>
-                <span className="text-muted-foreground text-xs">{clinic.phone || "-"}</span></div></TableCell>
-              <TableCell><Badge variant="outline">{clinic.tier || "STARTER"}</Badge></TableCell>
-              <TableCell><Badge variant="outline">{clinic.type || "GENERAL"}</Badge></TableCell>
-              <TableCell>{clinic._count?.users || 0}</TableCell>
-              <TableCell>{clinic._count?.patients || 0}</TableCell>
-              <TableCell><Badge variant={clinic.active ? "default" : "secondary"}>{clinic.active ? "Active" : "Inactive"}</Badge></TableCell>
-              <TableCell className="text-right">
-                <EditClinicDialog clinic={{ ...clinic, email: clinic.email ?? "", phone: clinic.phone ?? "", address: clinic.address ?? "", tier: clinic.tier ?? "STARTER", active: clinic.active ?? true }} onClinicUpdated={onUpdate} />
-              </TableCell>
+    <DataState
+      status={loading ? "loading" : clinics.length ? "success" : "empty"}
+      loadingMessage="Loading facilities…"
+      emptyIcon={Building2}
+      emptyTitle={filtered ? "No matching facilities" : "No facilities yet"}
+      emptyDescription={
+        filtered
+          ? "Try another search on this page, or browse the next page."
+          : "Add your first facility to get started."
+      }
+    >
+      <div className="hidden lg:block">
+        <Table className="min-w-0">
+          <caption className="sr-only">Facilities on the current page</caption>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[35%]">Name</TableHead>
+              <TableHead className="w-[17%]">Type</TableHead>
+              <TableHead className="w-[20%]">Access tier</TableHead>
+              <TableHead className="w-[15%]">Status</TableHead>
+              <TableHead className="w-[13%] text-right">
+                <span className="sr-only">Review</span>
+              </TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {clinics.map((clinic) => (
+              <TableRow
+                key={clinic.id}
+                className={
+                  selectedId === clinic.id
+                    ? "border-l-2 border-l-primary bg-muted/60"
+                    : undefined
+                }
+              >
+                <TableCell className="py-4 font-medium">
+                  <span className="block break-words">{clinic.name}</span>
+                  {selectedId === clinic.id ? (
+                    <span className="text-xs font-normal text-muted-foreground">
+                      Selected
+                    </span>
+                  ) : null}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {humanizeUiLabel(clinic.type)}
+                </TableCell>
+                <TableCell className="text-sm">
+                  {humanizeUiLabel(clinic.tier)}
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={clinic.active ? "active" : "inactive"} />
+                </TableCell>
+                <TableCell className="text-right">
+                  {reviewButton(clinic)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <ListRowGroup className="rounded-none border-0 bg-transparent lg:hidden">
+        {clinics.map((clinic) => (
+          <ListRow
+            key={clinic.id}
+            title={clinic.name}
+            meta={`${humanizeUiLabel(clinic.type)} · ${humanizeUiLabel(clinic.tier)}${selectedId === clinic.id ? " · Selected" : ""}`}
+            status={clinic.active ? "active" : "inactive"}
+            trailing={reviewButton(clinic)}
+            showChevron={false}
+          />
+        ))}
+      </ListRowGroup>
+    </DataState>
   );
 }

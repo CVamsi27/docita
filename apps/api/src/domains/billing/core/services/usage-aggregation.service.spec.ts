@@ -15,19 +15,24 @@ type SumCall = {
 };
 
 // KNOWN PRODUCT-DECISION ITEM (do not change behavior): the service derives
-// the aggregation window with local-time Date math on the injected clock
+// the aggregation day with local-time Date math on the injected clock
 // (setDate(-1) + setHours(0,0,0,0)) and the usage-month bounds with
 // `new Date(y, m, ...)` constructors. On the production worker (UTC) this
-// yields a UTC-midnight window; clinics operate on IST — whether the billing
+// yields a UTC-midnight day; clinics operate on IST — whether the billing
 // window should be IST-based (Asia/Kolkata) is an open product decision.
 // This spec PINS the current behavior and does not "fix" it.
 //
-// Assertions therefore pin date COMPONENTS (yesterday's calendar day, the
-// usage month's 1st..last) rather than exact UTC instants, which would vary
-// with the machine/worker timezone.
-// The noon-UTC clock keeps the calendar-day assertions valid for any
+// Assertions therefore pin date COMPONENTS (the usage month's 1st..last)
+// rather than exact UTC instants, which would vary with the machine/worker
+// timezone.
+// The noon-UTC clock keeps the calendar-month assertions valid for any
 // timezone <= UTC+11; on UTC+12..+14 machines (NZ/Fiji/Samoa/Kiritimati)
-// yesterday would land a day later and these assertions would need to shift.
+// the usage day would land a month later and these assertions would shift.
+//
+// The summed window is the usage MONTH, not the single day: `UsageRecord` is
+// keyed by month, so the stored quantity has to be the month's derived total.
+// Summing only the day and incrementing the record made a rerun of the same
+// day add it twice (backlog U01).
 describe('UsageAggregationService', () => {
   const runUnrestrictedMock =
     jest.fn<(cb: () => Promise<unknown>) => Promise<unknown>>();
@@ -110,19 +115,22 @@ describe('UsageAggregationService', () => {
     expect(findAddOnsMock).toHaveBeenCalledWith('clinic-1');
     expect(sumCalls).toHaveLength(2);
 
-    // usage is summed over yesterday's calendar window (June 11)
+    // Usage is summed over the whole usage month, because the record it feeds is
+    // keyed by month. Summing only the day would force the record to be an
+    // accumulator, which is what made a rerun double-count.
     const whatsappSum = sumCalls.find((c) => c.type === 'WHATSAPP_MESSAGES');
     expect(whatsappSum?.clinicId).toBe('clinic-1');
     expect(whatsappSum?.start.getFullYear()).toBe(2026);
     expect(whatsappSum?.start.getMonth()).toBe(5); // June
-    expect(whatsappSum?.start.getDate()).toBe(11);
+    expect(whatsappSum?.start.getDate()).toBe(1);
     expect(whatsappSum?.start.getHours()).toBe(0);
-    expect(whatsappSum?.end.getDate()).toBe(11);
+    expect(whatsappSum?.end.getDate()).toBe(30);
     expect(whatsappSum?.end.getHours()).toBe(23);
     expect(whatsappSum?.end.getMinutes()).toBe(59);
     expect(whatsappSum?.end.getSeconds()).toBe(59);
     const aiSum = sumCalls.find((c) => c.type === 'AI_CREDITS');
-    expect(aiSum?.start.getDate()).toBe(11);
+    expect(aiSum?.start.getDate()).toBe(1);
+    expect(aiSum?.end.getDate()).toBe(30);
 
     // records upsert into the usage day's month with quota and overage
     const whatsappUpsert = upsertCalls.find(
@@ -147,6 +155,46 @@ describe('UsageAggregationService', () => {
     expect(aiUpsert?.quantity).toBe(150);
     expect(aiUpsert?.includedQuota).toBe(200);
     expect(aiUpsert?.overageUnits).toBe(0);
+  });
+
+  // A rerun of the same day must converge on the same row rather than adding
+  // the day again. The repository writes absolute values for exactly this.
+  it('writes the month total so repeating the same day is idempotent', async () => {
+    findClinicIdsMock.mockResolvedValue(['clinic-1']);
+    // The month's total as recomputed from the usage ledger, constant across
+    // runs — that is what makes a second run a no-op.
+    sumUsageMock.mockResolvedValue(1200);
+
+    await service.runDailyUsageAggregation();
+    const firstCalls = upsertMock.mock.calls.map(([params]) => params);
+
+    jest.clearAllMocks();
+    findClinicIdsMock.mockResolvedValue(['clinic-1']);
+    findPlanMock.mockResolvedValue('PROFESSIONAL');
+    sumUsageMock.mockResolvedValue(1200);
+    upsertMock.mockResolvedValue(undefined);
+
+    await service.runDailyUsageAggregation();
+    const secondCalls = upsertMock.mock.calls.map(([params]) => params);
+
+    const firstWhatsapp = firstCalls.find(
+      (p) => p.type === 'WHATSAPP_MESSAGES',
+    );
+    const secondWhatsapp = secondCalls.find(
+      (p) => p.type === 'WHATSAPP_MESSAGES',
+    );
+
+    // Same absolute quantity for the same month — no second day's worth added.
+    expect(secondWhatsapp?.quantity).toBe(firstWhatsapp?.quantity);
+    expect(secondWhatsapp?.quantity).toBe(1200);
+    // Overage is recomputed from the month total rather than left at whatever
+    // the first run of the month produced.
+    expect(secondWhatsapp?.overageUnits).toBe(
+      Math.max(0, 1200 - (firstWhatsapp?.includedQuota ?? 0)),
+    );
+    expect(secondWhatsapp?.periodStart.getTime()).toBe(
+      firstWhatsapp?.periodStart.getTime(),
+    );
   });
 
   it('skips the upsert for usage types with zero quantity', async () => {

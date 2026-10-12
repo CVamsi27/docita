@@ -45,7 +45,7 @@ export function InvoiceSubtotal<T extends FieldValues & { discount: number }>({
         />
         <div className="flex items-center justify-between pt-4 border-t">
           <span className="font-bold text-lg">Total amount</span>
-          <span className="font-bold text-lg text-primary">
+          <span className="font-bold text-lg text-foreground">
             {formatCurrency(totalAmount)}
           </span>
         </div>

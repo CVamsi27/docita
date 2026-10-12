@@ -13,118 +13,47 @@
 // Scope: `run:` step values (single-line and `|`/`>` block scalars). Non-script
 // pnpm invocations (`pnpm install`, `pnpm exec ...`, `pnpm dlx ...`) and
 // non-command mentions (`cache: "pnpm"`, `pnpm-lock.yaml`) are ignored.
+//
+// Also validates workflow shape before scanning: every `*.yml`/`*.yaml` file
+// must parse as YAML, declare a non-empty `jobs:` map, and pass hand-rolled
+// structural GitHub Actions rules — non-empty top-level `on`, every job a map
+// with a valid `runs-on` (string, string array, or map) and either non-empty
+// `steps` whose steps each wire `uses` or `run`, or a job-level `uses`
+// (reusable workflow), and `matrix.*` references only where `strategy.matrix`
+// exists. A step that wires `uses`/`run` necessarily wires a recognized step
+// field, so that requirement holds by construction. Two repo realities are
+// honoured: `uses:`-style jobs carry no `runs-on` (the called workflow
+// supplies the runner), and a deliberately paused workflow — one of the
+// `PAUSED_WORKFLOWS` entries — keeps its commented-out `# on:` marker with no
+// trigger block. The pause exemption is file-scoped: an allowlisted file must
+// still carry the marker, and any other workflow with an absent or empty
+// `on` fails even when the marker is present (commenting out a live
+// workflow's trigger is the content-loss signature, not a pause). The rules are deliberately
+// small and dependency-free — GitHub's full JSON schema is not fetched. The
+// run-step scanner below is a line reader, so a workflow file replaced by
+// non-YAML content (a copied doc, a truncated write) would otherwise be
+// scanned vacuously and pass — and the only other YAML validator in the repo
+// is the ruby step inside ci.yml itself, self-hosted in the file it validates.
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { LineCounter, parseDocument } from "yaml";
 import { reportFindingsAndExit } from "../lib/check-runner.mjs";
+import {
+  loadRootScripts,
+  loadWorkspacePackages,
+  parsePnpmInvocations,
+  PNPM_BUILTINS,
+} from "../lib/pnpm-script-refs.mjs";
 
 const ROOT = process.cwd();
 const WORKFLOWS_DIR = path.join(ROOT, ".github", "workflows");
 
-// pnpm built-in commands. When used WITHOUT an explicit `run` prefix these are
-// not script invocations (e.g. `pnpm exec playwright`, `pnpm dlx knip`).
-// Tradeoff: bare root `pnpm test`/`pnpm start` in a workflow are skipped even
-// though both are real root scripts here — conservative direction (no false
-// positives), and workflows always use explicit `run`, so no coverage loss.
-const PNPM_BUILTINS = new Set([
-  "install",
-  "i",
-  "add",
-  "remove",
-  "rm",
-  "update",
-  "up",
-  "dlx",
-  "exec",
-  "run",
-  "start",
-  "test",
-  "help",
-  "init",
-  "create",
-  "list",
-  "ls",
-  "why",
-  "info",
-  "view",
-  "config",
-  "env",
-  "store",
-  "pack",
-  "publish",
-  "rebuild",
-  "prune",
-  "link",
-  "unlink",
-  "patch",
-  "patch-commit",
-  "patch-remove",
-  "dedupe",
-  "fetch",
-  "import",
-  "export",
-  "root",
-  "bin",
-  "server",
-  "deploy",
-  "recursive",
-  "filter",
-  "approve-builds",
-  "setup",
-  "wizard",
-  "--version",
-  "-v",
-  "--help",
-  "-h",
-]);
-
-/** @returns {Map<string, { scripts: Record<string, string>, path: string }>} */
-function loadWorkspacePackages() {
-  const map = new Map();
-  let globs = ["apps/*", "packages/*"];
-  try {
-    const ws = readFileSync(path.join(ROOT, "pnpm-workspace.yaml"), "utf8");
-    const found = [...ws.matchAll(/^\s*-\s*"?([^"\n#]+?)"?\s*$/gm)]
-      .map((m) => m[1].trim())
-      .filter((g) => g.includes("*") || g.endsWith("/"));
-    if (found.length > 0) globs = found;
-  } catch {
-    // Fall back to the conventional layout.
-  }
-  for (const glob of globs) {
-    const base = glob.replace(/\*+$/, "").replace(/\/+$/, "");
-    let entries = [];
-    try {
-      entries = readdirSync(path.join(ROOT, base), { withFileTypes: true });
-    } catch {
-      continue;
-    }
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const pkgPath = path.join(ROOT, base, entry.name, "package.json");
-      if (!existsSync(pkgPath)) continue;
-      try {
-        const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
-        if (typeof pkg.name === "string" && pkg.name.length > 0) {
-          map.set(pkg.name, { scripts: pkg.scripts ?? {}, path: pkgPath });
-        }
-      } catch {
-        // Invalid manifest; leave it out and let a later check surface it.
-      }
-    }
-  }
-  return map;
-}
-
-/** @returns {Record<string, string>} root package.json scripts */
-function loadRootScripts() {
-  try {
-    const pkg = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8"));
-    return pkg.scripts ?? {};
-  } catch {
-    return {};
-  }
-}
+// Workflows permitted to ship without a trigger block: this repo pauses a
+// workflow by commenting out its `on:` block ("To re-enable, uncomment the
+// `on:` block below"). The exemption is deliberately file-scoped so that
+// the same edit on any other workflow — ci.yml included — still fails.
+const PAUSED_WORKFLOWS = new Set(["deploy.yml", "db-migrations.yml"]);
 
 /**
  * Collect the command text of every `run:` step (single-line values and
@@ -166,32 +95,147 @@ function collectCommandLines(text) {
   return commands;
 }
 
+const packages = loadWorkspacePackages(ROOT);
+const rootScripts = loadRootScripts(ROOT);
+const findings = [];
+
 /**
- * Extract `pnpm` script invocations from a single command string.
- * Stops each match at shell operators (`&&`, `;`, `|`, `>`, `<`).
+ * Structural rules for a parseable GitHub Actions workflow. Hand-rolled on
+ * purpose: no network, no JSON-schema download, explicit small checks in the
+ * repo's check style.
  *
- * @param {string} command
- * @returns {{ filter: string | null, explicitRun: boolean, script: string }[]}
+ * @param {string} file - workflow file name (for `file:line` findings)
+ * @param {import("yaml").Document} doc - parsed document (node ranges → lines)
+ * @param {import("yaml").LineCounter} lineCounter
+ * @param {unknown} workflow - `doc.toJS()` value
+ * @param {Record<string, unknown>} jobs - the (non-empty) jobs map
+ * @param {string} text - raw file text (paused-workflow `# on:` marker)
+ * @returns {string[]}
  */
-function parseCommand(command) {
-  const runs = [];
-  const re =
-    /(?:^|[\s&;|(])(pnpm)(?:\s+(?:--filter(?:\s+|=)([^\s]+)|-F\s+([^\s]+)))?[\s]+(?:(run)\s+)?([^\s&|;<>]+)/g;
-  for (const m of command.matchAll(re)) {
-    const [, , filter, filterShort, runFlag, script] = m;
-    if (!script) continue;
-    runs.push({
-      filter: filter ?? filterShort ?? null,
-      explicitRun: Boolean(runFlag),
-      script,
+function validateWorkflowShape(file, doc, lineCounter, workflow, jobs, text) {
+  const found = [];
+  const lineOf = (nodePath, fallback) => {
+    try {
+      const node = doc.getIn(nodePath, true);
+      if (node && Array.isArray(node.range)) {
+        return lineCounter.linePos(node.range[0]).line;
+      }
+    } catch {
+      // Path absent from the document; fall back below.
+    }
+    return fallback;
+  };
+
+  const on = /** @type {any} */ (workflow).on;
+  const onNonEmpty =
+    (typeof on === "string" && on.trim() !== "") ||
+    (Array.isArray(on) && on.length > 0) ||
+    (on !== null &&
+      typeof on === "object" &&
+      !Array.isArray(on) &&
+      Object.keys(on).length > 0);
+  // Deliberately paused workflows: this repo disables one by commenting out
+  // its `on:` block ("To re-enable, uncomment the `on:` block below"). An
+  // absent `on` is accepted only for an allowlisted file that still carries
+  // the commented `# on:` marker; any other missing-`on` file — and any
+  // present-but-empty `on:` — is the content-loss signature and fails.
+  const documentedPause =
+    on === undefined &&
+    PAUSED_WORKFLOWS.has(file) &&
+    /^[\t ]*#[\t ]*on:/m.test(text);
+  if (on !== undefined ? !onNonEmpty : !documentedPause) {
+    found.push(
+      `${file}:${lineOf(["on"], 1)} — top-level \`on\` is missing or empty (expected a non-empty trigger string, list, or map; a paused workflow must be listed in PAUSED_WORKFLOWS and keep its commented-out \`# on:\` marker).`,
+    );
+  }
+
+  for (const [name, job] of Object.entries(jobs)) {
+    const jobPath = ["jobs", name];
+    const jobLine = lineOf(jobPath, 1);
+    if (job === null || typeof job !== "object" || Array.isArray(job)) {
+      found.push(
+        `${file}:${jobLine} — jobs.${name} must be a map (got ${job === null ? "null" : Array.isArray(job) ? "array" : typeof job}).`,
+      );
+      continue;
+    }
+
+    const strategy = /** @type {any} */ (job).strategy;
+    const hasMatrixStrategy =
+      strategy !== null &&
+      typeof strategy === "object" &&
+      !Array.isArray(strategy) &&
+      strategy.matrix !== undefined;
+    if (!hasMatrixStrategy && /\bmatrix\./.test(JSON.stringify(job))) {
+      found.push(
+        `${file}:${jobLine} — jobs.${name} references \`matrix.*\` but has no \`strategy.matrix\`.`,
+      );
+    }
+
+    if (/** @type {any} */ (job).uses !== undefined) {
+      const uses = /** @type {any} */ (job).uses;
+      if (typeof uses !== "string" || uses.trim() === "") {
+        found.push(
+          `${file}:${lineOf([...jobPath, "uses"], jobLine)} — jobs.${name}.\`uses\` must be a non-empty string (reusable workflow).`,
+        );
+      }
+      continue;
+    }
+
+    // `runs-on` is required for runner jobs; reusable-workflow jobs (`uses`)
+    // are exempt — the called workflow supplies its own runner.
+    const runsOn = /** @type {any} */ (job)["runs-on"];
+    const runsOnValid =
+      (typeof runsOn === "string" && runsOn.trim() !== "") ||
+      (Array.isArray(runsOn) &&
+        runsOn.length > 0 &&
+        runsOn.every((v) => typeof v === "string")) ||
+      (runsOn !== null &&
+        typeof runsOn === "object" &&
+        !Array.isArray(runsOn) &&
+        Object.keys(runsOn).length > 0);
+    if (!runsOnValid) {
+      found.push(
+        `${file}:${lineOf([...jobPath, "runs-on"], jobLine)} — jobs.${name}.\`runs-on\` is missing or not a string, string array, or map.`,
+      );
+    }
+
+    const steps = /** @type {any} */ (job).steps;
+    if (steps === undefined) {
+      found.push(
+        `${file}:${jobLine} — jobs.${name} has neither \`steps\` (a non-empty array) nor \`uses\`.`,
+      );
+      continue;
+    }
+    if (!Array.isArray(steps) || steps.length === 0) {
+      found.push(
+        `${file}:${lineOf([...jobPath, "steps"], jobLine)} — jobs.${name}.\`steps\` must be a non-empty array.`,
+      );
+      continue;
+    }
+
+    steps.forEach((/** @type {unknown} */ step, /** @type {number} */ index) => {
+      const stepPath = [...jobPath, "steps", index];
+      const stepLine = lineOf(stepPath, jobLine);
+      const label = `jobs.${name}.steps[${index}]`;
+      if (step === null || typeof step !== "object" || Array.isArray(step)) {
+        found.push(`${file}:${stepLine} — ${label} must be a map.`);
+        return;
+      }
+      const stepMap = /** @type {any} */ (step);
+      const hasUses =
+        typeof stepMap.uses === "string" && stepMap.uses.trim() !== "";
+      const hasRun =
+        typeof stepMap.run === "string" && stepMap.run.trim() !== "";
+      if (!hasUses && !hasRun) {
+        found.push(
+          `${file}:${stepLine} — ${label} has neither \`uses\` nor \`run\`.`,
+        );
+      }
     });
   }
-  return runs;
-}
 
-const packages = loadWorkspacePackages();
-const rootScripts = loadRootScripts();
-const findings = [];
+  return found;
+}
 
 if (!existsSync(WORKFLOWS_DIR)) {
   reportFindingsAndExit("Workflow script reference check", [
@@ -202,8 +246,40 @@ if (!existsSync(WORKFLOWS_DIR)) {
 for (const file of readdirSync(WORKFLOWS_DIR)) {
   if (!/\.ya?ml$/.test(file)) continue;
   const text = readFileSync(path.join(WORKFLOWS_DIR, file), "utf8");
+
+  const lineCounter = new LineCounter();
+  const doc = parseDocument(text, { lineCounter });
+  if (doc.errors.length > 0) {
+    const err = doc.errors[0];
+    const line = err.linePos?.[0]?.line ?? 1;
+    findings.push(
+      `${file}:${line} — workflow does not parse as YAML: ${String(err.message).split("\n")[0]}`,
+    );
+    continue;
+  }
+  const workflow = doc.toJS();
+  const jobs =
+    workflow && typeof workflow === "object" ? workflow.jobs : undefined;
+  if (
+    !jobs ||
+    typeof jobs !== "object" ||
+    Array.isArray(jobs) ||
+    Object.keys(jobs).length === 0
+  ) {
+    findings.push(
+      `${file}:1 — no job keys found: a workflow must declare a non-empty \`jobs:\` map (signature of a workflow file that lost its workflow content).`,
+    );
+    continue;
+  }
+
+  const structural = validateWorkflowShape(file, doc, lineCounter, workflow, jobs, text);
+  if (structural.length > 0) {
+    findings.push(...structural);
+    continue;
+  }
+
   for (const { lineNo, command } of collectCommandLines(text)) {
-    for (const run of parseCommand(command)) {
+    for (const run of parsePnpmInvocations(command)) {
       // Non-script pnpm builtins (install/exec/dlx/...) without `run`.
       if (!run.explicitRun && PNPM_BUILTINS.has(run.script)) continue;
       // Dynamic --filter patterns can't be resolved statically.

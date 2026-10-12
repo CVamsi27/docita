@@ -9,6 +9,7 @@ import {
 import {
   pricingConfigResponseSchema,
   pricingEstimateResponseSchema,
+  tierSchema,
 } from '@workspace/types';
 
 @ApiTags('pricing')
@@ -36,8 +37,7 @@ export class PricingController {
   @ApiQuery({
     name: 'tier',
     required: true,
-    description:
-      'Tier ID (STARTER, FRONT_DESK, FRONT_DESK_CLINIC, FRONT_DESK_HOSPITAL, ESSENTIAL, PROFESSIONAL, HOSPITAL, ENTERPRISE)',
+    description: `Tier ID (${tierSchema.options.join(', ')})`,
   })
   @ApiQuery({
     name: 'currency',

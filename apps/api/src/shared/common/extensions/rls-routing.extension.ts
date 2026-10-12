@@ -21,8 +21,7 @@ interface RoutableOperation<T> {
  *   the pass-through branch.
  * - If the tx is missing the model/op (e.g. an unknown model — should
  *   not occur in practice), falls back to `query(args)`.
- * - Always restores `store.tx` on the way out so sibling operations in
- *   the same request continue to be routed.
+ * - Uses a child ALS scope so sibling operations retain the request tx.
  */
 export async function routeOperationThroughActiveTx<T>(
   input: RoutableOperation<T>,
@@ -41,16 +40,12 @@ export async function routeOperationThroughActiveTx<T>(
   if (!delegate || typeof delegate[operation] !== 'function')
     return query(args);
 
-  const previousTx = tx;
-  store.tx = null;
-  try {
+  return activeTxStorage.run({ tx: null }, async () => {
     // The delegate mirrors the original query's return shape (both are the
     // same Prisma model operation, just executed on the RLS-scoped client),
     // so the await result narrows back to T without an escape hatch.
     return (await delegate[operation](args)) as T;
-  } finally {
-    store.tx = previousTx;
-  }
+  });
 }
 
 /**
@@ -67,9 +62,8 @@ export async function routeOperationThroughActiveTx<T>(
  *   to `tx[modelKey][operation](args)` so the actual query runs on the
  *   connection that holds the `SET LOCAL` values.
  * - The re-issued call goes through the same extension chain, so to avoid
- *   infinite recursion the store entry is mutated to `tx: null` for the
- *   duration of the nested call; the nested invocation then takes the
- *   pass-through branch.
+ *   infinite recursion the delegate runs in a child scope with `tx: null`;
+ *   nested invocations pass through while concurrent siblings still route.
  *
  * The extension is a no-op when no active tx is published, which is the
  * normal mode for background workers, auth bootstrap, and any code that

@@ -13,6 +13,7 @@ import {
 } from '@jest/globals';
 import { ClinicTier, IntelligenceAddon } from '@workspace/db';
 import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
+import { assertTenantQualifiedRead } from '@/test-utils/tenant-qualified-read';
 
 describe('SystemEventsService', () => {
   let service: SystemEventsService;
@@ -39,51 +40,60 @@ describe('SystemEventsService', () => {
       prescription: {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockImplementation(async () => ({
-            id: 'rx-123',
-            patient: {
-              firstName: 'Rahul',
-              lastName: 'Sharma',
-              phoneNumber: '919876543210',
-            },
-            doctor: { name: 'Dr. Patel' },
-            appointment: { clinic: { name: 'Test Clinic' } },
-          })),
+          .mockImplementation(async (args: unknown) => {
+            assertTenantQualifiedRead('Prescription', args, 'clinic-123');
+            return {
+              id: 'rx-123',
+              patient: {
+                firstName: 'Rahul',
+                lastName: 'Sharma',
+                phoneNumber: '919876543210',
+              },
+              doctor: { name: 'Dr. Patel' },
+              appointment: { clinic: { name: 'Test Clinic' } },
+            };
+          }),
       },
       invoice: {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockImplementation(async () => ({
-            id: 'inv-123',
-            total: 1500,
-            patient: {
-              firstName: 'Meera',
-              lastName: 'Nair',
-              phoneNumber: '919876543211',
-            },
-            appointment: { clinic: { name: 'Test Clinic' } },
-          })),
+          .mockImplementation(async (args: unknown) => {
+            assertTenantQualifiedRead('Invoice', args, 'clinic-123');
+            return {
+              id: 'inv-123',
+              total: 1500,
+              patient: {
+                firstName: 'Meera',
+                lastName: 'Nair',
+                phoneNumber: '919876543211',
+              },
+              appointment: { clinic: { name: 'Test Clinic' } },
+            };
+          }),
       },
       appointment: {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockImplementation(async () => ({
-            id: 'appt-123',
-            startTime: new Date('2026-04-01T10:00:00Z'),
-            patient: {
-              id: 'patient-123',
-              firstName: 'Sunita',
-              lastName: 'Devi',
-              phoneNumber: '919876543212',
-            },
-            doctor: { name: 'Dr. Sharma' },
-            clinic: {
-              name: 'Test Clinic',
-              settings: {
-                mapsLocation: { lat: 12.9716, lng: 77.5946 },
+          .mockImplementation(async (args: unknown) => {
+            assertTenantQualifiedRead('Appointment', args, 'clinic-123');
+            return {
+              id: 'appt-123',
+              startTime: new Date('2026-04-01T10:00:00Z'),
+              patient: {
+                id: 'patient-123',
+                firstName: 'Sunita',
+                lastName: 'Devi',
+                phoneNumber: '919876543212',
               },
-            },
-          })),
+              doctor: { name: 'Dr. Sharma' },
+              clinic: {
+                name: 'Test Clinic',
+                settings: {
+                  mapsLocation: { lat: 12.9716, lng: 77.5946 },
+                },
+              },
+            };
+          }),
       },
       whatsappLog: {
         create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -128,12 +138,131 @@ describe('SystemEventsService', () => {
     expect(service).toBeDefined();
   });
 
+  describe('clinic-local notification dates', () => {
+    const dateCases = [
+      ['America/New_York', '2026-04-01T02:00:00Z', '31 Mar 2026', '10:00 PM'],
+      ['America/New_York', '2026-03-08T06:30:00Z', '08 Mar 2026', '01:30 AM'],
+      ['America/New_York', '2026-03-08T07:30:00Z', '08 Mar 2026', '03:30 AM'],
+      [undefined, '2026-04-01T02:00:00Z', '01 Apr 2026', '07:30 AM'],
+    ];
+
+    it.each(dateCases)(
+      'formats confirmation in %s at %s',
+      async (timezone, instant, date, time) => {
+        mockPrisma.appointment.findUnique.mockImplementationOnce(
+          async (args: unknown) => {
+            assertTenantQualifiedRead('Appointment', args, 'clinic-123');
+            return {
+              id: 'appt-123',
+              startTime: new Date(instant ?? ''),
+              patient: {
+                id: 'patient-123',
+                firstName: 'Synthetic',
+                lastName: 'Patient',
+                phoneNumber: 'synthetic-phone',
+              },
+              doctor: { name: 'Synthetic Doctor' },
+              clinic: { name: 'Synthetic Clinic', timezone },
+            };
+          },
+        );
+
+        await service.sendAppointmentConfirmation('appt-123', 'clinic-123');
+        expect(sendMessageExecute).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variables: expect.objectContaining({ date, time }),
+          }),
+        );
+      },
+    );
+
+    it.each(['CANCELLED', 'RESCHEDULED'] as const)(
+      'formats %s in the clinic timezone across a date boundary',
+      async (status) => {
+        mockPrisma.appointment.findUnique.mockImplementationOnce(
+          async (args: unknown) => {
+            assertTenantQualifiedRead('Appointment', args, 'clinic-123');
+            return {
+              id: 'appt-123',
+              startTime: new Date('2026-04-01T02:00:00Z'),
+              patient: {
+                id: 'patient-123',
+                firstName: 'Synthetic',
+                lastName: 'Patient',
+                phoneNumber: 'synthetic-phone',
+              },
+              clinic: {
+                name: 'Synthetic Clinic',
+                timezone: 'America/New_York',
+              },
+            };
+          },
+        );
+        await service.sendAppointmentUpdate('appt-123', 'clinic-123', status);
+        expect(sendMessageExecute).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variables: expect.objectContaining({
+              date: '31 Mar 2026',
+              time: '10:00 PM',
+            }),
+          }),
+        );
+      },
+    );
+
+    it('formats payment confirmation on the clinic-local payment date', async () => {
+      mockPrisma.invoice.findUnique.mockImplementationOnce(
+        async (args: unknown) => {
+          assertTenantQualifiedRead('Invoice', args, 'clinic-123');
+          return {
+            id: 'inv-123',
+            total: 500,
+            patient: {
+              firstName: 'Synthetic',
+              lastName: 'Patient',
+              phoneNumber: 'synthetic-phone',
+            },
+            appointment: {
+              clinic: {
+                name: 'Synthetic Clinic',
+                timezone: 'America/New_York',
+              },
+            },
+            paymentSessions: [
+              {
+                providerPaymentId: 'payment-123',
+                paidAt: new Date('2026-04-01T02:00:00Z'),
+                amount: 500,
+              },
+            ],
+          };
+        },
+      );
+      await service.sendPaymentConfirmation('inv-123', 'clinic-123');
+      expect(sendMessageExecute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          templateName: 'payment_confirmation',
+          variables: expect.objectContaining({ date: '31 Mar 2026' }),
+        }),
+      );
+    });
+  });
+
+  it('rejects an invoice lookup for a different tenant before dispatch', async () => {
+    await expect(
+      service.sendInvoiceSystem('inv-123', 'clinic-other'),
+    ).rejects.toThrow('Security Violation');
+    expect(sendMessageExecute).not.toHaveBeenCalled();
+  });
+
   describe('sendPrescriptionSystem', () => {
     it('should send prescription_created via SendMessageUseCase', async () => {
       await service.sendPrescriptionSystem('rx-123', 'clinic-123');
 
       expect(mockPrisma.prescription.findUnique).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { id: 'rx-123' } }),
+        expect.objectContaining({
+          where: { id: 'rx-123', clinicId: 'clinic-123' },
+        }),
       );
       expect(sendMessageExecute).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -200,7 +329,9 @@ describe('SystemEventsService', () => {
       await service.sendInvoiceSystem('inv-123', 'clinic-123');
 
       expect(mockPrisma.invoice.findUnique).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { id: 'inv-123' } }),
+        expect.objectContaining({
+          where: { id: 'inv-123', clinicId: 'clinic-123' },
+        }),
       );
       expect(sendMessageExecute).toHaveBeenCalledWith(
         expect.objectContaining({

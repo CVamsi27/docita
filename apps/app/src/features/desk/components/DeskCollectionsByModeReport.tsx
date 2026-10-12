@@ -59,6 +59,7 @@ export function DeskCollectionsByModeReport({
                 value={from}
                 onChange={setFrom}
                 className="w-40"
+                triggerClassName="sm:w-full"
               />
             </div>
             <div className="space-y-1">
@@ -72,6 +73,7 @@ export function DeskCollectionsByModeReport({
                 value={to}
                 onChange={setTo}
                 className="w-40"
+                triggerClassName="sm:w-full"
               />
             </div>
           </div>

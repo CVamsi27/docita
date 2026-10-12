@@ -12,6 +12,8 @@ import { AddAppointmentDialogContainer } from "@/features/appointments";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
+import { useTranslation } from "react-i18next";
 
 type PatientDetailPageContentProps = {
   patientId: string;
@@ -20,10 +22,15 @@ type PatientDetailPageContentProps = {
 export function PatientDetailPageRoute({
   patientId,
 }: PatientDetailPageContentProps) {
+  const { t } = useTranslation("Patients");
   return (
-    <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.BASIC_PATIENT_MANAGEMENT}
+      title={t("tabs.patientDetailAria")}
+      description={t("list.pageDescription")}
+    >
       <PatientDetailPageContent patientId={patientId} />
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }
 

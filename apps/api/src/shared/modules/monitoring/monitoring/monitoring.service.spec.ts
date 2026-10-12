@@ -4,6 +4,8 @@ import { RequestLogService } from './services/request-log.service';
 import { ErrorTrackingService } from './services/error-tracking.service';
 import { MetricsService } from './services/metrics.service';
 import { HealthCheckService } from './services/health-check.service';
+import { TelemetryCaptureRecorder } from './services/telemetry-capture-recorder.service';
+import { createTelemetryCaptureRecorderStub } from '@/test-utils/telemetry-capture-recorder.mock';
 import { MetricType } from '@workspace/db';
 
 describe('MonitoringService', () => {
@@ -56,6 +58,10 @@ describe('MonitoringService', () => {
         { provide: ErrorTrackingService, useValue: mockErrorTrackingService },
         { provide: MetricsService, useValue: mockMetricsService },
         { provide: HealthCheckService, useValue: mockHealthCheckService },
+        {
+          provide: TelemetryCaptureRecorder,
+          useValue: createTelemetryCaptureRecorderStub(),
+        },
       ],
     }).compile();
 

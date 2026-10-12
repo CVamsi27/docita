@@ -22,7 +22,7 @@ export class AuthVerificationController {
   @Throttle({ short: { ttl: 60000, limit: 5 } })
   @Post('verify-email')
   @ApiOperation({ summary: 'Verify email address with token' })
-  @ApiResponse({ status: 200, description: 'Email verified successfully' })
+  @ApiResponse({ status: 201, description: 'Email verified successfully' })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
   async verifyEmail(@Body() body: { token: string }) {
     return this.authService.verifyEmail(body.token);
@@ -33,7 +33,7 @@ export class AuthVerificationController {
   @Post('resend-verification')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Resend email verification link' })
-  @ApiResponse({ status: 200, description: 'Verification email sent' })
+  @ApiResponse({ status: 201, description: 'Verification email sent' })
   async resendVerification(@Request() req: AuthenticatedRequest) {
     return this.authService.sendVerificationEmail(req.user.sub);
   }

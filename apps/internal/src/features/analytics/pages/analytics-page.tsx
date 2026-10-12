@@ -28,10 +28,10 @@ export function AnalyticsPage() {
 
   const analyticsPath = useMemo(() => `/api/internal/analytics?${new URLSearchParams({ period }).toString()}`, [period]);
   const { data: analyticsData, isLoading: analyticsLoading, error: analyticsError, refetch } = useApiQuery<InternalAnalyticsData>(analyticsPath);
-  const { data: billing, isLoading: billingLoading } = useApiQuery<InternalBillingMetrics>("/api/internal/billing/metrics");
+  const { data: billing, isLoading: billingLoading, error: billingError, refetch: refetchBilling } = useApiQuery<InternalBillingMetrics>("/api/internal/billing/metrics");
 
   const loading = analyticsLoading || billingLoading;
-  const error = analyticsError ? "We could not load this analytics view. Please try again." : undefined;
+  const error = analyticsError || billingError ? "We could not load this analytics view. Please try again." : undefined;
 
   const metrics = useMemo(() => buildMetrics(analyticsData ?? null), [analyticsData]);
 
@@ -67,7 +67,7 @@ export function AnalyticsPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Analytics" description="View clinic performance metrics" size="compact" />}>
-      <DataState status={pageStatus} loadingMessage="Loading analytics..." errorMessage={error} onRetry={() => { void refetch(); }}>
+      <DataState status={pageStatus} loadingMessage="Loading analytics..." errorMessage={error} onRetry={() => { void Promise.all([refetch(), refetchBilling()]); }}>
         <div className="space-y-6 md:space-y-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-wrap gap-2">

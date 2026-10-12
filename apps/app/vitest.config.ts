@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@workspace/auth": path.resolve(__dirname, "../../packages/auth/src"),
       "@workspace/ui": path.resolve(__dirname, "../../packages/ui/src"),
       "@workspace/types": path.resolve(__dirname, "../../packages/types/src"),
       "@workspace/utils": path.resolve(__dirname, "../../packages/utils/src"),

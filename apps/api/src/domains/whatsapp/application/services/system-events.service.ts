@@ -22,6 +22,7 @@ import {
   resolveAppointmentMapsLink,
 } from './system-events.helpers';
 import {
+  APPOINTMENT_NOTIFICATION_INCLUDE,
   INVOICE_NOTIFICATION_INCLUDE,
   NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT,
   PRESCRIPTION_NOTIFICATION_INCLUDE,
@@ -60,7 +61,7 @@ export class SystemEventsService {
       return;
 
     const prescription = await this.persistence.prescription.findUnique({
-      where: { id: prescriptionId },
+      where: { id: prescriptionId, clinicId },
       include: PRESCRIPTION_NOTIFICATION_INCLUDE,
     });
 
@@ -93,7 +94,7 @@ export class SystemEventsService {
       return;
 
     const invoice = await this.persistence.invoice.findUnique({
-      where: { id: invoiceId },
+      where: { id: invoiceId, clinicId },
       include: INVOICE_NOTIFICATION_INCLUDE,
     });
 
@@ -127,13 +128,13 @@ export class SystemEventsService {
       return;
 
     const appointment = await this.persistence.appointment.findUnique({
-      where: { id: appointmentId },
+      where: { id: appointmentId, clinicId },
       include: {
         patient: {
           select: NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT,
         },
         doctor: { select: { name: true } },
-        clinic: { select: { name: true, settings: true } },
+        clinic: { select: { name: true, settings: true, timezone: true } },
       },
     });
 
@@ -145,8 +146,12 @@ export class SystemEventsService {
       patientName: getPatientFullName(appointment.patient),
       clinicName: appointment.clinic?.name ?? '',
       doctorName: appointment.doctor.name,
-      date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
-      time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
+      date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
+        timezone: appointment.clinic?.timezone,
+      }),
+      time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM, {
+        timezone: appointment.clinic?.timezone,
+      }),
       mapsLink,
     };
 
@@ -179,12 +184,14 @@ export class SystemEventsService {
       return;
 
     const invoice = await this.persistence.invoice.findUnique({
-      where: { id: invoiceId },
+      where: { id: invoiceId, clinicId },
       include: {
         patient: {
           select: { firstName: true, lastName: true, phoneNumber: true },
         },
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, timezone: true } } },
+        },
         paymentSessions: {
           where: { status: 'CAPTURED' },
           orderBy: { paidAt: 'desc' },
@@ -204,7 +211,9 @@ export class SystemEventsService {
       clinicName: invoice.appointment?.clinic?.name ?? '',
       amount: `${invoice.total}`,
       invoiceNumber: invoice.id.slice(0, 8).toUpperCase(),
-      date: formatDate(paidAt, DATE_FORMATS.DATE_MEDIUM),
+      date: formatDate(paidAt, DATE_FORMATS.DATE_MEDIUM, {
+        timezone: invoice.appointment?.clinic?.timezone,
+      }),
       paymentId: session?.providerPaymentId ?? '',
     };
 
@@ -231,13 +240,8 @@ export class SystemEventsService {
     if (await this.checkSendingAllowed(clinicId, 'delay notification')) return;
 
     const appointment = await this.persistence.appointment.findUnique({
-      where: { id: appointmentId },
-      include: {
-        patient: {
-          select: NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT,
-        },
-        clinic: { select: { name: true, timezone: true } },
-      },
+      where: { id: appointmentId, clinicId },
+      include: APPOINTMENT_NOTIFICATION_INCLUDE,
     });
 
     if (!appointment || !appointment.patient.phoneNumber) return;
@@ -283,13 +287,8 @@ export class SystemEventsService {
     if (await this.checkSendingAllowed(clinicId, 'appointment update')) return;
 
     const appointment = await this.persistence.appointment.findUnique({
-      where: { id: appointmentId },
-      include: {
-        patient: {
-          select: NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT,
-        },
-        clinic: { select: { name: true } },
-      },
+      where: { id: appointmentId, clinicId },
+      include: APPOINTMENT_NOTIFICATION_INCLUDE,
     });
 
     if (!appointment || !appointment.patient.phoneNumber) return;
@@ -302,8 +301,12 @@ export class SystemEventsService {
     const variables = {
       patientName: getPatientFullName(appointment.patient),
       clinicName: appointment.clinic?.name ?? '',
-      date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
-      time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
+      date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
+        timezone: appointment.clinic?.timezone,
+      }),
+      time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM, {
+        timezone: appointment.clinic?.timezone,
+      }),
     };
 
     try {

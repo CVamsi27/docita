@@ -45,7 +45,7 @@ export class AuthRegistrationController {
   @Throttle({ short: { ttl: 60000, limit: 10 } })
   @Post('check-email')
   @ApiOperation({ summary: 'Check if email exists' })
-  @ApiResponse({ status: 200, description: 'Email check result' })
+  @ApiResponse({ status: 201, description: 'Email check result' })
   @ZodSerializerDto(CheckEmailResponseDto)
   async checkEmail(@Body() dto: CheckEmailDto) {
     const exists = await this.authService.checkEmailExists(dto.email);

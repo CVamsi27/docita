@@ -55,17 +55,25 @@ export function InvoiceItemsTable({
       </div>
 
       <div className="hidden overflow-x-auto overscroll-x-contain rounded-md border md:block">
-        <Table>
+        <Table className="min-w-[1200px]">
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[220px]">{t("itemsTable.colDescription")}</TableHead>
+              <TableHead className="w-72">
+                {t("itemsTable.colDescription")}
+              </TableHead>
               <TableHead className="w-24">{t("itemsTable.colQty")}</TableHead>
-              <TableHead className="w-32">{t("itemsTable.colUnitPrice")}</TableHead>
-              <TableHead className="min-w-[170px]">{t("itemsTable.colTax")}</TableHead>
-              <TableHead className="w-28">{t("itemsTable.colGstPercent")}</TableHead>
-              <TableHead className="w-32">{t("itemsTable.colHsnSac")}</TableHead>
+              <TableHead className="w-32">
+                {t("itemsTable.colUnitPrice")}
+              </TableHead>
+              <TableHead className="w-48">{t("itemsTable.colTax")}</TableHead>
+              <TableHead className="w-28">
+                {t("itemsTable.colGstPercent")}
+              </TableHead>
+              <TableHead className="w-32">
+                {t("itemsTable.colHsnSac")}
+              </TableHead>
               <TableHead className="w-32">{t("itemsTable.colTotal")}</TableHead>
-              <TableHead className="w-[5%]" />
+              <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -74,6 +82,7 @@ export function InvoiceItemsTable({
                 <TableCell>
                   <Input
                     value={item.description}
+                    aria-label={t("itemsTable.colDescription")}
                     onChange={(e) =>
                       onUpdateItem(index, "description", e.target.value)
                     }
@@ -83,6 +92,7 @@ export function InvoiceItemsTable({
                 <TableCell>
                   <Input
                     type="number"
+                    aria-label={t("itemsTable.colQty")}
                     min="1"
                     value={item.quantity}
                     onChange={(e) =>
@@ -97,6 +107,7 @@ export function InvoiceItemsTable({
                 <TableCell>
                   <Input
                     type="number"
+                    aria-label={t("itemsTable.colUnitPrice")}
                     min="0"
                     step="0.01"
                     value={item.unitPrice}
@@ -116,22 +127,29 @@ export function InvoiceItemsTable({
                       onUpdateItem(index, "taxTreatment", value)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger aria-label={t("itemsTable.colTax")}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="EXEMPT_HEALTHCARE">
                         {t("itemsTable.taxHealthcareExempt")}
                       </SelectItem>
-                      <SelectItem value="TAXABLE">{t("itemsTable.taxTaxable")}</SelectItem>
-                      <SelectItem value="EXEMPT">{t("itemsTable.taxExempt")}</SelectItem>
-                      <SelectItem value="NON_GST">{t("itemsTable.taxNonGst")}</SelectItem>
+                      <SelectItem value="TAXABLE">
+                        {t("itemsTable.taxTaxable")}
+                      </SelectItem>
+                      <SelectItem value="EXEMPT">
+                        {t("itemsTable.taxExempt")}
+                      </SelectItem>
+                      <SelectItem value="NON_GST">
+                        {t("itemsTable.taxNonGst")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </TableCell>
                 <TableCell>
                   <Input
                     type="number"
+                    aria-label={t("itemsTable.colGstPercent")}
                     min="0"
                     max="100"
                     step="0.01"
@@ -145,6 +163,7 @@ export function InvoiceItemsTable({
                 <TableCell>
                   <Input
                     value={item.hsnCode || item.sacCode || ""}
+                    aria-label={t("itemsTable.colHsnSac")}
                     onChange={(e) =>
                       onUpdateItem(index, "hsnCode", e.target.value)
                     }

@@ -86,7 +86,7 @@ Combined potential: **~30-40 KB gzip** if all four are addressed. That's just en
 
 ## Verification path forward
 
-1. ~~`pnpm --filter @docita/app run build:analyze` (ANALYZE=true)~~ — **done.** Findings in the table above.
+1. ~~App bundle analysis pass (`ANALYZE=true`)~~ — **done.** Findings in the table above.
 2. Pick the lowest-risk trim from the candidates above (`he` replacement is the best $/KB win).
 3. Re-verify: Cloudflare build, target `< 3072 KB gzip` with a 5% headroom.
 4. Re-attempt the 6.1 install (next-intl scaffold) and re-verify budget.

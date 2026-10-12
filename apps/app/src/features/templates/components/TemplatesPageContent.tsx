@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { AppPageScaffold, DataState, PageHeader, PageTabs, type PageTabItem } from "@workspace/ui/components";
 import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
 import { ClipboardList, FileText, MessageCircle, Pill, type LucideIcon } from "lucide-react";
 
 const TABS: Array<{
@@ -99,7 +99,11 @@ function TemplatesContent() {
 export function TemplatesPageContent() {
   const { t } = useTranslation("Templates");
   return (
-    <FeatureGate feature={Feature.PRESCRIPTION_TEMPLATES} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.PRESCRIPTION_TEMPLATES}
+      title={t("page.title")}
+      description={t("page.description")}
+    >
       <Suspense
         fallback={
           <AppPageScaffold>
@@ -113,6 +117,6 @@ export function TemplatesPageContent() {
       >
         <TemplatesContent />
       </Suspense>
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }

@@ -10,6 +10,8 @@ interface RhythmStep {
   time: string;
   title: string;
   detail: string;
+  icon: LucideIcon;
+  badge: string;
 }
 
 const STEPS: RhythmStep[] = [
@@ -18,30 +20,40 @@ const STEPS: RhythmStep[] = [
     title: "Walk-in checks in",
     detail:
       "Reception drops the patient on the live patient queue with a token. No duplicate register.",
+    icon: ClipboardList,
+    badge: "Queue & Triage",
   },
   {
     time: "10:30",
     title: "Doctor opens the chart",
     detail:
       "Last visit, vitals, prescriptions, uploads—on one timeline tied to this token.",
+    icon: Stethoscope,
+    badge: "Clinical Timeline",
   },
   {
     time: "11:00",
     title: "Prescription drafted",
     detail:
       "Templates, allergy flags, doses snap into a clean PDF the patient can save or receive.",
+    icon: FileText,
+    badge: "Smart Rx Builder",
   },
   {
     time: "11:05",
     title: "Billing closes the visit",
     detail:
       "Invoice picks up the same procedures. Receipt generated, UPI-ready, audit-logged.",
+    icon: Receipt,
+    badge: "Visit Billing",
   },
   {
     time: "11:10",
     title: "WhatsApp follow-up sent",
     detail:
       "Receipt, prescription, and the next-visit reminder go out from the same workflow.",
+    icon: MessageSquare,
+    badge: "Patient Dispatch",
   },
 ];
 
@@ -71,7 +83,7 @@ export function ClinicRhythmSection() {
 
   return (
     <section
-      className="r2-section r2-rhythm"
+      className="r2-section r2-section-lead r2-rhythm"
       aria-labelledby="r2-rhythm-heading"
       id="rhythm"
     >
@@ -82,12 +94,12 @@ export function ClinicRhythmSection() {
 
         <h2
           id="r2-rhythm-heading"
-          className="mt-4 max-w-3xl r2-display-sm text-foreground"
+          className="mt-4 max-w-3xl r2-display-md text-foreground"
         >
           Watch <em>one visit</em> flow from front desk to follow-up
           &mdash;without a single re-typed field.
         </h2>
-        <p className="mt-4 max-w-2xl text-base text-muted-foreground">
+        <p className="mt-4 max-w-xl text-base text-muted-foreground">
           The same token carries through queue, EMR, prescription, billing, and
           WhatsApp&mdash;tap any step to preview, or let it play.
         </p>
@@ -100,6 +112,10 @@ export function ClinicRhythmSection() {
         onFocusCapture={() => setPaused(true)}
         onBlurCapture={() => setPaused(false)}
       >
+        <div className="sr-only" aria-live="polite">
+          {`Showing step ${active + 1} of ${STEPS.length}: ${STEPS[active].title}. ${STEPS[active].detail}`}
+        </div>
+
         <div className="r2-rhythm-grid">
           <ol
             className="r2-rhythm-list"
@@ -108,6 +124,7 @@ export function ClinicRhythmSection() {
           >
             {STEPS.map((step, i) => {
               const isActive = i === active;
+              const StepIcon = step.icon;
               return (
                 <li
                   key={step.time}
@@ -120,16 +137,38 @@ export function ClinicRhythmSection() {
                     aria-current={isActive ? "step" : undefined}
                     aria-label={`Show step ${i + 1}: ${step.title}`}
                     className={cn(
-                      "r2-rhythm-step-button",
+                      "r2-rhythm-step-button text-left transition-colors duration-150",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                      isActive && "border-primary/30 bg-primary/[0.04] shadow-xs",
                     )}
                   >
                     <span className="r2-rhythm-step-rail" aria-hidden>
                       <span className="r2-rhythm-step-dot" />
                     </span>
-                    <span className="r2-rhythm-step-body">
-                      <span className="r2-rhythm-step-time">{step.time}</span>
-                      <span className="r2-rhythm-step-title">{step.title}</span>
+                    <span className="r2-rhythm-step-body min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="r2-rhythm-step-time">{step.time}</span>
+                        <span
+                          className={cn(
+                            "rounded-md border px-1.5 py-0.5 text-[var(--fs-2xs)] font-medium transition-colors duration-150",
+                            isActive
+                              ? "border-primary/30 bg-primary/10 text-primary"
+                              : "border-border/60 bg-muted/60 text-muted-foreground",
+                          )}
+                        >
+                          {step.badge}
+                        </span>
+                      </div>
+                      <span className="r2-rhythm-step-title flex items-center gap-2">
+                        <StepIcon
+                          className={cn(
+                            "h-4 w-4 shrink-0 transition-colors duration-150",
+                            isActive ? "text-primary" : "text-muted-foreground",
+                          )}
+                          aria-hidden
+                        />
+                        <span className="truncate">{step.title}</span>
+                      </span>
                       <span className="r2-rhythm-step-detail">
                         {step.detail}
                       </span>
@@ -160,6 +199,8 @@ function RhythmStage({ active }: { active: number }) {
     >
       <div className="r2-rhythm-frame" data-frame="0">
         <RhythmCard
+          stepIndex={0}
+          totalSteps={STEPS.length}
           chrome="PATIENT QUEUE · 09:00"
           rows={[
             ["07", "R. Iyer", "Follow-up", "in"],
@@ -174,6 +215,8 @@ function RhythmStage({ active }: { active: number }) {
 
       <div className="r2-rhythm-frame" data-frame="1">
         <RhythmCard
+          stepIndex={1}
+          totalSteps={STEPS.length}
           chrome="PATIENT TIMELINE · TOKEN 07"
           rows={[
             ["12 Apr", "HbA1c 7.2 · BP 138/86", "Visit", "done"],
@@ -188,6 +231,8 @@ function RhythmStage({ active }: { active: number }) {
 
       <div className="r2-rhythm-frame" data-frame="2">
         <RhythmCard
+          stepIndex={2}
+          totalSteps={STEPS.length}
           chrome="PRESCRIPTION · DRAFT"
           rows={[
             ["Rx", "Metformin 500mg", "1-0-1 · 30 d", "in"],
@@ -202,6 +247,8 @@ function RhythmStage({ active }: { active: number }) {
 
       <div className="r2-rhythm-frame" data-frame="3">
         <RhythmCard
+          stepIndex={3}
+          totalSteps={STEPS.length}
           chrome="INVOICE · TOKEN 07"
           rows={[
             ["I-1042", "Consultation", "₹500", "in"],
@@ -216,6 +263,8 @@ function RhythmStage({ active }: { active: number }) {
 
       <div className="r2-rhythm-frame" data-frame="4">
         <RhythmCard
+          stepIndex={4}
+          totalSteps={STEPS.length}
           chrome="WHATSAPP · OUTBOUND"
           rows={[
             ["RX", "Prescription PDF", "Sent", "done"],
@@ -232,36 +281,56 @@ function RhythmStage({ active }: { active: number }) {
 }
 
 interface RhythmCardProps {
+  stepIndex: number;
+  totalSteps: number;
   chrome: string;
   rows: Array<readonly [string, string, string, "in" | "waiting" | "done"]>;
   footer: string;
   icon: LucideIcon;
 }
-function RhythmCard({ chrome, rows, footer, icon: Icon }: RhythmCardProps) {
+function RhythmCard({
+  stepIndex,
+  totalSteps,
+  chrome,
+  rows,
+  footer,
+  icon: Icon,
+}: RhythmCardProps) {
   return (
     <div className="r2-product">
       <div className="r2-product-chrome">
         <span className="r2-product-chrome-dot" aria-hidden />
         <span className="r2-product-chrome-dot" aria-hidden />
         <span className="r2-product-chrome-dot" aria-hidden />
-        <span className="ml-2">{chrome}</span>
-        <span className="ml-auto inline-flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
-          <span>Live</span>
+        <span className="ml-2 font-mono text-xs">{chrome}</span>
+        <span className="ml-auto inline-flex items-center gap-2">
+          <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[var(--fs-2xs)] font-medium text-primary">
+            Step {stepIndex + 1} of {totalSteps}
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
+            <span>Live</span>
+          </span>
         </span>
       </div>
       <div className="r2-product-stage" style={{ minHeight: "auto" }}>
         <div className="flex flex-col gap-2 p-1">
           <div className="flex items-center justify-between pb-1">
-            <span className="r2-eyebrow">Surface</span>
-            <Icon className="h-4 w-4 text-muted-foreground" />
+            <span className="r2-eyebrow">OPD Surface</span>
+            <div className="flex items-center gap-1.5 rounded-lg border border-border/70 bg-background/80 px-2 py-1 text-xs text-muted-foreground shadow-2xs">
+              <Icon className="h-3.5 w-3.5 text-primary" aria-hidden />
+              <span className="font-medium text-foreground">Interactive Preview</span>
+            </div>
           </div>
           {rows.map((row, i) => (
             <div
               key={`${row[0]}-${i}`}
-              className={i === 0 ? "r2-row r2-row-active" : "r2-row"}
+              className={cn(
+                i === 0 ? "r2-row r2-row-active" : "r2-row",
+                "transition-colors duration-150",
+              )}
             >
-              <span className="r2-token">{row[0]}</span>
+              <span className="r2-token font-mono">{row[0]}</span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground">
                   {row[1]}
@@ -271,13 +340,14 @@ function RhythmCard({ chrome, rows, footer, icon: Icon }: RhythmCardProps) {
                 </p>
               </div>
               <span
-                className={
+                className={cn(
                   row[3] === "done"
                     ? "r2-status-pill r2-status-pill--done"
                     : row[3] === "in"
                       ? "r2-status-pill r2-status-pill--in"
-                      : "r2-status-pill r2-status-pill--waiting"
-                }
+                      : "r2-status-pill r2-status-pill--waiting",
+                  "flex items-center gap-1",
+                )}
               >
                 {row[3] === "done" ? (
                   <CheckCircle2 className="h-3 w-3" />

@@ -1,13 +1,17 @@
 import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { AskAiContext, type AskAiContextValue, type AskAiScope } from "./ask-ai-context";
+import {
+  AskAiContext,
+  type AskAiContextValue,
+  type AskAiScope,
+} from "./ask-ai-context";
 
 export function AskAiProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [scope, setScopeState] = useState<AskAiScope | null>(null);
 
   const openOverlay = useCallback((nextScope?: AskAiScope) => {
-    if (nextScope) setScopeState(nextScope);
+    setScopeState(nextScope ?? null);
     setOpen(true);
   }, []);
   const closeOverlay = useCallback(() => setOpen(false), []);

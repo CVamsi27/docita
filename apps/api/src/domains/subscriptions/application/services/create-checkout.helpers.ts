@@ -1,7 +1,9 @@
+import { z } from 'zod';
 import type {
   ClinicTier,
   BillingCycle,
 } from '@/domains/subscriptions/core/value-objects';
+import { subscriptionBillingCheckoutResponseSchema } from '@workspace/types';
 import type { resolveSubscriptionBillingContact } from '@workspace/utils';
 
 export interface CreateCheckoutRequest {
@@ -13,18 +15,14 @@ export interface CreateCheckoutRequest {
   referrals?: string[];
 }
 
-export interface CheckoutResponse {
-  orderId: string;
-  amountCents: number;
-  currency: string;
-  razorpayKeyId: string;
-  completedWithoutPayment?: boolean;
-  prefill?: {
-    name: string;
-    email: string;
-    contact?: string;
-  };
-}
+/**
+ * Internal shape of the checkout result, derived from the shared wire contract
+ * so the two cannot drift. See
+ * `subscriptionBillingCheckoutResponseSchema` for why this is a union.
+ */
+export type CheckoutResponse = z.infer<
+  typeof subscriptionBillingCheckoutResponseSchema
+>;
 
 type ResolvedSubscriptionBillingContact = ReturnType<
   typeof resolveSubscriptionBillingContact
@@ -63,14 +61,10 @@ export function buildCheckoutOrderNotes(input: {
 
 export function buildCompletedWithoutPaymentResponse(input: {
   currency: string;
-  razorpayKeyId: string;
   prefill: CheckoutResponse['prefill'];
 }): CheckoutResponse {
   return {
-    orderId: '',
-    amountCents: 0,
     currency: input.currency,
-    razorpayKeyId: input.razorpayKeyId,
     completedWithoutPayment: true,
     prefill: input.prefill,
   };

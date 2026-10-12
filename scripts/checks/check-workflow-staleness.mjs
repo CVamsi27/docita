@@ -33,12 +33,15 @@ const GRACE_MS = 12 * 60 * 60 * 1000;
 const WORKFLOWS_DIR = path.join(process.cwd(), ".github", "workflows");
 const API_BASE = "https://api.github.com";
 
-// RB-14: deliberately disabled since 2026-07-26. Exemption applies only while
-// the live API state is `disabled_manually` (checked below), so the map stays
-// keyed to the recorded disable and self-clears on re-enable.
+// RB-14: deliberately disabled since 2026-07-26. RB-15: deliberately
+// disabled after its target RDS instance disappeared (DBInstanceNotFound);
+// see docs/operations/RUNBOOKS.md. Exemption applies only while the live API
+// state is `disabled_manually` (checked below), so the map stays keyed to the
+// recorded disable and self-clears on re-enable.
 const DOCUMENTED_DISABLED = new Map([
   ["scale-api-hours.yml", "docs/operations/RUNBOOKS.md RB-14"],
   ["synthetic-monitoring.yml", "docs/operations/RUNBOOKS.md RB-14"],
+  ["stop-db-auto-restart.yml", "docs/operations/RUNBOOKS.md RB-15"],
 ]);
 
 /** Resolve owner/repo (env in CI, git remote locally). */

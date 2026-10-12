@@ -16,12 +16,21 @@ import {
 } from "@workspace/ui/components/feedback/alert";
 import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { useTranslation } from "react-i18next";
-import type { ClinicWhatsappTemplate, ClinicWhatsappSentMessage } from "@workspace/types";
+import type {
+  ClinicWhatsappTemplate,
+  ClinicWhatsappSentMessage,
+  WhatsappLogStatus,
+} from "@workspace/types";
 import { getClinicTimezoneOrDefault } from "@/lib/utils/clinic-timezone";
 import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import { formatDateTime } from "@/lib/formatters";
 
-const FAILED_STATUSES = new Set(["FAILED", "UNDELIVERED", "REJECTED"]);
+/**
+ * Only `FAILED` marks a send that did not land. This replaces a `Set` of
+ * free-form strings including "UNDELIVERED" and "REJECTED" — neither of which
+ * `WhatsappLogStatus` can emit, so those entries could never match.
+ */
+const FAILED_STATUSES = new Set<WhatsappLogStatus>(["FAILED"]);
 const MAX_LENGTH = 4096;
 
 function useWhatsappComposerTranslations() {
@@ -176,7 +185,7 @@ export function SentMessageHistory({
                   }
                   className="text-[var(--fs-2xs)]"
                 >
-                  {entry.status}
+                  {t(`status.${entry.status}`)}
                 </Badge>
               </div>
               <p className="whitespace-pre-wrap text-sm text-foreground">

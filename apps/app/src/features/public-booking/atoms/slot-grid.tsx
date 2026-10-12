@@ -1,9 +1,10 @@
 "use client";
 
 import { Calendar as CalendarIcon, ChevronDown, Clock, UserCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription, AlertTitle, Button, Collapsible, CollapsibleContent, CollapsibleTrigger, EmptyState } from "@workspace/ui/components";
 import { SlotTimesScrollArea, SlotTimesSkeletonGrid } from "@/features/public-booking/public-booking-components";
-import { publicBookingSlotEmptyMessage } from "@/features/public-booking/atoms/booking-constants";
+import { publicBookingSlotEmptyKey } from "@/features/public-booking/atoms/booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { formatTime } from "@/lib/formatters";
 import { SlotGridAvailableSlotList } from "./slot-grid-available-slot-list";
@@ -18,19 +19,21 @@ export function SlotGrid({
   doctorPickerVariant: "chips" | "toggle";
   collapseTimeRange: boolean;
 }) {
+  const { t } = useTranslation("PublicBooking");
+
   if (!c.doctorId) {
     return (
       <EmptyState
         icon={UserCircle}
         title={
           doctorPickerVariant === "chips"
-            ? "Select a doctor above"
-            : "Doctor selection is optional"
+            ? t("slotGrid.selectDoctorTitle")
+            : t("slotGrid.doctorOptionalTitle")
         }
         description={
           doctorPickerVariant === "chips"
-            ? "Tap a doctor to see open times for the day you picked, or tap 'Any doctor' to see all available slots."
-            : "If you choose a doctor, you can pick an exact time. Otherwise, you can request a date only and the clinic will assign a doctor and time."
+            ? t("slotGrid.selectDoctorDescription")
+            : t("slotGrid.doctorOptionalDescription")
         }
         className="flex flex-1 flex-col justify-center rounded-[var(--radius-md)] border border-dashed border-border/60 bg-muted/10 px-3 py-6 shadow-sm sm:py-8 xl:min-h-0 [&_.ui-section-title]:text-[length:var(--fs-base)]"
       />
@@ -47,9 +50,9 @@ export function SlotGrid({
           className="rounded-[var(--radius-md)] text-left [&>svg]:top-3.5"
         >
           <Clock className="h-4 w-4 shrink-0" aria-hidden />
-          <AlertTitle>Open times unavailable</AlertTitle>
+          <AlertTitle>{t("slotGrid.unavailableTitle")}</AlertTitle>
           <AlertDescription>
-            Open times could not be loaded. Check your connection and try again.
+            {t("slotGrid.unavailableDescription")}
           </AlertDescription>
         </Alert>
         <Button
@@ -58,7 +61,7 @@ export function SlotGrid({
           className="w-full sm:w-auto"
           onClick={() => void c.slotsQuery.refetch()}
         >
-          Retry loading times
+          {t("slotGrid.retry")}
         </Button>
       </div>
     );
@@ -68,9 +71,9 @@ export function SlotGrid({
     return (
       <EmptyState
         icon={CalendarIcon}
-        title="No times this day"
-        description={publicBookingSlotEmptyMessage(
-          c.slotsQuery.data?.slotListEmptyReason,
+        title={t("slotGrid.noTimesTitle")}
+        description={t(
+          publicBookingSlotEmptyKey(c.slotsQuery.data?.slotListEmptyReason),
         )}
         className="flex flex-1 flex-col justify-center rounded-[var(--radius-md)] border border-dashed border-border/60 bg-muted/10 px-3 py-6 shadow-sm sm:py-8 xl:min-h-0 [&_.ui-section-title]:text-[length:var(--fs-base)]"
       />
@@ -82,8 +85,8 @@ export function SlotGrid({
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <EmptyState
           icon={Clock}
-          title="No openings left"
-          description="There are no free times left on this date. The times below are already booked, blocked, or earlier in the day. Choose another date if you need an opening."
+          title={t("slotGrid.noOpeningsTitle")}
+          description={t("slotGrid.noOpeningsDescription")}
           className="shrink-0 rounded-[var(--radius-md)] border border-dashed border-border/60 bg-muted/10 px-3 py-5 shadow-sm sm:py-6 [&_.ui-section-title]:text-[length:var(--fs-base)]"
         />
         <SlotTimesScrollArea enabled={c.allSlots.length > 6}>
@@ -98,7 +101,11 @@ export function SlotGrid({
                   variant="outline"
                   disabled
                   className="h-auto min-h-[3.25rem] w-full min-w-0 cursor-not-allowed justify-start rounded-[var(--radius-md)] border-border/70 bg-muted/25 px-4 py-3 text-left opacity-80 shadow-sm"
-                  aria-label={`${formatTime(s.startTime)} to ${formatTime(s.endTime)}, unavailable`}
+                  aria-label={t("slotGrid.unavailableSlotAria", {
+                    start: formatTime(s.startTime),
+                    end: formatTime(s.endTime),
+                    doctor: s.doctorName ? `, ${s.doctorName}` : "",
+                  })}
                 >
                   <span className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
                     <span className="text-[length:var(--fs-sm)] font-medium tracking-tight text-muted-foreground">
@@ -112,7 +119,7 @@ export function SlotGrid({
                       {formatTime(s.endTime)}
                     </span>
                     <span className="truncate text-[length:var(--fs-xs)] text-muted-foreground">
-                      Unavailable
+                      {t("slotGrid.unavailableSuffix")}
                       {s.doctorName ? ` — ${s.doctorName}` : ""}
                     </span>
                   </span>
@@ -135,7 +142,7 @@ export function SlotGrid({
               variant="ghost"
               className="h-auto w-full justify-between gap-2 rounded-[var(--radius-md)] px-3 py-2.5 text-[length:var(--fs-sm)] font-medium text-foreground transition-colors duration-150 hover:bg-muted/15"
             >
-              <span>Filter by time of day</span>
+              <span>{t("slotGrid.filterByTimeOfDay")}</span>
               <ChevronDown
                 className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 group-data-[state=open]:rotate-180"
                 aria-hidden
@@ -156,8 +163,8 @@ export function SlotGrid({
       {c.filteredAvailableSlots.length === 0 ? (
         <EmptyState
           icon={Clock}
-          title="No openings in this time range"
-          description="Try a wider window or clear the time range to see all openings for this day."
+          title={t("slotGrid.noOpeningsInRangeTitle")}
+          description={t("slotGrid.noOpeningsInRangeDescription")}
           className="flex flex-1 flex-col justify-center rounded-[var(--radius-md)] border border-dashed border-border/60 bg-muted/10 px-3 py-6 shadow-sm sm:py-8 xl:min-h-0 [&_.ui-section-title]:text-[length:var(--fs-base)]"
         />
       ) : (

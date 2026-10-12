@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Check } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
-import { type PlanMode } from "@workspace/types";
+import { type PlanMode, PUBLISHED_PLAN_LADDER } from "@workspace/types";
 import { FALLBACK_PRICING_CONFIG } from "@/lib/landing-data";
 import { landingInViewViewport, landingStaggerContainer } from "@/lib/motion-prefs";
 
-import { SETUP_START_PRICE, TIER_ORDER } from "./pricing-data";
+import { SETUP_START_PRICE } from "./pricing-data";
 import { PricingTierCard } from "./pricing-tier-card";
 import { PricingModeToggle } from "./pricing-mode-toggle";
 import { PlanPicker } from "./plan-picker";
@@ -25,20 +25,20 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("yearly");
   const isYearly = billingPeriod === "yearly";
 
-  const orderedTiers = TIER_ORDER
+  const orderedTiers = PUBLISHED_PLAN_LADDER
     .map((id) => FALLBACK_PRICING_CONFIG.tiers.find((tier) => tier.id === id))
     .filter((tier): tier is NonNullable<typeof tier> => Boolean(tier));
 
   return (
-    <section id="pricing" className="r2-section r2-band-card" aria-labelledby="r2-pricing-heading">
+    <section id="pricing" className="r2-section r2-section-lead r2-band-card" aria-labelledby="r2-pricing-heading">
       <div className="ui-page-shell">
         <div className="flex items-center gap-3">
           <span className="r2-eyebrow">Plans</span>
         </div>
-        <h2 id="r2-pricing-heading" className="mt-4 max-w-3xl r2-display-sm text-foreground">
+        <h2 id="r2-pricing-heading" className="mt-4 max-w-3xl r2-display-md text-foreground">
           Plans for <em>every practice size</em>.
         </h2>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
+        <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
           From solo practitioners to multi-branch hospitals.
           Software from {FALLBACK_PRICING_CONFIG.currency.symbol}499 / month.
           Guided setup starts from {SETUP_START_PRICE}.
@@ -85,9 +85,11 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           ))}
         </motion.div>
 
-        <div className="mt-8 flex flex-wrap items-center gap-4 rounded-2xl border border-border/60 bg-card px-5 py-4 text-sm text-muted-foreground sm:px-6">
-          <Check className="h-4 w-4 shrink-0 text-success" aria-hidden />
-          <p className="min-w-0 flex-1">
+        <div className="mt-8 flex flex-wrap items-center gap-4 rounded-2xl border border-border/70 bg-card p-4 text-sm text-muted-foreground shadow-2xs sm:p-5">
+          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-success/30 bg-success/10 text-success shadow-2xs" aria-hidden>
+            <Check className="h-4 w-4" />
+          </span>
+          <p className="min-w-0 flex-1 leading-relaxed">
             Tier feature lists describe what is available on the plan. Limits
             (consultations, WhatsApp messages, staff users) are tracked live
             in the workspace; overage is billed at the published per-unit

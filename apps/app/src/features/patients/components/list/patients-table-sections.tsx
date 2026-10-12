@@ -4,9 +4,14 @@ import { Avatar, AvatarFallback, Button } from "@workspace/ui/components";
 import { formatGenderLabel } from "@/lib/formatters";
 import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
-import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Pencil } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Calendar,
+  Pencil,
+} from "lucide-react";
 import type { PatientsSortConfig } from "./patients-page-types";
-import { getAriaSort } from "./patients-table-helpers";
 
 function SortIcon({
   sortConfig,
@@ -15,7 +20,8 @@ function SortIcon({
   sortConfig: PatientsSortConfig | null;
   column: keyof Patient | "fullName";
 }) {
-  if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
+  if (sortConfig?.key !== column)
+    return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
   return sortConfig.direction === "asc" ? (
     <ArrowUp className="ml-2 h-4 w-4" />
   ) : (
@@ -40,7 +46,6 @@ export function SortableHeader({
       size="sm"
       className="inline-flex items-center hover:text-foreground"
       onClick={() => onSort(column)}
-      aria-sort={getAriaSort(sortConfig, column)}
       aria-label={`Sort by ${label}`}
     >
       {label}

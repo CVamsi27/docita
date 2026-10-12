@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { formatClinicHalfHourSlotKey, formatClinicPickerIsoLabel } from "@workspace/utils";
 import { CalendarDays } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
+import { Card, CardContent, CardHeader, CardTitle, DataState, MicroLabel } from "@workspace/ui/components";
 import type { AppointmentListItem } from "@workspace/data-access";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 import type { AppointmentRowActionProps } from "@/features/appointments/components/appointment-row-action-props.types";
@@ -67,6 +67,7 @@ export function AppointmentsListUI({
       <CardHeader className="border-b border-border/60 px-5 py-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <div className="min-w-0">
+            <MicroLabel className="mb-0.5">Schedule</MicroLabel>
             <CardTitle className="text-lg">
               Appointments for{" "}
               {formatClinicPickerIsoLabel(

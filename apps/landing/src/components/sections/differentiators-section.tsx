@@ -53,7 +53,7 @@ export function DifferentiatorsSection() {
   return (
     <section
       id="differentiators"
-      className="r2-section r2-band-base"
+      className="r2-section r2-section-quiet r2-band-base"
       aria-labelledby="r2-diff-heading"
     >
       <div className="ui-page-shell">
@@ -91,10 +91,10 @@ export function DifferentiatorsSection() {
               </div>
               <ul className="space-y-2 text-xs">
                 {[
-                  { icon: CalendarCheck, label: "Next visit &middot; 28 May &middot; 11:30" },
-                  { icon: FileText, label: "Prescription &middot; Metformin 500mg" },
-                  { icon: Receipt, label: "Receipt &middot; \u20B9700 &middot; Paid &middot; UPI" },
-                  { icon: ShieldCheck, label: "Consent &middot; WhatsApp granted" },
+                  { icon: CalendarCheck, label: "Next visit · 28 May · 11:30" },
+                  { icon: FileText, label: "Prescription · Metformin 500mg" },
+                  { icon: Receipt, label: "Receipt · \u20B9700 · Paid · UPI" },
+                  { icon: ShieldCheck, label: "Consent · WhatsApp granted" },
                 ].map((row) => (
                   <PortalListRow key={row.label} row={row} />
                 ))}

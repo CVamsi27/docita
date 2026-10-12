@@ -26,10 +26,7 @@ export function SettingsPageHeaderUserMeta() {
   const initials = displayName ? getInitials(displayName) : "?";
 
   return (
-    <div
-      className="flex w-full max-w-full flex-row items-center gap-3.5 rounded-[var(--radius)] border border-border/60 bg-card px-4 py-3 text-left shadow-sm sm:w-fit lg:max-w-[24rem] lg:justify-self-end"
-      aria-label={roleLabel ? `${displayName}, ${roleLabel}` : displayName}
-    >
+    <div className="flex w-full max-w-full flex-row items-center gap-3.5 rounded-[var(--radius)] border border-border/60 bg-card px-4 py-3 text-left shadow-sm sm:w-fit lg:max-w-[24rem] lg:justify-self-end">
       <Avatar className="size-11 shrink-0 rounded-[calc(var(--radius)-4px)] ring-1 ring-border/60">
         <AvatarFallback className="rounded-[calc(var(--radius)-4px)] bg-[var(--brand-ink)] text-[var(--fs-sm)] font-semibold text-[var(--brand-cyan)]">
           {initials}

@@ -61,15 +61,15 @@ export function UsersPage() {
         errorMessage="We could not load team members. Please refresh and try again."
         onRetry={() => { void refetch(); }}
         emptyTitle="No team members found" emptyDescription="Team members will appear here once facilities add users." emptyIcon={Users}>
-        <div className="grid gap-4 md:grid-cols-5 mb-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5 mb-6">
           {ROLE_FILTERS.map((role) => { const config = ROLE_CONFIG[role]; return (
-            <Card key={role} className={`cursor-pointer transition-shadow duration-150 ${selectedRole === role ? "ring-2 ring-primary shadow-lg" : "hover:shadow-md"}`}
+            <Button key={role} type="button" variant="ghost" aria-label={`${config.label} (${roleStats[role]})`} aria-pressed={selectedRole === role}
+              className={`h-auto min-w-0 justify-between gap-3 whitespace-normal rounded-none border-b px-3 py-4 text-left ${selectedRole === role ? "border-primary bg-primary/5" : "border-border/60"}`}
               onClick={() => { setSelectedRole(role); }}>
-              <CardContent className="pt-6"><div className="flex items-center justify-between">
-                <div><p className="text-sm font-medium text-muted-foreground">{config.label}</p>
+                <div className="min-w-0"><p className="text-sm font-medium text-muted-foreground">{config.label}</p>
                   <p className="mt-1 text-2xl font-semibold tabular-nums">{roleStats[role]}</p></div>
-                <config.icon className="h-8 w-8 text-muted-foreground" />
-              </div>              </CardContent></Card>
+                <config.icon className="hidden h-5 w-5 shrink-0 text-muted-foreground sm:block" aria-hidden />
+              </Button>
           ); })}
         </div>
 

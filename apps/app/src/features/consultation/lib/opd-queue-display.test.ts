@@ -10,13 +10,24 @@ function baseItem(over: Partial<QueueItem> = {}): QueueItem {
     id: "q1",
     clinicId: "c1",
     patientId: "p1",
+    appointmentId: null,
+    doctorId: null,
     tokenNumber: 7,
     status: "WAITING",
     priority: 0,
+    notes: null,
     createdAt: new Date().toISOString(),
     tokenType: "walk-in",
     estimatedDuration: 15,
     estimatedWaitTime: 10,
+    patient: {
+      id: "p1",
+      firstName: "Asha",
+      lastName: "Rao",
+      phoneNumber: null,
+    },
+    doctor: null,
+    appointment: null,
     ...over,
   };
 }
@@ -61,6 +72,7 @@ describe("getOpdQueueSummaryLine", () => {
       appointment: {
         id: "a1",
         doctor: { id: "d1", name: "Dr" },
+        chiefComplaint: null,
         type: "follow-up",
       },
     });

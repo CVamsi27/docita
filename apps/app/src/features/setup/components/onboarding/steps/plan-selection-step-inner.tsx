@@ -7,7 +7,7 @@ import { recommendTierForTeamSize, getTierName } from "@workspace/utils";
 import { OnboardingStepBody, OnboardingStepCard, OnboardingStepFooter, OnboardingStepHeader } from "@/features/setup/components/onboarding/shared";
 import { type TierPricing, usePricingConfig, getFeatureDetails } from "@/features/subscription";
 import { ContactSalesModal } from "@/features/dialogs";
-import { getAllFeaturesUpToTier, getTierInfo, getTierValue } from "@/lib/subscription/tier-access";
+import { getFeaturesForTier, getTierInfo, getTierValue } from "@/lib/subscription/tier-access";
 import { Tier, applyModeToPricing, planModeSchema, tierSchema, type PlanMode } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { PlanComparisonCollapsible } from "./plan-selection-step-helpers";
@@ -66,7 +66,7 @@ export function PlanSelectionStepInner({
         ...getTierInfo(tier),
         tagline: PLAN_AUDIENCE[tierName] ?? getTierInfo(tier).tagline,
       },
-      features: getAllFeaturesUpToTier(tierName)
+      features: getFeaturesForTier(tierName)
         .map((feature) => ({
           feature,
           details: getFeatureDetails(feature),

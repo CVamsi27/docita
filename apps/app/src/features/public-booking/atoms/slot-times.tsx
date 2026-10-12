@@ -1,10 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { MicroLabel, ScrollArea, Skeleton } from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
 
 export function SlotTimesSkeletonGrid({ className }: { className?: string }) {
+  const { t } = useTranslation("PublicBooking");
+
   return (
     <div
       className={cn(
@@ -13,7 +16,7 @@ export function SlotTimesSkeletonGrid({ className }: { className?: string }) {
       )}
     >
       <MicroLabel as="p" className="mb-3 mt-0 text-muted-foreground">
-        Loading open times…
+        {t("slotTimes.loading")}
       </MicroLabel>
       <div className="grid flex-1 auto-rows-min grid-cols-1 content-start gap-2.5 sm:grid-cols-2 sm:gap-3">
         {Array.from({ length: 6 }).map((_, i) => (

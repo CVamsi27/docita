@@ -7,19 +7,40 @@ const resources: MessageTree = isMessageTree(enMessages) ? enMessages : {};
 /**
  * Resolve an i18next key (relative to `namespace` when given, otherwise a
  * fully-qualified path) against the real en.json resources. Namespaces may
- * be dotted (e.g. `useTranslation("Patients.addPatientDialog")`). Falls
- * back to the raw key so missing translations render visibly instead of
- * throwing.
+ * be dotted (e.g. `useTranslation("Patients.addPatientDialog")`).
+ * Returns `undefined` when the key is absent so callers can decide how to
+ * fall back (`lookup` renders the raw key; plural resolution tries a suffix).
  */
-function lookup(namespace: string | undefined, key: string): string {
+function lookupOptional(namespace: string | undefined, key: string): string | undefined {
   const path = namespace ? [...namespace.split("."), ...key.split(".")] : key.split(".");
   let node: unknown = resources;
   for (const part of path) {
-    if (!isMessageTree(node)) return key;
+    if (!isMessageTree(node)) return undefined;
     node = node[part];
-    if (node === undefined) return key;
+    if (node === undefined) return undefined;
   }
-  return typeof node === "string" ? node : key;
+  return typeof node === "string" ? node : undefined;
+}
+
+/**
+ * Resolve a message like i18next does: the exact key first, then the English
+ * cardinal plural suffix (`key_one` / `key_other`) when `count` is supplied.
+ * Returns `undefined` when neither form resolves.
+ */
+function resolveMessage(
+  namespace: string | undefined,
+  key: string,
+  params?: Record<string, unknown>,
+): string | undefined {
+  const direct = lookupOptional(namespace, key);
+  if (direct !== undefined) return direct;
+
+  if (params && "count" in params) {
+    const suffix = Number(params.count) === 1 ? "one" : "other";
+    return lookupOptional(namespace, `${key}_${suffix}`);
+  }
+
+  return undefined;
 }
 
 /**
@@ -62,19 +83,31 @@ function applySyntax(
  *
  * Supported syntax (mirrors the app's i18n init in `src/i18n/index.ts`):
  * namespaced keys (`useTranslation("LabTests")` + `t("orders.x")`),
- * ICU-style single-brace params (`{name}`), and `{count, plural, one {…}
- * other {…}}` English cardinals only. Anything else (other locales, `zero`/
- * `=0`/`few`/`many` plural forms, `returnObjects`) is intentionally not
- * implemented — override the mock in-file for specs that need real i18next
- * behavior. Missing keys resolve to the raw key so they stay visible in
- * assertions instead of failing silently.
+ * i18next cardinal plural suffixes (`key_one` / `key_other` with `count`),
+ * ICU-style single-brace params (`{name}`), and legacy
+ * `{count, plural, one {…} other {…}}` English cardinals. Anything else
+ * (other locales, `zero`/`=0`/`few`/`many` plural forms, `returnObjects`) is
+ * intentionally not implemented — override the mock in-file for specs that
+ * need real i18next behavior. Missing keys resolve to the raw key so they
+ * stay visible in assertions instead of failing silently.
  */
 export function createI18nMock() {
   return {
     useTranslation: (namespace?: string) => {
-      const t = (key: string, options?: Record<string, unknown>): string => {
-        const value = lookup(namespace, key);
-        return options ? applySyntax(value, options) : value;
+      // i18next accepts either a params object or a default value string as
+      // the second argument; the default is only used when the key is absent.
+      const t = (
+        key: string,
+        options?: Record<string, unknown> | string,
+      ): string => {
+        const defaultValue = typeof options === "string" ? options : undefined;
+        const params =
+          typeof options === "object" && options !== null
+            ? options
+            : undefined;
+        const message =
+          resolveMessage(namespace, key, params) ?? defaultValue ?? key;
+        return params ? applySyntax(message, params) : message;
       };
       return {
         t,

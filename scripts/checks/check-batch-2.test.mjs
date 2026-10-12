@@ -132,6 +132,25 @@ test("check-as-cast-density fails on a file with as-casts and passes clean files
   );
 });
 
+test("check-as-cast-density excludes multiline aliases but still checks following assertions", () => {
+  const aliases =
+    'export {\n value as renamed,\n} from "./source";\nexport type {\n Shape as RenamedShape,\n} from "./types";\nexport * as namespace from "./module";\n';
+  expectPass(
+    runCheck(
+      makeGitFixture({ "apps/app/src/x.ts": aliases }),
+      "check-as-cast-density.mjs",
+    ),
+  );
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/src/x.ts": aliases + "const value = input as string;\n",
+      }),
+      "check-as-cast-density.mjs",
+    ),
+  );
+});
+
 test("check-empty-catches rejects empty catch blocks", () => {
   expectFail(
     runCheck(
@@ -166,7 +185,8 @@ test("check-detached-promises rejects void this calls without .catch", () => {
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/api/src/x.ts": "void this.runAsync().catch((e) => this.logger.error(e));",
+        "apps/api/src/x.ts":
+          "void this.runAsync().catch((e) => this.logger.error(e));",
       }),
       "check-detached-promises.mjs",
       ["--enforce"],

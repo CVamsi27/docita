@@ -12,7 +12,7 @@ Main clinician application — Vite + React Router v7 SPA (replaces the Next.js 
 ## Local development
 
 ```bash
-pnpm --filter @docita/api run start:dev   # API on :3001 (see apps/api)
+pnpm --filter @docita/api run dev         # API on :3001 (see apps/api)
 pnpm --filter @docita/app run dev    # SPA on http://localhost:3000
 ```
 

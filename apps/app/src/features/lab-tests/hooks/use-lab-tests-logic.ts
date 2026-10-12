@@ -7,7 +7,6 @@ import {
   type CreateLabTestOrderFormValues,
   type LabTest,
   type Patient,
-  type PaginatedResponse,
 } from "@workspace/types";
 import {
   useCreateLabTestOrder,
@@ -56,10 +55,7 @@ export const useLabTestsLogic = () => {
     limit: patientSearch ? 20 : 5,
   });
 
-  const paginatedResponse = patientsResponse as
-    | PaginatedResponse<Patient>
-    | undefined;
-  const patients: Patient[] = paginatedResponse?.items || [];
+  const patients: Patient[] = patientsResponse?.items ?? [];
 
   const { data: testCatalog = [], isLoading: catalogLoading } =
     useLabTestCatalog();

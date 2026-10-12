@@ -25,7 +25,7 @@
   --muted-foreground: oklch(0.50 0.028 261.692);
   --accent: oklch(0.962 0.012 95);
   --accent-foreground: oklch(0.44 0.12 248);
-  --destructive: oklch(0.65 0.23 27.325);
+  --destructive: oklch(0.53 0.22 27.325);
   /* Modern Red */
   --destructive-foreground: oklch(1 0 0);
   /* Hairline separators */
@@ -37,23 +37,28 @@
   --chart-3: oklch(0.5 0.15 150);
   --chart-4: oklch(0.8 0.15 80);
   --chart-5: oklch(0.7 0.15 30);
-  --info: oklch(0.58 0.19 256);
+  /* Semantic colors serve two roles in this product: as text on paper
+     surfaces (badges, vitals labels, error copy) and as a solid fill behind
+     their `-foreground`. Every value below is tuned to clear 4.5:1 in BOTH
+     roles (verified in `scripts/ui/`), which is why the ambers sit darker
+     here than a decorative palette would. */
+  --info: oklch(0.51 0.17 256);
   --info-foreground: oklch(0.985 0 0);
-  --success: oklch(0.64 0.17 150);
+  --success: oklch(0.47 0.15 150);
   --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.78 0.14 85);
-  --warning-foreground: oklch(0.25 0.03 85);
+  --warning: oklch(0.51 0.15 75);
+  --warning-foreground: oklch(0.985 0 0);
   /* Status colors */
-  --pending: oklch(0.72 0.16 55);
-  /* orange for pending states — distinct from warning yellow */
+  --pending: oklch(0.51 0.16 45);
+  /* orange for pending states — distinct from warning amber */
   --pending-foreground: oklch(0.985 0 0);
-  --processing: oklch(0.58 0.19 256);
+  --processing: oklch(0.51 0.17 256);
   /* blue for processing */
   --processing-foreground: oklch(0.985 0 0);
-  --completed: oklch(0.64 0.17 150);
+  --completed: oklch(0.49 0.15 150);
   /* green for completed */
   --completed-foreground: oklch(0.985 0 0);
-  --cancelled: oklch(0.65 0.23 27.325);
+  --cancelled: oklch(0.53 0.22 27.325);
   /* red for cancelled */
   --cancelled-foreground: oklch(1 0 0);
   /* Softer rounding like Origin */
@@ -95,6 +100,16 @@
      and pulse dots. Do not use on light chrome. */
   --brand-cyan: oklch(0.85 0.115 185);
   --brand-ink: oklch(0.155 0.018 240);
+
+  /* Font family names. These used to be injected by `next/font`; the Vite apps
+     load the same families from the Google Fonts stylesheet in their
+     index.html, so the names must be declared here or every `var(--font-*)`
+     reference below is invalid at computed-value time and text falls back to
+     the browser default serif. */
+  --font-inter: "Inter";
+  --font-jetbrains-mono: "JetBrains Mono";
+  --font-display: "Fraunces";
+  --font-nunito: "Nunito";
 
   /* Typography scale */
   --font-sans:
@@ -202,34 +217,37 @@ html[data-accent="purple"] {
 }
 
 html[data-accent="orange"] {
-  --primary: oklch(0.58 0.16 65);
-  --ring: oklch(0.58 0.16 65);
+  --primary: oklch(0.54 0.16 65);
+  --ring: oklch(0.54 0.16 65);
   --secondary-foreground: oklch(0.58 0.16 65);
-  --sidebar-primary: oklch(0.58 0.16 65);
+  --sidebar-primary: oklch(0.54 0.16 65);
   --sidebar-accent-foreground: oklch(0.58 0.16 65);
-  --sidebar-ring: oklch(0.58 0.16 65);
+  --sidebar-ring: oklch(0.54 0.16 65);
 }
 
 html.dark[data-accent="green"] {
-  --primary: oklch(0.68 0.14 155);
-  --ring: oklch(0.68 0.14 155);
+  --primary: oklch(0.52 0.14 155);
+  --ring: oklch(0.52 0.14 155);
   --secondary-foreground: oklch(0.68 0.14 155);
-  --sidebar-primary: oklch(0.68 0.14 155);
+  --sidebar-primary: oklch(0.52 0.14 155);
   --sidebar-accent-foreground: oklch(0.68 0.14 155);
-  --sidebar-ring: oklch(0.68 0.14 155);
+  --sidebar-ring: oklch(0.52 0.14 155);
 }
 
 html.dark[data-accent="purple"] {
-  --primary: oklch(0.7 0.15 300);
-  --ring: oklch(0.7 0.15 300);
+  --primary: oklch(0.54 0.15 300);
+  --ring: oklch(0.54 0.15 300);
   --secondary-foreground: oklch(0.7 0.15 300);
-  --sidebar-primary: oklch(0.7 0.15 300);
+  --sidebar-primary: oklch(0.54 0.15 300);
   --sidebar-accent-foreground: oklch(0.7 0.15 300);
-  --sidebar-ring: oklch(0.7 0.15 300);
+  --sidebar-ring: oklch(0.54 0.15 300);
 }
 
 html.dark[data-accent="orange"] {
+  /* Amber keeps its lifted fill; the label flips to ink so the pair still
+     clears 4.5:1 (white on amber cannot). */
   --primary: oklch(0.78 0.14 70);
+  --primary-foreground: oklch(0.18 0.03 70);
   --ring: oklch(0.78 0.14 70);
   --secondary-foreground: oklch(0.78 0.14 70);
   --sidebar-primary: oklch(0.78 0.14 70);
@@ -265,30 +283,30 @@ html[data-accent="slate"] {
 }
 
 html.dark[data-accent="rose"] {
-  --primary: oklch(0.72 0.17 22);
-  --ring: oklch(0.72 0.17 22);
+  --primary: oklch(0.56 0.17 22);
+  --ring: oklch(0.56 0.17 22);
   --secondary-foreground: oklch(0.72 0.17 22);
-  --sidebar-primary: oklch(0.72 0.17 22);
+  --sidebar-primary: oklch(0.56 0.17 22);
   --sidebar-accent-foreground: oklch(0.72 0.17 22);
-  --sidebar-ring: oklch(0.72 0.17 22);
+  --sidebar-ring: oklch(0.56 0.17 22);
 }
 
 html.dark[data-accent="teal"] {
-  --primary: oklch(0.72 0.11 185);
-  --ring: oklch(0.72 0.11 185);
+  --primary: oklch(0.52 0.11 185);
+  --ring: oklch(0.52 0.11 185);
   --secondary-foreground: oklch(0.72 0.11 185);
-  --sidebar-primary: oklch(0.72 0.11 185);
+  --sidebar-primary: oklch(0.52 0.11 185);
   --sidebar-accent-foreground: oklch(0.72 0.11 185);
-  --sidebar-ring: oklch(0.72 0.11 185);
+  --sidebar-ring: oklch(0.52 0.11 185);
 }
 
 html.dark[data-accent="slate"] {
-  --primary: oklch(0.72 0.04 260);
-  --ring: oklch(0.72 0.04 260);
+  --primary: oklch(0.54 0.04 260);
+  --ring: oklch(0.54 0.04 260);
   --secondary-foreground: oklch(0.72 0.04 260);
-  --sidebar-primary: oklch(0.72 0.04 260);
+  --sidebar-primary: oklch(0.54 0.04 260);
   --sidebar-accent-foreground: oklch(0.72 0.04 260);
-  --sidebar-ring: oklch(0.72 0.04 260);
+  --sidebar-ring: oklch(0.54 0.04 260);
 }
 
 .dark {
@@ -323,8 +341,13 @@ html.dark[data-accent="slate"] {
   --card-foreground: oklch(0.98 0.01 261.692);
   --popover: oklch(0.13 0.025 261.692);
   --popover-foreground: oklch(0.98 0.01 261.692);
-  --primary: oklch(0.67 0.13 250);
-  /* Lighter clinical blue for dark mode */
+  --primary: oklch(0.53 0.13 250);
+  /* Clinical blue, re-tuned so the near-white label keeps 4.5:1 on filled CTAs
+     (5.04:1). Known trade-off: as accent text this value measures 3.9:1 on
+     --background and 3.5:1 on bg-primary/10 chips, below the 4.5:1 text bar but
+     above the 3:1 non-text bar. One value cannot satisfy both roles here — a
+     lighter fill fixes the text role but sinks the CTA label — and the primary
+     action affordance wins until a dedicated accent-text token is introduced. */
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.2 0.03 250);
   --secondary-foreground: oklch(0.98 0.01 261.692);
@@ -332,11 +355,11 @@ html.dark[data-accent="slate"] {
   --muted-foreground: oklch(0.7 0.03 261.692);
   --accent: oklch(0.2 0.03 245);
   --accent-foreground: oklch(0.98 0.01 261.692);
-  --destructive: oklch(0.5 0.2 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.64 0.21 27.325);
+  --destructive-foreground: oklch(0.1 0.02 30);
   --border: oklch(0.2 0.04 261.692);
   --input: oklch(0.2 0.04 261.692);
-  --ring: oklch(0.67 0.13 250);
+  --ring: oklch(0.53 0.13 250);
   --chart-1: oklch(0.67 0.13 250);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -351,15 +374,15 @@ html.dark[data-accent="slate"] {
   /* Status colors - dark mode */
   --pending: oklch(0.68 0.16 55);
   --pending-foreground: oklch(0.15 0.02 55);
-  --processing: oklch(0.58 0.15 256);
-  --processing-foreground: oklch(0.95 0 0);
-  --completed: oklch(0.54 0.14 150);
-  --completed-foreground: oklch(0.95 0 0);
-  --cancelled: oklch(0.5 0.2 27.325);
-  --cancelled-foreground: oklch(0.985 0 0);
+  --processing: oklch(0.6 0.15 256);
+  --processing-foreground: oklch(0.1 0.02 256);
+  --completed: oklch(0.58 0.14 150);
+  --completed-foreground: oklch(0.1 0.02 150);
+  --cancelled: oklch(0.64 0.21 27.325);
+  --cancelled-foreground: oklch(0.1 0.02 30);
   --sidebar: oklch(0.1 0.02 261.692);
   --sidebar-foreground: oklch(0.98 0.01 261.692);
-  --sidebar-primary: oklch(0.67 0.13 250);
+  --sidebar-primary: oklch(0.53 0.13 250);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.2 0.03 250);
   --sidebar-accent-foreground: oklch(0.98 0.01 261.692);
@@ -514,6 +537,17 @@ html.dark[data-accent="slate"] {
     font-weight: var(--fw-semibold);
   }
 
+  /* Sans heading for chrome and controls (dialog titles, status/error copy).
+     The serif display face stays on page/section/hero titles only; see
+     docs/ui/UI_UX_STANDARD_2026.md §2.2. */
+  .ui-heading-sans {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-snug);
+    letter-spacing: var(--tracking-normal);
+    font-weight: var(--fw-semibold);
+  }
+
   .ui-section-subtitle {
     font-size: var(--fs-sm);
     line-height: var(--lh-normal);
@@ -589,6 +623,19 @@ html.dark[data-accent="slate"] {
   .ui-panel-muted {
     border-radius: var(--radius);
     @apply border border-border/70 bg-muted/25 text-foreground shadow-sm;
+  }
+
+  /* Opt-in workspace composition; semantic utility surfaces remain authoritative. */
+  .ui-workspace-ledger :is(.ui-card-surface, .ui-panel):not(.surface-warning, .surface-danger, .surface-info, .surface-success, .surface-muted, .surface-tint, .surface-warm) {
+    border-radius: 0;
+    border-inline-width: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .ui-workspace-ledger h1.ui-section-title {
+    font-size: var(--fs-3xl);
+    line-height: var(--lh-tight);
   }
 
   .icon-warning {

@@ -53,7 +53,7 @@ export function LogsPage() {
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Severity</label>
             <Select value={selectedLevel} onValueChange={(v) => { setSelectedLevel(v); setOffset(0); }}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Severity"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All</SelectItem>
                 <SelectItem value="ERROR">Error</SelectItem>
@@ -66,7 +66,7 @@ export function LogsPage() {
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Module</label>
             <Select value={selectedModule} onValueChange={(v) => { setSelectedModule(v); setOffset(0); }}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Module"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All Modules</SelectItem>
                 {moduleOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
@@ -80,7 +80,7 @@ export function LogsPage() {
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Page Size</label>
             <Select value={String(selectedLimit)} onValueChange={(v) => { const limit = Number(v); if (isPageSize(limit)) setSelectedLimit(limit); setOffset(0); }}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="Page Size"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="25">25</SelectItem>
                 <SelectItem value="50">50</SelectItem>

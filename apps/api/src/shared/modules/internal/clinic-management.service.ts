@@ -71,8 +71,8 @@ export class ClinicManagementService {
         model: clinicModel,
         cursor: options?.cursor,
         limit: options?.limit || 50,
-        orderBy: { createdAt: 'desc' },
-        select: CLINIC_CARD_SELECT,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        select: { ...CLINIC_CARD_SELECT, type: true },
       });
     } catch (_error) {
       throw new InternalServerErrorException('Failed to fetch clinics');

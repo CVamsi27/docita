@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MetricType } from '@workspace/db';
+import { MetricType, type RouteCategory } from '@workspace/db';
 import { WebVitalDto } from '@/shared/modules/monitoring/monitoring/dto/monitoring.dto';
 import { MetricsRecordingService } from './metrics-recording.service';
 import { WebVitalsMetricsService } from './web-vitals-metrics.service';
@@ -76,8 +76,9 @@ export class MetricsService {
   getPerformanceMetrics(
     startDate?: Date,
     endDate?: Date,
+    routeCategory?: RouteCategory,
   ): ReturnType<MetricsQueryService['getPerformanceMetrics']> {
-    return this.query.getPerformanceMetrics(startDate, endDate);
+    return this.query.getPerformanceMetrics(startDate, endDate, routeCategory);
   }
 
   aggregateHourlyMetrics(): Promise<void> {
@@ -114,5 +115,9 @@ export class MetricsService {
 
   getQueueHealthSummary() {
     return this.query.getQueueHealthSummary();
+  }
+
+  getBackgroundJobsHealthSummary() {
+    return this.query.getBackgroundJobsHealthSummary();
   }
 }

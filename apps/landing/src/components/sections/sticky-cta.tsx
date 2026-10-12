@@ -50,14 +50,14 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
   return (
     <div
       ref={ctaRef}
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-3 pt-2 text-foreground shadow-sm sm:px-4 sm:pt-3"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/80 bg-background/95 backdrop-blur-md px-3 pt-2 text-foreground shadow-lg sm:px-4 sm:pt-3"
       style={{
         paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom, 0px))",
       }}
     >
       <div className="mx-auto flex max-w-7xl items-center gap-2 sm:justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-muted text-primary">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
@@ -77,7 +77,7 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
             asChild
             variant="default"
             size="sm"
-            className="h-9 gap-1.5 whitespace-nowrap px-3 sm:h-10 sm:gap-2 sm:px-4"
+            className="h-9 gap-1.5 whitespace-nowrap px-3 font-semibold shadow-xs sm:h-10 sm:gap-2 sm:px-4"
           >
             <a href={`${appUrl}/onboarding`}>
               <span className="sm:hidden">Start</span>

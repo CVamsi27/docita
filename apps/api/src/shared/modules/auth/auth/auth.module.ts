@@ -26,24 +26,13 @@ import { ClinicsModule } from '@/domains/clinics/clinics.module';
 import { PassportModule } from '@nestjs/passport';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { resolveJwtExpiresIn } from '@/shared/modules/config/app-config-jwt.helpers';
 import { DefaultPasswordPolicy } from './policies/password.policy';
 import { TurnstileModule } from '@/shared/modules/turnstile/turnstile.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 import { ConsentGuard } from '@/shared/modules/auth/guards/consent.guard';
 import { EmailVerifiedGuard } from '@/shared/modules/auth/guards/email-verified.guard';
 import { AuthGuardsModule } from './auth-guards.module';
-
-type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
-
-const JWT_DURATION_PATTERN = /^\d+[smhdwy]$/;
-
-function isJwtDuration(value: string): value is JwtDuration {
-  return JWT_DURATION_PATTERN.test(value);
-}
-
-function parseJwtDuration(value: string): JwtDuration | null {
-  return isJwtDuration(value) ? value : null;
-}
 
 @Module({
   imports: [
@@ -59,16 +48,11 @@ function parseJwtDuration(value: string): JwtDuration | null {
       inject: [AppConfigService],
       useFactory: (configService: AppConfigService) => {
         const secret = configService.getJwtSecret();
-        const expiration = configService.getJwtExpiration();
-        const parsedDuration = parseJwtDuration(expiration);
-        const expiresIn = /^\d+$/.test(expiration)
-          ? Number(expiration)
-          : (parsedDuration ?? '7d');
         if (!secret) throw new Error('JWT_SECRET is not defined');
         return {
           secret: secret,
           signOptions: {
-            expiresIn,
+            expiresIn: resolveJwtExpiresIn(configService.getJwtExpiration()),
           },
         };
       },

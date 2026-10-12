@@ -1,4 +1,5 @@
 import { Role, Specialization } from '@workspace/db';
+import type { DoctorContractResponse } from '@workspace/types';
 
 export interface CreateDoctorUserInput {
   email: string;
@@ -23,7 +24,7 @@ export interface CreatedDoctorUser {
   name: string;
   role: Role;
   specialization: Specialization | null;
-  hospitalRole: string | null;
+  hospitalRole: NonNullable<DoctorContractResponse['hospitalRole']> | null;
   qualification: string | null;
 }
 
@@ -39,7 +40,7 @@ export interface DoctorAfterUpdate {
   name: string;
   role: Role;
   specialization: Specialization | null;
-  hospitalRole: string | null;
+  hospitalRole: NonNullable<DoctorContractResponse['hospitalRole']> | null;
   qualification: string | null;
   registrationNumber: string | null;
   registrationCouncil: string | null;
@@ -48,7 +49,9 @@ export interface DoctorAfterUpdate {
   licenseNumber: string | null;
   signatureUrl: string | null;
   signatureUploadedAt: Date | null;
-  verificationStatus: string | null;
+  verificationStatus: NonNullable<
+    DoctorContractResponse['verificationStatus']
+  > | null;
   verificationSource: string | null;
   verificationRef: string | null;
   verificationReason: string | null;

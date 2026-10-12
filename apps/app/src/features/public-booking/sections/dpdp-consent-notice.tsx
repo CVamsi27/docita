@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { DPDP_NOTICE_TEXT_PATIENT, DPDP_NOTICE_TITLE } from "@workspace/types";
 import { Checkbox } from "@workspace/ui/components/form/checkbox";
 
@@ -10,6 +11,8 @@ interface DpdpConsentNoticeProps {
 
 /** DPDP data-processing notice + consent checkbox shown to new patients during public booking. */
 export function DpdpConsentNotice({ checked, onCheckedChange }: DpdpConsentNoticeProps) {
+  const { t } = useTranslation("PublicBooking");
+
   return (
     <div className="grid gap-2 rounded-[var(--radius-md)] border border-border/70 bg-muted/30 p-4 sm:col-span-2">
       <p className="text-[length:var(--fs-sm)] font-semibold text-foreground">
@@ -30,10 +33,7 @@ export function DpdpConsentNotice({ checked, onCheckedChange }: DpdpConsentNotic
           checked={checked}
           onCheckedChange={(value) => onCheckedChange(value === true)}
         />
-        <span>
-          I have read this notice and consent to my personal and health data
-          being processed per the description above.
-        </span>
+        <span>{t("dpdpConsent.label")}</span>
       </label>
     </div>
   );

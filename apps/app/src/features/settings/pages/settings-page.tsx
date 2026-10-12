@@ -1,5 +1,6 @@
-import { useNavigate, useSearchParams } from "react-router";
-import { AppPageScaffold, PageHeader } from "@workspace/ui/components";
+import { Link, useSearchParams } from "react-router";
+import { AppPageScaffold, Button, PageHeader } from "@workspace/ui/components";
+import { ListRowGroup } from "@workspace/ui/components/data-display/list-row";
 import {
   Building2,
   ChevronRight,
@@ -26,7 +27,6 @@ import { PageMeta } from "@/components/layout/page-meta";
 import { SubscriptionSettingsContent } from "@/features/subscription";
 
 export function SettingsPage() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tab = searchParams.get("tab");
 
@@ -70,27 +70,29 @@ export function SettingsPage() {
     { title: "Availability", desc: "Doctor schedules and time away", href: "/settings/availability", icon: CalendarClock },
     { title: "Leave", desc: "Leave requests, balances, and plans", href: "/settings/leave", icon: CalendarOff },
     { title: "Account", desc: "Profile, email, and password", href: "/settings/account", icon: UserCog },
-    { title: "Audit Log", desc: "View system access and change events", href: "/settings?tab=audit", icon: ClipboardList },
+    { title: "Audit Log", desc: "View system access and change events", href: "/settings/compliance#audit-log", icon: ClipboardList },
   ];
 
   return (
     <>
       <PageMeta title="Settings" description="Manage clinic and account settings" />
       <AppPageScaffold header={<PageHeader title="Settings" description="Manage clinic and account settings." />}>
-        <div className="space-y-2">
+        <ListRowGroup className="rounded-none border-x-0 shadow-none">
           {sections.map((s) => (
-            <div key={s.title} className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/30 cursor-pointer" onClick={() => navigate(s.href)}>
-              <div className="flex items-center gap-3">
-                <s.icon className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">{s.title}</p>
-                  <p className="text-xs text-muted-foreground">{s.desc}</p>
+            <Button key={s.title} asChild variant="ghost" className="h-auto w-full justify-between gap-3 rounded-none border-b border-border/60 px-4 py-4 text-left whitespace-normal last:border-b-0">
+              <Link to={s.href}>
+                <div className="flex min-w-0 items-center gap-3">
+                  <s.icon className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
+                  <div>
+                    <p className="text-sm font-medium">{s.title}</p>
+                    <p className="text-xs font-normal text-muted-foreground">{s.desc}</p>
+                  </div>
                 </div>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+              </Link>
+            </Button>
           ))}
-        </div>
+        </ListRowGroup>
       </AppPageScaffold>
     </>
   );

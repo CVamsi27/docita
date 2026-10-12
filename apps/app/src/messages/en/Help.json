@@ -3,7 +3,6 @@
   "searchPlaceholder": "Enter topic",
   "searchAriaLabel": "Search help articles",
   "noTopicsMatch": "No help topics match your search.",
-  "articlesCount": "{count} articles",
   "gettingStarted": "Getting Started",
   "patientManagement": "Patient Management",
   "appointments": "Appointments",

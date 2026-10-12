@@ -16,7 +16,7 @@ export { getAPIClient } from "./lib/singleton";
 export { createCRUDResource } from "./lib/crud-resource";
 export { createBrowserSessionManager } from "./lib/browser-session";
 export type { BrowserSessionConfig, BrowserSessionManager } from "./lib/browser-session";
-export { queryKeys, appQueryKeys, internalQueryKeys } from "./lib/query-keys";
+export { queryKeys, appQueryKeys } from "./lib/query-keys";
 
 export { toQueryString, withQueryString } from "./lib/query-string";
 export type {
@@ -46,7 +46,6 @@ export {
 
 export type {
   AppConstants,
-  MedicalHistoryTimelineItem,
 } from "./types/app-types";
 
 // hooks barrel
@@ -126,7 +125,6 @@ export type { InvoiceListRow } from "./hooks/use-billing";
 export { useBillingHistory } from "./hooks/use-billing-history";
 export type { BillingHistoryItem } from "./hooks/use-billing-history";
 export {
-  useVitalSigns,
   useSaveVitals,
   usePrescriptions,
   usePatientPrescriptions,
@@ -290,7 +288,6 @@ export {
   useRecentPatients,
   usePatient,
   usePatientWithMedicalHistory,
-  usePatientMedicalHistoryTimeline,
   usePatientMedicalHistoryFull,
   useCreatePatient,
   useUpdatePatient,
@@ -446,3 +443,27 @@ export type {
   WebVitalsMetricRating,
   WebVitalsReporterOptions,
 } from "./lib/monitoring/web-vitals";
+
+// Platform availability (shared outage store for app + internal)
+export {
+  buildApiHealthProbeUrl,
+  createApiAvailabilityStore,
+  createOutageRecoveryState,
+  createReadinessProber,
+  isPlatformOutageError,
+  recoverFromApiOutage,
+} from "./lib/api-availability";
+export type {
+  ApiAvailabilitySnapshot,
+  ApiAvailabilityStatus,
+  ApiAvailabilityStore,
+  ApiProbeOutcome,
+  ApiUnavailableReason,
+  OutageRecoveryState,
+} from "./lib/api-availability";
+export {
+  createApiAvailability,
+  createUseApiAvailability,
+  useNetworkStatus,
+} from "./hooks/use-api-availability";
+export { createApiAvailabilityGate } from "./provider/api-availability-gate";

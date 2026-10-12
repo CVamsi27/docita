@@ -38,6 +38,12 @@ const rowFor = (name: string) => {
 };
 
 describe("DoctorsPage", () => {
+  it("names the doctor view action by identity", async () => {
+    mockApiGet.mockResolvedValueOnce(mockDoctors);
+    render(<DoctorsPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "View doctor: Alice Verified" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
   beforeEach(() => {
     mockApiGet.mockReset();
   });

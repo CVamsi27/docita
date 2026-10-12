@@ -3,6 +3,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { AppointmentRequestStatus, Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
+import { doctorBelongsToClinic as lookupDoctorClinicMembership } from '@/shared/common/prisma/doctor-clinic-membership';
 import {
   AppointmentRequestListFilters,
   AppointmentRequestMatchingAppointmentInput,
@@ -99,6 +100,17 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
     return row satisfies AppointmentRequestWithRelations;
   }
 
+  async findPendingBySlotKey(
+    pendingSlotKey: string,
+  ): Promise<AppointmentRequestWithRelations | null> {
+    const row = await this.getReadClient().appointmentRequest.findFirst({
+      where: { pendingSlotKey, status: AppointmentRequestStatus.PENDING },
+      include: APPOINTMENT_REQUEST_INCLUDE,
+    });
+    if (!row) return null;
+    return row satisfies AppointmentRequestWithRelations;
+  }
+
   private async requireByIdAndClinic(
     id: string,
     clinicId: string,
@@ -154,6 +166,10 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
         status,
         reviewedAt: this.clock.now(),
         responseMessage,
+        // Review settles the request, so it stops holding its slot: a later
+        // request for the same doctor and time must be able to differ (the
+        // patient may re-request after a rejection).
+        pendingSlotKey: null,
         ...(reviewerExists > 0 ? { reviewedById } : {}),
       },
     });
@@ -203,24 +219,10 @@ export class PrismaAppointmentRequestRepository implements IAppointmentRequestRe
     });
   }
 
-  async doctorBelongsToClinic(doctorId: string, clinicId: string) {
-    const [directUser, linkedClinic] = await Promise.all([
-      this.getReadClient().user.count({
-        where: {
-          id: doctorId,
-          clinicId,
-          role: { in: ['DOCTOR', 'ADMIN_DOCTOR'] },
-        },
-      }),
-      this.getReadClient().doctorClinic.count({
-        where: {
-          doctorId,
-          clinicId,
-          active: true,
-        },
-      }),
-    ]);
-
-    return directUser > 0 || linkedClinic > 0;
+  doctorBelongsToClinic(doctorId: string, clinicId: string) {
+    return lookupDoctorClinicMembership(this.getReadClient(), {
+      doctorId,
+      clinicId,
+    });
   }
 }

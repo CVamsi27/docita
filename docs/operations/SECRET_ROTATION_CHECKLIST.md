@@ -10,7 +10,7 @@ Operational runbook for rotating credentials referenced in `.env.example`. Code 
 
 ## Rotate (in order)
 
-1. **`DATABASE_URL`** — create new DB role/password or provider credential; update Fly production and Render staging; run `pnpm --filter @workspace/db run db:migrate:status` against staging.
+1. **`DATABASE_URL`** — create new DB role/password or provider credential; update Fly production and Render staging; run `pnpm --filter @workspace/db exec prisma migrate status` against staging.
 2. **`JWT_SECRET`** (min 32 chars) — generate new secret; deploy API; all users re-login (access tokens invalidated).
 3. **`ENCRYPTION_KEY`** (64-char hex) — only with a documented re-encryption plan for fields encrypted at rest.
 4. **`API_PUBLIC_URL`** (legacy alias `NEXT_PUBLIC_API_URL`) — verify app/internal proxy and CORS allowlists after origin changes.
@@ -18,7 +18,7 @@ Operational runbook for rotating credentials referenced in `.env.example`. Code 
 
 ## After rotation
 
-- [ ] `pnpm deploy:startup-smoke` (or production smoke workflow) green.
+- [ ] `scripts/deploy/test-api-startup.sh` (or `pnpm monitor:synthetic`) green.
 - [ ] Clinician login + refresh flow on staging.
 - [ ] Worker processes jobs (subscription tick, PDF queue) without auth errors.
 - [ ] Revoke old credentials at the provider.

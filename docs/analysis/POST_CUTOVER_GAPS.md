@@ -133,8 +133,8 @@ admissionFormFields,admissionForm}` incl. the data-driven ward/bed option
 lists via new `wardOptions(t)`/`bedOptions(t)` t-prop helpers, 19 literals),
 `CancelAppointmentDialog` → `Appointments.cancelDialog`,
 `current-plan-card-usage` + `tier-card-pricing-sections` →
-`Subscription.{usageMeter,billingPlans}`, `clinic-selection-page` →
-`Setup.clinicSelection`, `TrendsCharts` → `Analytics.trendsCharts`,
+`Subscription.{usageMeter,billingPlans}`, `TrendsCharts` →
+`Analytics.trendsCharts`,
 `GrowthChartUI` → `Consultation.growthChart`, and `AppointmentFormFields` →
 `Appointments.formFields`, plus the adjacent plan surfaces that share the
 same strings (`current-plan-card` → `Subscription.currentPlanCard`,

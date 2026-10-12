@@ -19,6 +19,11 @@ import {
   createSignatureFileInterceptor,
   handleSignatureUpload,
 } from '@/shared/common/utils/signature-controller.utils';
+import { SignatureTokenValidationResponseDto } from '@/shared/common/dto/signature-response.dto';
+// The upload response is a discriminated union, which createZodDto cannot wrap,
+// so the serializer takes the schema itself.
+import { signatureUploadResponseSchema } from '@workspace/types';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('doctors/signature')
 export class SignatureUploadController {
@@ -38,12 +43,14 @@ export class SignatureUploadController {
 
   @Get('validate-token/:token')
   @Public()
+  @ZodSerializerDto(SignatureTokenValidationResponseDto)
   async validateToken(@Param('token') token: string) {
     return this.signatureUploadService.validateToken(token);
   }
 
   @Post('upload/:token')
   @Public()
+  @ZodSerializerDto(signatureUploadResponseSchema)
   @UseInterceptors(createSignatureFileInterceptor())
   async uploadSignature(
     @Param('token') token: string,

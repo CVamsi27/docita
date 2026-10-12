@@ -90,6 +90,9 @@ jobs:
 
   api-quality:
     name: API Unit Checks
+    env:
+      # Production and spec typechecking exceed the default 2 GiB heap.
+      NODE_OPTIONS: --max-old-space-size=4096
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
@@ -130,7 +133,7 @@ jobs:
         run: pnpm --filter @docita/api run check-types
 
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test API (changed only)
         run: pnpm --filter @docita/api run test:ci --changedSince=origin/main
   api-e2e:
@@ -143,9 +146,13 @@ jobs:
       matrix:
         include:
           - shard: 1
-            total: 2
+            total: 4
           - shard: 2
-            total: 2
+            total: 4
+          - shard: 3
+            total: 4
+          - shard: 4
+            total: 4
     env:
       PGHOST: localhost
       PGPORT: "5434"
@@ -154,6 +161,10 @@ jobs:
       # The suite runs single-process (jest --runInBand) and OOM'd at the
       # default 2GB Node heap (`FATAL ERROR: Ineffective mark-compacts near
       # heap limit`, exit 134). Give each shard a 4GB heap.
+      # Four shards, not two: one process carrying ~29 heavy suites against a
+      # single database intermittently broke unrelated suites (a transport
+      # `socket hang up`, and timing-sensitive assertions), so the shard count
+      # is a capacity control, not just a memory workaround.
       NODE_OPTIONS: --max-old-space-size=4096
     services:
       postgres:
@@ -237,7 +248,7 @@ jobs:
         run: pnpm --filter @docita/app run check-types
 
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test app (changed only)
         run: pnpm --filter @docita/app run test -- --changed=origin/main
 
@@ -294,7 +305,7 @@ jobs:
         run: pnpm --filter @docita/internal run check-types
 
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test internal (changed only)
         run: pnpm --filter @docita/internal run test -- --changed=origin/main
 
@@ -357,6 +368,13 @@ jobs:
         # first, so this step also validates the clean-checkout build path.
         run: pnpm --filter @docita/landing run build
 
+      - name: Enforce apps/landing worker bundle cap
+        # D-F2: the Astro landing Worker (dist/server/entry.mjs) had no size
+        # gate while both SPA workers did. Measure it against the same gzip
+        # budget after the build above. First recorded baseline: 583.2 KB
+        # gzip vs 3584 KB limit (2026-10-05).
+        run: pnpm check:worker-size:landing
+
   worker-quality:
     name: Worker Unit Checks
     needs: changes
@@ -390,7 +408,7 @@ jobs:
         run: pnpm --filter @docita/worker run check-types
 
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test worker (changed only)
         run: pnpm --filter @docita/worker run test:ci --changedSince=origin/main
 
@@ -402,28 +420,25 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    # The previous `pnpm audit --audit-level=high` step relied on the
-    # registry.npmjs.org audit endpoint, which npm retired in 2025 — that
-    # endpoint now returns 410. Switched to OSV-Scanner via the
-    # google/osv-scanner-action reusable workflow (the non-PR variant), which
-    # queries OSV.dev directly. Covers both PRs and pushes; PRs additionally
-    # get the diff-aware `osv-scan` job below. No `runs-on:` — the reusable
-    # workflow supplies its own runner.
+    # Full OSV scan complements the PR diff scan below. Both retain artifacts.
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.6.0
+    with:
+      # Code Scanning is disabled; retain report artifacts and vulnerability gates.
+      upload-sarif: false
 
   osv-scan:
     name: OSV Vulnerability Scan
     needs: changes
-    # PR-only: flags new vulnerabilities introduced by the PR against base.
-    # Pushes to main are covered by the `Security Audit` job above (OSV) plus
-    # OSV upstream advisories surfacing in dependabot. Keeping this PR-gated
-    # avoids failing main on transient upstream advisories.
+    # PR-only: flags new vulnerabilities introduced against the base branch.
+    # The full Security Audit above also checks existing dependencies.
     if: github.event_name == 'pull_request' && needs.changes.outputs.dependencies == 'true'
     permissions:
       actions: read
       contents: read
       security-events: write
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.6.0
+    with:
+      upload-sarif: false
 
   validate-migrations:
     name: Validate Migrations

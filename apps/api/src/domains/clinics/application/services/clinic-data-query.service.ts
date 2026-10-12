@@ -22,12 +22,13 @@ import {
  * so centralizing the shared projection keeps the two list paths from
  * drifting apart key-by-key.
  */
-function projectClinicListEntry<T extends { settings: unknown; phone: string }>(
-  clinic: T,
-) {
+function projectClinicListEntry<
+  T extends { settings: unknown; phone: string; logo?: string | null },
+>(clinic: T) {
   const settings = toRecord(clinic.settings);
   return {
     ...clinic,
+    logo: clinic.logo ?? undefined,
     phoneNumber: clinic.phone,
     gstin: readOptionalString(settings, 'gstin'),
     description: readString(settings, 'description'),
@@ -67,6 +68,7 @@ export class ClinicDataQueryService {
     return attachResolvedClinicSignatureUrl(
       {
         ...clinicRow,
+        logo: clinicRow.logo ?? undefined,
         subscriptionGraceUntil: subscription?.graceUntil ?? null,
         phoneNumber: clinicRow.phone,
         gstin: readOptionalString(settings, 'gstin'),

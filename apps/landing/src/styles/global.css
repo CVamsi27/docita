@@ -261,6 +261,44 @@
     0 18px 48px color-mix(in oklch, var(--foreground) 4%, transparent);
 }
 
+/*
+ * Mobile section nav sits in a 358px-wide viewport but its link row is ~550px,
+ * so a third of the destinations (Pricing, Trust, Contact) start off-screen with
+ * no scrollbar affordance on touch devices. `data-scroll` is set from the layout
+ * script; the edge masks make the hidden links discoverable without adding or
+ * removing navigation.
+ */
+.landing-site-nav--mobile {
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.landing-site-nav--mobile > a {
+  scroll-snap-align: start;
+}
+
+.landing-site-nav--mobile[data-scroll="start"] {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent 100%);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent 100%);
+}
+
+.landing-site-nav--mobile[data-scroll="middle"] {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 calc(100% - 2.5rem), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 calc(100% - 2.5rem), transparent 100%);
+}
+
+.landing-site-nav--mobile[data-scroll="end"] {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-site-nav--mobile {
+    scroll-snap-type: none;
+  }
+}
+
 .landing-features-shell {
   position: relative;
   overflow: hidden;
@@ -1468,6 +1506,28 @@ canvas {
   text-wrap: balance;
 }
 
+/* Lead-section heading: one step above the standard section heading so the
+ * page has a readable hierarchy instead of eleven identical H2s. */
+.r2-display-md {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  font-size: clamp(2.25rem, 0.8rem + 3.6vw, 3.5rem);
+  text-wrap: balance;
+}
+
+/* Aside heading inside a section (e.g. the FAQ CTA card). Deliberately below
+ * the section H2: an aside must not compete with the section title. */
+.r2-display-xs {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.022em;
+  line-height: 1.06;
+  font-size: clamp(1.5rem, 0.75rem + 1.8vw, 2rem);
+  text-wrap: balance;
+}
+
 .r2-eyebrow {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-size: 0.6875rem;
@@ -1486,14 +1546,31 @@ canvas {
   font-feature-settings: "tnum" 1, "ss01" 1;
 }
 
+/*
+ * Section rhythm.
+ * Every section reads its vertical padding from --r2-section-pad so the arc
+ * has deliberate steps instead of one flat value. Tiers, heaviest first:
+ *   lead  (signature + decision surfaces)  >  default  >  quiet  >  tight
+ * Only the padding variable is overridden by the modifiers, so the tier a
+ * section belongs to is expressed in one place.
+ */
 .r2-section {
+  --r2-section-pad: clamp(4rem, 1.5rem + 6vw, 7rem);
   position: relative;
   padding-inline: 1rem;
-  padding-block: clamp(4rem, 1.5rem + 6vw, 7rem);
+  padding-block: var(--r2-section-pad);
+}
+
+.r2-section-lead {
+  --r2-section-pad: clamp(4.5rem, 1.25rem + 7.2vw, 8.5rem);
+}
+
+.r2-section-quiet {
+  --r2-section-pad: clamp(3.5rem, 1.25rem + 4.8vw, 5.75rem);
 }
 
 .r2-section-tight {
-  padding-block: clamp(3rem, 1rem + 4vw, 5rem);
+  --r2-section-pad: clamp(3rem, 1rem + 4vw, 5rem);
 }
 
 /* Sections stay mostly transparent so body.landing-surface reads as one canvas. */
@@ -2295,9 +2372,17 @@ canvas {
   border-color: color-mix(in oklch, var(--foreground) 24%, var(--border));
 }
 
+/*
+ * Dark-mode surface ladder for the hero preview.
+ * The preview must stay a step above the page so it reads as a product
+ * surface, but every tier also has to keep --muted-foreground text legible:
+ * the rail/tab and desk-chrome labels are 11-12px, so a blend heavy in
+ * --foreground pushed them to 2.94-3.41:1. These ratios hold them above
+ * 4.5:1 while staying lighter than the .r2-product card behind them.
+ */
 .dark .r2-product-preview .r2-product-chrome,
 .dark .r2-product-preview .r2-product-rail {
-  background: color-mix(in oklch, var(--background) 62%, var(--foreground) 38%);
+  background: color-mix(in oklch, var(--background) 84%, var(--foreground) 16%);
   border-color: color-mix(in oklch, var(--foreground) 20%, var(--border));
 }
 
@@ -2307,7 +2392,7 @@ canvas {
 
 .dark .r2-product-preview .r2-row {
   border-color: color-mix(in oklch, var(--foreground) 17%, var(--border));
-  background: color-mix(in oklch, var(--background) 66%, var(--foreground) 34%);
+  background: color-mix(in oklch, var(--background) 93%, var(--foreground) 7%);
 }
 
 .dark .r2-product-preview .r2-row-active {
@@ -2318,7 +2403,7 @@ canvas {
 
 .dark .r2-product-preview .r2-product-frame > .rounded-xl {
   border-color: color-mix(in oklch, var(--foreground) 18%, var(--border));
-  background: color-mix(in oklch, var(--background) 65%, var(--foreground) 35%);
+  background: color-mix(in oklch, var(--background) 93%, var(--foreground) 7%);
 }
 
 .dark .r2-proof-band {

@@ -171,42 +171,129 @@ describe('NlmCodingClient', () => {
     );
   });
 
-  it('stops streaming and returns partial ICD results when an NLM prefix times out', async () => {
-    const warnSpy = jest
-      .spyOn(Logger.prototype, 'warn')
-      .mockImplementation(() => undefined);
+  /**
+   * The defect this item exists for: a prefix that timed out ended the stream
+   * with a plain `return`, so the caller saw a shorter code list and no signal
+   * that 24 of 26 prefixes had never been fetched.
+   */
+  describe('truncated streams are reported, not swallowed', () => {
+    it('reports an incomplete stream when a prefix times out', async () => {
+      const warnSpy = jest
+        .spyOn(Logger.prototype, 'warn')
+        .mockImplementation(() => undefined);
 
-    fetchMock.mockImplementation((url: Parameters<typeof fetch>[0]) => {
-      const parsed = new URL(String(url));
-      const terms = parsed.searchParams.get('terms');
-      const offset = parsed.searchParams.get('offset');
+      fetchMock.mockImplementation((url: Parameters<typeof fetch>[0]) => {
+        const parsed = new URL(String(url));
+        const terms = parsed.searchParams.get('terms');
+        const offset = parsed.searchParams.get('offset');
 
-      if (terms === 'A' && offset === '0')
-        return Promise.resolve(
-          jsonResponse([1, ['A00'], null, [['A00', 'Alpha condition']]]),
-        );
+        if (terms === 'A' && offset === '0')
+          return Promise.resolve(
+            jsonResponse([1, ['A00'], null, [['A00', 'Alpha condition']]]),
+          );
 
-      if (terms === 'B')
-        return Promise.reject(
-          new DOMException(
-            'The operation was aborted due to timeout',
-            'TimeoutError',
-          ),
-        );
+        if (terms === 'B')
+          return Promise.reject(
+            new DOMException(
+              'The operation was aborted due to timeout',
+              'TimeoutError',
+            ),
+          );
 
-      return Promise.resolve(jsonResponse([0, [], null, []]));
+        return Promise.resolve(jsonResponse([0, [], null, []]));
+      });
+
+      const received: string[] = [];
+      const outcome = await service.streamIcdCodes(async (batch) => {
+        batch.forEach((c) => received.push(c.code));
+      });
+
+      expect(received).toEqual(['A00']);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+
+      // B is where it died; C..Z were never attempted.
+      expect(outcome.completed).toBe(false);
+      expect(outcome.lastUnit).toBe('A');
+      expect(outcome.unitsSkipped).toBe(25);
+      expect(outcome.codesStreamed).toBe(1);
+      expect(outcome.source).toBe('NLM');
+      expect(outcome.failure).toBeDefined();
+
+      warnSpy.mockRestore();
     });
 
-    const received: string[] = [];
-    await service.streamIcdCodes(async (batch) => {
-      batch.forEach((c) => received.push(c.code));
+    it('reports an incomplete stream when the upstream is already cooling down', async () => {
+      const warnSpy = jest
+        .spyOn(Logger.prototype, 'warn')
+        .mockImplementation(() => undefined);
+      // Fail the very first lookup so the cooldown arms before any streaming.
+      fetchMock.mockRejectedValue(new TypeError('fetch failed'));
+      await service.searchCptCodes('office');
+
+      const outcome = await service.streamCptCodes(async () => {});
+
+      expect(outcome.completed).toBe(false);
+      expect(outcome.codesStreamed).toBe(0);
+      expect(outcome.unitsSkipped).toBeGreaterThan(0);
+      expect(outcome.failure).toContain('unavailable');
+
+      warnSpy.mockRestore();
     });
 
-    expect(received).toEqual(['A00']);
-    expect(global.fetch).toHaveBeenCalledTimes(2);
-    expect(warnSpy).toHaveBeenCalledTimes(1);
+    it('reports a complete stream when every prefix is exhausted', async () => {
+      fetchMock.mockImplementation((url: Parameters<typeof fetch>[0]) => {
+        const parsed = new URL(String(url));
+        const terms = parsed.searchParams.get('terms');
+        if (terms === 'A')
+          return Promise.resolve(
+            jsonResponse([1, ['A00'], null, [['A00', 'Alpha condition']]]),
+          );
+        return Promise.resolve(jsonResponse([0, [], null, []]));
+      });
 
-    warnSpy.mockRestore();
+      const outcome = await service.streamIcdCodes(async () => {});
+
+      expect(outcome.completed).toBe(true);
+      expect(outcome.unitsSkipped).toBe(0);
+      expect(outcome.codesStreamed).toBe(1);
+      expect(outcome.failure).toBeUndefined();
+    });
+
+    it('reports an incomplete stream when a prefix hits the sync ceiling', async () => {
+      // A full page with no reported total never trips the "end of prefix"
+      // checks, so the run stops at the offset ceiling instead. That is a
+      // truncated prefix, not a finished one.
+      const fullPage = (offset: number): Response =>
+        jsonResponse([
+          0,
+          Array.from({ length: 500 }, (_, i) => `A${String(offset + i)}`),
+          null,
+          Array.from({ length: 500 }, (_, i) => [
+            `A${String(offset + i)}`,
+            `Condition ${offset + i}`,
+          ]),
+        ]);
+
+      let served = 0;
+      fetchMock.mockImplementation((url: Parameters<typeof fetch>[0]) => {
+        const parsed = new URL(String(url));
+        const terms = parsed.searchParams.get('terms');
+        const offset = Number(parsed.searchParams.get('offset'));
+        if (terms !== 'A')
+          return Promise.resolve(jsonResponse([0, [], null, []]));
+        served += 1;
+        return Promise.resolve(fullPage(offset));
+      });
+
+      const outcome = await service.streamIcdCodes(async () => {});
+
+      expect(served).toBe(15); // 7500 rows / 500 per page
+      expect(outcome.completed).toBe(false);
+      expect(outcome.codesStreamed).toBe(7500);
+      expect(outcome.unitsSkipped).toBeGreaterThan(0);
+      expect(outcome.failure).toContain('ceiling');
+    });
   });
 
   it('streams CPT/HCPCS sync data from API', async () => {

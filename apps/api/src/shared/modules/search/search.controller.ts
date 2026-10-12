@@ -14,13 +14,10 @@ import {
 } from '@nestjs/swagger';
 import { SearchService, SearchEntityType } from './search.service';
 import { parseStringEnumMember } from '@workspace/utils';
+import { searchEntityTypeSchema } from '@workspace/types';
 
-const SEARCH_ENTITY_TYPES: SearchEntityType[] = [
-  'patient',
-  'appointment',
-  'prescription',
-  'all',
-];
+const SEARCH_ENTITY_TYPES: readonly SearchEntityType[] =
+  searchEntityTypeSchema.options;
 
 function parseSearchEntityTypes(types: string | undefined): SearchEntityType[] {
   if (!types?.trim()) {

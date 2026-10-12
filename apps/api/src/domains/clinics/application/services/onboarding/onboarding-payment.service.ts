@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   PAYMENT_GATEWAY_TOKEN,
@@ -40,6 +45,18 @@ export class OnboardingPaymentService {
         'Selected plan does not support direct checkout',
       );
 
+    // Fail before the order exists, not after. Returning
+    // `getRazorpayKeyId() || ''` produced a checkout the SPA handed to
+    // Razorpay with an empty key: a modal that can never complete, behind an
+    // order the API had already created. `onboardingCheckoutResponseSchema`
+    // requires a non-empty key, so this is the only way the response can
+    // satisfy its own contract.
+    const razorpayKeyId = this.configService.getRazorpayKeyId();
+    if (!razorpayKeyId)
+      throw new ServiceUnavailableException(
+        'Payments are not configured for this environment',
+      );
+
     const order = await this.paymentGateway.createOrder({
       amountCents,
       currency: data.currency || this.configService.getCurrencyCode(),
@@ -60,7 +77,7 @@ export class OnboardingPaymentService {
       orderId: order.razorpayOrderId,
       amountCents: order.amountCents,
       currency: order.currency,
-      razorpayKeyId: this.configService.getRazorpayKeyId() || '',
+      razorpayKeyId,
     };
   }
 }

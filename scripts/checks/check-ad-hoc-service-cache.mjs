@@ -4,6 +4,8 @@ import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import process from "node:process";
 
+import { trackedFileExists } from "../lib/check-runner.mjs";
+
 const enforce = process.argv.includes("--enforce");
 
 /** In-memory session stores allowed until replaced with CacheService / Redis. */
@@ -19,6 +21,7 @@ const files = execSync(
 )
   .split("\n")
   .filter(Boolean)
+  .filter(trackedFileExists)
   .filter((file) => !/\.(spec|test)\.[tj]sx?$/.test(file))
   .filter((file) => !file.endsWith(".registry.ts"));
 

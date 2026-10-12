@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Routes, Route, Navigate, Outlet } from "react-router";
 import { RootLayout } from "./components/layout/root-layout";
 import { ProtectedLayout } from "./components/layout/protected-layout";
@@ -26,9 +27,7 @@ const SystemMonitoringPage = lazy(() => import("./features/system-monitoring/pag
 
 function PageLoader() {
   return (
-    <div className="flex h-full items-center justify-center py-20">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-    </div>
+    <DataState status="loading" loadingMessage="Loading…" className="min-h-[50vh]" />
   );
 }
 

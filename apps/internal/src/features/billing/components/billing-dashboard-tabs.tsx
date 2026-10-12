@@ -31,7 +31,7 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
       <TabsContent value="subscriptions" className="space-y-4">
         <div className="flex flex-wrap gap-4">
           <Select value={tierFilter} onValueChange={onTierFilterChange}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Tier" /></SelectTrigger>
+            <SelectTrigger aria-label="Access tier" className="w-full sm:w-40"><SelectValue placeholder="Tier" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Tiers</SelectItem>
               <SelectItem value="STARTER">Starter</SelectItem>
@@ -42,7 +42,7 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-            <SelectTrigger className="w-48"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger aria-label="Subscription status" className="w-full sm:w-48"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="ACTIVE">Active</SelectItem>
@@ -54,7 +54,7 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
             </SelectContent>
           </Select>
           <Select value={billingCycleFilter} onValueChange={onBillingCycleFilterChange}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Billing Cycle" /></SelectTrigger>
+            <SelectTrigger aria-label="Billing cycle" className="w-full sm:w-40"><SelectValue placeholder="Billing Cycle" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Cycles</SelectItem>
               <SelectItem value="MONTHLY">Monthly</SelectItem>
@@ -82,8 +82,8 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
                 <TableCell>{sub.clinic.referralCreditsMonths > 0 && <Badge variant="outline" className="text-success">{sub.clinic.referralCreditsMonths}m free</Badge>}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => { onSendReminder(sub); }} disabled={sending}><Mail className="h-4 w-4" /></Button>
-                    {sub.status === "GRACE_PERIOD" && <Button size="sm" variant="ghost" onClick={() => { onExtendGracePeriod(sub); }}><CalendarPlus className="h-4 w-4" /></Button>}
+                    <Button size="sm" variant="ghost" aria-label={`Send reminder: ${sub.clinic.name}`} onClick={() => { onSendReminder(sub); }} disabled={sending}><Mail className="h-4 w-4" /></Button>
+                    {sub.status === "GRACE_PERIOD" && <Button size="sm" variant="ghost" aria-label={`Extend grace period: ${sub.clinic.name}`} onClick={() => { onExtendGracePeriod(sub); }}><CalendarPlus className="h-4 w-4" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>

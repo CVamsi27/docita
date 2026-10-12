@@ -215,6 +215,20 @@ export type PartnerOtpVerifyResponse = z.infer<
   typeof partnerOtpVerifyResponseSchema
 >;
 
+/**
+ * Response from `POST /partner/auth/refresh`. The rotated refresh token is
+ * written to the httpOnly cookie by the handler; only the new access token
+ * travels in the body. No `referrer` here — a refresh must not re-send
+ * referrer metadata the client already holds.
+ */
+export const partnerTokenRefreshResponseSchema = z.object({
+  accessToken: z.string().min(1),
+  expiresIn: z.number().int().positive(),
+});
+export type PartnerTokenRefreshResponse = z.infer<
+  typeof partnerTokenRefreshResponseSchema
+>;
+
 /** Apply a referral code from clinic onboarding or settings. */
 export const applyReferralCodeRequestSchema = z.object({
   code: z.string().min(3).max(40),

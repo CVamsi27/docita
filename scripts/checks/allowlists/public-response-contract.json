@@ -1,0 +1,54 @@
+[
+  {
+    "file": "apps/api/src/domains/abdm/presentation/controllers/abdm.controller.ts",
+    "reason": "ABDM gateway push/pull. Responses are acknowledgements shaped by the national ABDM spec rather than by a Docita projection. Wrap when the gateway contract is modelled."
+  },
+  {
+    "file": "apps/api/src/domains/billing/presentation/controllers/webhooks.controller.ts",
+    "reason": "Razorpay webhook. The response is an acknowledgement consumed by Razorpay, and the handler returns a fixed literal. Next in line to be wrapped."
+  },
+  {
+    "file": "apps/api/src/domains/subscriptions/presentation/controllers/subscriptions-webhook.controller.ts",
+    "reason": "Razorpay webhook. The response is an acknowledgement consumed by Razorpay, and the handler returns a fixed literal."
+  },
+  {
+    "file": "apps/api/src/domains/subscriptions/presentation/controllers/subscriptions.controller.ts",
+    "reason": "Public pricing configuration read before sign-up. Static configuration with no patient or tenant data."
+  },
+  {
+    "file": "apps/api/src/domains/whatsapp/presentation/controllers/whatsapp-webhook.controller.ts",
+    "reason": "WhatsApp provider webhook and verification handshake. Responses are provider acknowledgements, and the verification route echoes a provider challenge token."
+  },
+  {
+    "file": "apps/api/src/shared/common/controllers/health-check.controller.ts",
+    "reason": "Operational liveness/readiness/metrics probes consumed by infrastructure, not by the app. No user data; the metrics route is consumed by the monitoring stack."
+  },
+  {
+    "file": "apps/api/src/shared/modules/auth/auth/auth-password.controller.ts",
+    "reason": "Forgot/reset password. Returns a fixed acknowledgement literal with no user data."
+  },
+  {
+    "file": "apps/api/src/shared/modules/auth/auth/auth-verification.controller.ts",
+    "reason": "Email verification. Returns a fixed acknowledgement literal with no user data."
+  },
+  {
+    "file": "apps/api/src/shared/modules/feature-flags/feature-flags.controller.ts",
+    "reason": "Public feature-flag health probe used by the marketing site to decide whether to show the waitlist."
+  },
+  {
+    "file": "apps/api/src/shared/modules/messaging/email/zeptomail-webhook.controller.ts",
+    "reason": "Zeptomail delivery webhook. The response is an acknowledgement consumed by the provider."
+  },
+  {
+    "file": "apps/api/src/shared/modules/public/public-daily-thought.controller.ts",
+    "reason": "Public marketing content rendered on the dashboard login screen. Static authored text, no tenant data."
+  },
+  {
+    "file": "apps/api/src/shared/modules/public/public-patient-documents.controller.ts",
+    "reason": "Public prescription/invoice PDFs and a payment lookup addressed by share token. Responses are StreamableFile buffers, which SafeZodSerializerInterceptor deliberately passes through untouched, so a response schema would never apply here."
+  },
+  {
+    "file": "apps/api/src/shared/modules/public/public-stats.controller.ts",
+    "reason": "Public clinic-count statistics for the marketing site. Aggregate counts only, no patient or tenant data."
+  }
+]

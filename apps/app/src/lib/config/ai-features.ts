@@ -2,8 +2,9 @@ import { Feature } from "@workspace/types";
 
 /**
  * Master client-side AI switch. OFF by default — mirrors the backend kill-switch
- * (`AI_EXTERNAL_ENABLED`). While off, every AI surface is hidden in the UI so
- * users never see an AI affordance that the API would refuse. Re-enable by
+ * (`AI_EXTERNAL_ENABLED`). While off, processing features are hidden. The
+ * informational Ask AI preview remains available and sends no patient data.
+ * Re-enable processing by
  * setting `VITE_AI_ENABLED=true` (and the backend flag) once AI
  * processing is disclosed in the consent notice.
  */

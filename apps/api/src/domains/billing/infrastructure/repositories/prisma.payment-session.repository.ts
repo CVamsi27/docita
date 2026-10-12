@@ -8,7 +8,7 @@ import {
   IPaymentSessionRepository,
   PaymentSessionDetail,
 } from '@/domains/billing/core/repositories/payment-session.repository';
-import { PaymentSession, Prisma } from '@workspace/db';
+import { PaymentSession, PaymentSessionStatus, Prisma } from '@workspace/db';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import {
   PAYMENT_SESSION_DETAIL_INCLUDE,
@@ -106,6 +106,52 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
       throw new Error(`Payment session ${id} not found`);
     }
     return this.mapSession(refreshed);
+  }
+
+  async tryMarkCaptured(
+    id: string,
+    clinicId: string,
+    data: Prisma.PaymentSessionUpdateInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<boolean> {
+    const client = tx ?? this.prisma;
+    const result = await client.paymentSession.updateMany({
+      where: {
+        id,
+        clinicId,
+        providerPaymentId: null,
+        status: {
+          notIn: [PaymentSessionStatus.CAPTURED, PaymentSessionStatus.PAID],
+        },
+      },
+      data,
+    });
+    return result.count === 1;
+  }
+
+  async findReconciliationCandidates(
+    createdSince: Date,
+    take: number,
+  ): Promise<PaymentSessionDetail[]> {
+    const sessions = await this.getReadClient().paymentSession.findMany({
+      where: {
+        providerSessionId: { not: null },
+        providerPaymentId: null,
+        createdAt: { gte: createdSince },
+        status: {
+          notIn: [
+            PaymentSessionStatus.CAPTURED,
+            PaymentSessionStatus.PAID,
+            PaymentSessionStatus.CANCELLED,
+            PaymentSessionStatus.REFUNDED,
+          ],
+        },
+      },
+      include: PAYMENT_SESSION_DETAIL_INCLUDE,
+      orderBy: { createdAt: 'asc' },
+      take,
+    });
+    return sessions.map((session) => this.mapSessionDetail(session));
   }
 
   async delete(id: string, clinicId: string): Promise<void> {

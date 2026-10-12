@@ -1,5 +1,11 @@
 import type { ReactElement } from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InvoiceEditUI } from "./InvoiceEditUI";
 
@@ -52,13 +58,15 @@ vi.mock("react-i18next", () => ({
       params?: Record<string, string | number>,
     ): string => {
       const path = ns ? `${ns}.${key}` : key;
-      const resolved = path.split(".").reduce<unknown>(
-        (acc, part) =>
-          acc && typeof acc === "object"
-            ? (acc as Record<string, unknown>)[part]
-            : undefined,
-        invoiceMessages,
-      );
+      const resolved = path
+        .split(".")
+        .reduce<unknown>(
+          (acc, part) =>
+            acc && typeof acc === "object"
+              ? (acc as Record<string, unknown>)[part]
+              : undefined,
+          invoiceMessages,
+        );
       if (typeof resolved !== "string") return key;
       return resolved.replace(/\{name\}/g, String(params?.name ?? ""));
     };
@@ -79,6 +87,9 @@ const invoiceEditMocks = vi.hoisted(() => ({
   routerPush: vi.fn(),
   goBack: vi.fn(),
   isLoading: false,
+  isSaving: false,
+  error: null as Error | null,
+  refetch: vi.fn(),
   invoice: { id: "inv_1" } as { id: string } | null,
 }));
 
@@ -93,9 +104,8 @@ vi.mock("@/hooks/use-back-navigation", () => ({
 }));
 
 vi.mock("@/features/invoices/hooks/use-invoice-edit-logic", async () => {
-  const reactHookForm = await vi.importActual<typeof import("react-hook-form")>(
-    "react-hook-form",
-  );
+  const reactHookForm =
+    await vi.importActual<typeof import("react-hook-form")>("react-hook-form");
 
   return {
     useInvoiceEditLogic: () => {
@@ -137,6 +147,9 @@ vi.mock("@/features/invoices/hooks/use-invoice-edit-logic", async () => {
         onSubmit: invoiceEditMocks.onSubmit,
         invoice: invoiceEditMocks.invoice,
         isLoading: invoiceEditMocks.isLoading,
+        isSaving: invoiceEditMocks.isSaving,
+        error: invoiceEditMocks.error,
+        refetch: invoiceEditMocks.refetch,
         totalAmount,
         router: invoiceEditMocks.routerPush,
       };
@@ -150,7 +163,19 @@ describe("InvoiceEditUI", () => {
     invoiceEditMocks.routerPush.mockReset();
     invoiceEditMocks.goBack.mockReset();
     invoiceEditMocks.isLoading = false;
+    invoiceEditMocks.isSaving = false;
+    invoiceEditMocks.error = null;
+    invoiceEditMocks.refetch.mockClear();
     invoiceEditMocks.invoice = { id: "inv_1" };
+  });
+
+  it("prevents another update while the invoice save is pending", () => {
+    invoiceEditMocks.isSaving = true;
+    render(<InvoiceEditUI invoiceId="inv_1" />);
+    const update = screen.getByRole("button", { name: "Update Invoice" });
+    expect(update).toBeDisabled();
+    fireEvent.click(update);
+    expect(invoiceEditMocks.onSubmit).not.toHaveBeenCalled();
   });
 
   it("renders loading and not-found states", () => {
@@ -158,6 +183,9 @@ describe("InvoiceEditUI", () => {
     const { rerender } = render(<InvoiceEditUI invoiceId="inv_1" />);
 
     expect(screen.getByText("Loading invoice…")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Edit invoice" }),
+    ).toBeInTheDocument();
 
     invoiceEditMocks.isLoading = false;
     invoiceEditMocks.invoice = null;
@@ -168,13 +196,30 @@ describe("InvoiceEditUI", () => {
     expect(invoiceEditMocks.routerPush).toHaveBeenCalledWith("/invoices");
   });
 
+  it("retries a failed invoice read without presenting it as missing", () => {
+    invoiceEditMocks.error = new Error("unavailable");
+    invoiceEditMocks.invoice = null;
+    render(<InvoiceEditUI invoiceId="inv_1" />);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "We could not load this invoice",
+    );
+    expect(screen.queryByText("Invoice not found")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(invoiceEditMocks.refetch).toHaveBeenCalledTimes(1);
+  });
+
   it("edits invoice details, submits, and supports cancel", async () => {
     render(<InvoiceEditUI invoiceId="inv_1" />);
 
-    expect(screen.getByRole("heading", { name: "Edit invoice" })).toBeInTheDocument();
-    fireEvent.change(within(screen.getByRole("table")).getByDisplayValue("Procedure"), {
-      target: { value: "Dental procedure" },
-    });
+    expect(
+      screen.getByRole("heading", { name: "Edit invoice" }),
+    ).toBeInTheDocument();
+    fireEvent.change(
+      within(screen.getByRole("table")).getByDisplayValue("Procedure"),
+      {
+        target: { value: "Dental procedure" },
+      },
+    );
     fireEvent.change(screen.getByPlaceholderText("Notes"), {
       target: { value: "Updated payment instructions." },
     });

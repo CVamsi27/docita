@@ -16,7 +16,10 @@ import {
   ClinicTier,
   type EnterpriseContract,
 } from '@workspace/db';
-import { type UpsertEnterpriseContractRequest } from '@workspace/types';
+import {
+  type EnterpriseAdjustmentInvoiceRequest,
+  type UpsertEnterpriseContractRequest,
+} from '@workspace/types';
 import {
   EnterpriseContractsQueryService,
   type ContractWithMembers,
@@ -25,6 +28,10 @@ import { EnterpriseContractInvoiceCommandService } from './enterprise-contract-i
 import { EnterpriseContractTrueUpCommandService } from './enterprise-contract-true-up-command.service';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import {
+  activeMemberClinicIds,
+  buildMembershipSnapshot,
+} from './enterprise-contract-revision-history';
 
 /**
  * Handles enterprise-contract lifecycle mutations: upsert, status transitions,
@@ -263,12 +270,23 @@ export class EnterpriseContractsCommandService {
           where: { clinicId },
           data: this.buildEnterpriseSubscriptionOverrides(contract),
         });
+        // Snapshot the member set *including* the clinic just added, so the
+        // revision records the entitlement state that now applies.
+        const memberClinicIdsAfterAdd = await activeMemberClinicIds(
+          tx,
+          contractId,
+        );
         await tx.enterpriseContractRevision.create({
           data: {
             contractId,
             effectiveDate: this.clock.now(),
             changeSummary: `Added member clinic ${clinicId}`,
-            snapshot: {},
+            snapshot: buildMembershipSnapshot(
+              contract,
+              memberClinicIdsAfterAdd,
+              clinicId,
+              'ADDED',
+            ),
             createdById: actorUserId ?? null,
           },
         });
@@ -296,12 +314,23 @@ export class EnterpriseContractsCommandService {
         where: { clinicId },
         data: { removedAt: this.clock.now() },
       });
+      // Snapshot the member set *after* removal, so the revision records the
+      // entitlement state the remaining clinics now fall under.
+      const memberClinicIdsAfterRemoval = await activeMemberClinicIds(
+        this.persistence,
+        contractId,
+      );
       await this.persistence.enterpriseContractRevision.create({
         data: {
           contractId,
           effectiveDate: this.clock.now(),
           changeSummary: `Removed member clinic ${clinicId}`,
-          snapshot: {},
+          snapshot: buildMembershipSnapshot(
+            contract,
+            memberClinicIdsAfterRemoval,
+            clinicId,
+            'REMOVED',
+          ),
           createdById: actorUserId ?? null,
         },
       });
@@ -322,7 +351,7 @@ export class EnterpriseContractsCommandService {
 
   generateAdjustmentInvoice(
     contractId: string,
-    payload: { label: string; amountCents: number },
+    payload: EnterpriseAdjustmentInvoiceRequest,
   ) {
     return this.invoiceService.generateAdjustmentInvoice(contractId, payload);
   }

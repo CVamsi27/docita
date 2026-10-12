@@ -31,6 +31,9 @@ export async function runIntegrityChecks(
     checkDuplicateEmails(prisma),
     checkInvalidAppointmentTimes(prisma),
     checkSubscriptionsWithoutClinic(prisma),
+    checkSubscriptionQuotaDrift(prisma),
+    checkClinicTierMatchesSubscription(prisma),
+    checkClinicStatusMatchesSubscription(prisma),
     checkPatientsWithNullNames(prisma),
   ]);
 
@@ -237,6 +240,76 @@ async function checkSubscriptionsWithoutClinic(
       details: error instanceof Error ? error.message : String(error),
     };
   }
+}
+
+async function checkSubscriptionQuotaDrift(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  try {
+    const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*)::bigint AS count
+      FROM "Subscription" s
+      JOIN "TierPricing" tp ON tp.tier = s.plan
+      WHERE s."includedPatients" <> tp."includedPatients"
+         OR s."includedAppointments" <> tp."includedAppointments"
+         OR s."includedStorageGB" <> tp."includedStorageGB"
+         OR s."includedUsers" <> tp."includedUsers"
+    `;
+    const count = getQueryCount(rows);
+    return createCountCheck({
+      name: "Subscription Quotas Match Tier Catalog",
+      description:
+        "Every subscription carries the quota columns published by TierPricing for its plan",
+      count,
+      detail: `Found ${count} subscriptions with catalog-divergent quotas`,
+    });
+  } catch (error) {
+    return {
+      name: "Subscription Quotas Match Tier Catalog",
+      description:
+        "Every subscription carries the quota columns published by TierPricing for its plan",
+      passed: false,
+      details: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+async function checkClinicTierMatchesSubscription(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+    SELECT COUNT(*)::bigint AS count
+    FROM "Clinic" c
+    JOIN "Subscription" s ON s."clinicId" = c.id
+    WHERE c.tier <> s.plan
+  `;
+  const count = getQueryCount(rows);
+  return createCountCheck({
+    name: "Clinic Tier Matches Subscription",
+    description:
+      "Feature gating reads Clinic.tier while billing reads Subscription.plan; both must agree",
+    count,
+    detail: `Found ${count} clinics whose tier differs from their subscription plan`,
+  });
+}
+
+async function checkClinicStatusMatchesSubscription(
+  prisma: PrismaClient,
+): Promise<IntegrityCheck> {
+  const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+    SELECT COUNT(*)::bigint AS count
+    FROM "Clinic" c
+    JOIN "Subscription" s ON s."clinicId" = c.id
+    WHERE c."subscriptionStatus" <> s.status
+  `;
+  const count = getQueryCount(rows);
+  return createCountCheck({
+    name: "Clinic Status Matches Subscription",
+    description:
+      "Access guards read Clinic.subscriptionStatus, so it must mirror the subscription status",
+    count,
+    detail: `Found ${count} clinics whose status differs from their subscription status`,
+  });
 }
 
 async function checkPatientsWithNullNames(

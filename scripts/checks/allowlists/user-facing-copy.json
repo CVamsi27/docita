@@ -1,0 +1,6 @@
+[
+  {
+    "id": "legal",
+    "reason": "Consent/SLA/DPA documents in apps/app/src/features/legal are English-only legal text. They are deliberately not routed through react-i18next; ConsentNoticeModal ships its own inline en/hi language selector so a patient can read the notice in their language without the whole app locale switching. Counting these strings as migratable debt would push the team toward a half-translated legal document, which is worse than an English one."
+  }
+]

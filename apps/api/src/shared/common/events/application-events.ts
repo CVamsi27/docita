@@ -45,4 +45,11 @@ export enum ApplicationEvents {
   // listens to materialize the internal Docita-ops notification.
   FACILITY_LEAD_CREATED = 'facility-lead.created',
   FACILITY_LEAD_CONVERTED = 'facility-lead.converted',
+  /**
+   * Emitted once per saturation episode by PoolSaturationHistoryService when
+   * the connection pool has had callers queued beyond its threshold. Routed to
+   * OpsAlertListener; the same condition is always logged locally so the signal
+   * does not depend on a webhook being configured.
+   */
+  POOL_SATURATION_SUSTAINED = 'ops.pool-saturation.sustained',
 }

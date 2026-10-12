@@ -16,9 +16,11 @@ import { MetricsPersistenceService } from './services/metrics-persistence.servic
 import { MetricsRecordingService } from './services/metrics-recording.service';
 import { WebVitalsMetricsService } from './services/web-vitals-metrics.service';
 import { MetricsQueryService } from './services/metrics-query.service';
+import { BackgroundJobsHealthService } from './services/background-jobs-health.service';
 import { MetricsAggregationService } from './services/metrics-aggregation.service';
 import { HealthCheckService } from './services/health-check.service';
 import { OpsAlertService } from './services/ops-alert.service';
+import { TelemetryCaptureRecorder } from './services/telemetry-capture-recorder.service';
 import { OpsAlertListener } from './listeners/ops-alert.listener';
 import { BusinessMetricsService } from './services/business-metrics.service';
 import { API_REQUEST_METRICS_REPOSITORY_TOKEN } from './ports/api-request-metrics.repository.port';
@@ -38,10 +40,12 @@ const MONITORING_EXPORTED_SERVICES = [
   MetricsRecordingService,
   WebVitalsMetricsService,
   MetricsQueryService,
+  BackgroundJobsHealthService,
   MetricsAggregationService,
   MetricsService,
   HealthCheckService,
   OpsAlertService,
+  TelemetryCaptureRecorder,
 ] as const;
 
 @Global()

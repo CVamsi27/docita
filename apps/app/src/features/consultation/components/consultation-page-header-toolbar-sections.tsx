@@ -36,7 +36,6 @@ export function ConsultationToolbarPrimaryActions({
             size="sm"
             className="hidden sm:inline-flex gap-1.5 h-8"
             onClick={onOpenVitals}
-            aria-label="Record vital signs"
           >
             <HeartPulse
               className="h-3.5 w-3.5 text-destructive"
@@ -225,11 +224,11 @@ export function ConsultationToolbarMarkDoneAction({
             size="sm"
             onClick={onMarkDone}
             disabled={isMarkingDone || !canMarkDone}
-            className="gap-1.5 h-8"
+            className="gap-1.5 h-8 font-semibold shadow-xs"
             aria-label={isMarkingDone ? "Marking consultation done" : "Mark consultation done"}
           >
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="hidden sm:inline">
+            <span className="inline">
               {isMarkingDone ? "Marking…" : "Mark done"}
             </span>
           </Button>

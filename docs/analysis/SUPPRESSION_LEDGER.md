@@ -35,6 +35,9 @@ grep -rE "eslint-disable(-next-line)?" \
 
 # 5. Allowlists under scripts/checks/allowlists/
 ls -la scripts/checks/allowlists/
+
+# 6. §1/§5 counts must match disk (enforced gate)
+pnpm check:suppression-ledger
 ```
 
 ---
@@ -48,12 +51,16 @@ ls -la scripts/checks/allowlists/
 | `check:frontend-fetch`          |         ~12   |         ~6 |          0 |          6 | Worker proxy `api/index.ts` + intentional `.api.ts` boundary     |
 | `.jscpd.json` ignore list       |        **23** |         23 |          0 |         — | Production source paths; one entry per file or pattern (52 raw incl. test/e2e patterns). RUM reporters consolidated out (−4); boilerplate (sentry/logger/error-reporter) promotion to `@workspace/utils` removed −6 (48 → 42, 2026-08-05 P5.4e); P5.4a sibling-dialog extraction removed −3 (42 → 39, 2026-08-05); P5.4b list/table extraction removed −4 (39 → 35, 2026-08-05); P5.4c sectioned-form extraction removed −4 (35 → 31, 2026-08-05); **P5.4d extraction batch removed −8 (31 → 23, 2026-08-05)** — shared `use-reset-password-translations` hook, shared `useAddDialogUrlSync` hook, shared `InvoiceDetailActionProps` type, `showUserFacingErrorToast` promoted to `@workspace/ui` (new `sonner` dep on the documented toast surface) — **≤25 target HIT** |
 | `check:jsx-literal-density`     |       **755** |        — |          — |         — | Baseline ratchet on the two Vite apps' `features/` (no allowlist). 872 baseline → **755 on 2026-08-05 (P5.7)** — the legal feature's three documents (privacy policy, SLA, DPA) moved into the `Legal` en/hi i18n namespace (English-only values; `fallbackLng: "en"`), −117 literals; **≤800 target HIT** |
-| `scripts/checks/allowlists/`    |         **6** |          5 |          0 |          1 | `zod-interface-parity.json` (5) + `i18n-coverage.json` (0 — **emptied P5.7**) + empty feature-test-density |
+| `scripts/checks/allowlists/`    |        **24** |          0 |          0 |        24 | 14 files under `scripts/checks/allowlists/`; per-file counts in §5. Drift from disk fails `check:suppression-ledger`. |
 | `eslint-disable*` in source     |         **1** |          1 |          0 |         — | 6 → 1 on 2026-08-05 (P5.6); only the documented ConsultationMainPanel perf-memo remains |
 | `@ts-ignore` / `@ts-expect-error` in source | 0 (target) | 0 | 0 | — | Replaced by type-safe narrowing or `// check-as-cast-density: allow-file` |
 
-**Total measurable suppressions: 145.** All are intentional, all have a rationale, all
-are owned by a specific check. No "blanket" suppressions (e.g. `eslint-disable file-level`
+Suppression counts are the per-row figures in the table above
+(`check:frontend-fetch` is tracked approximately with `~`, and
+`jsx-literal-density` is a baseline density ratchet rather than a
+suppression list, so no single total is asserted). Every entry is
+intentional, has a rationale, and is owned by a specific check. No
+"blanket" suppressions (e.g. `eslint-disable file-level`
 without a rule list) exist.
 
 ---
@@ -154,13 +161,24 @@ sentry/logger/error-reporter half already landed).
 
 ---
 
-## 5. `scripts/checks/allowlists/` — 7 entries
+## 5. `scripts/checks/allowlists/` — 14 files, 24 entries
 
 | File                                            | Entries | Notes                                                                                                  |
 | ----------------------------------------------- | ------: | ------------------------------------------------------------------------------------------------------ |
 | `allowlists/zod-interface-parity.json`          |       5 | Each entry: `{id, reason}`. **P5.5 DONE 2026-08-05**: 10 of 15 entries were stale (interface renamed/de-exported or schema moved — the check no longer flags them; the porting renamed the draft-item/form shapes organically). Pruned to the 5 still-exported colliding shapes (form-local divergence ×4 + name-collision-only ×1). Plan §P4.3.    |
-| `allowlists/i18n-coverage.json`                 |       0 | **Emptied 2026-08-05 (P5.7)**: the `legal` feature now routes its three documents (privacy policy, SLA, DPA) through react-i18next via `useTranslation("Legal")`. The `legal` namespace keeps identical English-only values in both en/hi — i18next `fallbackLng: "en"` preserves the documented English-only legal-text design; only the transport changed.         |
+| `allowlists/i18n-coverage.json` | 1 | The `upgrade` compatibility feature only redirects to the canonical translated Plan & Billing workflow and renders no user-facing copy (2026-10-12). Remove the exception if it gains UI text. The earlier legal-feature exception remains retired. |
 | `allowlists/feature-test-density-zero.json`     |       0 | **Emptied 2026-08-03** (28 stale + 2 missing-dir entries deleted). Ratchet is now strict.              |
+| `allowlists/enum-map-drift.json`                 |       2 | Each entry: `{file, map, key, reason}` — an `UPPER_SNAKE` key in a display map that matches no Prisma enum member. **Logged 2026-10-07** (file added 2026-10-06 with `check:enum-map-drift --enforce` in `verify:standard`). Both entries are permanent-by-design, not time-boxed debt, so there is no close date: (1) `map-portal-status.ts` `appointmentStatusByInput.CHECKED_IN` — normalizing map, not an enum table: the wire sends lowercase-kebab (`checked-in` per `appointmentStatusSchema`) and `mapAppointmentStatus` uppercases/de-kebabs before lookup, so `CHECKED_IN` is the normalized form of a real wire value; (2) `system-monitoring-page.tsx` `COVERAGE_LABEL.COMPLETE` — telemetry coverage is computed and reported, never persisted, so no Prisma enum can hold `COMPLETE`/`GAPS_RECORDED`/`UNAVAILABLE`; the map is annotated over the `TelemetryCoverage` union from `packages/types`, which is the check's own recommended fix (a key drifting from the wire union becomes a compile error). Review convention: refresh step 5 (`ls -la scripts/checks/allowlists/`) plus re-review when either owning map changes. |
+| `allowlists/feature-test-density-zero-internal.json` | 0 | Empty (0 entries) — internal-scope companion zero list for `check:feature-test-density`; no current exceptions. |
+| `allowlists/inline-response-dto.json`               | 0 | Empty (0 entries) — `check:inline-response-dto` ratchet (response DTOs wrap a shared contract); no current exceptions. |
+| `allowlists/internal-only-client-call.json`         | 0 | Empty (0 entries) — `check:internal-only-client-call` ratchet (clinician app must not call INTERNAL-only endpoints); no current exceptions. |
+| `allowlists/placeholder-clinic-scope.json`          | 0 | Empty (0 entries) — `check:placeholder-clinic-scope` ratchet; no current exceptions. |
+| `allowlists/public-response-contract.json`          |      13 | 13 × `{file, reason}` — controller responses shaped by external specs (e.g. ABDM gateway acknowledgements) rather than a Docita projection; per-file reasons in the allowlist. |
+| `allowlists/public-token-leak.json`                 | 0 | Empty (0 entries) — `check:public-token-leak` ratchet; no current exceptions. |
+| `allowlists/script-name-refs.json`                  |       2 | 2 × `{file, script, reason}` — deliberately-quoted non-existent scripts (e.g. RUNBOOKS.md RB-06 `export:tenant`, marked NOT EXECUTABLE pending ADR-0016). |
+| `allowlists/test-schema-duplication.json`           | 0 | Empty (0 entries) — `check:test-schema-duplication` ratchet; no current exceptions. |
+| `allowlists/unserved-endpoint.json`                 | 0 | Empty (0 entries) — `check:unserved-endpoint` ratchet; no current exceptions. |
+| `allowlists/user-facing-copy.json`                  |       1 | 1 × `{id, reason}` — the English-only legal documents (Consent/SLA/DPA) deliberately not routed through react-i18next. |
 | `scripts/checks/check-client-storage-usage.mjs` `ALLOWLIST` | 30 (2026-08-05; 35 → 30) | **P5.20 DONE 2026-08-05**: the 2 web-vitals entries removed (the reporters now use a module-level in-memory `rum_session_id` singleton instead of `sessionStorage`); 2 stale entries removed (`internal client-error-reporter.ts` — never used storage; `internal-filters-store.ts` — file no longer exists). `pnpm check:client-storage-usage` exit 0 at exactly the ≤ 30 target. |
 
 **Refactor target (P5.5)**: 15 → **≤8** — **DONE 2026-08-05 (15 → 5)**. An audit
@@ -258,3 +276,4 @@ marker exists and is non-empty. Suppressions without a marker fail the gate.
 | 2026-08-07 | **ABAC C5 (intentional mirror pair, inline `jscpd:ignore-start/end`)**: `audit-log.policy.ts` mirrors the invoice/lab-order policy posture scaffold (imports + decision ordering) by design (C5, ADR-0013 — same precedent as C2→C3→C4; a parameterized shared core would hide the decision ordering behind flags for 2 files). The resolver (`audit-log-resource.resolver.ts`) is scope-based and intentionally does NOT mirror the Prisma-lookup resolvers. The new files carry the inline marker + rationale comment; .jscpd.json ignore count unchanged (23). | ABAC C5 slice |
 | 2026-08-07 | **ABAC registries (intentional mirror pair, inline `jscpd:ignore-start/end`)**: `abac-policy.registry.ts` ↔ `policy-resource-resolver.ts` share the constructor+map scaffold by design (ABAC, ADR-0013 — both registries MUST stay in lockstep with the same resource keys; a parameterized shared registry would hide the key sync behind indirection). The pair crossed the jscpd threshold when the C5 `audit-log` entries were added to both; both files now carry the inline marker + rationale comment; .jscpd.json ignore count unchanged (23). | ABAC C5 slice (final gate) |
 | target 2026-08-12 | P5.2: drive as-cast 74 → ≤40 — **DONE (80 → 40)**; P5.4: drive jscpd 45 → ≤25 — **DONE (48 → 23)**; P5.5: drive zod-parity 15 → ≤8 — **DONE (15 → 5)**; P5.7: drive jsx-literal 872 → ≤800 — **DONE (872 → 755)**. | P5 sweep |
+| 2026-10-07 | **enum-map-drift allowlist logged** (§5): `scripts/checks/allowlists/enum-map-drift.json` — 2 entries: `CHECKED_IN` (`map-portal-status.ts`, normalizing-map rationale) + `COVERAGE_LABEL` (`system-monitoring-page.tsx`, computed-not-persisted coverage labels annotated over the `TelemetryCoverage` union). Both permanent-by-design (no close date); in-file `reason` strings carry the one-line rationale. Gate: `pnpm check:enum-map-drift` exit 0. | ui-ux-sweep branch |

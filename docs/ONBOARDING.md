@@ -8,7 +8,7 @@ This is the shortest supported path from a clean clone to local development.
 
 ## Prerequisites
 
-- Node.js `>=22.12.0`
+- Node.js `>=22.22.0`
 - `pnpm@10.30.3`
 - Local Postgres and Redis, or the team-approved dev containers
 - Environment files copied from each `.env.example`

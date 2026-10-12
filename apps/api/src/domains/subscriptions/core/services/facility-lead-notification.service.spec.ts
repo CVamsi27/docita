@@ -59,17 +59,14 @@ describe('FacilityLeadNotificationService', () => {
     expect(typeof arg.create.deliveredAt).not.toBe('undefined');
   });
 
-  it('records FAILED + error without rethrowing when the lead load fails', async () => {
+  it('records FAILED and rejects so the outbox can retry a failed lead load', async () => {
     ctx.facilityLead.findUnique.mockRejectedValue(
       new Error('connection refused'),
     );
     ctx.facilityLeadNotification.upsert.mockResolvedValue({ id: 'n1' });
 
-    // Best-effort listener: the outbox relay does not await async listeners,
-    // so a rejection here would be an unhandled promise. The FAILED row is
-    // the operator-visible delivery state.
-    await expect(service().onLeadCreated({ leadId: 'l1' })).resolves.toBe(
-      undefined,
+    await expect(service().onLeadCreated({ leadId: 'l1' })).rejects.toThrow(
+      'connection refused',
     );
 
     const arg = ctx.facilityLeadNotification.upsert.mock.calls[0]?.[0] as {
