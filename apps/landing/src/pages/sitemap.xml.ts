@@ -5,6 +5,8 @@ import { seoLandingPages } from "@/lib/seo-pages";
 const BASE_URL = "https://docita.work";
 
 const routes = [
+  { path: "/product", lastmod: "2026-10-13", priority: "0.9", changefreq: "monthly" },
+  { path: "/pricing", lastmod: "2026-10-13", priority: "0.9", changefreq: "monthly" },
   { path: "", lastmod: new Date().toISOString().split("T")[0], priority: "1.0", changefreq: "weekly" },
   { path: "/contact", lastmod: new Date().toISOString().split("T")[0], priority: "0.8", changefreq: "monthly" },
   { path: "/trust", lastmod: "2026-06-11", priority: "0.7", changefreq: "monthly" },

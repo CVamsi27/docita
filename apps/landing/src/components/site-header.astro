@@ -1,67 +1,21 @@
 ---
+import { HeaderActions } from "@/components/header-actions";
 import { DocitaWordmark } from "@workspace/ui/components/indicators/docita-logo";
 import ThemeToggle from "@/components/theme-toggle.astro";
-
 import { getAppBaseUrl } from "@/lib/get-app-base-url";
-
 const appUrl = getAppBaseUrl();
 ---
-
-<header
-  class="landing-site-header landing-site-header-surface fixed inset-x-0 top-0 z-[60] border-b-2 border-b-primary/12 bg-background/95 backdrop-blur-md"
-  style="padding-top: env(safe-area-inset-top, 0px);"
->
-  <div class="px-4 sm:px-6">
-    <div class="landing-site-header-inner ui-page-shell flex h-16 items-center">
-      <div class="landing-site-header-brand flex flex-1 items-center">
-        <a href="/" class="inline-flex items-center" aria-label="Docita home">
-          <DocitaWordmark className="h-9 w-auto max-w-[8.5rem] sm:h-10 sm:max-w-[11rem]" />
-        </a>
-      </div>
-
-      <nav class="landing-site-nav landing-site-nav--desktop hidden flex-none items-center justify-center gap-1 rounded-[var(--radius)] border border-border/70 bg-card p-1 text-xs font-semibold uppercase tracking-normal shadow-sm xl:flex" aria-label="Primary navigation">
-        <a href="/#surface-map" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Surfaces</a>
-        <a href="/#product-screenshots" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Inside</a>
-        <a href="/#clinic-types" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Who it is for</a>
-        <a href="/#rhythm" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rhythm</a>
-        <a href="/#rollout" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rollout</a>
-        <a href="/#pricing" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Pricing</a>
-        <a href="/trust" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Trust</a>
-        <a href="/contact" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Contact</a>
-      </nav>
-
-      <div class="landing-site-header-actions flex flex-1 items-center justify-end gap-1.5 sm:gap-2">
-        <ThemeToggle />
-        <a
-          href={`${appUrl}/login`}
-          class="hidden rounded-[var(--radius)] px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:inline-flex"
-        >
-          Log In
-        </a>
-        <a
-          href={`${appUrl}/onboarding`}
-          aria-label="Start clinic setup"
-          class="cta-ring inline-flex h-9 items-center justify-center rounded-[var(--radius)] bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-md transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:h-10 sm:px-4 sm:text-sm"
-        >
-          <span class="sm:hidden">Setup</span>
-          <span class="hidden sm:inline">Start setup</span>
-        </a>
-      </div>
-    </div>
-
-    <nav
-      class="landing-site-nav landing-site-nav--mobile ui-page-shell flex gap-1 overflow-x-auto overscroll-x-contain border-t border-border/50 px-4 pb-2 pt-2 [scrollbar-width:thin] xl:hidden"
-      aria-label="Section links"
-      data-scroll="start"
-    >
-      <a href="/#surface-map" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Surfaces</a>
-      <a href="/#product-screenshots" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Inside</a>
-      <a href="/#clinic-types" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">For you</a>
-      <a href="/#rhythm" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rhythm</a>
-      <a href="/#rollout" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rollout</a>
-      <a href="/#pricing" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Pricing</a>
-      <a href="/trust" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Trust</a>
-      <a href="/contact" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Contact</a>
+<header class="editorial-site-header">
+  <div class="ui-page-shell editorial-header-inner">
+    <a href="/" aria-label="Docita home"><DocitaWordmark className="h-9 w-auto" /></a>
+    <nav aria-label="Primary navigation" class="editorial-nav">
+      <a href="/product">Product</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/trust">Trust</a>
     </nav>
+    <div class="editorial-header-actions">
+      <ThemeToggle />
+      <HeaderActions appUrl={appUrl} />
+    </div>
   </div>
 </header>

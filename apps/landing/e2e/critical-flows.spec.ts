@@ -17,14 +17,14 @@ test("homepage renders primary CTA", async ({ page }) => {
   await page.goto("/");
   await expect(
     page.getByRole("heading", {
-      name: "One rhythm for your whole OPD floor. Queue, chart, bill, follow up—without the shuffle.",
+      name: "A calmer clinic day.",
     }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Start clinic setup" }).first(),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Book guided demo" }).first(),
+    page.getByRole("link", { name: "Book a demo" }).first(),
   ).toBeVisible();
 });
 
@@ -163,4 +163,115 @@ test("contact inquiry form handles failure and reset after success", async ({
 
   await page.getByRole("button", { name: "Send another message" }).click();
   await expect(page.getByLabel("Full Name *")).toHaveValue("");
+});
+
+test("homepage links to product and pricing while retaining setup and demo destinations", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+  await expect(
+    page.getByRole("heading", { name: "Check in", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Consult", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Close the visit", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Illustrative demo workspace · Sample data"),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Start clinic setup", exact: true }).last(),
+  ).toHaveAttribute("href", /\/onboarding$/);
+  await expect(
+    page.getByRole("link", { name: "Book a demo", exact: true }).first(),
+  ).toHaveAttribute("href", "/contact");
+  await page
+    .getByRole("link", { name: "Book a demo", exact: true })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/contact$/);
+  await expect(
+    page.getByRole("heading", { name: "Contact us", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Primary navigation" })
+    .getByRole("link", { name: "Product", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/product$/);
+  await expect(page.locator("#product-screenshots")).toBeAttached();
+  await page
+    .getByRole("navigation", { name: "Primary navigation" })
+    .getByRole("link", { name: "Pricing", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/pricing$/);
+  await expect(
+    page.getByRole("heading", { name: /Plans for every practice size/ }),
+  ).toBeVisible();
+});
+
+test("homepage respects a saved dark theme and reflows at phone width", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.evaluate(() => localStorage.setItem("docita-theme", "dark"));
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "A calmer clinic day.",
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.getByRole("button", { name: "Switch to light mode" }).click();
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+  await page.reload();
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+});
+
+test("homepage content and destinations work without JavaScript", async ({
+  browser,
+  baseURL,
+}) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto(new URL("/", baseURL ?? "http://127.0.0.1:3003").toString());
+  await expect(
+    page.getByRole("heading", { name: "A calmer clinic day." }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "View pricing" }).click();
+  await expect(page).toHaveURL(/\/pricing$/);
+  await expect(
+    page.getByRole("heading", { name: /Plans for every practice size/ }),
+  ).toBeVisible();
+  await context.close();
+});
+
+test("former homepage bookmarks still reach the detailed product section", async ({
+  page,
+}) => {
+  await page.goto("/#product-screenshots");
+  await expect(page).toHaveURL(/\/product#product-screenshots$/);
+  await expect(page.locator("#product-screenshots")).toBeVisible();
+});
+
+test("homepage theme toggle remains usable when browser storage is unavailable", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "localStorage", {
+      get() {
+        throw new DOMException("Storage unavailable", "SecurityError");
+      },
+    });
+  });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await page.getByRole("button", { name: "Switch to dark mode" }).click();
+  await expect(page.locator("html")).toHaveClass(/dark/);
 });

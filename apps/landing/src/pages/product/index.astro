@@ -1,0 +1,94 @@
+---
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import MainLayout from "@/layouts/main-layout.astro";
+import { ClinicRhythmSection } from "@/components/sections/clinic-rhythm-section";
+import { ClinicTypesSection } from "@/components/sections/clinic-types-section";
+import { ComparisonStripSection } from "@/components/sections/comparison-strip-section";
+import { DifferentiatorsSection } from "@/components/sections/differentiators-section";
+import { FaqCtaSection } from "@/components/sections/faq-cta-section";
+import { ProductScreenshotsSection } from "@/components/sections/product-screenshots-section";
+import { ProofStripSection } from "@/components/sections/proof-strip-section";
+import { RolloutSection } from "@/components/sections/rollout-section";
+import { SurfaceMapSection } from "@/components/sections/surface-map-section";
+import { WorkflowCompareSection } from "@/components/sections/workflow-compare-section";
+import { getAppBaseUrl } from "@/lib/get-app-base-url";
+import { PLATFORM_STATS } from "@/lib/landing-data";
+import { buildFaqPageStructuredData } from "@/lib/faqs";
+
+const appUrl = getAppBaseUrl();
+const siteUrl = "https://docita.work";
+const faqStructuredData = buildFaqPageStructuredData(`${siteUrl}/product`);
+
+const imageModules = import.meta.glob<{
+  default: { src: string; width: number; height: number; format: string };
+}>("@/assets/product/*.png", { eager: true });
+
+const shots = [
+  {
+    id: "today",
+    image: imageModules["/src/assets/product/today.png"].default,
+    alt: "Today workspace with OPD queue, in-room patient, and right-rail advisor cards.",
+    eyebrow: "Today",
+    title: "Your day, one screen.",
+    description:
+      "Today's queue, in-room patient, waiting count, and advisor cards in a single view. Doctor's morning landing page.",
+  },
+  {
+    id: "consultation",
+    image: imageModules["/src/assets/product/consultation.png"].default,
+    alt: "Consultation workspace showing scheduled patients, an active visit and completed consultations.",
+    eyebrow: "Consultation",
+    title: "Keep the next visit in view.",
+    description:
+      "See scheduled and active visits, continue the current consultation and review completed consultations.",
+  },
+  {
+    id: "prescription",
+    image: imageModules["/src/assets/product/prescription.png"].default,
+    alt: "Digital prescription document with medication details, instructions and clinician signature.",
+    eyebrow: "Prescription",
+    title: "A clear prescription to share.",
+    description:
+      "Medication details, patient instructions and clinician identity come together in a shareable prescription document.",
+  },
+  {
+    id: "appointments",
+    image: imageModules["/src/assets/product/appointments.png"].default,
+    alt: "Appointments calendar with slots, status pills, and reschedule controls.",
+    eyebrow: "Appointments",
+    title: "Slots, status, follow-ups.",
+    description:
+      "Day, week, and list views. Each slot shows arrival, in-room, completed, and follow-up status. Reschedule in a click.",
+  },
+  {
+    id: "invoices",
+    image: imageModules["/src/assets/product/invoices.png"].default,
+    alt: "Invoice detail showing itemised charges, payment status and download options.",
+    eyebrow: "Invoices",
+    title: "Billing tied to the visit.",
+    description:
+      "Review itemised charges and payment status, then print or download the visit invoice.",
+  },
+];
+---
+
+<MainLayout
+  canonicalPath="/product"
+  title="Docita - Clinic & Hospital Management Software"
+  description="One operating layer for Indian clinics and hospitals: queue, EMR, prescriptions, billing, WhatsApp, lab tests, inventory, analytics, and a real patient portal. Two-week rollout."
+  structuredData={faqStructuredData}
+>
+  <PageHeader className="ui-page-shell editorial-detail-heading" title="One connected clinic workflow." description="Explore appointments, patient records, prescriptions, billing and follow-ups." />
+
+  <ProofStripSection stats={PLATFORM_STATS} />
+  <ClinicRhythmSection client:visible />
+  <SurfaceMapSection client:visible />
+  <ProductScreenshotsSection shots={shots} client:visible />
+  <ClinicTypesSection client:visible />
+  <WorkflowCompareSection client:visible />
+  <RolloutSection client:visible />
+  <DifferentiatorsSection client:visible />
+  <ComparisonStripSection client:visible />
+
+  <FaqCtaSection appUrl={appUrl} client:visible />
+</MainLayout>
