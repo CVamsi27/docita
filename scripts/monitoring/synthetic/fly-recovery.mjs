@@ -32,7 +32,8 @@ const WAIT_TIMEOUT_MS = 70_000;
  * Failure signatures that a cold restart can plausibly clear: the API is
  * unreachable or wedged below the HTTP layer. Deliberately excludes failures
  * where the app *did* respond (latency-budget breaches, payload mismatches,
- * 4xx) — restarting those would mask a real regression rather than fix it.
+ * 4xx) and certificate failures — restarting those would mask a real
+ * regression rather than fix it.
  */
 const RECOVERABLE_SIGNATURES = [
   "timed out",
@@ -45,7 +46,6 @@ const RECOVERABLE_SIGNATURES = [
   "got 502",
   "got 503",
   "got 504",
-  "got 525",
 ];
 
 export function isFlyRecoveryEnabled() {

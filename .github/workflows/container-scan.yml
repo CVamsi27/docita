@@ -1,62 +1,50 @@
-name: Container Security Scan
+name: Repository Security Scan
 
 on:
   schedule:
-    - cron: '0 6 * * 1'  # Every Monday at 6 AM UTC
+    - cron: "0 6 * * 1" # Every Monday at 6 AM UTC
+  workflow_dispatch:
 
 jobs:
-  scan-api:
-    if: github.event_name == 'schedule'
+  scan-source:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
+      actions: read
       contents: read
       security-events: write
     steps:
       - uses: actions/checkout@v7
 
-      - name: Run Trivy vulnerability scanner (API)
+      # Both apps resolve dependencies from the root lockfile. This scans
+      # repository dependencies and secrets; it does not certify image OS layers.
+      - name: Run Trivy repository vulnerability scanner
         uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_INCLUDE_DEV_DEPS: "true"
         with:
-          scan-type: 'fs'
-          scan-ref: 'apps/api'
-          format: 'sarif'
-          output: 'trivy-api-results.sarif'
-          severity: 'HIGH,CRITICAL'
-          exit-code: '1'
+          scan-type: "fs"
+          scan-ref: "."
+          skip-dirs: ".git,node_modules,.cache"
+          format: "sarif"
+          output: "trivy-repository-results.sarif"
+          severity: "HIGH,CRITICAL"
+          exit-code: "1"
           ignore-unfixed: true
-          scanners: 'vuln,secret'
+          scanners: "vuln,secret"
+
+      - name: Retain Trivy report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-repository-results
+          path: "trivy-repository-results.sarif"
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Upload Trivy results to GitHub Security
-        if: always()
+        if: always() && vars.OSV_UPLOAD_SARIF == 'true' && hashFiles('trivy-repository-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: 'trivy-api-results.sarif'
-          category: 'api-deps'
-
-  scan-worker:
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Run Trivy vulnerability scanner (Worker)
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: 'fs'
-          scan-ref: 'apps/worker'
-          format: 'sarif'
-          output: 'trivy-worker-results.sarif'
-          severity: 'HIGH,CRITICAL'
-          exit-code: '1'
-          ignore-unfixed: true
-          scanners: 'vuln,secret'
-
-      - name: Upload Trivy results to GitHub Security
-        if: always()
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: 'trivy-worker-results.sarif'
-          category: 'worker-deps'
+          sarif_file: "trivy-repository-results.sarif"
+          category: "repository-deps"

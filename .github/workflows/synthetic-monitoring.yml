@@ -1,29 +1,14 @@
 name: Synthetic uptime monitoring
 
-# NOTE: This workflow is DISABLED (GitHub Actions UI: `gh workflow list` does not show it;
-# `gh api repos/CVamsi27/docita/actions/workflows/synthetic-monitoring.yml` reports
-# state=disabled_manually since 2026-07-26). No disabling commit, comment, or doc note exists.
-# Likely reason (inference from that day's run logs, not recorded intent): the API was down
-# during the 2026-07-26 business window (scale-up failed on Fly "no capacity available in
-# bom"), and every probe run that day failed on the down API
-# (api-health-live timeouts, daily-thought 525, auto-recovery restart found no machines).
-# Re-enable preconditions (see docs/operations/RUNBOOKS.md "RB-14: Disabled scheduled workflows"):
-#   1. Verify Fly can launch a docita-api machine in the bom region.
-#   2. Alert-noise policy decided: confirm probes should page on scale-up failures, or gate
-#      probe alerting to the business-hours window only.
+# Enabled after the 13 October TLS recovery. API idle shutdown remains enabled;
+# run-probes.mjs owns bounded cold-start retries. This workflow samples three
+# times daily and does not establish minute-level uptime or alert-delivery proof.
+# Recovery and verification evidence: docs/operations/STABILITY_RUNBOOK.md.
 
 on:
   schedule:
-    # IST business hours only (8:30 AM – 8:30 PM IST = 03:00–15:00 UTC), the
-    # window scale-api-hours.yml keeps the API machine running. Outside it the
-    # API is intentionally scaled to 0, so probing it would just page on
-    # expected "downtime".
-    #
-    # The 8:30 AM run is offset by 15 minutes (3:15 AM UTC) to avoid racing
-    # with scale-api-hours.yml which fires at 3:00 AM UTC and destroys+creates
-    # the API machine. Without the offset the probe often runs before the new
-    # machine is healthy, causing "no machines in process group" in recovery.
-    # Runs land at 8:45 AM, 2:30 PM, and 7:30 PM IST.
+    # Samples at 8:45 AM, 2:30 PM and 7:30 PM IST. The API may be suspended
+    # between requests; this schedule does not control its operating hours.
     - cron: "15 3 * * *"
     - cron: "0 9,14 * * *"
   workflow_dispatch:

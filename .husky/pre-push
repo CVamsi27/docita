@@ -21,6 +21,7 @@
 # api helpers, measured at ~256 ms; script-name-refs parses manifest chains,
 # hooks and tracked markdown for `pnpm <script>` references, measured at
 # ~115 ms; inline-response-dto classifies 350
+# dependency-exceptions reads the canonical TOML/allowlist, measured <100 ms;
 # createZodDto call sites, measured at ~105 ms; internal-only-client-call
 # classifies the same 655 routes but also resolves each route's effective
 # @Roles, measured at ~330 ms; test-schema-duplication compares 6 helper schema
@@ -28,6 +29,7 @@
 pnpm lint \
   && pnpm check:duplication \
   && pnpm check:standard-gate-wiring \
+  && pnpm check:dependency-exceptions \
   && pnpm check:api-conformance \
   && pnpm check:route-shadowing \
   && pnpm check:openai-client-singleton \

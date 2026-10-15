@@ -8,6 +8,7 @@ const verifyStandard = packageJson.scripts?.["verify:standard"] ?? "";
 
 const requiredChecks = [
   "test:standards-checks",
+  "check:dependency-exceptions",
   "check:api-domain-layout",
   "check:feature-boundaries",
   "check:package-boundaries",

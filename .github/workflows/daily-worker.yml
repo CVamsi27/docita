@@ -21,22 +21,41 @@ concurrency:
   group: daily-worker-drain
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   drain-queue:
     name: Run Worker and Drain Queue
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_WORKER }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+
+      - name: Verify worker lifecycle handling
+        run: |
+          bash -n scripts/deploy/run-daily-worker.sh
+          node --test scripts/deploy/run-daily-worker.test.mjs
+
+      - name: Verify Fly credential is configured
+        run: |
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "::error::FLY_API_TOKEN_WORKER is required for the worker drain."
+            exit 1
+          fi
 
       - name: Setup flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Run worker to drain pending queues
-        run: |
-          DURATION="${{ inputs.duration_minutes || '5' }}"
-          chmod +x scripts/deploy/run-daily-worker.sh
-          ./scripts/deploy/run-daily-worker.sh "$DURATION"
+        env:
+          DURATION_MINUTES: ${{ inputs.duration_minutes || '5' }}
+        run: bash scripts/deploy/run-daily-worker.sh "$DURATION_MINUTES"

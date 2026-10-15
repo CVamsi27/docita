@@ -409,6 +409,12 @@ jobs:
       - name: Typecheck worker package
         run: pnpm --filter @docita/worker run check-types
 
+      - name: Build worker runtime artifact
+        run: pnpm --filter @docita/worker run build
+
+      - name: Verify compiled worker dependencies
+        run: pnpm --filter @docita/worker run check:runtime
+
       - name: Fetch main branch for change detection
         run: git fetch origin main
       - name: Test worker (changed only)
