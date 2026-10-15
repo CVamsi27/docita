@@ -217,6 +217,30 @@ stale-backup alert delivery.
 
 ## Isolated streamed restore
 
+### Offline recovery-key custody
+
+The operator selected **offline only** on 15 October. Generate the production
+identity on the offline recovery device, using age 1.2 or newer within major 1.
+Choose paths on the protected offline recovery medium before running:
+
+```sh
+umask 077
+age-keygen -o "$RECOVERY_IDENTITY_FILE"
+age-keygen -y "$RECOVERY_IDENTITY_FILE" > "$RECOVERY_RECIPIENT_FILE"
+```
+
+These are operator-selected file paths on that offline device. The first file
+contains the private identity and stays offline. Transfer only the second file's
+public `age1...` recipient to the protected operator setup as
+`BACKUP_AGE_RECIPIENT`. Use a classic age recipient; the prepared age 1.2 runtime
+does not support the newer post-quantum recipient type. See the
+[official age key-generation guidance](https://github.com/FiloSottile/age#usage).
+Record custody ownership and verify an offline synthetic decrypt challenge before
+production activation. The custody-method choice alone does not verify that a
+production identity exists or approve ADR 0016 D4 retention/erasure handling.
+
+### Recovery procedure
+
 Use a separate operator recovery environment with the private identity and
 protected PostgreSQL connection settings for a new isolated target. Keep the
 identity offline outside recovery exercises; do not install it on the backup

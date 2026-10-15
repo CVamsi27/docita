@@ -86,7 +86,9 @@ configuration matches the canonical JSON. The operator supplied separate scoped
 S3 credentials: backup access succeeds, document-bucket HEAD is denied and a
 runtime comparison confirms distinct credentials. Actual synthetic encrypted R2
 transfer/restore and production-prefix overwrite/delete denial pass. Independent
-production recovery-key custody remains unavailable. No production dump,
+production recovery-key custody remains unverified. The operator selected
+offline-only custody; the production public recipient and offline decrypt
+challenge remain outstanding. No production dump,
 scheduled machine or live backup was created. ADR 0016 D4 retention/erasure
 approval, full clinical recovery, schedule/freshness and alerting remain
 activation gates.
