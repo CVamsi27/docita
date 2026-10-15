@@ -70,8 +70,8 @@ function instructions(source) {
 }
 
 describe("Docker artifact safety", { skip: !enabled }, () => {
-  test("Docker excludes private environment files and runtime data at every copied workspace", () => {
-    const privateFiles = [
+  test("Docker excludes private environment files, runtime data, and build recipes at every copied workspace", () => {
+    const excludedFiles = [
       ".env",
       ".env.production",
       ".env.git",
@@ -87,6 +87,8 @@ describe("Docker artifact safety", { skip: !enabled }, () => {
       "uploads/temp/patient.dat",
       "apps/api/uploads/patient.dat",
       "apps/worker/uploads/patient.dat",
+      "apps/api/Dockerfile",
+      "apps/worker/Dockerfile",
     ];
     const authoredFiles = [
       "apps/api/src/main.ts",
@@ -96,7 +98,7 @@ describe("Docker artifact safety", { skip: !enabled }, () => {
       "apps/api/.env.example",
     ];
     const files = Object.fromEntries([
-      ...privateFiles.map((file) => [
+      ...excludedFiles.map((file) => [
         file,
         "SYNTHETIC_DOCKER_CANARY=owned-fixture-only\n",
       ]),
@@ -104,7 +106,7 @@ describe("Docker artifact safety", { skip: !enabled }, () => {
     ]);
     fixtureImage(`FROM ${baseImage}\nCOPY . /context\n`, files, (image) => {
       const program = `const fs=require('node:fs');
-process.stdout.write(JSON.stringify(${JSON.stringify([...privateFiles, ...authoredFiles])}.filter(file=>fs.existsSync('/context/'+file))));`;
+process.stdout.write(JSON.stringify(${JSON.stringify([...excludedFiles, ...authoredFiles])}.filter(file=>fs.existsSync('/context/'+file))));`;
       const executed = docker([
         "run",
         "--rm",
@@ -126,6 +128,52 @@ process.stdout.write(JSON.stringify(${JSON.stringify([...privateFiles, ...author
   });
 
   for (const app of ["api", "worker"]) {
+    const runtimeImage =
+      process.env[`DOCKER_ARTIFACT_TEST_${app.toUpperCase()}_IMAGE`];
+
+    test(
+      `${app} production artifact excludes development tooling and retains generated Prisma and native modules`,
+      { skip: !runtimeImage },
+      () => {
+        const program = `
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const { createRequire } = require('node:module');
+const retained = fs.readdirSync('/app/node_modules/.pnpm').filter(name => /^(?:braces@|micromatch@|jest@|ts-jest@|@jest\\+|@nestjs\\+cli@)/.test(name));
+assert.deepEqual(retained, [], 'Production artifacts must not retain development glob/test/compiler dependencies');
+const db = createRequire('/app/packages/db/package.json');
+const { Prisma, PrismaClient } = db('@prisma/client');
+assert.equal(typeof PrismaClient, 'function');
+assert.ok(Prisma.dmmf.datamodel.models.length > 0, 'The generated Prisma data model must survive production dependency installation');
+const api = createRequire('/app/apps/api/package.json');
+const bcrypt = api('bcrypt');
+assert.equal(bcrypt.compareSync('synthetic-artifact-probe', bcrypt.hashSync('synthetic-artifact-probe', 4)), true);
+assert.equal(typeof api('@sentry/profiling-node').nodeProfilingIntegration, 'function');
+api('sharp')({create:{width:1,height:1,channels:3,background:{r:0,g:0,b:0}}}).png().toBuffer().then(buffer => {
+  assert.ok(buffer.length > 0);
+  process.stdout.write(JSON.stringify({developmentToolingAbsent:true,generatedPrisma:true,nativeModules:true}));
+}).catch(error => {process.stderr.write(error.stack+'\\n');process.exitCode=1;});
+`;
+        const executed = docker([
+          "run",
+          "--rm",
+          "--platform=linux/amd64",
+          "--network=none",
+          "--entrypoint",
+          "node",
+          runtimeImage,
+          "-e",
+          program,
+        ]);
+        assert.equal(executed.status, 0, executed.stderr);
+        assert.deepEqual(parseArtifactOutput(executed.stdout), {
+          developmentToolingAbsent: true,
+          generatedPrisma: true,
+          nativeModules: true,
+        });
+      },
+    );
+
     test(`${app} runtime drops package-manager distributions while keeping Node executable`, () => {
       const source = readFileSync(`apps/${app}/Dockerfile`, "utf8");
       const runtime = source.split(/FROM \S+ AS runtime\n/)[1];

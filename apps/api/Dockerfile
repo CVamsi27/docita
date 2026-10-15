@@ -1,4 +1,4 @@
-FROM node:22.22-alpine AS deps
+FROM node:22.22-alpine AS base
 WORKDIR /app
 
 RUN npm install -g pnpm@10.30.3
@@ -13,6 +13,8 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/utils/package.json ./packages/utils/
 COPY apps/api/package.json ./apps/api/
 COPY packages/db/prisma/schema.prisma ./packages/db/prisma/schema.prisma
+
+FROM base AS deps
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts
@@ -38,6 +40,19 @@ RUN pnpm --filter @workspace/types run build && \
     pnpm --filter @workspace/db run build && \
     pnpm --filter @docita/api run build
 
+# Prisma generation is a compiler step; pnpm may replace its package directory.
+RUN node -e "const fs=require('node:fs'); const path=require('node:path'); const {createRequire}=require('node:module'); const db=createRequire('/app/packages/db/package.json'); const client=createRequire(db.resolve('@prisma/client')); fs.cpSync(path.dirname(client.resolve('.prisma/client/default')), '/generated-prisma-client', {recursive:true});"
+
+FROM base AS production-deps
+
+# Keep production native distributions; omit development glob/test/compiler tools.
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    CI=true pnpm install --prod --frozen-lockfile --ignore-scripts
+
+COPY --from=deps /generated-prisma-client /generated-prisma-client
+
+RUN node -e "const fs=require('node:fs'); const path=require('node:path'); const {createRequire}=require('node:module'); const db=createRequire('/app/packages/db/package.json'); const target=path.resolve(path.dirname(db.resolve('@prisma/client/package.json')), '../../.prisma/client'); fs.mkdirSync(target, {recursive:true}); fs.cpSync('/generated-prisma-client', target, {recursive:true});"
+
 FROM node:22.22-alpine AS runtime
 WORKDIR /app
 
@@ -50,13 +65,12 @@ RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/pnpm \
     /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm /usr/local/bin/pnpx \
     /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/auth/node_modules ./packages/auth/node_modules
-COPY --from=deps /app/packages/authorization/node_modules ./packages/authorization/node_modules
-COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
-COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
-COPY --from=deps /app/packages/utils/node_modules ./packages/utils/node_modules
-COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=production-deps /app/node_modules ./node_modules
+COPY --from=production-deps /app/packages/authorization/node_modules ./packages/authorization/node_modules
+COPY --from=production-deps /app/packages/db/node_modules ./packages/db/node_modules
+COPY --from=production-deps /app/packages/types/node_modules ./packages/types/node_modules
+COPY --from=production-deps /app/packages/utils/node_modules ./packages/utils/node_modules
+COPY --from=production-deps /app/apps/api/node_modules ./apps/api/node_modules
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/auth/package.json ./packages/auth/
