@@ -151,10 +151,18 @@ The private host-Docker pipe harness initially reported a premature close even
 when both tools exited 0; its correction accepts only that specific transport
 condition alongside all process/authentication/data checks. The runner and image
 were unchanged. See the backup runbook for full scope.
-No production dump, paid backup machine, recovery-key installation or scheduler
-activation occurred. Keep independent key custody, ADR 0016 D4 erasure/retention
-approval, full clinical recovery, cadence and stale-backup alerting as explicit
-activation gates. See the [backup runbook](../operations/ENCRYPTED_DATABASE_BACKUPS.md).
+No production dump, paid backup machine or scheduler activation occurred. The
+operator subsequently accepted retention-policy ownership
+and approved the scoped ADR 0016 D4 30-day lock/31-day configured expiry with
+quarantined erasure/legal-hold reconciliation. At the operator's request, one
+recovery identity was generated locally into a mode-0700 directory with a
+mode-0600 private file. Only its public recipient was installed in the protected
+operator configuration; local authenticated encrypt/decrypt proof passes. No
+private identity was displayed, uploaded or added to Git. This was a connected
+local host: offline handoff and an offline decrypt challenge remain unverified.
+Keep verified offline custody, clinical recovery/reconciliation, cadence and
+stale-backup alerting as explicit activation gates. See the
+[backup runbook](../operations/ENCRYPTED_DATABASE_BACKUPS.md).
 
 ## Validation record
 
@@ -230,9 +238,10 @@ was bypassed and no application runtime/image source changed in this follow-up.
 2. Align protected staging via its PR-only path and record its deployed revision.
    Gather native workload/headroom evidence beyond the verified container boot.
    August staging and September Fly images do not exercise this candidate.
-3. Complete the selected independent encrypted backup preparation and verify
-   dedicated storage, recovery-key custody, full dump restore, retention,
-   scheduler and stale-backup alerting. Bounded Neon recovery proof now exists;
+3. Finish offline recovery-key handoff/proof, clinical dump/restore reconciliation,
+   scheduler and stale-backup alerting for the prepared independent backup.
+   Dedicated storage, lock enforcement and scoped policy approval have evidence.
+   Bounded Neon recovery proof now exists;
    it does not replace full clinical continuity. Carry the rehearsed migrations
    and non-owner credential rollout through compatibility proof and staging soak.
 4. Retain provider sandbox, recipient/consent and worker cadence evidence for

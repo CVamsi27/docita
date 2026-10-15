@@ -1,6 +1,6 @@
 # ADR 0016 — Patient-data lifecycle and recovery
 
-- **Status:** Proposed — awaiting sign-off (backlog item **C01**, "Decision required")
+- **Status:** Proposed overall; D4 independent-backup storage policy approved by the operator on 15 October 2026. Recovery evidence and the other decisions remain open (backlog item **C01**).
 - **Date:** 2026-10-03
 - **Owners:** Security/operations (decision), Platform (implementation)
 - **Backlog:** `docs/operations/DOCITA_IMPROVEMENT_BACKLOG.md` → C01
@@ -11,16 +11,21 @@ checks now pass; see the [drill record](../../operations/dr-drills/2026-10-15-ne
 The copied clinical tables were empty, so this does not establish historical PHI,
 document or erasure continuity, key rotation, region recovery or production RTO/RPO.
 The user selected keeping Neon Free and preparing independent encrypted backups.
-The dedicated bucket's technical 30-day lock/31-day expiry configuration does not
-approve a clinical-data resurrection window. Keep production backup activation
-and restored-data access gated on the D4 retention/erasure decision and key custody.
-This ADR remains proposed; no owner sign-off is inferred from technical checks.
+The Docita operator explicitly accepted retention-policy ownership and approved
+the dedicated backup's 30-day minimum lock and configured 31-day expiry, with
+restored data quarantined until erasure/legal-hold state is reconciled. This is
+the scoped D4 approval below; it does not approve exposing resurrected erased PHI
+or certify the other decisions. Production backup activation still requires
+verified offline key custody, recovery/reconciliation and operating evidence.
 
 ## Context
 
+The issues below record the original 3 October review. The dated follow-up above
+and linked operational evidence describe the current state.
+
 Encryption (`EncryptionService`, envelope keys), audit logging, storage
 providers, DPDP rights flows and a DR runbook all exist. What does not exist is
-evidence that they work as a *system* under loss: no restore has ever been
+evidence that they work as a _system_ under loss: no restore has ever been
 exercised, and the recovery procedure the runbook prescribes cannot run.
 
 Reviewing the current state found these concrete issues.
@@ -61,7 +66,7 @@ was current when it was taken.
 
 `DPDP_READINESS.md` documents anonymization-not-deletion (NMC 3-year floor vs.
 DPDP erasure) and a `DataRetentionScheduler` with per-class windows. This is
-coherent for the live system. It is *not* reconciled with backup retention: a
+coherent for the live system. It is _not_ reconciled with backup retention: a
 snapshot taken before an erasure request still contains the pre-anonymization
 row, and a restore from that snapshot would resurrect data the system has
 contractually erased. No document states whether that is accepted, and if so for
@@ -109,6 +114,19 @@ resurrection window is documented and disclosed. Silence is not an option,
 because a restore that resurrects erased PHI is a compliance event, not a
 technical footnote.
 
+**Operator decision, 15 October 2026.** The Docita operator explicitly accepted
+ownership and approved the independent PostgreSQL backup policy: a minimum
+30-day lock, lifecycle expiration configured after 31 days, and quarantine of
+restored data until erasure and legal-hold state is reconciled and verified.
+This applies to backup copies of the database's data classes; existing live-system
+class retention remains unchanged. A pre-anonymization copy may remain encrypted
+inside that backup window. It must not become accessible to users after restore
+until the approved erasure/legal-hold state has been applied. Provider lifecycle
+execution is asynchronous; the configured expiry is not proof of an exact
+deletion time or erasure-SLA compliance. Reconciliation and deletion-timing
+evidence remain implementation gates. The owner's explicit approval is recorded
+from the stability chat; it is not inferred from bucket configuration or tests.
+
 ### D5 — Deletion has an owner and a tested scope
 
 **Definition.** Every deletion/anonymization path names its owner and has a test
@@ -137,10 +155,12 @@ The implementing work is complete when:
 1. **RTO/RPO approval:** are the current targets (60 min / 5 min PITR; 4 h /
    24 h region) the approved business targets, or do they need revision before
    being measured?
-2. **Backup retention vs. erasure SLA:** what is the accepted maximum window in
-   which a restore may resurrect erased data? This is a compliance decision.
+2. **Backup retention vs. erasure SLA:** the independent-backup storage policy
+   has the scoped D4 operator approval above. Prove restored-data quarantine,
+   erasure/legal-hold reconciliation and lifecycle timing before claiming the
+   operational control is complete; other retention decisions remain unchanged.
 3. **Object storage:** R2 is described as multi-region replicated, but has a
-   restore of *referenced objects* (documents, PHI attachments) been validated
+   restore of _referenced objects_ (documents, PHI attachments) been validated
    to match the database's restore point? Orphaned references are a likely
    failure mode.
 4. **Drill ownership:** who is the named owner for the first drill, and by when?

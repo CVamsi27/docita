@@ -3,8 +3,11 @@
 Status: preparation only. On 15 October 2026, the separate `docita-db-backups`
 R2 bucket was created with public `r2.dev` access disabled and no custom domains.
 The dedicated writer credential scope and storage lock have passed synthetic
-verification. The production backup job, recovery-key custody, stale-backup alert
-and real production restore remain unverified. Keeping Neon
+verification. The operator approved the retention policy on 15 October and
+requested local recovery-key generation. The public recipient is configured and
+the local key pair passes authenticated decryption. Offline custody, the
+production backup job, stale-backup alert and real production restore remain
+unverified. Keeping Neon
 Free leaves its configured six-hour recovery history unchanged.
 
 The selected target is an hourly independent backup, a warning when the latest
@@ -55,9 +58,12 @@ that prefix. Provider readback matched both canonical controls, and an owned
 production-prefix synthetic canary rejected overwrite and deletion with
 `409 ObjectLockedByBucketPolicy` while preserving its bytes. A policy file alone
 would not provide that enforcement evidence.
-The retention-policy owner must approve the erasure/legal-hold handling before
-production data is backed up under this policy; [ADR 0016](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md)
-remains a proposed decision, not an accepted window for resurrecting erased PHI.
+On 15 October 2026, the Docita operator explicitly accepted retention-policy
+ownership and approved this 30-day lock/31-day configured expiry with restored
+data quarantined until erasure/legal-hold reconciliation is verified. See the
+scoped [ADR 0016 D4 approval](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md#d4--erasure-vs-backup-retention-is-decided-explicitly-per-data-class).
+This storage-policy approval does not permit exposing resurrected erased PHI or
+close the other recovery, key-custody and operating gates.
 
 PostgreSQL documents the custom archive and libpq environment options in
 [pg_dump](https://www.postgresql.org/docs/17/app-pgdump.html).
@@ -236,8 +242,18 @@ public `age1...` recipient to the protected operator setup as
 does not support the newer post-quantum recipient type. See the
 [official age key-generation guidance](https://github.com/FiloSottile/age#usage).
 Record custody ownership and verify an offline synthetic decrypt challenge before
-production activation. The custody-method choice alone does not verify that a
-production identity exists or approve ADR 0016 D4 retention/erasure handling.
+production activation.
+
+**Operator-requested local generation, 15 October.** The operator subsequently
+asked the assistant to run key generation on the connected local computer. One
+private identity was generated into a mode-0700 local recovery directory with a
+mode-0600 identity file. Its public recipient was saved in the protected operator
+configuration; local synthetic encryption and authenticated decryption passed.
+No private key was displayed or uploaded by this workflow. The protected local
+handoff instructions identify the files and offline challenge. Move the private
+identity to the operator's offline recovery medium, verify the challenge there,
+and confirm custody before removing the connected copy and enabling production
+backups. Local generation and decryption do not prove offline custody.
 
 ### Recovery procedure
 
@@ -282,11 +298,11 @@ See [the DR runbook](DR_RUNBOOK.md) for wider application and document recovery.
 
 ## Activation and freshness gates
 
-Keep the job unactivated until an operator supplies the dedicated bucket and
-scoped writer/readback credential, separately held recovery identity, storage
-retention/lock enforcement evidence, retention-policy owner approval, a
-successful quarantined encrypted restore with erasure/legal-hold reconciliation,
-measured runtime/memory
+The dedicated bucket, scoped credential, retention enforcement, storage-policy
+owner approval and synthetic external transfer/restore now have evidence. Keep
+the job unactivated until the production recovery identity's offline custody,
+successful quarantined clinical restore with erasure/legal-hold reconciliation,
+measured production runtime/memory
 and a verified independent stale-backup alert destination. Test a failed run and a
 missed schedule. GitHub's currently billing-blocked hosted jobs cannot be the only
 scheduler or alert mechanism.

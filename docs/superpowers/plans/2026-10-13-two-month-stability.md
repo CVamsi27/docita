@@ -12,6 +12,9 @@ All ten pending migrations also pass on a fresh isolated Neon copy, followed by
 integrity and 19 strict non-owner checks; that target was removed. Production
 still has those 10 pending migrations and owner-role RLS bypass. The user
 selected keeping Neon Free and preparing [independent encrypted backups](2026-10-15-independent-database-backups.md).
+The operator approved the backup storage policy and requested local key generation
+on 15 October. The public recipient is configured and local authenticated
+decryption passes; offline custody and the remaining activation controls are open.
 Production source remains unreleased. Current evidence and credential containment are recorded in the
 [repair record](../../audits/2026-10-13-stability-repair-evidence.md).
 

@@ -33,10 +33,11 @@ Node test runner and an isolated local PostgreSQL fixture.
 - Unique object keys prevent replacement. Verify downloaded ciphertext SHA256
   and size before the completion manifest. A successful upload alone is not a
   recovery claim. Retention/lock policy is an operator gate on a separate bucket.
-- Proposed policy: hourly attempts, alert if latest completed backup exceeds two
+- Operating targets: hourly attempts, alert if latest completed backup exceeds two
   hours, retain at least 30 days with expiry after 31 days. Canonical bucket rules
   are in `scripts/db/backup-bucket-lock.json` and `backup-bucket-lifecycle.json`.
-  These are
+  The operator approved the 30-day lock/31-day configured expiry and quarantined
+  erasure/legal-hold reconciliation on 15 October; cadence and alerting remain
   selected operating targets, not observed guarantees. The project remains on
   Neon's six-hour history window; never depend on it for older recovery.
 - Schedule one persistent one-shot machine with restart policy `no`; do not use
@@ -87,11 +88,14 @@ S3 credentials: backup access succeeds, document-bucket HEAD is denied and a
 runtime comparison confirms distinct credentials. Actual synthetic encrypted R2
 transfer/restore and production-prefix overwrite/delete denial pass. Independent
 production recovery-key custody remains unverified. The operator selected
-offline-only custody; the production public recipient and offline decrypt
-challenge remain outstanding. No production dump,
-scheduled machine or live backup was created. ADR 0016 D4 retention/erasure
-approval, full clinical recovery, schedule/freshness and alerting remain
-activation gates.
+offline-only custody and then requested local key generation. A private identity
+is staged in protected local storage; its public recipient is configured and
+local authenticated decryption passes. Offline handoff and the offline decrypt
+challenge remain outstanding. The operator explicitly accepted ownership and
+approved the scoped ADR 0016 D4 storage policy on 15 October. No production dump,
+scheduled machine or live backup was created. Full clinical recovery with verified
+erasure/legal-hold reconciliation, offline custody, schedule/freshness and
+alerting remain activation gates.
 
 ## Verified preparation, 15 October
 
