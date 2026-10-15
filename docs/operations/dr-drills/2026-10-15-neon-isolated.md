@@ -47,9 +47,30 @@ The current production migration ledger predates these source migrations:
 20261004120000_enterprise_trueup_alert_delivery_status
 ```
 
-Only the first SQL was rehearsed in isolation, without modifying production's
-Prisma ledger. The full reviewed migration sequence, old/new runtime compatibility
-and authenticated staging soak still require evidence before release.
+The initial recovery drill applied only the first SQL, without modifying
+production's Prisma ledger. A subsequent fresh copy rehearsed the entire sequence:
+
+- Branch `docita-migration-rehearsal-20261015` (`br-silent-morning-a1xghlfm`),
+  explicit production parent and separate endpoint `ep-delicate-cake-a1xzth6h`.
+- The repository-safe dry-run reported exactly these ten pending migrations and
+  exited 1. Prisma applied all ten successfully on the isolated copy; the ledger
+  advanced from 165 to 175 completed entries, with none failed or rolled back.
+  The subsequent safe dry-run and database integrity guard both exited 0.
+- Aggregate core-table counts were unchanged. All 91 tenant tables had RLS and
+  tenant policies; the separate non-owner `docita_app` probe passed 19/19.
+- The clone used the safe preflight and direct Prisma deployment for the actual
+  apply. This narrowly scoped rehearsal avoided the legacy deploy wrapper's
+  plaintext SQL backup and credential-bearing pg_dump argument. The disposable
+  clone was the rollback boundary; this procedure does not authorize a direct
+  production deployment or replace independent production backups.
+- The owned branch and temporary connection credentials were removed. The final
+  provider inventory contains only production. A read-only production post-check
+  at `2026-10-15T08:58:52Z` still has 165 migrations, owner/BYPASSRLS access,
+  `docita_app` NOLOGIN and 16 policy gaps across 91 tenant tables.
+
+Old/new runtime compatibility, realistic populated-data behavior and authenticated
+staging soak still require evidence before release. This copied database's empty
+clinical tables do not establish a production migration duration or contention budget.
 
 ## Limits and required follow-up
 

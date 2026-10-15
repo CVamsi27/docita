@@ -4,10 +4,13 @@
 standards and workspace build pass. Public capability resolution now has real
 non-owner/RLS HTTP proof. The full production monitor script passes locally;
 GitHub cannot start hosted jobs because of billing/spending restrictions. Final
-images build and pass configured-resource startup/shutdown; final dependency
-pruning and rescans are in progress. Neon past-point recovery, an encrypted
+images build with production dependencies only and pass nine artifact cases,
+configured-resource startup/shutdown and raw OS/library scans with zero
+HIGH/CRITICAL findings. Neon past-point recovery, an encrypted
 synthetic canary, R2 object/key checks and 19 strict isolated RLS cases pass.
-Production still has 10 pending migrations and owner-role RLS bypass. The user
+All ten pending migrations also pass on a fresh isolated Neon copy, followed by
+integrity and 19 strict non-owner checks; that target was removed. Production
+still has those 10 pending migrations and owner-role RLS bypass. The user
 selected keeping Neon Free and preparing [independent encrypted backups](2026-10-15-independent-database-backups.md).
 Production source remains unreleased. Current evidence and credential containment are recorded in the
 [repair record](../../audits/2026-10-13-stability-repair-evidence.md).
@@ -337,12 +340,16 @@ Preserve canonical latency targets from `SLOS.md` / `api-latency-slos.mjs`: auth
 | Release control           | Current staging, deploy identities and tested emergency/rollback route | **Paused; current Neon recovery/RLS rollout and staging proof required**                                                   |
 | Isolation/continuity      | Role-equivalent matrix, actual-role metadata, old-account regression   | **Local strict matrix verified; production owner bypass and 16 missing policies confirmed**                                |
 | Financial/background work | Replay/crash/provider reconciliation and running consumers             | **Scoped access repaired; source shutdown fixes verified; best-effort notifications selected; provider/worker proof open** |
-| Recovery                  | Timed database/object/key restore and tenant checks                    | **No recorded drill**                                                                                                      |
-| Performance/accessibility | Fresh complete candidate measurements and required budgets             | **Required latency artifact absent; other baselines historical**                                                           |
-| Security                  | Full scans and valid reviewed exceptions through their expiry          | **Expiry/reporting fixes verified locally; November exception unchanged; image scan pending**                              |
+| Recovery                  | Timed database/object/key restore and tenant checks                    | **Bounded Neon/object/key drill passes; independent encrypted backup activation and full continuity remain open**          |
+| Performance/accessibility | Fresh complete candidate measurements and required budgets             | **Required latency artifact absent; authenticated app accessibility 160/160 passes, markup unchanged**                     |
+| Security                  | Full scans and valid reviewed exceptions through their expiry          | **Final images raw/filtered HIGH/CRITICAL zero; development-only November exception unchanged; production isolation open** |
 | Observation               | 14 consecutive measured healthy days and accountable operator          | **Not started**                                                                                                            |
 
-The next implementation slice should be **T1**, then **T2/T3**, because the current public API failure and inability to operate the worker prevent meaningful production validation. Preserve the healthy source standards; spend the repair window on these boundaries and the evidence required to trust them.
+TLS and operator access are restored and the local source repair batch is verified.
+The next release work is hosted CI/alert recovery, complete migration and staging
+proof, independent backup activation, native workload measurements and the
+production observation window. Follow the [repair record](../../audits/2026-10-13-stability-repair-evidence.md)
+for the current gate order; historical findings above describe the initial audit.
 
 ## 8. Companion documentation and status ownership
 
