@@ -38,7 +38,8 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   private readonly logger = new Logger(PostgresQueueService.name);
   private readonly handlers = new Map<string, QueueJobHandler>();
   private readonly pollers = new Map<string, ReturnType<typeof setInterval>>();
-  private readonly activePolls = new Set<string>();
+  private readonly activePolls = new Map<string, Promise<void>>();
+  private shuttingDown = false;
   private readonly lifecycle: QueueJobLifecycle;
 
   constructor(
@@ -108,6 +109,9 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     name: string,
     handler: QueueJobHandler<T>,
   ): Promise<void> {
+    if (this.shuttingDown) {
+      throw new Error('Queue is shutting down');
+    }
     this.handlers.set(name, bindQueueJobHandler(handler));
 
     if (!this.pollers.has(name)) {
@@ -125,11 +129,12 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   }
 
   private async pollIfIdle(name: string): Promise<void> {
-    if (this.activePolls.has(name)) return;
+    if (this.shuttingDown || this.activePolls.has(name)) return;
 
-    this.activePolls.add(name);
+    const poll = this.poll(name);
+    this.activePolls.set(name, poll);
     try {
-      await this.poll(name);
+      await poll;
     } finally {
       this.activePolls.delete(name);
     }
@@ -140,6 +145,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     if (!handler) return;
 
     await this.lifecycle.recoverStaleActiveJobs(name);
+    if (this.shuttingDown) return;
 
     const rows = await this.queueJobs.claimNextWaitingJob(name);
 
@@ -350,11 +356,23 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     };
   }
 
-  onModuleDestroy() {
+  async onModuleDestroy(): Promise<void> {
+    this.shuttingDown = true;
     for (const [, interval] of this.pollers) {
       clearInterval(interval);
     }
     this.pollers.clear();
+
+    // Keep persistence open until owned claims finish; the worker bounds shutdown.
+    const outcomes = await Promise.allSettled(this.activePolls.values());
+    for (const outcome of outcomes) {
+      if (outcome.status === 'rejected') {
+        const error: unknown = outcome.reason;
+        throw error instanceof Error
+          ? error
+          : new Error('Queue poll failed during shutdown');
+      }
+    }
   }
 
   private rowToJob(row: QueueJobRow): QueueJob<QueueJobData> {
