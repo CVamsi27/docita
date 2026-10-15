@@ -1,19 +1,30 @@
 # Staging Setup
 
-This repo keeps a `staging` branch that mirrors `main` for pre-production validation.
+This repo keeps a PR-protected `staging` branch for pre-production validation.
+Its deployed revision must be verified before using staging results as release evidence.
 
 ## Branch Contract
 
 - `main` is the canonical production branch; all work lands here via PR.
-- `staging` is an **automated mirror of `main`** — the same tree at the branch tip, fast-forwarded to each merged `main` commit. It is **not** an integration line: never commit, cherry-pick, or push directly to `staging` (see AGENTS.md §11.3).
+- `staging` changes only through a PR into `staging`. There is no automatic
+  `main` → `staging` synchronization. Never commit, cherry-pick, or push directly
+  to either protected branch (see [AGENTS.md §11.3](../../AGENTS.md)).
+- For a staging re-mirror, create the alignment branch from the current staging
+  tip and replace its tree with the selected reviewed main tree in one commit.
+  Record both SHAs and verify tree equality after the staging PR merges; a
+  branch created from main can conflict with staging's divergent squash history.
 - Staging should use staging hostnames and staging secrets, not production ones.
 
 ## Recommended Staging Topology
 
 - API: Render web service deployed from the `staging` branch
-- App: Cloudflare staging environment via [`apps/app/wrangler.toml`](../apps/app/wrangler.toml) using `--env staging`
-- Internal: Cloudflare staging environment via [`apps/internal/wrangler.toml`](../apps/internal/wrangler.toml) using `--env staging`
-- Database: Neon PostgreSQL
+- App: Cloudflare staging environment via [`apps/app/wrangler.toml`](../../apps/app/wrangler.toml) using `--env staging`
+- Internal: Cloudflare staging environment via [`apps/internal/wrangler.toml`](../../apps/internal/wrangler.toml) using `--env staging`
+- Database: isolated Neon branch with a verified staging endpoint and credentials.
+  Prefer schema-only branches plus synthetic fixtures for routine testing. A
+  variable named `STAGING_DATABASE_URL` is not proof of isolation: the October
+  audit found a local alias pointing at production. Verify its endpoint's branch
+  identity against Neon before migration, seeding or write probes.
 
 ## API Environment
 
@@ -21,16 +32,19 @@ Use these values for the staging API service:
 
 ```env
 NODE_ENV=staging
-DATABASE_URL=<your Neon connection string>
+DATABASE_URL=<verified isolated staging branch connection string>
 APP_URL=https://staging-app.docita.work
 FRONTEND_URL=https://staging-app.docita.work
 API_PUBLIC_URL=https://staging-api.docita.work/api/v1
 # Legacy aliases (deprecated): NEXT_PUBLIC_APP_URL / NEXT_PUBLIC_API_URL
-CORS_ORIGINS=https://staging-app.docita.work
+CORS_ORIGINS=https://staging-app.docita.work,https://staging-internal.docita.work
 STORAGE_PROVIDER=local
 ```
 
-The Render staging service must set `DATABASE_URL` directly to the Neon connection string.
+The Render staging service must set `DATABASE_URL` directly to that branch's
+connection string. Keep payment, messaging, storage and alert credentials isolated
+from production. A recovery branch containing production data is a controlled DR
+target, not a routine staging fixture; see [DR_RUNBOOK.md](DR_RUNBOOK.md).
 
 If you want staging to match production document storage, switch to:
 
@@ -67,11 +81,20 @@ id is configured at build time.
 
 ## Deploy Flow
 
-1. Merge work into `main` via PR; automation fast-forwards `staging` to the merged commit.
-2. Render automatically redeploys the staging API from the connected `staging` branch.
-3. Cloudflare staging deployments use `apps/app/wrangler.toml` / `apps/internal/wrangler.toml` with `--env staging` for the app(s).
-4. Run the staging database migration workflow before validating data-dependent flows.
-5. Feature/hotfix work never touches `staging` directly — open a PR into `main` (branch cap: at most two open feature PRs, see AGENTS.md §11.3).
+1. Select the reviewed main revision and align staging through its PR-only path.
+   Normal feature/hotfix work still targets main; respect the two-feature-branch cap.
+2. Verify the staging database identity and recovery evidence. Run
+   `pnpm --filter @workspace/db run db:migrate:dry-run`, review pending migrations,
+   then use `db:migrate:safe` against that isolated branch. The current manual
+   database workflow is paused and targets production; it is not a staging runner.
+3. Render redeploys the staging API from the connected staging branch. Coordinate
+   schema compatibility with auto-deploy; use expand/backfill/enforce sequencing
+   where a migration and old runtime must coexist.
+4. Cloudflare staging deployments use each affected app's canonical configuration
+   with `--env staging`. Record Render's actual commit and each Cloudflare deployed
+   version, plus the matching build-time API/proxy targets.
+5. Validate the deployed staging routes and data-dependent flows. Branch alignment
+   alone does not prove that Render or Cloudflare released the selected revision.
 
 If you need migrations to land before a staging API deploy becomes visible, configure the Render staging service to deploy after the relevant CI checks pass. GitHub Actions does not need a separate deploy hook for the staging API.
 
@@ -80,13 +103,26 @@ If you need migrations to land before a staging API deploy becomes visible, conf
 After a staging deploy, verify from the repo root:
 
 ```bash
-# API boots and answers health checks
+# Local startup fixture; this does not verify a deployed staging revision.
 pnpm test:api-startup
 curl -fsS https://staging-api.docita.work/api/health/live
+curl -fsS https://staging-api.docita.work/api/health/ready
 
-# Scheduled synthetic probes (API health, DB, queue heartbeat, write/read tx)
-pnpm monitor:synthetic
+# Supply dedicated staging monitor credentials securely in the environment.
+# Clear inherited production recovery and alert targets for this invocation.
+env -u FLY_API_TOKEN -u SYNTHETIC_FLY_API_ORIGIN -u SENTRY_DSN \
+  -u OPS_ALERT_WEBHOOK_URL \
+  SYNTHETIC_API_ORIGIN=https://staging-api.docita.work/api \
+  SYNTHETIC_API_BASE_URL=https://staging-api.docita.work/api/v1 \
+  SYNTHETIC_APP_BASE_URL=https://staging-app.docita.work \
+  pnpm monitor:synthetic
 ```
+
+The runner defaults to production unless all staging targets above are supplied.
+It checks API liveness, the app's proxied daily thought, and optional staff login.
+Login is skipped without both monitor credentials. It does not test database
+transactions, patient lists, queue cadence or notification delivery; retain
+separate authenticated journey and worker evidence for those release gates.
 
 Then hit the staging app URL and check the browser console for chunk-load
 errors (`Failed to fetch dynamically imported module` means a stale/partial

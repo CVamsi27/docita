@@ -1,11 +1,13 @@
 # Stability, Reliability & Performance Runbook
 
-**Current assessment, 13 October 2026:** follow the [two-month stability plan](../superpowers/plans/2026-10-13-two-month-stability.md)
+**Current assessment, 15 October 2026:** follow the [two-month stability plan](../superpowers/plans/2026-10-13-two-month-stability.md)
 for the feature freeze and current readiness status. The custom-domain certificate
 and stale DNS ownership records were repaired: repeated direct/public/proxied
 liveness and readiness checks return 200. Fly CI secrets were replaced with
-verified app-scoped credentials. Synthetic monitoring remains disabled and
-recovery/performance release evidence remains incomplete; see the [current repair
+verified app-scoped credentials. Synthetic monitoring is enabled and the three
+probes pass locally with the repaired monitor credentials. Hosted jobs cannot
+start because of GitHub billing/spending restrictions; alert delivery and
+recovery/performance release evidence remain incomplete. See the [current repair
 evidence](../audits/2026-10-13-stability-repair-evidence.md). Source fixes have not
 yet been released, and local gates do not certify production stability. Treat the test counts,
 hosting/capacity figures and monitoring claims below as historical until remeasured.
@@ -57,7 +59,8 @@ Defined per surface. Violations trigger the alert → runbook chain in §3.
 - Worker bundle: `pnpm check:worker-size` (must emit `index.js`, not
   `worker.js`)
 - Web Vitals: `pnpm check:web-vitals` (P5.8)
-- Uptime: Datadog synthetic monitor (`pnpm monitor:synthetic`)
+- Uptime sampling: GitHub Actions (`pnpm monitor:synthetic`, three daily runs).
+  Minute-level uptime and Datadog alerting are not verified by this runner.
 
 **Quarterly budget burn**: 0.5% of the budget is "spent" per SLO breach
 exceeding 5 minutes; breaches shorter than 5 min are noise. If burn rate

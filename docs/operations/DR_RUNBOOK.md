@@ -1,16 +1,16 @@
 # Disaster Recovery Runbook
 
-> **Status**: initial. Last drill: never (as of 2026-10-03). Schedule first
-> drill within 30 days of this file landing. SYSTEM_DESIGN_AND_PATTERNS.md
-> §28.1 item 7.
+> **Status, 15 October 2026**: a bounded Neon recovery and encrypted synthetic
+> canary drill has run; see the [drill record](dr-drills/2026-10-15-neon-isolated.md).
+> A full clinical/object/region recovery and traffic cutover remain unproved.
 >
 > The RTO/RPO values in the table below are **unverified targets**, not measured
-> capabilities — no drill has been run and `docs/operations/dr-drills/` does not
-> exist. Do not quote them as guarantees until a drill record exists. See
+> capabilities. The bounded drill below does not establish production RTO/RPO.
+> Do not quote them as guarantees without the relevant end-to-end evidence. See
 > [ADR 0016](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md)
 > (backlog C01).
 
-## Current provider verification, 13 October 2026
+## Current provider verification, 15 October 2026
 
 The API's actual `DATABASE_URL` host identifies **Neon PostgreSQL in Singapore**,
 not the historical RDS instance described below. This was read as hostname/database
@@ -19,13 +19,59 @@ AWS credential verifies with STS, but the old named RDS instance is absent and
 broader RDS inventory access is denied. Those AWS checks do not establish Neon
 backup or restore capability.
 
-Neon project/branch identity, restore window, retention and a side-database restore
-must be verified by its operator before migration or runtime-role cutover. Keep
-R2/key custody and tenant isolation in the drill. The RDS restore commands below
-are historical provider-specific procedures and cannot recover the current Neon
-primary. No production restore or migration was performed by this audit; the
-[repair evidence](../audits/2026-10-13-stability-repair-evidence.md) remains blocked
-on an exercised recovery target.
+Authenticated Neon CLI access confirms project `icy-river-59903017`, PostgreSQL17
+in `aws-ap-southeast-1`, production branch `br-young-butterfly-a17arhtm` and endpoint
+`ep-plain-rain-a1zogxgl`. The configured history retention is **21,600 seconds
+(six hours)**. The project is on Free; its history window cannot exceed six hours
+on that plan. Retention changes require a separate billing/operating decision.
+See Neon's [history-window documentation](https://neon.com/docs/postgres/backup-restore/history-window).
+The user selected keeping Free and preparing independent encrypted backups;
+follow the [backup plan](../superpowers/plans/2026-10-15-independent-database-backups.md).
+That preparation does not establish an active backup schedule or 30-day retention.
+
+An isolated branch from production's past state was exercised, followed by a
+synthetic encrypted insert/delete/point-in-time recovery on drill branches.
+Authenticated decryption succeeded using a protected local key verified against
+the current API key by hash. The copied production data has no clinics/patients
+or documents, so matching zero counts is not clinical-data continuity evidence.
+The additive RLS sweep and non-owner role passed 19 strict checks on the isolated
+target, including coverage on all 91 tenant tables. Production still has 16
+coverage gaps and owner-role bypass; neither policies nor runtime credentials
+were changed there. See the [drill record](dr-drills/2026-10-15-neon-isolated.md).
+
+The RDS commands below are historical procedures and cannot recover the current
+Neon primary. A production restore, migration, traffic cutover, staging soak and
+full recovery certification have not been performed by this audit.
+
+## Isolated Neon drill procedure
+
+1. Verify the project, branch and endpoint against the actual runtime URL without
+   printing it. Record the configured history window and select a timestamp inside
+   it. Do not infer seven-day retention from the historical RDS procedure.
+2. Create a uniquely named child from the explicit production parent and past
+   timestamp, with a separate small compute and cleanup deadline. This uses
+   [point-in-time branching](https://api-docs.neon.tech/reference/createprojectbranch),
+   not an in-place restore of production. Do not reassign its compute or replace
+   the runtime URL. Neon clones roles/passwords, so handle the target as sensitive.
+3. Validate the target identity before any writes. Compare aggregate schema,
+   migration, integrity and row-count evidence; do not export patient rows. Use
+   synthetic canaries when the relevant tables are empty, and label that scope.
+4. On the drill target only, write an encrypted synthetic canary, record a server
+   timestamp after its commit, delete it, then recover that timestamp into a second
+   child. Assert the original has zero canary rows, the recovered child has one,
+   and authenticated decryption returns the known synthetic value. A branch with
+   expiration cannot have children: remove only the owned parent's expiration
+   for this bounded step and delete both targets immediately afterwards.
+5. Rehearse the reviewed migration and runtime role on the isolated target; run
+   `db:check-tenant-isolation -- --strict-preconditions` with separate app/admin
+   connections. Keep provider sends disabled. Document pending migrations and
+   the remaining authenticated/staging-soak requirements separately.
+6. Verify object access/key custody with a uniquely owned encrypted synthetic
+   object, read/decrypt it, and delete it. Verify absence. This does not prove
+   recovery of historical objects or independence from a provider/account loss.
+   Delete owned drill children before parents, verify production endpoint/branch
+   identity is unchanged, and remove temporary credentials. Record timings and
+   limits without turning provisioning time into an end-to-end RTO claim.
 
 ## Historical scope and provider procedures
 

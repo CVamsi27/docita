@@ -58,7 +58,10 @@ pnpm --filter @workspace/db run db:migrate:dry-run
 pnpm --filter @workspace/db run db:migrate:safe
 ```
 
-Dry-run output should report:
+Dry-run validates migration files and reports migration status; it does not
+execute the SQL or prove live coverage. Review both the original role/policy
+migration and `20261003000000_complete_rls_policy_coverage`. On an isolated
+rehearsal target, verify that their application produces:
 
 - `CREATE ROLE docita_app` (or skipped on idempotent reruns)
 - `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` for every table with a
@@ -73,11 +76,17 @@ migration runner bypasses RLS automatically.
 The owner role bypasses RLS, so we must point the API at a non-owner role
 before enforcement matters. Operators should:
 
-1. Set a password for `docita_app` (or attach a pooled credential).
-2. `GRANT docita_app TO postgres;` so the owner can revoke / rotate.
-3. Add `DATABASE_URL` overrides for the API and worker that connect as
-   `docita_app`. Until then, the API runs as the owner and policies do
-   not bind.
+1. Use the verified provider's owner/migration connection to give `docita_app`
+   LOGIN and a strong password through the protected secret setup. Preserve
+   NOSUPERUSER, NOBYPASSRLS, NOCREATEDB and NOCREATEROLE. Do not make this runtime
+   role a member of an owner or privileged role.
+2. Verify effective grants on tables and sequences, default privileges for the
+   actual migration owner, and inability to assume any owner/bypass role. A
+   provider's administrative role is not necessarily named `postgres`.
+3. Rehearse separate migration-owner and runtime URLs on the isolated target.
+   Set the API and worker runtime URLs only after the strict probe, authenticated
+   candidate journeys and staging soak pass. Keep owner credentials in migration
+   custody; never use them as the permanent runtime workaround.
 
 ## Step 3: dry-run enforcement in staging
 
@@ -106,12 +115,17 @@ sites to `RlsService.runScopedTransaction` (or pull the work outside the
 inner tx) — the service applies the GUC handshake and republishes the
 new tx into `activeTxStorage`.
 
-## Step 4: flip the flag in production
+## Step 4: enforce with the verified runtime role in production
 
 After a clean staging dry-run plus 24h of soak with no policy errors:
 
-1. Set `RLS_ENABLED=true` in the API and worker secrets.
-2. Roll the API and worker.
+1. Recheck the current flag and connection identity. Production already has
+   `RLS_ENABLED=true`; repeating that setting cannot repair owner-role bypass.
+2. Apply reviewed additive coverage changes and switch the API and worker runtime
+   URLs to the verified non-owner role using the controlled release path. Keep
+   API idle shutdown and worker ownership/cadence settings intact. Do not start
+   the worker merely to test connectivity: its queued provider effects require
+   the separate delivery/replay review.
 3. Watch `pg_stat_activity` and Sentry for `permission denied for table` /
    `new row violates row-level security policy` errors.
 

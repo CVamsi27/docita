@@ -4,8 +4,12 @@
 standards and workspace build pass. Public capability resolution now has real
 non-owner/RLS HTTP proof. The full production monitor script passes locally;
 GitHub cannot start hosted jobs because of billing/spending restrictions. Final
-image builds/scans await Docker Desktop recovery. Production source remains
-unreleased. Current evidence and credential containment are recorded in the
+images build and pass configured-resource startup/shutdown; final dependency
+pruning and rescans are in progress. Neon past-point recovery, an encrypted
+synthetic canary, R2 object/key checks and 19 strict isolated RLS cases pass.
+Production still has 10 pending migrations and owner-role RLS bypass. The user
+selected keeping Neon Free and preparing [independent encrypted backups](2026-10-15-independent-database-backups.md).
+Production source remains unreleased. Current evidence and credential containment are recorded in the
 [repair record](../../audits/2026-10-13-stability-repair-evidence.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
