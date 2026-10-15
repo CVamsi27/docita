@@ -1,11 +1,27 @@
 # Deployment Strategy
 
+The stability candidate minimizes API/worker runtime images to compiled Node
+artifacts and required native libraries. Run pnpm migration/repair tools from
+the trusted checkout or CI. Do not depend on npm/pnpm inside Fly runtime images;
+current Fly configs have no release command and CI runs migrations separately.
+
 > **Vite SPA apps (`apps/app`, `apps/internal`)**: see
 > [`CLOUDFLARE_VITE_DEPLOYMENT.md`](./CLOUDFLARE_VITE_DEPLOYMENT.md) for the
 > focused Cloudflare strategy (topology, caching, proxy contract, CI flow,
 > rollback, failure modes).
 
-## Current Production Stack
+## Current runtime verification, 13 October 2026
+
+The actual API connection points to Neon PostgreSQL in Singapore and uses the
+owner role; see [RLS rollout](../compliance/RLS_ROLLOUT.md) and [recovery
+verification](DR_RUNBOOK.md#current-provider-verification-13-october-2026).
+The legacy RDS snapshot job is not a verified backup path for this database.
+Deployment triggers remain paused. Restore verification, current staging,
+non-owner rollout and release evidence must precede reactivation or a production
+code release. The operator chose to retain API idle shutdown during the freeze;
+a cold start was observed at approximately 28 seconds.
+
+## Recorded production topology
 
 - Frontend
   - `apps/app`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
@@ -74,6 +90,7 @@ fly ssh console
 ```
 
 Fly-specific notes:
+
 - The Fly API deployment uses [`fly.toml`](../../fly.toml) and [`apps/api/Dockerfile`](../../apps/api/Dockerfile).
 - The Fly worker deployment uses [`apps/worker/fly.toml`](../../apps/worker/fly.toml) and [`apps/worker/Dockerfile`](../../apps/worker/Dockerfile) (no HTTP service; runs `dist/worker/src/main.js` in the image). For local runs against production-like settings, use `apps/worker/.env.production` (gitignored), not `apps/api/.env.production`.
 - GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](../../fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
@@ -94,6 +111,7 @@ docker build -f apps/worker/Dockerfile -t docita-worker-verify .
 ```
 
 Secrets required (set via `fly secrets set KEY=value`):
+
 - `DATABASE_URL` — AWS RDS connection string as **`docita_app`** (non-owner) when `RLS_ENABLED=true`
 - `JWT_SECRET` — minimum 32 characters
 - `ENCRYPTION_KEY` — 64-character hex key
@@ -116,19 +134,21 @@ Secrets required (set via `fly secrets set KEY=value`):
 Database migration is applied automatically by the `db-migrations.yml` GitHub Actions workflow on every push to `main` that touches `packages/db/`.
 
 Manual migration:
+
 ```bash
 DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 ```
 
 ## Data Migrations (Backfill-Only)
 
-Schema migrations (DDL) are applied automatically. **Data migrations** that rewrite existing rows are a separate concern — they ship as the same `prisma migrate deploy` artifact but are *safe to defer* and *idempotent on re-run*.
+Schema migrations (DDL) are applied automatically. **Data migrations** that rewrite existing rows are a separate concern — they ship as the same `prisma migrate deploy` artifact but are _safe to defer_ and _idempotent on re-run_.
 
 ### `20260715100000_normalize_patient_phone_to_e164` — Patient phone to E.164
 
 Backfill that rewrites legacy bare-10-digit Indian mobile numbers on `Patient.phoneNumber` to E.164 (`+91XXXXXXXXXX`). Shipped with the read-side tolerant-lookup fix in [`prisma-patient.repository.ts`](../../apps/api/src/domains/patients/infrastructure/persistence/prisma-patient.repository.ts) and the write-side normalization in [`patient.mapper.ts`](../../apps/api/src/domains/patients/infrastructure/mappers/patient.mapper.ts) so new and old data resolve identically.
 
 **Properties:**
+
 - Idempotent: the `WHERE "phoneNumber" ~ '^\d{10}$'` predicate matches only bare-10-digit rows, so re-running is a no-op once normalized.
 - Scope: only live rows (`"deletedAt" IS NULL`) — soft-deleted rows stay on the retention/anonymization path untouched.
 - Concurrency: bumps `"version"` and `"updatedAt"` on every rewritten row, so any in-flight optimistic-concurrency update built from the pre-migration row will be rejected with a version mismatch. This is the desired behavior — the next write from the client re-reads and re-normalizes.
@@ -137,6 +157,7 @@ Backfill that rewrites legacy bare-10-digit Indian mobile numbers on `Patient.ph
 **Run order:** the read-side tolerant lookup (`{ in: phoneMatchCandidates(phone) }`) makes the API code-level fix land without the data migration. Deploy the code first, then run the data migration whenever convenient — there is no tight coupling.
 
 **Dry-run first (recommended):**
+
 ```sql
 SELECT COUNT(*) FROM "Patient"
   WHERE "phoneNumber" ~ '^\d{10}$' AND "deletedAt" IS NULL;
@@ -145,6 +166,7 @@ SELECT COUNT(*) FROM "Patient"
 If the count is unexpectedly large (e.g. > 100k), pause and confirm scope before running.
 
 **Post-migration verify:**
+
 ```sql
 -- Should be 0 once the migration lands
 SELECT COUNT(*) FROM "Patient"
@@ -220,9 +242,16 @@ Production API deploys from GitHub Actions use **Fly.io blue-green** (`flyctl de
 2. Health checks on `GET /api/health/live` must pass.
 3. Traffic shifts to the new machines; old machines are drained and removed.
 
-This gives near-instant rollback via `fly releases rollback` without a separate green environment. The worker has no HTTP service and continues to use a rolling deploy (`--ha=false`).
+For recovery, redeploy an operator-selected known-good image through
+`pnpm rollback:fly` as described below. The worker has no HTTP service and
+uses a rolling deploy with `--ha=false`.
 
-After each API deploy, **synthetic uptime probes** run automatically (`pnpm monitor:synthetic`). Failures block the deploy job and emit a Sentry event when `SENTRY_DSN` is configured. Scheduled probes run 3x/day during IST business hours via [`.github/workflows/synthetic-monitoring.yml`](../../.github/workflows/synthetic-monitoring.yml) — see [`SYNTHETIC_MONITORING.md`](./SYNTHETIC_MONITORING.md) for the full alerting matrix including Fly auto-recovery.
+The deployment workflow defines **synthetic uptime probes**
+(`pnpm monitor:synthetic`) and Sentry failure reporting when `SENTRY_DSN` is
+configured. Verify the deploy and scheduled workflows are enabled and alerts
+are delivered before relying on those gates. See
+[`synthetic-monitoring.yml`](../../.github/workflows/synthetic-monitoring.yml)
+and [`SYNTHETIC_MONITORING.md`](./SYNTHETIC_MONITORING.md).
 
 ## Row-level security (production)
 
@@ -232,26 +261,42 @@ After each API deploy, **synthetic uptime probes** run automatically (`pnpm moni
 
 ## Roll back a bad release
 
-The migration policy is **additive-only** (see `MIGRATION_NOTES.md`), so a release rollback is always a code/image rollback — never a schema rollback. Redeploying the previous image against the current schema is safe.
+Use a code/image rollback only after checking the selected image against the
+current schema and configuration. The **additive-only** migration policy
+([`MIGRATION_NOTES.md`](MIGRATION_NOTES.md)) reduces risk; it does not prove that
+an older image is compatible. Schema corrections use reviewed additive forward
+migrations, not automatic execution of historical `down.sql` files.
 
 ### API or worker (Fly.io)
 
 ```bash
-# List recent releases for the affected app
-fly releases --app docita-api          # or docita-worker
+# List recorded image references for the affected app
+flyctl releases --app docita-api --image
+# Worker: flyctl releases --app docita-worker --image
 
-# Roll back to the previous release (image + config)
-fly releases rollback <VERSION> --app docita-api
+# Set RECORDED_API_IMAGE to the selected compatible image from release evidence.
+pnpm rollback:fly --config fly.toml --image "$RECORDED_API_IMAGE"
+# Worker: select its own RECORDED_WORKER_IMAGE, then run:
+# pnpm rollback:fly --config apps/worker/fly.toml --image "$RECORDED_WORKER_IMAGE"
 
-# Confirm health
+# Confirm liveness and dependency readiness
 curl -fsS https://api.docita.work/api/health/live
-fly logs --app docita-api | head -50
+curl -fsS https://api.docita.work/api/health/ready
+flyctl status --app docita-api
 ```
 
-Notes:
-- `fly releases rollback` redeploys the prior image; it does not touch the database. Any migration applied by the bad release stays applied — that is intentional and safe under the additive-only policy.
-- If the bad release introduced a `fly secrets set` change that is part of the regression, revert the secret separately with `fly secrets set KEY=<previous-value>`; `releases rollback` will not revert secrets.
-- For the worker, also confirm cron heartbeat lines in `fly logs --app docita-worker` and that `QueueJob` depth is draining.
+The [rollback helper](../../scripts/deploy/rollback-fly-image.mjs) validates the
+configured app/region and image ownership. It preserves API blue-green versus
+worker rolling deployment, and passes `--skip-release-command` so recovery does
+not run a release-hook migration. Current config and secrets remain in effect;
+Fly image recovery does not restore their previous values or reverse database
+changes. See the [Fly rollback guide](https://docs.fly.io/blueprints/rollback-guide/).
+
+Keep secret values out of release evidence, shell command arguments and logs.
+Record variable names and protected version references only; use
+[`SECRET_ROTATION_CHECKLIST.md`](SECRET_ROTATION_CHECKLIST.md) for credential
+restoration. For a worker recovery, verify scheduler heartbeat and queue depth
+trend; API health alone does not establish worker recovery.
 
 ### Frontend (Cloudflare Workers)
 
@@ -270,27 +315,46 @@ Cloudflare Git integration / dashboard deploys remain the fallback. To roll back
 2. Under **Deployments**, locate the last known-good deployment and choose **Rollback to this deployment**.
 3. Verify the rollback by hitting the public URL and checking the browser console for chunk-load errors.
 
+For a CLI recovery, select the known-good **Worker version ID** from the
+affected Worker's deployment evidence. Run from the repository root:
+
+```bash
+pnpm --filter @docita/app exec wrangler rollback "$KNOWN_GOOD_APP_VERSION_ID" --config wrangler.toml --env production
+pnpm --filter @docita/internal exec wrangler rollback "$KNOWN_GOOD_INTERNAL_VERSION_ID" --config wrangler.toml --env production
+pnpm --filter @docita/landing exec wrangler rollback "$KNOWN_GOOD_LANDING_VERSION_ID" --config wrangler.toml
+```
+
+Run only the affected workspace command. App/internal use their configured
+production environment; landing uses its top-level production config. An
+omitted version ID would select a predecessor automatically, so always supply
+the reviewed ID. Verify the matching assets, routes, bindings and secret
+compatibility before recovery. [Wrangler rollback reference](https://developers.cloudflare.com/workers/wrangler/commands/workers/#rollback).
+
 ### Decision guide
 
-| Symptom | Action |
-|---|---|
-| API 5xx spike or crash loop after deploy | `fly releases rollback` on `docita-api` |
-| Background jobs failing or cron not firing | `fly releases rollback` on `docita-worker` |
-| Frontend white screen / chunk errors after deploy | Cloudflare dashboard rollback on the affected app |
-| DB schema drift detected by `verify-db-schema-sync.sh` | Do **not** roll back the migration — fix forward with a new additive migration |
-| Secret-driven regression (auth, payments, R2) | Revert the secret via `fly secrets set`, then redeploy if needed |
+| Symptom                                                  | Action                                                                                                                         |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| API 5xx spike or crash loop after deploy                 | Redeploy its selected compatible image with `pnpm rollback:fly --config fly.toml --image "$RECORDED_API_IMAGE"`                |
+| Background jobs failing or cron not firing               | Redeploy its selected compatible image with `pnpm rollback:fly --config apps/worker/fly.toml --image "$RECORDED_WORKER_IMAGE"` |
+| Frontend white screen / chunk errors after deploy        | Cloudflare dashboard rollback on the affected app                                                                              |
+| Public API returns 525 while the Fly hostname is healthy | Check custom-domain certificate and DNS ownership first; see [upstream playbook](playbooks/cloudflare-upstream-timeout.md)     |
+| DB schema drift detected by `verify-db-schema-sync.sh`   | Do **not** roll back the migration — fix forward with a new additive migration                                                 |
+| Secret-driven regression (auth, payments, R2)            | Follow protected credential restoration in `SECRET_ROTATION_CHECKLIST.md`; record names/version references only                |
 
 ### After rollback
 
 - Page the on-call channel with the affected app, the rolled-to version, and the failing version.
 - Open a Sentry filter for the failing release tag to scope the post-mortem.
-- Confirm the synthetic monitor (`/api/v1/health` + `/api/v1/auth/me` smoke — see [`SYNTHETIC_MONITORING.md`](./SYNTHETIC_MONITORING.md)) returns green for one full interval before closing the incident.
+- Confirm direct/public/proxied `/api/health/live` and `/api/health/ready`, then
+  authenticated `/api/v1/auth/me` smoke. Verify that the synthetic monitor is
+  enabled and delivers alerts before relying on its recovery window; see
+  [`SYNTHETIC_MONITORING.md`](./SYNTHETIC_MONITORING.md).
 
 ## Scaling Path
 
-| Stage | API | Database | Cache / Background Work |
-|-------|-----|----------|--------------------------|
-| 0–20 clinics | Fly.io 1 GB shared, single machine | RDS `db.t4g.micro` | In-process memory cache + worker-backed background work |
-| 20–50 clinics | Fly.io 2 GB shared, single machine | RDS `db.t3.small` | In-process memory cache + worker-backed background work |
-| 50–100 clinics | Fly.io 4 GB dedicated | RDS `db.t3.medium` + read replica | PostgreSQL-backed worker handles background work before scaling API horizontally |
-| 100+ clinics | Fly.io multi-machine or ECS | RDS `db.r6g.large` + PgBouncer | Durable worker system required; re-evaluate dedicated cache only if needed |
+| Stage          | API                                | Database                          | Cache / Background Work                                                          |
+| -------------- | ---------------------------------- | --------------------------------- | -------------------------------------------------------------------------------- |
+| 0–20 clinics   | Fly.io 1 GB shared, single machine | RDS `db.t4g.micro`                | In-process memory cache + worker-backed background work                          |
+| 20–50 clinics  | Fly.io 2 GB shared, single machine | RDS `db.t3.small`                 | In-process memory cache + worker-backed background work                          |
+| 50–100 clinics | Fly.io 4 GB dedicated              | RDS `db.t3.medium` + read replica | PostgreSQL-backed worker handles background work before scaling API horizontally |
+| 100+ clinics   | Fly.io multi-machine or ECS        | RDS `db.r6g.large` + PgBouncer    | Durable worker system required; re-evaluate dedicated cache only if needed       |

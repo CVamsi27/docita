@@ -10,7 +10,24 @@
 > [ADR 0016](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md)
 > (backlog C01).
 
-## Scope
+## Current provider verification, 13 October 2026
+
+The API's actual `DATABASE_URL` host identifies **Neon PostgreSQL in Singapore**,
+not the historical RDS instance described below. This was read as hostname/database
+metadata through Fly SSH; no credentials or patient rows were exported. The local
+AWS credential verifies with STS, but the old named RDS instance is absent and
+broader RDS inventory access is denied. Those AWS checks do not establish Neon
+backup or restore capability.
+
+Neon project/branch identity, restore window, retention and a side-database restore
+must be verified by its operator before migration or runtime-role cutover. Keep
+R2/key custody and tenant isolation in the drill. The RDS restore commands below
+are historical provider-specific procedures and cannot recover the current Neon
+primary. No production restore or migration was performed by this audit; the
+[repair evidence](../audits/2026-10-13-stability-repair-evidence.md) remains blocked
+on an exercised recovery target.
+
+## Historical scope and provider procedures
 
 This runbook covers recovery from data-tier or region-level loss of:
 
@@ -25,13 +42,13 @@ It does **not** cover routine deploy rollbacks (see
 
 ## Targets
 
-| Resource | Recovery Time Objective (RTO) | Recovery Point Objective (RPO) |
-| --- | --- | --- |
-| Postgres primary loss | 60 minutes | 5 minutes (PITR) |
-| Region-level loss | 4 hours | 24 hours (daily snapshot) |
-| R2 region | 30 minutes (Cloudflare fan-over) | 0 minutes (multi-region replication) |
-| Fly.io machine | 5 minutes (autoscaler) | 0 minutes |
-| Fly.io region | 60 minutes (failover machines) | 0 minutes (stateless API) |
+| Resource              | Recovery Time Objective (RTO)    | Recovery Point Objective (RPO)       |
+| --------------------- | -------------------------------- | ------------------------------------ |
+| Postgres primary loss | 60 minutes                       | 5 minutes (PITR)                     |
+| Region-level loss     | 4 hours                          | 24 hours (daily snapshot)            |
+| R2 region             | 30 minutes (Cloudflare fan-over) | 0 minutes (multi-region replication) |
+| Fly.io machine        | 5 minutes (autoscaler)           | 0 minutes                            |
+| Fly.io region         | 60 minutes (failover machines)   | 0 minutes (stateless API)            |
 
 The single largest exposure today is the Postgres primary — both because
 it is single-region (ADR
@@ -44,12 +61,12 @@ Each quarter, on the second Friday of the quarter, run one drill from
 the table below. Rotate through the four scenarios so each is exercised
 once a year.
 
-| Quarter | Scenario |
-| --- | --- |
-| Q1 | Postgres point-in-time restore to a side database |
-| Q2 | Snapshot restore + replay confirmation |
-| Q3 | Region failover simulation (Fly.io machine drain) |
-| Q4 | Full DR exercise: assume primary region down, restore in DR region |
+| Quarter | Scenario                                                           |
+| ------- | ------------------------------------------------------------------ |
+| Q1      | Postgres point-in-time restore to a side database                  |
+| Q2      | Snapshot restore + replay confirmation                             |
+| Q3      | Region failover simulation (Fly.io machine drain)                  |
+| Q4      | Full DR exercise: assume primary region down, restore in DR region |
 
 Document the drill outcome in `docs/operations/dr-drills/YYYY-QN.md`.
 

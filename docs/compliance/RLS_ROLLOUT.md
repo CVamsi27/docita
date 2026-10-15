@@ -2,6 +2,20 @@
 
 ## Status
 
+**Production verification, 13 October 2026, 19:48 IST:** metadata read through the
+actual API connection identifies a Neon PostgreSQL database. Its effective and
+login role is `neondb_owner` (`BYPASSRLS`, owns tenant tables); `docita_app` exists
+but cannot log in. Of 91 live `clinicId` tables, 16 lack enabled RLS or a policy.
+The October policy sweep in source is therefore not evidence of live coverage.
+The runtime flag alone does not enforce database isolation. See the [repair
+evidence](../audits/2026-10-13-stability-repair-evidence.md).
+
+Complete the existing additive migration/role rollout only after a verified
+backup/recovery target, current staging, strict role/policy proof and the soak
+below. Preserve the owner credential for migrations in protected custody;
+runtime credentials must be non-owner and unable to assume privileged roles.
+No production credential switch or policy migration was performed by this audit.
+
 - Migration: `20260502143500_add_rls_policies` (additive, gated)
 - Application flag: `RLS_ENABLED` (defaults to `false` locally; **`true` in production** via [`fly.toml`](../../fly.toml) and [`apps/worker/fly.toml`](../../apps/worker/fly.toml))
 - Application surface: `RlsService.runScopedTransaction(clinicId, fn)`
@@ -22,7 +36,7 @@ non-owner `docita_app` role** or Postgres owner connections bypass RLS entirely
   into `activeTxStorage`. The `rls-routing` Prisma extension then forwards
   every model operation issued from the request through `tx`, so the
   `SET LOCAL` GUCs actually govern the queries. (Without the routing
-  extension, the handler would borrow a *different* pool connection and
+  extension, the handler would borrow a _different_ pool connection and
   the policy would short-circuit on a missing `app.current_clinic_id` —
   effectively a silent bypass.)
 
@@ -85,7 +99,7 @@ When fixing fallout, prefer routing the query through
 so that incidental `prisma.<model>.<op>(...)` calls in services and
 repositories are routed through it by the `rls-routing` extension. If a
 service explicitly opens its own `prisma.$transaction(async (innerTx) => ...)`
-inside a tenant request, that `innerTx` will be a *new* connection
+inside a tenant request, that `innerTx` will be a _new_ connection
 without the GUCs set, and any tenant-scoped query that runs through
 `innerTx` will be blocked by the `tenant_isolation` policy. Convert such
 sites to `RlsService.runScopedTransaction` (or pull the work outside the
@@ -101,14 +115,15 @@ After a clean staging dry-run plus 24h of soak with no policy errors:
 3. Watch `pg_stat_activity` and Sentry for `permission denied for table` /
    `new row violates row-level security policy` errors.
 
-
 ## Verifying isolation on a live database
 
 Source presence is not an execution result, so enforcement is proven by running
 the two-clinic matrix against a real PostgreSQL instance:
 
 ```bash
-pnpm --filter @workspace/db run db:check-tenant-isolation
+# Supply DATABASE_URL and TENANT_ISOLATION_ADMIN_DATABASE_URL securely in env.
+# Both must identify the same intended database; use a disposable fixture scope.
+pnpm --filter @workspace/db run db:check-tenant-isolation -- --strict-preconditions
 ```
 
 The matrix executes every tenant operation in a rolled-back transaction using a
@@ -120,7 +135,8 @@ non-owner role and reports three severities:
   cleanup. A failure here fails the run.
 - `coverage` — every clinicId-bearing table in the live schema has RLS and a
   `tenant_isolation` policy. A failure fails the run.
-- `precondition` — the configured `DATABASE_URL` role does not bypass RLS, and
+- `precondition` — the configured `DATABASE_URL` effective role, login role and
+  SET-reachable roles must neither bypass RLS nor own tenant tables, and
   `docita_app` exists with login. Reported always; gated with
   `--strict-preconditions` (required for release evidence).
 
@@ -134,7 +150,8 @@ gap cannot reopen between soak runs.
 `20260502143500_add_rls_policies` created the policies with a one-time loop, so
 16 tables added afterwards had no policy and no database-level tenant backstop.
 `20261003000000_complete_rls_policy_coverage` re-applies the same loop
-idempotently; coverage is now 91/91 clinicId-bearing tables. Any future tenant
+idempotently; the source loop targets all 91 clinicId-bearing tables; the live October13 audit
+above still finds 16 missing backstops. Any future tenant
 table must enable RLS in its own migration.
 
 ### Known limitation: nullable clinicId columns
