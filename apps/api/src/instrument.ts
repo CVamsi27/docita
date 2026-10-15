@@ -12,7 +12,11 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as Sentry from '@sentry/nestjs';
 import type { NodeOptions } from '@sentry/nestjs';
-import { createSentryBeforeSend } from '@/shared/modules/error-handling/sentry.utils';
+import {
+  createSentryBeforeSend,
+  createSentryBeforeSendTransaction,
+  createSentryBeforeSendLog,
+} from '@/shared/modules/error-handling/sentry.utils';
 
 type SentryIntegration =
   NonNullable<NodeOptions['integrations']> extends Array<infer T> ? T : never;
@@ -36,6 +40,8 @@ Sentry.init({
   dsn: process.env.SENTRY_DSN,
   environment: process.env.NODE_ENV ?? 'development',
   beforeSend: createSentryBeforeSend(),
+  beforeSendTransaction: createSentryBeforeSendTransaction(),
+  beforeSendLog: createSentryBeforeSendLog(),
   integrations: nodeProfilingIntegration
     ? [
         nodeProfilingIntegration(),

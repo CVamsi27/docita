@@ -16,6 +16,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { isObject } from '@/shared/modules/error-handling/filters/http-exception.helpers';
 import { getMonitoringUserContext } from '@/shared/modules/auth/auth/monitoring-user-context';
 import { resolveExceptionResponse } from '@/shared/modules/error-handling/filters/http-exception-resolution';
+import { redactMonitoringUrl, redactString } from '@workspace/utils';
 
 const MAX_REQUEST_BODY_KEYS = 20;
 function summarizeRequestBody(
@@ -50,6 +51,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+    const observedPath = redactMonitoringUrl(request.path);
 
     const { status, message, errorType, errorStack, details, errorCode } =
       resolveExceptionResponse(exception, request, this.logger);
@@ -64,7 +66,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
           username: monitoringUser.clinicId,
         },
         extra: {
-          path: request.path,
+          path: observedPath,
           method: request.method,
           requestBodySummary,
         },
@@ -78,9 +80,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
         clinicId: monitoringUser.clinicId,
         userId: monitoringUser.userId,
         type: errorType,
-        message,
-        stack: this.configService?.isDevelopment() ? errorStack : undefined,
-        path: request.path,
+        message: redactString(message),
+        stack:
+          this.configService?.isDevelopment() && errorStack
+            ? redactString(errorStack)
+            : undefined,
+        path: observedPath,
         method: request.method,
         statusCode: status,
         userAgent: request.headers['user-agent'],
@@ -93,15 +98,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (status >= 500) {
       this.logger.error(
-        `HTTP ${status} ${request.method} ${request.path}: ${message}`,
-        errorStack,
+        redactString(
+          `HTTP ${status} ${request.method} ${observedPath}: ${message}`,
+        ),
+        errorStack ? redactString(errorStack) : undefined,
       );
     } else if (
       !(exception instanceof ForbiddenException) &&
       !(exception instanceof UnauthorizedException)
     ) {
       this.logger.warn(
-        `HTTP ${status} ${request.method} ${request.path}: ${message}`,
+        redactString(
+          `HTTP ${status} ${request.method} ${observedPath}: ${message}`,
+        ),
         { status, errorType },
       );
     }
