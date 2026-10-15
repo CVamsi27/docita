@@ -34,7 +34,7 @@ credential-bearing metadata are kept privately outside the repository.
   production login with HTTP 201 and an access-token cookie; those exact values
   were synchronized to GitHub through protected stdin. The full monitor script also passes locally: health 107 ms, daily thought
   818 ms, and login 173 ms. These warm point checks do not certify an uptime or
-  load target. Hosted runs remain blocked: [GitHub's latest run](https://github.com/CVamsi27/docita/actions/runs/38578306342)
+  load target. Hosted runs remain blocked: [GitHub's latest run](https://github.com/CVamsi27/docita/actions/runs/38701221691)
   did not start its job because account payments failed or its spending limit
   was reached. This is not a new authentication failure. Alert delivery and an
   authenticated hosted run remain unverified. The dedicated identity has no
@@ -122,6 +122,7 @@ working candidate where marked; earlier results are retained with their scope.
 | Rollback artifacts              | 23 executable CLI cases pass; combined rollback/drain total 38. No production rollback executed.                                                                                                                                           |
 | Dependency audit                | 14 October audit exits 0 under the existing braces exception; metadata reports one high. Registry still lists 3.0.3 as latest. Exception expires 12 November and was not extended.                                                         |
 | Standards                       | Passed on 14–15 October: 148 standards cases and the full standards command. The absent API latency baseline explicitly skips and remains a release failure.                                                                               |
+| Repository dependency scan      | Trivy 0.70.0 on 15 October recognizes pnpm-lock.yaml and reports zero HIGH/CRITICAL under the same ignore-unfixed policy as CI. This excludes final image OS/runtime layers and does not revoke the November braces exception.                |
 | Required latency evidence       | Fails: artifacts/api-latency-baseline.json absent (seven-day freshness required). No passing numbers were invented.                                                                                                                        |
 | Knip / hygiene                  | Passed on the current candidate; emitted-worker dependency consumers remain documented.                                                                                                                                                    |
 | Authenticated app accessibility | 160/160 passed, zero skips, on 13 October with owned API/DB and same-origin proxy across desktop/mobile/tablet. Frontend markup is unchanged since that run.                                                                               |
