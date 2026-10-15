@@ -47,7 +47,7 @@ export function setupTestDatabase() {
 
   const pool = new Pool(createUtcPoolConfig({ connectionString: testDbUrl }));
   testPoolSaturation = createPoolSaturationProbe(pool);
-  const adapter = new PrismaPg(pool);
+  const adapter = new PrismaPg(pool, { disposeExternalPool: true });
   const rawPrisma = new PrismaClient({ adapter });
 
   prisma = Object.assign(rawPrisma, {

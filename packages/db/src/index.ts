@@ -8,7 +8,7 @@ const prismaClientSingleton = () => {
   const connectionString = `${process.env.DATABASE_URL}`;
 
   const pool = new Pool(createUtcPoolConfig(connectionString));
-  const adapter = new PrismaPg(pool);
+  const adapter = new PrismaPg(pool, { disposeExternalPool: true });
   return new PrismaClient({ adapter });
 };
 

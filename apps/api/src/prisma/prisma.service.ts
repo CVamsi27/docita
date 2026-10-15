@@ -40,6 +40,7 @@ export class PrismaService
    */
   private readonly pool: Pool;
   private readonly saturation: PoolSaturationProbe;
+  private poolShutdown: Promise<void> | undefined;
 
   constructor(
     private encryptionService: EncryptionService,
@@ -122,8 +123,18 @@ export class PrismaService
       });
   }
 
-  async onModuleDestroy() {
-    await this.$disconnect();
+  onModuleDestroy(): Promise<void> {
+    this.poolShutdown ??= this.shutdownPool();
+    return this.poolShutdown;
+  }
+
+  private async shutdownPool(): Promise<void> {
+    // Temporary disconnects retain this monitored pool; Nest teardown is terminal.
+    try {
+      await this.$disconnect();
+    } finally {
+      await this.pool.end();
+    }
     this.logger.log('Primary database connection closed');
   }
 
