@@ -188,7 +188,7 @@ Each task ends in independently reviewable evidence. For a reproduced code defec
 
 **Consumes:** T4 staging clone/fixtures with production-equivalent application-role privileges. **Produces:** denied-case evidence, role/policy verification and existing-account acceptance.
 
-- [ ] Run the tenant matrix with strict preconditions on an **owned disposable database**. The harness creates scratch schemas/roles; do not point it blindly at production or describe it as read-only.
+- [x] Run the tenant matrix with strict preconditions on an **owned disposable database**. The harness creates scratch schemas/roles; do not point it blindly at production or describe it as read-only. Verified locally on PostgreSQL 16 and on the isolated Neon PostgreSQL 17 copy; production enforcement remains open.
 - [ ] Verify actual deployed application roles are non-owner/non-BYPASSRLS through safe operator reads, and test the real application resource paths under those privileges in the disposable environment. The harness's scratch policy table is not complete application-table certification.
 - [ ] Cover two clinics, simultaneous requests, primary-key/relational/raw-SQL access, transactions, pool reuse, INTERNAL operations, worker/outbox delivery and nullable-tenant records.
 - [ ] Cover pre-change clinic-associated accounts with stale/missing consent/settings state, refresh/CSRF/logout/revocation, doctor/front-desk roles and tier/mode restrictions. Retain their workspace access and existing data.
@@ -254,7 +254,7 @@ Each task ends in independently reviewable evidence. For a reproduced code defec
 - [ ] Measure mixed clinical traffic, pool wait, peak tenant/list sizes, PDF jobs, deployment overlap and cold/warm behaviour in staging. Size API/worker/pools from memory, CPU, queue age and failure observations; do not simply enlarge the DB pool.
 - [ ] Capture current Web Vitals, bundle and authenticated accessibility evidence at 360/768/1440 CSS pixels; retain raw reports privately and link provenance. Do not rebaseline away violations.
 - [ ] Run full current dependency/OSV scans, including base-tree findings. Retain the existing `braces` exception only while its control is demonstrated; review by 5 November and resolve or explicitly reapprove before **12 November**. The repair adds expiry enforcement against the canonical `osv-scanner.toml` dates in `verify:standard`; this does not automatically resolve or extend the exception.
-- [ ] Repair container scan reporting using the existing CI SARIF capability/opt-in pattern; preserve scanner failure semantics. Inspect built Linux API/worker images and native module startup separately from filesystem scanning.
+- [x] Repair container scan reporting using the existing CI SARIF capability/opt-in pattern; preserve scanner failure semantics. Inspect built Linux API/worker images and native module startup separately from filesystem scanning. Final artifact/native/TLS/shutdown and raw/filtered image scans pass; hosted execution remains billing-blocked.
 - [ ] Freeze reviewed lockfile, runtime and actual deployed image/frontend artifact identities. No dependency-major or provider replacement is necessary for this programme.
 
 **Acceptance:** complete fresh measured evidence meets the canonical budgets; build/image checks work; every advisory is remediated or has an applicable, owned, time-limited disposition. Historical baseline comparisons and filtered audit exit codes are described accurately.

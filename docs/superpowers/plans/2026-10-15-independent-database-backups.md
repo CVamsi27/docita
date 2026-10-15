@@ -82,13 +82,14 @@ Node test runner and an isolated local PostgreSQL fixture.
 ## Operator activation gate
 
 The dedicated private bucket `docita-db-backups` now exists; its lock/lifecycle
-configuration matches the canonical JSON. Scoped S3 credentials and independent
-recovery-key custody remain unavailable. Cloudflare OAuth manages the bucket but
-API-token management returns 403; the operator received dashboard instructions
-for a bucket-scoped Object Read & Write token. Existing API document credentials
-are not the backup setup. No production dump, scheduled machine or live backup
-was created. ADR 0016 D4 retention/erasure approval, actual storage enforcement,
-external transfer/restore, freshness and alerting remain activation gates.
+configuration matches the canonical JSON. The operator supplied separate scoped
+S3 credentials: backup access succeeds, document-bucket HEAD is denied and a
+runtime comparison confirms distinct credentials. Actual synthetic encrypted R2
+transfer/restore and production-prefix overwrite/delete denial pass. Independent
+production recovery-key custody remains unavailable. No production dump,
+scheduled machine or live backup was created. ADR 0016 D4 retention/erasure
+approval, full clinical recovery, schedule/freshness and alerting remain
+activation gates.
 
 ## Verified preparation, 15 October
 
@@ -101,3 +102,14 @@ so this is not production transfer proof. The non-root AMD64 backup image
 has zero raw or ignore-unfixed HIGH/CRITICAL OS/library findings. Highest sampled
 whole-fixture memory was 183.1 MiB under 512 MiB; latest exercise took 4.083 seconds.
 These values do not size a production database or replace schedule/restore evidence.
+
+The separate actual-R2 exercise uses the unchanged prepared image and a synthetic
+source label. Upload/readback and the completion manifest passed in 4.47 seconds;
+an independent download matched the 2,600-byte ciphertext's hash and size. Both
+age and pg_restore exited 0; exact rows/schema, one allowed tenant row, zero
+cross-tenant rows and tamper rejection passed. Unlocked objects and disposable
+keys/fixtures were removed. A separate 119-byte encrypted synthetic canary under
+the production prefix rejected overwrite and delete with 409 and preserved its
+bytes; it remains for the configured lifecycle. These synthetic objects never
+count toward production freshness. See the [runbook](../../operations/ENCRYPTED_DATABASE_BACKUPS.md)
+for the Docker transport diagnostic and exact scope.

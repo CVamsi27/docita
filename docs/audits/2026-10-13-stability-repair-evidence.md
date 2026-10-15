@@ -135,12 +135,26 @@ under 512 MiB; this does not establish production transfer/load capacity.
 Cloudflare's authenticated `cf` CLI created the separate `docita-db-backups`
 bucket with public r2.dev access disabled and no custom domains. Its 30-day lock
 and 31-day expiry/one-day multipart-abort configuration matches the canonical
-JSON files. This verifies configuration; actual retention denial remains to be
-tested. OAuth API-token management returns 403; the operator received steps for
-separate bucket-scoped S3 credentials. No production dump, paid backup machine,
-recovery-key installation or scheduler activation occurred. Keep key custody,
-ADR 0016 D4 erasure/retention approval, actual transfer/restore, cadence and stale-
-backup alerting as explicit activation gates. See the [backup runbook](../operations/ENCRYPTED_DATABASE_BACKUPS.md).
+JSON files. The operator supplied a separate key: backup HEAD/list pass, the
+actual document bucket denies HEAD with 403, and an aggregate runtime comparison
+confirms the two credentials differ from document storage. A tiny encrypted
+synthetic canary under the production prefix rejects overwrite and delete with
+409, while an unlocked control succeeds; locked readback is unchanged. The
+119-byte synthetic canary remains until the configured retention/lifecycle; it
+contains no PHI and has no production completion manifest. Real R2 upload,
+readback/hash and manifest creation pass with a synthetic source label outside
+that prefix. The unchanged image's final run took 4.47 seconds for 2,600 bytes.
+Independent download, streamed age/pg_restore exits 0, exact restored rows/schema,
+one allowed tenant row, zero cross-tenant rows and tamper rejection all pass.
+Unlocked objects and disposable recovery identities/TLS credentials were removed.
+The private host-Docker pipe harness initially reported a premature close even
+when both tools exited 0; its correction accepts only that specific transport
+condition alongside all process/authentication/data checks. The runner and image
+were unchanged. See the backup runbook for full scope.
+No production dump, paid backup machine, recovery-key installation or scheduler
+activation occurred. Keep independent key custody, ADR 0016 D4 erasure/retention
+approval, full clinical recovery, cadence and stale-backup alerting as explicit
+activation gates. See the [backup runbook](../operations/ENCRYPTED_DATABASE_BACKUPS.md).
 
 ## Validation record
 

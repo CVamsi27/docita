@@ -2,8 +2,9 @@
 
 Status: preparation only. On 15 October 2026, the separate `docita-db-backups`
 R2 bucket was created with public `r2.dev` access disabled and no custom domains.
-The production backup job, scoped writer credential, recovery-key custody,
-stale-backup alert and real production restore remain unverified. Keeping Neon
+The dedicated writer credential scope and storage lock have passed synthetic
+verification. The production backup job, recovery-key custody, stale-backup alert
+and real production restore remain unverified. Keeping Neon
 Free leaves its configured six-hour recovery history unchanged.
 
 The selected target is an hourly independent backup, a warning when the latest
@@ -17,8 +18,12 @@ keeps idle shutdown; the clinical worker is not the backup scheduler.
 Plaintext passes through process pipes and memory. Only encrypted archive and
 readback files touch the runner's temporary directory. The writer holds an age
 **public recipient**, never the recovery identity. Its dedicated storage key may
-write new objects and read them back; deletion, lifecycle and bucket-lock
-administration belong to a separate operator credential.
+write new objects and read them back. R2's scoped object read/write credential
+also permits overwriting and deleting **unlocked** objects; this was verified with
+an owned synthetic control. The production prefix's bucket lock prevents those
+operations during its retention window. Lifecycle and bucket-lock administration
+remain under a separate operator credential. Prefix correctness is therefore part
+of the recovery safety boundary.
 
 The runner verifies a SHA256 and byte count after downloading the stored
 ciphertext, then conditionally creates a completion manifest. Unique keys and
@@ -42,12 +47,14 @@ historical field-key versions V2 through V5, required signing/configuration
 custody, verified role/RLS setup and document-storage recovery.
 A readable archive alone does not prove clinical recovery.
 
-The canonical proposed storage policies are
+The canonical prepared storage policies are
 [the 30-day prefix lock](../../scripts/db/backup-bucket-lock.json) and
 [the 31-day expiry / incomplete-upload lifecycle](../../scripts/db/backup-bucket-lifecycle.json).
 They apply to `docita-production/`; the production source identifier must match
-that prefix. Record provider readback and enforcement evidence before activation.
-A policy file or successful configuration call alone does not prove enforcement.
+that prefix. Provider readback matched both canonical controls, and an owned
+production-prefix synthetic canary rejected overwrite and deletion with
+`409 ObjectLockedByBucketPolicy` while preserving its bytes. A policy file alone
+would not provide that enforcement evidence.
 The retention-policy owner must approve the erasure/legal-hold handling before
 production data is backed up under this policy; [ADR 0016](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md)
 remains a proposed decision, not an accepted window for resurrecting erased PHI.
@@ -145,7 +152,8 @@ backup evidence.
   streamed `pg_restore` fixture: **1 passed, zero skipped**. Two exact synthetic
   rows survived restore; a fresh non-owner role saw its one tenant row and zero
   cross-tenant rows. Modified ciphertext failed authentication. The external S3
-  boundary was a local fake, so actual bucket transfer remains unverified.
+  boundary was a local fake; the separate actual-R2 evidence below covers storage
+  transfer without reading the production database.
 - Final `linux/amd64` image ID:
   `sha256:1d133802148c7987d4deb92b9f1173a59e6646f91e03192daf3b3e21afec3624`.
   UID 1000; Node 22.22.3, pg_dump 17.11, age 1.2.1 and AWS CLI 2.32.7. The embedded
@@ -160,6 +168,52 @@ backup evidence.
 
 The owned PostgreSQL and restore containers were removed after verification.
 No production dump, source deployment or backup schedule was activated.
+
+### Actual storage scope and retention verification
+
+The operator-provided backup pair was compared with the application's runtime R2
+pair using hashes internally; only comparison booleans were returned. Both values
+were distinct and belonged to the intended account. Backup-bucket HEAD and list
+operations succeeded; metadata-only HEAD on the actual application document
+bucket returned **403**. No existing document objects were read.
+
+Two separate synthetic scopes keep recovery proof from being mistaken for a
+production backup:
+
+- The prepared runner uses an explicit `synthetic-recovery-<opaque>` source label
+  for actual R2 upload/readback/completion checks. These objects sit **outside**
+  the production lock prefix, never count toward production freshness, and are
+  deleted with absence verification after the isolated exercise. The actual R2
+  run passed: the unchanged prepared image produced a **2,600-byte** age archive
+  and completion manifest in about **4.5 seconds**, and independent download
+  matched both SHA256 and size. Authenticated streamed recovery restored the two
+  exact synthetic rows and tenant policy; a fresh non-owner role saw **one**
+  allowed row and **zero** cross-tenant rows. Modified ciphertext was rejected.
+  Both age and `pg_restore` exited **0**. All unlocked run objects and disposable
+  private identity/TLS/credential inputs were removed after verification.
+- A separate **119-byte encrypted** canary sits under
+  `docita-production/synthetic-retention-<opaque>/`, with explicit synthetic
+  metadata and **no production completion manifest**. Unconditional overwrite
+  and deletion both returned **409 `ObjectLockedByBucketPolicy`**, and readback
+  remained byte-identical. An unlocked synthetic control successfully overwrote
+  and deleted, so the denial was enforced by the prefix lock. The canary remains
+  protected until **14 November 2026 at 09:04:34 UTC** and becomes eligible for the
+  31-day lifecycle after **15 November 2026 at 09:04:34 UTC**; actual lifecycle
+  execution is asynchronous. Its disposable encryption key was destroyed. The
+  exact owned key and timestamps are retained in private operator evidence.
+  Do not weaken the lock to remove this harmless synthetic object.
+
+The initial host-side recovery harness treated Docker's
+`ERR_STREAM_PREMATURE_CLOSE` on attached stdin as a failed restore. A controlled
+local reproduction showed that transport close with both child tools exiting 0
+and both rows restored. The final harness recorded the quirk and accepted only
+that exact transport error alongside **both zero tool exits**, authenticated age
+decryption, exact fixture data/schema and tenant-denial checks. It rejected every
+other pipe error or nonzero tool exit and used a fresh owned evidence directory.
+The production backup runner uses direct child-process pipes and required no
+source or image change. This synthetic exercise does not establish recovery of
+production PHI, historical field keys, document objects, scheduler cadence or
+stale-backup alert delivery.
 
 ## Isolated streamed restore
 
@@ -224,7 +278,8 @@ remain separate operator actions.
 Freshness must use the latest verified completion manifest's **backup start
 time**, with an independent check at least hourly and an alert if that time is
 older than two hours. Also alert on failed attempts, missing objects, missing
-completion manifests, hash mismatches and exhausted space/time. A completion log
+completion manifests, hash mismatches and exhausted space/time. Synthetic source
+labels and retention canaries must never satisfy the production freshness check. A completion log
 alone is insufficient. Storage listing/read permissions and alert delivery must
 be tested independently of the writer. Verify at least 24 hours of cadence and a
 real isolated restore before declaring the freeze's backup/recovery gate closed.
