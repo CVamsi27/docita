@@ -24,11 +24,12 @@ independent audit, algorithmic-fairness review).
 | Consent capture at collection | ✅ | onboarding compliance step; public-booking DPDP consent; `recordDpdpNoticeConsent` |
 | Consent history + withdrawal | ✅ | `POST /consent`, `GET /consent/history`, `POST /consent/:id/withdraw` (`ConsentController`) |
 | PHI encryption at rest | ✅ | AES-256-GCM, 13 fields, CI-enforced parity ([PHI_ENCRYPTION_POLICY.md](./PHI_ENCRYPTION_POLICY.md)) |
-| Tenant isolation | ✅ | Postgres RLS enabled in prod ([RLS_ROLLOUT.md](./RLS_ROLLOUT.md)) |
+| Tenant isolation | Partial — verified 15 October | API uses a BYPASSRLS owner; 16 of 91 tenant tables lack enabled RLS/policy. The isolated 19-case rehearsal passes; production rollout/soak remain open ([RLS_ROLLOUT.md](./RLS_ROLLOUT.md)). |
 | Audit trail of PHI access | ✅ | `AuditLog` + PHI-read audit util; export ([AUDIT_EXPORT.md](./AUDIT_EXPORT.md)) |
 | Right to access + portability | ✅ | `GET /consent/patients/:id/export` → `handlePortabilityRequest` (audit-logged JSON copy) |
 | Right to erasure | ✅ | `POST /consent/patients/:id/delete` → anonymization, blocked while statutory obligations remain |
 | Retention / archival | ✅ | `DataRetentionScheduler` (audit 90d, WhatsApp 180d, appointments 2y, soft-deletes 30d) |
+| Erasure vs backup retention | Decision and activation gate open | Independent encrypted backups are being prepared; technical retention does not approve a PHI resurrection window. See [ADR 0016](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md). |
 | Breach notification (72h) | ✅ doc | [BREACH_NOTIFICATION_RUNBOOK.md](../operations/BREACH_NOTIFICATION_RUNBOOK.md) |
 | Grievance / DSR queue (90d SLA) | ✅ | `DataSubjectRequest` model + `ClinicDataSubjectRequestService` (dueAt defaults to **+30 days**, stricter than the 90-day rule) + staff queue in Settings → Compliance with overdue badges/ordering |
 | Patient-portal self-service rights | ✅ | `POST /portal/profile/delete-request` and `POST /portal/profile/export-request` create `DataSubjectRequest` rows (channel `PORTAL`) that land in the staff compliance queue |
@@ -49,6 +50,16 @@ medical-record floor and any open billing/audit obligations). Erasure is blocked
 while there are unpaid invoices or future appointments
 (`checkPendingObligations`). No code change is needed for the 3-year floor — the
 record is never destroyed, only de-identified.
+
+This describes live-system behavior. A backup taken before anonymization can
+contain the earlier identifiers. The 15 October independent-backup preparation
+uses a dedicated bucket with a 30-day lock and 31-day expiry, but no accepted
+erasure/resurrection window or policy-owner sign-off is inferred from that
+technical configuration. Keep backup activation gated on the explicit decision
+in ADR 0016 D4. Keep any restored copy isolated until the approved erasure and
+legal-hold state has been reconciled and verified before access is enabled.
+The [bounded recovery drill](../operations/dr-drills/2026-10-15-neon-isolated.md)
+used synthetic canaries and empty clinical tables; it does not close this gate.
 
 ## Grievance / DSR workflow (in place)
 

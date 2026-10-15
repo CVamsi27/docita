@@ -5,6 +5,17 @@
 - **Owners:** Security/operations (decision), Platform (implementation)
 - **Backlog:** `docs/operations/DOCITA_IMPROVEMENT_BACKLOG.md` → C01
 
+**15 October follow-up:** a bounded Neon past-point restore, encrypted synthetic
+canary, current-key comparison, R2 object exercise and 19 isolated tenant-policy
+checks now pass; see the [drill record](../../operations/dr-drills/2026-10-15-neon-isolated.md).
+The copied clinical tables were empty, so this does not establish historical PHI,
+document or erasure continuity, key rotation, region recovery or production RTO/RPO.
+The user selected keeping Neon Free and preparing independent encrypted backups.
+The dedicated bucket's technical 30-day lock/31-day expiry configuration does not
+approve a clinical-data resurrection window. Keep production backup activation
+and restored-data access gated on the D4 retention/erasure decision and key custody.
+This ADR remains proposed; no owner sign-off is inferred from technical checks.
+
 ## Context
 
 Encryption (`EncryptionService`, envelope keys), audit logging, storage

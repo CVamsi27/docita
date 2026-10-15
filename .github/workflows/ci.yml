@@ -84,6 +84,10 @@ jobs:
       - name: Verify Repository Standards
         run: pnpm verify:standard
 
+      - name: Verify encrypted backup process safety
+        if: needs.changes.outputs.knip == 'true'
+        run: node --test scripts/db/backup-database.test.mjs
+
       - name: Knip unused dependencies and exports
         if: needs.changes.outputs.knip == 'true'
         run: pnpm knip

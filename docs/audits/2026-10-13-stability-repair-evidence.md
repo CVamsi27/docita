@@ -113,6 +113,31 @@ provider-acceptance/local-persistence ambiguity and capture-specific receipt
 content are documented in [worker event ownership](../operations/WORKER_EVENT_OWNERSHIP.md).
 The user explicitly retained best-effort payment WhatsApp receipts and staff notifications for the freeze. Capture or outbox success does not promise delivery. No new consumer, durable delivery policy or historical replay was introduced.
 
+## Independent encrypted backup preparation, 15 October
+
+The user selected keeping Neon Free and preparing backups outside Neon. The new
+one-shot runner streams pg_dump directly into age, retains only ciphertext on
+disk, requires separate backup configuration, verifies stored ciphertext by hash
+and size, and publishes a completion manifest only after all required processes
+and readback pass. The writer holds only the public encryption recipient.
+
+Process regressions pass 23/23, zero skips. A real PostgreSQL 17/TLS/channel-binding/
+UTC → age → isolated pg_restore fixture passes 1/1, including exact synthetic rows,
+non-owner tenant denial and tamper rejection. Its external S3 boundary is a local
+fixture. The non-root AMD64 backup image has zero raw and ignore-unfixed
+HIGH/CRITICAL OS/library findings. Highest sampled fixture memory was 183.1 MiB
+under 512 MiB; this does not establish production transfer/load capacity.
+
+Cloudflare's authenticated `cf` CLI created the separate `docita-db-backups`
+bucket with public r2.dev access disabled and no custom domains. Its 30-day lock
+and 31-day expiry/one-day multipart-abort configuration matches the canonical
+JSON files. This verifies configuration; actual retention denial remains to be
+tested. OAuth API-token management returns 403; the operator received steps for
+separate bucket-scoped S3 credentials. No production dump, paid backup machine,
+recovery-key installation or scheduler activation occurred. Keep key custody,
+ADR 0016 D4 erasure/retention approval, actual transfer/restore, cadence and stale-
+backup alerting as explicit activation gates. See the [backup runbook](../operations/ENCRYPTED_DATABASE_BACKUPS.md).
+
 ## Validation record
 
 All commands use Node 22.22.0 and pnpm 10.30.3. Evidence reflects the current
@@ -134,7 +159,7 @@ working candidate where marked; earlier results are retained with their scope.
 | Docker fixture safety           | Seven real final fixtures pass, zero skips. Both AMD64 images build and pass non-root/native imports, strict flag parsing, readiness and clean SIGTERM with their configured RAM/swap/heap. A stricter worker no-swap run OOMs; configured 256 MiB RAM + 512 MiB swap passes. Raw scans show zero high/critical OS findings and one high braces advisory in retained Jest tooling; a production-dependency runtime correction and rebuilt-image proof are in progress. |
 | Neon recovery and RLS rehearsal | Authenticated provider identity/retention, encrypted synthetic point-in-time recovery, current-key comparison, R2 encrypted object cleanup and 19/19 strict isolated tenant checks pass. Production role/policies remain unchanged. See the bounded drill's explicit empty-data and recovery limits.                                                                                                                                                                   |
 | Rollback artifacts              | 23 executable CLI cases pass; combined rollback/drain total 38. No production rollback executed.                                                                                                                                                                                                                                                                                                                                                                       |
-| Dependency audit                | 14 October audit exits 0 under the existing braces exception; metadata reports one high. Registry still lists 3.0.3 as latest. Exception expires 12 November and was not extended.                                                                                                                                                                                                                                                                                     |
+| Dependency audit                | Fresh 15 October audit exits 0 under the existing braces exception; metadata reports one high and zero actionable advisories. Exception expires 12 November and was not extended.                                                                                                                                                                                                                                                                                      |
 | Standards                       | Passed on 14–15 October: 148 standards cases and the full standards command. The absent API latency baseline explicitly skips and remains a release failure.                                                                                                                                                                                                                                                                                                           |
 | Repository dependency scan      | Trivy 0.70.0 on 15 October recognizes pnpm-lock.yaml and reports zero HIGH/CRITICAL under the same ignore-unfixed policy as CI. This excludes final image OS/runtime layers and does not revoke the November braces exception.                                                                                                                                                                                                                                         |
 | Required latency evidence       | Fails: artifacts/api-latency-baseline.json absent (seven-day freshness required). No passing numbers were invented.                                                                                                                                                                                                                                                                                                                                                    |
