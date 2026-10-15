@@ -179,7 +179,7 @@ working candidate where marked; earlier results are retained with their scope.
 | Full migration rehearsal        | All ten pending migrations apply on a fresh isolated Neon copy; 165 → 175 completed ledger entries, unchanged aggregate counts, integrity and 19/19 non-owner checks pass. Copy and temporary credentials removed; production remains at 165 with 16 RLS gaps. Empty clinical data limits compatibility, load and migration-duration proof.                         |
 | Rollback artifacts              | 23 executable CLI cases pass; combined rollback/drain total 38. No production rollback executed.                                                                                                                                                                                                                                                                    |
 | Dependency audit                | Fresh 15 October audit exits 0 under the existing braces exception; metadata reports one high and zero actionable advisories. Exception expires 12 November and was not extended.                                                                                                                                                                                   |
-| Standards                       | Passed on 14–15 October: 148 standards cases and the full standards command. The absent API latency baseline explicitly skips and remains a release failure.                                                                                                                                                                                                        |
+| Standards                       | Passed on 14–15 October: 150 standards cases (148 before the hook-context follow-up) and the full standards command. The absent API latency baseline explicitly skips and remains a release failure.                                                                                                                                                                |
 | Repository dependency scan      | Trivy 0.70.0 on 15 October recognizes pnpm-lock.yaml and reports zero HIGH/CRITICAL under the same ignore-unfixed policy as CI. This excludes final image OS/runtime layers and does not revoke the November braces exception.                                                                                                                                      |
 | Required latency evidence       | Fails: artifacts/api-latency-baseline.json absent (seven-day freshness required). No passing numbers were invented.                                                                                                                                                                                                                                                 |
 | Knip / hygiene                  | Passed on the current candidate; emitted-worker dependency consumers remain documented.                                                                                                                                                                                                                                                                             |
@@ -205,6 +205,22 @@ production peak headroom. Both images run as UID 100 and lack package-manager
 distributions and the development tooling above. Raw Trivy scanned 28 OS
 packages per image and 679/681 library packages respectively. Image IDs are
 local immutable build identities, not deployed registry manifest digests.
+
+### Hook-context verification
+
+The first push was blocked locally: 64 of the previous 148 standards tests failed
+under inherited Git hook environment variables, although the direct command had
+passed. A fixture's Git initialization changed the caller's shared `core.bare`
+setting. Only that setting was restored; the original landing checkout is clean,
+its branch/refs and the candidate commits are intact, and no remote branch was
+created by the failed push.
+
+The pre-push hook now clears Git's repository-local environment variables before
+running checks, following Git's foreign-repository guidance. Two real disposable
+Git regressions fail before the correction and pass afterward; they verify both
+caller preservation and nonzero gate-exit propagation. Independent source review
+and shell syntax checks pass. The standards suite now contains 150 cases. No hook
+was bypassed and no application runtime/image source changed in this follow-up.
 
 ## Remaining release gates
 

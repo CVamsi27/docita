@@ -26,6 +26,13 @@
 # classifies the same 655 routes but also resolves each route's effective
 # @Roles, measured at ~330 ms; test-schema-duplication compares 6 helper schema
 # literals against 702 contract key sets, measured at ~180 ms).
+# Git fixture commands must discover their own repository and index from cwd.
+docita_git_env_names=$(git rev-parse --local-env-vars) || exit 1
+for docita_git_env_name in $docita_git_env_names; do
+  unset "$docita_git_env_name"
+done
+unset docita_git_env_names docita_git_env_name
+
 pnpm lint \
   && pnpm check:duplication \
   && pnpm check:standard-gate-wiring \
