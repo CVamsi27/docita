@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCollectionsByModeReport, useClinicSettings } from "@workspace/data-access";
 import { formatPaymentChannelLabel } from "@workspace/types";
-import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso } from "@workspace/utils";
+import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso, formatCurrency } from "@workspace/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
 import { Card, CardContent, CardHeader, CardTitle, DataState, Label, MicroLabel } from "@workspace/ui/components";
 import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
@@ -13,7 +13,7 @@ interface DeskCollectionsByModeReportProps {
 }
 
 export function DeskCollectionsByModeReport({
-  formatMoney,
+  formatMoney: formatClinicMoney,
 }: DeskCollectionsByModeReportProps) {
   const { t } = useTranslation("Desk");
   const { data: clinic } = useClinicSettings();
@@ -27,6 +27,10 @@ export function DeskCollectionsByModeReport({
     useCollectionsByModeReport({ from, to }, { enabled: validRange });
 
   const rows = data?.byMode ?? [];
+  const formatMoney = (amount: number) =>
+    data?.currency
+      ? formatCurrency(amount, { currency: data.currency })
+      : formatClinicMoney(amount);
   const status: "loading" | "error" | "empty" | "success" = !validRange
     ? "empty"
     : isLoading

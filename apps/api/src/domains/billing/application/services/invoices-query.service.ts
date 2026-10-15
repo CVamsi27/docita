@@ -18,6 +18,11 @@ import {
 } from '@workspace/types';
 import { parsePrismaJsonColumn } from '@/shared/common/json/parse-prisma-json-column';
 import {
+  DEFAULT_CURRENCY,
+  DEFAULT_TIMEZONE,
+  getClinicLocalDayUtcBounds,
+} from '@workspace/utils';
+import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
   InvoiceDetail,
@@ -188,12 +193,18 @@ export class InvoicesQueryService {
     clinicId: string,
     query: CollectionsByModeQuery,
   ): Promise<CollectionsByModeResponse> {
-    const from = new Date(`${query.from}T00:00:00.000Z`);
-    const toExclusive = new Date(`${query.to}T00:00:00.000Z`);
-    toExclusive.setUTCDate(toExclusive.getUTCDate() + 1);
-    if (Number.isNaN(from.getTime()) || Number.isNaN(toExclusive.getTime())) {
+    const clinic = await this.repository.findClinicReportContext(clinicId);
+    if (!clinic) {
+      throw new NotFoundException(`Clinic ${clinicId} not found`);
+    }
+    const timezone = clinic.timezone.trim() || DEFAULT_TIMEZONE;
+    const fromBounds = getClinicLocalDayUtcBounds(query.from, timezone);
+    const toBounds = getClinicLocalDayUtcBounds(query.to, timezone);
+    if (!fromBounds || !toBounds) {
       throw new BadRequestException('Invalid date range');
     }
+    const from = fromBounds.rangeStart;
+    const toExclusive = toBounds.rangeEndExclusive;
     if (from >= toExclusive) {
       throw new BadRequestException('`from` must not be after `to`');
     }
@@ -205,9 +216,16 @@ export class InvoicesQueryService {
         toExclusive,
       );
 
+    const currency =
+      sessions[0]?.currency ?? (clinic.currency.trim() || DEFAULT_CURRENCY);
+    if (sessions.some((session) => session.currency !== currency)) {
+      throw new BadRequestException(
+        'Cannot total collections in multiple currencies',
+      );
+    }
+
     const buckets = new Map<string, { count: number; amountCents: number }>();
     let totalCents = 0;
-    let currency = 'INR';
 
     for (const session of sessions) {
       const { channel } = this.extractPaymentActivityMeta(session.meta);
@@ -218,7 +236,6 @@ export class InvoicesQueryService {
       bucket.amountCents += session.amount;
       buckets.set(mode, bucket);
       totalCents += session.amount;
-      currency = session.currency;
     }
 
     const byMode = Array.from(buckets.entries())

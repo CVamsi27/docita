@@ -180,8 +180,9 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
   async findById(
     id: string,
     clinicId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<InvoiceDetailRecord | null> {
-    const invoice = await this.getReadClient().invoice.findFirst({
+    const invoice = await (tx ?? this.getReadClient()).invoice.findFirst({
       where: { id, ...this.invoiceOwnershipFilter(clinicId) },
       select: INVOICE_DETAIL_SELECT,
     });
@@ -268,6 +269,13 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
         intelligenceAddon: true,
         features: true,
       },
+    });
+  }
+
+  async findClinicReportContext(clinicId: string) {
+    return this.getReadClient().clinic.findUnique({
+      where: { id: clinicId },
+      select: { timezone: true, currency: true },
     });
   }
 

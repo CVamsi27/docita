@@ -10,7 +10,6 @@ import type {
   IPaymentSessionRepository,
   PaymentSessionDetail,
 } from '@/domains/billing/core/repositories/payment-session.repository';
-import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import type { IClock } from '@/shared/common/ports/clock.port';
 import type { ITransactionRunner } from '@/shared/common/ports/transaction-runner.port';
 
@@ -20,6 +19,7 @@ const invoice = (overrides: Partial<InvoiceDetail> = {}): InvoiceDetail =>
   ({
     id: 'inv-1',
     patientId: 'patient-1',
+    currency: 'INR',
     totalCents: 10000,
     status: InvoiceStatus.PENDING,
     ...overrides,
@@ -57,7 +57,6 @@ function makeCtx() {
       .mockResolvedValue([]),
     create: jest.fn<IPaymentSessionRepository['create']>(),
   };
-  const configService = { getCurrencyCode: jest.fn(() => 'INR') };
   const clock: IClock = { now: () => NOW };
   const transactionRunner = {
     runInTransaction: jest.fn(async (cb: (tx: unknown) => Promise<unknown>) =>
@@ -67,7 +66,6 @@ function makeCtx() {
   const service = new InvoiceSettlementService(
     repository as unknown as IPaymentSessionRepository,
     invoiceRepository as unknown as IInvoiceRepository,
-    configService as unknown as AppConfigService,
     clock,
     transactionRunner as unknown as ITransactionRunner,
   );

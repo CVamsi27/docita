@@ -6,6 +6,7 @@ import type { IPaymentSessionRepository } from '@/domains/billing/core/repositor
 import type { ITransactionRunner } from '@/shared/common/ports/transaction-runner.port';
 import type { IOutboxService } from '@/shared/modules/outbox/outbox.interface';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
+import { InvoiceStatus } from '@workspace/db';
 import { RazorpayInvoiceWebhookService } from './razorpay-invoice-webhook.service';
 
 const CLOCK = { now: () => new Date('2026-06-01T00:00:00.000Z') };
@@ -71,9 +72,27 @@ function buildService(
       .mockResolvedValue(options.capturedClaim ?? true),
   };
   const invoiceRepository = {
-    update: jest
+    findById: jest
       .fn<(...args: unknown[]) => Promise<unknown>>()
-      .mockResolvedValue(Object.create(null)),
+      .mockResolvedValue({
+        currency: 'INR',
+        totalCents: 12500,
+        amountPaidCents: 0,
+        status: InvoiceStatus.PENDING,
+      }),
+    update: jest
+      .fn<
+        (...args: Parameters<IInvoiceRepository['update']>) => Promise<unknown>
+      >()
+      .mockImplementation(async (_id, data) => ({
+        currency: 'INR',
+        totalCents: 12500,
+        amountPaidCents:
+          typeof data.amountPaidCents === 'object'
+            ? (data.amountPaidCents.increment ?? 0)
+            : (data.amountPaidCents ?? 0),
+        status: InvoiceStatus.PENDING,
+      })),
   };
   const outbox = {
     append: jest
