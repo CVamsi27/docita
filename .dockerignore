@@ -33,8 +33,15 @@ vitest.config.ts
 *.swp
 *.swo
 .DS_Store
-.env.local
-.env.*.local
+# Private environment inputs must stay outside every workspace build context.
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+!.env.*.example
+!**/.env.*.example
 
 # Build artifacts - Keep dist folders since we use pre-built artifacts
 # apps/*/dist
@@ -86,6 +93,11 @@ scripts
 copilot.toml
 turbo.json
 
-# Uploads folder (runtime data)
-apps/api/uploads
+# Runtime uploads never belong in a build context.
+uploads
+apps/*/uploads
+
+# Safe migration output can contain database records and connection details.
+packages/db/backups
+packages/db/logs
 

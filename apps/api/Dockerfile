@@ -28,6 +28,9 @@ COPY packages/utils ./packages/utils
 COPY packages/typescript-config ./packages/typescript-config
 COPY apps/api ./apps/api
 
+# Nest's TypeScript graph exceeds Node's adaptive heap on small builders.
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
 RUN pnpm --filter @workspace/types run build && \
     pnpm --filter @workspace/authorization run build && \
     pnpm --filter @workspace/auth run build && \
@@ -38,8 +41,14 @@ RUN pnpm --filter @workspace/types run build && \
 FROM node:22.22-alpine AS runtime
 WORKDIR /app
 
-RUN apk add --no-cache dumb-init curl && \
-    npm install -g pnpm@10.30.3
+RUN apk upgrade --no-cache libcrypto3 libssl3 && \
+    apk add --no-cache dumb-init curl
+
+# Runtime starts compiled Node artifacts; deployment tooling lives in CI.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/pnpm \
+    /usr/local/lib/node_modules/corepack /opt/yarn-v* \
+    /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm /usr/local/bin/pnpx \
+    /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/auth/node_modules ./packages/auth/node_modules
