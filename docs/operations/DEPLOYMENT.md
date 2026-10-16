@@ -10,7 +10,7 @@ current Fly configs have no release command and CI runs migrations separately.
 > focused Cloudflare strategy (topology, caching, proxy contract, CI flow,
 > rollback, failure modes).
 
-## Current runtime verification, 13 October 2026
+## Current runtime verification, 16 October 2026
 
 The actual API connection points to Neon PostgreSQL in Singapore and uses the
 owner role; see [RLS rollout](../compliance/RLS_ROLLOUT.md) and [recovery
@@ -21,39 +21,44 @@ non-owner rollout and release evidence must precede reactivation or a production
 code release. The operator chose to retain API idle shutdown during the freeze;
 a cold start was observed at approximately 28 seconds.
 
-## Recorded production topology
+## Verified production topology, 16 October 2026
 
 - Frontend
   - `apps/app`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
   - `apps/internal`: Cloudflare Workers with Static Assets (Vite SPA + Hono proxy Worker)
   - `apps/landing`: Cloudflare Workers (Astro)
 - Backend
-  - `apps/api`: Fly.io (Singapore — `sin` region since 2026-07-29; was `bom` Mumbai), 2 GB RAM, shared CPU
-  - `docita-worker` (Fly app): `apps/worker` Nest entry (imports `apps/api` worker modules), background jobs and crons (same `sin` region)
+  - `apps/api`: Fly.io, Singapore (`sin`), 512 MiB RAM and 512 MiB configured swap, shared CPU; idle shutdown remains enabled by operator choice.
+  - `docita-worker` (Fly app): `apps/worker` Nest entry, Singapore (`sin`), 256 MiB RAM and 512 MiB configured swap. The inspected machine is stopped; source and fixture verification do not establish live worker cadence.
 - Database
-  - AWS RDS PostgreSQL — `ap-south-1` (Mumbai), `db.t4g.micro`
+  - Neon PostgreSQL 17, Singapore, Free plan with six-hour provider recovery history. Independent encrypted backups are prepared but not activated; see [the backup runbook](ENCRYPTED_DATABASE_BACKUPS.md).
 - Cache / Background Work
   - In-process memory cache in the API + PostgreSQL-backed worker jobs in Fly worker
 - Object Storage
   - Cloudflare R2 (`STORAGE_PROVIDER=r2`)
 
-Backend infrastructure is co-located in Singapore (`sin` region) for low-latency API responses; the database remains in Mumbai (`ap-south-1`) for DPDP compliance.
+The live database connection still uses `neondb_owner` with RLS bypass;
+`docita_app` cannot log in, ten migrations remain pending and 16 of 91 tenant
+tables lack the expected RLS backstop. Current isolated recovery/migration proof
+does not close the staging, rollout or compliance gates. Hosting region alone is
+not a DPDP compliance determination. The RDS guide below is historical and must
+not be used to identify or recover the current production database.
 
 ## Operational Rules
 
-- Run Prisma migrations before each API or worker deploy. The production deploy workflow applies migrations whenever `apps/api`, `apps/worker`, or shared API packages change, then blocks Fly deploy until `scripts/deploy/verify-db-schema-sync.sh` passes (no pending migrations, no schema drift). A separate `Database Migrations` workflow also runs on pushes that touch `packages/db/**`.
+- Production deployment and migration triggers are currently paused. Once their release gates pass and the workflows are deliberately re-enabled, the deploy workflow applies migrations for affected API/worker runtime inputs and blocks Fly deploy until `scripts/deploy/verify-db-schema-sync.sh` passes. Rehearse old/new runtime compatibility before any shared schema change; do not infer migration execution from a push while triggers are paused.
 - Production app deployments from GitHub Actions must be selective: on push to `main`, deploy only the apps whose related paths changed instead of deploying every app.
-- Use `DATABASE_URL` from AWS RDS for API runtime (set via `fly secrets set DATABASE_URL=...`).
+- Resolve `DATABASE_URL` against the actual Neon production branch and preserve owner credentials separately for migration custody. Switch runtime credentials only after the non-owner rollout gates in [RLS_ROLLOUT.md](../compliance/RLS_ROLLOUT.md) pass; a variable name is not endpoint verification.
 - Runtime baseline is Node `22.22.x` for local, CI, and Docker builds.
 - Keep API health checks on `GET /api/health/live`.
-- Keep frontend `VITE_API_URL` pointed to the Fly.io app URL. In production the proxy Worker uses `API_PROXY_TARGET` to forward `/api/*` and `/socket.io/*` to the backend. The API process reads its own public URLs from `FRONTEND_URL` / `API_PUBLIC_URL` (legacy `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_API_URL` aliases still accepted during the compatibility rollout).
+- Keep frontend `VITE_API_URL=/api/v1` on the same origin. The proxy Worker uses its canonical `wrangler.toml` `API_PROXY_TARGET` to forward `/api/*` and `/socket.io/*` to the backend. The API process reads its own public URLs from `FRONTEND_URL` / `API_PUBLIC_URL` (legacy aliases remain accepted during the compatibility rollout).
 - Keep `ENABLE_SCHEDULERS=false` on the API and `ENABLE_SCHEDULERS=true` on the worker once the split is live.
 - Keep each Worker entry bundle within the deployed Cloudflare plan limit: 3 MB gzip on Workers Free and 10 MB gzip on Workers Paid. The Vite SPA apps serve static assets from Cloudflare edge and only ship the tiny Hono proxy Worker (`apps/app/api/index.ts`, `apps/internal/api/index.ts`) — no OpenNext runtime. Use `node scripts/checks/check-worker-size.mjs` after builds.
 - Deploy order: run DB migrations first, then deploy API and worker, then deploy frontends.
 - Keep `wrangler.toml` (static assets dir, `main = "api/index.ts"`) and `vite.config.ts` in sync for the Vite frontend apps.
 - Keep `astro.config.mjs` and `wrangler.toml` in sync for `apps/landing`.
 - Keep API autostop enabled for the initial low-traffic phase so Fly can scale request-serving machines to zero when idle.
-- Keep the API at 2 GB until the worker has been healthy in parallel and we have live RSS measurements that support a safe reduction to 1.5 GB.
+- Preserve the inspected API/worker resources until workload measurements justify a reviewed change. Container boot under configured swap is not production capacity or headroom proof.
 - Treat bulk import and non-immediate audit logging as best-effort background work on the worker, not the API.
 - Use the PostgreSQL-backed worker for PDF generation, retries, and other background execution that must survive API restarts.
 
@@ -112,7 +117,7 @@ docker build -f apps/worker/Dockerfile -t docita-worker-verify .
 
 Secrets required (set via `fly secrets set KEY=value`):
 
-- `DATABASE_URL` — AWS RDS connection string as **`docita_app`** (non-owner) when `RLS_ENABLED=true`
+- `DATABASE_URL` — verified Neon runtime connection as **`docita_app`** only after the staged non-owner rollout. Current owner-role bypass remains an open release gate.
 - `JWT_SECRET` — minimum 32 characters
 - `ENCRYPTION_KEY` — 64-character hex key
 - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`
@@ -122,7 +127,10 @@ Secrets required (set via `fly secrets set KEY=value`):
 - `EMAIL_FROM` — verified sender in your ZeptoMail agent (default `Docita <notifications@docita.work>`)
 - `SENTRY_DSN`
 
-## AWS RDS Quick Guide
+## Historical AWS RDS Guide
+
+These settings describe the earlier deployment. The current runtime uses Neon;
+RDS snapshots and the legacy RDS job are not its backup or recovery evidence.
 
 - Region: `ap-south-1` (Mumbai)
 - Engine: PostgreSQL 16
