@@ -66,7 +66,9 @@ describe('Anonymous patient capabilities with tenant guards and non-owner RLS', 
     if (!databaseUrl) throw new Error('An owned test DATABASE_URL is required');
     const url = new URL(databaseUrl);
     expect(['localhost', '127.0.0.1', '[::1]']).toContain(url.hostname);
-    expect(url.pathname).toMatch(/\/docita_[a-z_]+(?:_test|stability)$/);
+    expect(url.pathname).toMatch(
+      /^\/docita_(?:test|[a-z_]+(?:_test|stability))$/,
+    );
     setupTestDatabase();
     raw = getPrismaInstance();
     setPrismaInstance(raw);
