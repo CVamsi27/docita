@@ -4,13 +4,13 @@
 # Runs the full `verify:standard` plus the security, dependency, and
 # build checks that `RELEASE_EVIDENCE_CHECKLIST.md` requires. Exits
 # non-zero on the first failure with the exact command that failed
-# and where to look. Designed to be run on a clean `main` checkout
-# before tagging a release.
+# and where to look. Run against the production-bound candidate checkout
+# before release review; passing local checks does not authorize a release.
 #
 # Usage:
 #   ./scripts/release-gate.sh                 # full gate
 #   ./scripts/release-gate.sh --fast          # pre-push subset (≈30-40s)
-#   ./scripts/release-gate.sh --no-build      # skip the 3 cloudflare builds
+#   ./scripts/release-gate.sh --no-build      # skip builds and their budgets
 #
 # See:
 #   docs/operations/RELEASE_EVIDENCE_CHECKLIST.md
@@ -62,9 +62,15 @@ ok "typecheck"
 
 if [ "$FAST" = 1 ]; then
   section "Pre-push subset (--fast) — done"
-  printf "${GRN}Fast gate green. Run full gate before tagging.${RST}\n"
+  printf "${GRN}Fast subset passed; not release-ready. Complete full gates before release review.${RST}\n"
   exit 0
 fi
+
+# ---- Required latency evidence ----
+section "Required API latency evidence (maximum age: 7 days)"
+run "pnpm check:api-latency-budget:enforce --require-baseline --max-age-days 7" \
+  pnpm check:api-latency-budget:enforce --require-baseline --max-age-days 7
+ok "required API latency evidence"
 
 # ---- Tests ----
 section "Unit tests"
@@ -134,6 +140,9 @@ if [ "$BUILD" = 1 ]; then
   section "A11y budget"
   run "pnpm check:a11y-budget:enforce" pnpm check:a11y-budget:enforce
   ok "a11y budget"
+else
+  section "Builds skipped (--no-build)"
+  printf "  Builds and their performance/accessibility budgets need separate release evidence.\n"
 fi
 
 # ---- Worker size + headers ----
@@ -144,10 +153,13 @@ run "pnpm verify:app-security-headers" pnpm verify:app-security-headers
 ok "worker + headers"
 
 # ---- Done ----
-section "Release gate"
-printf "${GRN}${BOLD}All checks green.${RST}\n"
+section "Local release checks"
+printf "${GRN}${BOLD}Local release checks passed.${RST}\n"
+printf "  These local checks do not authorize a merge or release.\n"
+printf "  Required CI, review, recovery and staging soak remain release gates.\n"
 printf "  - Fill docs/operations/RELEASE_EVIDENCE_CHECKLIST.md\n"
-printf "  - Tag the release and merge to main\n"
 printf "  - Run pnpm monitor:synthetic after deploy\n"
 printf "  - Watch Datadog SLO burn rate for 24h\n"
-printf "  - Roll back via fly releases rollback or wrangler rollback if needed\n"
+printf "  - API rollback: pnpm rollback:fly --config fly.toml --image <recorded-image>\n"
+printf "  - Worker rollback: pnpm rollback:fly --config apps/worker/fly.toml --image <recorded-image>\n"
+printf "  - Cloudflare rollback requires a selected, verified deployment version for the affected Worker.\n"

@@ -24,6 +24,7 @@ closed deliberately (section 5).
 - API tests: count / pass (`pnpm --filter @docita/api run test:ci`)
 - E2E: link to Playwright report artifact (critical flows)
 - Accessibility: `pnpm audit:app` output / baseline link
+- API latency: `pnpm check:api-latency-budget:enforce --require-baseline --max-age-days 7`, with staging candidate/environment provenance. The full `./scripts/release-gate.sh` requires this evidence even with `--no-build`; fast mode is a subset, not release readiness.
 - Performance: regenerate `logs/performance/baseline.json` (`pnpm perf:baseline`), attach `pnpm perf:route-budgets` output
 
 ## 3. Deployment
