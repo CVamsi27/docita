@@ -1,7 +1,7 @@
 # Docita stability repair evidence — 13 October 2026
 
 Status: **source corrections and final images verified locally; production baseline not certified**.
-Latest follow-up: 16 October 2026. The source repair batch is split into focused commits for review. Final image hardening is verified; independent backup activation and production release gates remain open. The [completion checkpoint](2026-10-16-stability-completion-checkpoint.md) records the new freshness reader, updated tooling image, current production probes and remaining access/physical/time gates.
+Latest follow-up: 16 October 2026. The source repair batch is split into focused commits for review. Final image hardening is verified; independent backup activation and production release gates remain open. The [completion checkpoint](2026-10-16-stability-completion-checkpoint.md) records 81 backup/reader/wrapper regressions, restricted-login restore evidence, both tooling images and remaining release/recovery/monitoring gates. The offline challenge/custody handoff is complete and the connected private identity removed.
 The user authorized further analysis and fixes under a feature freeze through
 13 December 2026. Critical bug, security and compliance corrections remain allowed.
 
@@ -158,10 +158,11 @@ quarantined erasure/legal-hold reconciliation. At the operator's request, one
 recovery identity was generated locally into a mode-0700 directory with a
 mode-0600 private file. Only its public recipient was installed in the protected
 operator configuration; local authenticated encrypt/decrypt proof passes. No
-private identity was displayed, uploaded or added to Git. This was a connected
-local host: offline handoff and an offline decrypt challenge remain unverified.
-Keep verified offline custody, clinical recovery/reconciliation, cadence and
-stale-backup alerting as explicit activation gates. See the
+private identity was displayed, uploaded or added to Git. The initial local proof
+was on a connected host. On 16 October the offline challenge matched, offline
+handling was confirmed, Messenger was unmounted and the connected private identity
+was removed. Clinical recovery/reconciliation, cadence and stale-backup alerting
+remain explicit activation gates. See the
 [backup runbook](../operations/ENCRYPTED_DATABASE_BACKUPS.md).
 
 ## Validation record
@@ -232,13 +233,13 @@ was bypassed and no application runtime/image source changed in this follow-up.
 
 ## Remaining release gates
 
-1. Resolve GitHub billing/spending restrictions, then demonstrate authenticated
+1. Resolve GitHub billing/spending restrictions in November as selected by the operator, then demonstrate authenticated
    hosted monitoring and actual alert delivery. Three daily GitHub checks do not alone
    establish minute-level uptime coverage.
 2. Align protected staging via its PR-only path and record its deployed revision.
    Gather native workload/headroom evidence beyond the verified container boot.
    August staging and September Fly images do not exercise this candidate.
-3. Finish offline recovery-key handoff/proof, clinical dump/restore reconciliation,
+3. Complete clinical dump/restore reconciliation,
    scheduler and stale-backup alerting for the prepared independent backup.
    Dedicated storage, lock enforcement and scoped policy approval have evidence.
    Bounded Neon recovery proof now exists;

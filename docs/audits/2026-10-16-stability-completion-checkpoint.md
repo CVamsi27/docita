@@ -1,91 +1,98 @@
 # Stability completion checkpoint — 16 October 2026
 
-The operator requested one completion pass across the remaining stability work.
-This record separates completed source/fixture work from live gates requiring
-operator access, physical recovery proof or elapsed observation. The feature
-freeze through 13 December remains in force. No source release, production
-migration, backup schedule, paid backup machine or worker start occurred.
+The feature freeze through **13 December 2026** allows critical bug, security and
+compliance fixes. Source repairs and bounded operator preparation have progressed;
+production stability is not certified. No source release, production migration,
+clinical backup dump, backup schedule, paid scheduler or worker start occurred.
 
 ## Verified this pass
 
-| Gate                                | Current result                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Backup process and freshness checks | **54/54** process regressions pass, zero skips: 23 writer and 31 reader cases. Stale starts, missing/malformed completions, changed bytes, wrong recipients, pagination, abandoned uploads, bounded child termination and local HTTP alert acceptance/rejection are exercised.                                                                                                                                            |
-| Updated tooling image               | Local AMD64 image `sha256:0eb225a1257042f06ab1f8f8bc5350d55db656c3c15db4dbe50a0d7c04aaa818`, non-root runtime, explicit four-script copy. Raw OS/library scan has **0 HIGH / 0 CRITICAL**, no ignore file or ignore-unfixed suppression. The image contains 88 scanned OS packages; no separate application package dependency tree is installed. This is not a deployed registry digest.                                 |
-| Actual external recovery fixture    | Unchanged synthetic-only contract on the updated image: real R2 upload/readback/completion, exact 2,600-byte ciphertext, authenticated age and pg_restore exits 0, exact two rows, allowed tenant count 1, cross-tenant count 0 and tamper rejection. All owned unlocked objects, disposable credentials/key files and fixture containers were removed. No additional locked canary or production completion was written. |
-| Real freshness negative check       | The new image lists the actual production date prefixes and exits 1 for **no completed production backup**. It sends no alert in explicit check-only mode. The original operator-credential read was repeated successfully with the independently scoped monitor credential. Temporary credentials were removed.                                                                                                          |
-| Production probes                   | At **05:36 UTC / 11:06 IST**, the existing full monitor exits 0 with **3/3** passes and no skipped staff login. Fly restart recovery and external alert destinations were absent from this read/check invocation. This is local probe evidence, not hosted CI, alert delivery or clinical workflow certification.                                                                                                         |
-| Live database metadata              | Same read-only transaction: `neondb_owner`, BYPASSRLS true; `docita_app` login false; UTC session; **165 completed migrations**, **91 tenant tables / 16 missing RLS backstops**. No credential, table, policy or row was changed.                                                                                                                                                                                        |
-| Recovery drive                      | New Messenger folder created without drive formatting or existing-file replacement. Three copied recovery files matched byte for byte; the copied identity derived the approved recipient and authenticated the random challenge on the connected Mac. The drive was disconnected and then reconnected by the operator. Original protected local identity retained; offline proof/custody remains open.                   |
-| Source standards                    | Full `pnpm verify:standard`, lint and Knip pass. The standard test suite remains **150/150**. API latency explicitly skips because its staging baseline is absent; required release mode still cannot pass. No API/frontend/clinical-worker runtime was changed by this follow-up.                                                                                                                                        |
+| Gate                            | Current result                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Process regressions             | **81/81**, zero skipped: 28 writer, 31 freshness-reader and 22 monitor-wrapper cases. Covers unsafe role evidence, stale/malformed/missing completions, changed bytes, pagination, bounded provider behavior, check-in failure, signal handling and descendant cleanup.                                                                                                                                                 |
+| Real PostgreSQL 17 role/restore | **1/1** opt-in fixture passes with a restricted fresh login, forced two-tenant RLS and SELECT-only sequence grants. Seventeen unsafe privilege profiles fail the same catalog preflight. Owner credentials are rejected before dumping. Exact rows and sequence value 57 survive authenticated encrypted restore; DML/DDL/nextval are denied independently of the resettable read-only default.                         |
+| Immutable tooling targets       | Writer `sha256:8ef3597948f92fc22f752774c8a049540ebadeff71c5dc70abd53f9e59382340`; monitor `sha256:58333ca2b80c643b5301673782dd17bcf4ac66e243606ff4403df03631b5eebc`. Both non-root AMD64 targets have **0 HIGH / 0 CRITICAL** raw OS/library findings, with no ignores or ignore-unfixed filtering. All six copied scripts match source. Local image IDs are not published registry digests.                            |
+| Actual R2 recovery fixture      | Restricted-login, forced-RLS synthetic dump/upload/readback/completion succeeds: **3,196-byte** ciphertext, **8.382 seconds**, age/pg_restore exits 0, exact two rows, one permitted tenant row, zero cross-tenant rows and tamper rejection. All owned unlocked objects, disposable credentials/private inputs and fixture containers removed. Earlier production-prefix retention proof reused; no new locked canary. |
+| Independent storage reader      | Separate scoped monitor credentials pass list/read; overwrite, delete and document-bucket HEAD return 403. Direct reader and monitor default ENTRYPOINT correctly fail for missing production completions in check-only mode. No alert or real Sentry check-in sent.                                                                                                                                                    |
+| Recovery-key custody            | Operator returned the matching offline challenge SHA256 after confirming the offline procedure. Messenger is unmounted and the connected private identity was removed. Records distinguish challenge proof/operator attestation from forensic secure erasure. USB copy did not format the drive or replace existing files.                                                                                              |
+| Email alert destination         | One authorized `[TEST] Docita backup alert` accepted by ZeptoMail at **06:11 UTC**. Operator confirmed inbox receipt on 16 October. No PHI or automatic retry; this does not verify failed/missed-run routing.                                                                                                                                                                                                          |
+| Source standards                | Full lint, `verify:standard`, Knip and hygiene pass; standards **150/150**. Default API latency check explicitly skips its missing staging baseline. Required release latency/soak remains open. No clinical API/frontend/worker source changed in this follow-up.                                                                                                                                                      |
 
-The first standards run found a 13-line environment-validation duplicate between
-the writer and reader. It was removed by a shared guarded environment reader,
-then both process suites, the image/real-tool restore and the full standards
-chain were rerun. No duplicate allowlist or hook bypass was introduced.
+The writer now requires a catalog-only, bounded read-only role preflight before
+any dump. It checks direct LOGIN/BYPASSRLS, administrative flags, ownership,
+memberships/reverse assumption, effective existing relation/column/sequence write
+privileges, schema/database CREATE, custom SECURITY DEFINER exposure and required
+SELECT coverage. PUBLIC TEMP and built-in large-object constructors remain
+residual capabilities; the credential is not claimed to be immutable. No PUBLIC
+or provider grants were revoked to make qualification pass.
 
-The operator subsequently selected the existing email provider for independent
-backup alerts and authorized one synthetic email. The checker now supports
-explicit ZeptoMail configuration, requires a single approved recipient, validates
-bounded provider acceptance and never passes the mail token to storage children.
-The expanded suite passes **54/54**, zero skips. One `[TEST] Docita backup alert`
-was accepted at **06:11 UTC**; the operator confirmed receipt in the intended
-inbox on **16 October**. No patient data was sent and the test did not activate backups. The updated local image is
-`sha256:0eb225a1257042f06ab1f8f8bc5350d55db656c3c15db4dbe50a0d7c04aaa818`.
-All four copied source scripts match the current source hashes; the independent
-reader still refuses missing production completions in check-only mode.
+An owned Neon child/empty-database rehearsal proves the fresh restricted login,
+client certificate/hostname verification, UTC, forced-RLS rows, sequence state,
+write denial and canonical role preflight. A subsequent rehearsal verifies session
+error-statement logging suppression before credential SQL, atomic role creation
+with a unique ownership marker, and explicit grant/default-grant revocation and
+role removal through a fresh admin connection. Both owned branches were removed;
+only production remains. Earlier unsupported provider credential methods and a
+failed DROP OWNED cleanup were retained as failed evidence, then corrected. None
+of those probes changed production roles or read clinical rows.
 
-Render login is now verified. Its Staging environment contains the suspended
-`docita-api-staging` service, configured to track **main**, with last successful
-commit `cce2a2fb49121addeb5438773c567102b1317394`. A later deploy at `b94d6f93c`
-failed. No service was resumed, settings changed or stale revision accepted as
-current validation. [STAGING.md](../operations/STAGING.md) records the required
-branch, isolation and revision checks before resumption.
+The production preparation attempt at **09:20 UTC** stopped with permission
+denial (`42501`) while verifying safe credential logging, before submitting a
+password or creating the role. `BACKUP_DATABASE_URL` was not saved. The successful
+child rehearsal does not establish identical production operator privileges.
+Do not grant additional production logging privileges or fall back to the owner
+URL just to pass this gate.
 
-A separate owned Neon branch/empty-database fixture established that a NOLOGIN
-non-superuser BYPASSRLS role with zero memberships can read two synthetic RLS
-rows through `SET LOCAL ROLE`, while DELETE and CREATE TABLE are denied. The
-branch was removed. This does not prove a fresh backup-role login or full-schema
-dump permissions; no production role or data was changed. Schema-only branch
-creation is blocked by the legacy `docita_app` role, which was left intact.
+The monitor target wraps the independent reader with bounded Sentry check-ins,
+matching IDs, isolated child credentials and signal/process-group cleanup. Its
+inert Render example specifies a reviewed registry digest and hourly UTC schedule.
+Paid hosting approval, Sentry access/quota/routing and real failure/missed-run
+exercises remain open. Provision the missed-run monitor before scheduler
+activation: a scheduler that never starts cannot create it through a first
+check-in. Writer failure/missed-run coverage needs its own monitor identity.
 
-The CI run also carries GitHub's announced `ubuntu-latest` migration to Ubuntu
-26.04, rolling from 19 October through 19 November. Docita-authored Linux jobs
-now specify `ubuntu-24.04` to avoid an unplanned operating-system migration during
-the freeze. [GitHub's runner announcement](https://github.com/actions/runner-images/issues/14748)
-identifies that label as the mitigation. This pins the OS release, not every
-managed-image package or runner inside a third-party reusable workflow. Workflow
-triggers, permissions and disabled deployment/database controls are preserved.
+## Live snapshots and unchanged release gates
 
-The dependency audit also exits 0 after its configured exception, while metadata
-still counts one HIGH advisory. The [braces advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)
-continues to list no patched version on 16 October. Its trusted-tooling-only
-exception still expires **12 November**; it was not extended. The API/worker
-production images exclude this development dependency. Review/remediation before
-expiry remains an operating obligation during the freeze.
+At **05:36 UTC / 11:06 IST**, the existing full production probe passes **3/3**,
+including staff login, with no skips. This local check did not exercise Fly
+restart recovery, external alerts or authenticated clinical writes. The same
+read-only metadata snapshot recorded `neondb_owner` with BYPASSRLS,
+`docita_app` NOLOGIN, UTC, **165 completed migrations**, **ten pending migrations**,
+and **91 tenant tables / 16 missing RLS backstops**. These are timestamped
+observations, not a new scan at publication. Ten migrations and 19 strict RLS
+checks passed earlier on an isolated target; production rollout remains open.
 
-The standalone reader uses explicit separate configuration, a two-hour limit
-based on backup start time, recipient/object/format checks and bounded streamed
-hash verification. Normal execution requires an approved alert endpoint and posts
-only on failure. HTTP acceptance is not human acknowledgement. A reader schedule
-also needs independent missed-run detection; a writer failure before upload is
-observable through its scheduler/exit status, not R2 alone. See
-[the operating contract](../operations/ENCRYPTED_DATABASE_BACKUPS.md#prepared-independent-freshness-checker-16-october).
+Render login is verified. The Singapore staging API is suspended, tracks **main**
+and last successfully deployed `cce2a2fb49121addeb5438773c567102b1317394`; a later
+`b94d6f93c` deployment failed. It supplies no current candidate/soak evidence.
+[STAGING.md](../operations/STAGING.md) records isolation/revision requirements.
 
-## Gates that cannot be replaced with a successful local command
+PR #322 remains draft. The last inspected hosted CI run **38860421935** at
+`0c8bf8ac3815d1443312ece6ba2ccd83357e90a1` could not start because GitHub reported
+payment/spending-limit trouble; downstream jobs were skipped. The operator
+explicitly deferred billing remediation until **November**. Local passes do not
+replace required hosted checks; no bypass, merge or source release occurred.
 
-| Dependency                   | Required evidence / next action                                                                                                                                                                                                                                                                                                                                                                          |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Physical offline recovery    | Operator runs the copied README challenge on an offline recovery device and returns only its SHA256 plus custody confirmation. Compare with protected evidence before removing the connected local identity. Disconnection alone is not the offline decrypt proof.                                                                                                                                       |
-| Independent monitor setup    | Separate read-only R2 credentials are verified: list/read pass; overwrite, deletion and document-bucket HEAD return 403; the synthetic control was removed. The explicit email destination is configured locally and one authorized test was accepted by ZeptoMail. The operator confirmed inbox receipt on 16 October. Independent scheduling and missed-check paging remain open.                      |
-| GitHub review/CI             | PR #322 is open and draft. Code Review access works. Inspected run 38858179086 at head `e877beda7` fails Detect CI Scope before jobs start because GitHub reports payment/spending-limit trouble; downstream checks are skipped. The operator deferred billing remediation to **November**. Required CI remains open, with no bypass, merge or release. This is not a source-test failure or passing CI. |
-| Render staging access        | Login verified. The Free Node service in Singapore is suspended and tracks main rather than staging. Last successful deployment is an older revision; no current candidate or soak is running. Correct isolated configuration and reviewed branch alignment before resumption.                                                                                                                           |
-| Current staging              | Merge reviewed source through protected main first, free a branch slot, then use the PR-only staging remirror. Confirm actual Render/Cloudflare revision and isolated database identity, migrations, non-owner privileges, compatibility and authenticated journeys. The remote still contains exactly two open feature branches.                                                                        |
-| Database backup and recovery | Dedicated database backup-role boundary, direct TLS connection, measured real dump budget and quarantined production restore with independent field/signing/object keys and erasure/legal-hold reconciliation. Production owner credentials are not a permanent backup-role substitute.                                                                                                                  |
-| Production RLS / release     | Carry the rehearsed ten migrations through old/new runtime compatibility and non-owner staging proof, then **24 hours of staging soak**. Use the reviewed release/rollback path; keep API idle shutdown and required provider/replay boundaries intact. Do not start the worker as a connectivity test.                                                                                                  |
-| Cadence and final stability  | Demonstrate independent hourly writer/reader operation and alert/failure/missed-run behavior for **at least 24 hours**, perform a real isolated restore, then collect **fourteen consecutive days of production observation** after the reviewed release. No start time or passing observation window is fabricated.                                                                                     |
+All 32 authored Linux jobs in 12 workflows are pinned to Ubuntu 24.04 during the
+announced Ubuntu 26.04 `ubuntu-latest` transition. This pins the OS release, not
+all hosted-image packages or third-party reusable runners. See
+[GitHub's announcement](https://github.com/actions/runner-images/issues/14748).
+The trusted-tooling-only [braces exception](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)
+still expires **12 November** and was not extended. The advisory remains unpatched
+at the 16 October check; clinical production images exclude that development
+package. Reassessment before expiry remains an operating obligation.
 
-Production backup activation and production source release remain blocked by the
-named prerequisites. The new checker closes a source-preparation gap; it does
-not certify production recovery, capacity, availability or two months without
-critical fixes.
+## Remaining gates
+
+| Dependency               | Required evidence / next action                                                                                                                                                                                                                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| GitHub review/CI         | Restore billing in November as chosen, run required checks on the actual candidate and obtain review. PR remains draft; local results are not passing CI.                                                                                                                                                          |
+| Current staging          | Land reviewed source through protected main, free a branch slot, then use the PR-only staging remirror. Verify actual Render/Cloudflare revisions, isolated database identity, non-owner privileges and authenticated journeys. Staging remains suspended on an old revision.                                      |
+| Production backup role   | Production denied the safe logging precondition before credential SQL. Resolve a safe provisioning path, qualify the full production catalog and save only the backup credential through protected setup. Do not widen logging privileges or use the owner URL as a substitute. No role or backup URL was created. |
+| Clinical recovery        | Quarantined full-schema restore with independently held historical field keys V2–V5, signing/configuration and document-object recovery; reconcile erasure/legal holds before any user access. Measure real dump/restore memory, time and size. Synthetic results do not size production.                          |
+| Independent scheduling   | Resolve hosting choice and Sentry access/quota/routing. Use separate reader credentials and writer missed-run coverage; verify authorized failed/missed-run alert delivery and **at least 24 hours** of actual hourly writer/reader operation. No service or cadence currently exists.                             |
+| Production RLS / release | Old/new runtime compatibility, non-owner staging proof, required latency evidence and **24 hours of staging soak** precede reviewed migration/credential/release/rollback execution. Preserve API idle shutdown and best-effort notification limitations. Do not start the worker as a connectivity test.          |
+| Final observation        | Real isolated recovery plus **fourteen consecutive days** of production observation after the reviewed release. No passing period or start time is fabricated.                                                                                                                                                     |
+
+See [the backup operating contract](../operations/ENCRYPTED_DATABASE_BACKUPS.md)
+for exact configuration, retention, offline custody and activation boundaries.

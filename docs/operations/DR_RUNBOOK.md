@@ -29,6 +29,17 @@ The user selected keeping Free and preparing independent encrypted backups;
 follow the [backup plan](../superpowers/plans/2026-10-15-independent-database-backups.md).
 That preparation does not establish an active backup schedule or 30-day retention.
 
+**16 October follow-up:** the operator returned the matching offline recovery
+challenge hash and confirmed offline handling; Messenger is unmounted and the
+connected private identity was removed. The encrypted synthetic R2 restore passes
+with the new restricted-login tooling image. A dedicated-role preflight and an
+independent reader/Sentry wrapper are prepared, with 81 process regressions and a
+real PostgreSQL privilege/restore fixture passing. The one authorized alert email
+was confirmed in the inbox. Full clinical recovery, independent historical field/
+signing/object-key custody, live scheduling and missed-run delivery are still
+unproved. See the [current checkpoint](../audits/2026-10-16-stability-completion-checkpoint.md)
+and [backup operating gates](ENCRYPTED_DATABASE_BACKUPS.md#live-activation-requirements).
+
 An isolated branch from production's past state was exercised, followed by a
 synthetic encrypted insert/delete/point-in-time recovery on drill branches.
 Authenticated decryption succeeded using a protected local key verified against

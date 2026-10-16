@@ -5,18 +5,21 @@ R2 bucket was created with public `r2.dev` access disabled and no custom domains
 The dedicated writer credential scope and storage lock have passed synthetic
 verification. The operator approved the retention policy on 15 October and
 requested local recovery-key generation. The public recipient is configured and
-the local key pair passes authenticated decryption. Offline custody, the
-production backup job, stale-backup alert and real production restore remain
-unverified. Keeping Neon
-Free leaves its configured six-hour recovery history unchanged.
+the local key pair passed authenticated decryption. On 16 October the operator
+returned the matching offline challenge hash and confirmed offline handling;
+Messenger is unmounted and the connected local private identity was removed.
+The production backup job, independent schedule/dead-man alerting and clinical
+restore remain unverified. Keeping Neon Free leaves its configured six-hour
+recovery history unchanged.
 
 On 16 October the recovery files were copied into a new folder on the operator's
 Messenger USB drive without overwriting or erasing existing files. Byte comparison,
 public-recipient matching and authenticated challenge decryption using that copy
-passed on the connected Mac. The drive was disconnected and then reconnected by the operator. Independent offline
-challenge verification and custody confirmation remain open; the protected local
-identity is retained until those pass. The ExFAT drive does not enforce Unix file
-permissions, so physical custody remains essential.
+passed on the connected Mac. The later offline challenge matched the protected
+expected digest, and the operator reported completion of the offline procedure.
+The drive is unmounted and the connected identity file has been removed. This is
+operator-attested physical custody plus challenge proof, not a forensic-erasure
+claim. The ExFAT drive does not enforce Unix permissions; keep it physically secure.
 
 The selected target is an hourly independent backup, a warning when the latest
 completed backup is older than two hours, a 30-day minimum retention lock and
@@ -99,7 +102,7 @@ URL, personal AWS profile or ambient AWS credentials are inherited by child tool
 | `BACKUP_MAX_BYTES`            | Optional ciphertext limit, default 1 GiB, maximum 4 GiB. Size the runner's temporary filesystem for **two** copies plus headroom.                                                                              |
 | `BACKUP_TEMP_DIR`             | Optional writable temporary parent. Prefer a dedicated size-limited tmpfs.                                                                                                                                     |
 
-The runtime requires PostgreSQL **17** `pg_dump`, age 1.2 or newer within major 1,
+The runtime requires PostgreSQL **17** `pg_dump` and `psql`, age 1.2 or newer within major 1,
 and AWS CLI v2. The server/client major must be rechecked before any database
 upgrade; a successful tool-version check does not inspect the server version.
 The dump leaves `row_security` enforcement at PostgreSQL's default backup setting:
@@ -108,14 +111,33 @@ rows. Use a separately controlled database backup role with the privileges neede
 to dump **all** tenant rows. Record and review that privilege boundary; never
 replace the clinical application's restricted role with the backup login.
 
+Before dumping, the writer runs the shared catalog-only
+`scripts/db/backup-database-role.mjs` preflight through `psql`. Only an exact true
+result permits the dump. It requires a fresh LOGIN identity with BYPASSRLS, no
+elevated administrative flags, no outgoing memberships, no ownership, and no
+unprivileged login able to assume it. It rejects effective table/column writes,
+sequence USAGE/UPDATE, database/schema CREATE and executable custom SECURITY
+DEFINER functions, and requires SELECT on all application tables and sequences.
+The query runs in a bounded read-only transaction with a catalog search path;
+production qualification never attempts clinical reads or mutation probes.
+
+The boundary concerns existing persistent relations, sequences, namespaces and
+database creation privileges. PostgreSQL PUBLIC TEMP access and built-in
+large-object constructors remain residual capabilities; it is not a blanket
+immutable credential. `default_transaction_read_only=on` is defense in depth and
+can be reset by a client. Do not revoke production PUBLIC/provider permissions
+merely to make qualification pass. Review grants again after schema changes.
+
 ## Build and manual validation
 
-Build from a minimal context containing only the public Dockerfile and runner:
+Build from a minimal context containing only the public Dockerfile and copied scripts:
 
 ```sh
-tar -C scripts/db -cf - backup.Dockerfile backup-database.mjs |
+tar -C scripts/db -cf - backup.Dockerfile backup-database.mjs \
+  backup-database-role.mjs backup-environment.mjs backup-alerts.mjs \
+  check-backup-freshness.mjs run-backup-monitor.mjs |
   docker build --platform linux/amd64 -f backup.Dockerfile -t docita-backup:candidate -
-node --test scripts/db/backup-database.test.mjs
+node --test scripts/db/backup-database.test.mjs scripts/db/check-backup-freshness.test.mjs scripts/db/run-backup-monitor.test.mjs
 ```
 
 The opt-in real-tool test requires a disposable **localhost** PostgreSQL fixture
@@ -258,10 +280,11 @@ private identity was generated into a mode-0700 local recovery directory with a
 mode-0600 identity file. Its public recipient was saved in the protected operator
 configuration; local synthetic encryption and authenticated decryption passed.
 No private key was displayed or uploaded by this workflow. The protected local
-handoff instructions identify the files and offline challenge. Move the private
-identity to the operator's offline recovery medium, verify the challenge there,
-and confirm custody before removing the connected copy and enabling production
-backups. Local generation and decryption do not prove offline custody.
+handoff instructions identify the files and offline challenge. On 16 October the
+operator returned the matching offline challenge hash after confirming the offline
+procedure. Messenger was unmounted, and the connected local identity was removed.
+The private identity stays on the offline medium. The successful handoff does
+not replace the remaining clinical recovery and operating evidence.
 
 ### Recovery procedure
 
@@ -364,20 +387,20 @@ dead-man/notification mechanism. R2 cannot reveal a dump failure that occurred
 before an object was uploaded; route writer exit failures separately. Deploying
 the reader beside the writer on the same host is not independent outage coverage.
 
-The combined process suite passes **54/54**, zero skips: 23 writer regressions
-and 31 freshness regressions, including stale starts, corrupt bytes, malformed
+The combined process suite passes **81/81**, zero skips: 28 writer, 31 freshness
+and 22 monitor-wrapper regressions, including stale starts, corrupt bytes, malformed
 metadata, wrong recipients, pagination, bounded termination and local synthetic
 HTTP acceptance/rejection and the selected email provider's failure boundaries.
 The updated tooling image is
-`sha256:0eb225a1257042f06ab1f8f8bc5350d55db656c3c15db4dbe50a0d7c04aaa818`;
+`sha256:8ef3597948f92fc22f752774c8a049540ebadeff71c5dc70abd53f9e59382340`;
 its raw OS/library scan reports zero HIGH/CRITICAL findings. Its actual-R2
-synthetic dump/readback/restore passes again: 2,600-byte archive, exact two rows,
+synthetic dump/readback/restore passes again using a fresh restricted login under
+forced RLS: 3,196-byte archive, exact two rows,
 one allowed tenant row, zero cross-tenant rows and tamper rejection; all owned
 unlocked objects, fixture containers and disposable private inputs were removed.
-No production completion was created. The image includes the checker at
-`/opt/docita-backup/check-backup-freshness.mjs`; select it with a Node entrypoint
-when running the separate monitor. This is a local immutable image identity,
-not a deployed registry digest or a running schedule.
+No production completion was created. All six public scripts match their source
+hashes in both tooling targets. These are local immutable image identities, not
+deployed registry digests or running schedules.
 
 The operator supplied separate read-only monitor credentials on 16 October. Real
 backup list/read pass; overwrite, deletion and document-bucket HEAD each return 403. The unlocked synthetic permission control was removed and HEAD confirmed 404. The checker was repeated with this identity and correctly refused to count
@@ -391,20 +414,75 @@ test arrived in the intended inbox on **16 October**. Independent scheduling and
 missed-run detection remain open; this test does not
 activate production backups or close the activation gate below.
 
-An owned Neon child-branch probe also created a NOLOGIN, non-superuser BYPASSRLS
-candidate with no role memberships. Against a new empty database with two
-synthetic RLS rows, `SET LOCAL ROLE` could read both; DELETE and CREATE TABLE
-were denied. The owned branch was removed, leaving only production. This proves
-a bounded role primitive, not a production login, full-schema pg_dump privilege
-boundary, configured backup URL or clinical recovery. Production roles were not
-changed and `BACKUP_DATABASE_URL` remains absent.
+The real PostgreSQL 17 fixture uses a fresh restricted LOGIN, forced two-tenant
+RLS and SELECT-only sequence grants. The owner is rejected before dumping; the
+restored sequence remains at 57. Seventeen unsafe privilege profiles fail the
+same preflight, including reverse role escalation, column writes, sequence USAGE,
+ownership and custom SECURITY DEFINER exposure. Write-denial probes run only in
+the owned synthetic fixture, with the read-only default disabled for those probes.
+
+A separate owned Neon child/empty-database exercise also proved fresh restricted
+login, verified client TLS, UTC, two synthetic tenant rows, sequence value 37,
+write/DDL/nextval denial and the same canonical preflight. The owned branch was
+removed. This does not establish the full production catalog/grants, clinical
+recovery or a configured production backup credential. Database-role provisioning
+must also keep password literals out of server error-statement logging; normal
+statement logging being off alone is insufficient. Never print a provider SQL
+error containing credential text. Production preparation at 09:20 UTC returned
+`42501` while verifying that logging boundary, before any password submission or
+role creation. The backup URL remains unconfigured; a successful isolated child
+rehearsal does not prove the same production privileges. Do not widen production
+logging grants or use the owner URL to bypass this gate.
+See [PostgreSQL logging controls](https://www.postgresql.org/docs/17/runtime-config-logging.html#GUC-LOG-MIN-ERROR-STATEMENT).
+
+### Prepared independent scheduler wrapper
+
+Build the separate `monitor` target with the same minimal context above, adding
+`--target monitor`. The default final target still runs the writer. The monitor
+target starts `scripts/db/run-backup-monitor.mjs`; appending a reader command to
+the writer ENTRYPOINT does not replace it. The tested monitor image is
+`sha256:58333ca2b80c643b5301673782dd17bcf4ac66e243606ff4403df03631b5eebc`,
+non-root with zero raw HIGH/CRITICAL OS/library findings. Its default ENTRYPOINT
+was exercised with the real independent reader credentials in `--check-only` mode:
+it fails for missing production completions without sending alerts or check-ins.
+
+Normal wrapper execution requires explicit `BACKUP_MONITOR_SENTRY_DSN` and
+`BACKUP_MONITOR_SENTRY_SLUG` in addition to the reader/email settings. There is no
+ambient application Sentry fallback. It sends `in_progress`, then `ok` or `error`
+with the same check-in ID, using a five-second bounded POST without retries.
+Rejected check-ins fail the wrapper; the reader still runs after a rejected start.
+A failed reader remains failed after an accepted failure email. Reader output is
+discarded, its environment is restricted, and timeout/signal handling drains its
+owned process group. `--check-only` requires neither alert nor Sentry settings and
+sends neither. Local process tests use synthetic HTTP receivers only.
+
+The proposed reader schedule is **15 minutes past each UTC hour**, matching the
+wrapper's Sentry schedule, with a ten-minute check-in margin, eleven-minute maximum
+runtime and one failure/recovery threshold. This hourly sampling can detect a
+two-hour freshness breach up to an additional hour later, plus scheduler and
+delivery latency; it is not an exact two-hour paging guarantee.
+
+[The inert Render example](examples/backup-monitor.render.yaml) pins a placeholder
+registry digest and isolated explicit secrets. The local image ID must be replaced
+by the actual reviewed published registry digest. Creating a Render Cron service
+is a paid operating choice; the hosting decision remains pending. See
+[Render Cron billing](https://render.com/docs/cronjobs). No resource, registry
+publication or real Sentry check-in has been created by this preparation.
+
+Before enabling any cron service, provision and enable the Sentry monitor and
+verify quota, ownership and missed-run email routing. The wrapper can upsert on a
+first check-in, but a scheduler that never starts cannot create that first monitor.
+Validate Render failure-email settings separately. The writer needs its own
+failure/missed-run coverage with a different slug; reader starts must not conceal
+a stopped writer. An authorized failed-run and deliberately missed-run exercise,
+confirmed delivery and at least 24 hours of actual cadence remain required.
 
 ### Live activation requirements
 
 The dedicated bucket, scoped credential, retention enforcement, storage-policy
 owner approval and synthetic external transfer/restore now have evidence. Keep
-the job unactivated until the production recovery identity's offline custody,
-successful quarantined clinical restore with erasure/legal-hold reconciliation,
+the job unactivated until successful quarantined clinical restore with
+erasure/legal-hold reconciliation,
 measured production runtime/memory
 and a verified independent stale-backup alert destination. Test a failed run and a
 missed schedule. GitHub's currently billing-blocked hosted jobs cannot be the only

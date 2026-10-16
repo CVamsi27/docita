@@ -3,6 +3,7 @@
   "entry": [
     "scripts/db/backup-database.mjs",
     "scripts/db/check-backup-freshness.mjs",
+    "scripts/db/run-backup-monitor.mjs",
     "src/index.{ts,tsx,js,jsx}",
     "src/main.{ts,tsx,js,jsx}"
   ],

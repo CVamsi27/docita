@@ -1,4 +1,4 @@
-FROM node:22.22-alpine3.23
+FROM node:22.22-alpine3.23 AS tooling
 
 RUN apk upgrade --no-cache && \
     apk add --no-cache ca-certificates postgresql17-client age aws-cli dumb-init && \
@@ -9,8 +9,13 @@ RUN apk upgrade --no-cache && \
       /usr/local/bin/yarnpkg
 
 WORKDIR /opt/docita-backup
-COPY --chown=node:node backup-database.mjs backup-environment.mjs backup-alerts.mjs check-backup-freshness.mjs ./
+COPY --chown=node:node backup-database.mjs backup-database-role.mjs backup-environment.mjs backup-alerts.mjs check-backup-freshness.mjs run-backup-monitor.mjs ./
 
 ENV NODE_ENV=production
 USER node
+
+FROM tooling AS monitor
+ENTRYPOINT ["dumb-init", "--", "node", "/opt/docita-backup/run-backup-monitor.mjs"]
+
+FROM tooling AS writer
 ENTRYPOINT ["dumb-init", "--", "node", "/opt/docita-backup/backup-database.mjs"]

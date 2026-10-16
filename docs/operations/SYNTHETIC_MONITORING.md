@@ -71,12 +71,16 @@ separate authenticated journey evidence.
 
 ## Open items
 
-The independent database-backup reader is prepared in
-[`check-backup-freshness.mjs`](../../scripts/db/check-backup-freshness.mjs).
-Its [configuration and acceptance gates](ENCRYPTED_DATABASE_BACKUPS.md#prepared-independent-freshness-checker-16-october)
-require separate read-only storage credentials, an approved alert destination,
-an independent schedule and missed-run detection. Its local HTTP acceptance tests
-do not demonstrate delivery to the real operator. It is not deployed or active.
+The independent database-backup reader and bounded Sentry wrapper are prepared in
+[`check-backup-freshness.mjs`](../../scripts/db/check-backup-freshness.mjs) and
+[`run-backup-monitor.mjs`](../../scripts/db/run-backup-monitor.mjs).
+Separate read-only storage credentials pass real scope checks. The operator
+confirmed the one authorized ZeptoMail test arrived in the inbox on 16 October.
+The [configuration and acceptance gates](ENCRYPTED_DATABASE_BACKUPS.md#prepared-independent-scheduler-wrapper)
+and [inert Render example](examples/backup-monitor.render.yaml) cover independent
+scheduling, pre-provisioned missed-run monitoring and separate writer coverage.
+Hosting approval, Sentry quota/routing, failed/missed-run delivery exercises and
+24-hour cadence remain open. Neither scheduler nor production backups are active.
 
 - Provision synthetic clinic + dedicated monitor user; enable booking/OTP probes.
 - Wire PagerDuty escalation on top of `OPS_ALERT_WEBHOOK_URL` (scaffold shipped 2026-05-30).

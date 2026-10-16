@@ -1,13 +1,16 @@
 # Docita Two-Month Stability Implementation Plan
 
-**16 October completion pass:** the independent freshness reader and rebuilt
-tooling image pass 43 process cases, another real R2 synthetic restore and a raw
-HIGH/CRITICAL scan. Current local production probes pass 3/3; live owner-role
-bypass, ten pending migrations and 16 RLS gaps remain. USB copy verification
-passes, but offline proof is outstanding. The restored GitHub diagnostic connection confirms jobs cannot start because of
-billing/spending restrictions. Independent read-only monitor credentials pass
-real scope checks. Render operator access, the alert destination and the planned
-elapsed soaks remain open. See the [current checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md).
+**16 October completion pass:** the encrypted writer now rejects owner and unsafe
+role connections before dumping. The independent reader and Sentry monitor wrapper
+pass 81 process cases; a real PostgreSQL fixture rejects 17 unsafe privilege
+profiles and restores forced-RLS rows and sequence state. Both non-root image
+targets pass raw HIGH/CRITICAL scans. The matching offline challenge and operator
+custody confirmation are recorded; the connected private identity is removed.
+The authorized email test reached the intended inbox. Independent scheduling and
+missed-run routing are prepared but inactive. Render login works; staging remains
+suspended on an old main revision. CI billing is deferred to November; required
+CI, production recovery/RLS rollout and elapsed soaks remain open. See the
+[current checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md).
 
 **14–15 October follow-up:** full local lint, types, unit suite (6,377 tests),
 standards and workspace build pass. Public capability resolution now has real
@@ -23,7 +26,8 @@ still has those 10 pending migrations and owner-role RLS bypass. The user
 selected keeping Neon Free and preparing [independent encrypted backups](2026-10-15-independent-database-backups.md).
 The operator approved the backup storage policy and requested local key generation
 on 15 October. The public recipient is configured and local authenticated
-decryption passes; offline custody and the remaining activation controls are open.
+decryption passed. Offline challenge/custody were confirmed on 16 October; the
+remaining activation controls are open.
 Production source remains unreleased. Current evidence and credential containment are recorded in the
 [repair record](../../audits/2026-10-13-stability-repair-evidence.md).
 

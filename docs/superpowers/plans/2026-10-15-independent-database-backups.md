@@ -12,8 +12,9 @@ separately held recovery key and an exercised synthetic restore.
 into age encryption. It stores only ciphertext temporarily, uploads to a dedicated
 R2 backup bucket, verifies the stored ciphertext, and publishes a completion
 manifest only after success. It holds the age public recipient; the recovery
-identity stays in operator custody. A dedicated Fly scheduled machine avoids the
-current GitHub billing restriction and does not start the clinical worker.
+identity stays in operator custody. A dedicated Fly scheduled writer and separate
+independent reader avoid the current GitHub billing restriction and do not start
+the clinical worker. The prepared Render reader hosting choice is still pending.
 
 **Tech stack:** Node22 built-ins, PostgreSQL 17 client, age, AWS CLI, R2 S3 API,
 Node test runner and an isolated local PostgreSQL fixture.
@@ -87,14 +88,13 @@ configuration matches the canonical JSON. The operator supplied separate scoped
 S3 credentials: backup access succeeds, document-bucket HEAD is denied and a
 runtime comparison confirms distinct credentials. Actual synthetic encrypted R2
 transfer/restore and production-prefix overwrite/delete denial pass. Independent
-production recovery-key custody remains unverified. The operator selected
-offline-only custody and then requested local key generation. A private identity
-is staged in protected local storage; its public recipient is configured and
-local authenticated decryption passes. Offline handoff and the offline decrypt
-challenge remain outstanding. The operator explicitly accepted ownership and
+production recovery-key custody was initially unverified. The operator selected
+offline-only custody and then requested local key generation. The public recipient
+is configured and local authenticated decryption passed. The 16 October offline challenge matched;
+operator-reported offline custody is recorded and the connected identity removed. The operator explicitly accepted ownership and
 approved the scoped ADR 0016 D4 storage policy on 15 October. No production dump,
 scheduled machine or live backup was created. Full clinical recovery with verified
-erasure/legal-hold reconciliation, offline custody, schedule/freshness and
+erasure/legal-hold reconciliation, schedule/freshness and
 alerting remain activation gates.
 
 ## Verified preparation, 15 October
@@ -154,8 +154,9 @@ and this runbook. Do not alter the writer's dump or completion format.
       records exact passed checks and remaining operator/time gates.
 
 The drive copy was verified on the connected Mac on 16 October without erasing or
-overwriting existing files; Messenger was disconnected, then reconnected. The offline challenge,
-operator custody confirmation and original local-key removal remain open.
+overwriting existing files; Messenger was disconnected, then reconnected. The
+subsequent offline challenge matched, offline handling was confirmed, Messenger
+was unmounted and the connected local identity was removed.
 Review/CI access, staging, production restore/reconciliation, cadence and elapsed
 soak/observation gates remain explicit; an instruction to finish does not supply
 missing measurements.
@@ -166,7 +167,7 @@ The operator selected existing email delivery, saved an explicit recipient and
 authorized one test. Added `scripts/db/backup-alerts.mjs` to the isolated image
 and freshness-check boundary; application mail defaults are not inherited.
 Process tests were extended before implementation and the expected failure was
-retained. The combined suite now passes **54/54**, including rejected provider
+retained. That email follow-up suite passed **54/54**, including rejected provider
 payloads, malformed/oversized bodies, redirects, five-second timeout, no retry,
 required explicit destination and no token inheritance by AWS children.
 
@@ -177,3 +178,59 @@ deferred to November by the operator; the
 required check gate remains open. Render login works, but its suspended staging
 service tracks main and an old deployed revision, so it provides no current soak
 evidence. These are recorded in the [completion checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md).
+
+## Remaining recovery fixes, 16 October
+
+The operator requested all remaining fixes. Continue the approved dedicated-role,
+independent reader and recovery architecture; CI billing remains deferred to
+November. The returned offline challenge matches and Messenger is unmounted;
+operator-reported offline custody is recorded and the connected local private
+identity has been removed. Keep forensic-erasure claims out of the evidence.
+
+### Task 3: Enforce the dedicated database role before dumping
+
+- [x] Add failing process regressions proving owner/elevated roles, memberships,
+      effective relation/column/sequence writes, schema/database CREATE, custom
+      SECURITY DEFINER exposure and incomplete role evidence stop before dumping.
+- [x] Run a shared catalog-only preflight through PostgreSQL 17 psql with the
+      writer's sanitized verified-TLS environment, UTC, read-only transaction and
+      bounded statement timeout. Require a fresh LOGIN identity with BYPASSRLS
+      and no ownership or effective persistent relation/sequence/schema/database
+      modification privileges. Reject application logins able to assume the role.
+- [x] Keep PUBLIC TEMP and built-in large-object construction documented as
+      residual capabilities; a resettable read-only default is not authorization.
+      Do not revoke production PUBLIC/provider grants to make a check pass.
+- [x] Convert the actual PostgreSQL fixture to a restricted fresh backup login,
+      forced tenant RLS and sequence SELECT only. Prove owner rejection before
+      dumping, authenticated restore, preserved rows/sequence and write denial.
+- [x] Rehearse the same role/preflight against an owned Neon empty-database
+      fixture, then remove its owned branch. Verify safe credential logging,
+      atomic ownership markers and explicit cleanup before production preparation.
+- [ ] Prepare only a dedicated production credential after the isolated rehearsal
+      and full-catalog qualification. This can precede recovery so the approved
+      recovery exercise can use it; clinical restore/compatibility and operating
+      evidence still gate any job activation. Do not change application roles.
+
+### Task 4: Prepare independent schedule and missed-run coverage
+
+- [x] Add a monitor container target that starts the existing reader rather than
+      appending commands to the writer ENTRYPOINT; preserve the default writer.
+- [x] Add bounded Sentry in-progress/ok/error check-ins around the reader, using
+      explicit monitor configuration, the same check-in ID and no credential or
+      clinical payload logging. A failed check remains failed after email acceptance.
+- [x] Keep `--check-only` diagnostics free of external check-ins/alerts. Test
+      success, check failure, timeout, rejected check-ins and termination locally.
+- [x] Prepare a separate Render Cron example using the monitor target. Render's
+      paid resource creation, Sentry quota/routing and a deliberate missed-run
+      alert exercise need a concrete operator decision before activation.
+- [x] Run process suites, applicable builds/scans and source standards and update
+      companion runbooks for the existing draft PR. No paid
+      scheduler, real check-in/alert exercise or elapsed 24-hour cadence is implied
+      by source preparation.
+
+Current local verification is **81/81** process cases, a real PG17 restricted-login
+restore with 17 unsafe privilege profiles, two scanned immutable image targets,
+real synthetic R2 transfer/restore and independent check-only image execution.
+Full standards (150/150), lint, Knip and hygiene pass. The
+[checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md) records
+image identities and remaining live/review/elapsed gates.

@@ -8,6 +8,7 @@ import path from "node:path";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { createEnvironmentReader } from "./backup-environment.mjs";
+import { BACKUP_ROLE_SQL } from "./backup-database-role.mjs";
 
 class BackupFailure extends Error {}
 
@@ -168,7 +169,7 @@ async function main() {
     PGSSLROOTCERT: config.ca,
     PGCHANNELBINDING: "require",
     PGCONNECT_TIMEOUT: "30",
-    PGOPTIONS: "-c TimeZone=UTC",
+    PGOPTIONS: "-c TimeZone=UTC -c default_transaction_read_only=on",
     PGPASSFILE: "/dev/null",
     PGSERVICEFILE: "/dev/null",
     PGAPPNAME: "docita-independent-backup",
@@ -206,14 +207,26 @@ async function main() {
     children.add(entry);
     return entry;
   }
-  async function command(commandName, args, env, capture = false) {
-    const entry = start(commandName, args, env);
+  async function command(commandName, args, env, capture = false, input) {
+    const entry = start(
+      commandName,
+      args,
+      env,
+      input === undefined ? "ignore" : "pipe",
+    );
+    let inputFailed = false;
+    if (input !== undefined) {
+      entry.child.stdin.once("error", () => {
+        inputFailed = true;
+      });
+      entry.child.stdin.end(input);
+    }
     let output = "";
     for await (const chunk of entry.child.stdout) {
       if (capture && output.length < 4096)
         output += chunk.toString().slice(0, 4096 - output.length);
     }
-    if ((await entry.closed) !== 0)
+    if ((await entry.closed) !== 0 || inputFailed)
       throw new BackupFailure("External command failed.");
     return output;
   }
@@ -249,17 +262,39 @@ async function main() {
   }
   try {
     const dumpVersion = await command("pg_dump", ["--version"], baseEnv, true);
+    const psqlVersion = await command("psql", ["--version"], baseEnv, true);
     const ageVersion = await command("age", ["--version"], baseEnv, true);
     const awsVersion = await command("aws", ["--version"], awsEnv, true);
     if (
       !/^pg_dump \(PostgreSQL\) 17\./.test(dumpVersion) ||
+      !/^psql \(PostgreSQL\) 17\./.test(psqlVersion) ||
       !/^v?1\.(?:[2-9]|[1-9]\d+)\./.test(ageVersion) ||
       !/^aws-cli\/2\./.test(awsVersion)
     ) {
       throw new BackupFailure(
-        "Compatible PostgreSQL 17, age and AWS CLI v2 tools are required.",
+        "Compatible PostgreSQL 17 dump/psql, age and AWS CLI v2 tools are required.",
       );
     }
+    stage = "database role verification";
+    const roleProof = await command(
+      "psql",
+      [
+        "--no-password",
+        "--no-psqlrc",
+        "--quiet",
+        "--tuples-only",
+        "--no-align",
+        "--set",
+        "ON_ERROR_STOP=1",
+      ],
+      pgEnv,
+      true,
+      BACKUP_ROLE_SQL,
+    );
+    if (roleProof.trim() !== "t")
+      throw new BackupFailure(
+        "Dedicated backup database role verification failed.",
+      );
     const startedAt = new Date().toISOString();
     const id = randomUUID();
     const objectKey = `${config.sourceId}/${startedAt.slice(0, 10)}/${id}.dump.age`;

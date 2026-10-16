@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import {
   accessSync,
   constants,
@@ -17,6 +17,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { BACKUP_ROLE_SQL } from "./backup-database-role.mjs";
 
 const RUNNER = fileURLToPath(new URL("./backup-database.mjs", import.meta.url));
 const DUMP_SECRET = "synthetic-patient-row-never-log";
@@ -47,9 +48,14 @@ appendFileSync(events, JSON.stringify({ command, args, env: process.env }) + '\\
 if (args.includes('--version')) {
   if (scenario.ignoreTermination && command === 'pg_dump') { process.on('SIGTERM', () => {}); setInterval(() => {}, 100); }
   else {
-  process.stdout.write(command === 'pg_dump' ? (scenario.version ?? 'pg_dump (PostgreSQL) 17.9') : command === 'age' ? (scenario.ageVersion ?? 'v1.2.1') : (scenario.awsVersion ?? 'aws-cli/2.32.7 Python/3.12 Linux'));
+  process.stdout.write(command === 'pg_dump' ? (scenario.version ?? 'pg_dump (PostgreSQL) 17.9') : command === 'psql' ? (scenario.psqlVersion ?? 'psql (PostgreSQL) 17.9') : command === 'age' ? (scenario.ageVersion ?? 'v1.2.1') : (scenario.awsVersion ?? 'aws-cli/2.32.7 Python/3.12 Linux'));
   process.exit(0);
   }
+} else if (command === 'psql') {
+  for await (const _chunk of process.stdin) {}
+  if (scenario.roleHang) { process.on('SIGTERM',()=>{}); setInterval(()=>{},100); }
+  else if (scenario.roleQueryFails) { process.stderr.write(${JSON.stringify(PASSWORD)}); process.exitCode=1; }
+  else process.stdout.write(scenario.roleMalformed ? 'untrusted role report' : scenario.roleDenied ? 'f\\n' : 't\\n');
 } else if (command === 'pg_dump') {
   if (scenario.hang) { setInterval(() => {}, 100); }
   else {
@@ -87,7 +93,7 @@ if (args.includes('--version')) {
   } else process.exit(96);
 } else process.exit(95);
 `;
-  for (const name of ["pg_dump", "age", "aws"]) {
+  for (const name of ["pg_dump", "psql", "age", "aws"]) {
     writeFileSync(path.join(bin, name), boundary, { mode: 0o755 });
   }
   const env = {
@@ -213,7 +219,10 @@ test("streams a dump into encryption, verifies stored bytes, then publishes its 
       );
     assert.equal(dump.env.PGSSLMODE, "verify-full");
     assert.equal(dump.env.PGSSLROOTCERT, "system");
-    assert.equal(dump.env.PGOPTIONS, "-c TimeZone=UTC");
+    assert.equal(
+      dump.env.PGOPTIONS,
+      "-c TimeZone=UTC -c default_transaction_read_only=on",
+    );
     assert.equal(dump.env.PGPASSWORD, PASSWORD);
     assert.equal(dump.env.DATABASE_URL, undefined);
     assert.equal(transfers[0].env.PGPASSWORD, undefined);
@@ -385,6 +394,41 @@ test("separate invocations create different conditional object keys", () => {
   }
 });
 
+for (const [name, scenario] of [
+  ["owner or otherwise disallowed role", { roleDenied: true }],
+  ["malformed role proof", { roleMalformed: true }],
+  ["failed catalog query", { roleQueryFails: true }],
+  ["unsupported psql client", { psqlVersion: "psql (PostgreSQL) 16.4" }],
+  ["catalog query ignoring termination", { roleHang: true }],
+]) {
+  test(`rejects ${name} before any dump or encryption`, () => {
+    const setup = fixture(
+      scenario,
+      scenario.roleHang ? { BACKUP_MAX_DURATION_SECONDS: "1" } : {},
+    );
+    try {
+      const result = setup.run();
+      assertFailed(result, setup);
+      assert.equal(
+        setup
+          .events()
+          .some(
+            (event) =>
+              ["pg_dump", "age"].includes(event.command) &&
+              !event.args.includes("--version"),
+          ),
+        false,
+      );
+      assert.equal(
+        setup.events().some((event) => event.args.includes("put-object")),
+        false,
+      );
+    } finally {
+      setup.clean();
+    }
+  });
+}
+
 if (process.env.BACKUP_REAL_TOOL_TEST === "1") {
   test("real PostgreSQL 17 and age produce an authenticated, restorable synthetic backup", async () => {
     assert.ok(
@@ -398,6 +442,9 @@ if (process.env.BACKUP_REAL_TOOL_TEST === "1") {
     const setup = fixture();
     const restoreDatabase = `docita_backup_fixture_restore_${process.pid}`;
     const readerRole = `docita_backup_fixture_reader_${process.pid}`;
+    const backupRole = `docita_backup_fixture_backup_${process.pid}`;
+    const assumerRole = `docita_backup_fixture_assumer_${process.pid}`;
+    const backupPassword = randomBytes(32).toString("hex");
     const pgEnv = {
       PATH: process.env.PATH,
       PGHOST: database.hostname,
@@ -418,12 +465,22 @@ if (process.env.BACKUP_REAL_TOOL_TEST === "1") {
         encoding: "utf8",
         timeout: 30_000,
       });
-      assert.equal(result.status, 0, `${command} fixture command failed`);
+      const diagnostic =
+        result.stderr
+          ?.match(/ERROR:\s*([^\n]+)/)?.[1]
+          ?.replaceAll(backupPassword, "[redacted]")
+          .replaceAll(pgEnv.PGPASSWORD, "[redacted]")
+          .slice(0, 240) ?? "no bounded SQL diagnostic";
+      assert.equal(
+        result.status,
+        0,
+        `${command} fixture command failed: ${diagnostic}`,
+      );
       return result.stdout;
     }
     const identity = path.join(setup.root, "disposable-recovery-identity");
     try {
-      for (const name of ["pg_dump", "age"]) {
+      for (const name of ["pg_dump", "psql", "age"]) {
         rmSync(path.join(setup.bin, name));
         const installed = process.env.PATH.split(path.delimiter)
           .map((directory) => path.join(directory, name))
@@ -447,7 +504,7 @@ if (process.env.BACKUP_REAL_TOOL_TEST === "1") {
       real(
         "psql",
         ["--no-password", "--no-psqlrc", "--set", "ON_ERROR_STOP=1"],
-        "CREATE TABLE backup_fixture (id integer PRIMARY KEY, tenant_id text NOT NULL, payload text NOT NULL); INSERT INTO backup_fixture VALUES (1, 'tenant-a', 'synthetic-one'), (2, 'tenant-b', 'synthetic-two'); ALTER TABLE backup_fixture ENABLE ROW LEVEL SECURITY; CREATE POLICY tenant_scope ON backup_fixture USING (tenant_id = current_setting('app.tenant_id', true));",
+        `CREATE TABLE backup_fixture (id integer PRIMARY KEY, tenant_id text NOT NULL, payload text NOT NULL); INSERT INTO backup_fixture VALUES (1, 'tenant-a', 'synthetic-one'), (2, 'tenant-b', 'synthetic-two'); ALTER TABLE backup_fixture ENABLE ROW LEVEL SECURITY; ALTER TABLE backup_fixture FORCE ROW LEVEL SECURITY; CREATE POLICY tenant_scope ON backup_fixture USING (tenant_id = current_setting('app.tenant_id', true)); CREATE SEQUENCE backup_fixture_seq; SELECT setval('backup_fixture_seq',57,true); CREATE ROLE ${backupRole} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION BYPASSRLS PASSWORD '${backupPassword}'; CREATE ROLE ${assumerRole} LOGIN; GRANT USAGE ON SCHEMA public TO ${backupRole}; GRANT SELECT ON backup_fixture TO ${backupRole}; GRANT SELECT ON SEQUENCE backup_fixture_seq TO ${backupRole};`,
       );
       Object.assign(setup.env, {
         BACKUP_DATABASE_URL: database.href,
@@ -455,6 +512,149 @@ if (process.env.BACKUP_REAL_TOOL_TEST === "1") {
         BACKUP_TLS_CA_FILE: pgEnv.PGSSLROOTCERT,
         BACKUP_MAX_DURATION_SECONDS: "30",
       });
+      const owner = setup.run();
+      assertFailed(owner, setup);
+      assert.equal(
+        setup
+          .events()
+          .some(
+            (event) =>
+              event.command === "pg_dump" && !event.args.includes("--version"),
+          ),
+        false,
+      );
+      const backupUrl = new URL(database.href);
+      backupUrl.username = backupRole;
+      backupUrl.password = backupPassword;
+      setup.env.BACKUP_DATABASE_URL = backupUrl.href;
+      const backupEnv = {
+        ...pgEnv,
+        PGUSER: backupRole,
+        PGPASSWORD: backupPassword,
+      };
+      const sql = (text, env = pgEnv) =>
+        real(
+          "psql",
+          [
+            "--no-password",
+            "--no-psqlrc",
+            "--quiet",
+            "--tuples-only",
+            "--no-align",
+            "--set",
+            "ON_ERROR_STOP=1",
+          ],
+          text,
+          env,
+        );
+      assert.equal(sql(BACKUP_ROLE_SQL, backupEnv).trim(), "t");
+      assert.equal(
+        sql(
+          "SELECT current_user=session_user; SHOW TimeZone; SELECT count(*) FROM backup_fixture;",
+          backupEnv,
+        ),
+        "t\nUTC\n2\n",
+      );
+      for (const [enable, disable] of [
+        [
+          `ALTER ROLE ${backupRole} CREATEDB`,
+          `ALTER ROLE ${backupRole} NOCREATEDB`,
+        ],
+        [
+          `ALTER ROLE ${backupRole} CREATEROLE`,
+          `ALTER ROLE ${backupRole} NOCREATEROLE`,
+        ],
+        [
+          `ALTER ROLE ${backupRole} REPLICATION`,
+          `ALTER ROLE ${backupRole} NOREPLICATION`,
+        ],
+        [
+          `ALTER ROLE ${backupRole} SUPERUSER`,
+          `ALTER ROLE ${backupRole} NOSUPERUSER`,
+        ],
+        [
+          `ALTER ROLE ${backupRole} NOBYPASSRLS`,
+          `ALTER ROLE ${backupRole} BYPASSRLS`,
+        ],
+        [
+          `GRANT ${assumerRole} TO ${backupRole}`,
+          `REVOKE ${assumerRole} FROM ${backupRole}`,
+        ],
+        [
+          `GRANT ${backupRole} TO ${assumerRole}`,
+          `REVOKE ${backupRole} FROM ${assumerRole}`,
+        ],
+        [
+          `GRANT INSERT ON backup_fixture TO ${backupRole}`,
+          `REVOKE INSERT ON backup_fixture FROM ${backupRole}`,
+        ],
+        [
+          `GRANT UPDATE(payload) ON backup_fixture TO ${backupRole}`,
+          `REVOKE UPDATE(payload) ON backup_fixture FROM ${backupRole}`,
+        ],
+        [
+          `GRANT USAGE ON SEQUENCE backup_fixture_seq TO ${backupRole}`,
+          `REVOKE USAGE ON SEQUENCE backup_fixture_seq FROM ${backupRole}`,
+        ],
+        [
+          `GRANT CREATE ON SCHEMA public TO ${backupRole}`,
+          `REVOKE CREATE ON SCHEMA public FROM ${backupRole}`,
+        ],
+        [
+          `CREATE SCHEMA pgx_backup_fixture; GRANT CREATE ON SCHEMA pgx_backup_fixture TO ${backupRole}`,
+          "DROP SCHEMA pgx_backup_fixture",
+        ],
+        [
+          `GRANT CREATE ON DATABASE ${pgEnv.PGDATABASE} TO ${backupRole}`,
+          `REVOKE CREATE ON DATABASE ${pgEnv.PGDATABASE} FROM ${backupRole}`,
+        ],
+        [
+          `CREATE TYPE backup_fixture_type AS ENUM ('synthetic'); ALTER TYPE backup_fixture_type OWNER TO ${backupRole}`,
+          "DROP TYPE backup_fixture_type",
+        ],
+        [
+          "CREATE FUNCTION backup_fixture_definer() RETURNS integer LANGUAGE sql SECURITY DEFINER AS 'SELECT 1'",
+          "DROP FUNCTION backup_fixture_definer()",
+        ],
+        [
+          `REVOKE SELECT ON backup_fixture FROM ${backupRole}`,
+          `GRANT SELECT ON backup_fixture TO ${backupRole}`,
+        ],
+        [
+          `REVOKE SELECT ON SEQUENCE backup_fixture_seq FROM ${backupRole}`,
+          `GRANT SELECT ON SEQUENCE backup_fixture_seq TO ${backupRole}`,
+        ],
+      ]) {
+        sql(enable);
+        try {
+          assert.equal(
+            sql(BACKUP_ROLE_SQL, backupEnv).trim(),
+            "f",
+            "unsafe privilege profile must fail",
+          );
+        } finally {
+          sql(disable);
+        }
+      }
+      for (const statement of [
+        "DELETE FROM backup_fixture WHERE false",
+        "UPDATE backup_fixture SET payload='synthetic' WHERE false",
+        "CREATE TABLE forbidden_backup_table(id integer)",
+        "SELECT nextval('backup_fixture_seq')",
+      ]) {
+        const denied = spawnSync(
+          "psql",
+          ["--no-password", "--no-psqlrc", "--set", "ON_ERROR_STOP=1"],
+          {
+            input: `BEGIN; ${statement}; ROLLBACK;`,
+            env: backupEnv,
+            encoding: "utf8",
+            timeout: 15000,
+          },
+        );
+        assert.notEqual(denied.status, 0);
+        assert.match(denied.stderr, /permission denied/);
+      }
       const result = setup.run();
       assert.equal(result.status, 0, result.stderr);
       assertPrivate(result, setup);
@@ -507,6 +707,13 @@ if (process.env.BACKUP_REAL_TOOL_TEST === "1") {
         { ...pgEnv, PGDATABASE: restoreDatabase },
       );
       assert.equal(rows, "1:synthetic-one\n2:synthetic-two\n");
+      assert.equal(
+        sql("SELECT last_value FROM backup_fixture_seq;", {
+          ...pgEnv,
+          PGDATABASE: restoreDatabase,
+        }),
+        "57\n",
+      );
       const scoped = real(
         "psql",
         [
@@ -544,7 +751,7 @@ if (process.env.BACKUP_REAL_TOOL_TEST === "1") {
         real(
           "psql",
           ["--no-password", "--no-psqlrc", "--set", "ON_ERROR_STOP=1"],
-          `DROP ROLE IF EXISTS ${readerRole};`,
+          `DROP ROLE IF EXISTS ${readerRole}; DROP OWNED BY ${backupRole}; DROP ROLE IF EXISTS ${backupRole}; DROP ROLE IF EXISTS ${assumerRole};`,
         );
       } finally {
         setup.clean();
