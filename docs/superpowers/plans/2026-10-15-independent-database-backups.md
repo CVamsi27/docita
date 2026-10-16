@@ -228,7 +228,7 @@ identity has been removed. Keep forensic-erasure claims out of the evidence.
 - [x] Prepare the reader lifecycle. The initial Render example is retired after
       the operator selected free GitHub hosting; no paid resource was created.
 - [x] Run process suites, applicable builds/scans and source standards and update
-      companion runbooks for the existing draft PR. No paid
+      companion runbooks for the existing PR. No paid
       scheduler, real check-in/alert exercise or elapsed 24-hour cadence is implied
       by source preparation.
 

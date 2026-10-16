@@ -108,6 +108,14 @@ TLS readiness takes 11.056 seconds and SIGTERM exits zero in 0.230 seconds under
 512 MiB RAM / 1 GiB total memory-plus-swap. These are synthetic boot checks, not
 production capacity/headroom or latency evidence.
 
+The current worker image `sha256:bec1c4f790411d22ee76b52880ce13dfc17984dd9963a14e5e8152e6c7570971`
+also builds, passes the same non-root/native/private-input probes and reports zero
+raw HIGH/CRITICAL OS/library findings. Its isolated TLS startup takes
+9.145 seconds and SIGTERM exits zero in 0.267 seconds under
+256 MiB RAM / 768 MiB total memory-plus-swap. Both owned runtime containers and
+their PostgreSQL fixture/network are removed after verification. No live worker
+was started and configured production resources remain unchanged.
+
 At **05:36 UTC / 11:06 IST**, the existing full production probe passes **3/3**,
 including staff login, with no skips. This local check did not exercise Fly
 restart recovery, external alerts or authenticated clinical writes. The same
@@ -122,7 +130,9 @@ and last successfully deployed `cce2a2fb49121addeb5438773c567102b1317394`; a lat
 `b94d6f93c` deployment failed. It supplies no current candidate/soak evidence.
 [STAGING.md](../operations/STAGING.md) records isolation/revision requirements.
 
-PR #322 remains draft. The last inspected hosted CI run **38860421935** at
+PR #322 awaits current-candidate CI evidence and review. The workflow includes
+`ready_for_review` and skips most jobs for drafts; opening review enables those
+checks after the local verification batch. The last inspected hosted CI run **38860421935** at
 `0c8bf8ac3815d1443312ece6ba2ccd83357e90a1` could not start because GitHub reported
 payment/spending-limit trouble; downstream jobs were skipped. The operator initially deferred billing, then reported pricing/billing resolved
 on 16 October. Current Code Review calls still request GitHub connection, so no
@@ -142,7 +152,7 @@ package. Reassessment before expiry remains an operating obligation.
 
 | Dependency               | Required evidence / next action                                                                                                                                                                                                                                                                                                       |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GitHub review/CI         | Reconnect GitHub in Code Review, verify the reported billing fix through actual candidate checks and obtain review. PR remains draft; local results are not passing CI.                                                                                                                                                               |
+| GitHub review/CI         | Reconnect GitHub in Code Review, verify the reported billing fix through actual candidate checks and obtain review. Local checks do not establish hosted CI results.                                                                                                                                                                  |
 | Current staging          | Land reviewed source through protected main, free a branch slot, then use the PR-only staging remirror. Verify actual Render/Cloudflare revisions, isolated database identity, non-owner privileges and authenticated journeys. Staging remains suspended on an old revision.                                                         |
 | Production backup role   | Dedicated production backup login and protected URL are prepared; fresh TLS/UTC/full-catalog qualification passes. Validate measured dump/restore recovery and reviewed job activation before relying on it. Application owner credentials are unchanged; no dump or schedule is active.                                              |
 | Clinical recovery        | Offline verification of the prepared actual-runtime key packet, historical keys still needed by retained data/backups, quarantined full-schema restore and document-object recovery; reconcile erasure/legal holds before any user access. Measure real dump/restore memory, time and size. Synthetic results do not size production. |
