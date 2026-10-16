@@ -31,7 +31,7 @@ env:
 jobs:
   changes:
     name: Detect CI Scope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       app: ${{ steps.detect.outputs.app }}
       api: ${{ steps.detect.outputs.api }}
@@ -65,7 +65,7 @@ jobs:
     name: Critical frontend E2E (onboarding, verify, auth, tenant)
     needs: changes
     if: github.event.pull_request.draft != true && (needs.changes.outputs.app == 'true' || needs.changes.outputs.api == 'true' || needs.changes.outputs.db == 'true' || needs.changes.outputs.dependencies == 'true')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
       JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only

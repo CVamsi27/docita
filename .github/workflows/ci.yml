@@ -25,7 +25,7 @@ concurrency:
 jobs:
   changes:
     name: Detect CI Scope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       dependencies: ${{ steps.detect.outputs.dependencies }}
       api: ${{ steps.detect.outputs.api }}
@@ -54,7 +54,7 @@ jobs:
     name: Repository Standards
     needs: changes
     if: github.event.pull_request.draft != true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # actions: read lets check:workflow-staleness query workflow run history
     # inside verify:standard on every PR (its observability backstop).
     permissions:
@@ -99,7 +99,7 @@ jobs:
       NODE_OPTIONS: --max-old-space-size=4096
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.api == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -144,7 +144,7 @@ jobs:
     name: API E2E Tests (${{ matrix.shard }}/${{ matrix.total }})
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.api == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -223,7 +223,7 @@ jobs:
     name: App Unit Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -283,7 +283,7 @@ jobs:
     name: Internal Unit Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.internal == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -333,7 +333,7 @@ jobs:
     name: Landing Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.landing == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -385,7 +385,7 @@ jobs:
     name: Worker Unit Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.worker == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -462,7 +462,7 @@ jobs:
     name: Validate Migrations
     needs: changes
     if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.db == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       PGHOST: localhost
       PGPORT: "5434"
@@ -531,7 +531,7 @@ jobs:
     name: App Bundle Analysis
     needs: changes
     if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 

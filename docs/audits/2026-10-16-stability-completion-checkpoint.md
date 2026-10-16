@@ -24,6 +24,21 @@ the writer and reader. It was removed by a shared guarded environment reader,
 then both process suites, the image/real-tool restore and the full standards
 chain were rerun. No duplicate allowlist or hook bypass was introduced.
 
+The CI run also carries GitHub's announced `ubuntu-latest` migration to Ubuntu
+26.04, rolling from 19 October through 19 November. Docita-authored Linux jobs
+now specify `ubuntu-24.04` to avoid an unplanned operating-system migration during
+the freeze. [GitHub's runner announcement](https://github.com/actions/runner-images/issues/14748)
+identifies that label as the mitigation. This pins the OS release, not every
+managed-image package or runner inside a third-party reusable workflow. Workflow
+triggers, permissions and disabled deployment/database controls are preserved.
+
+The dependency audit also exits 0 after its configured exception, while metadata
+still counts one HIGH advisory. The [braces advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)
+continues to list no patched version on 16 October. Its trusted-tooling-only
+exception still expires **12 November**; it was not extended. The API/worker
+production images exclude this development dependency. Review/remediation before
+expiry remains an operating obligation during the freeze.
+
 The standalone reader uses explicit separate configuration, a two-hour limit
 based on backup start time, recipient/object/format checks and bounded streamed
 hash verification. Normal execution requires an approved alert endpoint and posts

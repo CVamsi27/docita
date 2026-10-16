@@ -46,7 +46,7 @@ env:
 jobs:
   changes:
     name: Detect deploy targets
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       api: ${{ steps.detect.outputs.api }}
       worker: ${{ steps.detect.outputs.worker }}
@@ -70,7 +70,7 @@ jobs:
   validate-release:
     name: Validate release before production access
     needs: changes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
@@ -100,7 +100,7 @@ jobs:
     name: Verify database and apply changed migrations
     needs: [changes, validate-release]
     if: needs.changes.outputs.api == 'true' || needs.changes.outputs.worker == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     env:
       NODE_ENV: production
@@ -181,7 +181,7 @@ jobs:
     name: API startup smoke test
     needs: [changes, migrate-db]
     if: always() && needs.changes.outputs.api == 'true' && needs.migrate-db.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -223,7 +223,7 @@ jobs:
     name: API latency budget gate
     needs: [changes]
     if: always() && needs.changes.outputs.api == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: Enforce measured API latency budget
@@ -239,7 +239,7 @@ jobs:
     name: Deploy API (Fly.io)
     needs: [changes, migrate-db, api-startup-smoke, api-latency-gate]
     if: always() && needs.changes.outputs.api == 'true' && needs.migrate-db.result == 'success' && needs.api-startup-smoke.result == 'success' && needs.api-latency-gate.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -274,7 +274,7 @@ jobs:
     name: Deploy Worker (Fly.io)
     needs: [changes, migrate-db]
     if: always() && needs.changes.outputs.worker == 'true' && needs.migrate-db.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_WORKER }}
@@ -295,7 +295,7 @@ jobs:
     name: Check Cloudflare deploy credentials
     needs: [changes, validate-release]
     if: needs.changes.outputs.app == 'true' || needs.changes.outputs.internal == 'true' || needs.changes.outputs.landing == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       enabled: ${{ steps.check.outputs.enabled }}
       reason: ${{ steps.check.outputs.reason }}
@@ -325,7 +325,7 @@ jobs:
     name: Deploy app (Cloudflare)
     needs: [changes, gate]
     if: needs.gate.outputs.enabled == 'true' && needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: Prepare pnpm
@@ -353,7 +353,7 @@ jobs:
     name: Deploy internal (Cloudflare)
     needs: [changes, gate, deploy-api]
     if: always() && needs.gate.outputs.enabled == 'true' && needs.changes.outputs.internal == 'true' && (needs.changes.outputs.api != 'true' || needs.deploy-api.result == 'success')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: Prepare pnpm
@@ -380,7 +380,7 @@ jobs:
     name: Deploy landing (Cloudflare)
     needs: [changes, gate]
     if: needs.gate.outputs.enabled == 'true' && needs.changes.outputs.landing == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: Prepare pnpm
