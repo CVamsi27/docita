@@ -171,8 +171,9 @@ payloads, malformed/oversized bodies, redirects, five-second timeout, no retry,
 required explicit destination and no token inheritance by AWS children.
 
 One authorized `[TEST] Docita backup alert` was accepted by the existing ZeptoMail
-endpoint at 06:11 UTC. Inbox acknowledgement and independent scheduler/dead-man
-coverage remain open. CI billing is deferred to November by the operator; the
+endpoint at 06:11 UTC. The operator confirmed receipt in the intended inbox on
+16 October. Independent scheduler/dead-man coverage remains open. CI billing is
+deferred to November by the operator; the
 required check gate remains open. Render login works, but its suspended staging
 service tracks main and an old deployed revision, so it provides no current soak
 evidence. These are recorded in the [completion checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md).

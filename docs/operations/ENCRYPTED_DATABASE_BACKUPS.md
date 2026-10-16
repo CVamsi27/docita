@@ -386,8 +386,9 @@ ZeptoMail provider and saved an explicit operational recipient. Protected local
 monitor configuration deliberately reuses that existing sender/region/token;
 the checker itself never falls back to application email settings. One authorized
 `[TEST] Docita backup alert` was accepted at **06:11 UTC on 16 October**. No patient
-data was included, and no automatic retry was made. Recipient acknowledgement,
-independent scheduling and missed-run detection remain open; this test does not
+data was included, and no automatic retry was made. The operator confirmed the
+test arrived in the intended inbox on **16 October**. Independent scheduling and
+missed-run detection remain open; this test does not
 activate production backups or close the activation gate below.
 
 An owned Neon child-branch probe also created a NOLOGIN, non-superuser BYPASSRLS
