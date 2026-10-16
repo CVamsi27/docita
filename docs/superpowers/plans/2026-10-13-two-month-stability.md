@@ -6,7 +6,9 @@ pass 81 process cases; a real PostgreSQL fixture rejects 17 unsafe privilege
 profiles and restores forced-RLS rows and sequence state. Both non-root image
 targets pass raw HIGH/CRITICAL scans. The matching offline challenge and operator
 custody confirmation are recorded; the connected private identity is removed.
-The authorized email test reached the intended inbox. Independent scheduling and
+The authorized email test reached the intended inbox. A dedicated production
+backup login now passes fresh TLS/UTC/full-catalog qualification; only its backup
+URL is saved locally, with no clinical dump or schedule. Independent scheduling and
 missed-run routing are prepared but inactive. Render login works; staging remains
 suspended on an old main revision. CI billing is deferred to November; required
 CI, production recovery/RLS rollout and elapsed soaks remain open. See the

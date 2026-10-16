@@ -428,11 +428,20 @@ removed. This does not establish the full production catalog/grants, clinical
 recovery or a configured production backup credential. Database-role provisioning
 must also keep password literals out of server error-statement logging; normal
 statement logging being off alone is insufficient. Never print a provider SQL
-error containing credential text. Production preparation at 09:20 UTC returned
-`42501` while verifying that logging boundary, before any password submission or
-role creation. The backup URL remains unconfigured; a successful isolated child
-rehearsal does not prove the same production privileges. Do not widen production
-logging grants or use the owner URL to bypass this gate.
+error containing credential text. The first production preparation at 09:20 UTC returned `42501` because the helper
+unnecessarily tried to SET an already-safe privileged logging value. Read-only
+inspection found server-configured `log_min_error_statement=panic`; the corrected
+read-first procedure succeeded at **09:52 UTC** without extra privileges.
+
+The dedicated production `docita_backup` LOGIN is now prepared with BYPASSRLS,
+no administrative flags/outgoing memberships, schema USAGE and SELECT-only
+current table/sequence grants. Future objects created by `neondb_owner` receive
+default SELECT grants; another creator still requires explicit review. Fresh
+direct TLS/UTC login and the full production catalog preflight pass. Only the
+backup URL was saved through protected local configuration, mode 0600. Application
+credentials/role attributes, policies and migrations are unchanged; no clinical
+rows were read or dumped and no schedule is active. The resettable read-only
+default and the residual capabilities above remain relevant.
 See [PostgreSQL logging controls](https://www.postgresql.org/docs/17/runtime-config-logging.html#GUC-LOG-MIN-ERROR-STATEMENT).
 
 ### Prepared independent scheduler wrapper

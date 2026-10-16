@@ -36,12 +36,23 @@ only production remains. Earlier unsupported provider credential methods and a
 failed DROP OWNED cleanup were retained as failed evidence, then corrected. None
 of those probes changed production roles or read clinical rows.
 
-The production preparation attempt at **09:20 UTC** stopped with permission
-denial (`42501`) while verifying safe credential logging, before submitting a
-password or creating the role. `BACKUP_DATABASE_URL` was not saved. The successful
-child rehearsal does not establish identical production operator privileges.
-Do not grant additional production logging privileges or fall back to the owner
-URL just to pass this gate.
+The first production attempt at **09:20 UTC** stopped before password submission:
+the helper unnecessarily tried to SET an already-safe privileged logging value.
+Read-only inspection confirmed `log_min_error_statement=panic` was already set
+by server configuration. The corrected read-first procedure completed at
+**09:52 UTC** without changing logging privileges.
+
+A new dedicated `docita_backup` login is now prepared. Atomic role creation,
+BYPASSRLS with no administrative flags/outgoing memberships, public schema USAGE,
+current table/sequence SELECT and future `neondb_owner` default SELECT grants
+succeeded. Fresh direct TLS login, UTC, read-only default and the full production
+catalog preflight pass. Only its backup URL was saved to protected local operator
+configuration (mode 0600). Existing application credentials/role attributes,
+policies and migrations are unchanged; no clinical rows were read or dumped.
+The actual writer image's PostgreSQL 17 `psql` repeats the same catalog-only
+preflight successfully with `verify-full` and required SCRAM channel binding;
+its temporary credential file was removed.
+This credential preparation does not activate or certify recovery.
 
 The monitor target wraps the independent reader with bounded Sentry check-ins,
 matching IDs, isolated child credentials and signal/process-group cleanup. Its
@@ -84,15 +95,15 @@ package. Reassessment before expiry remains an operating obligation.
 
 ## Remaining gates
 
-| Dependency               | Required evidence / next action                                                                                                                                                                                                                                                                                    |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| GitHub review/CI         | Restore billing in November as chosen, run required checks on the actual candidate and obtain review. PR remains draft; local results are not passing CI.                                                                                                                                                          |
-| Current staging          | Land reviewed source through protected main, free a branch slot, then use the PR-only staging remirror. Verify actual Render/Cloudflare revisions, isolated database identity, non-owner privileges and authenticated journeys. Staging remains suspended on an old revision.                                      |
-| Production backup role   | Production denied the safe logging precondition before credential SQL. Resolve a safe provisioning path, qualify the full production catalog and save only the backup credential through protected setup. Do not widen logging privileges or use the owner URL as a substitute. No role or backup URL was created. |
-| Clinical recovery        | Quarantined full-schema restore with independently held historical field keys V2–V5, signing/configuration and document-object recovery; reconcile erasure/legal holds before any user access. Measure real dump/restore memory, time and size. Synthetic results do not size production.                          |
-| Independent scheduling   | Resolve hosting choice and Sentry access/quota/routing. Use separate reader credentials and writer missed-run coverage; verify authorized failed/missed-run alert delivery and **at least 24 hours** of actual hourly writer/reader operation. No service or cadence currently exists.                             |
-| Production RLS / release | Old/new runtime compatibility, non-owner staging proof, required latency evidence and **24 hours of staging soak** precede reviewed migration/credential/release/rollback execution. Preserve API idle shutdown and best-effort notification limitations. Do not start the worker as a connectivity test.          |
-| Final observation        | Real isolated recovery plus **fourteen consecutive days** of production observation after the reviewed release. No passing period or start time is fabricated.                                                                                                                                                     |
+| Dependency               | Required evidence / next action                                                                                                                                                                                                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub review/CI         | Restore billing in November as chosen, run required checks on the actual candidate and obtain review. PR remains draft; local results are not passing CI.                                                                                                                                                 |
+| Current staging          | Land reviewed source through protected main, free a branch slot, then use the PR-only staging remirror. Verify actual Render/Cloudflare revisions, isolated database identity, non-owner privileges and authenticated journeys. Staging remains suspended on an old revision.                             |
+| Production backup role   | Dedicated production backup login and protected URL are prepared; fresh TLS/UTC/full-catalog qualification passes. Validate measured dump/restore recovery and reviewed job activation before relying on it. Application owner credentials are unchanged; no dump or schedule is active.                  |
+| Clinical recovery        | Quarantined full-schema restore with independently held historical field keys V2–V5, signing/configuration and document-object recovery; reconcile erasure/legal holds before any user access. Measure real dump/restore memory, time and size. Synthetic results do not size production.                 |
+| Independent scheduling   | Resolve hosting choice and Sentry access/quota/routing. Use separate reader credentials and writer missed-run coverage; verify authorized failed/missed-run alert delivery and **at least 24 hours** of actual hourly writer/reader operation. No service or cadence currently exists.                    |
+| Production RLS / release | Old/new runtime compatibility, non-owner staging proof, required latency evidence and **24 hours of staging soak** precede reviewed migration/credential/release/rollback execution. Preserve API idle shutdown and best-effort notification limitations. Do not start the worker as a connectivity test. |
+| Final observation        | Real isolated recovery plus **fourteen consecutive days** of production observation after the reviewed release. No passing period or start time is fabricated.                                                                                                                                            |
 
 See [the backup operating contract](../operations/ENCRYPTED_DATABASE_BACKUPS.md)
 for exact configuration, retention, offline custody and activation boundaries.

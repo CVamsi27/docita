@@ -206,7 +206,7 @@ identity has been removed. Keep forensic-erasure claims out of the evidence.
 - [x] Rehearse the same role/preflight against an owned Neon empty-database
       fixture, then remove its owned branch. Verify safe credential logging,
       atomic ownership markers and explicit cleanup before production preparation.
-- [ ] Prepare only a dedicated production credential after the isolated rehearsal
+- [x] Prepare only a dedicated production credential after the isolated rehearsal
       and full-catalog qualification. This can precede recovery so the approved
       recovery exercise can use it; clinical restore/compatibility and operating
       evidence still gate any job activation. Do not change application roles.
@@ -231,6 +231,8 @@ identity has been removed. Keep forensic-erasure claims out of the evidence.
 Current local verification is **81/81** process cases, a real PG17 restricted-login
 restore with 17 unsafe privilege profiles, two scanned immutable image targets,
 real synthetic R2 transfer/restore and independent check-only image execution.
-Full standards (150/150), lint, Knip and hygiene pass. The
+Full standards (150/150), lint, Knip and hygiene pass. A dedicated production
+backup login is prepared and passes fresh TLS/UTC/full-catalog qualification; its
+URL is saved only in protected operator setup. No clinical dump or schedule ran. The
 [checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md) records
 image identities and remaining live/review/elapsed gates.
