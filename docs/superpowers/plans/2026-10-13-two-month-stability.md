@@ -1,5 +1,14 @@
 # Docita Two-Month Stability Implementation Plan
 
+**16 October completion pass:** the independent freshness reader and rebuilt
+tooling image pass 43 process cases, another real R2 synthetic restore and a raw
+HIGH/CRITICAL scan. Current local production probes pass 3/3; live owner-role
+bypass, ten pending migrations and 16 RLS gaps remain. USB copy verification
+passes, but offline proof is outstanding. The restored GitHub diagnostic connection confirms jobs cannot start because of
+billing/spending restrictions. Independent read-only monitor credentials pass
+real scope checks. Render operator access, the alert destination and the planned
+elapsed soaks remain open. See the [current checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md).
+
 **14–15 October follow-up:** full local lint, types, unit suite (6,377 tests),
 standards and workspace build pass. Public capability resolution now has real
 non-owner/RLS HTTP proof. The full production monitor script passes locally;

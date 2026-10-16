@@ -7,28 +7,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import { createEnvironmentReader } from "./backup-environment.mjs";
 
 class BackupFailure extends Error {}
 
-function required(name) {
-  const value = process.env[name];
-  if (!value || value.trim() !== value || /[\r\n\0]/.test(value)) {
-    throw new BackupFailure(`${name} must be configured explicitly.`);
-  }
-  return value;
-}
-
-function integer(name, fallback, maximum) {
-  const value = process.env[name] ?? String(fallback);
-  if (
-    !/^[1-9]\d*$/.test(value) ||
-    !Number.isSafeInteger(Number(value)) ||
-    Number(value) > maximum
-  ) {
-    throw new BackupFailure(`${name} is outside its bounded range.`);
-  }
-  return Number(value);
-}
+const { required, integer } = createEnvironmentReader(BackupFailure);
 
 function parseUrl(value, name) {
   try {

@@ -86,7 +86,7 @@ jobs:
 
       - name: Verify encrypted backup process safety
         if: needs.changes.outputs.knip == 'true'
-        run: node --test scripts/db/backup-database.test.mjs
+        run: node --test scripts/db/backup-database.test.mjs scripts/db/check-backup-freshness.test.mjs
 
       - name: Knip unused dependencies and exports
         if: needs.changes.outputs.knip == 'true'

@@ -119,3 +119,43 @@ the production prefix rejected overwrite and delete with 409 and preserved its
 bytes; it remains for the configured lifecycle. These synthetic objects never
 count toward production freshness. See the [runbook](../../operations/ENCRYPTED_DATABASE_BACKUPS.md)
 for the Docker transport diagnostic and exact scope.
+
+## Completion pass, 16 October
+
+The operator asked to complete all remaining stability work together. Continue
+within the approved architecture: independent hourly checking reads the dedicated
+backup bucket and validates the writer's existing completion contract. It does
+not need database credentials, the recovery identity, or document storage access.
+Use a bounded Node/AWS CLI process alongside the existing backup tooling, with
+separate read-only credentials and an explicitly configured alert destination.
+An explicit `--check-only` invocation performs no alert send; normal execution
+requires the destination and fails on unsuccessful delivery. This is preparation
+for an independent scheduler, not evidence that one exists.
+
+### Task 2: Verify independent backup freshness
+
+**Files:** create `scripts/db/check-backup-freshness.mjs` and its process regression
+suite; extend `scripts/db/backup.Dockerfile`, the existing scoped CI safety step
+and this runbook. Do not alter the writer's dump or completion format.
+
+- [x] Write process regressions for fresh, stale, missing, corrupt and mismatched
+      completions, paginated listing, untrusted diagnostics, bounded child exits,
+      and successful/failed delivery to a local synthetic HTTP receiver.
+- [x] Run `node --test scripts/db/check-backup-freshness.test.mjs` before adding
+      the checker and retain the expected failing result.
+- [x] Implement the checker using only built-in Node modules and AWS CLI v2.
+      Accept only the explicit production source, two-hour start-time freshness,
+      matching recipient fingerprint, object identity, bounded hash/size readback
+      and canonical timestamps. Synthetic objects cannot satisfy this gate.
+- [x] Run the new suite and the existing backup suite; rebuild the backup tooling
+      image, scan it, and rerun the synthetic real-tool restore before publication.
+- [x] Record external-drive copy proof separately from offline custody and prepare
+      checked source for the existing PR. The [completion checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md)
+      records exact passed checks and remaining operator/time gates.
+
+The drive copy was verified on the connected Mac on 16 October without erasing or
+overwriting existing files; Messenger was disconnected, then reconnected. The offline challenge,
+operator custody confirmation and original local-key removal remain open.
+Review/CI access, staging, production restore/reconciliation, cadence and elapsed
+soak/observation gates remain explicit; an instruction to finish does not supply
+missing measurements.

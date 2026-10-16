@@ -9,7 +9,7 @@ RUN apk upgrade --no-cache && \
       /usr/local/bin/yarnpkg
 
 WORKDIR /opt/docita-backup
-COPY --chown=node:node backup-database.mjs ./backup-database.mjs
+COPY --chown=node:node backup-database.mjs backup-environment.mjs check-backup-freshness.mjs ./
 
 ENV NODE_ENV=production
 USER node

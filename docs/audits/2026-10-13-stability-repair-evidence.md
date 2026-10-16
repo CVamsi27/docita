@@ -1,7 +1,7 @@
 # Docita stability repair evidence — 13 October 2026
 
 Status: **source corrections and final images verified locally; production baseline not certified**.
-Latest follow-up: 15 October 2026. The source repair batch is split into focused commits for review. Final image hardening is verified; independent backup activation and production release gates remain open.
+Latest follow-up: 16 October 2026. The source repair batch is split into focused commits for review. Final image hardening is verified; independent backup activation and production release gates remain open. The [completion checkpoint](2026-10-16-stability-completion-checkpoint.md) records the new freshness reader, updated tooling image, current production probes and remaining access/physical/time gates.
 The user authorized further analysis and fixes under a feature freeze through
 13 December 2026. Critical bug, security and compliance corrections remain allowed.
 

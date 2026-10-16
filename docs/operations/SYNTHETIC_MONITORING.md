@@ -71,5 +71,12 @@ separate authenticated journey evidence.
 
 ## Open items
 
+The independent database-backup reader is prepared in
+[`check-backup-freshness.mjs`](../../scripts/db/check-backup-freshness.mjs).
+Its [configuration and acceptance gates](ENCRYPTED_DATABASE_BACKUPS.md#prepared-independent-freshness-checker-16-october)
+require separate read-only storage credentials, an approved alert destination,
+an independent schedule and missed-run detection. Its local HTTP acceptance tests
+do not demonstrate delivery to the real operator. It is not deployed or active.
+
 - Provision synthetic clinic + dedicated monitor user; enable booking/OTP probes.
 - Wire PagerDuty escalation on top of `OPS_ALERT_WEBHOOK_URL` (scaffold shipped 2026-05-30).

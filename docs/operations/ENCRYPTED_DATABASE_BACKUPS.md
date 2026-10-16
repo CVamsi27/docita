@@ -10,6 +10,14 @@ production backup job, stale-backup alert and real production restore remain
 unverified. Keeping Neon
 Free leaves its configured six-hour recovery history unchanged.
 
+On 16 October the recovery files were copied into a new folder on the operator's
+Messenger USB drive without overwriting or erasing existing files. Byte comparison,
+public-recipient matching and authenticated challenge decryption using that copy
+passed on the connected Mac. The drive was disconnected and then reconnected by the operator. Independent offline
+challenge verification and custody confirmation remain open; the protected local
+identity is retained until those pass. The ExFAT drive does not enforce Unix file
+permissions, so physical custody remains essential.
+
 The selected target is an hourly independent backup, a warning when the latest
 completed backup is older than two hours, a 30-day minimum retention lock and
 expiry after 31 days. These are operating targets until the activation evidence below exists. The clinical API
@@ -297,6 +305,76 @@ production database or moving a Neon production compute.
 See [the DR runbook](DR_RUNBOOK.md) for wider application and document recovery.
 
 ## Activation and freshness gates
+
+### Prepared independent freshness checker, 16 October
+
+`scripts/db/check-backup-freshness.mjs` is a separate bounded reader. It lists
+the current and previous UTC date prefixes under `docita-production/`, follows
+explicit pagination, validates the existing writer's completion manifests and
+selects the greatest validated **backup start time**. It verifies the selected
+stored ciphertext's streamed SHA256 and size again. It cannot decrypt or certify
+clinical recovery. A recent completion cannot make an old snapshot fresh, and
+synthetic source labels, retention canaries and orphaned uploads cannot satisfy
+the check. A newer orphaned upload older than thirty minutes also fails the check.
+
+Supply these values through the independent monitor's protected secret setup:
+
+| Variable                                                            | Required value                                                                                                                               |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BACKUP_MONITOR_S3_ENDPOINT`                                        | Dedicated R2 HTTPS service origin.                                                                                                           |
+| `BACKUP_MONITOR_BUCKET`                                             | `docita-db-backups`.                                                                                                                         |
+| `BACKUP_MONITOR_AGE_RECIPIENT`                                      | The approved public recipient matching the writer.                                                                                           |
+| `BACKUP_MONITOR_ACCESS_KEY_ID` / `BACKUP_MONITOR_SECRET_ACCESS_KEY` | Separate R2 **Object Read only** token scoped only to this bucket. Verify its effective list/read access and write denial before activation. |
+| `BACKUP_MONITOR_ALERT_WEBHOOK_URL`                                  | Explicit approved HTTPS Slack-compatible destination; only loopback HTTP is accepted for local process tests.                                |
+| `BACKUP_MONITOR_MAX_DURATION_SECONDS`                               | Optional total storage-check budget: default 300, maximum 600.                                                                               |
+| `BACKUP_MONITOR_MAX_BYTES`                                          | Optional ciphertext read limit: default 1 GiB, maximum 4 GiB.                                                                                |
+
+The checker never falls back to writer, document, personal AWS, database or
+recovery-identity credentials. Its AWS children receive a minimal environment
+and an empty private HOME. Listings/manifests, streams, retries and child lifetime
+are bounded; external diagnostics and response bodies are not logged. The writer
+and checker share only the input-validation helper, not their credentials.
+
+With the monitor environment already loaded securely:
+
+```sh
+# Explicit diagnostics only: sends no alert, exits nonzero on a failed check.
+node scripts/db/check-backup-freshness.mjs --check-only
+
+# Scheduled invocation: requires the approved destination even for a healthy run.
+node scripts/db/check-backup-freshness.mjs
+```
+
+Normal execution posts only on a failed check and returns nonzero. A webhook
+2xx means **endpoint acceptance**, not proof that a person received or acknowledged
+the alert. A non-2xx, redirect or five-second delivery timeout is reported as
+delivery failure; there is no automatic POST retry. Monitor process failure and
+missing monitor executions must be covered by the independent scheduler's own
+dead-man/notification mechanism. R2 cannot reveal a dump failure that occurred
+before an object was uploaded; route writer exit failures separately. Deploying
+the reader beside the writer on the same host is not independent outage coverage.
+
+The combined process suite passes **43/43**, zero skips: 23 writer regressions
+and 20 freshness regressions, including stale starts, corrupt bytes, malformed
+metadata, wrong recipients, pagination, bounded termination and local synthetic
+HTTP acceptance/rejection. The updated tooling image is
+`sha256:748d0a7a278a0ffda8f25296ab0c403df3f12149ea77974c2ab3bd0af9a4f8b4`;
+its raw OS/library scan reports zero HIGH/CRITICAL findings. Its actual-R2
+synthetic dump/readback/restore passes again: 2,600-byte archive, exact two rows,
+one allowed tenant row, zero cross-tenant rows and tamper rejection; all owned
+unlocked objects, fixture containers and disposable private inputs were removed.
+No production completion was created. The image includes the checker at
+`/opt/docita-backup/check-backup-freshness.mjs`; select it with a Node entrypoint
+when running the separate monitor. This is a local immutable image identity,
+not a deployed registry digest or a running schedule.
+
+The operator supplied separate read-only monitor credentials on 16 October. Real
+backup list/read pass; overwrite, deletion and document-bucket HEAD each return 403. The unlocked synthetic permission control was removed and HEAD confirmed 404. The checker was repeated with this identity and correctly refused to count
+the bucket as a completed production backup. The destination and independent
+scheduler remain unconfigured. Local synthetic HTTP tests do not establish real alert
+delivery, and this prepared checker does not close the activation gate below.
+
+### Live activation requirements
 
 The dedicated bucket, scoped credential, retention enforcement, storage-policy
 owner approval and synthetic external transfer/restore now have evidence. Keep
