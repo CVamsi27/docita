@@ -270,3 +270,126 @@ for (const status of [204, 500]) {
     }
   });
 }
+
+for (const scenario of [
+  "accepted",
+  "provider-error",
+  "malformed",
+  "oversized",
+  "http-error",
+  "redirect",
+  "missing-request-id",
+  "timeout",
+  "healthy",
+  "check-only",
+]) {
+  test(`email alerts handle ${scenario} without exposing credentials or retrying`, async () => {
+    const requests = [];
+    const server = http.createServer(async (request, response) => {
+      let body = "";
+      for await (const chunk of request) body += chunk;
+      requests.push({
+        authorization: request.headers.authorization,
+        body: JSON.parse(body),
+      });
+      if (scenario === "timeout") return;
+      response.writeHead(
+        scenario === "http-error" ? 503 : scenario === "redirect" ? 307 : 200,
+        { Location: "/must-not-follow" },
+      );
+      response.end(
+        scenario === "malformed"
+          ? "invalid"
+          : scenario === "oversized"
+            ? "x".repeat(20000)
+            : JSON.stringify(
+                scenario === "provider-error"
+                  ? { error: { message: SECRET } }
+                  : {
+                      data: [{ code: "EM_104" }],
+                      ...(scenario === "missing-request-id"
+                        ? {}
+                        : { request_id: "synthetic-request" }),
+                    },
+              ),
+      );
+    });
+    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const setup = fixture(
+      { missing: scenario !== "healthy" },
+      {
+        BACKUP_MONITOR_ALERT_PROVIDER: "zeptomail",
+        BACKUP_MONITOR_EMAIL_API_URL: `http://127.0.0.1:${server.address().port}/v1.1/email`,
+        BACKUP_MONITOR_EMAIL_TOKEN: SECRET,
+        BACKUP_MONITOR_EMAIL_FROM: "backup@docita.invalid",
+        BACKUP_MONITOR_ALERT_EMAIL_TO: "operator@docita.invalid",
+      },
+    );
+    try {
+      const result = await setup.run(
+        scenario === "check-only" ? ["--check-only"] : [],
+      );
+      assert.equal(
+        result.status,
+        scenario === "healthy" ? 0 : 1,
+        result.stderr,
+      );
+      const sends = scenario === "healthy" || scenario === "check-only" ? 0 : 1;
+      assert.equal(requests.length, sends, result.stderr);
+      if (sends) {
+        assert.equal(requests[0].authorization, `Zoho-enczapikey ${SECRET}`);
+        assert.deepEqual(requests[0].body.from, {
+          address: "backup@docita.invalid",
+        });
+        assert.deepEqual(requests[0].body.to, [
+          { email_address: { address: "operator@docita.invalid" } },
+        ]);
+        assert.equal(requests[0].body.subject, "[PAGE] Docita backup alert");
+        assert.equal(requests[0].body.track_opens, false);
+        assert.equal(requests[0].body.track_clicks, false);
+        assert.match(
+          result.stderr,
+          scenario === "accepted"
+            ? /alert accepted by endpoint/
+            : /alert delivery failed/,
+        );
+      }
+      for (const event of setup.events())
+        assert.equal(event.env.BACKUP_MONITOR_EMAIL_TOKEN, undefined);
+      assert.equal(
+        (result.stdout + result.stderr).includes("operator@docita.invalid"),
+        false,
+      );
+    } finally {
+      setup.clean();
+      server.closeAllConnections();
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+}
+
+test("email alerts require an explicit recipient and never fall back to application addresses", async () => {
+  for (const destination of [
+    "",
+    "first@docita.invalid,second@docita.invalid",
+    "Operator <operator@docita.invalid>",
+  ]) {
+    const setup = fixture(
+      {},
+      {
+        BACKUP_MONITOR_ALERT_PROVIDER: "zeptomail",
+        BACKUP_MONITOR_EMAIL_API_URL: "https://api.zeptomail.in/v1.1/email",
+        BACKUP_MONITOR_EMAIL_TOKEN: SECRET,
+        BACKUP_MONITOR_EMAIL_FROM: "backup@docita.invalid",
+        BACKUP_MONITOR_ALERT_EMAIL_TO: destination,
+        EMAIL_FROM: "app@docita.invalid",
+      },
+    );
+    try {
+      assert.equal((await setup.run([])).status, 1);
+      assert.deepEqual(setup.events(), []);
+    } finally {
+      setup.clean();
+    }
+  }
+});

@@ -5,6 +5,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { createEnvironmentReader } from "./backup-environment.mjs";
+import { backupAlertConfiguration, sendBackupAlert } from "./backup-alerts.mjs";
 
 class FreshnessFailure extends Error {}
 
@@ -34,26 +35,14 @@ function configuration() {
   ) {
     throw new FreshnessFailure("invalid monitor bucket or public recipient");
   }
-  let webhook;
-  if (!checkOnly) {
-    webhook = new URL(required("BACKUP_MONITOR_ALERT_WEBHOOK_URL"));
-    const local =
-      webhook.protocol === "http:" &&
-      ["127.0.0.1", "[::1]"].includes(webhook.hostname);
-    if (
-      (!local && webhook.protocol !== "https:") ||
-      webhook.username ||
-      webhook.password ||
-      webhook.hash
-    ) {
-      throw new FreshnessFailure("alert destination must use HTTPS");
-    }
-  }
+  const alert = checkOnly
+    ? undefined
+    : backupAlertConfiguration(FreshnessFailure);
   return {
     checkOnly,
     endpoint: endpoint.origin,
     bucket,
-    webhook,
+    alert,
     recipientSha256: createHash("sha256").update(recipient).digest("hex"),
     accessKey: required("BACKUP_MONITOR_ACCESS_KEY_ID"),
     secretKey: required("BACKUP_MONITOR_SECRET_ACCESS_KEY"),
@@ -367,24 +356,10 @@ try {
   const reason =
     error instanceof FreshnessFailure ? error.message : "monitor failed safely";
   let alert = "alert delivery unavailable";
-  if (config?.webhook) {
-    try {
-      const response = await fetch(config.webhook, {
-        method: "POST",
-        redirect: "error",
-        signal: AbortSignal.timeout(5000),
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: `[PAGE] Docita database backup: ${reason}. Operator review required.`,
-        }),
-      });
-      await response.body?.cancel();
-      alert = response.ok
-        ? "alert accepted by endpoint"
-        : "alert delivery failed";
-    } catch {
-      alert = "alert delivery failed";
-    }
+  if (config?.alert) {
+    alert = (await sendBackupAlert(config.alert, reason))
+      ? "alert accepted by endpoint"
+      : "alert delivery failed";
   } else if (config?.checkOnly) alert = "check-only; no alert sent";
   process.stderr.write(`Backup freshness failed: ${reason}; ${alert}.\n`);
   process.exitCode = 1;

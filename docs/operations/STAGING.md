@@ -3,6 +3,30 @@
 This repo keeps a PR-protected `staging` branch for pre-production validation.
 Its deployed revision must be verified before using staging results as release evidence.
 
+## Observed operator state, 16 October 2026
+
+The authenticated Render console shows `docita-api-staging` in the Docita
+project's Staging environment, **suspended by the operator**, on the Free Node
+plan in Singapore. Its configured branch is **`main`**, which differs from the
+staging branch contract below. The last successful deployed commit is
+`cce2a2fb49121addeb5438773c567102b1317394`; the newer attempt at
+`b94d6f93c254ae25e694d5b6f5daec8b249386e6` failed. Neither is the current
+stability candidate. Login is verified; current staging validation is not.
+
+The service was not resumed or reconfigured. Before resuming, verify its isolated
+database identity and outbound-provider settings, align the reviewed staging tree
+through its protected PR path, correct the connected branch and record the
+deployed revision. GitHub billing remediation is deferred to November at the
+operator's request; required hosted checks remain open. Resuming this stale
+service alone cannot establish staging compatibility or begin the required soak.
+
+Neon's schema-only branch request currently fails because of the legacy
+`docita_app` web-access role. Do not remove that production role to make a fixture.
+The October recovery probes used explicitly owned, quarantined child branches;
+backup-role testing used a new empty database inside an owned child branch and
+synthetic rows only. Those branches were removed. This fallback is controlled
+recovery work, not permission to use production data as a routine staging fixture.
+
 ## Branch Contract
 
 - `main` is the canonical production branch; all work lands here via PR.

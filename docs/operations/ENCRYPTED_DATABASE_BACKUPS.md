@@ -319,21 +319,26 @@ the check. A newer orphaned upload older than thirty minutes also fails the chec
 
 Supply these values through the independent monitor's protected secret setup:
 
-| Variable                                                            | Required value                                                                                                                               |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `BACKUP_MONITOR_S3_ENDPOINT`                                        | Dedicated R2 HTTPS service origin.                                                                                                           |
-| `BACKUP_MONITOR_BUCKET`                                             | `docita-db-backups`.                                                                                                                         |
-| `BACKUP_MONITOR_AGE_RECIPIENT`                                      | The approved public recipient matching the writer.                                                                                           |
-| `BACKUP_MONITOR_ACCESS_KEY_ID` / `BACKUP_MONITOR_SECRET_ACCESS_KEY` | Separate R2 **Object Read only** token scoped only to this bucket. Verify its effective list/read access and write denial before activation. |
-| `BACKUP_MONITOR_ALERT_WEBHOOK_URL`                                  | Explicit approved HTTPS Slack-compatible destination; only loopback HTTP is accepted for local process tests.                                |
-| `BACKUP_MONITOR_MAX_DURATION_SECONDS`                               | Optional total storage-check budget: default 300, maximum 600.                                                                               |
-| `BACKUP_MONITOR_MAX_BYTES`                                          | Optional ciphertext read limit: default 1 GiB, maximum 4 GiB.                                                                                |
+| Variable                                                            | Required value                                                                                                                                   |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `BACKUP_MONITOR_S3_ENDPOINT`                                        | Dedicated R2 HTTPS service origin.                                                                                                               |
+| `BACKUP_MONITOR_BUCKET`                                             | `docita-db-backups`.                                                                                                                             |
+| `BACKUP_MONITOR_AGE_RECIPIENT`                                      | The approved public recipient matching the writer.                                                                                               |
+| `BACKUP_MONITOR_ACCESS_KEY_ID` / `BACKUP_MONITOR_SECRET_ACCESS_KEY` | Separate R2 **Object Read only** token scoped only to this bucket. Verify its effective list/read access and write denial before activation.     |
+| `BACKUP_MONITOR_ALERT_PROVIDER`                                     | `zeptomail` for the selected existing email provider; `webhook` is the backward-compatible default.                                              |
+| `BACKUP_MONITOR_ALERT_WEBHOOK_URL`                                  | Required only for `webhook`: approved HTTPS Slack-compatible destination.                                                                        |
+| `BACKUP_MONITOR_EMAIL_API_URL`                                      | Required for `zeptomail`: explicitly configured regional HTTPS `/v1.1/email` endpoint matching the existing provider.                            |
+| `BACKUP_MONITOR_EMAIL_TOKEN`                                        | Required for `zeptomail`: existing Send API token, supplied through protected monitor secrets. Never pass it in arguments or logs.               |
+| `BACKUP_MONITOR_EMAIL_FROM` / `BACKUP_MONITOR_ALERT_EMAIL_TO`       | Required for `zeptomail`: one explicit bare sender and approved recipient address; no inferred application/staff recipient or display-name list. |
+| `BACKUP_MONITOR_MAX_DURATION_SECONDS`                               | Optional total storage-check budget: default 300, maximum 600.                                                                                   |
+| `BACKUP_MONITOR_MAX_BYTES`                                          | Optional ciphertext read limit: default 1 GiB, maximum 4 GiB.                                                                                    |
 
 The checker never falls back to writer, document, personal AWS, database or
 recovery-identity credentials. Its AWS children receive a minimal environment
-and an empty private HOME. Listings/manifests, streams, retries and child lifetime
-are bounded; external diagnostics and response bodies are not logged. The writer
-and checker share only the input-validation helper, not their credentials.
+and an empty private HOME. The mail token is not passed to AWS children.
+Listings/manifests, streams, retries and child lifetime are bounded; external
+diagnostics, private addresses and response bodies are not logged. The writer
+and checker share input validation, not their storage credentials.
 
 With the monitor environment already loaded securely:
 
@@ -346,19 +351,25 @@ node scripts/db/check-backup-freshness.mjs
 ```
 
 Normal execution posts only on a failed check and returns nonzero. A webhook
-2xx means **endpoint acceptance**, not proof that a person received or acknowledged
-the alert. A non-2xx, redirect or five-second delivery timeout is reported as
-delivery failure; there is no automatic POST retry. Monitor process failure and
+2xx means **endpoint acceptance**. Email additionally requires a bounded JSON
+success response containing one `EM_104` result and a nonempty request ID; a
+2xx error payload is rejected. See the [provider contract](https://www.zoho.com/cpaas/help/api/email-sending.html).
+Acceptance does not prove inbox receipt or human acknowledgement. Email open/click
+tracking is disabled. A non-2xx, redirect, oversized/malformed response or
+five-second delivery timeout is reported as delivery failure; there is no
+automatic POST retry because a timed-out request may already have been accepted.
+Monitor process failure and
 missing monitor executions must be covered by the independent scheduler's own
 dead-man/notification mechanism. R2 cannot reveal a dump failure that occurred
 before an object was uploaded; route writer exit failures separately. Deploying
 the reader beside the writer on the same host is not independent outage coverage.
 
-The combined process suite passes **43/43**, zero skips: 23 writer regressions
-and 20 freshness regressions, including stale starts, corrupt bytes, malformed
+The combined process suite passes **54/54**, zero skips: 23 writer regressions
+and 31 freshness regressions, including stale starts, corrupt bytes, malformed
 metadata, wrong recipients, pagination, bounded termination and local synthetic
-HTTP acceptance/rejection. The updated tooling image is
-`sha256:748d0a7a278a0ffda8f25296ab0c403df3f12149ea77974c2ab3bd0af9a4f8b4`;
+HTTP acceptance/rejection and the selected email provider's failure boundaries.
+The updated tooling image is
+`sha256:0eb225a1257042f06ab1f8f8bc5350d55db656c3c15db4dbe50a0d7c04aaa818`;
 its raw OS/library scan reports zero HIGH/CRITICAL findings. Its actual-R2
 synthetic dump/readback/restore passes again: 2,600-byte archive, exact two rows,
 one allowed tenant row, zero cross-tenant rows and tamper rejection; all owned
@@ -370,9 +381,22 @@ not a deployed registry digest or a running schedule.
 
 The operator supplied separate read-only monitor credentials on 16 October. Real
 backup list/read pass; overwrite, deletion and document-bucket HEAD each return 403. The unlocked synthetic permission control was removed and HEAD confirmed 404. The checker was repeated with this identity and correctly refused to count
-the bucket as a completed production backup. The destination and independent
-scheduler remain unconfigured. Local synthetic HTTP tests do not establish real alert
-delivery, and this prepared checker does not close the activation gate below.
+the bucket as a completed production backup. The operator selected the existing
+ZeptoMail provider and saved an explicit operational recipient. Protected local
+monitor configuration deliberately reuses that existing sender/region/token;
+the checker itself never falls back to application email settings. One authorized
+`[TEST] Docita backup alert` was accepted at **06:11 UTC on 16 October**. No patient
+data was included, and no automatic retry was made. Recipient acknowledgement,
+independent scheduling and missed-run detection remain open; this test does not
+activate production backups or close the activation gate below.
+
+An owned Neon child-branch probe also created a NOLOGIN, non-superuser BYPASSRLS
+candidate with no role memberships. Against a new empty database with two
+synthetic RLS rows, `SET LOCAL ROLE` could read both; DELETE and CREATE TABLE
+were denied. The owned branch was removed, leaving only production. This proves
+a bounded role primitive, not a production login, full-schema pg_dump privilege
+boundary, configured backup URL or clinical recovery. Production roles were not
+changed and `BACKUP_DATABASE_URL` remains absent.
 
 ### Live activation requirements
 

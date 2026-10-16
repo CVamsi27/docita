@@ -159,3 +159,20 @@ operator custody confirmation and original local-key removal remain open.
 Review/CI access, staging, production restore/reconciliation, cadence and elapsed
 soak/observation gates remain explicit; an instruction to finish does not supply
 missing measurements.
+
+### Existing email provider follow-up, 16 October
+
+The operator selected existing email delivery, saved an explicit recipient and
+authorized one test. Added `scripts/db/backup-alerts.mjs` to the isolated image
+and freshness-check boundary; application mail defaults are not inherited.
+Process tests were extended before implementation and the expected failure was
+retained. The combined suite now passes **54/54**, including rejected provider
+payloads, malformed/oversized bodies, redirects, five-second timeout, no retry,
+required explicit destination and no token inheritance by AWS children.
+
+One authorized `[TEST] Docita backup alert` was accepted by the existing ZeptoMail
+endpoint at 06:11 UTC. Inbox acknowledgement and independent scheduler/dead-man
+coverage remain open. CI billing is deferred to November by the operator; the
+required check gate remains open. Render login works, but its suspended staging
+service tracks main and an old deployed revision, so it provides no current soak
+evidence. These are recorded in the [completion checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md).
