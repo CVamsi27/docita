@@ -1,7 +1,7 @@
 # Docita stability repair evidence — 13 October 2026
 
 Status: **source corrections and final images verified locally; production baseline not certified**.
-Latest follow-up: 16 October 2026. The source repair batch is split into focused commits for review. Final image hardening is verified; independent backup activation and production release gates remain open. The [completion checkpoint](2026-10-16-stability-completion-checkpoint.md) records 81 backup/reader/wrapper regressions, restricted-login restore evidence, both tooling images and remaining release/recovery/monitoring gates. The offline challenge/custody handoff is complete and the connected private identity removed.
+Latest follow-up: 16 October 2026. The source repair batch is split into focused commits for review. Final image hardening is verified; independent backup activation and production release gates remain open. The [completion checkpoint](2026-10-16-stability-completion-checkpoint.md) records 117 backup lifecycle regressions, 34 launcher/workflow cases, current workspace/E2E checks, restricted-login restore evidence and tooling images and remaining release/recovery/monitoring gates. The age-identity offline challenge/custody handoff is complete and its connected private identity removed; the new actual-runtime application-key packet still needs offline verification.
 The user authorized further analysis and fixes under a feature freeze through
 13 December 2026. Critical bug, security and compliance corrections remain allowed.
 
@@ -233,7 +233,7 @@ was bypassed and no application runtime/image source changed in this follow-up.
 
 ## Remaining release gates
 
-1. Resolve GitHub billing/spending restrictions in November as selected by the operator, then demonstrate authenticated
+1. The operator now reports GitHub billing resolved; reconnect Code Review and verify candidate CI, then demonstrate authenticated
    hosted monitoring and actual alert delivery. Three daily GitHub checks do not alone
    establish minute-level uptime coverage.
 2. Align protected staging via its PR-only path and record its deployed revision.

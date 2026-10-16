@@ -1,18 +1,18 @@
 # Docita Two-Month Stability Implementation Plan
 
-**16 October completion pass:** the encrypted writer now rejects owner and unsafe
-role connections before dumping. The independent reader and Sentry monitor wrapper
-pass 81 process cases; a real PostgreSQL fixture rejects 17 unsafe privilege
-profiles and restores forced-RLS rows and sequence state. Both non-root image
-targets pass raw HIGH/CRITICAL scans. The matching offline challenge and operator
-custody confirmation are recorded; the connected private identity is removed.
-The authorized email test reached the intended inbox. A dedicated production
-backup login now passes fresh TLS/UTC/full-catalog qualification; only its backup
-URL is saved locally, with no clinical dump or schedule. Independent scheduling and
-missed-run routing are prepared but inactive. Render login works; staging remains
-suspended on an old main revision. CI billing is deferred to November; required
-CI, production recovery/RLS rollout and elapsed soaks remain open. See the
-[current checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md).
+**16 October completion pass:** the writer rejects unsafe database roles before
+dumping. The selected free GitHub cycle and remote Sentry boundary pass 117
+process cases and 34 launcher/workflow cases. Its main-only secret environment is
+prepared with activation disabled. Age-identity offline custody is recorded; a
+new encrypted actual-runtime application-key packet still needs offline proof.
+A critical rotation fix now decrypts old v1 records with remaining configured
+historical keys, with ten focused regressions. Full release gating now requires a
+fresh staging latency baseline. Current unit checks pass 6,387 cases, workspace
+types pass 29 tasks and all 508 API E2E cases pass across four bounded shards.
+The operator reports pricing/billing resolved; Code Review still requests its
+GitHub connection. Sentry CLI has only CI scope; monitor management/quota/routing,
+current staging, clinical recovery/RLS rollout and elapsed soaks remain open.
+See the [current checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md).
 
 **14–15 October follow-up:** full local lint, types, unit suite (6,377 tests),
 standards and workspace build pass. Public capability resolution now has real

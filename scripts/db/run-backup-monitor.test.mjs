@@ -28,6 +28,10 @@ async function fixture(scenario = {}, overrides = {}) {
     new URL("./backup-environment.mjs", import.meta.url),
     path.join(root, "backup-environment.mjs"),
   );
+  copyFileSync(
+    new URL("./backup-job-lifecycle.mjs", import.meta.url),
+    path.join(root, "backup-job-lifecycle.mjs"),
+  );
   writeFileSync(
     path.join(root, "check-backup-freshness.mjs"),
     `

@@ -12,17 +12,20 @@ separately held recovery key and an exercised synthetic restore.
 into age encryption. It stores only ciphertext temporarily, uploads to a dedicated
 R2 backup bucket, verifies the stored ciphertext, and publishes a completion
 manifest only after success. It holds the age public recipient; the recovery
-identity stays in operator custody. A dedicated Fly scheduled writer and separate
-independent reader avoid the current GitHub billing restriction and do not start
-the clinical worker. The prepared Render reader hosting choice is still pending.
+identity stays in offline operator custody. The operator selected free GitHub
+hourly execution on 16 October: one bounded cycle writes, then checks stored
+ciphertext with separate read-only credentials. One remote included Sentry
+monitor covers a missing/failed cycle. The reader shares its runner; this does
+not claim a separately hosted reader. No clinical worker or paid scheduler starts.
 
 **Tech stack:** Node22 built-ins, PostgreSQL 17 client, age, AWS CLI, R2 S3 API,
 Node test runner and an isolated local PostgreSQL fixture.
 
 ## Constraints and acceptance
 
-- Existing API/worker images, clinician flows and production schema stay outside
-  this preparation. Production retains API idle shutdown and best-effort receipts.
+- Production deployments, clinician flows and production schema stay outside
+  this backup preparation. A separately verified critical field-key rotation fix
+  is included in the stability candidate. Production retains API idle shutdown and best-effort receipts.
 - No plaintext dump on disk, in logs or in object storage; no secret in process
   arguments. Pass database credentials via bounded libpq environment settings,
   certificate-verified TLS and UTC. Use the verified direct Neon endpoint.
@@ -41,13 +44,15 @@ Node test runner and an isolated local PostgreSQL fixture.
   erasure/legal-hold reconciliation on 15 October; cadence and alerting remain
   selected operating targets, not observed guarantees. The project remains on
   Neon's six-hour history window; never depend on it for older recovery.
-- Schedule one persistent one-shot machine with restart policy `no`; do not use
-  `--rm` because that would remove the future scheduler target. Record its actual
-  schedule, image digest, secret names, memory, exit status and completed objects.
-- The production job stays unactivated until a separate backup bucket and scoped
-  credentials, offline recovery-key custody, real encrypted restore and an
-  independent stale-backup alert destination are verified. GitHub Actions cannot
-  be the only scheduler/alert mechanism while its jobs are billing-blocked.
+- Prepare the default-branch-only GitHub workflow and main-only secret environment,
+  exact reviewed main image publication with a mandatory raw vulnerability gate,
+  immutable registry digest and bounded runtime. Keep activation false until all
+  recovery and remote-monitor gates pass. No paid backup host is authorized.
+- The production job stays unactivated until storage, offline application-key
+  custody, quarantined clinical restore and Sentry free quota/routing are verified.
+  Provision the remote monitor independently so it detects a scheduler that never
+  starts. The operator now reports billing resolved; hosted CI still needs actual
+  candidate evidence after Code Review reconnection.
 
 ## Task 1: Prepare and verify the backup runner
 
@@ -173,17 +178,17 @@ required explicit destination and no token inheritance by AWS children.
 
 One authorized `[TEST] Docita backup alert` was accepted by the existing ZeptoMail
 endpoint at 06:11 UTC. The operator confirmed receipt in the intended inbox on
-16 October. Independent scheduler/dead-man coverage remains open. CI billing is
-deferred to November by the operator; the
-required check gate remains open. Render login works, but its suspended staging
+16 October. Independent scheduler/dead-man coverage remains open. The operator initially
+deferred billing, then reported it resolved; candidate CI/review remains unverified
+while Code Review requests its GitHub connection. Render login works, but its suspended staging
 service tracks main and an old deployed revision, so it provides no current soak
 evidence. These are recorded in the [completion checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md).
 
 ## Remaining recovery fixes, 16 October
 
 The operator requested all remaining fixes. Continue the approved dedicated-role,
-independent reader and recovery architecture; CI billing remains deferred to
-November. The returned offline challenge matches and Messenger is unmounted;
+independent reader and recovery architecture, updated to the selected free
+GitHub cycle with remote missed-run coverage. The returned offline challenge matches and Messenger is unmounted;
 operator-reported offline custody is recorded and the connected local private
 identity has been removed. Keep forensic-erasure claims out of the evidence.
 
@@ -220,19 +225,36 @@ identity has been removed. Keep forensic-erasure claims out of the evidence.
       clinical payload logging. A failed check remains failed after email acceptance.
 - [x] Keep `--check-only` diagnostics free of external check-ins/alerts. Test
       success, check failure, timeout, rejected check-ins and termination locally.
-- [x] Prepare a separate Render Cron example using the monitor target. Render's
-      paid resource creation, Sentry quota/routing and a deliberate missed-run
-      alert exercise need a concrete operator decision before activation.
+- [x] Prepare the reader lifecycle. The initial Render example is retired after
+      the operator selected free GitHub hosting; no paid resource was created.
 - [x] Run process suites, applicable builds/scans and source standards and update
       companion runbooks for the existing draft PR. No paid
       scheduler, real check-in/alert exercise or elapsed 24-hour cadence is implied
       by source preparation.
 
-Current local verification is **81/81** process cases, a real PG17 restricted-login
-restore with 17 unsafe privilege profiles, two scanned immutable image targets,
-real synthetic R2 transfer/restore and independent check-only image execution.
-Full standards (150/150), lint, Knip and hygiene pass. A dedicated production
-backup login is prepared and passes fresh TLS/UTC/full-catalog qualification; its
-URL is saved only in protected operator setup. No clinical dump or schedule ran. The
-[checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md) records
-image identities and remaining live/review/elapsed gates.
+### Task 5: Integrate the selected free schedule and application-key recovery
+
+- [x] Add bounded writer/cycle lifecycle wrappers. Require explicit monitor DSNs,
+      isolate child credentials and report success only after writer plus reader.
+- [x] Add main-only hourly GitHub execution with protected environment secrets,
+      immutable-image/context validation, bounded container resources and cleanup.
+- [x] Add manual reviewed-main publication: minimal public context, pinned raw
+      HIGH/CRITICAL scan before push, private package and inspected registry digest.
+- [x] Prepare the main-only environment and five dedicated secrets; activation is
+      false. Do not dispatch the workflow without its remaining gates.
+- [x] Encrypt actual-runtime current field/signing keys directly into an offline
+      handoff packet and test its challenge, AES-GCM/HMAC and tamper verifier.
+- [ ] Complete this packet's offline transfer and authenticated challenge proof;
+      verify historical-key inventory and document-object recovery.
+- [ ] Verify Sentry management access, available included slot, disabled PAYG and
+      operational email routing. CLI `org:ci` access alone is insufficient.
+- [ ] Exercise the two authorized real failed/missed-run alerts, reconcile the
+      quarantined clinical restore, publish the reviewed image and activate.
+- [ ] Observe at least 24 hours of real hosted cadence and verify actual restore.
+
+Current process verification is **117/117**, plus **34/34** launcher/workflow cases
+and **12/12** offline packet verifier cases. The selected non-root cycle image
+has zero raw HIGH/CRITICAL findings. The dedicated production backup role passes
+fresh TLS/UTC/full-catalog qualification. No clinical dump, schedule or real Sentry
+check-in ran. See the [checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md)
+for the current complete candidate checks and remaining live/review/elapsed gates.

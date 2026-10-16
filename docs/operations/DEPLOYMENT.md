@@ -14,7 +14,7 @@ current Fly configs have no release command and CI runs migrations separately.
 
 The actual API connection points to Neon PostgreSQL in Singapore and uses the
 owner role; see [RLS rollout](../compliance/RLS_ROLLOUT.md) and [recovery
-verification](DR_RUNBOOK.md#current-provider-verification-13-october-2026).
+verification](DR_RUNBOOK.md#current-provider-verification-15-october-2026).
 The legacy RDS snapshot job is not a verified backup path for this database.
 Deployment triggers remain paused. Restore verification, current staging,
 non-owner rollout and release evidence must precede reactivation or a production

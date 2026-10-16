@@ -71,16 +71,18 @@ separate authenticated journey evidence.
 
 ## Open items
 
-The independent database-backup reader and bounded Sentry wrapper are prepared in
-[`check-backup-freshness.mjs`](../../scripts/db/check-backup-freshness.mjs) and
-[`run-backup-monitor.mjs`](../../scripts/db/run-backup-monitor.mjs).
-Separate read-only storage credentials pass real scope checks. The operator
-confirmed the one authorized ZeptoMail test arrived in the inbox on 16 October.
-The [configuration and acceptance gates](ENCRYPTED_DATABASE_BACKUPS.md#prepared-independent-scheduler-wrapper)
-and [inert Render example](examples/backup-monitor.render.yaml) cover independent
-scheduling, pre-provisioned missed-run monitoring and separate writer coverage.
-Hosting approval, Sentry quota/routing, failed/missed-run delivery exercises and
-24-hour cadence remain open. Neither scheduler nor production backups are active.
+The database-backup cycle and read-only storage checker are prepared in
+[`run-backup-cycle.mjs`](../../scripts/db/run-backup-cycle.mjs) and
+[`check-backup-freshness.mjs`](../../scripts/db/check-backup-freshness.mjs).
+Separate reader credentials pass real scope checks. The operator confirmed the
+original authorized ZeptoMail test reached the inbox on 16 October.
+The selected [free GitHub cycle and remote missed-run monitor](ENCRYPTED_DATABASE_BACKUPS.md#selected-free-github-schedule-and-remote-missed-run-monitor)
+replace the earlier paid hosting proposal. One cycle checks writer and reader on
+the same runner; remote Sentry supplies the independent missed-run boundary.
+The main-only GitHub secret environment is prepared with activation disabled.
+Sentry management access/quota/routing, the authorized failed/missed-run delivery
+exercises, clinical recovery and 24-hour cadence remain open. Neither scheduler
+nor production backups are active.
 
 - Provision synthetic clinic + dedicated monitor user; enable booking/OTP probes.
 - Wire PagerDuty escalation on top of `OPS_ALERT_WEBHOOK_URL` (scaffold shipped 2026-05-30).

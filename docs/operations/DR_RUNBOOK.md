@@ -33,10 +33,12 @@ That preparation does not establish an active backup schedule or 30-day retentio
 challenge hash and confirmed offline handling; Messenger is unmounted and the
 connected private identity was removed. The encrypted synthetic R2 restore passes
 with the new restricted-login tooling image. A dedicated-role preflight and an
-independent reader/Sentry wrapper are prepared, with 81 process regressions and a
+GitHub complete-cycle/Sentry wrapper are prepared, with 117 process regressions and a
 real PostgreSQL privilege/restore fixture passing. The one authorized alert email
-was confirmed in the inbox. Full clinical recovery, independent historical field/
-signing/object-key custody, live scheduling and missed-run delivery are still
+was confirmed in the inbox. An encrypted actual-runtime field/signing-key packet
+and offline verifier are prepared; its separate offline transfer/proof remains
+open. Full clinical recovery, historical field/object-key inventory and custody,
+live scheduling and missed-run delivery are still
 unproved. See the [current checkpoint](../audits/2026-10-16-stability-completion-checkpoint.md)
 and [backup operating gates](ENCRYPTED_DATABASE_BACKUPS.md#live-activation-requirements).
 

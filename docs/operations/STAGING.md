@@ -16,8 +16,8 @@ stability candidate. Login is verified; current staging validation is not.
 The service was not resumed or reconfigured. Before resuming, verify its isolated
 database identity and outbound-provider settings, align the reviewed staging tree
 through its protected PR path, correct the connected branch and record the
-deployed revision. GitHub billing remediation is deferred to November at the
-operator's request; required hosted checks remain open. Resuming this stale
+deployed revision. The operator reports GitHub pricing/billing resolved on 16 October. Code Review
+still requests its GitHub connection, so candidate hosted checks remain unverified. Resuming this stale
 service alone cannot establish staging compatibility or begin the required soak.
 
 Neon's schema-only branch request currently fails because of the legacy

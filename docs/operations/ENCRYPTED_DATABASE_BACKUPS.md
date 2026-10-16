@@ -8,8 +8,9 @@ requested local recovery-key generation. The public recipient is configured and
 the local key pair passed authenticated decryption. On 16 October the operator
 returned the matching offline challenge hash and confirmed offline handling;
 Messenger is unmounted and the connected local private identity was removed.
-The production backup job, independent schedule/dead-man alerting and clinical
-restore remain unverified. Keeping Neon Free leaves its configured six-hour
+The production backup job, remote missed-run alerting and clinical restore remain
+unverified. The operator selected a GitHub schedule and free tools on 16 October;
+the earlier Fly/Render hosting proposal is superseded. Keeping Neon Free leaves its configured six-hour
 recovery history unchanged.
 
 On 16 October the recovery files were copied into a new folder on the operator's
@@ -57,8 +58,8 @@ to protect against malicious replacement or deletion.
 A logical dump is one database, including its schema and rows. It does not back
 up cluster roles, external document objects, provider settings or Docita's field
 encryption key. Recovery also requires independently held `ENCRYPTION_KEY`,
-historical field-key versions V2 through V5, required signing/configuration
-custody, verified role/RLS setup and document-storage recovery.
+any historical field-key versions still needed by stored ciphertext or retained
+backups, required signing/configuration custody, verified role/RLS setup and document-storage recovery.
 A readable archive alone does not prove clinical recovery.
 
 The canonical prepared storage policies are
@@ -135,9 +136,10 @@ Build from a minimal context containing only the public Dockerfile and copied sc
 ```sh
 tar -C scripts/db -cf - backup.Dockerfile backup-database.mjs \
   backup-database-role.mjs backup-environment.mjs backup-alerts.mjs \
-  check-backup-freshness.mjs run-backup-monitor.mjs |
+  check-backup-freshness.mjs run-backup-monitor.mjs run-backup-writer.mjs \
+  backup-job-lifecycle.mjs run-backup-cycle.mjs |
   docker build --platform linux/amd64 -f backup.Dockerfile -t docita-backup:candidate -
-node --test scripts/db/backup-database.test.mjs scripts/db/check-backup-freshness.test.mjs scripts/db/run-backup-monitor.test.mjs
+node --test --test-concurrency=1 scripts/db/backup-database.test.mjs scripts/db/check-backup-freshness.test.mjs scripts/db/run-backup-monitor.test.mjs scripts/db/run-backup-writer.test.mjs scripts/db/run-backup-cycle.test.mjs
 ```
 
 The opt-in real-tool test requires a disposable **localhost** PostgreSQL fixture
@@ -167,7 +169,8 @@ file, a local bounded manual run uses:
 ```sh
 docker run --rm --memory 512m --cpus 1 --read-only \
   --tmpfs /tmp:rw,nosuid,nodev,noexec,size=160m,uid=1000,gid=1000,mode=0700 \
-  --env BACKUP_MAX_BYTES=67108864 --env-file "$BACKUP_ENV_FILE" docita-backup:candidate
+  --entrypoint node --env BACKUP_MAX_BYTES=67108864 \
+  --env-file "$BACKUP_ENV_FILE" docita-backup:candidate /opt/docita-backup/backup-database.mjs
 ```
 
 `BACKUP_ENV_FILE` is an operator-selected protected file path. It is not a new
@@ -384,11 +387,12 @@ automatic POST retry because a timed-out request may already have been accepted.
 Monitor process failure and
 missing monitor executions must be covered by the independent scheduler's own
 dead-man/notification mechanism. R2 cannot reveal a dump failure that occurred
-before an object was uploaded; route writer exit failures separately. Deploying
-the reader beside the writer on the same host is not independent outage coverage.
+before an object was uploaded; route writer exit failures separately. The reader beside the writer shares its host failure boundary. The selected
+complete-cycle configuration below uses remote Sentry missed-run detection for
+that boundary; it does not claim a separately hosted reader.
 
-The combined process suite passes **81/81**, zero skips: 28 writer, 31 freshness
-and 22 monitor-wrapper regressions, including stale starts, corrupt bytes, malformed
+The combined process suite passes **117/117**, zero skips: 28 writer, 31 freshness,
+22 reader lifecycle, 21 writer lifecycle and 15 complete-cycle regressions, including stale starts, corrupt bytes, malformed
 metadata, wrong recipients, pagination, bounded termination and local synthetic
 HTTP acceptance/rejection and the selected email provider's failure boundaries.
 The updated tooling image is
@@ -398,8 +402,9 @@ synthetic dump/readback/restore passes again using a fresh restricted login unde
 forced RLS: 3,196-byte archive, exact two rows,
 one allowed tenant row, zero cross-tenant rows and tamper rejection; all owned
 unlocked objects, fixture containers and disposable private inputs were removed.
-No production completion was created. All six public scripts match their source
-hashes in both tooling targets. These are local immutable image identities, not
+No production completion was created. That earlier image contains the preceding six-script source. The selected cycle
+image below contains all nine current public scripts; do not use the earlier
+image for the new cycle entrypoint. These are local immutable image identities, not
 deployed registry digests or running schedules.
 
 The operator supplied separate read-only monitor credentials on 16 October. Real
@@ -444,47 +449,114 @@ rows were read or dumped and no schedule is active. The resettable read-only
 default and the residual capabilities above remain relevant.
 See [PostgreSQL logging controls](https://www.postgresql.org/docs/17/runtime-config-logging.html#GUC-LOG-MIN-ERROR-STATEMENT).
 
-### Prepared independent scheduler wrapper
+### Selected free GitHub schedule and remote missed-run monitor
 
-Build the separate `monitor` target with the same minimal context above, adding
-`--target monitor`. The default final target still runs the writer. The monitor
-target starts `scripts/db/run-backup-monitor.mjs`; appending a reader command to
-the writer ENTRYPOINT does not replace it. The tested monitor image is
-`sha256:58333ca2b80c643b5301673782dd17bcf4ac66e243606ff4403df03631b5eebc`,
-non-root with zero raw HIGH/CRITICAL OS/library findings. Its default ENTRYPOINT
-was exercised with the real independent reader credentials in `--check-only` mode:
-it fails for missing production completions without sending alerts or check-ins.
+The operator selected **GitHub Actions and free tools** on 16 October. The earlier
+separate Fly/Render hosting proposal is superseded; no paid service was created.
+The public repository can use standard GitHub-hosted runners without minute
+charges, and GHCR container storage/bandwidth is currently free. Preserve that
+public-repository/standard-runner scope and recheck provider policy before changing
+it. See [GitHub runner billing](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)
+and [GHCR billing](https://docs.github.com/en/billing/concepts/product-billing/github-packages).
+Existing R2 retention still requires account storage/operation usage to remain
+within its free allowance; these hosting choices do not waive storage charges.
 
-Normal wrapper execution requires explicit `BACKUP_MONITOR_SENTRY_DSN` and
-`BACKUP_MONITOR_SENTRY_SLUG` in addition to the reader/email settings. There is no
-ambient application Sentry fallback. It sends `in_progress`, then `ok` or `error`
-with the same check-in ID, using a five-second bounded POST without retries.
-Rejected check-ins fail the wrapper; the reader still runs after a rejected start.
-A failed reader remains failed after an accepted failure email. Reader output is
-discarded, its environment is restricted, and timeout/signal handling drains its
-owned process group. `--check-only` requires neither alert nor Sentry settings and
-sends neither. Local process tests use synthetic HTTP receivers only.
+[`database-backup.yml`](../../.github/workflows/database-backup.yml) schedules one
+complete cycle at **17 minutes past each UTC hour**. It runs only on main with
+`DOCITA_BACKUPS_ENABLED=true`, a reviewed registry digest and explicit protected
+configuration. Manual dispatch has the same main/context checks. No pull request
+can execute this job with backup secrets. The `Database Backups` environment must
+restrict deployment branches to main; keep its credentials separate from existing
+application deployment secrets. GitHub may delay or drop schedules and only runs
+them from its default branch; a billing failure or quota interruption must become
+a missed remote check-in, not a healthy backup claim. See
+[GitHub schedule behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
 
-The proposed reader schedule is **15 minutes past each UTC hour**, matching the
-wrapper's Sentry schedule, with a ten-minute check-in margin, eleven-minute maximum
-runtime and one failure/recovery threshold. This hourly sampling can detect a
-two-hour freshness breach up to an additional hour later, plus scheduler and
-delivery latency; it is not an exact two-hour paging guarantee.
+The selected `cycle` Docker target starts `run-backup-cycle.mjs`. It sends one
+Sentry `in_progress`, runs the low-level writer and then the checker with
+`--check-only`, and sends `ok` only when **both** pass. Writer failure skips the
+reader; reader or check-in failure keeps the process nonzero. Each child receives
+only its own allowlisted settings. The reader uses a different read-only R2
+credential but runs on the same runner; Sentry provides independent detection
+of a lost runner/scheduler, not a separate execution host or protection against
+compromise of that runner. This is the accepted free hosting direction, with that
+scope explicit. Separate writer/reader wrappers remain available for a future
+independently hosted configuration; two monitors are not activated for this setup.
 
-[The inert Render example](examples/backup-monitor.render.yaml) pins a placeholder
-registry digest and isolated explicit secrets. The local image ID must be replaced
-by the actual reviewed published registry digest. Creating a Render Cron service
-is a paid operating choice; the hosting decision remains pending. See
-[Render Cron billing](https://render.com/docs/cronjobs). No resource, registry
-publication or real Sentry check-in has been created by this preparation.
+Use exactly one included free Sentry monitor with explicit
+`BACKUP_CYCLE_SENTRY_DSN` and `BACKUP_CYCLE_SENTRY_SLUG`; no generic DSN fallback.
+Check the actual account's available included slot, disabled PAYG and email routing
+before activation. The lifecycle uses one matching check-in ID, an hourly interval,
+fifteen-minute margin, and runtime derived from writer/reader budgets (26 minutes
+at the selected 1200/300-second defaults). Five-second bounded posts have no
+retries. A scheduler that never starts cannot create its own first monitor:
+provision the monitor and routing independently before relying on missed-run alerts.
 
-Before enabling any cron service, provision and enable the Sentry monitor and
-verify quota, ownership and missed-run email routing. The wrapper can upsert on a
-first check-in, but a scheduler that never starts cannot create that first monitor.
-Validate Render failure-email settings separately. The writer needs its own
-failure/missed-run coverage with a different slug; reader starts must not conceal
-a stopped writer. An authorized failed-run and deliberately missed-run exercise,
-confirmed delivery and at least 24 hours of actual cadence remain required.
+The local cycle image is
+`sha256:d9f03d8bc01b99b1554af8bee9fea304f53176e12e984befc13a0036f6c9633c`,
+non-root AMD64, with nine public scripts and zero raw HIGH/CRITICAL findings.
+It is a local image identity, not a published GHCR digest. Build with the minimal
+context above and `--target cycle`. The final default `writer` target now starts
+`run-backup-writer.mjs` and requires its own explicit `BACKUP_SENTRY_DSN`/slug;
+manual synthetic fixtures select low-level `backup-database.mjs` with a Node
+entrypoint. Do not append a cycle command to another target's ENTRYPOINT.
+
+[`publish-backup-image.yml`](../../.github/workflows/publish-backup-image.yml) is
+manual-only and requires the exact reviewed main SHA. It builds only the minimal
+public context, scans the exact rebuilt image for raw HIGH/CRITICAL OS/library
+findings with a pinned scanner, and only then publishes a private GHCR package
+and records the inspected registry manifest digest. Scanner failure blocks
+publication; no ignore-unfixed or advisory suppression is applied. It never activates schedules. Set `DOCITA_BACKUP_IMAGE` to that
+verified immutable reference after review; a tag or local image ID is rejected.
+The launcher uses temporary registry authentication, no secret-valued arguments,
+512 MiB RAM, one CPU, a read-only non-root container, dropped capabilities and a
+160 MiB tmpfs with **64 MiB per ciphertext copy**. Production size/time/free-storage
+budget still needs measurement; this bounded configuration can deliberately fail
+on a database that does not fit.
+
+Repository variables: `DOCITA_BACKUPS_ENABLED`, `DOCITA_BACKUP_IMAGE`,
+`BACKUP_S3_ENDPOINT`, `BACKUP_AGE_RECIPIENT`, `BACKUP_CYCLE_SENTRY_SLUG`.
+Environment secrets: `BACKUP_DATABASE_URL`, `BACKUP_ACCESS_KEY_ID`,
+`BACKUP_SECRET_ACCESS_KEY`, `BACKUP_MONITOR_ACCESS_KEY_ID`,
+`BACKUP_MONITOR_SECRET_ACCESS_KEY`, `BACKUP_CYCLE_SENTRY_DSN`.
+The workflow supplies matching bucket/source and reader identity from these
+canonical values. No age private key, app encryption/signing key or mail token
+belongs in this job.
+
+The `Database Backups` environment is prepared with a verified main-only branch
+policy and the five dedicated database/storage secrets above. Repository endpoint,
+public recipient and monitor-slug variables are prepared;
+`DOCITA_BACKUPS_ENABLED=false`. The Sentry DSN and published registry digest remain
+unset. No workflow was dispatched. The launcher/publication regressions pass
+**34/34**, zero skips, including failed-scan publication denial and credential
+cleanup.
+
+The Sentry CLI login succeeds, but the available token has only `org:ci`;
+organization/monitor API reads return 403. Login alone does not establish monitor
+management, free quota or routing. Management access remains a prerequisite.
+
+The operator authorized one controlled failed-run and one missed-run test email.
+Keep the exercise bounded to the existing operational recipient and record actual
+routing/receipt; local fake HTTP acceptance does not spend or replace those real
+exercises. The original one-message ZeptoMail inbox proof remains separate.
+
+### Encrypted application-key recovery packet, 16 October
+
+A separate encrypted packet now captures the actual API runtime's current field
+key and effective public-document signing key using the approved public age
+recipient. Capture was allowlisted and encrypted from memory; no plaintext key
+file or private age identity was created. The runtime had no configured V2–V5
+slots and used the canonical JWT signing fallback. This inventory does not prove
+that retired keys are unnecessary for historical data or retained backups.
+
+The protected operator packet includes a random challenge, synthetic AES-GCM and
+HMAC canaries, a ciphertext manifest and an offline verifier. Twelve synthetic
+verifier/tamper cases pass. The packet still needs transfer to the offline
+recovery device, authenticated verification there and a returned challenge hash.
+Its expected hash remains outside the handoff packet. Existing offline custody
+of the age identity does not close custody of this new application-key packet.
+Historical-key discovery, document-object recovery and quarantined clinical
+restore/reconciliation remain separate gates.
 
 ### Live activation requirements
 
@@ -494,16 +566,15 @@ the job unactivated until successful quarantined clinical restore with
 erasure/legal-hold reconciliation,
 measured production runtime/memory
 and a verified independent stale-backup alert destination. Test a failed run and a
-missed schedule. GitHub's currently billing-blocked hosted jobs cannot be the only
-scheduler or alert mechanism.
+missed schedule. The operator reports GitHub billing resolved; current hosted CI
+remains unverified while Code Review requests its GitHub connection. Independent
+remote missed-run coverage is required even with working GitHub billing.
 
-Prepare a separate one-shot Fly machine with restart policy `no`; record its
-verified image digest and explicit schedule `hourly`. Do not use `--rm`, which
-would delete the future scheduler target. Do not place this job in the clinical
-worker, start the existing worker, change API scaling, or infer a scheduler from a
-manual successful run. Confirm the exact Fly schedule behavior using the installed
-CLI before activation. Persistent machine creation and paid runtime activation
-remain separate operator actions.
+Use the selected GitHub workflow and verified cycle image after the readiness
+gates pass. Keep the clinical worker stopped and API idle shutdown unchanged.
+No Render/Fly backup machine or local always-on scheduler is selected. A manual
+local run does not establish a GitHub cadence; record the first actual hosted
+completion and remote missed-run coverage after activation.
 
 Freshness must use the latest verified completion manifest's **backup start
 time**, with an independent check at least hourly and an alert if that time is
