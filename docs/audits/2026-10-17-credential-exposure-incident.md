@@ -10,12 +10,12 @@ The operator supplied a Neon notice dated 16 October identifying
 `.env.example` at commit `8745ca628ba0ee6bc97556cc8266f059c2f7480f`
 (23 November 2025), organization `org-ancient-tooth-36241932`, project
 `restless-tooth-24759148`, endpoint `ep-jolly-voice-ah256u04`.
-The historical credential still authenticates as `neondb_owner` to `neondb`
-over verified TLS, with UTC confirmed. The check used a read-only transaction and
-database identity settings; it did not read clinical rows or write database data.
-The authenticated Neon CLI account is not a member of that organization. Owner
-access or an owner-performed password reset remains required. A failed control
-plane read is not evidence that the project was deleted or the password revoked.
+The initial read-only check confirmed that the historical credential still
+authenticated as `neondb_owner` to `neondb` over verified TLS with UTC. It read
+database identity settings, not clinical rows. The endpoint password was then
+rotated and rejection verified as recorded below. The authenticated Neon CLI
+account still lacks membership of the owning organization; other branch
+credentials, consumer inventory and control-plane audit access remain unverified.
 
 Current production is the separate Neon project `icy-river-59903017`, endpoint
 `ep-plain-rain-a1zogxgl`. Its runtime database URL and password do not match the
@@ -38,7 +38,8 @@ blobs: 444,798,994 bytes, 59,889 total Git objects, 31 distinct configured value
 Gitleaks with explicit default rules and no fingerprint/comment exemptions
 scanned 1,088 commits and about 199.6 MB, reporting 107 findings. That raw count
 includes test fixtures and still needs complete provider-by-provider triage;
-it is not a count of active compromised credentials. GitHub's security API
+it is not a count of active compromised credentials. The bounded triage below
+records its current disposition. GitHub's security API
 returned no open or resolved alerts, which did not establish absence of exposure.
 The published PR #322 range from `376462fe8` through `1a53f039b` scans clean with
 the same independent default rules. The reported Neon commit predates that PR.
@@ -118,12 +119,82 @@ probes, including staff login, with its alerts and automatic restarts disabled.
 Provider-origin delivery under the new secret and end-to-end payment completion
 have not been independently verified.
 
+## Alerted Neon endpoint password revoked
+
+At 11:38 UTC / 17:08 IST, only the alerted endpoint's `neondb_owner` password was
+changed using the role's permitted SQL password change. The preflight verified
+TLS/channel binding, UTC, the expected database/role, zero other sessions using
+that role, and statement/duration/error/audit logging settings before sending the
+password statement. Role attributes and grants were preserved. A fresh random
+replacement was saved directly to protected local configuration and age-encrypted
+to the verified offline recipient before the change; no credential appeared in
+command arguments or printed evidence.
+
+Fresh direct and pooled connections both accept the replacement and reject the
+exposed password with PostgreSQL `28P01`. Current production and prepared staging
+URLs were unchanged; no clinical rows, schema, Fly images or worker state changed.
+This proves revocation at the alerted endpoint. Neon password changes are
+[branch-scoped](https://neon.com/docs/manage/roles); the inaccessible organization's
+other branches and access history have not been assessed. Do not infer project-wide
+revocation from this endpoint result.
+
+## Field-key rotation qualification
+
+At 11:48 UTC / 17:18 IST, an isolated invocation of the actual deployed compiled
+encryption module passes its current-key write/read check but fails retained-key
+recovery for both old `v1` and unversioned ciphertext. The probe uses disposable
+keys and synthetic values only: no production key, row or configuration is read
+or changed. The deployed module SHA256 is
+`60948c781e571cb3e2e85f0dc5f802c8de744aedc7a275e5333753c652aaf8b5`.
+An earlier SSH attempt could not reach the idle machine; the qualified repeat
+first verified API liveness and completed all checks. Both records are retained.
+
+At 11:50 UTC / 17:20 IST, a read-only, TLS/UTC-verified aggregate query covered all
+17 fields mapped by the candidate's three encryption consumers: patient fields,
+clinic secrets and referrer payout details. It found no matching versioned or
+legacy ciphertext formats, with zero mapping gaps. No row values were exported or
+decrypted. This does not establish absence of plaintext rows, historical encrypted
+data, backup dependencies or consumers outside the inspected mapping. It does not
+justify discarding the exposed field key or skipping recovery qualification.
+
+The authenticated fallback repair is tested in the candidate, not deployed.
+Keep the field key unchanged until the reviewed compatible artifact is deployed,
+the exact recovery checks pass there, and independent custody/recovery and a
+reviewed migration/rollback plan are complete. See [key rotation](../operations/KEY_ROTATION.md).
+
+## Bounded historical-finding triage
+
+At 11:54 UTC / 17:24 IST, 105 of the 107 scanner findings had source values
+qualified in process memory without printing or writing those values. Findings
+are repeated locations, not unique credentials. Current classification is:
+
+| Disposition                                  | Findings | Remaining limit                                                                         |
+| -------------------------------------------- | -------: | --------------------------------------------------------------------------------------- |
+| Documented placeholders / repeating fixtures |       14 | No production-validity claim follows from unrelated fixtures.                           |
+| Idempotency fixtures / boolean expressions   |       16 | Noncredential matches in their inspected source contexts.                               |
+| Expired JWTs in historical logs              |       10 | Expiry is verified; log contents and possible access still require incident assessment. |
+| Confirmed exposed field key                  |        6 | Retained for recovery; rotation remains open.                                           |
+| Confirmed exposed Razorpay secrets           |        6 | API/webhook rotations above are verified.                                               |
+| Historical Meta token                        |        2 | One unique token; read-only provider check returns 401 / OAuth 190, subcode 463.        |
+| Retired preview / server-action build keys   |       26 | Old deployment and preview inventory remains open.                                      |
+| Other findings                               |       27 | Owner/context review remains open, including two unqualified source values.             |
+
+The Meta check sent no message and changed no current provider credential. Its
+rejection proves that historical token is not currently accepted by that check;
+it does not establish absence of past use. Unknown findings and inaccessible audit
+records remain open rather than being classified from scanner counts alone.
+
+At 11:58:30 UTC / 17:28:30 IST, a fresh Node.js 22.22.0 production synthetic run
+passes all three probes, including the dedicated staff login, with alerts and
+automatic restarts disabled. This point-in-time result does not replace hosted
+monitoring, provider-origin payment proof or the required observation periods.
+
 ## Open containment and recovery work
 
-- Reset the alerted old Neon owner's password through its verified owning
-  account; prove replacement acceptance and fresh rejection of the exposed
-  password. Inventory that resource's consumers without copying its URL into
-  current production or staging configuration.
+- Obtain the old Neon organization's control-plane access to inventory other
+  branches, consumers and audit evidence. The alerted endpoint password is
+  revoked; that result does not cover cloned branches. Keep its protected
+  operator reference separate from current production and staging URLs.
 - Independently verify provider-origin webhook delivery under the new secret;
   the operator confirms its provider change, while the tests above prove the
   deployed verifier and rejection boundaries. Earlier saved values were first

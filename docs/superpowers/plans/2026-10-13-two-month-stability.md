@@ -1,15 +1,21 @@
 # Docita Two-Month Stability Implementation Plan
 
 **17 October security containment:** the operator's Neon notice identifies an
-older database whose exposed password still authenticates. Independent historical
+older database whose exposed password initially authenticated. Independent historical
 artifact checks also match production signing, field and live Razorpay keys.
 Fresh JWT/document-signing keys are applied with health and staff-login proof;
 images, idle behavior and the stopped worker are preserved. The new live Razorpay
 API pair is applied and the exposed pair is rejected by the provider. The new
 webhook secret passes deployed signature checks and both ingress routes reject
-the exposed signature. Old-Neon owner access, provider-origin webhook delivery,
-authenticated field re-encryption and complete historical
-triage remain required. See the [credential incident](../../audits/2026-10-17-credential-exposure-incident.md).
+the exposed signature. At 11:38 UTC, the alerted Neon endpoint password was
+rotated: fresh direct and pooled connections accept the replacement and reject
+the exposed password. Old-organization branch/audit access, provider-origin
+webhook delivery, authenticated field re-encryption and complete historical
+triage remain required. The actual deployed decoder fails retained-key `v1` and
+legacy recovery with disposable values; the field key stays unchanged pending
+the reviewed compatibility rollout and recovery proof. The 17-field read-only
+format inventory does not close historical backup dependencies. See the
+[credential incident](../../audits/2026-10-17-credential-exposure-incident.md).
 
 **17 October staging follow-up:** Render login is live, but the service still
 references the production database and stays suspended. A new independent Neon

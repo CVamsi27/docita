@@ -31,17 +31,35 @@ writer needs only the age public recipient. See
   passing.
 - Confirm `pnpm check:phi-encryption-coverage --enforce` passes on the release
   branch.
-- Rehearse current, historical and legacy-format recovery with synthetic values:
+- Rehearse current, historical and legacy-format recovery with synthetic values
+  in the candidate:
 
   ```sh
   pnpm --filter @docita/api exec jest --runInBand --runTestsByPath src/shared/common/encryption.service.spec.ts
   ```
 
+- Verify the same exact plaintext recovery checks against the compiled artifact
+  actually deployed to every affected service, using disposable keys in an
+  isolated invocation without modifying runtime configuration. Record artifact
+  identity and current, retained-key `v1`, legacy and tamper results. Candidate
+  unit tests do not prove the deployed decoder supports rotation. If either
+  retained-key recovery check fails, stop before changing any key and release
+  the compatible decoder through the reviewed staging/release path first.
+- Inventory all canonical encryption consumers using aggregate format checks
+  without exporting or decrypting clinical rows. A zero match count does not
+  prove that retained backups, recovery copies or historical consumers no longer
+  need a key. Prefixes do not identify which key authenticated a value.
 - Inventory the retained keys and their independent protected recovery copies.
   Preserve existing historical slots; if all four are occupied, stop and prepare
   a verified re-encryption/retirement plan before replacing any key. `V6` is not
   an implemented slot.
 - Schedule the rotation during a low-traffic window.
+
+The [17 October incident](../audits/2026-10-17-credential-exposure-incident.md)
+records failed retained-key `v1` and legacy recovery in the unchanged deployed
+artifact. Its 17-field aggregate inventory has no mapping gaps, but does not
+close historical recovery dependencies. Production field-key rotation remains
+blocked on the preconditions above.
 
 ## Rotation Steps
 

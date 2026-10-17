@@ -95,8 +95,12 @@ The subsequent [credential-exposure incident](2026-10-17-credential-exposure-inc
 adds production credential containment gates. Signing-key containment passed
 without a source release. The live API pair is now applied with provider rejection
 of the exposed pair, and webhook-secret rotation passes deployed signature and
-public rejection checks. The alerted old Neon database, provider-origin delivery,
-field re-encryption and complete historical-provider triage remain open.
+public rejection checks. The alerted old Neon endpoint now rejects its exposed
+password on direct and pooled connections after the verified rotation; other
+branches and access history remain unassessed. Provider-origin delivery, field
+re-encryption and complete historical-provider triage remain open. The unchanged
+deployed decoder fails synthetic retained-key recovery, so production field-key
+rotation still requires the reviewed compatible source rollout and recovery proof.
 
 ## Credential inspection incident
 
