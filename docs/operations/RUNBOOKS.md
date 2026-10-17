@@ -102,7 +102,7 @@ critical regression confirmed by Sentry / synthetic checks.
   [certificate/DNS investigation](playbooks/cloudflare-upstream-timeout.md).
 - Sentry error rate returns to baseline within 10 minutes.
 - Synthetic monitoring is enabled, alert delivery verified, and
-  `/api/health/live` + authenticated `/api/v1/auth/me` smoke are green for
+  `/api/health/live` + authenticated `/api/v1/auth/validate` smoke are green for
   3 consecutive runs.
 
 **Postmortem** Capture deploy SHA, selected recovery image/release, config revision, customer-impact window,

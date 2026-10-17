@@ -40,7 +40,7 @@ closed deliberately (section 5).
 
 - Frontend load: `/login` + one protected route load with no chunk-load errors (browser console clean of `Failed to fetch dynamically imported module`)
 - API health: direct/public/proxied `/api/health/live` and `/api/health/ready`;
-  authenticated `/api/v1/auth/me` smoke and alert delivery
+  authenticated `/api/v1/auth/validate` smoke and alert delivery
 - Database: connectivity + migration state
 - Redis/cache: reachable
 - Queue heartbeat: worker cron start line + queue depth trend

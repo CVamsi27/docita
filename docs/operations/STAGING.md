@@ -3,6 +3,28 @@
 This repo keeps a PR-protected `staging` branch for pre-production validation.
 Its deployed revision must be verified before using staging results as release evidence.
 
+## Current preparation, 17 October 2026
+
+The signed-in Render service still holds a production-endpoint owner URL and
+remains suspended on its old main revision. A separate empty Neon Free project
+is now prepared: `wispy-forest-27565397`, root `br-icy-violet-a13qncy8`, endpoint
+`ep-bold-wave-a15dfyvk`, database `docita_staging`, runtime role `docita_app`.
+All 175 migrations, zero schema drift, integrity and 19 strict isolation checks
+pass; all 91 tenant tables have the required policies. Local candidate startup,
+health and the real auth-session boundary also pass. See the
+[current checkpoint](../audits/2026-10-17-staging-isolation-checkpoint.md).
+
+Local operator configuration and GitHub's existing `STAGING_DATABASE_URL` secret
+now use that restricted staging target. A protected Render environment file has
+fresh staging JWT/field keys and explicit safety flags; Render has not received
+it. A dedicated Turnstile pair is required before deployed startup. Preserve
+existing test-only Razorpay settings; use Save only for the credential handoff
+and keep the old service suspended until candidate review and staging alignment.
+
+The independent project replaces the schema-only branch path for routine staging;
+no production data was copied. A fixed 0.25 CU compute uses the Free plan's idle
+suspension default. Production and recovery branches are not routine fixtures.
+
 ## Observed operator state, 16 October 2026
 
 The authenticated Render console shows `docita-api-staging` in the Docita
@@ -44,8 +66,8 @@ recovery work, not permission to use production data as a routine staging fixtur
 - API: Render web service deployed from the `staging` branch
 - App: Cloudflare staging environment via [`apps/app/wrangler.toml`](../../apps/app/wrangler.toml) using `--env staging`
 - Internal: Cloudflare staging environment via [`apps/internal/wrangler.toml`](../../apps/internal/wrangler.toml) using `--env staging`
-- Database: isolated Neon branch with a verified staging endpoint and credentials.
-  Prefer schema-only branches plus synthetic fixtures for routine testing. A
+- Database: independent Neon staging project/root with verified endpoint and credentials.
+  Use the independently initialized schema plus synthetic fixtures for routine testing. A
   variable named `STAGING_DATABASE_URL` is not proof of isolation: the October
   audit found a local alias pointing at production. Verify its endpoint's branch
   identity against Neon before migration, seeding or write probes.
@@ -56,6 +78,7 @@ Use these values for the staging API service:
 
 ```env
 NODE_ENV=staging
+SECRETS_PROVIDER=env
 DATABASE_URL=<verified isolated staging branch connection string>
 APP_URL=https://staging-app.docita.work
 FRONTEND_URL=https://staging-app.docita.work
@@ -63,7 +86,20 @@ API_PUBLIC_URL=https://staging-api.docita.work/api/v1
 # Legacy aliases (deprecated): NEXT_PUBLIC_APP_URL / NEXT_PUBLIC_API_URL
 CORS_ORIGINS=https://staging-app.docita.work,https://staging-internal.docita.work
 STORAGE_PROVIDER=local
+ENABLE_SCHEDULERS=false
+WORKER_ENTRYPOINT=main
+QUEUE_BACKEND=postgres
+RLS_ENABLED=true
+AI_EXTERNAL_ENABLED=false
+AI_CLOUD_OCR_ENABLED=false
+DATABASE_CONTROL_ENABLED=false
+DATABASE_CONTROL_DEPLOY_GUARD=false
 ```
+
+Also supply fresh staging-only `JWT_SECRET` and `ENCRYPTION_KEY`, a dedicated
+`TURNSTILE_SECRET_KEY`, and the three required Razorpay **test** settings. Staging
+frontend builds must receive the matching `VITE_TURNSTILE_SITE_KEY`. Public test
+keys used by local harnesses are not the deployed staging widget configuration.
 
 The Render staging service must set `DATABASE_URL` directly to that branch's
 connection string. Keep payment, messaging, storage and alert credentials isolated

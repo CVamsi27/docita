@@ -1,5 +1,13 @@
 # Docita Two-Month Stability Implementation Plan
 
+**17 October staging follow-up:** Render login is live, but the service still
+references the production database and stays suspended. A new independent Neon
+Free staging project passes all 175 migrations, zero drift, integrity, 19 strict
+isolation checks and local candidate startup/auth boundary/clean shutdown.
+Protected local and GitHub staging URLs are corrected. Render needs the prepared
+credential handoff and dedicated Turnstile pair before reviewed source deployment
+and soak. See the [current staging checkpoint](../../audits/2026-10-17-staging-isolation-checkpoint.md).
+
 **16 October completion pass:** the writer rejects unsafe database roles before
 dumping. The selected free GitHub cycle and remote Sentry boundary pass 117
 process cases and 34 launcher/workflow cases. Its main-only secret environment is

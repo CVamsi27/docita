@@ -354,7 +354,7 @@ compatibility before recovery. [Wrangler rollback reference](https://developers.
 - Page the on-call channel with the affected app, the rolled-to version, and the failing version.
 - Open a Sentry filter for the failing release tag to scope the post-mortem.
 - Confirm direct/public/proxied `/api/health/live` and `/api/health/ready`, then
-  authenticated `/api/v1/auth/me` smoke. Verify that the synthetic monitor is
+  authenticated `/api/v1/auth/validate` smoke. Verify that the synthetic monitor is
   enabled and delivers alerts before relying on its recovery window; see
   [`SYNTHETIC_MONITORING.md`](./SYNTHETIC_MONITORING.md).
 

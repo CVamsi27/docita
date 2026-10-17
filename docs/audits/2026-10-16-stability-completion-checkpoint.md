@@ -5,6 +5,10 @@ compliance fixes. Source repairs and bounded operator preparation have progresse
 production stability is not certified. No source release, production migration,
 clinical backup dump, backup schedule, paid scheduler or worker start occurred.
 
+The [17 October staging follow-up](2026-10-17-staging-isolation-checkpoint.md)
+records the new isolated database, full migration/role proof and remaining Render
+credential/Turnstile gates. Results below retain their 16 October scope.
+
 ## Verified this pass
 
 | Gate                            | Current result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
