@@ -461,6 +461,13 @@ and [GHCR billing](https://docs.github.com/en/billing/concepts/product-billing/g
 Existing R2 retention still requires account storage/operation usage to remain
 within its free allowance; these hosting choices do not waive storage charges.
 
+On 17 October the operator imposed a **$0 spending limit**. Keep activation
+disabled until actual account allowances and effective no-charge limits are
+verified. The free runner designation does not cap artifact/cache storage, R2
+overages or pre-existing hosting. Local verification may continue; new hosted
+runs and resource activation are held. See the current
+[spending gate](../audits/2026-10-17-staging-isolation-checkpoint.md#zero-dollar-spending-gate).
+
 [`database-backup.yml`](../../.github/workflows/database-backup.yml) schedules one
 complete cycle at **17 minutes past each UTC hour**. It runs only on main with
 `DOCITA_BACKUPS_ENABLED=true`, a reviewed registry digest and explicit protected

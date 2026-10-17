@@ -1,5 +1,12 @@
 # Docita Two-Month Stability Implementation Plan
 
+**17 October spending constraint:** the operator requires $0 spending. New
+pushes, hosted runs, cloud activations and paid resources are on hold while
+account limits and the scope of existing hosting costs are resolved. Continue
+local checks. Public standard GitHub runner minutes are free, but storage and
+existing Fly/R2 usage are not established as free or hard-capped. The prepared
+backup schedule remains disabled; no zero-dollar billing guarantee is claimed.
+
 **17 October security containment:** the operator's Neon notice identifies an
 older database whose exposed password initially authenticated. Independent historical
 artifact checks also match production signing, field and live Razorpay keys.
@@ -17,13 +24,22 @@ the reviewed compatibility rollout and recovery proof. The 17-field read-only
 format inventory does not close historical backup dependencies. See the
 [credential incident](../../audits/2026-10-17-credential-exposure-incident.md).
 
-**17 October staging follow-up:** Render login is live, but the service still
-references the production database and stays suspended. A new independent Neon
+**17 October staging follow-up:** Render's 26-variable configuration is saved;
+targeted readback confirms the isolated staging database and restricted role.
+The service stays suspended and has no new deployment. The connector's subsequent
+deploy attempt returned 400 because the service is suspended. A new independent Neon
 Free staging project passes all 175 migrations, zero drift, integrity, 19 strict
 isolation checks and local candidate startup/auth boundary/clean shutdown.
-Protected local and GitHub staging URLs are corrected. Render needs the prepared
-credential handoff (the Turnstile pair is now prepared) before reviewed source deployment
-and soak. See the [current staging checkpoint](../../audits/2026-10-17-staging-isolation-checkpoint.md).
+Protected local, GitHub and saved Render staging URLs are corrected. Reviewed
+source alignment, actual hosted revisions, runtime configuration verification and
+soak remain required. Code Review access is restored: the prior head has one API
+coverage failure despite 2,755 passing tests. The workflow repair runs the full
+scoped API suite for its global budget; all 4,386 tests and the unchanged coverage
+thresholds pass locally. A describe-level branding skip also suppressed all
+mobile/tablet auth cases. Moving it into the desktop-only hero case restores
+those checks: the isolated local run passes 14 cases with only two hero skips.
+The prepared changes still need hosted verification, held by the spending gate. See the
+[current staging checkpoint](../../audits/2026-10-17-staging-isolation-checkpoint.md).
 
 **16 October completion pass:** the writer rejects unsafe database roles before
 dumping. The selected free GitHub cycle and remote Sentry boundary pass 117
@@ -34,8 +50,9 @@ A critical rotation fix now decrypts old v1 records with remaining configured
 historical keys, with ten focused regressions. Full release gating now requires a
 fresh staging latency baseline. Current unit checks pass 6,387 cases, workspace
 types pass 29 tasks and all 508 API E2E cases pass across four bounded shards.
-The operator reports pricing/billing resolved; Code Review still requests its
-GitHub connection. Sentry CLI has only CI scope; monitor management/quota/routing,
+The operator reports pricing/billing resolved; the later Code Review access and
+API coverage findings above supersede the earlier connection blocker. Sentry CLI
+has only CI scope; monitor management/quota/routing,
 current staging, clinical recovery/RLS rollout and elapsed soaks remain open.
 See the [current checkpoint](../../audits/2026-10-16-stability-completion-checkpoint.md).
 
@@ -71,6 +88,7 @@ Production source remains unreleased. Current evidence and credential containmen
 ## Global Constraints
 
 - Production healthcare system handling PHI; preserve tenant, role, audit and encryption boundaries.
+- Spend $0. Do not create paid resources or enable metered runs without verified no-charge limits; continue local verification while billing scope remains unresolved.
 - Node.js `>=22.22.0`; package manager **pnpm only** (`pnpm@10.30.3`). Match the pinned CI/runtime when gathering release evidence.
 - Schemas in `packages/types` are canonical. Preserve existing clients through API, schema and frontend release overlap.
 - Existing clinic-associated users retain `onboardingStep = COMPLETED`; new requirements use targeted prompts, never a reset to onboarding.

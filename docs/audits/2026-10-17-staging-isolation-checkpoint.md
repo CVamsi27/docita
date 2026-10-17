@@ -11,7 +11,7 @@ was copied and no staging soak has started.
 | --------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | Production            | Neon `icy-river-59903017` / `ep-plain-rain-a1zogxgl`                                  | Existing owner connection                    | Current protected password matches Neon and authenticates through verified TLS/UTC. Production owner-role/RLS rollout remains open.          |
 | Prepared staging      | Neon `wispy-forest-27565397` / `ep-bold-wave-a15dfyvk`, root `br-icy-violet-a13qncy8` | `docita_app` on `docita_staging`             | Independent empty project, Singapore, PostgreSQL 17, Free organization, fixed 0.25 CU; idle suspension inherits the Free default.            |
-| Actual Render service | `srv-d7btp2juibrs739v1gsg`, Free Node, Singapore                                      | Still stores a production-endpoint owner URL | Suspended, connected to main, last successful commit `cce2a2fb49121addeb5438773c567102b1317394`. The new configuration has not been applied. |
+| Actual Render service | `srv-d7btp2juibrs739v1gsg`, Free Node, Singapore                                      | Saved isolated staging target, `docita_app` | Suspended, connected to main, last successful commit `cce2a2fb49121addeb5438773c567102b1317394`. New environment configuration is saved; no new deployment. |
 
 The staging project was created independently, with no production parent or
 restore/copy request. It had zero public tables before migration. Its fresh
@@ -66,9 +66,9 @@ Production `DATABASE_URL` is unchanged. Fresh staging JWT and field-encryption
 keys are in a mode-0600 local Render handoff file; no secret value is in this
 record. The API retains the canonical JWT fallback for document signing.
 
-Render's existing URLs reference staging, storage is local and its three
-Razorpay settings are present with a test-mode key ID. It has no dedicated
-Turnstile secret and no explicit scheduler-disable setting. The prepared file
+Before the configuration save, Render's URLs referenced staging, storage was
+local and its three Razorpay settings were present with a test-mode key ID.
+It lacked a dedicated Turnstile secret and explicit scheduler-disable setting. The prepared file
 sets `ENABLE_SCHEDULERS=false`, RLS on, PostgreSQL queues, external AI/cloud OCR
 and database control off, and staging-only origins.
 
@@ -79,12 +79,38 @@ Protected API/frontend handoff files contain their matching inputs. Full runtime
 validation and a repeat local startup with the saved secret pass: 3.613 seconds,
 live/ready 200, unauthenticated session 401, SIGTERM exit zero. Razorpay inputs in
 that local probe remain synthetic; no real Turnstile challenge is claimed.
-The browser credential-entry handoff is pending and must save settings using
-**Save only**; do not resume the old build. Render documents that
-[Save only does not trigger a deploy](https://render.com/docs/configure-environment-variables).
+The subsequent Render connector connection allowed the 26 prepared variables to
+be merged without overriding the three existing Razorpay settings. The connector
+then returned **400: cannot deploy suspended service**. A fresh console read
+confirms 31 saved variable names, including all 26 submitted names, the three
+payment-test names and two pre-existing staging Turnstile names. A targeted
+database-value check returns only booleans: the saved URL targets the isolated
+staging database with `docita_app`, not the production endpoint. No URL/password
+was printed; the page was reloaded and all secret textareas are empty again.
+The service remains suspended and the latest deploy ID is still
+`dep-d9krhm142hec73fkl3kg` (the old failed July deployment). No new deployment or
+runtime value/startup verification occurred. Do not resume the old build. The
+[Render API reference](https://api-docs.render.com/reference/update-env-vars-for-service)
+distinguishes saving variables from deploying; this connector attempted both.
 
-Current candidate CI still cannot be inspected because Code Review requests its
-GitHub connection. PR #322 is open for review; main/staging trees are unchanged.
+Code Review access is now restored. At head `0e0d60806`, 13 hosted checks succeed,
+three are skipped by their workflow scope and API Unit Checks fails: all 2,755
+selected tests pass, but changed-file instrumentation narrows global coverage to
+one file and fails the existing thresholds. The critical frontend job reports
+64 passed / 8 skipped; skipped cases are not complete journey evidence. A local
+repeat reproduces the API coverage failure. The full API suite passes 4,386 tests
+across 526 suites with statements 83.43%, branches 70.81%, functions 74.68% and
+lines 83.27%. The API workflow now uses the full API suite for its global budget,
+with a real Git/Jest fixture proving untouched required files cannot disappear
+from that gate. Thresholds are preserved; the updated head still needs hosted CI.
+The eight frontend skips came from a describe-level desktop branding condition
+that also skipped login, rejection and validation cases on mobile/tablet. The
+unchanged baseline reproduces all eight skips. The condition now applies only
+inside the hero test. An owned local PostgreSQL 17/API/Vite exercise passes
+**14 auth cases / 2 hero skips**, with no failures or flaky cases across four
+viewports. All disposable database/container files were removed. This uses only
+synthetic local accounts and no cloud-provider or production access.
+PR #322 is open for review; main/staging trees are unchanged.
 Reviewed main acceptance, the protected staging alignment PR, actual Render and
 Cloudflare revisions, matching Turnstile frontend configuration, authenticated
 journeys, latency measurements and the full staging soak remain open. The backup
@@ -111,7 +137,26 @@ freshly over verified TLS; it was not printed. The 14 October rotation record
 already verified rejection of the prior credential. This pass did not retry the
 exposed Render password or rotate production again. The secret view was reloaded;
 no claim is made about erasing tool history. Keep staging suspended and replace
-its production target before any use.
+the old source with the reviewed candidate before any use. The former production
+database target is now replaced by the isolated staging target verified above.
+
+## Zero-dollar spending gate
+
+The operator requires **$0 spending**. New pushes, hosted runs, backup activation
+and paid resources are on hold; local verification continues. Existing
+production resources have not been stopped while the meaning of total versus
+additional spending remains unresolved.
+
+The repository is public and uses standard GitHub runners, whose minutes are
+[free for public repositories](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
+Artifact/cache storage still needs a verified zero-dollar usage limit. Both
+personal billing usage API reads returned 404 for this login; the billing page
+is signed out. Neither result establishes zero usage or a hard cap. Render has
+one service, the suspended Free staging service. The Fly organization is
+`personal`; its billing allowance is unverified and
+[stopped machine storage can still bill](https://fly.io/docs/about/pricing/).
+R2's [free allowance](https://developers.cloudflare.com/r2/pricing/) is not a
+spending cap. No account budget change or new chargeable resource is claimed.
 
 ## Subsequent local source validation
 

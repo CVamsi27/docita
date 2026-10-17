@@ -136,10 +136,10 @@ jobs:
       - name: Typecheck API
         run: pnpm --filter @docita/api run check-types
 
-      - name: Fetch main branch for change detection
-        run: git fetch origin main
-      - name: Test API (changed only)
-        run: pnpm --filter @docita/api run test:ci --changedSince=origin/main
+      # Global coverage thresholds require the full API coverage population.
+      # Changed-file selection narrows instrumentation as well as test selection.
+      - name: Test API with global coverage
+        run: pnpm --filter @docita/api run test:ci
   api-e2e:
     name: API E2E Tests (${{ matrix.shard }}/${{ matrix.total }})
     needs: changes

@@ -23,6 +23,8 @@ Node test runner and an isolated local PostgreSQL fixture.
 
 ## Constraints and acceptance
 
+- The 17 October **$0 spending limit** holds new hosted runs and activation until
+  actual no-charge limits are verified; see the [current spending gate](../../audits/2026-10-17-staging-isolation-checkpoint.md#zero-dollar-spending-gate).
 - Production deployments, clinician flows and production schema stay outside
   this backup preparation. A separately verified critical field-key rotation fix
   is included in the stability candidate. Production retains API idle shutdown and best-effort receipts.

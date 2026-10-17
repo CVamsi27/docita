@@ -7,7 +7,10 @@ clinical backup dump, backup schedule, paid scheduler or worker start occurred.
 
 The [17 October staging follow-up](2026-10-17-staging-isolation-checkpoint.md)
 records the new isolated database, full migration/role proof and remaining Render
-credential/Turnstile gates. Results below retain their 16 October scope.
+deployment/soak gates. Render configuration is now saved, CI access is restored
+and the coverage/auth repairs pass locally. The operator's new $0 spending gate
+holds pushes and activation pending billing verification. Results below retain
+their 16 October scope.
 
 The [17 October credential incident](2026-10-17-credential-exposure-incident.md)
 confirms historical credentials still matched live resources. Signing containment

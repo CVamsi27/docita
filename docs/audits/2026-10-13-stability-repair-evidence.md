@@ -1,7 +1,10 @@
 # Docita stability repair evidence — 13 October 2026
 
 Status: **source corrections and final images verified locally; production baseline not certified**.
-Latest follow-up: 16 October 2026. The source repair batch is split into focused commits for review. Final image hardening is verified; independent backup activation and production release gates remain open. The [completion checkpoint](2026-10-16-stability-completion-checkpoint.md) records 117 backup lifecycle regressions, 34 launcher/workflow cases, current workspace/E2E checks, restricted-login restore evidence and tooling images and remaining release/recovery/monitoring gates. The age-identity offline challenge/custody handoff is complete and its connected private identity removed; the new actual-runtime application-key packet still needs offline verification.
+Latest follow-ups: 16–17 October 2026. The source repair batch is split into focused commits for review. Final image hardening is verified; independent backup activation and production release gates remain open. The [completion checkpoint](2026-10-16-stability-completion-checkpoint.md) records 117 backup lifecycle regressions, 34 launcher/workflow cases, current workspace/E2E checks, restricted-login restore evidence and tooling images and remaining release/recovery/monitoring gates. The age-identity offline challenge/custody handoff is complete and its connected private identity removed; the new actual-runtime application-key packet still needs offline verification.
+The [17 October follow-up](2026-10-17-staging-isolation-checkpoint.md) supersedes
+the Render configuration/CI access blockers and records the remaining deployment,
+recovery and $0 spending gates. New pushes and cloud activation remain on hold.
 The user authorized further analysis and fixes under a feature freeze through
 13 December 2026. Critical bug, security and compliance corrections remain allowed.
 
