@@ -5,8 +5,10 @@ older database whose exposed password still authenticates. Independent historica
 artifact checks also match production signing, field and live Razorpay keys.
 Fresh JWT/document-signing keys are applied with health and staff-login proof;
 images, idle behavior and the stopped worker are preserved. The new live Razorpay
-API pair is applied and the exposed pair is rejected by the provider. Old-Neon
-owner access, webhook-secret rotation, authenticated field re-encryption and complete historical
+API pair is applied and the exposed pair is rejected by the provider. The new
+webhook secret passes deployed signature checks and both ingress routes reject
+the exposed signature. Old-Neon owner access, provider-origin webhook delivery,
+authenticated field re-encryption and complete historical
 triage remain required. See the [credential incident](../../audits/2026-10-17-credential-exposure-incident.md).
 
 **17 October staging follow-up:** Render login is live, but the service still

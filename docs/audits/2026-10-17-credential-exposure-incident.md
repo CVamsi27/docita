@@ -90,9 +90,33 @@ verification without repeating the machine updates.
 At 08:19:55 UTC / 13:49:55 IST, all three production synthetic probes pass,
 including staff login, with alert delivery and automatic restarts disabled.
 
-The webhook signing secret still matches the exposed historical value. Its
-separate provider change and runtime update remain required; live webhook
-delivery and end-to-end payment completion have not been verified.
+At this API-only checkpoint, the webhook signing secret still matched the
+exposed value. The subsequent webhook rotation below supersedes that status.
+
+## Webhook signing rotation verified
+
+At 10:55 UTC / 16:25 IST, the operator's fresh webhook secret is applied to both
+Fly stores and existing machine configurations. API runtime comparisons confirm
+the new webhook secret and API pair, with JWT, document signing, field encryption
+and database credentials preserved. Images and idle settings remain unchanged;
+the clinical worker remains stopped. GitHub sandbox secrets were not changed.
+An additional age-encrypted provider recovery bundle is prepared, with its
+independent offline proof still open.
+
+At 10:57 UTC / 16:27 IST, the actual deployed compiled webhook verifier accepts
+the new HMAC and rejects the exposed-key HMAC and a tampered body. Its replay
+repository is replaced only within this isolated invocation by an in-memory
+claim stub; no production database is used for that proof. Both public payment
+and subscription webhook routes return **401** for the exposed signature over
+a synthetic, nonfinancial probe body. No valid signed webhook was submitted to
+the handlers, and no payment was processed. An initial historical-artifact
+selection harness failure was retained; the corrected check qualifies both
+historical artifacts before contacting the runtime.
+
+At 10:57:19 UTC / 16:27:19 IST, production synthetic monitoring passes all three
+probes, including staff login, with its alerts and automatic restarts disabled.
+Provider-origin delivery under the new secret and end-to-end payment completion
+have not been independently verified.
 
 ## Open containment and recovery work
 
@@ -100,11 +124,12 @@ delivery and end-to-end payment completion have not been verified.
   account; prove replacement acceptance and fresh rejection of the exposed
   password. Inventory that resource's consumers without copying its URL into
   current production or staging configuration.
-- Replace the exposed live Razorpay webhook signing secret at the provider and
-  its actual production consumers, then verify new signatures and rejection of
-  the old secret. Earlier saved values were first test-mode and then unchanged
-  live credentials; the 08:10 UTC provider check still accepted the old pair.
-  The later live API rotation above supersedes that API-key status. Reconcile
+- Independently verify provider-origin webhook delivery under the new secret;
+  the operator confirms its provider change, while the tests above prove the
+  deployed verifier and rejection boundaries. Earlier saved values were first
+  test-mode and then unchanged live credentials; the 08:10 UTC provider check
+  still accepted the old pair. The later API and webhook rotations above
+  supersede those credential statuses. Reconcile
   historical delivery failures through verified provider state: older webhook
   retries can retain the old signature, and the compromised secret must not be
   re-enabled to accept them. See [Razorpay signature validation](https://razorpay.com/docs/webhooks/validate-test/).
