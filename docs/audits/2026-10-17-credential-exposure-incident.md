@@ -68,20 +68,46 @@ must not be accepted after the signing change. Refresh-token revocation is a
 separate decision and was not performed; affected users may need to sign in
 again, and old signed public links require reissue.
 
+## Live API credential rotation verified
+
+At 08:19 UTC / 13:49 IST, the replacement live API credential authenticates
+(HTTP 200), and the exposed live credential is rejected (HTTP 401). The operator
+updated both protected local files, so replacement qualification uses the
+historical artifact directly rather than treating either mutable file as the old
+credential. Provider checks use read-only requests and discard response bodies;
+no payment or webhook was created.
+
+Both Fly stores and existing machines received the new API pair. Runtime
+fingerprint verification confirms the new pair and preserved JWT, document
+signing, field-encryption and database values. Images and service/idle settings
+are unchanged, and the worker remains stopped. A provider recovery bundle is
+age-encrypted to the verified offline recipient; independent offline proof is
+still required. The repository Razorpay secrets feed sandbox E2E jobs, so they
+were preserved rather than receiving live credentials. An operator helper was
+stopped before its proposed GitHub updates, then finalized through runtime
+verification without repeating the machine updates.
+
+At 08:19:55 UTC / 13:49:55 IST, all three production synthetic probes pass,
+including staff login, with alert delivery and automatic restarts disabled.
+
+The webhook signing secret still matches the exposed historical value. Its
+separate provider change and runtime update remain required; live webhook
+delivery and end-to-end payment completion have not been verified.
+
 ## Open containment and recovery work
 
 - Reset the alerted old Neon owner's password through its verified owning
   account; prove replacement acceptance and fresh rejection of the exposed
   password. Inventory that resource's consumers without copying its URL into
   current production or staging configuration.
-- Regenerate the exposed **live** Razorpay API credential and webhook secret,
-  update only their actual consumers, and verify provider rejection of the old
-  credentials and new webhook signatures. An initial saved file contained a
-  test-mode key. The subsequent live-mode values match all three exposed values;
-  at 08:10 UTC / 13:40 IST a read-only provider check still accepts the exposed
-  API credential (HTTP 200). Response bodies were discarded and no payment or
-  webhook was created. No payment secret update was applied. Newly generated
-  credentials and provider revocation remain required.
+- Replace the exposed live Razorpay webhook signing secret at the provider and
+  its actual production consumers, then verify new signatures and rejection of
+  the old secret. Earlier saved values were first test-mode and then unchanged
+  live credentials; the 08:10 UTC provider check still accepted the old pair.
+  The later live API rotation above supersedes that API-key status. Reconcile
+  historical delivery failures through verified provider state: older webhook
+  retries can retain the old signature, and the compromised secret must not be
+  re-enabled to accept them. See [Razorpay signature validation](https://razorpay.com/docs/webhooks/validate-test/).
 - Preserve the field key needed by existing ciphertext and recovery copies.
   Prepare authenticated re-encryption, rollback and independent recovery proof
   before replacing it. The retained-key fallback fix is only in the proposed

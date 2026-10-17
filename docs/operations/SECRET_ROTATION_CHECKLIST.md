@@ -6,6 +6,7 @@ Operational runbook for rotating credentials referenced in `.env.example`. Code 
 
 - [ ] Schedule a maintenance window if JWT or DB rotation causes brief auth churn.
 - [ ] Verify the affected environment's provider project/branch, endpoint, role and every credential consumer. A staging variable name is not isolation proof; follow [STAGING.md](STAGING.md).
+- [ ] If the operator updated multiple local files, compare replacements with confirmed exposure evidence or the actual runtime; another mutable local file is not a reliable old-value baseline.
 - [ ] Rehearse planned rotation and smoke tests on isolated staging. For exposed credentials, use the containment path with fresh login/rejection and runtime verification; do not wait for unrelated staging repair.
 - [ ] Record affected platform configuration/image/version identities and keep rollback material only in protected operator storage. Never print credentials or export them into public evidence.
 - [ ] Inspect secrets through sanitized comparisons. Browser masking can leave plaintext in DOM/accessibility values; do not capture generic state after revealing a secret. Reload the view before state capture.
@@ -16,7 +17,7 @@ Operational runbook for rotating credentials referenced in `.env.example`. Code 
 2. **`JWT_SECRET`** (min 32 chars) — generate a fresh secret and verify it in the restarted API. Previously signed access tokens stop validating; opaque refresh sessions can still renew access unless separately revoked. If document signing used the JWT fallback or an exposed explicit key, rotate `PUBLIC_DOCUMENT_SIGNING_SECRET` to a separate fresh value; existing signed public links will need reissue. Keep stopped workers stopped while applying the new secret version, and preserve the image and idle configuration.
 3. **`ENCRYPTION_KEY`** (64-char hex) — only with a documented re-encryption plan for fields encrypted at rest.
 4. **`API_PUBLIC_URL`** (legacy alias `NEXT_PUBLIC_API_URL`) — verify app/internal proxy and CORS allowlists after origin changes.
-5. Third-party keys (Razorpay, WhatsApp, S3/R2, Sentry) — rotate in provider console; update platform secrets; verify webhooks still verify signatures.
+5. Third-party keys (Razorpay, WhatsApp, S3/R2, Sentry) — rotate in provider console; update platform secrets; verify webhooks still verify signatures. Razorpay API keys and webhook signing secrets are separate rotations. Repository `RAZORPAY_*` secrets feed sandbox E2E jobs; keep live replacements scoped to production Fly consumers and preserve the test credentials.
 
 ## After rotation
 
