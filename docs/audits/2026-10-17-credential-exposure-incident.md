@@ -76,9 +76,12 @@ again, and old signed public links require reissue.
   current production or staging configuration.
 - Regenerate the exposed **live** Razorpay API credential and webhook secret,
   update only their actual consumers, and verify provider rejection of the old
-  credentials and new webhook signatures. The operator reports saving replacements,
-  but the inspected protected file still contains a test-mode API key; no payment
-  secret update was applied. Confirm the saved live-key location before proceeding.
+  credentials and new webhook signatures. An initial saved file contained a
+  test-mode key. The subsequent live-mode values match all three exposed values;
+  at 08:10 UTC / 13:40 IST a read-only provider check still accepts the exposed
+  API credential (HTTP 200). Response bodies were discarded and no payment or
+  webhook was created. No payment secret update was applied. Newly generated
+  credentials and provider revocation remain required.
 - Preserve the field key needed by existing ciphertext and recovery copies.
   Prepare authenticated re-encryption, rollback and independent recovery proof
   before replacing it. The retained-key fallback fix is only in the proposed
