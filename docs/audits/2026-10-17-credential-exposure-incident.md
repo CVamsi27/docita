@@ -164,25 +164,33 @@ reviewed migration/rollback plan are complete. See [key rotation](../operations/
 
 ## Bounded historical-finding triage
 
-At 11:54 UTC / 17:24 IST, 105 of the 107 scanner findings had source values
-qualified in process memory without printing or writing those values. Findings
+At 12:02 UTC / 17:32 IST, all 107 scanner findings had source values
+qualified in process memory without printing or writing those values. The first
+bounded pass qualified 105; the repeat resolved the two remaining extractions.
+Findings
 are repeated locations, not unique credentials. Current classification is:
 
-| Disposition                                  | Findings | Remaining limit                                                                         |
-| -------------------------------------------- | -------: | --------------------------------------------------------------------------------------- |
-| Documented placeholders / repeating fixtures |       14 | No production-validity claim follows from unrelated fixtures.                           |
-| Idempotency fixtures / boolean expressions   |       16 | Noncredential matches in their inspected source contexts.                               |
-| Expired JWTs in historical logs              |       10 | Expiry is verified; log contents and possible access still require incident assessment. |
-| Confirmed exposed field key                  |        6 | Retained for recovery; rotation remains open.                                           |
-| Confirmed exposed Razorpay secrets           |        6 | API/webhook rotations above are verified.                                               |
-| Historical Meta token                        |        2 | One unique token; read-only provider check returns 401 / OAuth 190, subcode 463.        |
-| Retired preview / server-action build keys   |       26 | Old deployment and preview inventory remains open.                                      |
-| Other findings                               |       27 | Owner/context review remains open, including two unqualified source values.             |
+| Disposition                                                    | Findings | Remaining limit                                                                         |
+| -------------------------------------------------------------- | -------: | --------------------------------------------------------------------------------------- |
+| Documented placeholders / repeating fixtures                   |       16 | No production-validity claim follows from unrelated fixtures.                           |
+| Idempotency fixtures / boolean expressions / environment names |       18 | Noncredential matches in their inspected source contexts.                               |
+| Truncated documentation tokens                                 |        2 | Inspected examples contain an ellipsis, not a complete usable JWT.                      |
+| Expired JWTs in historical logs                                |       10 | Expiry is verified; log contents and possible access still require incident assessment. |
+| Confirmed exposed field key                                    |        6 | Retained for recovery; rotation remains open.                                           |
+| Confirmed exposed Razorpay secrets                             |        6 | API/webhook rotations above are verified.                                               |
+| Historical Meta token                                          |        2 | One unique token; read-only provider check returns 401 / OAuth 190, subcode 463.        |
+| Retired preview / server-action build keys                     |       26 | Old deployment and preview inventory remains open.                                      |
+| Other findings                                                 |       21 | Source values are qualified; owner/context and historical-use review remain open.       |
 
 The Meta check sent no message and changed no current provider credential. Its
 rejection proves that historical token is not currently accepted by that check;
 it does not establish absence of past use. Unknown findings and inaccessible audit
 records remain open rather than being classified from scanner counts alone.
+
+The read-only Cloudflare Pages inventory attempt cannot authenticate in this
+CLI session, and no API token is configured in the protected operator setup.
+No deployment listing was obtained, changed or deleted. The 26 old build-key
+findings therefore remain open pending authenticated deployment/preview inventory.
 
 At 11:58:30 UTC / 17:28:30 IST, a fresh Node.js 22.22.0 production synthetic run
 passes all three probes, including the dedicated staff login, with alerts and
