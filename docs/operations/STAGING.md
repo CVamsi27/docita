@@ -17,7 +17,9 @@ health and the real auth-session boundary also pass. See the
 Local operator configuration and GitHub's existing `STAGING_DATABASE_URL` secret
 now use that restricted staging target. A protected Render environment file has
 fresh staging JWT/field keys and explicit safety flags; Render has not received
-it. A dedicated Turnstile pair is required before deployed startup. Preserve
+it. The dedicated Turnstile pair is now saved locally and incorporated in the
+protected API/frontend handoff files. Full runtime validation and a repeat local
+startup pass with the saved secret; a real widget challenge remains unverified. Preserve
 existing test-only Razorpay settings; use Save only for the credential handoff
 and keep the old service suspended until candidate review and staging alignment.
 
@@ -100,6 +102,10 @@ Also supply fresh staging-only `JWT_SECRET` and `ENCRYPTION_KEY`, a dedicated
 `TURNSTILE_SECRET_KEY`, and the three required Razorpay **test** settings. Staging
 frontend builds must receive the matching `VITE_TURNSTILE_SITE_KEY`. Public test
 keys used by local harnesses are not the deployed staging widget configuration.
+Both clinician and internal login send the proof when this public key is set.
+Verify the widget permits both corresponding hostnames. Production deployment
+steps use the existing public repository variable for both builds; staging builds
+must explicitly use the separate staging value rather than overwrite production.
 
 The Render staging service must set `DATABASE_URL` directly to that branch's
 connection string. Keep payment, messaging, storage and alert credentials isolated

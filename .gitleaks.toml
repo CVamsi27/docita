@@ -1,5 +1,8 @@
 title = "Docita gitleaks config"
 
+[extend]
+useDefault = true
+
 [allowlist]
 description = "Allow known test-only env fixture"
 paths = [

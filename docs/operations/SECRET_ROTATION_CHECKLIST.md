@@ -13,7 +13,7 @@ Operational runbook for rotating credentials referenced in `.env.example`. Code 
 ## Rotate (in order)
 
 1. **`DATABASE_URL`** — rotate within the verified Neon project/branch and update only its actual consumers. Production Fly API/worker and production migration credentials stay separate from the independent staging project and Render staging login. Never copy a production URL to staging during rotation. Preserve idle settings and keep a stopped worker stopped while updating its secret store. Verify new login and old rejection without printing values, then run migration status against the independently verified staging target.
-2. **`JWT_SECRET`** (min 32 chars) — generate new secret; deploy API; all users re-login (access tokens invalidated).
+2. **`JWT_SECRET`** (min 32 chars) — generate a fresh secret and verify it in the restarted API. Previously signed access tokens stop validating; opaque refresh sessions can still renew access unless separately revoked. If document signing used the JWT fallback or an exposed explicit key, rotate `PUBLIC_DOCUMENT_SIGNING_SECRET` to a separate fresh value; existing signed public links will need reissue. Keep stopped workers stopped while applying the new secret version, and preserve the image and idle configuration.
 3. **`ENCRYPTION_KEY`** (64-char hex) — only with a documented re-encryption plan for fields encrypted at rest.
 4. **`API_PUBLIC_URL`** (legacy alias `NEXT_PUBLIC_API_URL`) — verify app/internal proxy and CORS allowlists after origin changes.
 5. Third-party keys (Razorpay, WhatsApp, S3/R2, Sentry) — rotate in provider console; update platform secrets; verify webhooks still verify signatures.
@@ -38,7 +38,7 @@ Operational runbook for rotating credentials referenced in `.env.example`. Code 
 If post-rotation verification fails for one key but the others succeeded:
 
 1. Do not revert all keys — that compounds the blast radius.
-2. Restore only the failed key from the previous version stored in the secrets manager.
+2. For a planned rotation, restore only the failed key from the previous protected version. Never restore an exposed authentication/provider key to service; repair its replacement configuration or generate another replacement. A compromised field key may need temporary retained-key support to recover existing ciphertext, pending authenticated re-encryption and retirement.
 3. Redeploy the affected app/worker. Smoke-test the affected provider only.
 4. If `ENCRYPTION_KEY` is the one that failed and any data was already written under the new key, do not roll back — promote the new key to the next `ENCRYPTION_KEY_V<N+1>` slot (see `KEY_ROTATION.md`) and resume.
 5. Open a follow-up incident ticket noting which key, why verification failed, and what was retained.
@@ -53,4 +53,9 @@ A few historical env-var names are still accepted via runtime shims for deployme
 
 ## Never commit
 
-Live values belong in the deployment secret store only. `.env` stays gitignored.
+Live values belong in protected operator/deployment secret stores. `.env` stays
+gitignored; `.env.example` files must contain placeholders only. Generated
+`.open-next` and `dist` artifacts remain ignored. Browser builds must use explicit
+public variable allowlists and must never inline the complete server environment.
+Verify Gitleaks default rules are enabled and scan the actual publication range;
+an ignored current `.env` file does not establish clean historical credentials.

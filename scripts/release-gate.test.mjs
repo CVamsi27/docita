@@ -72,6 +72,17 @@ function gateFixture(baseline) {
     "// check-as-cast-density: allow-file fixture\n",
   );
   writeFileSync(callsFile, "");
+  const appScripts = Object.fromEntries(
+    ["app", "internal", "landing"].map((app) => {
+      const manifest = JSON.parse(
+        readFileSync(
+          path.join(scriptsDirectory, "..", "apps", app, "package.json"),
+          "utf8",
+        ),
+      );
+      return [manifest.name, manifest.scripts];
+    }),
+  );
   if (baseline !== undefined) {
     writeFileSync(
       path.join(root, "artifacts/api-latency-baseline.json"),
@@ -85,6 +96,11 @@ import { appendFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 const args = process.argv.slice(2);
 appendFileSync(${JSON.stringify(callsFile)}, JSON.stringify(args) + '\\n');
+const appScripts = ${JSON.stringify(appScripts)};
+if (args[0] === '--filter' && args[2] === 'run' && appScripts[args[1]] && !Object.hasOwn(appScripts[args[1]], args[3])) {
+  process.stderr.write('Unknown workspace script: ' + args[1] + ' ' + args[3] + '\\n');
+  process.exit(1);
+}
 if (args[0] === process.env.DOCITA_TEST_FAIL_COMMAND) {
   process.exit(23);
 }

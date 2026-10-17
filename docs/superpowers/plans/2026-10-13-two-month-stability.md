@@ -1,11 +1,19 @@
 # Docita Two-Month Stability Implementation Plan
 
+**17 October security containment:** the operator's Neon notice identifies an
+older database whose exposed password still authenticates. Independent historical
+artifact checks also match production signing, field and live Razorpay keys.
+Fresh JWT/document-signing keys are applied with health and staff-login proof;
+images, idle behavior and the stopped worker are preserved. Old-Neon owner access,
+live Razorpay rotation, authenticated field re-encryption and complete historical
+triage remain required. See the [credential incident](../../audits/2026-10-17-credential-exposure-incident.md).
+
 **17 October staging follow-up:** Render login is live, but the service still
 references the production database and stays suspended. A new independent Neon
 Free staging project passes all 175 migrations, zero drift, integrity, 19 strict
 isolation checks and local candidate startup/auth boundary/clean shutdown.
 Protected local and GitHub staging URLs are corrected. Render needs the prepared
-credential handoff and dedicated Turnstile pair before reviewed source deployment
+credential handoff (the Turnstile pair is now prepared) before reviewed source deployment
 and soak. See the [current staging checkpoint](../../audits/2026-10-17-staging-isolation-checkpoint.md).
 
 **16 October completion pass:** the writer rejects unsafe database roles before

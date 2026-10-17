@@ -2,8 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { mfaChallengeResponseSchema } from "@workspace/types";
-import { useAuth, type InternalUser } from "@/lib/auth/auth";
+import {
+  loginSchema,
+  loginWireResponseSchema,
+  type LoginInput,
+} from "@workspace/types";
+import { useAuth } from "@/lib/auth/auth";
 import { getMainAppLoginUrl } from "@/lib/auth/use-auth-session";
 import { client } from "@/lib/api/api-client";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
@@ -17,11 +21,12 @@ export function LoginPage() {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
   const loginMutation = useMutation({
-    mutationFn: async (payload: { email: string; password: string }) =>
-      client.post<{
-        user?: InternalUser;
-        access_token?: string;
-      }>("/auth/login", payload, { skipAuth: true }),
+    mutationFn: async (payload: LoginInput) =>
+      loginWireResponseSchema.parse(
+        await client.post("/auth/login", loginSchema.parse(payload), {
+          skipAuth: true,
+        }),
+      ),
   });
 
   useEffect(() => {
@@ -34,11 +39,11 @@ export function LoginPage() {
     return null;
   }
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (credentials: LoginInput) => {
     setLoading(true);
     try {
-      const data = await loginMutation.mutateAsync({ email, password });
-      if (mfaChallengeResponseSchema.safeParse(data).success) {
+      const data = await loginMutation.mutateAsync(credentials);
+      if ("mfa_required" in data) {
         // The API issues no session for an MFA challenge, so the sign-in
         // cannot complete here. Saying "check your details" would send staff
         // round the password loop for a credential that was right.
@@ -46,13 +51,14 @@ export function LoginPage() {
           "This account needs two-factor authentication, which the console cannot complete yet. Ask an administrator for help signing in.",
         );
       }
-      if (!data?.user)
-        throw new Error("We could not sign you in. Please try again.");
       if (data.user.role !== "INTERNAL") {
         window.location.replace(getMainAppLoginUrl());
         return;
       }
-      login(data.access_token ?? null, data.user);
+      login(data.access_token, {
+        ...data.user,
+        clinicId: data.user.clinicId ?? undefined,
+      });
       toast.success("Login successful");
     } catch (err) {
       showUserFacingErrorToast(

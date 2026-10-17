@@ -9,6 +9,13 @@ The [17 October staging follow-up](2026-10-17-staging-isolation-checkpoint.md)
 records the new isolated database, full migration/role proof and remaining Render
 credential/Turnstile gates. Results below retain their 16 October scope.
 
+The [17 October credential incident](2026-10-17-credential-exposure-incident.md)
+confirms historical credentials still matched live resources. Signing containment
+is verified, while the old Neon owner's password, live Razorpay credentials,
+field-key migration and historical-provider triage remain open. Recovery packets
+must include the newly encrypted replacement signing bundle; no prior snapshot
+certifies unexposed credentials.
+
 ## Verified this pass
 
 | Gate                            | Current result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |

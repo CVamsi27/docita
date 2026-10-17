@@ -72,9 +72,15 @@ Turnstile secret and no explicit scheduler-disable setting. The prepared file
 sets `ENABLE_SCHEDULERS=false`, RLS on, PostgreSQL queues, external AI/cloud OCR
 and database control off, and staging-only origins.
 
-The operator must provide a dedicated staging Turnstile pair. After it is merged
-into the protected configuration, the browser credential-entry handoff can save
-settings using **Save only**; do not resume the old build. Render documents that
+The operator's dedicated staging Turnstile pair is now saved locally. Known test
+keys are rejected, and its public site key differs from the production GitHub
+variable; no current production Turnstile secret was available for comparison.
+Protected API/frontend handoff files contain their matching inputs. Full runtime
+validation and a repeat local startup with the saved secret pass: 3.613 seconds,
+live/ready 200, unauthenticated session 401, SIGTERM exit zero. Razorpay inputs in
+that local probe remain synthetic; no real Turnstile challenge is claimed.
+The browser credential-entry handoff is pending and must save settings using
+**Save only**; do not resume the old build. Render documents that
 [Save only does not trigger a deploy](https://render.com/docs/configure-environment-variables).
 
 Current candidate CI still cannot be inspected because Code Review requests its
@@ -84,6 +90,11 @@ Cloudflare revisions, matching Turnstile frontend configuration, authenticated
 journeys, latency measurements and the full staging soak remain open. The backup
 Sentry permissions, offline application-key packet proof, clinical recovery and
 elapsed backup/production observation gates also remain open.
+
+The subsequent [credential-exposure incident](2026-10-17-credential-exposure-incident.md)
+adds production credential containment gates. Signing-key containment passed
+without a source release; the alerted old Neon database, live Razorpay rotation,
+field re-encryption and complete historical-provider triage remain open.
 
 ## Credential inspection incident
 
@@ -95,3 +106,39 @@ already verified rejection of the prior credential. This pass did not retry the
 exposed Render password or rotate production again. The secret view was reloaded;
 no claim is made about erasing tool history. Keep staging suspended and replace
 its production target before any use.
+
+## Subsequent local source validation
+
+The internal console previously sent no Turnstile proof to the guarded login
+endpoint. It now reuses the shared widget and canonical login request/response
+schemas, rejects missing/expired proofs locally and requests a fresh challenge
+after each attempt. The production build receives the existing public key
+variable, and internal CSP permits only the required Cloudflare challenge origin
+for scripts, connections and frames. Verify the production widget permits the
+internal hostname before its eventual deployment; the new staging widget is
+separate. MFA challenges still issue no console session; this fix does not add
+the missing MFA completion surface or weaken MFA.
+
+Six new frontend regressions pass after the initial reproduction failed five
+cases. Current workspace unit checks pass **6,393 cases / 48 tasks**, type checks
+pass **29 tasks**, lint passes **11 tasks**, and Knip passes. All **198** standards
+test cases pass, including five new deployment/CSP contracts. The release-gate
+fixture now validates workspace script names against real manifests; the prior
+nonexistent Cloudflare production-build aliases reproduce a failure, and the
+corrected actual tasks pass all **9** release-gate cases. Dependency audit exits
+zero with the unchanged one-high-advisory exception; its 12 November expiry
+remains required.
+
+The final full standards command exits zero. Its permissive latency check still
+skips the absent staging baseline; the required release gate continues to fail
+without measured soak evidence. This does not establish release readiness.
+
+Both staging frontend builds pass with only public build inputs. The affected
+login accessibility audit passes desktop/mobile in light/dark modes, four cases
+with zero serious/critical findings. Each render retains two moderate landmark
+findings; the other 18 authenticated pages were outside this targeted run. The
+first audit failed because its local API was absent and the outage gate correctly
+displayed warming state. The repeat uses an owned local API against the isolated
+staging database and documented testing-only provider credentials. It does not
+claim hosted staging, real provider challenge acceptance or authenticated
+clinical journeys.

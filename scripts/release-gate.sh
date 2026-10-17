@@ -122,12 +122,12 @@ ok "ledger printed (no ratchet failures yet — see SUPPRESSION_LEDGER.md for ta
 if [ "$BUILD" = 1 ]; then
   section "Builds (root + per-app)"
   run "pnpm build" pnpm build
-  run "pnpm --filter @docita/app run build:cloudflare:production" \
-    pnpm --filter @docita/app run build:cloudflare:production
-  run "pnpm --filter @docita/internal run build:cloudflare:production" \
-    pnpm --filter @docita/internal run build:cloudflare:production
-  run "pnpm --filter @docita/landing run build:cloudflare:production" \
-    pnpm --filter @docita/landing run build:cloudflare:production
+  run "pnpm --filter @docita/app run build:cloudflare" \
+    pnpm --filter @docita/app run build:cloudflare
+  run "pnpm --filter @docita/internal run build:cloudflare" \
+    pnpm --filter @docita/internal run build:cloudflare
+  run "pnpm --filter @docita/landing run build:cloudflare" \
+    pnpm --filter @docita/landing run build:cloudflare
   ok "builds (4)"
 
   # ---- Perf budgets ----
