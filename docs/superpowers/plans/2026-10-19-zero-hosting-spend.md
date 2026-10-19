@@ -71,8 +71,13 @@ and backup documents link to that single operating record.
       production and isolated staging projects, without opening database compute.
       Usage fields do not establish stored bytes; the old alerted organization is
       outside current management access and remains unassessed.
-- [ ] Restore Cloudflare control-plane access, verify subscriptions, R2 stored
-      bytes/operation exposure and free Worker limits. Preserve retained data.
+- [x] Restore Cloudflare CLI control-plane access and inspect aggregate R2
+      metadata: 704 objects / 37,067,230 payload bytes plus 8,696 metadata bytes;
+      account analytics report 182 requests for 1–19 October. Preserve retained
+      data; no clinical object content or patient row was read.
+- [ ] Verify Cloudflare subscriptions and hard overage/free Worker controls.
+      The refreshed OAuth token still gets 403 from the subscription endpoint;
+      billing-console access remains necessary.
 - [ ] Verify Sentry plan, included monitor quota and disabled paid overages.
 - [ ] Verify the personal-org Fly waiver and current/forecast usage strictly
       below $5, including rootfs and any subscription/extension charge. Preserve both
