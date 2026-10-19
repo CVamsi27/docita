@@ -5,7 +5,9 @@ Production is in the [recorded maintenance state](ZERO_HOSTING_SPEND.md), with
 the API stopped/cordoned and automatic worker starts/deployments disabled. The
 operator is retaining Fly machines subject to verified below-$5 gross usage and
 waiver application. Backup activation remains false; preserve R2 data, retention
-locks and offline recovery keys while billing controls are verified.
+locks and offline recovery keys while billing controls are verified. GitHub $0
+hard budgets and Sentry's one free cron allowance are now verified. R2 currently
+costs $0, but its one-cent alert is not a spending cap; activation remains gated.
 
 Status: preparation only. On 15 October 2026, the separate `docita-db-backups`
 R2 bucket was created with public `r2.dev` access disabled and no custom domains.

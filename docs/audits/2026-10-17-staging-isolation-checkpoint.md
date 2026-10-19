@@ -3,8 +3,11 @@
 The [19 October maintenance record](../operations/ZERO_HOSTING_SPEND.md)
 supersedes the unresolved spending scope and runtime/monitoring state below.
 The operator selected zero total hosting spend, retaining Fly machines while
-requiring below-$5 usage and waiver verification. That account check remains open; the
-API is now stopped/cordoned and automatic starts/deployments are disabled.
+requiring below-$5 usage and waiver verification. October gross is $0.15 and
+May–September finalized invoices show $0; rootfs forecasting and final October
+collection remain open. GitHub $0 hard budgets and Cloudflare/Sentry free plans
+are verified, with R2 overage containment still unresolved. The API is now
+stopped/cordoned and automatic starts/deployments are disabled.
 The remaining results retain their 17 October scope.
 
 Render login is verified, but the service remains suspended. A separate empty

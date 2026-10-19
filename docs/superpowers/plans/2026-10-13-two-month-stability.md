@@ -2,8 +2,12 @@
 
 **19 October hosting decision:** the operator clarified zero **total** hosting
 spend and subsequently chose to retain both Fly machines, keeping gross Fly
-usage strictly below $5 under its personal-org waiver. Actual invoice/waiver
-verification remains open. Automatic deployments, daily worker starts and
+usage strictly below $5 under its personal-org waiver. Signed-in checks verify
+$0.15 October gross usage and finalized $0 invoices for May–September. Rootfs
+forecasting and final October collection remain open. GitHub $0 hard budgets,
+Cloudflare Free Worker/domain plans and Sentry Developer are verified; R2's
+current/projected cost is $0, but it has no verified $0 hard stop.
+Automatic deployments, daily worker starts and
 uptime recovery are disabled; the stopped API is cordoned. This is deliberate
 maintenance, not a certified usable production baseline. Follow the
 [current operating record](../../operations/ZERO_HOSTING_SPEND.md) and

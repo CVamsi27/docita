@@ -59,9 +59,11 @@ or clinical schema change.
 **Files:** This plan; `docs/operations/ZERO_HOSTING_SPEND.md`; current stability
 and backup documents link to that single operating record.
 
-- [ ] Verify personal GitHub billing access. Set Docita-scoped Actions/Packages
-      budgets to $0 with usage blocking where supported; inspect storage and any
-      already-accrued charge. Preserve account services unrelated to Docita.
+- [x] Verify personal GitHub billing access. Existing account-wide Actions and
+      Packages budgets are $0 with Usage blocked; Actions' hard-stop checkbox is
+      checked. Codespaces, Git LFS and AI credit SKUs also have unchanged $0 hard
+      budgets. October metered usage reports $19.63 gross / $0 billed under Actions.
+      No payment method, duplicate budget or unrelated subscription was changed.
 - [x] Verify Render inventory: one suspended Free staging service, no Postgres
       instances and no Key Value instances. Hobby workspace, $0 October accrued and
       projected totals, and a $0 build spending limit are verified. Bandwidth is a
@@ -75,14 +77,23 @@ and backup documents link to that single operating record.
       metadata: 704 objects / 37,067,230 payload bytes plus 8,696 metadata bytes;
       account analytics report 182 requests for 1–19 October. Preserve retained
       data; no clinical object content or patient row was read.
-- [ ] Verify Cloudflare subscriptions and hard overage/free Worker controls.
-      The refreshed OAuth token still gets 403 from the subscription endpoint;
-      billing-console access remains necessary.
-- [ ] Verify Sentry plan, included monitor quota and disabled paid overages.
+- [x] Verify Cloudflare console subscriptions: Workers Free, docita.work Free,
+      and R2 Paid usage billing. The 2 October–1 November cycle shows $0 current
+      and projected cost and 0.02 GB-month storage, all within included limits.
+      Lower the existing account alert from $10 to $0.01 and read it back without
+      changing its recipient. The alert is not a hard stop.
+- [ ] Resolve R2's remaining zero-dollar overage exposure without deleting
+      retained data. A free allowance and a one-cent alert do not enforce $0.
+- [x] Verify Sentry Developer plan, 5,000 included errors and one included cron
+      monitor. No billing details/payment method are on file; PAYG is unavailable
+      on this free plan. Leave the upgrade flow without submitting changes.
 - [ ] Verify the personal-org Fly waiver and current/forecast usage strictly
       below $5, including rootfs and any subscription/extension charge. Preserve both
       machines as directed; no removal is authorized. Do not call stopping a $0
-      solution without the actual billing evidence.
+      solution without the actual billing evidence. October currently shows
+      $0.15 gross; May–September finalized invoices show Paid / $0.00, with
+      September's detailed gross at $0.10. Both rootfs sizes show [Pending Sync],
+      preventing a complete remaining-month forecast; October is not finalized.
 
 ### Task 3: Record and verify the maintenance state
 
@@ -92,5 +103,5 @@ and backup documents link to that single operating record.
       verification must precede any restart or hosted backup activation.
 - [x] Run local documentation/script-reference/hygiene and secret checks,
       commit locally and leave the branch unpushed while the spending gate is open.
-- [ ] Report verified controls separately from unresolved charges. Do not claim
+- [x] Report verified controls separately from unresolved charges. Do not claim
       that production is ready, a free migration is complete or the bill is $0.

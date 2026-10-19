@@ -5,6 +5,9 @@ spend. The API is stopped/cordoned, the worker remains stopped, and automatic
 deployment, daily worker and uptime recovery workflows are disabled. Render
 staging remains suspended with Auto-Deploy Off. The operator chose retaining Fly
 machines while verifying gross usage below $5 and the personal-org waiver.
+Signed-in checks now verify GitHub $0 hard budgets, Cloudflare/Sentry Free plans
+and $0 current Cloudflare cost. Fly is at $0.15 gross with historical $0 invoices;
+rootfs forecasting and R2 overage containment remain open.
 Follow [ZERO_HOSTING_SPEND.md](ZERO_HOSTING_SPEND.md) for current controls and
 restart gates. Do not use the historical liveness/monitoring statements below
 as evidence of current availability or start a service to satisfy a probe.
