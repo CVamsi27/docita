@@ -425,7 +425,7 @@ jobs:
     # Full scans block vulnerable dependency changes on manual CI runs.
     # PRs use the diff-aware job below so inherited advisories do not block
     # unrelated changes. The reusable workflow supplies its own runner.
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.6.0
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.7.0
     with:
       fail-on-vuln: true
       # SARIF is always retained as an Actions artifact. The Security tab
