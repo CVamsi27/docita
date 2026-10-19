@@ -10,7 +10,10 @@ claiming that an unverified free allowance is a spending cap.
 **Fly decision:** The operator subsequently chose to preserve both machines and
 keep gross monthly Fly usage strictly below $5 under the personal-organization
 waiver. This does not authorize a paid $5 bill or machine deletion. Actual
-invoice/waiver verification is required before restoring runtime.
+invoice/waiver verification is required before restoring runtime. On 19 October
+the operator confirmed the waived bill, zero reservations and R2's $0 cost, then
+directed continuation. Free PR validation may proceed with GitHub's verified $0
+hard budgets; no future finalized invoice is required for source review.
 
 **Architecture:** Pause charge-producing execution first, preserve the current
 Neon/R2 data and recovery material, then verify account plans and hard limits.
@@ -31,8 +34,9 @@ Cloudflare Workers/R2 and Sentry. Operator evidence stays protected outside Git.
   specific authorization after permanent loss is disclosed.
 - Record actual provider readback. A stopped machine, suspended service, alert
   threshold or included allowance alone does not establish a zero-dollar bill.
-- Keep source changes in the existing feature branch; no push or release until
-  the GitHub storage budget and downstream hosting controls are verified.
+- Keep source changes in the existing feature branch. GitHub's verified $0 hard
+  budgets permit free PR validation; leave runtime/deployment workflows disabled.
+  Source publication does not authorize a production release or paid execution.
 
 ## Tasks
 
@@ -105,3 +109,16 @@ and backup documents link to that single operating record.
       commit locally and leave the branch unpushed while the spending gate is open.
 - [x] Report verified controls separately from unresolved charges. Do not claim
       that production is ready, a free migration is complete or the bill is $0.
+
+### Task 4: Resume free source validation
+
+- [x] Record the operator's waiver/R2 confirmation and distinguish zero reserved
+      instances from the two retained stopped machines. Keep both preserved.
+- [ ] Recheck the existing repair's local CI command and secret scan, then push
+      only the existing feature branch. Preserve disabled deployment/recovery jobs.
+- [ ] Inspect checks for the published revision through Code Review. Fix actual
+      failures, retain the full API coverage thresholds and mobile auth coverage,
+      and record scope skips separately from executed checks.
+- [ ] Continue the staging/recovery gates that can run on free tooling. Leave
+      source release, production credential/RLS rollout and backup activation
+      gated on their own evidence.

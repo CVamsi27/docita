@@ -13,6 +13,12 @@ maintenance, not a certified usable production baseline. Follow the
 [current operating record](../../operations/ZERO_HOSTING_SPEND.md) and
 [bounded cost plan](2026-10-19-zero-hosting-spend.md) before any restart.
 
+**19 October continuation:** the operator confirms Fly's waived bill, zero
+reserved instances and R2's $0 cost. Resume the existing feature PR's validation
+under GitHub's verified $0 hard budgets. Production runtime/deployment workflows
+remain paused during this phase; future invoice finalization does not block
+source review. No reservation or paid upgrade is authorized.
+
 **17 October spending constraint:** the operator requires $0 spending. New
 pushes, hosted runs, cloud activations and paid resources are on hold while
 account limits and the scope of existing hosting costs are resolved. Continue
@@ -51,7 +57,8 @@ scoped API suite for its global budget; all 4,386 tests and the unchanged covera
 thresholds pass locally. A describe-level branding skip also suppressed all
 mobile/tablet auth cases. Moving it into the desktop-only hero case restores
 those checks: the isolated local run passes 14 cases with only two hero skips.
-The prepared changes still need hosted verification, held by the spending gate. See the
+The prepared changes still need hosted verification; the 19 October continuation
+above permits their free PR checks. See the
 [current staging checkpoint](../../audits/2026-10-17-staging-isolation-checkpoint.md).
 
 **16 October completion pass:** the writer rejects unsafe database roles before

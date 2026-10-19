@@ -15,7 +15,12 @@ usage** and finalized **$0.00 invoices for May–September**. September's detail
 gross usage was $0.10, supporting the account's historical small-invoice waiver.
 October's preview is not a finalized zero-dollar invoice. Both apps report
 **RootFS Sizes: [Pending Sync]**, so remaining-month storage cost is still
-unverified; keep runtime paused.
+unverified. On the same day, the operator confirmed the waived bill, zero
+reserved instances and R2's $0 cost, and directed stabilization to continue.
+Proceed with the existing feature PR's free validation under GitHub's verified
+$0 hard budgets. A future month's finalized invoice is not a prerequisite for
+source review. No reservation, paid plan or metered runtime activation is added;
+runtime recovery retains its clinical, encryption, backup and usage gates.
 
 ## Applied controls
 
@@ -127,13 +132,16 @@ processing first; never infer that an unavailable API safely accepted an event.
    backups to meet a storage target. Worker/zone Free plans and Sentry's free
    plan are verified. R2's usage billing has no verified zero-dollar hard stop;
    its alert must not be described as one.
-4. Only after all future hosting costs are eliminated or effectively blocked,
-   assess a free execution option against the existing clinical, encryption,
+4. Continue source review and free validation with the verified GitHub $0 hard
+   budgets. Keep the API cordon and stopped worker during this phase. Before
+   activating execution, assess its expected use of the approved free allowances
+   and personal-org waiver against the existing clinical, encryption,
    RLS, recovery, authenticated journey and staging-soak gates. Do not repurpose
    the isolated staging database as production or weaken a release check to fit
    the budget.
-5. Restoring routing or workflows requires both verified zero-dollar operation
-   and a reviewed release/recovery decision. Keep the [stability plan](../superpowers/plans/2026-10-13-two-month-stability.md)
+5. Restoring routing or runtime/deployment workflows requires a reviewed
+   release/recovery decision and a cost profile within the operator's $0 target.
+   PR checks do not restore runtime or activate backups. Keep the [stability plan](../superpowers/plans/2026-10-13-two-month-stability.md)
    and [backup activation gates](ENCRYPTED_DATABASE_BACKUPS.md) in force.
 
 Protected evidence is outside Git in the 19 October operator evidence directory.
