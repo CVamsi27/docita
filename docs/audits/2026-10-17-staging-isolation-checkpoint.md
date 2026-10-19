@@ -1,5 +1,12 @@
 # Staging isolation checkpoint — 17 October 2026
 
+The [19 October maintenance record](../operations/ZERO_HOSTING_SPEND.md)
+supersedes the unresolved spending scope and runtime/monitoring state below.
+The operator selected zero total hosting spend, retaining Fly machines while
+requiring below-$5 usage and waiver verification. That account check remains open; the
+API is now stopped/cordoned and automatic starts/deployments are disabled.
+The remaining results retain their 17 October scope.
+
 Render login is verified, but the service remains suspended. A separate empty
 staging database is prepared and verified; no production source, schema, runtime
 credential, idle setting or worker state changed in this pass. No production data

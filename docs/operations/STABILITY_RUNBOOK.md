@@ -1,5 +1,14 @@
 # Stability, Reliability & Performance Runbook
 
+**19 October maintenance override:** the operator requires zero total hosting
+spend. The API is stopped/cordoned, the worker remains stopped, and automatic
+deployment, daily worker and uptime recovery workflows are disabled. Render
+staging remains suspended with Auto-Deploy Off. The operator chose retaining Fly
+machines while verifying gross usage below $5 and the personal-org waiver.
+Follow [ZERO_HOSTING_SPEND.md](ZERO_HOSTING_SPEND.md) for current controls and
+restart gates. Do not use the historical liveness/monitoring statements below
+as evidence of current availability or start a service to satisfy a probe.
+
 **Current assessment, 15 October 2026:** follow the [two-month stability plan](../superpowers/plans/2026-10-13-two-month-stability.md)
 for the feature freeze and current readiness status. The custom-domain certificate
 and stale DNS ownership records were repaired: repeated direct/public/proxied

@@ -1,5 +1,14 @@
 # Docita Two-Month Stability Implementation Plan
 
+**19 October hosting decision:** the operator clarified zero **total** hosting
+spend and subsequently chose to retain both Fly machines, keeping gross Fly
+usage strictly below $5 under its personal-org waiver. Actual invoice/waiver
+verification remains open. Automatic deployments, daily worker starts and
+uptime recovery are disabled; the stopped API is cordoned. This is deliberate
+maintenance, not a certified usable production baseline. Follow the
+[current operating record](../../operations/ZERO_HOSTING_SPEND.md) and
+[bounded cost plan](2026-10-19-zero-hosting-spend.md) before any restart.
+
 **17 October spending constraint:** the operator requires $0 spending. New
 pushes, hosted runs, cloud activations and paid resources are on hold while
 account limits and the scope of existing hosting costs are resolved. Continue
@@ -88,7 +97,7 @@ Production source remains unreleased. Current evidence and credential containmen
 ## Global Constraints
 
 - Production healthcare system handling PHI; preserve tenant, role, audit and encryption boundaries.
-- Spend $0. Do not create paid resources or enable metered runs without verified no-charge limits; continue local verification while billing scope remains unresolved.
+- Collect $0 in total hosting charges. Retain Fly machines and verify gross usage strictly below $5 plus actual waiver application. Do not enable metered runs before the [current spending controls](../../operations/ZERO_HOSTING_SPEND.md) pass.
 - Node.js `>=22.22.0`; package manager **pnpm only** (`pnpm@10.30.3`). Match the pinned CI/runtime when gathering release evidence.
 - Schemas in `packages/types` are canonical. Preserve existing clients through API, schema and frontend release overlap.
 - Existing clinic-associated users retain `onboardingStep = COMPLETED`; new requirements use targeted prompts, never a reset to onboarding.
