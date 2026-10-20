@@ -1,5 +1,15 @@
 # Stability, Reliability & Performance Runbook
 
+**20 October hosted continuation:** the reviewed candidate is Live on the existing
+Render Free staging service, with seven passing HTTP checks and both frontend
+readiness proxies returning 200. Direct Node startup uses a 256 MiB heap;
+authenticated journeys, latency and soak remain open. Cloudflare
+Workers Builds independently deployed the clinician/internal production frontends
+from main; both identified automatic build paths are now disabled and verified
+after reload. Production API/worker recovery and backup activation remain
+gated. The [hosted continuation](../audits/2026-10-20-hosted-staging-continuation.md)
+supersedes earlier provider-access and deployment-origin statements below.
+
 **20 October final pass:** the recorded PR revision has 14 successes and three
 scope skips; production remains in maintenance and is not certified ready.
 The Sentry test monitor and dedicated email rule are disabled after 27 unintended

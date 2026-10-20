@@ -1,5 +1,19 @@
 # Docita Two-Month Stability Implementation Plan
 
+**20 October hosted continuation:** PRs #326/#327 are merged with matching
+main/staging trees and seven successful/seven scope-skipped checks each. Render
+authentication and browser access are restored; the reviewed candidate is Live
+on the existing Free staging service with seven passing HTTP checks, including
+both frontend readiness proxies. The clinician login renders without browser
+warning/error logs; authenticated journeys, latency and soak remain open.
+Cloudflare Workers Builds caused
+the independent production frontend deployments; both clinician/internal
+production build paths are disabled and verified after reload. The staging
+clinician build command now explicitly selects staging mode. Follow the
+[hosted continuation](../../audits/2026-10-20-hosted-staging-continuation.md)
+for current provider state; earlier access, publication and deployment-origin
+statements below are historical. Production readiness remains blocked.
+
 **20 October staging continuation:** PR #322 merged into main; PR #325 aligned
 staging to the same tree. Neither deployed production. A subsequent local fix
 isolates Cloudflare staging build URLs, CSP and telemetry; its nine regressions,

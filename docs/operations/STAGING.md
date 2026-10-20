@@ -3,6 +3,22 @@
 This repo keeps a PR-protected `staging` branch for pre-production validation.
 Its deployed revision must be verified before using staging results as release evidence.
 
+**20 October hosted continuation:** the reviewed frontend fix and staging
+alignment are merged as PRs #326/#327; fresh main/staging tree reads match.
+Render access is restored, the connected branch is verified as `staging`, and
+the existing Free service now has `/api/health/ready` and the documented API
+build command. All 19 build tasks pass with a build-only 4 GB heap. After an
+initial rollout exceeded Free's 512 MiB runtime limit, direct Node startup with
+a 256 MiB heap reached Live on the same reviewed commit at 08:46 UTC. Seven HTTP
+checks pass, including both frontend readiness proxies and unauthenticated 401;
+Linux RSS is 398.1 MiB. Cloudflare's staging clinician build command now explicitly
+selects staging mode. See the
+[hosted continuation](../audits/2026-10-20-hosted-staging-continuation.md)
+for current provider evidence; both reviewed staging frontends are deployed and
+fresh static integrity/header checks pass. Earlier suspension/access statements
+below are historical. Startup/readiness pass; authenticated journeys,
+representative capacity, latency and soak gates remain open.
+
 ## Current preparation, 17 October 2026
 
 **20 October continuation:** PR #322 merged to main at
