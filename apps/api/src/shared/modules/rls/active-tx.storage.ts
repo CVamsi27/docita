@@ -32,8 +32,8 @@ export function runWithActiveTx<T>(tx: Tx, fn: () => Promise<T>): Promise<T> {
 
 /**
  * Runs `fn` without re-routing Prisma calls through the request-scoped RLS tx.
- * Use for side-effect writes (audit, async listeners) that must not inherit an
- * expired interactive transaction from TenantContextInterceptor.
+ * Use at background boundaries that outlive TenantContextInterceptor's
+ * interactive transaction. Awaited work must retain the live transaction.
  */
 export async function runOutsideActiveTx<T>(fn: () => Promise<T>): Promise<T> {
   const store = activeTxStorage.getStore();

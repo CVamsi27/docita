@@ -8,6 +8,7 @@ import {
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
+import { runOutsideActiveTx } from '@/shared/modules/rls/active-tx.storage';
 import {
   isWriteHttpMethod,
   readAuditActor,
@@ -206,7 +207,8 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap({
         next: () => {
-          (async () => {
+          // This task outlives the handler and must not inherit its closing tx.
+          void runOutsideActiveTx(async () => {
             try {
               const actor = readAuditActor(user);
 
@@ -261,7 +263,7 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
             } catch (error) {
               this.logger.error('Failed to log patient audit event', error);
             }
-          })();
+          });
         },
       }),
     );
