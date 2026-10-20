@@ -22,6 +22,7 @@ const PRIVATE = "synthetic-private-input-never-log";
 async function fixture(scenario = {}, overrides = {}) {
   const root = mkdtempSync(path.join(tmpdir(), "docita-writer-wrapper-test-"));
   const events = path.join(root, "reader.json");
+  const signalReady = path.join(root, "signal-ready");
   if (existsSync(RUNNER))
     copyFileSync(RUNNER, path.join(root, "run-backup-writer.mjs"));
   copyFileSync(
@@ -49,10 +50,15 @@ if (scenario.flood) {
   const child = spawn(process.execPath, ['-e', "process.on('SIGTERM',()=>{});process.send('ready');setInterval(()=>{},100);"], { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] });
   child.once('message', () => { record.descendant = child.pid; writeFileSync(${JSON.stringify(events)}, JSON.stringify(record)); process.exit(0); });
 } else if (scenario.cleanupDelay) {
+  // Model startup work before the child can handle shutdown.
+  await new Promise((resolve) => setTimeout(resolve, 50));
   process.on('SIGTERM', () => setTimeout(() => { record.cleaned = true; writeFileSync(${JSON.stringify(events)}, JSON.stringify(record)); process.exit(1); }, 800));
+  writeFileSync(${JSON.stringify(signalReady)}, 'ready');
   setInterval(() => {}, 100);
 } else if (scenario.hang) {
-  process.on('SIGTERM', () => {}); setInterval(() => {}, 100);
+  process.on('SIGTERM', () => {});
+  writeFileSync(${JSON.stringify(signalReady)}, 'ready');
+  setInterval(() => {}, 100);
 } else process.exit(scenario.failed ? 1 : 0);
 `,
   );
@@ -148,10 +154,10 @@ if (scenario.flood) {
     signal: (signal) => child.kill(signal),
     async ready() {
       for (let count = 0; count < 100; count++) {
-        if (existsSync(events)) return;
+        if (existsSync(signalReady)) return;
         await new Promise((resolve) => setTimeout(resolve, 10));
       }
-      assert.fail("reader did not start");
+      assert.fail("writer did not install its signal handler");
     },
     async clean() {
       child?.kill("SIGKILL");
