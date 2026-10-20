@@ -5,11 +5,17 @@ Its deployed revision must be verified before using staging results as release e
 
 ## Current preparation, 17 October 2026
 
-**20 October readback:** Render remains suspended on Free, Auto-Deploy Off,
-connected to `main`, with no candidate deployment. The protected configuration
+**20 October continuation:** PR #322 merged to main at
+`a224633ab11d337dcb551e58ebb9840a07e0cbbf`; PR #325 aligned staging at
+`becd8cde68d6c63f6a381ce4fd093025ee352acd`. Their trees match. Both exact PR heads
+passed 14 hosted checks with three scope skips and zero failures.
+Render remains suspended on Free, Auto-Deploy Off, with no candidate deployment.
+Its Node version is now pinned to 22.22.0. A branch change from `main` to `staging`
+was submitted but still needs provider readback; local browser use became disabled.
+The protected configuration
 handoff was saved on 17 October; targeted readback verified the isolated database
 and restricted role. The prior production-owner URL statement is superseded.
-Candidate branch alignment, runtime verification, browser journeys, latency and
+Runtime verification, browser journeys, latency and
 the full soak remain open. See the [final-pass checkpoint](../audits/2026-10-20-final-stability-pass.md).
 
 A separate empty Neon Free project
@@ -144,6 +150,18 @@ API_PROXY_TARGET=https://staging-api.docita.work
 VITE_RAZORPAY_KEY_ID=
 VITE_AI_ENABLED=false
 ```
+
+The shared Cloudflare build helper reads the selected `wrangler.toml` environment
+and supplies its variables to Vite, overriding inherited production URL values.
+Use `pnpm --filter @docita/app run build:cloudflare --mode staging` and the
+equivalent `@docita/internal` command. Default mode remains production.
+Staging deploy scripts explicitly select staging mode. The helper also derives
+the output CSP's API and WebSocket origins from the selected proxy target;
+production static-header sources remain unchanged. The clinician HTML has no
+production API preconnect. Internal staging links back to the staging clinician
+app. Staging Sentry DSNs are empty to keep synthetic traffic out of production
+email alerts; an isolated telemetry destination needs its own reviewed setup.
+Supply the dedicated public staging Turnstile site key explicitly to the build.
 
 `VITE_*` vars are build-time inlined into the SPA and mirrored as runtime vars
 for the proxy Worker in `wrangler.toml` (`[env.production.vars]` /
