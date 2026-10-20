@@ -65,8 +65,18 @@ requests intercepted. The bundled local emulator only supports compatibility
 dates through 2 June, so those probes use that local date; the release remains
 configured for 29 July. Exact hosted-runtime verification remains open. No Worker
 was deployed and no request was sent to a production API. The new correction is
-local and unreviewed. Three existing PRs (#321, #323, #324) already exceed the
-repository's two-PR cap; no additional remote branch was pushed.
+local and unreviewed. Publication initially paused because three existing PRs
+(#321, #323, #324) exceeded the repository's two-PR cap.
+
+The operator subsequently authorized the scanner updates as a CI-maintenance
+exception to the freeze. PR #323 merged at
+`d667837d6a28b7340b933173f9f01b18452ff2c4`; PR #324 merged at
+`1a9964fd00b5d12604105c56879a183b26d28b83`. Each exact PR head had two successful
+hosted checks and ten scope skips, including the scan itself. Static review of
+the upstream v2.7.0 reusable workflows verifies compatible inputs and permissions,
+unchanged failure on vulnerabilities and no inherited secrets. Both remote
+branches were deleted. The landing PR remains separate. The cap now permits
+publishing the staging correction; its hosted checks still need verification.
 
 Render's Node version was saved and read back as 22.22.0. Its branch change to
 `staging` was submitted but could not be read back after local browser access was

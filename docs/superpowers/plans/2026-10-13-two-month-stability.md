@@ -4,8 +4,10 @@
 staging to the same tree. Neither deployed production. A subsequent local fix
 isolates Cloudflare staging build URLs, CSP and telemetry; its nine regressions,
 207-case standards suite, lint, frontend types, Knip, production/staging builds
-and Worker dry-runs pass. It is not published or deployed. The existing three
-open PRs exceed the two-PR cap, Render browser access is disabled, exact hosted
+and Worker dry-runs pass. It is not deployed. The operator authorized the two
+scanner updates as a CI-maintenance exception; PRs #323/#324 merged with compatible
+upstream contracts and scoped checks, restoring room under the PR cap to publish
+the staging fix. Render browser access is disabled, exact hosted
 runtime/journey/latency checks remain open, and Messenger's encrypted runtime-key
 packet still needs offline challenge proof. See the checkpoint below.
 
