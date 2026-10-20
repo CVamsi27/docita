@@ -26,6 +26,8 @@
 # classifies the same 655 routes but also resolves each route's effective
 # @Roles, measured at ~330 ms; test-schema-duplication compares 6 helper schema
 # literals against 702 contract key sets, measured at ~180 ms).
+# The standards regression suite also runs the latency planner/converter and
+# loopback capture cases; their bounded observation windows add about 10 s.
 # Git fixture commands must discover their own repository and index from cwd.
 docita_git_env_names=$(git rev-parse --local-env-vars) || exit 1
 for docita_git_env_name in $docita_git_env_names; do

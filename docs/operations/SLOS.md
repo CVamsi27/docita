@@ -65,24 +65,33 @@ The gate is hermetic — it never calls the API — so it is safe inside
      `scripts/perf/api-latency-soak-routes.mjs` — never `/health/live`. Route
      drift is caught in CI: `check:unserved-endpoint` scans that manifest
      against every controller.
-   - Pacing respects the API's own throttles (100/min and 10/s per IP, 120/min
-     per user) through a per-route interval and a global budget (default
-     30/min), and the artifact records the rate it achieved. This is a
+   - Planning and actual dispatch both enforce a per-route interval and global
+     spacing (default 30/min, at least 2,000 ms between starts). Retries use the
+     same admission queue. Late workers cannot issue a catch-up burst. This leaves
+     headroom beneath the API's own identity/IP throttles. This is a
      **latency** measurement under a bounded rate, not a load or capacity test.
    - A response that is not the route's documented status (401 from an expired
      token, 404 from a renamed route, 500 from a broken query) is excluded from
      the percentiles **and** fails the run. A 429 is retried once after its
-     `Retry-After` window and recorded as throttled, never sampled.
+     `Retry-After` window and recorded as throttled, never sampled; any throttle
+     invalidates release evidence even if the retry succeeds.
    - Response bodies are never read and only an allowlist of cache headers is
      counted, so the artifact carries no PHI and no credentials.
    - The run exits 1 and marks `complete: false` when any class is under
-     `--min-samples` (default 20), a request errored, or a route misbehaved.
+     `--min-samples` (default 20), a request errored, a route misbehaved, a planned
+     request could not finish, or the requested observation window was not covered.
+     Dispatch stops at the window boundary; in-flight requests drain under the
+     request timeout. UTC start/end and monotonic `elapsedMs` record actual capture
+     time, including draining, and achieved rate uses that elapsed time.
      `--dry-run` prints the plan without issuing a request.
 
 2. **Convert and commit** the baseline:
    `pnpm perf:api-latency:baseline -- ./soak-metrics.json`. Conversion refuses a
-   capture marked `complete: false` or one with fewer than 20 samples in a
-   class, so a partial run cannot become release evidence.
+   capture without `complete: true`, valid start/end/elapsed timing and complete
+   planned work, or with fewer than 20 samples in any required class. Older
+   captures without actual timing must be rerun. The baseline retains capture
+   timing, and `generatedAt` is the capture's finish time; conversion does not
+   refresh stale evidence.
 3. `pnpm check:api-latency-budget --enforce` ratchets the committed baseline.
 4. A release declaring a performance budget runs
    `pnpm check:api-latency-budget --require-baseline` before deploy; regenerate the

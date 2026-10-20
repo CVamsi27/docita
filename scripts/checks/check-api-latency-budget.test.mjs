@@ -28,6 +28,15 @@ const scriptPath = fileURLToPath(
 const fixtureDir = mkdtempSync(path.join(os.tmpdir(), "api-latency-budget-"));
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+const captureTarget = () => ({
+  durationMs: 600_000,
+  elapsedMs: 600_000,
+  startedAt: "2026-10-20T00:00:00.000Z",
+  finishedAt: "2026-10-20T00:10:00.000Z",
+  plannedRequests: 300,
+  completedRequests: 300,
+});
+
 test.after(() => {
   rmSync(fixtureDir, { recursive: true, force: true });
 });
@@ -68,7 +77,10 @@ function runCheck(args) {
 }
 
 test("optional check skips when the baseline is absent", () => {
-  const result = runCheck(["--baseline", path.join(fixtureDir, "missing.json")]);
+  const result = runCheck([
+    "--baseline",
+    path.join(fixtureDir, "missing.json"),
+  ]);
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /skipped/i);
@@ -210,6 +222,7 @@ test("optional check still exits 0 on invalid JSON", () => {
 test("--write-baseline records generatedAt and the converted endpoints", () => {
   const soak = writeFixture("soak.json", {
     complete: true,
+    target: captureTarget(),
     endpoints: {
       auth: { p95: 111, samples: 42 },
       crud: { p95: 150, p99: 410, samples: 84 },
@@ -219,18 +232,15 @@ test("--write-baseline records generatedAt and the converted endpoints", () => {
     },
   });
   const output = path.join(fixtureDir, "written-baseline.json");
-  const result = runCheck([
-    "--baseline",
-    output,
-    "--write-baseline",
-    soak,
-  ]);
+  const result = runCheck(["--baseline", output, "--write-baseline", soak]);
 
   assert.equal(result.status, 0, result.stderr);
   const written = JSON.parse(readFileSync(output, "utf8"));
   assert.equal(typeof written.generatedAt, "string");
   assert.equal(written.endpoints.auth.p95, 111);
   assert.equal(written.source, soak);
+  assert.equal(written.generatedAt, captureTarget().finishedAt);
+  assert.deepEqual(written.capture, captureTarget());
 });
 
 test("--write-baseline accepts the pnpm `--` separator the docs use", () => {
@@ -239,6 +249,7 @@ test("--write-baseline accepts the pnpm `--` separator the docs use", () => {
   // which meant the documented conversion step had never worked.
   const soak = writeFixture("separator-soak.json", {
     complete: true,
+    target: captureTarget(),
     endpoints: {
       auth: { p95: 111, samples: 42 },
       crud: { p95: 150, p99: 410, samples: 84 },
@@ -276,12 +287,7 @@ test("--write-baseline refuses a capture the soak marked incomplete", () => {
     },
   });
   const output = path.join(fixtureDir, "must-not-be-written.json");
-  const result = runCheck([
-    "--baseline",
-    output,
-    "--write-baseline",
-    soak,
-  ]);
+  const result = runCheck(["--baseline", output, "--write-baseline", soak]);
 
   assert.equal(result.status, 1);
   assert.match(result.stderr, /incomplete soak/i);
@@ -292,6 +298,7 @@ test("--write-baseline refuses a capture the soak marked incomplete", () => {
 test("--write-baseline refuses a soak with too few samples per class", () => {
   const soak = writeFixture("thin-soak.json", {
     complete: true,
+    target: captureTarget(),
     endpoints: {
       auth: { p95: 111, samples: 42 },
       crud: { p95: 150, samples: 19 },
@@ -301,16 +308,46 @@ test("--write-baseline refuses a soak with too few samples per class", () => {
     },
   });
   const output = path.join(fixtureDir, "thin-baseline.json");
-  const result = runCheck([
-    "--baseline",
-    output,
-    "--write-baseline",
-    soak,
-  ]);
+  const result = runCheck(["--baseline", output, "--write-baseline", soak]);
 
   assert.equal(result.status, 1);
   assert.match(result.stderr, /thin evidence/i);
   assert.match(result.stderr, /crud/);
   assert.match(result.stderr, /webhooks/);
   assert.equal(existsSync(output), false);
+});
+
+test("--write-baseline rejects missing or shortened timing despite a complete flag", () => {
+  for (const [label, target] of [
+    ["missing", undefined],
+    [
+      "short",
+      {
+        ...captureTarget(),
+        elapsedMs: 180_000,
+        finishedAt: "2026-10-20T00:03:00.000Z",
+      },
+    ],
+    [
+      "inconsistent",
+      { ...captureTarget(), finishedAt: "2026-10-20T00:03:00.000Z" },
+    ],
+    ["unfinished", { ...captureTarget(), completedRequests: 299 }],
+  ]) {
+    const soak = writeFixture(`${label}-timing.json`, {
+      complete: true,
+      target,
+      endpoints: Object.fromEntries(
+        ["auth", "crud", "search", "reports", "webhooks"].map((name) => [
+          name,
+          { p95: 1, samples: 20 },
+        ]),
+      ),
+    });
+    const output = path.join(fixtureDir, `${label}-must-not-write.json`);
+    const result = runCheck(["--baseline", output, "--write-baseline", soak]);
+    assert.equal(result.status, 1, label);
+    assert.match(result.stderr, /capture timing/i);
+    assert.equal(existsSync(output), false);
+  }
 });

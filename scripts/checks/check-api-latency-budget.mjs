@@ -37,6 +37,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { captureTimingIssues } from "../perf/api-latency-capture-integrity.mjs";
 
 import {
   API_LATENCY_SLOS,
@@ -150,7 +151,7 @@ if (writeBaseline) {
   // `complete: false` and exits 1. Refusing to convert it keeps a truncated or
   // mis-targeted run from becoming a committed baseline that later "passes"
   // the release gate.
-  if (metrics.complete === false) {
+  if (metrics.complete !== true) {
     console.error(
       `Refusing to write a baseline from an incomplete soak (${inputPath}).`,
     );
@@ -162,14 +163,20 @@ if (writeBaseline) {
     );
     process.exit(1);
   }
+  const timingIssues = captureTimingIssues(metrics.target);
+  if (timingIssues.length > 0) {
+    console.error(
+      `Refusing to write a baseline with invalid capture timing: ${timingIssues.join("; ")}.`,
+    );
+    process.exit(1);
+  }
   const capturedEndpoints = metrics.endpoints ?? metrics;
-  const thinClasses = Object.entries(capturedEndpoints)
-    .filter(([, measured]) => {
-      if (!measured || typeof measured !== "object") return true;
-      if (typeof measured.samples !== "number") return true;
-      return measured.samples < minSamplesForConversion;
-    })
-    .map(([className]) => className);
+  const thinClasses = Object.keys(API_LATENCY_SLOS).filter((className) => {
+    const measured = capturedEndpoints[className];
+    if (!measured || typeof measured !== "object") return true;
+    if (typeof measured.samples !== "number") return true;
+    return measured.samples < minSamplesForConversion;
+  });
   if (thinClasses.length > 0) {
     console.error(
       `Refusing to write a baseline from a soak with thin evidence: ` +
@@ -181,8 +188,9 @@ if (writeBaseline) {
     baselinePath,
     `${JSON.stringify(
       {
-        generatedAt: new Date().toISOString(),
+        generatedAt: metrics.target.finishedAt,
         source: inputPath,
+        capture: metrics.target,
         endpoints: capturedEndpoints,
       },
       null,
