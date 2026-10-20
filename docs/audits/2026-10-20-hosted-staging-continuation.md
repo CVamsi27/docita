@@ -271,3 +271,10 @@ final full shard also passes. One first sharded attempt rejected the chosen
 disposable database name; its rerun uses an accepted test name without changing
 the guard. Earlier failed/interrupted logs are retained separately. These local
 results do not replace reviewed hosted deployment or soak evidence.
+
+Hosted CI on the published source revision runs two successful scope detectors
+and skips 12 downstream checks because PR #328 remains a draft. Repository
+standards, application unit/E2E and security checks have not executed there;
+those skips are not passing software evidence. The local results above remain
+the executed source verification. Keep the draft and deployment holds until
+review; changing readiness will trigger the deferred hosted checks.
