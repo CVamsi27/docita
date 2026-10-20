@@ -19,6 +19,14 @@ fresh static integrity/header checks pass. Earlier suspension/access statements
 below are historical. Startup/readiness pass; authenticated journeys,
 representative capacity, latency and soak gates remain open.
 
+The subsequent authentication preparation creates one disposable synthetic trial
+clinic and clinician on the verified empty staging target. No patient/document
+fixture or provider message is created. The real hosted password/Turnstile step
+is prepared and awaits CAPTCHA confirmation; no authenticated session or latency
+baseline is verified. Keep its random credentials/IDs in protected operator
+evidence and disable the account when testing ends. The continuation audit above
+records the fixture boundary and the short memory-observation window.
+
 ## Current preparation, 17 October 2026
 
 **20 October continuation:** PR #322 merged to main at

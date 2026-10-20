@@ -119,6 +119,38 @@ The existing staging clinician Worker's saved build command now explicitly uses
 `--env staging`. The configuration is verified after reload. This continuation
 did not issue another frontend deployment.
 
+## Further hosted authentication preparation
+
+The next pass confirms the isolated staging database was empty: zero clinics,
+users, patients and documents. A guarded fixture transaction creates one
+synthetic trial clinic, one verified clinician, its doctor/clinic link and one
+trial subscription. The clinician is clinic-associated with completed onboarding;
+this does not count as registration or onboarding-flow verification. No patient
+or document is created, no provider message is requested, and no production
+database is accessed. Random credentials and exact fixture IDs stay in protected
+operator evidence outside Git. Disable the fixture account when testing ends.
+
+The hosted email check recognizes this account and reaches the password step.
+The real staging Turnstile widget displays its human-verification checkbox.
+Password entry is prepared, but no CAPTCHA or sign-in submission has been
+completed. The browser tool requires confirmation at the CAPTCHA step; that
+single staging action is pending. Cloudflare's challenge frame emits diagnostic
+console warnings/errors; no application sign-in result is claimed.
+
+Render supplies 20 one-minute memory samples from rollout through 09:05 UTC.
+The first startup sample is 511.4 MiB; subsequent samples range from
+385.9–420.3 MiB against the reported 512 MiB limit. The latest sample is 82.1%
+of the limit. No failure or restart event is returned after rollout, and fresh
+09:06 UTC readiness reads pass through the API and both frontend proxies.
+These observations do not establish capacity under authenticated workload or
+complete the soak.
+
+The canonical latency producer's dry run plans 300 requests over ten minutes,
+at 30 per minute and concurrency one, across its six routes and all five
+endpoint classes. It issues no API request and creates no baseline. A legitimate
+authenticated session and a complete, successful measured capture remain
+required; the dry run does not satisfy the release latency gate.
+
 ## Cost and remaining gates
 
 Before deployment, Render billing showed Hobby, $0.00 accrued/projected,
