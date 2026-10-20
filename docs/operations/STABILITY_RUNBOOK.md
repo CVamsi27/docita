@@ -36,10 +36,9 @@ Use [SLOS.md](SLOS.md) for canonical API latency values and
 schema compatibility and never infer a safe production migration rollback from
 the historical `down.sql` guidance here.
 
-Point-in-time: **2026-08-05**. Owner: this doc complements
-[`RUNBOOKS.md`](RUNBOOKS.md) (which owns incident response) and
-[`PERFORMANCE_ANALYSIS.md`](../analysis/PERFORMANCE_ANALYSIS.md) (which owns
-hot-path inventories). This doc owns the **prevention** side: what we do
+Historical baseline: **2026-08-05**, superseded by the dated operating records
+above. This doc complements [`RUNBOOKS.md`](RUNBOOKS.md) for incident response
+and [`SLOS.md`](SLOS.md) for performance targets. It owns prevention: what we do
 _before_ incidents to keep them rare, small, and reversible.
 
 > The Docita production stack is HIPAA-adjacent (PHI). Stability work is
@@ -191,19 +190,21 @@ success message alone.
 
 ---
 
-## 6. Capacity & growth
+## 6. Capacity and spending boundary
 
-- **DB**: t4g.micro today (~100 connections; ~30% headroom at current
-  load). Plan: t4g.small at 2× connection count, RDS proxy at 3×.
-  Tracked in [`COST_ANALYSIS.md`](../analysis/COST_ANALYSIS.md).
-- **API**: Fly.io 2 GB shared-cpu-1x, scale-out on CPU > 70% for 5m. Current
-  baseline: 0.3 vCPU avg. Headroom: ~6×.
-- **Worker**: 512 MB, scale-out on queue lag > 60s. Current: 0 idle. Plan:
-  2× at 2× queue lag.
-- **R2**: pay-as-you-go; no headroom needed; lifecycle rule expires PHI
-  uploads at 90 days per DPDP_READINESS.
-- **Cloudflare**: no hard cap; the constraint is route-budgets (P5.4c) and
-  Worker size (≤ 1 MB compressed, current ~9 KB).
+Use the verified inventory and spending limits in
+[ZERO_HOSTING_SPEND.md](ZERO_HOSTING_SPEND.md). Production uses Neon Free, two
+retained stopped Fly machines and Cloudflare/R2. Render staging is suspended.
+There is no verified autoscaling or measured live headroom in this maintenance
+state. Before restart, measure the reviewed candidate within the operator's
+spending constraints; do not apply historical RDS or larger-instance proposals.
+
+R2 storage and operations must remain within included allowances; its budget
+alert is not a hard cap. Do not apply an assumed 90-day PHI expiry rule. The
+[backup policy](ENCRYPTED_DATABASE_BACKUPS.md) and
+[lifecycle decision](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md)
+define the approved backup retention and restore quarantine boundary. Clinical
+document retention is a separate data-class decision.
 
 ---
 
@@ -224,9 +225,10 @@ check flags the obvious shape (`for (const x of rows) await fetch(y)`).
 **Symptom**: app LCP p75 spikes when clinicians navigate quickly between
 patients.
 
-**Fix**: profile with React DevTools; tune `staleTime` / `gcTime` on the
-query key factory. Already audited in P4.5; the live numbers are in
-[`PERFORMANCE_ANALYSIS.md`](../analysis/PERFORMANCE_ANALYSIS.md).
+**Fix**: profile with React DevTools and tune `staleTime` / `gcTime` on the
+query key factory. Record measured results in the
+[release evidence](RELEASE_EVIDENCE_CHECKLIST.md); historical audit claims do not
+establish current live performance.
 
 **Owner**: Frontend. **Detection**: post-release monitor.
 
@@ -323,8 +325,8 @@ Every quarter, refresh:
    90 days.
 
 Output: a 2-page report in `docs/audits/<date>-quarterly-stability.md`. The
-report is referenced from [`EXECUTION_PLAN.md`](../analysis/EXECUTION_PLAN.md)
-and triggers a P5.x refresh.
+report is referenced from the [stability plan](../superpowers/plans/2026-10-13-two-month-stability.md)
+and updates the corresponding operating gates.
 
 ---
 
