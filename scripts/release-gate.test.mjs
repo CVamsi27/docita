@@ -44,6 +44,7 @@ function gateFixture(baseline) {
   for (const directory of [
     bin,
     checks,
+    path.join(root, "scripts/perf"),
     path.join(checks, "allowlists"),
     path.join(root, "apps"),
     path.join(root, "packages"),
@@ -61,6 +62,10 @@ function gateFixture(baseline) {
       path.join(checks, file),
     );
   }
+  copyFileSync(
+    path.join(scriptsDirectory, "perf/api-latency-capture-integrity.mjs"),
+    path.join(root, "scripts/perf/api-latency-capture-integrity.mjs"),
+  );
   writeFileSync(path.join(root, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
   writeFileSync(path.join(root, ".jscpd.json"), '{"ignore":[]}\n');
   writeFileSync(

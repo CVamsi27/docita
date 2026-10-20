@@ -3,6 +3,39 @@
 This repo keeps a PR-protected `staging` branch for pre-production validation.
 Its deployed revision must be verified before using staging results as release evidence.
 
+**20 October hosted continuation:** the reviewed frontend fix and staging
+alignment are merged as PRs #326/#327; fresh main/staging tree reads match.
+Render access is restored, the connected branch is verified as `staging`, and
+the existing Free service now has `/api/health/ready` and the documented API
+build command. All 19 build tasks pass with a build-only 4 GB heap. After an
+initial rollout exceeded Free's 512 MiB runtime limit, direct Node startup with
+a 256 MiB heap reached Live on the same reviewed commit at 08:46 UTC. Seven HTTP
+checks pass, including both frontend readiness proxies and unauthenticated 401;
+Linux RSS is 398.1 MiB. Cloudflare's staging clinician build command now explicitly
+selects staging mode. See the
+[hosted continuation](../audits/2026-10-20-hosted-staging-continuation.md)
+for current provider evidence; both reviewed staging frontends are deployed and
+fresh static integrity/header checks pass. Earlier suspension/access statements
+below are historical. Initial startup/readiness pass; later authenticated
+parallel reads fail with connection contention, and the latency capture's pacing
+and elapsed-time reporting are invalid. Full clinical journeys, capacity, valid
+latency and soak gates remain open.
+
+The subsequent authentication preparation creates one disposable synthetic trial
+clinic and clinician on the verified empty staging target. No patient/document
+fixture or provider message is created. The approved real Turnstile and clinician
+sign-in pass; Today, Consultation and Patients render expected empty states, and
+an internal-only API denies the clinician. Appointments shows loading errors;
+a separate eight-read burst has zero successes with all five API connections
+held in idle transactions. The attempted latency capture is quarantined because
+its ten-minute/30-per-minute plan actually bursts and finishes early. No valid
+release baseline is created. Keep random credentials/IDs in protected operator
+evidence and disable the account when testing ends. The continuation audit above
+records the fixture boundary, failures and approved source correction. PR #328
+implements transaction reuse for awaited audits, honest capture pacing/timing,
+and the reproduced Turnstile callback remount. These changes are not deployed;
+repeat hosted verification after source review and PR-only staging alignment.
+
 ## Current preparation, 17 October 2026
 
 **20 October continuation:** PR #322 merged to main at

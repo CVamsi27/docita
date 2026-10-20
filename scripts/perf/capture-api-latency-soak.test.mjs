@@ -15,6 +15,7 @@ import {
   readCacheHeaders,
   readRetryAfterMs,
   resolveRouteRequest,
+  runPlan,
   summarizeSamples,
 } from "./capture-api-latency-soak.mjs";
 import { SOAK_ROUTES } from "./api-latency-soak-routes.mjs";
@@ -75,7 +76,7 @@ async function startStub(statusByPathPrefix = {}, throttleOncePaths = []) {
     res.writeHead(200, {
       "content-type": "application/json",
       "cache-control": "public, max-age=60",
-      "age": "3",
+      age: "3",
     });
     res.end("{}");
   });
@@ -136,10 +137,7 @@ test("summarizeSamples reports counts and percentiles, and nothing for an empty 
 });
 
 test("planRequests honours each route interval and the global per-minute budget", () => {
-  const routes = [
-    { minIntervalMs: 1_000 },
-    { minIntervalMs: 500 },
-  ];
+  const routes = [{ minIntervalMs: 1_000 }, { minIntervalMs: 500 }];
   const plan = planRequests(routes, {
     durationMs: 60_000,
     maxRequestsPerMinute: 120,
@@ -158,6 +156,51 @@ test("planRequests honours each route interval and the global per-minute budget"
   assert.equal(clipped.length, 4, "a tight cap must clip the plan");
 });
 
+test("the default ten-minute plan is paced across its window, without rolling bursts", () => {
+  const plan = planRequests(SOAK_ROUTES, {
+    durationMs: 600_000,
+    maxRequestsPerMinute: 30,
+  });
+  assert.equal(plan.length, 300);
+  assert.equal(plan.at(-1).atMs, 598_000);
+  for (let i = 1; i < plan.length; i += 1) {
+    assert.ok(plan[i].atMs - plan[i - 1].atMs >= 2_000, "global spacing");
+  }
+  for (const step of plan) {
+    assert.ok(
+      plan.filter(
+        (other) => other.atMs >= step.atMs && other.atMs < step.atMs + 60_000,
+      ).length <= 30,
+    );
+  }
+  for (const [routeIndex, route] of SOAK_ROUTES.entries()) {
+    const own = plan.filter((step) => step.routeIndex === routeIndex);
+    assert.equal(own.length, 50, "equal route coverage");
+    assert.ok(
+      own
+        .slice(1)
+        .every((step, i) => step.atMs - own[i].atMs >= route.minIntervalMs),
+    );
+  }
+});
+
+test("a short window never squeezes all routes through a smaller rate budget", () => {
+  const plan = planRequests(SOAK_ROUTES, {
+    durationMs: 1_000,
+    maxRequestsPerMinute: 30,
+  });
+  assert.equal(plan.length, 0);
+  const slow = planRequests(
+    [{ minIntervalMs: 40_000 }, { minIntervalMs: 1_000 }],
+    {
+      durationMs: 120_000,
+      maxRequestsPerMinute: 30,
+    },
+  );
+  const own = slow.filter((step) => step.routeIndex === 0);
+  assert.ok(own.slice(1).every((step, i) => step.atMs - own[i].atMs >= 40_000));
+});
+
 test("resolveRouteRequest fills {today} and serialises the webhook body", () => {
   const appointment = SOAK_ROUTES.find((route) =>
     route.path.includes("/api/v1/appointments"),
@@ -174,10 +217,7 @@ test("resolveRouteRequest fills {today} and serialises the webhook body", () => 
     "https://api.example/api",
   );
   assert.equal(webhookRequest.init.method, "POST");
-  assert.equal(
-    JSON.parse(webhookRequest.init.body).event,
-    webhook.body.event,
-  );
+  assert.equal(JSON.parse(webhookRequest.init.body).event, webhook.body.event);
   assert.equal(
     webhookRequest.init.headers["x-razorpay-signature"],
     webhook.headers["x-razorpay-signature"],
@@ -374,6 +414,12 @@ test("buildArtifact marks a fully sampled capture complete", () => {
     warmupSamples: 0,
     minSamples: 20,
     plannedRequests: observations.length,
+    completedRequests: observations.length,
+    timing: {
+      startedAt: "2026-10-20T00:00:00.000Z",
+      finishedAt: "2026-10-20T00:01:00.000Z",
+      elapsedMs: 60_000,
+    },
     provenance: { gitSha: "abc123" },
   });
 
@@ -382,10 +428,219 @@ test("buildArtifact marks a fully sampled capture complete", () => {
   for (const sloClass of Object.keys(API_LATENCY_SLOS)) {
     assert.ok(artifact.endpoints[sloClass].p95 > 0, sloClass);
   }
-  assert.equal(
-    artifact.workload.perRoute[0].cacheHeaders["x-cache"].HIT,
-    20,
+  assert.equal(artifact.workload.perRoute[0].cacheHeaders["x-cache"].HIT, 20);
+});
+
+test("elapsed time and completed work, not the requested duration, govern capture integrity", () => {
+  const observations = SOAK_ROUTES.flatMap((route, routeIndex) =>
+    Array.from({ length: 20 }, () => ({
+      routeIndex,
+      kind: "measured",
+      status: route.expectedStatuses[0],
+      latencyMs: 20,
+    })),
   );
+  const input = {
+    baseUrl: "https://staging.example/api",
+    routes: SOAK_ROUTES,
+    observations,
+    durationMs: 600_000,
+    concurrency: 4,
+    maxRequestsPerMinute: 30,
+    warmupSamples: 0,
+    minSamples: 20,
+    plannedRequests: 120,
+    completedRequests: 120,
+    provenance: {},
+    timing: {
+      startedAt: "2026-10-20T00:00:00.000Z",
+      finishedAt: "2026-10-20T00:03:00.000Z",
+      elapsedMs: 180_000,
+    },
+  };
+  const shortened = buildArtifact(input);
+  assert.equal(shortened.complete, false);
+  assert.match(shortened.incompleteReasons.join(" "), /observation window/i);
+  assert.equal(shortened.target.achievedRequestsPerMinute, 40);
+  assert.equal(shortened.target.elapsedMs, 180_000);
+  assert.equal(shortened.target.startedAt, input.timing.startedAt);
+  const missing = buildArtifact({ ...input, timing: undefined });
+  assert.equal(missing.complete, false);
+  const unfinished = buildArtifact({
+    ...input,
+    completedRequests: 119,
+    timing: {
+      ...input.timing,
+      elapsedMs: 600_000,
+      finishedAt: "2026-10-20T00:10:00.000Z",
+    },
+  });
+  assert.equal(unfinished.complete, false);
+  assert.match(unfinished.incompleteReasons.join(" "), /planned request/i);
+});
+
+async function controlledRun({
+  concurrency = 4,
+  oversleepMs = 0,
+  throttle = false,
+  fail = false,
+  requestDurationMs = 0,
+  retryAfterSeconds = "0",
+  pauseAtFirstDispatchMs = 0,
+} = {}) {
+  let elapsed = 0;
+  const pending = [];
+  const starts = [];
+  let inFlight = 0;
+  let maxInFlight = 0;
+  const routes = [
+    { method: "GET", path: "/a", minIntervalMs: 5_000 },
+    { method: "GET", path: "/b", minIntervalMs: 5_000 },
+  ];
+  const options = { durationMs: 20_000, maxRequestsPerMinute: 30 };
+  const runtime = {
+    now: () => elapsed,
+    wallNow: () => Date.parse("2026-10-20T00:00:00.000Z") + elapsed,
+    sleep: (ms) =>
+      new Promise((resolve) => pending.push({ at: elapsed + ms, resolve })),
+    request: async (url) => {
+      if (starts.length === 0) elapsed += pauseAtFirstDispatchMs;
+      starts.push({ at: elapsed, path: new URL(url).pathname });
+      const status = throttle && starts.length === 1 ? 429 : 200;
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      try {
+        if (requestDurationMs > 0) await runtime.sleep(requestDurationMs);
+        if (fail) throw new Error("synthetic timeout");
+        return {
+          response: new Response(null, {
+            status,
+            headers: { "retry-after": retryAfterSeconds },
+          }),
+          latencyMs: requestDurationMs || 1,
+        };
+      } finally {
+        inFlight -= 1;
+      }
+    },
+  };
+  let finished = false;
+  let result;
+  let failure;
+  const running = runPlan({
+    plan: planRequests(routes, options),
+    routes,
+    baseUrl: "http://localhost",
+    headers: {},
+    timeoutMs: 100,
+    concurrency,
+    warmupSamples: 0,
+    ...options,
+    runtime,
+  }).then(
+    (value) => {
+      result = value;
+      finished = true;
+    },
+    (error) => {
+      failure = error;
+      finished = true;
+    },
+  );
+  for (let i = 0; i < 100 && !finished; i += 1) {
+    await new Promise((resolve) => setImmediate(resolve));
+    if (finished) break;
+    assert.ok(pending.length > 0, "runner must progress or wait on its clock");
+    elapsed =
+      Math.max(elapsed, Math.min(...pending.map((timer) => timer.at))) +
+      oversleepMs;
+    oversleepMs = 0;
+    for (const timer of pending.splice(0).sort((a, b) => a.at - b.at)) {
+      if (timer.at <= elapsed) timer.resolve();
+      else pending.push(timer);
+    }
+  }
+  await running;
+  if (failure) throw failure;
+  return { result, starts, elapsed, options, maxInFlight };
+}
+
+test("actual dispatch respects global and route spacing with concurrent workers and retries", async () => {
+  for (const throttle of [false, true]) {
+    const { starts, elapsed } = await controlledRun({ throttle });
+    for (let i = 1; i < starts.length; i += 1) {
+      assert.ok(
+        starts[i].at - starts[i - 1].at >= 2_000,
+        "global actual dispatch spacing",
+      );
+    }
+    for (const path of ["/a", "/b"]) {
+      const own = starts.filter((start) => start.path === path);
+      assert.ok(
+        own.slice(1).every((start, i) => start.at - own[i].at >= 5_000),
+        "route actual dispatch spacing",
+      );
+    }
+    assert.ok(starts.every((start) => start.at < 20_000));
+    assert.ok(elapsed >= 20_000, "observe the full requested window");
+  }
+});
+
+test("late wakeups cannot dispatch a catch-up burst or complete skipped work", async () => {
+  const { starts, result } = await controlledRun({ oversleepMs: 13_000 });
+  assert.ok(
+    starts.slice(1).every((start, i) => start.at - starts[i].at >= 2_000),
+  );
+  assert.ok(starts.every((start) => start.at < 20_000));
+  assert.ok(result.completedRequests < result.plannedRequests);
+  assert.ok(result.timing.elapsedMs >= 20_000);
+});
+
+test("a pause between admission and the request start cannot spend stale rate credit", async () => {
+  const { starts, result } = await controlledRun({
+    pauseAtFirstDispatchMs: 13_000,
+  });
+  assert.ok(starts.length >= 2);
+  assert.ok(
+    starts.slice(1).every((start, i) => start.at - starts[i].at >= 2_000),
+  );
+  assert.equal(result.observations[0].dispatchedAtMs, starts[0].at);
+});
+
+test("request failures remain observations and still honor the observation window", async () => {
+  const { result, elapsed } = await controlledRun({
+    fail: true,
+    concurrency: 1,
+  });
+  assert.ok(elapsed >= 20_000);
+  assert.ok(result.observations.every((sample) => sample.kind === "error"));
+  assert.equal(result.timing.elapsedMs, elapsed);
+});
+
+test("slow requests keep concurrency bounded and record time spent draining in-flight work", async () => {
+  const { starts, result, elapsed, maxInFlight } = await controlledRun({
+    concurrency: 2,
+    requestDurationMs: 6_500,
+  });
+  assert.equal(maxInFlight, 2);
+  assert.ok(starts.every((start) => start.at < 20_000));
+  assert.ok(
+    starts.slice(1).every((start, i) => start.at - starts[i].at >= 2_000),
+  );
+  assert.ok(elapsed > 20_000);
+  assert.equal(result.timing.elapsedMs, elapsed);
+});
+
+test("Retry-After beyond the window cannot extend dispatch into a later window", async () => {
+  const { starts, result, elapsed } = await controlledRun({
+    concurrency: 1,
+    throttle: true,
+    retryAfterSeconds: "120",
+  });
+  assert.equal(starts.length, 1);
+  assert.equal(elapsed, 20_000);
+  assert.equal(result.completedRequests, 0);
+  assert.equal(result.observations[0].kind, "throttled");
 });
 
 test("the manifest covers every published SLO class", () => {
@@ -400,7 +655,8 @@ test("the manifest covers every published SLO class", () => {
     );
     assert.ok(route.minIntervalMs > 0, route.path);
     assert.ok(
-      Array.isArray(route.expectedStatuses) && route.expectedStatuses.length > 0,
+      Array.isArray(route.expectedStatuses) &&
+        route.expectedStatuses.length > 0,
       route.path,
     );
   }
@@ -441,7 +697,11 @@ test("capture against a stub API produces convertible evidence with no credentia
     assert.doesNotMatch(raw, /super-secret-token-value/);
 
     const artifact = JSON.parse(raw);
-    assert.equal(artifact.complete, true, JSON.stringify(artifact.incompleteReasons));
+    assert.equal(
+      artifact.complete,
+      true,
+      JSON.stringify(artifact.incompleteReasons),
+    );
     assert.equal(artifact.target.baseUrl, stub.baseUrl);
     for (const sloClass of Object.keys(API_LATENCY_SLOS)) {
       assert.ok(artifact.endpoints[sloClass].samples >= 1, sloClass);
@@ -505,7 +765,7 @@ test("capture fails when a route answers an unexpected status", async () => {
   }
 });
 
-test("a throttled request is retried once and recorded, not sampled", async () => {
+test("a throttled request is retried once but invalidates release evidence", async () => {
   // A 429 measures the rate limiter, not the API. The capture must retry after
   // the window and keep the retried response as the sample.
   const stub = await startStub({}, ["/api/v1/analytics/revenue"]);
@@ -531,8 +791,10 @@ test("a throttled request is retried once and recorded, not sampled", async () =
       { API_SOAK_TOKEN: "super-secret-token-value" },
     );
 
-    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.status, 1, result.stderr);
     const artifact = JSON.parse(readFileSync(output, "utf8"));
+    assert.equal(artifact.complete, false);
+    assert.match(artifact.incompleteReasons.join(" "), /throttled request/);
     const reportsRoute = artifact.workload.perRoute.find((route) =>
       route.path.startsWith("/api/v1/analytics/revenue"),
     );

@@ -9,7 +9,6 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
 import { isRecord } from '@workspace/utils';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
-import { runOutsideActiveTx } from '@/shared/modules/rls/active-tx.storage';
 import type { AppAuditLogSummary } from '@workspace/types';
 import type {
   AdminActionType,
@@ -55,63 +54,63 @@ export class AuditService {
   }
 
   async createAuditLog(data: AuditLogData): Promise<CreatedAuditLog> {
-    // RLS-BYPASS: audit persistence correlates events across tenants for compliance
-    return this.prisma.runUnrestricted(async () =>
-      runOutsideActiveTx(async () => {
-        try {
-          const [clinic, user] = await Promise.all([
-            this.prisma.clinic.findUnique({ where: { id: data.clinicId } }),
-            this.prisma.user.findUnique({ where: { id: data.userId } }),
-          ]);
-          if (!clinic)
-            throw new BadRequestException(`Clinic ${data.clinicId} not found`);
-          if (!user)
-            throw new BadRequestException(`User ${data.userId} not found`);
+    // RLS-BYPASS: compliance persistence bypasses the application tenant filter,
+    // but awaited audits retain the live request transaction and its DB policy.
+    // Background callers must detach explicitly at their lifetime boundary.
+    return this.prisma.runUnrestricted(async () => {
+      try {
+        const [clinic, user] = await Promise.all([
+          this.prisma.clinic.findUnique({ where: { id: data.clinicId } }),
+          this.prisma.user.findUnique({ where: { id: data.userId } }),
+        ]);
+        if (!clinic)
+          throw new BadRequestException(`Clinic ${data.clinicId} not found`);
+        if (!user)
+          throw new BadRequestException(`User ${data.userId} not found`);
 
-          const auditLog = await this.prisma.auditLog.create({
-            data: {
-              clinicId: data.clinicId,
-              userId: data.userId,
-              action: data.actionType,
-              entityType: data.resourceType,
-              entityId: data.resourceId,
-              newValue: data.changes
-                ? toPrismaInputJsonValue(data.changes)
-                : Prisma.JsonNull,
-              metadata: data.metadata
-                ? toPrismaInputJsonValue(data.metadata)
-                : Prisma.JsonNull,
-              ipAddress: data.ipAddress,
-              userAgent: data.userAgent,
-            },
-          });
-
-          this.logger.log(
-            `[AUDIT] ${data.actionType} | User: ${data.userId} | Resource: ${data.resourceType}:${data.resourceId} | ID: ${auditLog.id}`,
-          );
-
-          return {
-            id: auditLog.id,
+        const auditLog = await this.prisma.auditLog.create({
+          data: {
             clinicId: data.clinicId,
             userId: data.userId,
-            actionType: data.actionType,
-            resourceType: data.resourceType,
-            resourceId: data.resourceId,
-            changes: data.changes,
+            action: data.actionType,
+            entityType: data.resourceType,
+            entityId: data.resourceId,
+            newValue: data.changes
+              ? toPrismaInputJsonValue(data.changes)
+              : Prisma.JsonNull,
+            metadata: data.metadata
+              ? toPrismaInputJsonValue(data.metadata)
+              : Prisma.JsonNull,
             ipAddress: data.ipAddress,
             userAgent: data.userAgent,
-            metadata: data.metadata,
-            createdAt: this.clock.now(),
-          };
-        } catch (error) {
-          this.logger.error(
-            `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            error instanceof Error ? error.stack : undefined,
-          );
-          throw error;
-        }
-      }),
-    );
+          },
+        });
+
+        this.logger.log(
+          `[AUDIT] ${data.actionType} | User: ${data.userId} | Resource: ${data.resourceType}:${data.resourceId} | ID: ${auditLog.id}`,
+        );
+
+        return {
+          id: auditLog.id,
+          clinicId: data.clinicId,
+          userId: data.userId,
+          actionType: data.actionType,
+          resourceType: data.resourceType,
+          resourceId: data.resourceId,
+          changes: data.changes,
+          ipAddress: data.ipAddress,
+          userAgent: data.userAgent,
+          metadata: data.metadata,
+          createdAt: this.clock.now(),
+        };
+      } catch (error) {
+        this.logger.error(
+          `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          error instanceof Error ? error.stack : undefined,
+        );
+        throw error;
+      }
+    });
   }
 
   async getAuditLogs(

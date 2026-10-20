@@ -1,5 +1,23 @@
 # Final stability pass, 20 October 2026
 
+**Later hosted continuation:** PRs #326/#327 merged with seven successful and
+seven scope-skipped checks each. The reviewed Render Free staging deployment is
+Live with seven passing HTTP checks, including both frontend readiness proxies.
+Real Turnstile/sign-in and basic role checks subsequently pass; parallel-read
+contention and a capture pacing/duration defect block acceptance. Full clinical
+journeys, valid latency and soak remain open. Cloudflare Workers Builds is now the
+verified origin of the production frontend updates; both clinician/internal
+production build paths have been disabled and read back after reload. Statements
+below about unpublished staging corrections, absent browser access, suspended
+Render and no production frontend deployment are historical. Follow the
+[hosted continuation](2026-10-20-hosted-staging-continuation.md) for current
+provider state. Production readiness remains blocked.
+
+The subsequently approved transaction/capture repairs and reproduced Turnstile
+remount correction are implemented in PR #328 and locally verified as recorded
+in the continuation. They remain undeployed; hosted reliability, valid soak and
+production release gates stay open.
+
 **Production freeze readiness remains blocked.** The feature freeze ends on
 13 December. This pass does not restart production, migrate
 clinical data, activate backups, replay payments or create paid resources.
@@ -96,16 +114,16 @@ absent. The Sentry test monitor and dedicated email rule remain disabled with
 
 ## Open release gates
 
-| Gate | Evidence still required |
-| --- | --- |
-| Reviewed release | Source acceptance and staging tree alignment pass; verify deployed API/worker/frontend revisions. A subsequent local frontend isolation correction still needs review. |
-| Staging | Deploy the reviewed candidate against the isolated restricted database, verify configuration/Turnstile/browser journeys, collect fresh latency evidence and complete the soak. |
-| Encryption and RLS | Verify offline application-key packet recovery, release the compatible decoder, reconcile retained keys, then complete the reviewed migration/restricted-role rollout. Production has ten pending migrations and owner-role RLS bypass. |
-| Backup recovery | Prove quarantined clinical restore and erasure/legal-hold reconciliation, measure resource limits, publish a scanned immutable image and verify actual schedule cadence and missed-run delivery. No clinical dump/restore has passed. |
-| Alert tests | Keep test resources disabled. Prove an automatic cutoff and obtain fresh authorization before additional live test messages. |
-| Credential incident | Complete historical triage, old-organization access assessment, retained-key recovery and provider-origin payment webhook delivery proof. Do not replay financial events to manufacture evidence. |
-| Spending | Preserve free plans and GitHub $0 hard budgets. Fly's remaining-month rootfs forecast/final waiver and R2's uncapped overage exposure remain unresolved. No universal $0 hard cap is verified. |
-| Observation | Complete 24 hours of actual backup cadence and required staging/production observation after reviewed recovery. A stopped system supplies no uptime evidence. |
+| Gate                | Evidence still required                                                                                                                                                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Reviewed release    | PRs #326/#327 pass source acceptance and staging alignment. The reviewed API and both staging frontends are deployed and identified. Production API/worker release and rollback proof remain open.                                      |
+| Staging             | Startup, real Turnstile/synthetic sign-in and basic role checks pass. Correct parallel-read connection contention and capture pacing/duration; complete clinical write journeys, representative capacity and an honest soak.            |
+| Encryption and RLS  | Verify offline application-key packet recovery, release the compatible decoder, reconcile retained keys, then complete the reviewed migration/restricted-role rollout. Production has ten pending migrations and owner-role RLS bypass. |
+| Backup recovery     | Prove quarantined clinical restore and erasure/legal-hold reconciliation, measure resource limits, publish a scanned immutable image and verify actual schedule cadence and missed-run delivery. No clinical dump/restore has passed.   |
+| Alert tests         | Keep test resources disabled. Prove an automatic cutoff and obtain fresh authorization before additional live test messages.                                                                                                            |
+| Credential incident | Complete historical triage, old-organization access assessment, retained-key recovery and provider-origin payment webhook delivery proof. Do not replay financial events to manufacture evidence.                                       |
+| Spending            | Preserve free plans and GitHub $0 hard budgets. Fly's remaining-month rootfs forecast/final waiver and R2's uncapped overage exposure remain unresolved. No universal $0 hard cap is verified.                                          |
+| Observation         | Complete 24 hours of actual backup cadence and required staging/production observation after reviewed recovery. A stopped system supplies no uptime evidence.                                                                           |
 
 Production remains deliberately unavailable in the
 [maintenance state](../operations/ZERO_HOSTING_SPEND.md). Static frontend loading

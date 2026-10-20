@@ -22,8 +22,8 @@
  *   because its ~1ms response would collapse the distribution and make a broken
  *   API look fast (see `docs/operations/SLOS.md`).
  * - **Throttle-aware pacing.** The API allows 100 requests/minute per IP in
- *   production, so the plan is built per route from that route's interval and
- *   then clipped to a global budget. The artifact records the achieved rate;
+ *   production, so both the plan and actual dispatch space global starts and
+ *   respect each route's interval, including retries. The artifact records the achieved rate;
  *   a soak is a *latency* measurement under a bounded rate, not a load test.
  * - **Incomplete evidence fails.** If a class is under-sampled, a request
  *   errors, or a route answers an unexpected status, the artifact is still
@@ -44,6 +44,7 @@ import { pathToFileURL } from "node:url";
 import { API_LATENCY_SLOS } from "../checks/api-latency-slos.mjs";
 import { fetchWithTimeout, sleep } from "../monitoring/synthetic/probe-lib.mjs";
 import { SOAK_ROUTES } from "./api-latency-soak-routes.mjs";
+import { captureTimingIssues } from "./api-latency-capture-integrity.mjs";
 
 const MS_PER_MINUTE = 60_000;
 const DEFAULT_DURATION_MINUTES = 10;
@@ -104,7 +105,8 @@ export function percentile(sortedAscending, p) {
 export function summarizeSamples(samples) {
   if (samples.length === 0) return null;
   const sorted = [...samples].sort((a, b) => a - b);
-  const round = (value) => (value === null ? null : Math.round(value * 10) / 10);
+  const round = (value) =>
+    value === null ? null : Math.round(value * 10) / 10;
   return {
     samples: sorted.length,
     p50: round(percentile(sorted, 50)),
@@ -151,42 +153,40 @@ export function resolveRouteRequest(route, baseUrl) {
 /**
  * Build the deterministic request plan.
  *
- * Per route: stagger the first request by route index so all routes are not
- * fired at t=0, then sample every `minIntervalMs` until the window closes,
- * clipped to an equal share of the global per-minute budget.
+ * Space global starts and each route's starts. Round-robin tie breaking keeps
+ * eligible routes balanced without letting a slow route block other routes.
  *
  * @param {Array<object>} routes
  * @param {{ durationMs: number; maxRequestsPerMinute: number }} options
  * @returns {Array<{ routeIndex: number; atMs: number }>}
  */
 export function planRequests(routes, { durationMs, maxRequestsPerMinute }) {
-  const globalBudget = Math.max(
-    1,
-    Math.floor((durationMs * maxRequestsPerMinute) / MS_PER_MINUTE),
+  const globalBudget = Math.floor(
+    (durationMs * maxRequestsPerMinute) / MS_PER_MINUTE,
   );
-  const fairShare = Math.max(1, Math.floor(globalBudget / routes.length));
+  const globalIntervalMs = Math.ceil(MS_PER_MINUTE / maxRequestsPerMinute);
+  const routeNextAt = routes.map(() => 0);
   const plan = [];
-
-  routes.forEach((route, routeIndex) => {
-    // Stagger the first request per route so no two routes are fired at t=0,
-    // but keep the stagger inside the window: a short smoke run still has to
-    // reach every route.
-    const stagger = Math.min(
-      route.minIntervalMs,
-      durationMs / (routes.length * 2),
-    );
-    const startAtMs = routeIndex * stagger;
-    const capacity =
-      durationMs > startAtMs
-        ? Math.ceil((durationMs - startAtMs) / route.minIntervalMs)
-        : 0;
-    const count = Math.max(0, Math.min(capacity, fairShare));
-    for (let i = 0; i < count; i += 1) {
-      plan.push({ routeIndex, atMs: startAtMs + i * route.minIntervalMs });
+  let globalNextAt = 0;
+  let nextRoute = 0;
+  while (routes.length > 0 && plan.length < globalBudget) {
+    let routeIndex = nextRoute;
+    let atMs = Infinity;
+    for (let offset = 0; offset < routes.length; offset += 1) {
+      const index = (nextRoute + offset) % routes.length;
+      const candidate = Math.max(globalNextAt, routeNextAt[index]);
+      if (candidate < atMs) {
+        atMs = candidate;
+        routeIndex = index;
+      }
     }
-  });
-
-  return plan.sort((a, b) => a.atMs - b.atMs);
+    if (atMs >= durationMs) break;
+    plan.push({ routeIndex, atMs });
+    globalNextAt = atMs + globalIntervalMs;
+    routeNextAt[routeIndex] = atMs + routes[routeIndex].minIntervalMs;
+    nextRoute = (routeIndex + 1) % routes.length;
+  }
+  return plan;
 }
 
 /**
@@ -247,6 +247,8 @@ export function buildArtifact({
   warmupSamples,
   minSamples,
   plannedRequests,
+  completedRequests,
+  timing,
   provenance,
 }) {
   const perRoute = routes.map((route, routeIndex) => {
@@ -330,7 +332,12 @@ export function buildArtifact({
 
   const errors = observations.filter((o) => o.kind === "error");
 
-  const incompleteReasons = [];
+  const incompleteReasons = captureTimingIssues({
+    durationMs,
+    plannedRequests,
+    completedRequests,
+    ...timing,
+  });
   for (const [sloClass, summary] of Object.entries(endpoints)) {
     if (summary.samples < minSamples) {
       incompleteReasons.push(
@@ -340,6 +347,12 @@ export function buildArtifact({
   }
   if (errors.length > 0) {
     incompleteReasons.push(`${errors.length} request error(s)/timeout(s)`);
+  }
+  const throttled = observations.filter((o) => o.kind === "throttled").length;
+  if (throttled > 0) {
+    incompleteReasons.push(
+      `${throttled} throttled request(s); reduce the rate and re-run`,
+    );
   }
 
   // A route answering anything but its documented status did not measure the
@@ -366,37 +379,43 @@ export function buildArtifact({
   const authFailedRoutes = perRoute.filter(
     (route, index) =>
       routes[index].auth &&
-      Object.keys(route.statuses).some((status) =>
-        status === "401" || status === "403",
+      Object.keys(route.statuses).some(
+        (status) => status === "401" || status === "403",
       ),
   );
   if (authFailedRoutes.length > 0) {
     incompleteReasons.push(
       `authentication failed on ${authFailedRoutes
         .map((route) => `${route.method} ${route.path}`)
-        .join(", ")} — mint a fresh API_SOAK_TOKEN (or cookie jar) and re-run; a token that expires mid-run truncates the capture`,
+        .join(
+          ", ",
+        )} — mint a fresh API_SOAK_TOKEN (or cookie jar) and re-run; a token that expires mid-run truncates the capture`,
     );
   }
 
   return {
     complete: incompleteReasons.length === 0,
     incompleteReasons,
-    capturedAt: new Date().toISOString(),
+    capturedAt: timing?.finishedAt ?? new Date().toISOString(),
     target: {
       baseUrl,
       durationMs,
+      ...timing,
       concurrency,
       maxRequestsPerMinute,
       warmupSamples,
       minSamplesPerClass: minSamples,
       plannedRequests,
+      completedRequests,
       observedRequests: observations.length,
       achievedRequestsPerMinute:
-        observations.length === 0
-          ? 0
-          : Math.round(
-              (observations.length / (durationMs / MS_PER_MINUTE)) * 10,
-            ) / 10,
+        !Number.isFinite(timing?.elapsedMs) || timing.elapsedMs <= 0
+          ? null
+          : observations.length === 0
+            ? 0
+            : Math.round(
+                (observations.length / (timing.elapsedMs / MS_PER_MINUTE)) * 10,
+              ) / 10,
       mode: "read-only, authenticated, non-mutating except the PHI read-audit trail",
     },
     provenance,
@@ -409,48 +428,109 @@ export function buildArtifact({
  * Run the plan against a target and collect observations.
  *
  * @param {object} options
- * @returns {Promise<object[]>}
+ * @returns {Promise<object>}
  */
-async function runPlan({ plan, routes, baseUrl, headers, timeoutMs, concurrency, warmupSamples }) {
+export async function runPlan({
+  plan,
+  routes,
+  baseUrl,
+  headers,
+  timeoutMs,
+  concurrency,
+  warmupSamples,
+  durationMs,
+  maxRequestsPerMinute,
+  runtime = {
+    now: () => performance.now(),
+    wallNow: () => Date.now(),
+    sleep,
+    request: fetchWithTimeout,
+  },
+}) {
   const observations = [];
   const completedPerRoute = new Map();
   let cursor = 0;
-  const startedAt = Date.now();
+  const startedAt = runtime.now();
+  const startedAtUtc = new Date(runtime.wallNow()).toISOString();
+  const endAt = startedAt + durationMs;
+  const globalIntervalMs = Math.ceil(MS_PER_MINUTE / maxRequestsPerMinute);
+  let globalNextAt = startedAt;
+  const routeNextAt = routes.map(() => startedAt);
+  let completedRequests = 0;
+  let admission = Promise.resolve();
+
+  // Admission is serialized, including retries. A slot is based on the actual
+  // wakeup time, so delayed workers never spend accumulated rate "credit".
+  const admit = (routeIndex, notBefore, startRequest) => {
+    const granted = admission.then(async () => {
+      while (runtime.now() < endAt) {
+        const dueAt = Math.max(
+          notBefore,
+          globalNextAt,
+          routeNextAt[routeIndex],
+        );
+        const now = runtime.now();
+        if (now < dueAt) {
+          await runtime.sleep(Math.min(dueAt, endAt) - now);
+          continue;
+        }
+        let response;
+        try {
+          // Start before releasing admission: an event-loop pause between a
+          // granted slot and fetch must not let a second worker burst beside it.
+          response = startRequest();
+        } catch (error) {
+          response = Promise.reject(error);
+        }
+        const dispatchedAt = runtime.now();
+        globalNextAt = dispatchedAt + globalIntervalMs;
+        routeNextAt[routeIndex] =
+          dispatchedAt + routes[routeIndex].minIntervalMs;
+        return { dispatchedAtMs: dispatchedAt - startedAt, response };
+      }
+      return null;
+    });
+    admission = granted.then(() => undefined);
+    return granted;
+  };
 
   const worker = async () => {
     while (cursor < plan.length) {
       const step = plan[cursor];
       cursor += 1;
-      const dueAt = startedAt + step.atMs;
-      const waitMs = dueAt - Date.now();
-      if (waitMs > 0) await sleep(waitMs);
-
       const route = routes[step.routeIndex];
       const { url, init } = resolveRouteRequest(route, baseUrl);
       const seenForRoute = completedPerRoute.get(step.routeIndex) ?? 0;
       completedPerRoute.set(step.routeIndex, seenForRoute + 1);
       const kind = seenForRoute < warmupSamples ? "warmup" : "measured";
       let attempt = 0;
+      let notBefore = startedAt + step.atMs;
       while (true) {
-        try {
-          const { response, latencyMs } = await fetchWithTimeout(
+        const dispatch = await admit(step.routeIndex, notBefore, () =>
+          runtime.request(
             url,
             { ...init, headers: { ...init.headers, ...headers } },
             timeoutMs,
-          );
-          if (
-            response.status === 429 &&
-            attempt < MAX_THROTTLE_RETRIES
-          ) {
-            const waitMs = readRetryAfterMs(response.headers);
+          ),
+        );
+        if (dispatch === null) break;
+        const { dispatchedAtMs } = dispatch;
+        try {
+          const { response, latencyMs } = await dispatch.response;
+          if (response.status === 429 && attempt < MAX_THROTTLE_RETRIES) {
+            const waitMs = readRetryAfterMs(
+              response.headers,
+              runtime.wallNow(),
+            );
             observations.push({
               routeIndex: step.routeIndex,
               kind: "throttled",
               status: 429,
               latencyMs: null,
               throttleWaitMs: waitMs,
+              dispatchedAtMs,
             });
-            await sleep(waitMs);
+            notBefore = runtime.now() + waitMs;
             attempt += 1;
             continue;
           }
@@ -460,6 +540,7 @@ async function runPlan({ plan, routes, baseUrl, headers, timeoutMs, concurrency,
             status: response.status,
             latencyMs: Math.round(latencyMs * 10) / 10,
             cache: readCacheHeaders(response.headers),
+            dispatchedAtMs,
           });
         } catch (error) {
           observations.push({
@@ -468,8 +549,10 @@ async function runPlan({ plan, routes, baseUrl, headers, timeoutMs, concurrency,
             status: null,
             latencyMs: null,
             error: error instanceof Error ? error.message : String(error),
+            dispatchedAtMs,
           });
         }
+        completedRequests += 1;
         break;
       }
     }
@@ -478,7 +561,17 @@ async function runPlan({ plan, routes, baseUrl, headers, timeoutMs, concurrency,
   await Promise.all(
     Array.from({ length: Math.max(1, concurrency) }, () => worker()),
   );
-  return observations;
+  while (runtime.now() < endAt) await runtime.sleep(endAt - runtime.now());
+  return {
+    observations,
+    plannedRequests: plan.length,
+    completedRequests,
+    timing: {
+      startedAt: startedAtUtc,
+      finishedAt: new Date(runtime.wallNow()).toISOString(),
+      elapsedMs: runtime.now() - startedAt,
+    },
+  };
 }
 
 /**
@@ -543,8 +636,15 @@ function readNumberArg(argv, flag, fallback) {
   if (index === -1) return fallback;
   const raw = argv[index + 1];
   const parsed = Number(raw);
-  if (raw === undefined || raw.startsWith("--") || !Number.isFinite(parsed) || parsed <= 0) {
-    console.error(`${flag} expects a positive number, received "${raw ?? ""}".`);
+  if (
+    raw === undefined ||
+    raw.startsWith("--") ||
+    !Number.isFinite(parsed) ||
+    parsed <= 0
+  ) {
+    console.error(
+      `${flag} expects a positive number, received "${raw ?? ""}".`,
+    );
     process.exit(1);
   }
   return parsed;
@@ -565,7 +665,9 @@ function readNonNegativeNumberArg(argv, flag, fallback) {
     !Number.isFinite(parsed) ||
     parsed < 0
   ) {
-    console.error(`${flag} expects a non-negative number, received "${raw ?? ""}".`);
+    console.error(
+      `${flag} expects a non-negative number, received "${raw ?? ""}".`,
+    );
     process.exit(1);
   }
   return parsed;
@@ -629,8 +731,7 @@ export async function main(args = process.argv.slice(2)) {
     DEFAULT_WARMUP_SAMPLES,
   );
   const timeoutMs = readNumberArg(argv, "--timeout-ms", DEFAULT_TIMEOUT_MS);
-  const outputPath =
-    readStringArg(argv, "--output") ?? "soak-metrics.json";
+  const outputPath = readStringArg(argv, "--output") ?? "soak-metrics.json";
 
   const routes = SOAK_ROUTES;
   const authHeaders = {};
@@ -640,7 +741,9 @@ export async function main(args = process.argv.slice(2)) {
     authHeaders.authorization = `Bearer ${bearer}`;
   } else if (cookieFile) {
     if (!fs.existsSync(cookieFile)) {
-      console.error(`capture-api-latency-soak: cookie file not found: ${cookieFile}`);
+      console.error(
+        `capture-api-latency-soak: cookie file not found: ${cookieFile}`,
+      );
       process.exit(1);
     }
     const cookie = parseCookieJar(fs.readFileSync(cookieFile, "utf8"));
@@ -673,9 +776,7 @@ export async function main(args = process.argv.slice(2)) {
         `over ${(durationMs / MS_PER_MINUTE).toFixed(1)} minute(s) at concurrency ${concurrency}.`,
     );
     routes.forEach((route, index) => {
-      const count = plan.filter(
-        (step) => step.routeIndex === index,
-      ).length;
+      const count = plan.filter((step) => step.routeIndex === index).length;
       console.log(
         `  ${route.class.padEnd(8)} ${route.method} ${route.path} x${count}`,
       );
@@ -699,7 +800,7 @@ export async function main(args = process.argv.slice(2)) {
       `cap ${maxRequestsPerMinute}/min)...`,
   );
 
-  const observations = await runPlan({
+  const capture = await runPlan({
     plan,
     routes,
     baseUrl,
@@ -707,12 +808,14 @@ export async function main(args = process.argv.slice(2)) {
     timeoutMs,
     concurrency,
     warmupSamples,
+    durationMs,
+    maxRequestsPerMinute,
   });
 
   const artifact = buildArtifact({
     baseUrl,
     routes,
-    observations,
+    ...capture,
     durationMs,
     concurrency,
     maxRequestsPerMinute,
@@ -737,9 +840,7 @@ export async function main(args = process.argv.slice(2)) {
   );
 
   if (!artifact.complete) {
-    console.error(
-      "\nSoak INCOMPLETE — this capture cannot become a baseline:",
-    );
+    console.error("\nSoak INCOMPLETE — this capture cannot become a baseline:");
     for (const reason of artifact.incompleteReasons) {
       console.error(`  - ${reason}`);
     }
