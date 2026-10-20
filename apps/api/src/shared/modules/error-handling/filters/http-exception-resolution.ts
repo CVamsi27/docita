@@ -10,6 +10,7 @@ import { appointmentOverlapErrorSchema } from '@workspace/types';
 import { ZodValidationException } from 'nestjs-zod';
 import { ZodError, ZodIssue } from 'zod';
 import { Request } from 'express';
+import { redactMonitoringUrl, redactString } from '@workspace/utils';
 import {
   ConflictDomainError,
   DomainError,
@@ -84,7 +85,7 @@ function resolveZodValidationException(
   const summary = summarizeValidationIssues(issues);
   logger.warn('[AllExceptionsFilter] Validation error', {
     requestId: getRequestId(request),
-    path: request.path,
+    path: redactMonitoringUrl(request.path),
     method: request.method,
     issueCount: summary.issueCount,
     fields: summary.fields,
@@ -113,7 +114,9 @@ function resolveAuthException(
     exceptionResponse,
     exception.message,
   );
-  logger.warn(`Auth Error: ${resolved.message} (${request.path})`);
+  logger.warn(
+    redactString(`Auth Error: ${resolved.message} (${request.path})`),
+  );
   return {
     status: exception.getStatus(),
     message: resolved.message,

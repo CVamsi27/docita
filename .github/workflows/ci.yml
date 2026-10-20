@@ -25,7 +25,7 @@ concurrency:
 jobs:
   changes:
     name: Detect CI Scope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       dependencies: ${{ steps.detect.outputs.dependencies }}
       api: ${{ steps.detect.outputs.api }}
@@ -54,7 +54,7 @@ jobs:
     name: Repository Standards
     needs: changes
     if: github.event.pull_request.draft != true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # actions: read lets check:workflow-staleness query workflow run history
     # inside verify:standard on every PR (its observability backstop).
     permissions:
@@ -84,6 +84,10 @@ jobs:
       - name: Verify Repository Standards
         run: pnpm verify:standard
 
+      - name: Verify encrypted backup process safety
+        if: needs.changes.outputs.knip == 'true'
+        run: node --test --test-concurrency=1 scripts/db/backup-database.test.mjs scripts/db/check-backup-freshness.test.mjs scripts/db/run-backup-monitor.test.mjs scripts/db/run-backup-writer.test.mjs scripts/db/run-backup-cycle.test.mjs
+
       - name: Knip unused dependencies and exports
         if: needs.changes.outputs.knip == 'true'
         run: pnpm knip
@@ -95,7 +99,7 @@ jobs:
       NODE_OPTIONS: --max-old-space-size=4096
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.api == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -132,15 +136,15 @@ jobs:
       - name: Typecheck API
         run: pnpm --filter @docita/api run check-types
 
-      - name: Fetch main branch for change detection
-        run: git fetch origin main
-      - name: Test API (changed only)
-        run: pnpm --filter @docita/api run test:ci --changedSince=origin/main
+      # Global coverage thresholds require the full API coverage population.
+      # Changed-file selection narrows instrumentation as well as test selection.
+      - name: Test API with global coverage
+        run: pnpm --filter @docita/api run test:ci
   api-e2e:
     name: API E2E Tests (${{ matrix.shard }}/${{ matrix.total }})
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.api == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -219,7 +223,7 @@ jobs:
     name: App Unit Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -279,7 +283,7 @@ jobs:
     name: Internal Unit Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.internal == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -329,7 +333,7 @@ jobs:
     name: Landing Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.landing == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -381,7 +385,7 @@ jobs:
     name: Worker Unit Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.worker == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -408,6 +412,12 @@ jobs:
 
       - name: Typecheck worker package
         run: pnpm --filter @docita/worker run check-types
+
+      - name: Build worker runtime artifact
+        run: pnpm --filter @docita/worker run build
+
+      - name: Verify compiled worker dependencies
+        run: pnpm --filter @docita/worker run check:runtime
 
       - name: Fetch main branch for change detection
         run: git fetch origin main
@@ -452,7 +462,7 @@ jobs:
     name: Validate Migrations
     needs: changes
     if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.db == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       PGHOST: localhost
       PGPORT: "5434"
@@ -521,7 +531,7 @@ jobs:
     name: App Bundle Analysis
     needs: changes
     if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 

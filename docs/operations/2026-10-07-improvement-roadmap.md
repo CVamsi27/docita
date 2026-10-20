@@ -1,5 +1,13 @@
 # Docita stabilization and product improvement roadmap
 
+**Priority update, 13 October 2026:** the user selected a two-month feature freeze
+with only critical bug, security and compliance fixes. The [current stability
+assessment and plan](../superpowers/plans/2026-10-13-two-month-stability.md) owns
+the freeze dates, admission policy and evidence gates. Defer discretionary work
+in this roadmap; use its domain acceptance criteria only for admitted critical
+fixes. The source/dependency/release snapshots below retain their original dates
+and do not establish current production readiness. The [13 October repair evidence](../audits/2026-10-13-stability-repair-evidence.md) records restored API TLS and the source fixes awaiting release.
+
 Date: 7 October 2026. Status: **approved 8 October 2026; Phase 1 local corrections verified; release gate blocked**.
 
 The user approved this roadmap after the preservation commit. The first batch

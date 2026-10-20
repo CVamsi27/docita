@@ -134,6 +134,10 @@ describe('Razorpay payment webhook recovery (e2e)', () => {
     const patient = await factories.patient(clinic.id);
     const invoice = await factories.invoice(patient.id, {
       clinicId: clinic.id,
+      total: 125,
+      subtotalCents: 12500,
+      totalCents: 12500,
+      currency: 'INR',
     });
     const session = await prisma.paymentSession.create({
       data: {
@@ -176,6 +180,7 @@ describe('Razorpay payment webhook recovery (e2e)', () => {
       where: { id: invoiceId },
     });
     expect(invoice?.status).toBe(InvoiceStatus.PAID);
+    expect(invoice?.amountPaidCents).toBe(12500);
 
     expect(await outboxCountFor('payment-cap-1')).toBe(1);
   });

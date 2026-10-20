@@ -1,5 +1,38 @@
 # Docita improvement backlog and release evidence
 
+## Current priority: two-month feature freeze (13 October 2026)
+
+The user selected a feature freeze with only critical bug, security and
+compliance fixes. The [stability assessment and execution plan](../superpowers/plans/2026-10-13-two-month-stability.md)
+owns its dates, change-admission policy and readiness gates. Discretionary
+product/UX work below is deferred; critical fixes retain their existing backlog
+IDs and acceptance requirements.
+
+The [13 October repair evidence](../audits/2026-10-13-stability-repair-evidence.md)
+supersedes the initial incident snapshot: Fly now serves an active certificate for
+`api.docita.work`, and repeated direct/public/proxied liveness/readiness checks
+return 200 after the DNS operator corrected old-app ownership/challenge records.
+API and worker CI credentials are now verified, app-scoped and expire 11 January 2027. Source fixes for billing, queue shutdown, pools, tenant validation, Docker
+context safety, security exception expiry and rollback are under final verification
+and have not been released. The dedicated production monitor now logs in successfully; hosted Actions runs are blocked by GitHub billing. Read-only runtime
+metadata confirms Neon owner-role RLS bypass and 16 missing backstops; current
+staging, required latency evidence, provider reconciliation and recovery drills
+remain open. See the candidate-specific repair evidence rather than the historical
+counts below.
+
+The [12 October backend QA](../audits/2026-10-12-backend-reliability-qa.md)
+supersedes A02's synchronous-emission diagnosis: awaited dispatch, transaction
+isolation and scoped relay work are repaired on main. Compiled worker metadata reaches the payment subscriber transitively; the user retained best-effort payment notifications for the freeze. Provider
+reconciliation, worker cadence and production evidence remain open. See the [worker event
+ownership note](WORKER_EVENT_OWNERSHIP.md). The current audit
+passes under the [owned braces exception](../compliance/SECURITY_ALLOWLIST.md),
+which expires during the freeze; the older three-advisory count below is historical.
+PR #319 is merged and its feature-branch release window is closed. Current release
+triggers are paused; the October 2 attempt below is historical, not an active
+authorization to release from a feature branch.
+
+## Historical roadmap and acceptance snapshots
+
 Planning refresh, **8 October 2026**: the user approved the
 [stabilization and product improvement roadmap](2026-10-07-improvement-roadmap.md).
 Existing work was committed, and the first stabilization batch fixes fail-closed

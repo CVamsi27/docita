@@ -59,6 +59,8 @@ describe('InvoicesService', () => {
     findPatientContext: jest.fn<IInvoiceRepository['findPatientContext']>(),
     findClinicFeatureContext:
       jest.fn<IInvoiceRepository['findClinicFeatureContext']>(),
+    findClinicReportContext:
+      jest.fn<IInvoiceRepository['findClinicReportContext']>(),
     nextInvoiceNumber: jest.fn<IInvoiceRepository['nextInvoiceNumber']>(),
   };
 

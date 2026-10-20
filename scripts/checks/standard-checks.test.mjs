@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import "./docker-workspace-resolution.test.mjs";
 import "./ci-change-detection.test.mjs";
+import "./pre-push-git-isolation.test.mjs";
+import "../deploy/frontend-auth-workflow.test.mjs";
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -225,6 +227,7 @@ test("env/globalEnv check fails when env examples are absent from turbo cache en
 test("standard gate wiring check requires all mandatory standards checks", () => {
   const requiredScripts = [
     "test:standards-checks",
+    "check:dependency-exceptions",
     "check:api-domain-layout",
     "check:feature-boundaries",
     "check:package-boundaries",
@@ -269,6 +272,21 @@ test("standard gate wiring check requires all mandatory standards checks", () =>
         "package.json": JSON.stringify({
           scripts: {
             "verify:standard": requiredScripts
+              .map((name) => `pnpm ${name}`)
+              .join(" && "),
+          },
+        }),
+      }),
+      "check-standard-gate-wiring.mjs",
+    ),
+  );
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "package.json": JSON.stringify({
+          scripts: {
+            "verify:standard": requiredScripts
+              .filter((name) => name !== "check:dependency-exceptions")
               .map((name) => `pnpm ${name}`)
               .join(" && "),
           },

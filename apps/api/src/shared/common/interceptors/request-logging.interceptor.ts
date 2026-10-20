@@ -10,6 +10,7 @@ import { tap, catchError } from 'rxjs/operators';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { Request, Response } from 'express';
 import { getMonitoringUserContext } from '@/shared/modules/auth/auth/monitoring-user-context';
+import { redactMonitoringUrl, redactString } from '@workspace/utils';
 import {
   readCorrelationHeader,
   resolveCorrelationId,
@@ -58,7 +59,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     const { userId, clinicId } = getMonitoringUserContext(request.user);
 
     const method = request.method;
-    const path = request.path;
+    const path = redactMonitoringUrl(request.path);
     const userAgent = request.headers['user-agent'];
     const ip =
       request.ip ||
@@ -115,7 +116,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
         const statusCode = error.status || 500;
         const errorMessage =
           typeof error?.message === 'string'
-            ? error.message.slice(0, 200)
+            ? redactString(error.message).slice(0, 200)
             : 'request_failed';
 
         this.monitoringService.logRequest({

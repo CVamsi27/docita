@@ -105,11 +105,37 @@ const AADHAAR_RE = /\b\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/g;
 const PAN_RE = /\b[A-Z]{5}\d{4}[A-Z]\b/g;
 
 const MAX_DEPTH = 8;
+export const MONITORING_URL_FIELD_NAMES: ReadonlySet<string> = new Set([
+  "url",
+  "path",
+  "route",
+  "originalurl",
+]);
+const CAPABILITY_PATH_RE =
+  /((?:^|\/)(?:(?:doctors|clinics)\/signature\/(?:upload|validate-token)|upload-signature|public\/patient\/(?:rx|inv|pay))\/)([^/]+)/gi;
+const EMBEDDED_URL_RE = /https?:\/\/[^\s"'<>]+|\/[^\s"'<>]+/g;
+
+/** URLs are diagnostic route labels, never a place to retain bearer capabilities or query data. */
+export function redactMonitoringUrl(input: string): string {
+  let path = input.split(/[?#]/, 1)[0] ?? "";
+  try {
+    path = decodeURI(path);
+  } catch {
+    return REDACTED;
+  }
+  return path
+    .replace(/^(https?:\/\/)[^/@]*@/i, "$1[REDACTED]@")
+    .replace(
+      CAPABILITY_PATH_RE,
+      (_match, prefix: string, token: string) =>
+        `${prefix}${token.startsWith(":") ? token : REDACTED}`,
+    );
+}
 
 export function redactString(input: string): string {
   if (!input) return input;
   if (PHONE_FULL_RE.test(input)) return REDACTED;
-  let out = input;
+  let out = input.replace(EMBEDDED_URL_RE, redactMonitoringUrl);
   out = out.replace(EMAIL_RE, REDACTED);
   out = out.replace(AADHAAR_RE, REDACTED);
   out = out.replace(PAN_RE, REDACTED);
@@ -128,7 +154,8 @@ function walk(value: unknown, depth: number, seen: WeakSet<object>): unknown {
     typeof value === "number" ||
     typeof value === "boolean" ||
     typeof value === "bigint"
-  ) return value;
+  )
+    return value;
   if (value instanceof Date) return value;
   if (Array.isArray(value)) {
     return value.map((item) => walk(item, depth + 1, seen));
@@ -142,7 +169,9 @@ function walk(value: unknown, depth: number, seen: WeakSet<object>): unknown {
     const out: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(value)) {
       const lower = key.toLowerCase();
-      if (SAFE_FIELDS.has(lower)) {
+      if (MONITORING_URL_FIELD_NAMES.has(lower) && typeof val === "string") {
+        out[key] = redactMonitoringUrl(val);
+      } else if (SAFE_FIELDS.has(lower)) {
         out[key] = val;
       } else if (PHI_FIELDS.has(lower)) {
         out[key] = REDACTED;

@@ -628,11 +628,24 @@ For issues or questions:
 
 ### PR CI failure diagnostics
 
-Changed-test jobs fetch main without a depth limit after a full-history
-checkout. A later `git fetch --depth=1` can mark main as shallow again and
+Frontend and worker changed-test jobs fetch main without a depth limit after a
+full-history checkout. A later `git fetch --depth=1` can mark main as shallow again and
 remove the merge base required by Jest `--changedSince` and Vitest `--changed`.
 The standards suite exercises these fetch commands against a diverged Git fixture.
 API CI allocates a 4 GiB Node heap for the production and spec typechecks.
+
+The API job runs its full unit suite with the configured global coverage
+thresholds, while remaining scoped to API-impacting changes. Jest's
+`--changedSince` also limits coverage instrumentation, so combining it with a
+global budget can fail a well-covered suite or hide an untouched required file.
+The standards fixture executes the actual API workflow command in a disposable
+Git workspace and verifies that an untouched required file without tests still
+fails the global coverage gate. Coverage thresholds and collection paths are not
+relaxed. See [Jest coverage selection](https://jestjs.io/docs/cli#--changedsince).
+
+Keep viewport-specific skips inside the individual visual case. A
+describe-level desktop hero skip also suppresses unrelated mobile/tablet login
+coverage; the auth suite should skip only the two hidden hero cases.
 
 OSV runs both full and PR differential scans. The repository currently has
 Code Scanning disabled, so `upload-sarif: false` skips the dashboard upload;

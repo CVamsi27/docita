@@ -101,6 +101,8 @@ describe('PaymentsService', () => {
     findPatientContext: jest.fn<IInvoiceRepository['findPatientContext']>(),
     findClinicFeatureContext:
       jest.fn<IInvoiceRepository['findClinicFeatureContext']>(),
+    findClinicReportContext:
+      jest.fn<IInvoiceRepository['findClinicReportContext']>(),
     nextInvoiceNumber: jest.fn<IInvoiceRepository['nextInvoiceNumber']>(),
   };
 
@@ -163,7 +165,6 @@ describe('PaymentsService', () => {
     const settlement = new InvoiceSettlementService(
       repository,
       invoiceRepository,
-      configService,
       clock,
       transactionRunner,
     );

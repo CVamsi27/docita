@@ -3,8 +3,9 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
-import { InvoiceStatus, PaymentSessionStatus } from '@workspace/db';
+import { PaymentSessionStatus } from '@workspace/db';
 import type { PaymentWebhookPayload } from '@workspace/types';
 import { ApplicationEvents } from '@/shared/common/events/application-events';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
@@ -23,6 +24,7 @@ import {
 } from '@/shared/common/ports/transaction-runner.port';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import type { IOutboxService } from '@/shared/modules/outbox/outbox.interface';
+import { computeInvoicePaidState } from '@/domains/billing/core/rules/invoice-payment-rollup';
 
 /** A provider-confirmed capture recovered by reconciliation, not by a webhook delivery. */
 interface ReconciledProviderCapture {
@@ -239,12 +241,41 @@ export class RazorpayInvoiceWebhookService {
         return false;
       }
 
-      await this.invoiceRepository.update(
+      const invoice = await this.invoiceRepository.findById(
         invoiceId,
-        { status: InvoiceStatus.PAID },
         session.clinicId,
         tx,
       );
+      if (!invoice) {
+        throw new NotFoundException('Payment session invoice not found');
+      }
+
+      // The increment holds the invoice row lock through status derivation,
+      // so distinct captures cannot overwrite each other's paid balance.
+      const incremented = await this.invoiceRepository.update(
+        invoiceId,
+        { amountPaidCents: { increment: amountPaise } },
+        session.clinicId,
+        tx,
+      );
+      if (incremented.currency !== session.currency) {
+        throw new BadRequestException(
+          'Payment session currency does not match the invoice',
+        );
+      }
+      const { status } = computeInvoicePaidState({
+        totalCents: incremented.totalCents,
+        paidCents: incremented.amountPaidCents,
+        currentStatus: incremented.status,
+      });
+      if (incremented.status !== status) {
+        await this.invoiceRepository.update(
+          invoiceId,
+          { status },
+          session.clinicId,
+          tx,
+        );
+      }
 
       await this.outbox.append(tx, {
         eventName: ApplicationEvents.PAYMENT_CAPTURED,

@@ -33,7 +33,8 @@
     "db:repair-appointments": "node ../../scripts/db/repair-appointment-instants.mjs",
     "db:repair-appointments:apply": "node ../../scripts/db/repair-appointment-instants.mjs --apply",
     "db:guardrail": "pnpm db:check-integrity && pnpm db:validate-feedback-backfill && pnpm db:analyze-indexes && pnpm db:profile-queries && pnpm db:check-query-plans",
-    "test": "node --test scripts/*.test.ts"
+    "test": "node --test scripts/*.test.ts",
+    "db:test-tenant-isolation": "node --test scripts/check-tenant-isolation.integration.test.mjs"
   },
   "devDependencies": {
     "@prisma/config": "^7.6.0",

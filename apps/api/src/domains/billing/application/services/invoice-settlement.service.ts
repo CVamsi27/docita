@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { isRecord } from '@workspace/utils';
 import { PaymentSessionStatus, InvoiceStatus, Prisma } from '@workspace/db';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 // This service was split out of `PaymentsCommandService` and necessarily
 // shares its infrastructure ports (same repositories, clock, transaction
 // runner) — the import block is structurally identical rather than
@@ -50,7 +49,6 @@ export class InvoiceSettlementService {
     private readonly repository: IPaymentSessionRepository,
     @Inject(INVOICE_REPOSITORY_TOKEN)
     private readonly invoiceRepository: IInvoiceRepository,
-    private readonly configService: AppConfigService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
     @Inject(TRANSACTION_RUNNER_PORT)
     private readonly transactionRunner: ITransactionRunner,
@@ -126,6 +124,7 @@ export class InvoiceSettlementService {
       invoiceId: data.invoiceId,
       clinicId: data.clinicId,
       patientId: invoice.patientId,
+      currency: invoice.currency,
       totalCents: invoice.totalCents,
       paymentCents,
       meta: {
@@ -179,6 +178,7 @@ export class InvoiceSettlementService {
       invoiceId,
       clinicId,
       patientId,
+      currency: invoice.currency,
       totalCents: invoice.totalCents,
       paymentCents,
       meta: {
@@ -209,6 +209,7 @@ export class InvoiceSettlementService {
     invoiceId: string;
     clinicId: string;
     patientId: string;
+    currency: string;
     totalCents: number;
     paymentCents: number;
     meta: Prisma.PaymentSessionCreateInput['meta'];
@@ -221,7 +222,7 @@ export class InvoiceSettlementService {
           patient: { connect: { id: params.patientId } },
           provider: 'manual',
           amount: params.paymentCents,
-          currency: this.configService.getCurrencyCode(),
+          currency: params.currency,
           status: PaymentSessionStatus.CAPTURED,
           paidAt: this.clock.now(),
           expiresAt: this.clock.now(),

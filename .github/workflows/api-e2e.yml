@@ -13,7 +13,7 @@ env:
 jobs:
   api-e2e-tests:
     name: API E2E Tests (${{ matrix.shard }}/${{ matrix.total }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
