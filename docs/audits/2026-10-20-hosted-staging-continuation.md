@@ -11,9 +11,10 @@ Fresh Git reads confirm main `f3fddffc0963294a39ba73abc3ca688b236d6a9d`
 and staging `5ac5de7bb67ab127fb5627a49c147e5d40357fb5` have the same tree,
 `ff08bb763c60d367472f5d0be43d425e615b097c`. PR #326 and staging alignment
 PR #327 are merged. Each exact head had seven successful checks, seven scope
-skips and no failures. The 207-case standards result and local frontend build
-evidence belong to that source acceptance; they were not rerun for this
-operating-record update. Skipped checks are not executed evidence.
+skips and no failures. Local frontend build evidence belongs to that source
+acceptance and was not rerun for this operating-record update. The mandatory
+push hook separately passes all 207 standards regression cases for this docs
+branch. Skipped hosted checks are not executed evidence.
 
 ## Render staging
 
@@ -143,6 +144,8 @@ Follow [zero-spend controls](../operations/ZERO_HOSTING_SPEND.md) and the
 This change updates documentation only. Local lint passes all 11 tasks from
 cache; hygiene and documented script-name checks pass. All 78 local Markdown
 targets resolve, formatting and diff checks pass, and the staged secret scan
-finds no leaks. No new
-application typecheck or unit-test run is claimed for this documentation change;
-the hosted build and runtime checks above are separate deployment evidence.
+finds no leaks. The required push hook also passes duplication and the configured
+standards checks, including 207/207 regression cases with zero skips. No new
+application typecheck or application unit-test run is claimed for this
+documentation change; the hosted build and runtime checks above are separate
+deployment evidence.
