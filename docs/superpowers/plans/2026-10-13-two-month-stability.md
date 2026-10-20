@@ -5,7 +5,12 @@ main/staging trees and seven successful/seven scope-skipped checks each. Render
 authentication and browser access are restored; the reviewed candidate is Live
 on the existing Free staging service with seven passing HTTP checks, including
 both frontend readiness proxies. The clinician login renders without browser
-warning/error logs; authenticated journeys, latency and soak remain open.
+warning/error logs at the initial smoke. The later approved real Turnstile and
+synthetic sign-in pass, with basic protected routes and an internal-role denial.
+Parallel reads fail under connection contention, and the latency producer's
+pacing/duration defect invalidates its attempted soak. The scoped correction is
+proposed in the continuation audit; full clinical journeys and valid capacity/
+performance evidence remain open.
 Cloudflare Workers Builds caused
 the independent production frontend deployments; both clinician/internal
 production build paths are disabled and verified after reload. The staging

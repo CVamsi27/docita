@@ -3,7 +3,9 @@
 **Later hosted continuation:** PRs #326/#327 merged with seven successful and
 seven scope-skipped checks each. The reviewed Render Free staging deployment is
 Live with seven passing HTTP checks, including both frontend readiness proxies.
-Authenticated journeys, latency and soak remain open. Cloudflare Workers Builds is now the
+Real Turnstile/sign-in and basic role checks subsequently pass; parallel-read
+contention and a capture pacing/duration defect block acceptance. Full clinical
+journeys, valid latency and soak remain open. Cloudflare Workers Builds is now the
 verified origin of the production frontend updates; both clinician/internal
 production build paths have been disabled and read back after reload. Statements
 below about unpublished staging corrections, absent browser access, suspended
@@ -110,7 +112,7 @@ absent. The Sentry test monitor and dedicated email rule remain disabled with
 | Gate                | Evidence still required                                                                                                                                                                                                                 |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Reviewed release    | PRs #326/#327 pass source acceptance and staging alignment. The reviewed API and both staging frontends are deployed and identified. Production API/worker release and rollback proof remain open.                                      |
-| Staging             | Startup, isolated configuration, readiness proxies and unauthenticated denial pass. Complete hosted Turnstile/authenticated clinician journeys, representative capacity, fresh latency evidence and the soak.                           |
+| Staging             | Startup, real Turnstile/synthetic sign-in and basic role checks pass. Correct parallel-read connection contention and capture pacing/duration; complete clinical write journeys, representative capacity and an honest soak.            |
 | Encryption and RLS  | Verify offline application-key packet recovery, release the compatible decoder, reconcile retained keys, then complete the reviewed migration/restricted-role rollout. Production has ten pending migrations and owner-role RLS bypass. |
 | Backup recovery     | Prove quarantined clinical restore and erasure/legal-hold reconciliation, measure resource limits, publish a scanned immutable image and verify actual schedule cadence and missed-run delivery. No clinical dump/restore has passed.   |
 | Alert tests         | Keep test resources disabled. Prove an automatic cutoff and obtain fresh authorization before additional live test messages.                                                                                                            |

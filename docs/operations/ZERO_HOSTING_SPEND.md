@@ -3,7 +3,10 @@
 **20 October hosted continuation:** the approved reviewed staging candidate is
 Live on the existing Render Free service with Auto-Deploy Off and the
 $0 build-pipeline spend limit. Seven HTTP checks pass; billing still shows $0.00
-accrued/projected after deployment. Production API/worker recovery and backups remain
+accrued/projected at the saved post-deployment readback. Later real sign-in
+passes, but parallel-read contention and invalid capture pacing block runtime
+acceptance; no upgrade is authorized to work around them.
+Production API/worker recovery and backups remain
 gated. Cloudflare Workers Builds independently updated the clinician/internal
 production frontends; both identified build paths are now disabled and verified
 after reload. See the [hosted continuation](../audits/2026-10-20-hosted-staging-continuation.md).

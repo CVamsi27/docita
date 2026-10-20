@@ -2,8 +2,11 @@
 
 **20 October hosted continuation:** the reviewed candidate is Live on the existing
 Render Free staging service, with seven passing HTTP checks and both frontend
-readiness proxies returning 200. Direct Node startup uses a 256 MiB heap;
-authenticated journeys, latency and soak remain open. Cloudflare
+readiness proxies returning 200. Direct Node startup uses a 256 MiB heap.
+Real Turnstile/sign-in and basic role checks subsequently pass, but parallel
+authenticated reads fail with connection contention. The capture producer's
+pacing/duration defect invalidates its attempted ten-minute soak. Full clinical
+journeys, capacity and valid performance evidence remain open. Cloudflare
 Workers Builds independently deployed the clinician/internal production frontends
 from main; both identified automatic build paths are now disabled and verified
 after reload. Production API/worker recovery and backup activation remain

@@ -4,6 +4,9 @@
 Render-access and frontend-deployment-origin blockers in the
 [earlier final pass](2026-10-20-final-stability-pass.md). Production API/worker
 recovery, backups, offline key proof and elapsed observation are still gated.
+The later real sign-in passes, but parallel authenticated reads fail and the
+latency producer misreports its observation window. Those are active runtime
+and measurement blockers; the initial readiness smoke is not release acceptance.
 
 ## Reviewed source
 
@@ -131,11 +134,19 @@ database is accessed. Random credentials and exact fixture IDs stay in protected
 operator evidence outside Git. Disable the fixture account when testing ends.
 
 The hosted email check recognizes this account and reaches the password step.
-The real staging Turnstile widget displays its human-verification checkbox.
-Password entry is prepared, but no CAPTCHA or sign-in submission has been
-completed. The browser tool requires confirmation at the CAPTCHA step; that
-single staging action is pending. Cloudflare's challenge frame emits diagnostic
-console warnings/errors; no application sign-in result is claimed.
+The user approved one staging CAPTCHA action. Keyboard activation reaches
+verification; the widget then appears unchecked again. The approved token is
+nevertheless accepted when Sign in is submitted. The synthetic clinician lands
+in Consultation, and Today and Patients show their expected empty states without
+an onboarding reset. The earlier manual-verification request is superseded;
+no further CAPTCHA is needed for this session. The widget reset is consistent
+with callback changes remounting the shared component; it is not evidence that
+the backend rejected verification.
+
+A normal refresh of that issued synthetic session returns 201. All six canonical
+latency-route preflights return their expected statuses, including the unsigned
+synthetic webhook's 401. An internal-only API route rejects this clinician with 403. No token is forged or published. These checks establish real sign-in and
+basic authorized/denied reads; they do not complete the clinical write lifecycle.
 
 Render supplies 20 one-minute memory samples from rollout through 09:05 UTC.
 The first startup sample is 511.4 MiB; subsequent samples range from
@@ -145,11 +156,42 @@ of the limit. No failure or restart event is returned after rollout, and fresh
 These observations do not establish capacity under authenticated workload or
 complete the soak.
 
-The canonical latency producer's dry run plans 300 requests over ten minutes,
-at 30 per minute and concurrency one, across its six routes and all five
-endpoint classes. It issues no API request and creates no baseline. A legitimate
-authenticated session and a complete, successful measured capture remain
-required; the dry run does not satisfy the release latency gate.
+## Newly reproduced runtime and measurement blockers
+
+Appointments displays errors for its schedule and appointment-request reads.
+The corresponding provider logs include connection-acquisition timeouts, failed
+audit writes and readiness 503s. A separate bounded burst of eight authenticated
+patient-list reads has **zero successes**: one 503, one 403 and six client
+timeouts at 15 seconds. PostgreSQL snapshots show all five API connections
+`idle in transaction` while requests wait. The source trace points to awaited
+audit work leaving the active RLS transaction and borrowing from the same full
+pool. This mechanism still requires a reproducing regression before correction;
+do not solve it by weakening RLS, dropping audit failures or increasing a plan.
+
+Readiness recovers to 200 at 09:41 UTC without a failure/restart event. The latest
+provider memory sample is about 468.6 MiB of 512 MiB. Recovery does not make the
+parallel-read test pass or establish capacity.
+
+The real latency capture requests 300 probes over ten minutes at 30/minute and
+concurrency one, using the normal refreshed synthetic session. It writes
+`complete: true`, but the log-creation/artifact-write interval is only about
+**185.72 seconds**. The producer calculates its reported 30.2 observations/minute
+from the requested 600 seconds; the observed interval implies about 97.6/minute.
+Its pure planner schedules the last request at 106 seconds and **264 requests
+in one 60-second window**, despite the 30/minute setting. Two throttle responses
+are observed. The artifact is quarantined as diagnostic evidence and is not
+converted or committed as a valid ten-minute release baseline.
+
+The shorter burst's diagnostic p95 values are auth 200 ms, CRUD 472 ms, search
+302 ms, reports 472 ms and webhook rejection 91 ms; CRUD p99 is 3,053 ms. These
+are actual samples from the faulty schedule, not accepted soak/SLO evidence.
+The dataset is one synthetic clinic with zero patients, appointments or invoices;
+even a corrected capture cannot establish production-volume capacity from it.
+
+The [scoped repair proposal](../superpowers/specs/2026-10-20-hosted-staging-repair-design.md)
+separates awaited/background audit lifetimes and repairs planned/actual pacing
+and elapsed-time reporting. It is proposed for approval; no application behavior
+has been changed in this documentation PR.
 
 ## Cost and remaining gates
 
@@ -161,7 +203,8 @@ and 0 MB/5 GB bandwidth. No paid service, plan, disk, cron job or datastore was
 created. A payment method exists, and bandwidth overages are separate from the
 build spend limit; this is not a universal $0 hard cap.
 
-Hosted authentication/Turnstile journeys, representative latency and soak,
+The full authenticated clinical lifecycle, parallel-read reliability, valid
+representative latency and soak,
 offline runtime-key proof, clinical restore and erasure reconciliation,
 production migration/RLS rollout, backup activation/cadence and production
 observation remain open. No live alert test or payment replay was issued.
@@ -174,7 +217,7 @@ Follow [zero-spend controls](../operations/ZERO_HOSTING_SPEND.md) and the
 ## Operating-record validation
 
 This change updates documentation only. Local lint passes all 11 tasks from
-cache; hygiene and documented script-name checks pass. All 78 local Markdown
+cache; hygiene and documented script-name checks pass. Local Markdown
 targets resolve, formatting and diff checks pass, and the staged secret scan
 finds no leaks. The required push hook also passes duplication and the configured
 standards checks, including 207/207 regression cases with zero skips. No new

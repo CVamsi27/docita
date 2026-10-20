@@ -16,16 +16,22 @@ selects staging mode. See the
 [hosted continuation](../audits/2026-10-20-hosted-staging-continuation.md)
 for current provider evidence; both reviewed staging frontends are deployed and
 fresh static integrity/header checks pass. Earlier suspension/access statements
-below are historical. Startup/readiness pass; authenticated journeys,
-representative capacity, latency and soak gates remain open.
+below are historical. Initial startup/readiness pass; later authenticated
+parallel reads fail with connection contention, and the latency capture's pacing
+and elapsed-time reporting are invalid. Full clinical journeys, capacity, valid
+latency and soak gates remain open.
 
 The subsequent authentication preparation creates one disposable synthetic trial
 clinic and clinician on the verified empty staging target. No patient/document
-fixture or provider message is created. The real hosted password/Turnstile step
-is prepared and awaits CAPTCHA confirmation; no authenticated session or latency
-baseline is verified. Keep its random credentials/IDs in protected operator
+fixture or provider message is created. The approved real Turnstile and clinician
+sign-in pass; Today, Consultation and Patients render expected empty states, and
+an internal-only API denies the clinician. Appointments shows loading errors;
+a separate eight-read burst has zero successes with all five API connections
+held in idle transactions. The attempted latency capture is quarantined because
+its ten-minute/30-per-minute plan actually bursts and finishes early. No valid
+release baseline is created. Keep random credentials/IDs in protected operator
 evidence and disable the account when testing ends. The continuation audit above
-records the fixture boundary and the short memory-observation window.
+records the fixture boundary, failures and proposed correction.
 
 ## Current preparation, 17 October 2026
 
