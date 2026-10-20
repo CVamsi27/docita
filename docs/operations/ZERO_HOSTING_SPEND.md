@@ -6,6 +6,10 @@ $0 build-pipeline spend limit. Seven HTTP checks pass; billing still shows $0.00
 accrued/projected at the saved post-deployment readback. Later real sign-in
 passes, but parallel-read contention and invalid capture pacing block runtime
 acceptance; no upgrade is authorized to work around them.
+The approved source repairs in PR #328 reuse the existing transaction and fix the
+capture producer, preserving the Free plan and runtime limits. They remain
+undeployed; no additional hosting cost or production restart is authorized by
+their implementation.
 Production API/worker recovery and backups remain
 gated. Cloudflare Workers Builds independently updated the clinician/internal
 production frontends; both identified build paths are now disabled and verified

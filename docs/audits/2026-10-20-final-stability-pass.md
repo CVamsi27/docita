@@ -13,6 +13,11 @@ Render and no production frontend deployment are historical. Follow the
 [hosted continuation](2026-10-20-hosted-staging-continuation.md) for current
 provider state. Production readiness remains blocked.
 
+The subsequently approved transaction/capture repairs and reproduced Turnstile
+remount correction are implemented in PR #328 and locally verified as recorded
+in the continuation. They remain undeployed; hosted reliability, valid soak and
+production release gates stay open.
+
 **Production freeze readiness remains blocked.** The feature freeze ends on
 13 December. This pass does not restart production, migrate
 clinical data, activate backups, replay payments or create paid resources.

@@ -9,7 +9,8 @@ warning/error logs at the initial smoke. The later approved real Turnstile and
 synthetic sign-in pass, with basic protected routes and an internal-role denial.
 Parallel reads fail under connection contention, and the latency producer's
 pacing/duration defect invalidates its attempted soak. The scoped correction is
-proposed in the continuation audit; full clinical journeys and valid capacity/
+approved and implemented in PR #328, alongside the reproduced Turnstile remount
+fix. They remain undeployed; full clinical journeys and valid capacity/
 performance evidence remain open.
 Cloudflare Workers Builds caused
 the independent production frontend deployments; both clinician/internal

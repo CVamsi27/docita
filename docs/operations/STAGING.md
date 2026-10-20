@@ -31,7 +31,10 @@ held in idle transactions. The attempted latency capture is quarantined because
 its ten-minute/30-per-minute plan actually bursts and finishes early. No valid
 release baseline is created. Keep random credentials/IDs in protected operator
 evidence and disable the account when testing ends. The continuation audit above
-records the fixture boundary, failures and proposed correction.
+records the fixture boundary, failures and approved source correction. PR #328
+implements transaction reuse for awaited audits, honest capture pacing/timing,
+and the reproduced Turnstile callback remount. These changes are not deployed;
+repeat hosted verification after source review and PR-only staging alignment.
 
 ## Current preparation, 17 October 2026
 

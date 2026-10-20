@@ -1,7 +1,7 @@
 # Hosted staging transaction and latency-capture repair proposal
 
-**Status:** proposed for approval; no implementation change or production release
-is included. This follows the
+**Status:** approved for implementation on 20 October 2026 by the instruction
+“Implement both scoped repairs.” Production release remains held. This follows the
 [hosted validation record](../../audits/2026-10-20-hosted-staging-continuation.md).
 
 ## Observed failures

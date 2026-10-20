@@ -6,7 +6,8 @@ Render-access and frontend-deployment-origin blockers in the
 recovery, backups, offline key proof and elapsed observation are still gated.
 The later real sign-in passes, but parallel authenticated reads fail and the
 latency producer misreports its observation window. Those are active runtime
-and measurement blockers; the initial readiness smoke is not release acceptance.
+and measurement blockers in the deployed revision; the initial readiness smoke
+is not release acceptance. The approved source repairs below remain undeployed.
 
 ## Reviewed source
 
@@ -14,10 +15,9 @@ Fresh Git reads confirm main `f3fddffc0963294a39ba73abc3ca688b236d6a9d`
 and staging `5ac5de7bb67ab127fb5627a49c147e5d40357fb5` have the same tree,
 `ff08bb763c60d367472f5d0be43d425e615b097c`. PR #326 and staging alignment
 PR #327 are merged. Each exact head had seven successful checks, seven scope
-skips and no failures. Local frontend build evidence belongs to that source
-acceptance and was not rerun for this operating-record update. The mandatory
-push hook separately passes all 207 standards regression cases for this docs
-branch. Skipped hosted checks are not executed evidence.
+skips and no failures. Those hosted results belong to the original candidate.
+PR #328 now adds the approved source corrections described below; its local
+checks are separate evidence. Skipped hosted checks are not executed evidence.
 
 ## Render staging
 
@@ -165,8 +165,10 @@ patient-list reads has **zero successes**: one 503, one 403 and six client
 timeouts at 15 seconds. PostgreSQL snapshots show all five API connections
 `idle in transaction` while requests wait. The source trace points to awaited
 audit work leaving the active RLS transaction and borrowing from the same full
-pool. This mechanism still requires a reproducing regression before correction;
-do not solve it by weakening RLS, dropping audit failures or increasing a plan.
+pool. A new local PostgreSQL regression reproduces acquisition timeouts with two
+connections occupied by request transactions. The repaired awaited audit reuses
+that transaction; both concurrent requests finish. RLS, audit failures and pool
+limits remain enforced.
 
 Readiness recovers to 200 at 09:41 UTC without a failure/restart event. The latest
 provider memory sample is about 468.6 MiB of 512 MiB. Recovery does not make the
@@ -188,10 +190,33 @@ are actual samples from the faulty schedule, not accepted soak/SLO evidence.
 The dataset is one synthetic clinic with zero patients, appointments or invoices;
 even a corrected capture cannot establish production-volume capacity from it.
 
-The [scoped repair proposal](../superpowers/specs/2026-10-20-hosted-staging-repair-design.md)
-separates awaited/background audit lifetimes and repairs planned/actual pacing
-and elapsed-time reporting. It is proposed for approval; no application behavior
-has been changed in this documentation PR.
+## Approved source repairs, not yet deployed
+
+The operator approved the [scoped design](../superpowers/specs/2026-10-20-hosted-staging-repair-design.md)
+with “Implement both scoped repairs.” The [implementation plan](../superpowers/plans/2026-10-20-hosted-staging-repairs.md)
+tracks regressions, checks and publication in PR #328.
+
+- Awaited `AuditService` validation/persistence retains the active request's RLS
+  transaction. The sensitive-write interceptor explicitly detaches its background
+  task; the event listener keeps its existing detached boundary. Real restricted-role
+  PostgreSQL tests cover bounded-pool concurrency, joint rollback, audit-failure
+  propagation, cross-tenant rejection and background persistence after commit.
+- The capture schedules the default 300 probes through 598 seconds, with at most
+  30 starts in any half-open 60-second window. Actual dispatch, retries and route
+  intervals share admission pacing. It observes the requested window and records
+  actual start/end/elapsed time. Incomplete work, shortened captures and throttles
+  cannot become release evidence; conversion retains the original capture age.
+- The reported Turnstile loop reproduces in a real React parent: token state
+  changes replace callback identities and previously remounted the widget. The
+  shared widget now delivers to current callbacks without restarting verification.
+  Local tests cover token/expiry delivery, script load, key changes and cleanup.
+  No additional hosted challenge has been activated, and hosted resolution is
+  unverified until a reviewed frontend candidate is deployed.
+
+No provider deployment, paid resource, live alert, payment replay or production
+restart accompanies these source changes. The faulty hosted capture is retained
+and no release baseline is created. Repeat hosted parallel reads and a corrected
+capture only after source review and PR-only staging alignment.
 
 ## Cost and remaining gates
 
@@ -214,13 +239,35 @@ private identity must stay offline.
 Follow [zero-spend controls](../operations/ZERO_HOSTING_SPEND.md) and the
 [earlier release-gate inventory](2026-10-20-final-stability-pass.md).
 
-## Operating-record validation
+## Local source validation
 
-This change updates documentation only. Local lint passes all 11 tasks from
-cache; hygiene and documented script-name checks pass. Local Markdown
-targets resolve, formatting and diff checks pass, and the staged secret scan
-finds no leaks. The required push hook also passes duplication and the configured
-standards checks, including 207/207 regression cases with zero skips. No new
-application typecheck or application unit-test run is claimed for this
-documentation change; the hosted build and runtime checks above are separate
-deployment evidence.
+- The audit regression fails on the old implementation (acquisition timeouts,
+  orphan audit after rollback, tenant-scope escape and inherited background tx),
+  then passes all five real PostgreSQL cases after repair. The pool has two
+  connections and the effective test role is neither superuser nor `BYPASSRLS`.
+- The related API unit suites pass 42 tests; all shared UI tests pass 156 cases,
+  including four widget lifecycle cases. Capture/converter tests pass 47 cases,
+  including a real loopback CLI run and deterministic dispatch/elapsed tests.
+  They now run in `test:standards-checks`, which passes 254 cases with zero skips.
+- Workspace typechecks pass all 29 tasks, lint all 11, and the full build all 35. Both frontend `build:cloudflare --mode staging` commands also pass without
+  deploying. Standards and Knip pass; the default API-latency check explicitly
+  skips because no release baseline exists. That skip does not close its gate.
+- Public clinician accessibility checks execute 12 cases across four viewports;
+  148 authenticated cases are explicitly skipped in public-only mode. The internal
+  login-only accessibility audit passes four viewport cases. Protected internal
+  pages are outside this check. The first attempts hit the outage gate without a
+  local API; reruns use the owned synthetic local API with schedulers/external
+  integrations disabled.
+- The dependency audit exits successfully with one high advisory covered by the
+  existing exception; no dependency or exception was changed. Formatting, diff
+  and staged secret checks pass. No private runtime artifact enters Git.
+
+The full API E2E command passes in all four CI-equivalent shards on distinct
+owned loopback databases: **64 suites, 513 tests, zero failures and zero skips**
+(shard case counts: 138, 122, 97 and 156). The new audit regression passes in that
+full run. The initial serial run encountered one portal prescription 404; both
+current and pre-repair implementations pass the isolated 24-case rerun, and the
+final full shard also passes. One first sharded attempt rejected the chosen
+disposable database name; its rerun uses an accepted test name without changing
+the guard. Earlier failed/interrupted logs are retained separately. These local
+results do not replace reviewed hosted deployment or soak evidence.

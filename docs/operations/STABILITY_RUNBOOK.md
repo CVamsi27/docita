@@ -13,6 +13,14 @@ after reload. Production API/worker recovery and backup activation remain
 gated. The [hosted continuation](../audits/2026-10-20-hosted-staging-continuation.md)
 supersedes earlier provider-access and deployment-origin statements below.
 
+The operator approved the transaction/capture repairs in PR #328. Awaited audits
+retain their request transaction; genuine background paths detach. The capture
+now paces actual starts/retries and measures actual elapsed time. The reported
+Turnstile remount also has a local lifecycle correction. These source fixes
+remain undeployed; their local evidence cannot close hosted reliability or
+performance gates. Preserve the quarantined capture and rerun after review and
+staging alignment.
+
 **20 October final pass:** the recorded PR revision has 14 successes and three
 scope skips; production remains in maintenance and is not certified ready.
 The Sentry test monitor and dedicated email rule are disabled after 27 unintended
