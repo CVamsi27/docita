@@ -24,61 +24,13 @@ test("accessibility smoke", async ({ page }) => {
 
   const h1 = page.getByRole("heading", { level: 1 });
   await expect(h1).toHaveCount(1);
-  await expect(h1).toContainText(
-    "One rhythm for your whole OPD floor. Queue, chart, bill, follow up—without the shuffle.",
-  );
-});
-
-test("hero live preview controls are keyboard accessible", async ({ page }) => {
-  await page.goto("/");
-
-  const previewRegion = page.getByRole("region", {
-    name: "Live practice operations preview",
-  });
-  await expect(previewRegion).toBeVisible();
-
-  const tablist = page.getByRole("tablist", {
-    name: "Preview OPD workflow stages",
-  });
-  await expect(tablist).toBeVisible();
-
-  const tabs = tablist.getByRole("tab");
-  await expect(tabs).toHaveCount(3);
-  await page.waitForFunction(() => {
-    const tab = document.querySelector(
-      '[role="tablist"][aria-label="Preview OPD workflow stages"] [role="tab"]',
-    );
-    return Boolean(
-      tab && Object.keys(tab).some((key) => key.startsWith("__react")),
-    );
-  });
-
-  // Exactly one tab is selected and it stays keyboard focusable.
-  const selectedTabs = tablist.getByRole("tab", { selected: true });
-  await expect(selectedTabs).toHaveCount(1);
-  await selectedTabs.first().focus();
-  await expect(selectedTabs.first()).toBeFocused();
-
-  // Focusing the rail pauses the preview rotation, so arrow keys move the
-  // selection deterministically.
-  const selectedId = await selectedTabs.first().getAttribute("id");
-  await page.keyboard.press("ArrowRight");
-
-  const movedTab = tablist.locator('[role="tab"][aria-selected="true"]');
-  await expect(movedTab).toHaveCount(1);
-  await expect(movedTab).toBeFocused();
-  await expect.poll(() => movedTab.getAttribute("id")).not.toBe(selectedId);
-
-  // Only the selected stage is exposed to assistive technology.
-  await expect(
-    page.locator('.r2-product-frame[aria-hidden="false"]'),
-  ).toHaveCount(1);
+  await expect(h1).toContainText("A calmer clinic day.");
 });
 
 test("product screenshot filter tabs move with arrow keys", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/product");
 
   const section = page.locator("#product-screenshots");
   await section.scrollIntoViewIfNeeded();
@@ -128,7 +80,7 @@ test("product screenshot filter tabs move with arrow keys", async ({
 test("screenshot lightbox traps Tab and restores focus to its trigger", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/product");
 
   const section = page.locator("#product-screenshots");
   await section.scrollIntoViewIfNeeded();
@@ -170,7 +122,7 @@ test("screenshot lightbox traps Tab and restores focus to its trigger", async ({
 });
 
 test("pricing toggles expose single-select pressed state", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/pricing");
 
   // Scroll to the pricing section so the toggles are visible
   const pricingHeading = page.getByRole("heading", {
@@ -215,7 +167,7 @@ test("pricing toggles expose single-select pressed state", async ({ page }) => {
 });
 
 test("plan picker options are focusable", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/pricing");
 
   // Scroll to the plan picker section
   const planPickerHeading = page.getByRole("heading", {
@@ -224,20 +176,49 @@ test("plan picker options are focusable", async ({ page }) => {
   await planPickerHeading.scrollIntoViewIfNeeded();
   await expect(planPickerHeading).toBeVisible();
 
-  // The plan picker option buttons should exist and be focusable
-  const optionButtons = page.locator(
-    "[class*='plan-picker'] button, [data-testid*='plan-option'] button",
-  );
-  const count = await optionButtons.count();
+  const practiceOptions = page
+    .getByRole("group", { name: "Practice size" })
+    .getByRole("button");
+  const workOptions = page
+    .getByRole("group", { name: "Type of work" })
+    .getByRole("button");
+  for (const options of [practiceOptions, workOptions]) {
+    expect(await options.count()).toBeGreaterThanOrEqual(2);
+    await options.first().focus();
+    await expect(options.first()).toBeFocused();
+  }
+});
 
-  // If the plan picker is visible, verify its buttons are focusable
-  if (count > 0) {
-    for (let i = 0; i < Math.min(count, 5); i++) {
-      const btn = optionButtons.nth(i);
-      if (await btn.isVisible()) {
-        await btn.focus();
-        await expect(btn).toBeFocused();
-      }
-    }
+test("product FAQ expands with the keyboard", async ({ page }) => {
+  await page.goto("/product#faq");
+  const question = page.getByRole("button", {
+    name: "How fast can my facility actually go live?",
+  });
+  await question.scrollIntoViewIfNeeded();
+  await expect(
+    page.locator('astro-island[component-export="FaqCtaSection"]'),
+  ).not.toHaveAttribute("ssr", "");
+  await question.focus();
+  await question.press("Enter");
+  await expect(question).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByText(/Discovery call on day zero/)).toBeVisible();
+  await question.press("Enter");
+  await expect(question).toHaveAttribute("aria-expanded", "false");
+});
+
+test("marketing detail pages have one primary heading and a skip link", async ({
+  page,
+}) => {
+  for (const route of ["/product", "/pricing"]) {
+    await page.goto(route);
+    await expect(
+      page.getByRole("main").getByRole("heading", { level: 1 }),
+    ).toHaveCount(1);
+    const skipLink = page.getByRole("link", { name: "Skip to content" });
+    await skipLink.focus();
+    await expect(skipLink).toBeVisible();
+    await expect(skipLink).toBeFocused();
+    await skipLink.press("Enter");
+    await expect(page.getByRole("main")).toBeFocused();
   }
 });

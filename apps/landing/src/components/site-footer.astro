@@ -1,8 +1,12 @@
 ---
 import { DocitaWordmark } from "@workspace/ui/components/indicators/docita-logo";
 import { SUPPORT_EMAIL } from "@workspace/types";
+const { compact = false } = Astro.props;
 ---
 
+{compact ? (
+<footer class="editorial-footer"><div class="ui-page-shell editorial-footer-inner"><a href="/" aria-label="Docita home"><DocitaWordmark className="h-8 w-auto" /></a><nav aria-label="Footer navigation"><a href="/product">Product</a><a href="/pricing">Pricing</a><a href="/trust">Trust</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav></div></footer>
+) : (
 <footer class="landing-footer text-foreground/80 px-6 py-10">
   <div class="ui-page-shell grid grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-5">
     <div class="col-span-2 min-w-0 sm:col-span-3 md:col-span-1">
@@ -18,12 +22,12 @@ import { SUPPORT_EMAIL } from "@workspace/types";
     <div>
       <h2 class="font-semibold text-foreground">Product</h2>
       <ul class="mt-4 space-y-2 text-sm">
-        <li><a href="/#rhythm" class="text-foreground/80 transition-colors hover:text-primary">Clinic day rhythm</a></li>
-        <li><a href="/#surface-map" class="text-foreground/80 transition-colors hover:text-primary">All surfaces</a></li>
-        <li><a href="/#workflow-compare" class="text-foreground/80 transition-colors hover:text-primary">Compare</a></li>
-        <li><a href="/#rollout" class="text-foreground/80 transition-colors hover:text-primary">Rollout playbook</a></li>
-        <li><a href="/#pricing" class="text-foreground/80 transition-colors hover:text-primary">Pricing</a></li>
-        <li><a href="/#faq" class="text-foreground/80 transition-colors hover:text-primary">FAQ</a></li>
+        <li><a href="/product#rhythm" class="text-foreground/80 transition-colors hover:text-primary">Clinic day rhythm</a></li>
+        <li><a href="/product#surface-map" class="text-foreground/80 transition-colors hover:text-primary">All surfaces</a></li>
+        <li><a href="/product#workflow-compare" class="text-foreground/80 transition-colors hover:text-primary">Compare</a></li>
+        <li><a href="/product#rollout" class="text-foreground/80 transition-colors hover:text-primary">Rollout playbook</a></li>
+        <li><a href="/pricing" class="text-foreground/80 transition-colors hover:text-primary">Pricing</a></li>
+        <li><a href="/product#faq" class="text-foreground/80 transition-colors hover:text-primary">FAQ</a></li>
       </ul>
     </div>
 
@@ -79,3 +83,5 @@ import { SUPPORT_EMAIL } from "@workspace/types";
     <p>© {new Date().getFullYear()} Docita. All rights reserved.</p>
   </div>
 </footer>
+
+)}
