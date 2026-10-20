@@ -26,6 +26,7 @@ import {
   ListDeskOpenInvoicesQueryDto,
 } from '@/domains/billing/application/dto/desk.dto';
 import { AnyResponseDto } from '@/domains/billing/application/dto/payments.dto';
+import { RequiresIdempotency } from '@/shared/modules/idempotency';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { logPatientPhiRead } from '@/shared/modules/audit/audit/patient-access-audit.util';
 import { getBillingRequestContext } from './billing-request-context';
@@ -71,6 +72,7 @@ export class DeskController {
   @Post('invoices/:invoiceId/settlement')
   @RequireFeature(Feature.INVOICING)
   @Roles(Role.ADMIN, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+  @RequiresIdempotency()
   @ZodSerializerDto(AnyResponseDto)
   recordInvoiceSettlement(
     @Param('invoiceId') invoiceId: string,

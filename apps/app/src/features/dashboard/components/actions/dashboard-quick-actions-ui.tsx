@@ -36,22 +36,22 @@ export function DashboardQuickActionsUI({
           key={action.href}
           to={action.href}
           className={cn(
-            "group flex min-h-24 min-w-0 flex-col items-center justify-center gap-2 rounded-[var(--radius)] border border-transparent p-3 text-center transition-colors duration-150",
-            "bg-card hover:bg-muted/40 hover:border-border/80",
+            "group flex min-h-24 min-w-0 flex-col items-center justify-center gap-2 rounded-xl border border-border/70 p-3 text-center transition-colors duration-150 shadow-xs",
+            "bg-card hover:bg-muted/40 hover:border-border",
           )}
         >
           <div
             className={cn(
-              "relative flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 shadow-sm sm:h-12 sm:w-12",
+              "relative flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-background/80 shadow-xs sm:h-12 sm:w-12 transition-colors duration-150",
               idx === 0
-                ? "bg-foreground text-background border-border/40"
-                : "text-primary hover:bg-background/85",
+                ? "bg-primary text-primary-foreground border-primary/40"
+                : "text-primary group-hover:bg-primary/10 group-hover:border-primary/30",
             )}
           >
             <action.icon
               className={cn(
-                "h-5 w-5 sm:h-6 sm:w-6",
-                idx === 0 ? "text-background" : "text-primary",
+                "h-5 w-5 sm:h-6 sm:w-6 transition-colors duration-150",
+                idx === 0 ? "text-primary-foreground" : "text-primary",
               )}
             />
             {action.badge && (
@@ -60,7 +60,7 @@ export function DashboardQuickActionsUI({
               </span>
             )}
           </div>
-          <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center">
+          <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors duration-150 text-center">
             {action.label}
           </span>
         </Link>

@@ -8,7 +8,7 @@ Clone-to-running in under 30 minutes.
 
 | Tool | Required version | Install |
 |------|-----------------|---------|
-| Node.js | `>=22.12.0` | [nvm](https://github.com/nvm-sh/nvm) or direct |
+| Node.js | `>=22.22.0` | [nvm](https://github.com/nvm-sh/nvm) or direct |
 | pnpm | `10.30.3` (exact) | `corepack enable && corepack prepare pnpm@10.30.3 --activate` |
 | PostgreSQL | 15+ | `docker compose up -d db` (see §3) |
 

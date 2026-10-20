@@ -5,7 +5,11 @@ export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  /** True while the auth bootstrap is retrying after an API cold-start (network/timeout, not 401/403). */
+  /**
+   * True while the auth bootstrap is waiting for the API to come back after a
+   * cold start or database outage (network/timeout, not 401/403). The workspace
+   * shows the server warming screen and recovers automatically.
+   */
   isApiStarting: boolean;
   isAdmin: boolean;
   isDoctor: boolean;

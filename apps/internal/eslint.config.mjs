@@ -7,7 +7,7 @@ export default tseslint.config(
   { ignores: ["dist", ".wrangler", "api"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ["src/**/*.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx}", "e2e/**/*.ts"],
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,

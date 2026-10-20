@@ -14,6 +14,7 @@ import {
   UpdatePatientRequest,
   type AbhaRequestOtpResult,
   type AbhaVerificationResult,
+  type TodayQueueResponse,
   type VerifyAbhaRequest,
   verifyAbhaRequestSchema,
 } from "@workspace/types";
@@ -21,7 +22,6 @@ import { useAPIMutation } from "../core/use-api-mutation";
 import { useAPIQuery } from "../core/use-api-query";
 import { withQueryString } from "../lib/query-string";
 import { useDataAccessContext } from "../provider/hooks";
-import type { MedicalHistoryTimelineItem } from "../types/app-types";
 type UsePatientsOptions = {
   limit?: number;
   page?: number;
@@ -58,12 +58,9 @@ export const usePatients = (options?: UsePatientsOptions) => {
     search: options?.search,
   });
 
-  return useAPIQuery<{
-    items: Patient[];
-    nextCursor?: string;
-    hasMore: boolean;
-    count: number;
-  }>(
+  // Wire shape is the API's `listPatientsResponseSchema` (`items` + `total`);
+  // the app view type for a row is the wider `Patient`.
+  return useAPIQuery<{ items: Patient[]; total: number }>(
     queryKeys.patients.list({
       limit,
       page,
@@ -115,12 +112,7 @@ export const useRecentPatients = (limit: number = 5) => {
   const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
     Feature.BASIC_PATIENT_MANAGEMENT,
   );
-  return useAPIQuery<{
-    items: Patient[];
-    nextCursor?: string;
-    hasMore: boolean;
-    count: number;
-  }>(
+  return useAPIQuery<{ items: Patient[]; total: number }>(
     queryKeys.patients.recent(limit),
     withQueryString("/patients", { limit }),
     {
@@ -146,17 +138,6 @@ export const usePatientWithMedicalHistory = (id: string) => {
     queryKeys.patients.withMedicalHistory(id),
     `/patients/${id}`,
     { enabled: tierPatientsOk && !!id },
-  );
-};
-
-export const usePatientMedicalHistoryTimeline = (patientId: string) => {
-  const tierPatientsOk = useDataAccessContext().isTierFeatureEnabled(
-    Feature.BASIC_PATIENT_MANAGEMENT,
-  );
-  return useAPIQuery<MedicalHistoryTimelineItem[]>(
-    queryKeys.patients.medicalHistoryTimeline(patientId),
-    `/patients/${patientId}/medical-history-timeline`,
-    { enabled: tierPatientsOk && !!patientId },
   );
 };
 
@@ -258,44 +239,11 @@ export const useTodaysPatients = (doctorId?: string, search?: string) => {
   const tierQueueOk = useDataAccessContext().isTierFeatureEnabled(
     Feature.QUEUE_MANAGEMENT,
   );
-  return useAPIQuery<{
-    patients: {
-      id: string;
-      type: "appointment" | "queue";
-      tokenNumber: number | null;
-      tokenType: "scheduled" | "walk-in" | "late-arrival" | "pending";
-      status: string;
-      priority: number;
-      scheduledTime: string | null;
-      checkInTime: string | null;
-      patient: {
-        id: string;
-        firstName: string;
-        lastName: string;
-        phoneNumber: string | null;
-        gender: string | null;
-        dateOfBirth: string | null;
-      };
-      doctor: { id: string; name: string } | null;
-      appointmentId: string | null;
-      appointmentType: string | null;
-      estimatedWaitTime: number | null;
-      calledAt: string | null;
-      completedAt: string | null;
-      createdAt: string;
-    }[];
-    stats: {
-      total: number;
-      pending: number;
-      waiting: number;
-      inProgress: number;
-      completed: number;
-      noShow: number;
-      walkIns: number;
-      scheduled: number;
-      avgConsultationMinutes: number;
-    };
-  }>(
+  // `GET /queue/today` shape comes from `todayQueueResponseSchema`; the previous
+  // inline literal omitted `chiefComplaint`, typed `tokenNumber` as nullable, and
+  // typed `checkInTime` as nullable, so consumers could not read the summary the
+  // server actually sends.
+  return useAPIQuery<TodayQueueResponse>(
     queryKeys.patients.todays(doctorId ?? "all", search ?? ""),
     withQueryString("/queue/today", { doctorId, search }),
     { enabled: tierQueueOk },

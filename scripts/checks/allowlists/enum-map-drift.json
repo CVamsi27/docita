@@ -1,0 +1,16 @@
+[
+  {
+    "file": "apps/app/src/features/patient-portal/lib/map-portal-status.ts",
+    "map": "appointmentStatusByInput",
+    "key": "CHECKED_IN",
+    "reason":
+      "Normalizing map, not an enum table. The wire sends lowercase-kebab (`checked-in` per appointmentStatusSchema); mapAppointmentStatus uppercases and de-kebab-cases before lookup, so CHECKED_IN is the normalized form of a real wire value rather than a key that can never match."
+  },
+  {
+    "file": "apps/internal/src/features/system-monitoring/pages/system-monitoring-page.tsx",
+    "map": "COVERAGE_LABEL",
+    "key": "COMPLETE",
+    "reason":
+      "Telemetry coverage is computed and reported, never persisted, so no Prisma enum can hold COMPLETE / GAPS_RECORDED / UNAVAILABLE. The map is annotated over the TelemetryCoverage state union (packages/types), which is this check's own recommended fix: a key that drifts from the wire union is a compile error. This file holds no other UPPER_SNAKE Record map."
+  }
+]

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen } from "@/test-utils";
 import { BillingDashboardTabs } from "./billing-dashboard-tabs";
 import { MemoryRouter } from "react-router";
 

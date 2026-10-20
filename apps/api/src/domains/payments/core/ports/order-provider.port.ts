@@ -41,6 +41,12 @@ export interface IOrderProvider extends IPaymentGateway {
   createOrder(request: CreateOrderRequest): Promise<PaymentGatewayOrder>;
   getOrder(orderId: string): Promise<PaymentGatewayOrder | null>;
   capturePayment(orderId: string): Promise<PaymentGatewayPayment>;
+  /**
+   * Read-only payment list for an order. Used by capture reconciliation to
+   * find payments whose webhook delivery never completed; must never capture
+   * or mutate provider state.
+   */
+  listOrderPayments(orderId: string): Promise<PaymentGatewayPayment[]>;
   verifyPayment(request: VerifyPaymentRequest): Promise<VerifyPaymentResponse>;
 }
 

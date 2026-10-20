@@ -361,16 +361,50 @@ const subscriptionBillingCheckoutPrefillSchema = z
   })
   .strict();
 
-export const subscriptionBillingCheckoutResponseSchema = z
-  .object({
-    orderId: z.string(),
-    amountCents: z.number().int().min(0),
-    currency: z.string(),
-    razorpayKeyId: z.string(),
-    completedWithoutPayment: z.boolean().optional(),
-    prefill: subscriptionBillingCheckoutPrefillSchema.optional(),
-  })
-  .strict();
+/**
+ * Response of `POST /subscription/billing/checkout`.
+ *
+ * A discriminated union on `completedWithoutPayment`, because the two outcomes
+ * have genuinely different requirements:
+ *
+ *  - **payable**: an order exists, so `razorpayKeyId` must be a usable
+ *    non-empty key. `z.string()` previously accepted the `|| ''` the service
+ *    returned when `RAZORPAY_KEY_ID` was unset, which produced an order plus a
+ *    `pending` SubscriptionPayment row behind a checkout that could never
+ *    complete. `CheckoutPaymentOrderService` now refuses before creating the
+ *    order, and the contract rejects the shape that bypasses it.
+ *  - **zero amount**: no payment is collected, so there is no payment key to
+ *    send. The no-payment branch therefore omits `razorpayKeyId` entirely
+ *    rather than carrying a blank one, which is what previously forced the
+ *    `|| ''` at the call site.
+ *
+ * A non-empty `orderId` and a non-zero `amountCents` are required only on the
+ * payable branch; the old shape used `''` and `0` as sentinels for "no
+ * payment happened" in fields the client checked with a truthiness guard.
+ */
+const subscriptionBillingCheckoutBaseSchema = z.object({
+  currency: z.string(),
+  prefill: subscriptionBillingCheckoutPrefillSchema.optional(),
+});
+
+export const subscriptionBillingCheckoutResponseSchema = z.discriminatedUnion(
+  "completedWithoutPayment",
+  [
+    subscriptionBillingCheckoutBaseSchema
+      .extend({
+        completedWithoutPayment: z.literal(true),
+      })
+      .strict(),
+    subscriptionBillingCheckoutBaseSchema
+      .extend({
+        orderId: z.string().min(1),
+        amountCents: z.number().int().positive(),
+        razorpayKeyId: z.string().min(1),
+        completedWithoutPayment: z.literal(false).optional(),
+      })
+      .strict(),
+  ],
+);
 
 export const subscriptionBillingActivateResponseSchema = z
   .object({

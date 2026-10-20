@@ -121,7 +121,7 @@ describe("createCloudflareApiProxy", () => {
 
   it("serves non-API routes from the ASSETS binding (SPA fallback)", async () => {
     const app = createCloudflareApiProxy({ app: new Hono() });
-    const assetsFetch = vi.fn(async (request: Request) =>
+    const assetsFetch = vi.fn(async (_request: Request) =>
       new Response("spa-index", { status: 200 }),
     );
 

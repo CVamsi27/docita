@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@/test-utils";
 import { PerformancePage } from "./performance-page";
 import { apiGet } from "@/lib/api/api-client";
 
@@ -10,13 +10,28 @@ vi.mock("@/lib/api/api-client", () => ({
 const mockApiGet = vi.mocked(apiGet);
 
 const mockPayload = {
-  uptimeSeconds: 2592000,
-  uptimeFormatted: "99.98%",
-  avgResponseTime: 180,
-  requestsPerMinute: 420,
-  errorsLastHour: 3,
-  errorRate: 0.2,
-  databaseConnected: true,
+  window: {
+    startInclusive: "2026-09-02T12:00:00.000Z",
+    endExclusive: "2026-10-02T12:00:00.000Z",
+    days: 30,
+  },
+  activity: {
+    clinicsWithAppointments: 2,
+    appointments: 100,
+    completedAppointments: 80,
+    invoices: 70,
+    jobs: 30,
+    failedJobs: 1,
+  },
+  telemetry: {
+    samples: 200,
+    serverErrors: 3,
+    errorRatePercent: 1.5,
+    p50Ms: 100,
+    p95Ms: 420,
+    firstSampleAt: "2026-09-29T12:00:00.000Z",
+    lastSampleAt: "2026-10-02T11:00:00.000Z",
+  },
 };
 
 describe("PerformancePage", () => {
@@ -24,37 +39,52 @@ describe("PerformancePage", () => {
     mockApiGet.mockReset();
   });
 
-  it("fetches performance metrics and renders the five derived cards with units", async () => {
+  it("renders measured telemetry and activity without an invented baseline", async () => {
     mockApiGet.mockResolvedValueOnce(mockPayload);
     render(<PerformancePage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Avg Response Time")).toBeInTheDocument();
+    await screen.findByText("420 ms");
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/internal/operational-metrics",
+    );
+    expect(screen.getByText("1.50 %")).toBeInTheDocument();
+    expect(screen.queryByText(/from baseline/i)).not.toBeInTheDocument();
+    expect(screen.getByText("Clinics with appointments")).toBeInTheDocument();
+  });
+  it("shows unavailable latency and error rate when there are no samples", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      ...mockPayload,
+      telemetry: {
+        ...mockPayload.telemetry,
+        samples: 0,
+        serverErrors: 0,
+        p50Ms: null,
+        p95Ms: null,
+        errorRatePercent: null,
+        firstSampleAt: null,
+        lastSampleAt: null,
+      },
     });
-
-    expect(mockApiGet).toHaveBeenCalledWith("/api/internal/performance");
-
-    // Value + unit composition for each derived card.
-    expect(screen.getByText("180 ms")).toBeInTheDocument();
-    expect(screen.getByText(/^420\s*$/)).toBeInTheDocument(); // unit-less value
-    expect(screen.getByText("0.2 %")).toBeInTheDocument();
-    expect(screen.getByText(/^99\.98%\s*$/)).toBeInTheDocument();
-    expect(screen.getByText(/^3\s*$/)).toBeInTheDocument();
-
-    // All metrics report 0 change -> neutral baseline line on every card.
-    expect(screen.getAllByText("0% from baseline")).toHaveLength(5);
+    render(<PerformancePage />);
+    await waitFor(() =>
+      expect(screen.getAllByText("Unavailable")).toHaveLength(3),
+    );
+    expect(screen.getByText(/No retained request samples/)).toBeInTheDocument();
   });
 
-  it("shows dash placeholders when metrics cannot be loaded", async () => {
+  it("shows an error state with retry when metrics cannot be loaded", async () => {
     mockApiGet.mockRejectedValueOnce(new Error("down"));
     render(<PerformancePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Avg Response Time")).toBeInTheDocument();
+      expect(
+        screen.getByText(/could not load performance metrics/i),
+      ).toBeInTheDocument();
     });
 
-    // The three placeholder cards show dashes instead of values.
-    expect(screen.getAllByText("-").length).toBeGreaterThanOrEqual(3);
+    // The error state offers a retry affordance instead of silent dashes.
+    expect(
+      screen.getByRole("button", { name: /try again/i }),
+    ).toBeInTheDocument();
   });
 
   it("re-fetches when Refresh is clicked", async () => {
@@ -62,7 +92,7 @@ describe("PerformancePage", () => {
     render(<PerformancePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("180 ms")).toBeInTheDocument();
+      expect(screen.getByText("420 ms")).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole("button", { name: /Refresh/ }));

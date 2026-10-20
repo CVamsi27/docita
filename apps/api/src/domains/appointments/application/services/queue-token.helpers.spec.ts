@@ -99,6 +99,7 @@ describe('mapQueueToken', () => {
       appointmentId: 'appt-1',
       doctorId: 'doc-1',
       tokenNumber: 5,
+      tokenDay: new Date('2026-07-23T00:00:00.000Z'),
       status: QueueTokenStatus.IN_PROGRESS,
       priority: 1,
       notes: 'Follow-up',

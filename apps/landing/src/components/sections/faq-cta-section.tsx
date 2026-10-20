@@ -22,7 +22,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
           <span className="r2-eyebrow">Last things, then start</span>
         </div>
 
-        <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16">
+        <div className="mt-5 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16">
           <div>
             <h2
               id="r2-faq-heading"
@@ -32,8 +32,8 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
             </h2>
             <div className="mt-8">
               {HOMEPAGE_FAQS.map((faq) => (
-                <details key={faq.q} className="r2-faq-item">
-                  <summary className="r2-faq-summary">
+                <details key={faq.q} className="group r2-faq-item">
+                  <summary className="r2-faq-summary group-open:text-primary transition-colors duration-150">
                     <span>{faq.q}</span>
                     <span className="r2-faq-icon" aria-hidden />
                   </summary>
@@ -54,16 +54,21 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
           </div>
 
           <aside aria-labelledby="r2-cta-heading" className="lg:sticky lg:top-28 lg:self-start">
-            <div className="r2-cta-card">
-              <p className="r2-eyebrow">Ready when you are</p>
+            <div className="r2-cta-card shadow-lg">
+              <div className="flex items-center gap-2">
+                <span className="r2-eyebrow text-primary">Ready when you are</span>
+                <span className="rounded-full border border-background/25 bg-background/15 px-2 py-0.5 text-[var(--fs-2xs)] font-medium text-background">
+                  48-hour onboarding
+                </span>
+              </div>
               <h3
                 id="r2-cta-heading"
-                className="mt-3 r2-display-sm"
+                className="mt-3 r2-display-xs text-background"
                 style={{ color: "inherit" }}
               >
                 Get your first workflow live on Docita this week.
               </h3>
-              <p className="mt-4 text-sm leading-relaxed text-background/80 sm:text-base">
+              <p className="mt-4 text-sm leading-relaxed text-background/85 sm:text-base">
                 Book a guided setup. We will walk your current workflow,
                 import your records, and have the front desk and at least one
                 doctor live before week&rsquo;s end.
@@ -74,7 +79,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                   asChild
                   size="lg"
                   variant="primary"
-                  className="h-12 rounded-xl px-7 text-base font-semibold"
+                  className="h-12 rounded-xl px-7 text-base font-semibold shadow-xs"
                 >
                   <a href={`${appUrl}/onboarding`}>
                     Start setup
@@ -85,7 +90,7 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                   asChild
                   size="lg"
                   variant="ghost"
-                  className="h-12 rounded-xl px-6 text-base font-semibold text-background hover:bg-background/15 hover:text-background"
+                  className="h-12 rounded-xl border border-background/20 px-6 text-base font-semibold text-background hover:bg-background/15 hover:text-background"
                 >
                   <a href="/contact#book-demo">
                     <CalendarCheck className="h-5 w-5" />
@@ -100,9 +105,9 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                   ["\u20B9499", "Software plan"],
                   ["\u20B94,999", "Setup from"],
                 ].map(([value, label]) => (
-                  <div key={label}>
+                  <div key={label} className="rounded-lg border border-background/10 bg-background/5 p-2.5">
                     <dt className="r2-mono text-sm font-semibold">{value}</dt>
-                    <dd className="mt-0.5 text-[var(--fs-2xs)] uppercase tracking-[0.14em] text-background/65">
+                    <dd className="mt-0.5 text-[var(--fs-2xs)] uppercase tracking-[0.14em] text-background/70">
                       {label}
                     </dd>
                   </div>

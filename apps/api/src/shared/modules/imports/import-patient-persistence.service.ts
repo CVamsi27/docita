@@ -11,6 +11,7 @@ import {
 import { jsonValueSchema, type JsonValueSchemaType } from '@workspace/types';
 import type { ImportAuditContext, MappedPatientData } from './import-types';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
+import { toInvoiceCentCreateFields } from '@/domains/billing/core/utils/invoice-normalization';
 import {
   cleanImportEmail,
   cleanImportName,
@@ -179,6 +180,13 @@ export class ImportPatientPersistenceService {
         grandTotal: total,
         taxTotal: 0,
         discountTotal: 0,
+        ...toInvoiceCentCreateFields({
+          total,
+          subtotal: total,
+          discountTotal: 0,
+          taxTotal: 0,
+          grandTotal: total,
+        }),
         status: InvoiceStatus.PENDING,
         items: toPrismaInputJsonValue(invoiceItemsFromRow(row, total)),
       },

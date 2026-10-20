@@ -27,7 +27,7 @@ export class AuthPasswordController {
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request password reset' })
   @ApiResponse({
-    status: 200,
+    status: 201,
     description: 'Reset link sent if account exists',
   })
   async forgotPassword(@Body() body: { email: string }) {
@@ -39,7 +39,7 @@ export class AuthPasswordController {
   @Throttle({ short: { ttl: 60000, limit: 5 } })
   @Post('reset-password')
   @ApiOperation({ summary: 'Reset password with token' })
-  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  @ApiResponse({ status: 201, description: 'Password reset successfully' })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
   async resetPassword(@Body() body: { token: string; newPassword: string }) {
     return this.authService.resetPassword(body.token, body.newPassword);
@@ -50,7 +50,7 @@ export class AuthPasswordController {
   @Post('change-password')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Change user password' })
-  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  @ApiResponse({ status: 201, description: 'Password changed successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ZodSerializerDto(ChangePasswordResponseDto)
   async changePassword(

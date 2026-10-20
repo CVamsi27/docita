@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Feature } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
 import { Button, Form } from "@workspace/ui/components";
 import { Save } from "lucide-react";
 import { useInvoiceCreateLogic } from "@/features/invoices/hooks/use-invoice-create-logic";
@@ -30,7 +30,11 @@ export const InvoiceCreateUI: FC = () => {
   } = useInvoiceCreateLogic();
 
   return (
-    <FeatureGate feature={Feature.INVOICING} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.INVOICING}
+      title="New invoice"
+      description="Create a new invoice for a patient"
+    >
       <div className="flex flex-col gap-6 max-w-4xl mx-auto">
         <div className="flex items-center gap-4">
           <BackButton fallback="/invoices" label="Cancel" />
@@ -86,6 +90,6 @@ export const InvoiceCreateUI: FC = () => {
           </form>
         </Form>
       </div>
-    </FeatureGate>
+    </PageFeatureGate>
   );
 };

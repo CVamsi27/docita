@@ -1,3 +1,7 @@
+import { InternalOperationalMetricsController } from './internal-operational-metrics.controller';
+import { InternalOperationalMetricsService } from './internal-operational-metrics.service';
+import { INTERNAL_OPERATIONAL_METRICS_REPOSITORY } from './ports/internal-operational-metrics.repository.port';
+import { PrismaInternalOperationalMetricsRepository } from './infrastructure/prisma-internal-operational-metrics.repository';
 import { Module } from '@nestjs/common';
 import { InternalClinicsController } from './internal-clinics.controller';
 import { InternalAnalyticsController } from './internal-analytics.controller';
@@ -6,6 +10,7 @@ import { InternalSupportController } from './internal-support.controller';
 import { InternalClinicTierController } from './internal-clinic-tier.controller';
 import { InternalBillingController } from './internal-billing.controller';
 import { InternalReferralController } from './internal-referral.controller';
+import { InternalLeadController } from './internal-lead.controller';
 import { DatabaseControlController } from './database-control.controller';
 import { InternalReferralService } from './internal-referral.service';
 import { InternalBillingService } from './internal-billing.service';
@@ -55,6 +60,7 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     AuditModule,
   ],
   controllers: [
+    InternalOperationalMetricsController,
     InternalAnalyticsController,
     InternalLogsController,
     InternalClinicTierController,
@@ -62,9 +68,15 @@ import { PrismaInternalSubscriptionPaymentRepository } from './infrastructure/pr
     InternalClinicsController,
     InternalBillingController,
     InternalReferralController,
+    InternalLeadController,
     DatabaseControlController,
   ],
   providers: [
+    InternalOperationalMetricsService,
+    {
+      provide: INTERNAL_OPERATIONAL_METRICS_REPOSITORY,
+      useClass: PrismaInternalOperationalMetricsRepository,
+    },
     InternalBillingService,
     InternalReferralService,
     InternalBillingMetricsService,

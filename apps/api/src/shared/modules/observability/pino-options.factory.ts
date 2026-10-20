@@ -1,8 +1,10 @@
+import { redactMonitoringUrl } from '@workspace/utils';
 import {
   PINO_REDACT_PATHS,
   REDACTED,
   redactErrSerializer,
   redactSerializer,
+  redactString,
 } from './phi-redactor';
 
 export function buildPinoOptions(opts: {
@@ -24,8 +26,21 @@ export function buildPinoOptions(opts: {
       req: (req: Record<string, unknown>) => ({
         id: req.id,
         method: req.method,
-        url: req.url,
+        url:
+          typeof req.url === 'string'
+            ? redactMonitoringUrl(req.url)
+            : undefined,
       }),
+      msg: (message: unknown) =>
+        typeof message === 'string'
+          ? redactString(message)
+          : redactSerializer(message),
+      path: (path: unknown) =>
+        typeof path === 'string' ? redactMonitoringUrl(path) : undefined,
+      url: (url: unknown) =>
+        typeof url === 'string' ? redactMonitoringUrl(url) : undefined,
+      route: (route: unknown) =>
+        typeof route === 'string' ? redactMonitoringUrl(route) : undefined,
       body: redactSerializer,
       payload: redactSerializer,
       data: redactSerializer,

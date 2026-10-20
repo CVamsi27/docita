@@ -1,8 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, DataState, Input, Label, PageHeader, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components";
 import { Megaphone, Upload } from "lucide-react";
-import { formatDistanceToNow } from "../../../lib/formatters";
-import { apiGet, apiPost } from "@/lib/api/api-client";
+import { formatCompactDistanceToNow } from "@workspace/utils";
+import { apiPost } from "@/lib/api/api-client";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface BroadcastJob { id: string; title: string; audienceLabel?: string; status: string; sentCount: number; totalCount: number; failedCount: number; createdAt: string; }
 
@@ -18,21 +19,9 @@ export function BroadcastsPage() {
   const [messageOverride, setMessageOverride] = useState("");
   const [useTemplate, setUseTemplate] = useState(true);
   const [csvFileName, setCsvFileName] = useState<string | null>(null);
-  const [jobs, setJobs] = useState<BroadcastJob[]>([]);
-  const [loading, setLoading] = useState(true);
 
+  const { data: jobs = [], isLoading, isError, refetch } = useApiQuery<BroadcastJob[]>("/api/internal/broadcasts");
   const selectedPreset = useMemo(() => PRESETS.find((p) => p.id === presetId), [presetId]);
-
-  const fetchJobs = async () => {
-    setLoading(true);
-    try {
-      const data = await apiGet<BroadcastJob[]>("/api/internal/broadcasts");
-      setJobs(data);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchJobs(); }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +35,7 @@ export function BroadcastsPage() {
       setCsvFileName(null);
       setTitle("");
       setMessageOverride("");
-      await fetchJobs();
+      void refetch();
     } catch { /* ignore */ }
   };
 
@@ -58,9 +47,9 @@ export function BroadcastsPage() {
           <CardContent>
             <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-5">
               <div className="space-y-2">
-                <Label>Audience Preset</Label>
+                <Label htmlFor="broadcast-audience">Audience Preset</Label>
                 <Select value={presetId} onValueChange={setPresetId}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="broadcast-audience"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PRESETS.map((p) => <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>)}
                   </SelectContent>
@@ -103,8 +92,9 @@ export function BroadcastsPage() {
         <Card>
           <CardHeader><CardTitle>Broadcast History</CardTitle></CardHeader>
           <CardContent>
-            <DataState status={loading ? "loading" : jobs.length === 0 ? "empty" : "success"}
-              loadingMessage="Loading broadcasts…" emptyTitle="No broadcasts yet" emptyDescription="Your broadcast history will appear here." emptyIcon={Megaphone}>
+            <DataState status={isError ? "error" : isLoading ? "loading" : jobs.length === 0 ? "empty" : "success"}
+              loadingMessage="Loading broadcasts…" emptyTitle="No broadcasts yet" emptyDescription="Your broadcast history will appear here." emptyIcon={Megaphone}
+              errorMessage="We could not load the broadcast history. Please try again." onRetry={() => { void refetch(); }}>
               <ul className="space-y-3">
                 {jobs.map((job) => (
                   <li key={job.id} className="rounded-lg border bg-background p-3">
@@ -118,7 +108,7 @@ export function BroadcastsPage() {
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       <span>Sent: {job.sentCount}/{job.totalCount}</span>
                       {job.failedCount > 0 && <span className="text-destructive">{job.failedCount} failed</span>}
-                      <span>{formatDistanceToNow(job.createdAt)}</span>
+                      <span>{formatCompactDistanceToNow(job.createdAt)}</span>
                     </div>
                   </li>
                 ))}

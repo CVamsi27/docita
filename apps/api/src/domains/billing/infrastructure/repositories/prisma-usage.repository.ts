@@ -146,6 +146,15 @@ export class PrismaUsageRepository implements IUsageRepository {
     });
   }
 
+  /**
+   * Writes the period total derived from the usage ledger. The update branch
+   * sets absolute values rather than incrementing: the caller recomputes the
+   * period total from `UsageEvent` every run, so a rerun of the same day (cron
+   * overlap, retry after a partial failure, manual backfill) converges on the
+   * same row instead of adding the day a second time. An accumulator also left
+   * `overageUnits` frozen at whatever the first day of the month computed,
+   * because the update branch never touched it.
+   */
   async upsertUsageRecord(params: UpsertUsageRecordParams): Promise<void> {
     const {
       clinicId,
@@ -165,7 +174,10 @@ export class PrismaUsageRepository implements IUsageRepository {
         },
       },
       update: {
-        quantity: { increment: quantity },
+        quantity,
+        periodEnd,
+        includedQuota,
+        overageUnits,
       },
       create: {
         clinicId,

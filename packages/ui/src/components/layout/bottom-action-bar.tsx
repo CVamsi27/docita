@@ -8,6 +8,13 @@ export interface BottomActionBarProps {
   className?: string;
   /** When true, bar is fixed to viewport bottom with safe-area padding. */
   fixed?: boolean;
+  /**
+   * Defaults to `group` so a docked bar is exposed to assistive tech instead
+   * of being an anonymous `<div>`.
+   */
+  role?: "group" | "region" | "toolbar";
+  /** Only announced when paired with a role; a bare `aria-label` is ignored. */
+  "aria-label"?: string;
 }
 
 /**
@@ -18,9 +25,13 @@ export function BottomActionBar({
   children,
   className,
   fixed = true,
+  role = "group",
+  "aria-label": ariaLabel,
 }: BottomActionBarProps) {
   return (
     <div
+      role={role}
+      aria-label={ariaLabel}
       className={cn(
         "flex items-stretch gap-2.5 border-t border-border/70 bg-background/95 px-4 py-3 backdrop-blur-sm",
         "pb-[max(0.75rem,env(safe-area-inset-bottom))]",

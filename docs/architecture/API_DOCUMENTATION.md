@@ -48,6 +48,32 @@ Base URL: `http://localhost:3001/api` (Development)
 
 ## Authentication
 
+### Existing auth success statuses
+
+These existing POST routes return **HTTP 201** on success. Swagger metadata now
+matches that established wire behavior (compatibility decision, 2026-10-08).
+Paths below include the global prefix and URI version. Response bodies, cookies,
+auth/CSRF checks and failure statuses are unchanged. New action POSTs follow the
+HTTP 200 policy in [API design §5](API_DESIGN_STANDARD.md#5-status-code-rules).
+
+| POST route                                | Success |
+| ----------------------------------------- | ------- |
+| `/api/v1/auth/login`                      | 201     |
+| `/api/v1/auth/mfa/verify`                 | 201     |
+| `/api/v1/auth/forgot-password`            | 201     |
+| `/api/v1/auth/reset-password`             | 201     |
+| `/api/v1/auth/change-password`            | 201     |
+| `/api/v1/auth/check-email`                | 201     |
+| `/api/v1/auth/refresh`                    | 201     |
+| `/api/v1/auth/logout`                     | 201     |
+| `/api/v1/auth/verify-email`               | 201     |
+| `/api/v1/auth/resend-verification`        | 201     |
+| `/api/v1/patient-portal/auth/request-otp` | 201     |
+| `/api/v1/patient-portal/auth/verify-otp`  | 201     |
+
+`GET /api/v1/auth/validate` remains HTTP 200. Register remains a create returning 201. The [acceptance record](../operations/releases/2026-10-08-auth-status-validation.md)
+records the exact local verification and remaining release boundaries.
+
 ### Login
 
 ```http
@@ -279,6 +305,12 @@ PATCH /appointments/:id
 ```
 
 **Request Body:** partial appointment fields
+
+A patch that carries `status` is a compare-and-set against the status the API
+read for that request: if the appointment moved on in between (a parallel
+completion, for example), the API answers `409 Conflict` instead of applying a
+stale status. Patches without `status` are unconditional, so clinical fields can
+still be edited after a visit is completed.
 
 ### Cancel Appointment
 
@@ -743,6 +775,37 @@ All errors pass through the global exception filter and share one shape:
 - `stack` and `errorType` appear only in development.
 - Messages never contain PHI.
 
+### Appointment overlap errors
+
+A doctor/time overlap rejected by either the scheduling preflight or the database
+race invariant returns HTTP **400** with the same payload:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Doctor has conflicting appointment",
+  "instance": "/api/v1/appointments",
+  "timestamp": "2026-10-08T00:00:00.000Z",
+  "code": "APPOINTMENT_OVERLAP",
+  "validationErrors": {
+    "startTime": "Doctor has conflicting appointment"
+  }
+}
+```
+
+`instance` identifies the actual requested path and `timestamp` the response
+instant. Clients can branch on `code` and highlight `startTime`; conflicting
+appointment IDs and windows are not included. Other validation errors retain
+their existing formats. Successful booking, terminal-status rules and retry
+semantics are unchanged.
+
+Canonical schemas: `appointmentOverlapErrorSchema` and
+`appointmentOverlapResponseSchema` in `packages/types/src/contracts/appointments.ts`.
+The API exception factory and shared data-access parser reuse them. Evidence:
+[8 October overlap acceptance](../operations/releases/2026-10-08-appointment-conflict-validation.md).
+
 ### Common Status Codes
 
 - `200 OK`: Successful request
@@ -751,7 +814,9 @@ All errors pass through the global exception filter and share one shape:
 - `401 Unauthorized`: Missing or invalid authentication
 - `403 Forbidden`: Insufficient permissions
 - `404 Not Found`: Resource not found
-- `409 Conflict`: Duplicate resource
+- `409 Conflict`: Duplicate resource, or a write that lost a race against a
+  state change (for example a status update built before the appointment was
+  completed)
 - `429 Too Many Requests`: Rate limit exceeded
 - `500 Internal Server Error`: Server error
 

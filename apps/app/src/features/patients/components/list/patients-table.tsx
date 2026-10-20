@@ -1,12 +1,25 @@
 import { useTranslation } from "react-i18next";
 import type { Patient } from "@workspace/types";
-import { Avatar, AvatarFallback, Button, DataTable, SymbolTooltip, type DataTableColumn } from "@workspace/ui/components";
+import {
+  Avatar,
+  AvatarFallback,
+  Button,
+  DataTable,
+  SymbolTooltip,
+  type DataTableColumn,
+} from "@workspace/ui/components";
 import { formatGenderLabel } from "@/lib/formatters";
 import { getInitials } from "@/lib/formatters";
 import { getPatientFullName } from "@workspace/utils";
 import { Calendar, Pencil } from "lucide-react";
 import type { PatientsSortConfig } from "./patients-page-types";
 import { SortableHeader, PatientMobileCard } from "./patients-table-sections";
+import { getAriaSort } from "./patients-table-helpers";
+
+function PatientAvatarColumnLabel() {
+  const { t } = useTranslation("Routes");
+  return <span className="sr-only">{t("patient")}</span>;
+}
 
 export function PatientsTable({
   isLoading,
@@ -31,8 +44,8 @@ export function PatientsTable({
   const columns: DataTableColumn<Patient>[] = [
     {
       id: "avatar",
-      header: "",
-      width: "50px",
+      header: <PatientAvatarColumnLabel />,
+      width: "7%",
       cell: (patient) => (
         <Avatar className="h-8 w-8 border border-border/70 bg-background/70 text-foreground">
           <AvatarFallback className="border border-border/70 bg-background/70 text-foreground">
@@ -43,6 +56,7 @@ export function PatientsTable({
     },
     {
       id: "name",
+      ariaSort: getAriaSort(sortConfig, "fullName"),
       header: (
         <SortableHeader
           label={t("tableColumnName")}
@@ -51,15 +65,22 @@ export function PatientsTable({
           onSort={onSort}
         />
       ),
-      cell: (patient) => (
-        <span className="block max-w-[160px] truncate font-medium sm:max-w-xs">
-          {getPatientFullName(patient)}
-        </span>
-      ),
+      width: "37%",
+      cell: (patient) => {
+        const fullName = getPatientFullName(patient);
+        return (
+          <SymbolTooltip label={fullName} delayDuration={600}>
+            <span className="block max-w-[160px] truncate font-medium sm:max-w-xs">
+              {fullName}
+            </span>
+          </SymbolTooltip>
+        );
+      },
     },
     {
       id: "contact",
       header: t("tableColumnContact"),
+      width: "17%",
       hiddenOnMobile: true,
       cell: (patient) => (
         <div className="flex flex-col text-sm">
@@ -70,6 +91,7 @@ export function PatientsTable({
     },
     {
       id: "gender",
+      ariaSort: getAriaSort(sortConfig, "gender"),
       header: (
         <SortableHeader
           label={t("tableColumnGender")}
@@ -78,12 +100,14 @@ export function PatientsTable({
           onSort={onSort}
         />
       ),
+      width: "17%",
       hiddenOnMobile: true,
       cell: (patient) => formatGenderLabel(patient.gender),
     },
     {
       id: "actions",
       header: t("tableColumnActions"),
+      width: "22%",
       align: "right",
       cell: (patient) => {
         const patientId = patient.id;

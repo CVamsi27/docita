@@ -189,9 +189,20 @@ export const partnerOtpVerifySchema = z.object({
 });
 export type PartnerOtpVerify = z.infer<typeof partnerOtpVerifySchema>;
 
+/**
+ * Partner refresh token cookie name. The httpOnly cookie carries the
+ * 30-day refresh token; the client never sees it (not in localStorage,
+ * not in the response body). The access token stays in localStorage.
+ */
+export const PARTNER_REFRESH_COOKIE_NAME = "partner_refresh_token" as const;
+
+/**
+ * Response from `POST /partner/auth/verify-otp`. The refresh token is
+ * set as an httpOnly cookie — the client only sees the access token
+ * and referrer metadata.
+ */
 export const partnerOtpVerifyResponseSchema = z.object({
   accessToken: z.string(),
-  refreshToken: z.string(),
   expiresIn: z.number().int().positive(),
   referrer: z.object({
     id: z.string(),
@@ -202,6 +213,20 @@ export const partnerOtpVerifyResponseSchema = z.object({
 });
 export type PartnerOtpVerifyResponse = z.infer<
   typeof partnerOtpVerifyResponseSchema
+>;
+
+/**
+ * Response from `POST /partner/auth/refresh`. The rotated refresh token is
+ * written to the httpOnly cookie by the handler; only the new access token
+ * travels in the body. No `referrer` here — a refresh must not re-send
+ * referrer metadata the client already holds.
+ */
+export const partnerTokenRefreshResponseSchema = z.object({
+  accessToken: z.string().min(1),
+  expiresIn: z.number().int().positive(),
+});
+export type PartnerTokenRefreshResponse = z.infer<
+  typeof partnerTokenRefreshResponseSchema
 >;
 
 /** Apply a referral code from clinic onboarding or settings. */

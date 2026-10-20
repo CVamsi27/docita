@@ -72,8 +72,24 @@ export interface CurrencyContext {
 export interface FormatCurrencyOptions {
   currency?: string | null;
   locale?: string | null;
+  /** Pins both minimum and maximum fraction digits (legacy behavior). */
   fractionDigits?: number;
+  /** Independent minimum fraction digits when `fractionDigits` is not set. */
+  minFractionDigits?: number;
+  /** Independent maximum fraction digits when `fractionDigits` is not set. */
+  maxFractionDigits?: number;
 }
+
+/**
+ * Whole-amount display ("₹1,500", never "₹1,500.00") while keeping up to
+ * two decimals when the amount has a fractional part. The ops portal's
+ * analytics/billing cards show whole rupees; the legacy Intl currency
+ * default would force two decimals on every amount.
+ */
+export const WHOLE_AMOUNT_CURRENCY_OPTIONS: FormatCurrencyOptions = {
+  minFractionDigits: 0,
+  maxFractionDigits: 2,
+};
 
 function normalizeCurrency(value: string | null | undefined): string | undefined {
   const next = value?.trim().toUpperCase();
@@ -128,13 +144,23 @@ export function formatCurrency(
 ): string {
   const currency = normalizeCurrency(options.currency) ?? DEFAULT_CURRENCY;
   const locale = options.locale ?? getCurrencyLocale(currency);
+  const { fractionDigits, minFractionDigits, maxFractionDigits } = options;
 
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
-    ...(options.fractionDigits !== undefined && {
-      minimumFractionDigits: options.fractionDigits,
-      maximumFractionDigits: options.fractionDigits,
+    // `fractionDigits` pins both digits (legacy behavior); the independent
+    // min/max pair applies only when it is not set (e.g. whole-rupee
+    // display with min 0 / max 2).
+    ...(fractionDigits !== undefined && {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }),
+    ...(fractionDigits === undefined && minFractionDigits !== undefined && {
+      minimumFractionDigits: minFractionDigits,
+    }),
+    ...(fractionDigits === undefined && maxFractionDigits !== undefined && {
+      maximumFractionDigits: maxFractionDigits,
     }),
   }).format(amount);
 }

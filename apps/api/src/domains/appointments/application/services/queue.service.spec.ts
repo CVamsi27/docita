@@ -68,9 +68,11 @@ describe('QueueService', () => {
       findLastTodayTokenNumber:
         jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       createToken: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      allocateToken: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findTokenByIdAndClinic:
         jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      updateToken: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      transitionTokenStatus:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       cancelTodayActiveTokens:
         jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
@@ -149,13 +151,12 @@ describe('QueueService', () => {
         mockAppointment,
       );
       queueRepository.findExistingToken.mockResolvedValue(null);
-      queueRepository.findLastTodayTokenNumber.mockResolvedValue(0);
-      queueRepository.createToken.mockResolvedValue(mockToken);
+      queueRepository.allocateToken.mockResolvedValue(mockToken);
 
       const result = await service.checkIn('clinic-1', 'appt-1');
 
       expect(result.success).toBe(true);
-      expect(queueRepository.createToken).toHaveBeenCalled();
+      expect(queueRepository.allocateToken).toHaveBeenCalled();
     });
 
     it('returns existing token if already checked in', async () => {
@@ -167,7 +168,7 @@ describe('QueueService', () => {
       const result = await service.checkIn('clinic-1', 'appt-1');
 
       expect(result.success).toBe(true);
-      expect(queueRepository.createToken).not.toHaveBeenCalled();
+      expect(queueRepository.allocateToken).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException when appointment not found', async () => {
@@ -182,7 +183,7 @@ describe('QueueService', () => {
   describe('callPatient', () => {
     it('marks a patient as IN_PROGRESS', async () => {
       queueRepository.findTokenByIdAndClinic.mockResolvedValue(mockToken);
-      queueRepository.updateToken.mockResolvedValue({
+      queueRepository.transitionTokenStatus.mockResolvedValue({
         ...mockToken,
         status: 'IN_PROGRESS',
       });
@@ -202,7 +203,7 @@ describe('QueueService', () => {
   describe('completePatient', () => {
     it('marks a patient as COMPLETED', async () => {
       queueRepository.findTokenByIdAndClinic.mockResolvedValue(mockToken);
-      queueRepository.updateToken.mockResolvedValue({
+      queueRepository.transitionTokenStatus.mockResolvedValue({
         ...mockToken,
         status: 'COMPLETED',
       });

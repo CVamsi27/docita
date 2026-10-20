@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@/test-utils";
 import { LogsPage } from "./logs-page";
 import { apiGet } from "@/lib/api/api-client";
-import { formatDate } from "@/lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 
 vi.mock("@/lib/api/api-client", () => ({
   apiGet: vi.fn(),
@@ -73,7 +73,7 @@ describe("LogsPage", () => {
     expect(screen.queryByText("Retry payment")).toBeInTheDocument();
 
     // Timestamps render through the en-IN date formatter (TZ pinned to UTC).
-    expect(screen.getByText(formatDate("2026-01-10T10:00:00Z"))).toBeInTheDocument();
+    expect(screen.getByText(formatDateTime("2026-01-10T10:00:00Z", undefined, { locale: enIN }))).toBeInTheDocument();
 
     // Footer shows the pagination window.
     expect(screen.getByText("Showing 1-4 of 4")).toBeInTheDocument();
@@ -85,6 +85,11 @@ describe("LogsPage", () => {
 
     await waitFor(() => {
       expect(mockApiGet).toHaveBeenCalledWith("/api/internal/logs?limit=50&offset=0");
+    });
+
+    // Wait for the Select (Radix) combobox to render after data loads.
+    await waitFor(() => {
+      expect(screen.getAllByRole("combobox").length).toBeGreaterThan(0);
     });
 
     // Severity filter (first combobox on the page).
@@ -129,7 +134,9 @@ describe("LogsPage", () => {
         "/api/internal/logs?limit=50&offset=50",
       );
     });
-    expect(screen.getByText("Showing 51-100 of 120")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Showing 51-100 of 120")).toBeInTheDocument();
+    });
     expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
 
     fireEvent.click(screen.getByRole("button", { name: "Previous" }));

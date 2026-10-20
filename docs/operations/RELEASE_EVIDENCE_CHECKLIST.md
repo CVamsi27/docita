@@ -24,24 +24,37 @@ closed deliberately (section 5).
 - API tests: count / pass (`pnpm --filter @docita/api run test:ci`)
 - E2E: link to Playwright report artifact (critical flows)
 - Accessibility: `pnpm audit:app` output / baseline link
+- API latency: `pnpm check:api-latency-budget:enforce --require-baseline --max-age-days 7`, with staging candidate/environment provenance. The full `./scripts/release-gate.sh` requires this evidence even with `--no-build`; fast mode is a subset, not release readiness.
 - Performance: regenerate `logs/performance/baseline.json` (`pnpm perf:baseline`), attach `pnpm perf:route-budgets` output
 
 ## 3. Deployment
 
 - Schema migration: migration name; `db:migrate:dry-run` / `db:migrate:safe` evidence
-- Deploy IDs: Fly release IDs (`fly releases` for `docita-api`, `docita-worker`); Cloudflare deployment IDs (`wrangler deployments list` for app / internal / landing); Render staging deploy ID
-- Env/secrets changed: list the variable **names** (never values) and the prior value needed to roll back
+- Deploy IDs: Fly release ID **and recorded image reference** for API/worker;
+  Cloudflare deployment **and Worker version IDs** for the affected workspace;
+  Render staging deploy ID
+- Env/secrets changed: variable **names** and protected version/custody references
+  only; never prior or current values. See [secret rotation checklist](SECRET_ROTATION_CHECKLIST.md).
 
 ## 4. Post-release health (within 1 hour)
 
 - Frontend load: `/login` + one protected route load with no chunk-load errors (browser console clean of `Failed to fetch dynamically imported module`)
-- API health: `curl -fsS <api>/api/health/live`
+- API health: direct/public/proxied `/api/health/live` and `/api/health/ready`;
+  authenticated `/api/v1/auth/validate` smoke and alert delivery
 - Database: connectivity + migration state
 - Redis/cache: reachable
 - Queue heartbeat: worker cron start line + queue depth trend
 - Sentry: no new release-tagged error spike
 - Audit: one representative write/read transaction recorded
-- Rollback rehearsal: note the command exercised for this release (API/worker: `fly releases rollback <VERSION>`; frontend: Cloudflare dashboard → Deployments → "Rollback to this deployment")
+- Rollback rehearsal: record the actual command, selected compatible target,
+  config revision, environment and observed recovery. API/worker use
+  `pnpm rollback:fly --config <canonical-config> --image <recorded-image>`;
+  Cloudflare uses the affected workspace's explicitly selected Worker version
+  or dashboard known-good deployment. Follow [deployment recovery](DEPLOYMENT.md#roll-back-a-bad-release).
+- Compatibility: demonstrate that the recovery image works with the current
+  schema/config/secrets. The helper skips release commands; code rollback does
+  not restore config/secrets or reverse migrations. Schema corrections use
+  reviewed additive forward migrations.
 
 ## 5. Owner and rollback window
 

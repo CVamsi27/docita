@@ -2,20 +2,23 @@ import { INestApplication, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
-import { PublicBookingService } from '@/domains/public-booking/application/services/public-booking.service';
+import { PublicBookingQueryService } from '@/domains/public-booking/application/services/public-booking-query.service';
+import { PublicBookingCommandService } from '@/domains/public-booking/application/services/public-booking-command.service';
 import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 
 describe('PublicBookingController (e2e)', () => {
   let app: INestApplication;
-  const mockPublicBookingService = {
+  const mockQueryService = {
     getClinicSummary: jest.fn(),
     listDoctors: jest.fn(),
     listSlots: jest.fn(),
+    getBookingContext: jest.fn(),
+  };
+  const mockCommandService = {
     checkPhoneStatus: jest.fn(),
     requestOtp: jest.fn(),
     verifyOtp: jest.fn(),
-    getBookingContext: jest.fn(),
     submitRequest: jest.fn(),
   };
 
@@ -25,8 +28,10 @@ describe('PublicBookingController (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider(PublicBookingService)
-      .useValue(mockPublicBookingService)
+      .overrideProvider(PublicBookingQueryService)
+      .useValue(mockQueryService)
+      .overrideProvider(PublicBookingCommandService)
+      .useValue(mockCommandService)
       .overrideProvider(WhatsappMockToken)
       .useValue(mockWhatsappService)
       .compile();
@@ -41,20 +46,18 @@ describe('PublicBookingController (e2e)', () => {
 
   it('GET /public/booking/clinics/:referralCode returns clinic summary', async () => {
     const payload = { id: 'c1', name: 'Test Clinic', referralCode: 'ABC123' };
-    mockPublicBookingService.getClinicSummary.mockResolvedValue(payload);
+    mockQueryService.getClinicSummary.mockResolvedValue(payload);
 
     await request(app.getHttpServer())
       .get('/public/booking/clinics/ABC123')
       .expect(200)
       .expect(payload);
 
-    expect(mockPublicBookingService.getClinicSummary).toHaveBeenCalledWith(
-      'ABC123',
-    );
+    expect(mockQueryService.getClinicSummary).toHaveBeenCalledWith('ABC123');
   });
 
   it('GET /public/booking/clinics/:referralCode/context returns 401 without verification', async () => {
-    mockPublicBookingService.getBookingContext.mockRejectedValue(
+    mockQueryService.getBookingContext.mockRejectedValue(
       new UnauthorizedException('Verification required'),
     );
 
@@ -62,14 +65,14 @@ describe('PublicBookingController (e2e)', () => {
       .get('/public/booking/clinics/ABC123/context')
       .expect(401);
 
-    expect(mockPublicBookingService.getBookingContext).toHaveBeenCalledWith(
+    expect(mockQueryService.getBookingContext).toHaveBeenCalledWith(
       'ABC123',
       undefined,
     );
   });
 
   it('POST /api/v1/public/booking/clinics/:referralCode/otp/request is not CSRF-forbidden without cookies', async () => {
-    mockPublicBookingService.requestOtp.mockResolvedValue({
+    mockCommandService.requestOtp.mockResolvedValue({
       message: 'If sent, WhatsApp carries the code.',
       expiresInSeconds: 600,
     });
@@ -90,14 +93,14 @@ describe('PublicBookingController (e2e)', () => {
         email: undefined as string | undefined,
       },
     };
-    mockPublicBookingService.verifyOtp.mockResolvedValue(payload);
+    mockCommandService.verifyOtp.mockResolvedValue(payload);
 
     await request(app.getHttpServer())
       .post('/public/booking/clinics/ABC123/otp/verify')
       .send({ phoneNumber: '+919876543210', otp: '123456' })
       .expect(201);
 
-    expect(mockPublicBookingService.verifyOtp).toHaveBeenCalledWith('ABC123', {
+    expect(mockCommandService.verifyOtp).toHaveBeenCalledWith('ABC123', {
       phoneNumber: '+919876543210',
       otp: '123456',
     });
@@ -108,7 +111,7 @@ describe('PublicBookingController (e2e)', () => {
       requestId: 'req-1',
       message: 'Your request has been received.',
     };
-    mockPublicBookingService.submitRequest.mockResolvedValue(payload);
+    mockCommandService.submitRequest.mockResolvedValue(payload);
 
     await request(app.getHttpServer())
       .post('/public/booking/clinics/ABC123/requests')
@@ -127,7 +130,7 @@ describe('PublicBookingController (e2e)', () => {
       .expect(201)
       .expect(payload);
 
-    expect(mockPublicBookingService.submitRequest).toHaveBeenCalledWith(
+    expect(mockCommandService.submitRequest).toHaveBeenCalledWith(
       'ABC123',
       expect.objectContaining({
         phoneNumber: '+919876543210',

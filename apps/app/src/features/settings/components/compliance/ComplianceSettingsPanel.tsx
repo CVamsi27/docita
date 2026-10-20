@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
 import { complianceApi } from "@/features/settings/api/settings.api";
+import { useAuth } from "@/lib/auth/auth-hooks";
 import {
   Alert,
   AlertDescription,
@@ -11,6 +12,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  DataState,
 } from "@workspace/ui/components";
 import { FileText, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@workspace/utils";
@@ -34,22 +36,42 @@ import {
   AuditLogCard,
 } from "./compliance-settings-sections";
 
+/**
+ * Every compliance endpoint is scoped to a clinic id, and the panel keeps that
+ * id nullable because the session may not carry one yet (a user without a
+ * clinic has no compliance surface to show). Queries stay disabled in that case;
+ * the mutations reach this guard only if a form submits before a clinic is known,
+ * and it surfaces through the existing error toast instead of sending a request
+ * the server would reject.
+ */
+function requireClinicId(clinicId: string | null): string {
+  if (!clinicId)
+    throw new Error("Your account is not linked to a clinic yet");
+  return clinicId;
+}
+
 export function ComplianceSettingsPanel() {
-  const clinicId = "current";
+  /**
+   * The server compares this id with `req.user.clinicId`, so it has to be the
+   * real one. It used to be the literal `"current"`, which matches no clinic and
+   * made every compliance request answer 403.
+   */
+  const { user } = useAuth();
+  const clinicId = user?.clinicId ?? null;
   const queryClient = useQueryClient();
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
   const [requestForm, setRequestForm] =
     useState<CreateDataSubjectRequest>(INITIAL_REQUEST_FORM);
 
-  const { data: compliance } = useQuery<AppComplianceSummary>({
+  const { data: compliance, isLoading, error } = useQuery<AppComplianceSummary>({
     queryKey: ["compliance", clinicId],
-    queryFn: () => complianceApi.getSummary<AppComplianceSummary>(),
+    queryFn: () => complianceApi.getSummary(requireClinicId(clinicId)),
     enabled: !!clinicId,
   });
 
   const { data: recentAuditLogs } = useQuery<AppAuditLogSummary[]>({
     queryKey: ["audit", "recent"],
-    queryFn: () => complianceApi.getRecentAuditLogs<AppAuditLogSummary[]>(),
+    queryFn: () => complianceApi.getRecentAuditLogs(),
     enabled: !!clinicId,
   });
 
@@ -57,7 +79,7 @@ export function ComplianceSettingsPanel() {
     {
       queryKey: ["compliance", "data-subject-requests"],
       queryFn: () =>
-        complianceApi.getDataSubjectRequests<AppDataSubjectRequest[]>(),
+        complianceApi.getDataSubjectRequests(requireClinicId(clinicId)),
       enabled: !!clinicId,
     },
   );
@@ -76,7 +98,10 @@ export function ComplianceSettingsPanel() {
     CreateDataSubjectRequest
   >({
     mutationFn: (data) =>
-      complianceApi.createDataSubjectRequest<AppDataSubjectRequest>(data),
+      complianceApi.createDataSubjectRequest(
+        requireClinicId(clinicId),
+        data,
+      ),
     onSuccess: () => {
       toast.success("Patient rights request logged");
       setRequestDialogOpen(false);
@@ -98,9 +123,10 @@ export function ComplianceSettingsPanel() {
     UpdateRequestPayload
   >({
     mutationFn: (data) =>
-      complianceApi.updateDataSubjectRequestStatus<AppDataSubjectRequest>(
+      complianceApi.updateDataSubjectRequestStatus(
+        requireClinicId(clinicId),
         data.requestId,
-        data.status,
+        { status: data.status },
       ),
     onSuccess: () => {
       toast.success("Patient rights request updated");
@@ -142,8 +168,15 @@ export function ComplianceSettingsPanel() {
     updateRequestMutation.mutate({ requestId, status });
   };
 
+  const dataStateStatus = isLoading ? "loading" : error ? "error" : "success";
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <DataState
+        status={dataStateStatus}
+        errorMessage="We could not load your compliance settings. Please try again."
+        onRetry={() => window.location.reload()}
+      >
       {compliance?.slaSignatureUrl && compliance.slaSignatureAcceptedAt && (
         <Alert>
           <CheckCircle2 className="h-4 w-4" />
@@ -208,6 +241,7 @@ export function ComplianceSettingsPanel() {
       <DataRetentionCard />
 
       <AuditLogCard recentAuditLogs={recentAuditLogs} />
+      </DataState>
     </div>
   );
 }

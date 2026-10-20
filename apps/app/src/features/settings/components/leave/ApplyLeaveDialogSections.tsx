@@ -2,6 +2,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, Textarea } from "@workspace/ui/components/form/form-primitives";
 import { DatePicker, FormDialogFooter, FormSelectField } from "@workspace/ui/components";
 import type { User } from "@workspace/types";
+import { formatClinicPickerDayIsoFromSelection, pickerIsoToLocalDate } from "@workspace/utils";
 import type { z } from "zod";
 import { createLeaveRequestSchema, leaveTypeSchema } from "@workspace/types";
 import { useTranslation } from "react-i18next";
@@ -70,10 +71,12 @@ export function ApplyLeaveFormFields({ form }: ApplyLeaveFormFieldsProps) {
                 <DatePicker
                   value={field.value || undefined}
                   onChange={(date) => {
-                    const next = date?.toISOString().slice(0, 10) ?? "";
+                    const next = date
+                      ? formatClinicPickerDayIsoFromSelection(date)
+                      : "";
                     field.onChange(next);
                     const end = form.getValues("endDate");
-                    if (end && date && new Date(end) < new Date(next)) {
+                    if (end && next && end > next) {
                       form.setValue("endDate", "");
                     }
                   }}
@@ -94,11 +97,13 @@ export function ApplyLeaveFormFields({ form }: ApplyLeaveFormFieldsProps) {
                   value={field.value || undefined}
                   minDate={
                     form.watch("startDate")
-                      ? new Date(form.watch("startDate"))
+                      ? pickerIsoToLocalDate(form.watch("startDate"))
                       : undefined
                   }
                   onChange={(date) =>
-                    field.onChange(date?.toISOString().slice(0, 10) ?? "")
+                    field.onChange(
+                      date ? formatClinicPickerDayIsoFromSelection(date) : "",
+                    )
                   }
                 />
               </FormControl>

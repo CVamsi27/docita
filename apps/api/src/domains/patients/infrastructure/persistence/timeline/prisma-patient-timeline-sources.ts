@@ -7,6 +7,7 @@ import type {
 } from '@/domains/patients/core/repositories/timeline/timeline-fetch.types';
 import { timelineDateRange } from './timeline-date-range.helper';
 
+@Injectable()
 abstract class PrismaPatientTimelineSourceBase implements IPatientTimelineSource {
   abstract readonly eventType: TimelineEventType;
 

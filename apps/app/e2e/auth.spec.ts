@@ -1,9 +1,5 @@
 import { expect, test } from "@playwright/test";
-import {
-  API_URL,
-  loginUser,
-  setupTestUser,
-} from "./utils/patient-helpers";
+import { API_URL, loginUser, setupTestUser } from "./utils/patient-helpers";
 
 test.describe("Auth Flow", () => {
   test("should login with valid credentials", async ({ page, request }) => {
@@ -15,7 +11,10 @@ test.describe("Auth Flow", () => {
     await expect(page).toHaveURL(/\/today/);
   });
 
-  test("should show error on invalid credentials", async ({ page, request }) => {
+  test("should show error on invalid credentials", async ({
+    page,
+    request,
+  }) => {
     const user = await setupTestUser(request);
     const loginRes = await request.post(`${API_URL}/auth/login`, {
       data: {
@@ -43,16 +42,15 @@ test.describe("Auth Flow", () => {
     await expect(emailInput).toBeVisible();
   });
 
-  // The auth branding hero is `hidden lg:flex` (AuthBrandingPanel), so the
-  // greeting only exists on viewports at or above the lg breakpoint (1024px).
-  test.skip(
-    ({ viewport }) => !viewport || viewport.width < 1024,
-    "hero greeting is hidden below the lg breakpoint",
-  );
-
   test("front-door greeting: serif hero renders and EN/Hindi flip re-renders it", async ({
     page,
+    viewport,
   }) => {
+    // The branding hero is hidden below lg; login checks still run there.
+    test.skip(
+      !viewport || viewport.width < 1024,
+      "hero greeting is hidden below the lg breakpoint",
+    );
     await page.goto("/login");
 
     // The hero greeting is daypart-dependent (morning/afternoon/evening), so
@@ -69,9 +67,10 @@ test.describe("Auth Flow", () => {
     await page.getByRole("button", { name: "हिंदी" }).click();
     await expect(hero).toHaveText(/सुप्रभात|शुभ दोपहर|शुभ संध्या/);
     await expect(page.getByText("आज", { exact: true })).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "हिंदी" }),
-    ).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "हिंदी" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
 
     // Flip back to English and confirm the English hero returns.
     await page.getByRole("button", { name: "EN" }).click();

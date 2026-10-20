@@ -66,10 +66,7 @@ export class DomainEventService {
       context,
     );
 
-    this.logger.debug(
-      `Emitting event: ${type} [${correlationId}]`,
-      JSON.stringify(payload),
-    );
+    this.logger.debug(`Emitting event: ${type} [${correlationId}]`);
 
     this.eventEmitter.emit(type, event);
 
@@ -97,10 +94,7 @@ export class DomainEventService {
       context,
     );
 
-    this.logger.debug(
-      `Emitting async event: ${type} [${correlationId}]`,
-      JSON.stringify(payload),
-    );
+    this.logger.debug(`Emitting async event: ${type} [${correlationId}]`);
 
     await this.eventEmitter.emitAsync(type, event);
     this.eventEmitter.emit('domain.*', event);

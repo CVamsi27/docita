@@ -13,6 +13,8 @@ export default [
       "test-results/**",
     ],
     rules: {
+      // Astro derives DEV from the build mode; it is not an environment input.
+      "turbo/no-undeclared-env-vars": ["warn", { allowList: ["DEV"] }],
       "no-console": ["error", { allow: ["warn", "error", "info"] }],
       "no-restricted-imports": [
         "warn",

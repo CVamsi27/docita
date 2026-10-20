@@ -9,9 +9,10 @@ import { ReminderHistoryService } from './application/services/reminder-history.
 import { PrismaModule } from '@/prisma/prisma.module';
 import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
 import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
+import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 
 @Module({
-  imports: [PrismaModule, WhatsAppModule, AuthModule],
+  imports: [PrismaModule, WhatsAppModule, AuthModule, EmailModule],
   controllers: [RemindersController],
   providers: [
     { provide: REMINDER_PERSISTENCE_PORT, useExisting: PrismaService },

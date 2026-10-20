@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import type { QueueToken } from '@workspace/db';
 import { QueueCommandService } from './queue-command.service';
 import type {
@@ -41,11 +41,14 @@ function makeCtx() {
     createToken: jest
       .fn<IQueueRepository['createToken']>()
       .mockResolvedValue(asToken({ id: 'tok-new' })),
+    allocateToken: jest
+      .fn<IQueueRepository['allocateToken']>()
+      .mockResolvedValue(asToken({ id: 'tok-new', tokenNumber: 6 })),
     findTokenByIdAndClinic: jest
       .fn<IQueueRepository['findTokenByIdAndClinic']>()
       .mockResolvedValue(null),
-    updateToken: jest
-      .fn<IQueueRepository['updateToken']>()
+    transitionTokenStatus: jest
+      .fn<IQueueRepository['transitionTokenStatus']>()
       .mockResolvedValue(asToken({ id: 'tok-1' })),
     cancelTodayActiveTokens: jest
       .fn<IQueueRepository['cancelTodayActiveTokens']>()
@@ -74,7 +77,7 @@ describe('QueueCommandService.checkIn', () => {
     await expect(ctx.service.checkIn('clinic-1', 'appt-x')).rejects.toThrow(
       NotFoundException,
     );
-    expect(ctx.queueRepository.createToken).not.toHaveBeenCalled();
+    expect(ctx.queueRepository.allocateToken).not.toHaveBeenCalled();
   });
 
   it('is idempotent — returns the existing token without creating another', async () => {
@@ -91,26 +94,69 @@ describe('QueueCommandService.checkIn', () => {
       success: true,
       token: { id: 'tok-existing' },
     });
-    expect(ctx.queueRepository.createToken).not.toHaveBeenCalled();
+    expect(ctx.queueRepository.allocateToken).not.toHaveBeenCalled();
   });
 
-  it('issues the next sequential token number for a fresh check-in', async () => {
+  it('allocates the token atomically instead of reading then writing the number', async () => {
     ctx.queueRepository.findAppointmentForCheckIn.mockResolvedValueOnce(
       appointmentForCheckIn,
     );
-    ctx.queueRepository.findLastTodayTokenNumber.mockResolvedValueOnce(5);
 
     await ctx.service.checkIn('clinic-1', 'appt-1');
 
-    expect(ctx.queueRepository.createToken).toHaveBeenCalledWith(
+    // The read-then-write pair is gone: the number is allocated inside the
+    // repository, so parallel check-ins cannot both claim the same number.
+    expect(ctx.queueRepository.allocateToken).toHaveBeenCalledWith(
       expect.objectContaining({
         appointmentId: 'appt-1',
         patientId: 'patient-1',
         doctorId: 'doctor-1',
-        tokenNumber: 6,
         status: 'WAITING',
         tokenType: 'scheduled',
       }),
+      expect.any(Date),
+    );
+    expect(
+      ctx.queueRepository.allocateToken.mock.calls[0][0],
+    ).not.toHaveProperty('tokenNumber');
+    expect(ctx.queueRepository.findLastTodayTokenNumber).not.toHaveBeenCalled();
+  });
+
+  it('returns the winning token when a concurrent check-in wins the insert', async () => {
+    ctx.queueRepository.findAppointmentForCheckIn.mockResolvedValueOnce(
+      appointmentForCheckIn,
+    );
+    ctx.queueRepository.allocateToken.mockRejectedValueOnce(
+      Object.assign(new Error('Unique constraint failed'), { code: 'P2002' }),
+    );
+    // The first call is the pre-flight idempotency check (no token yet); the
+    // second is the re-read inside the catch, where the winner has landed.
+    ctx.queueRepository.findExistingToken
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(asToken({ id: 'tok-winner' }));
+
+    const result = await ctx.service.checkIn('clinic-1', 'appt-1');
+
+    // Idempotent: the loser reuses the token rather than surfacing an error.
+    expect(result).toEqual(
+      expect.objectContaining({
+        success: true,
+        token: expect.objectContaining({ id: 'tok-winner' }),
+      }),
+    );
+  });
+
+  it('rethrows a non-unique-violation allocation failure', async () => {
+    ctx.queueRepository.findAppointmentForCheckIn.mockResolvedValueOnce(
+      appointmentForCheckIn,
+    );
+    ctx.queueRepository.findExistingToken.mockResolvedValueOnce(null);
+    ctx.queueRepository.allocateToken.mockRejectedValueOnce(
+      new Error('connection terminated'),
+    );
+
+    await expect(ctx.service.checkIn('clinic-1', 'appt-1')).rejects.toThrow(
+      'connection terminated',
     );
   });
 });
@@ -125,7 +171,7 @@ describe('QueueCommandService call/complete/reset', () => {
     await expect(
       ctx.service.callPatient('clinic-1', 'queue-x'),
     ).rejects.toThrow(NotFoundException);
-    expect(ctx.queueRepository.updateToken).not.toHaveBeenCalled();
+    expect(ctx.queueRepository.transitionTokenStatus).not.toHaveBeenCalled();
   });
 
   it('callPatient moves the token to IN_PROGRESS and stamps call time', async () => {
@@ -135,11 +181,11 @@ describe('QueueCommandService call/complete/reset', () => {
 
     await ctx.service.callPatient('clinic-1', 'queue-1');
 
-    expect(ctx.queueRepository.updateToken).toHaveBeenCalledWith('queue-1', {
-      status: 'IN_PROGRESS',
-      calledAt: NOW,
-      consultationStart: NOW,
-    });
+    expect(ctx.queueRepository.transitionTokenStatus).toHaveBeenCalledWith(
+      'queue-1',
+      ['WAITING', 'IN_PROGRESS'],
+      { status: 'IN_PROGRESS', calledAt: NOW, consultationStart: NOW },
+    );
   });
 
   it('completePatient marks the token COMPLETED with completion time', async () => {
@@ -149,10 +195,42 @@ describe('QueueCommandService call/complete/reset', () => {
 
     await ctx.service.completePatient('clinic-1', 'queue-1');
 
-    expect(ctx.queueRepository.updateToken).toHaveBeenCalledWith('queue-1', {
-      status: 'COMPLETED',
-      completedAt: NOW,
-    });
+    expect(ctx.queueRepository.transitionTokenStatus).toHaveBeenCalledWith(
+      'queue-1',
+      ['WAITING', 'IN_PROGRESS'],
+      { status: 'COMPLETED', completedAt: NOW },
+    );
+  });
+
+  it('callPatient conflicts when the token finished before the call landed', async () => {
+    ctx.queueRepository.findTokenByIdAndClinic.mockResolvedValueOnce(
+      asToken({ id: 'queue-1', status: 'COMPLETED' }),
+    );
+    ctx.queueRepository.transitionTokenStatus.mockResolvedValueOnce(null);
+
+    await expect(
+      ctx.service.callPatient('clinic-1', 'queue-1'),
+    ).rejects.toThrow(ConflictException);
+  });
+
+  it('callPatient is a no-op on a token that is already IN_PROGRESS', async () => {
+    const already = asToken({ id: 'queue-1', status: 'IN_PROGRESS' });
+    ctx.queueRepository.findTokenByIdAndClinic.mockResolvedValueOnce(already);
+
+    await expect(ctx.service.callPatient('clinic-1', 'queue-1')).resolves.toBe(
+      already,
+    );
+    expect(ctx.queueRepository.transitionTokenStatus).not.toHaveBeenCalled();
+  });
+
+  it('completePatient is a no-op on a token that is already COMPLETED', async () => {
+    const already = asToken({ id: 'queue-1', status: 'COMPLETED' });
+    ctx.queueRepository.findTokenByIdAndClinic.mockResolvedValueOnce(already);
+
+    await expect(
+      ctx.service.completePatient('clinic-1', 'queue-1'),
+    ).resolves.toBe(already);
+    expect(ctx.queueRepository.transitionTokenStatus).not.toHaveBeenCalled();
   });
 
   it('resetQueue cancels today’s active tokens', async () => {

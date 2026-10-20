@@ -7,6 +7,7 @@ import { Button } from "@workspace/ui/components/form/button";
 import { useTranslation } from "react-i18next";
 import { Scissors, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
+import { formatClinicPickerDayIsoFromSelection } from "@workspace/utils";
 import { formatDate } from "@/lib/formatters";
 import { HistoryAddRow, HistoryBlock, HistoryEmptyState } from "./HistoryBlock";
 
@@ -56,7 +57,9 @@ export function PatientSurgeries({
             <DatePicker
               value={newSurgeryDate || undefined}
               onChange={(date) =>
-                onNewSurgeryDateChange(date?.toISOString().slice(0, 10) ?? "")
+                onNewSurgeryDateChange(
+                  date ? formatClinicPickerDayIsoFromSelection(date) : "",
+                )
               }
               placeholder={t("medicalHistory.surgeries.procedureDatePlaceholder")}
               className="w-44 h-9"

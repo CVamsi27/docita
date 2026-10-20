@@ -1,3 +1,5 @@
+import { appointmentOverlapResponseSchema } from "@workspace/types";
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -10,6 +12,15 @@ export function parseProblemDetailsFromJson(data: unknown): {
 } {
   if (!isRecord(data)) {
     return { raw: null };
+  }
+
+  const overlap = appointmentOverlapResponseSchema.safeParse(data);
+  if (overlap.success) {
+    return {
+      detail: overlap.data.detail,
+      validationErrors: overlap.data.validationErrors,
+      raw: overlap.data,
+    };
   }
 
   const detail =
@@ -26,9 +37,7 @@ export function parseProblemDetailsFromJson(data: unknown): {
   };
 }
 
-function sanitizeValidationErrors(
-  value: unknown,
-): Record<string, string> {
+function sanitizeValidationErrors(value: unknown): Record<string, string> {
   if (!isRecord(value)) {
     return {};
   }

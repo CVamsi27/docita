@@ -1,1 +1,6 @@
-[]
+[
+  {
+    "id": "upgrade",
+    "reason": "Compatibility route only redirects to the canonical translated Plan & Billing workflow and renders no user-facing copy. Remove this exception if the feature gains UI text."
+  }
+]

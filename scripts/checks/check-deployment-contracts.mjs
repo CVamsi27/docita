@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const repoRoot = process.cwd();
@@ -38,6 +38,135 @@ function assertExists(relativePath, message) {
   assert(existsSync(join(repoRoot, relativePath)), message);
 }
 
+function parseSemver(raw) {
+  const match = /(\d+)\.(\d+)\.(\d+)/.exec(raw ?? "");
+  return match ? match.slice(1, 4).map(Number) : null;
+}
+
+function compareSemver(left, right) {
+  for (let index = 0; index < 3; index += 1) {
+    if (left[index] !== right[index]) return left[index] - right[index];
+  }
+  return 0;
+}
+
+// The repo uses a plain `>=X.Y.Z` floor. An unrecognised shape is a contract
+// change we want reported rather than silently skipped, so this returns null.
+function parseNodeEngineFloor(range) {
+  const match = /^>=\s*v?(\d+\.\d+\.\d+)$/.exec(String(range ?? "").trim());
+  return match ? parseSemver(match[1]) : null;
+}
+
+function collectMarkdownFiles(directory) {
+  const found = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      found.push(...collectMarkdownFiles(entryPath));
+    } else if (entry.name.endsWith(".md")) {
+      found.push(entryPath);
+    }
+  }
+  return found;
+}
+
+// The Node floor lives in four places that nothing tied together: the
+// `.node-version` pin, the root `engines.node` range, the base images that
+// actually run production, and the prose that tells contributors what to
+// install. They drifted apart once already — production containers stayed on an
+// older patch line than the range the repo declared, so the shipped runtime
+// quietly violated its own manifest. Asserting the relationship here keeps
+// `.node-version` the single place a version change is made.
+function assertRuntimeVersionContract(repoRoot) {
+  const pinnedNode = parseSemver(readFileSync(join(repoRoot, ".node-version"), "utf8"));
+  assert(pinnedNode, ".node-version must pin an X.Y.Z Node version.");
+
+  const rootManifest = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8"));
+  const engineFloor = parseNodeEngineFloor(rootManifest.engines?.node);
+  assert(
+    engineFloor,
+    `Root package.json engines.node must use the >=X.Y.Z form this check understands, found ${JSON.stringify(rootManifest.engines?.node)}.`,
+  );
+  assert(
+    compareSemver(pinnedNode, engineFloor) >= 0,
+    `.node-version (${pinnedNode.join(".")}) must satisfy engines.node (>=${engineFloor.join(".")}).`,
+  );
+
+  for (const dockerfilePath of ["apps/api/Dockerfile", "apps/worker/Dockerfile"]) {
+    if (!existsSync(join(repoRoot, dockerfilePath))) continue;
+    const source = readFileSync(join(repoRoot, dockerfilePath), "utf8");
+    // Base images use a floating `major.minor` tag, matching the existing
+    // `node:<major>.<minor>-alpine` convention, so the patch is not compared.
+    for (const [, major, minor, patch] of source.matchAll(
+      /^FROM node:(\d+)\.(\d+)(?:\.(\d+))?/gm,
+    )) {
+      const tag = [major, minor, patch ?? "0"].join(".");
+      assert(
+        Number(major) === pinnedNode[0] && Number(minor) === pinnedNode[1],
+        `${dockerfilePath} must use the pinned Node ${pinnedNode[0]}.${pinnedNode[1]}.x line, found node:${major}.${minor}${patch ? `.${patch}` : ""}.`,
+      );
+      if (patch !== undefined) {
+        const base = parseSemver(tag);
+        assert(
+          compareSemver(base, engineFloor) >= 0,
+          `${dockerfilePath} builds production on Node ${tag}, which is below the engines.node floor of >=${engineFloor.join(".")}.`,
+        );
+      }
+    }
+  }
+
+  const workflowsDir = join(repoRoot, ".github/workflows");
+  if (existsSync(workflowsDir)) {
+    for (const entry of readdirSync(workflowsDir)) {
+      if (!entry.endsWith(".yml") && !entry.endsWith(".yaml")) continue;
+      const source = readFileSync(join(workflowsDir, entry), "utf8");
+      for (const [, version] of source.matchAll(/node-version:\s*["']?([^"'\s]+)/g)) {
+        if (version.includes("${{")) continue;
+        assert(
+          version === pinnedNode.join("."),
+          `.github/workflows/${entry} pins Node ${version}, but .node-version pins ${pinnedNode.join(".")}.`,
+        );
+      }
+    }
+  }
+
+  // Prose check. Two deliberate limits keep it from firing on correct writing.
+  //
+  // A Node major below 16 is long end-of-life, so anything that low is skipped
+  // rather than reported: it is far more likely to be an unrelated version in
+  // the same breath (a pnpm pin, a package version) than a Node claim.
+  //
+  // Historical record directories are exempt because their whole job is to
+  // describe what *was*. An acceptance-evidence section that quotes the stale
+  // version it fixed is correct writing; flagging it would force the record to
+  // stop naming the defect it documents.
+  const historicalDocDirectories = [
+    join(repoRoot, "docs/audits"),
+    join(repoRoot, "docs/operations/releases"),
+  ];
+  const isHistoricalRecord = (docPath) =>
+    historicalDocDirectories.some((directory) => docPath.startsWith(`${directory}/`));
+
+  const docFiles = [
+    join(repoRoot, "README.md"),
+    ...collectMarkdownFiles(join(repoRoot, "docs")),
+  ];
+  for (const docPath of docFiles) {
+    if (!existsSync(docPath) || isHistoricalRecord(docPath)) continue;
+    const lines = readFileSync(docPath, "utf8").split("\n");
+    lines.forEach((line, index) => {
+      for (const match of line.matchAll(/[Nn]ode[^\n]{0,40}?(\d+\.\d+\.\d+)/g)) {
+        const claimed = parseSemver(match[1]);
+        if (!claimed || claimed[0] < 16) continue;
+        assert(
+          compareSemver(claimed, engineFloor) >= 0,
+          `${docPath}:${index + 1} documents Node ${claimed.join(".")}, below the engines.node floor of >=${engineFloor.join(".")}.`,
+        );
+      }
+    });
+  }
+}
+
 function assertCloudflareBootstrapContract(layoutSource, layoutPath, helperSource) {
   assertIncludes(
     helperSource,
@@ -67,7 +196,11 @@ try {
   const flyDeployScriptPath = "scripts/deploy/fly-deploy-in-primary-region.sh";
   const deployWorkflowPath = ".github/workflows/deploy.yml";
   const detectScopePath = "scripts/workflow/detect-workflow-scope.mjs";
-  const deployWorkflowSource = read(deployWorkflowPath);
+  // Deploy workflows can be intentionally removed (deployments paused); the
+  // workflow-specific contracts stay dormant while it is absent and re-arm
+  // automatically if it is restored.
+  const hasDeployWorkflow = existsSync(join(repoRoot, deployWorkflowPath));
+  const deployWorkflowSource = hasDeployWorkflow ? read(deployWorkflowPath) : "";
   const flyTomlSource = read(flyTomlPath);
   const workerFlyTomlSource = read(workerFlyTomlPath);
   const flyDeployScriptSource = read(flyDeployScriptPath);
@@ -81,16 +214,18 @@ try {
   // Next.js apps (apps/app, apps/internal) have been replaced by Vite apps (app, internal).
   // Middleware/layout checks are no longer needed — Vite apps use wrangler.toml static assets.
 
-  for (const requiredPath of [
-    '"scripts/workflow/detect-workflow-scope.mjs"',
-    '"scripts/deploy/**"',
-    '".github/workflows/deploy.yml"',
-  ]) {
-    assertIncludes(
-      deployWorkflowSource,
-      requiredPath,
-      `Deploy workflow must watch ${requiredPath}.`,
-    );
+  if (hasDeployWorkflow) {
+    for (const requiredPath of [
+      '"scripts/workflow/detect-workflow-scope.mjs"',
+      '"scripts/deploy/**"',
+      '".github/workflows/deploy.yml"',
+    ]) {
+      assertIncludes(
+        deployWorkflowSource,
+        requiredPath,
+        `Deploy workflow must watch ${requiredPath}.`,
+      );
+    }
   }
 
   for (const requiredDeployInput of [
@@ -112,34 +247,41 @@ try {
     "Deploy scope detector must redeploy the worker when shared Fly deployment logic changes.",
   );
 
-  for (const requiredGuard of [
-    "always() && needs.changes.outputs.api == 'true'",
-    "always() && needs.changes.outputs.worker == 'true'",
-  ]) {
+  if (hasDeployWorkflow) {
     assertIncludes(
       deployWorkflowSource,
-      requiredGuard,
-      `Deploy workflow must tolerate skipped upstream jobs: missing ${requiredGuard}.`,
+      "TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}",
+      "Production API startup smoke must receive the required Turnstile secret.",
+    );
+    for (const requiredGuard of [
+      "always() && needs.changes.outputs.api == 'true'",
+      "always() && needs.changes.outputs.worker == 'true'",
+    ]) {
+      assertIncludes(
+        deployWorkflowSource,
+        requiredGuard,
+        `Deploy workflow must tolerate skipped upstream jobs: missing ${requiredGuard}.`,
+      );
+    }
+
+    assertIncludes(
+      deployWorkflowSource,
+      "needs.changes.outputs.api == 'true' || needs.changes.outputs.worker == 'true'",
+      "migrate-db must run before any API or worker deploy, not only when packages/db changes in the last commit.",
+    );
+
+    assertIncludes(
+      deployWorkflowSource,
+      "needs.migrate-db.result == 'success'",
+      "API and worker deploy jobs must require a successful migrate-db job (skipped migrate + deploy is forbidden).",
+    );
+
+    assertIncludes(
+      deployWorkflowSource,
+      "scripts/deploy/verify-db-schema-sync.sh",
+      "Deploy workflow must verify production schema sync after migrations.",
     );
   }
-
-  assertIncludes(
-    deployWorkflowSource,
-    "needs.changes.outputs.api == 'true' || needs.changes.outputs.worker == 'true'",
-    "migrate-db must run before any API or worker deploy, not only when packages/db changes in the last commit.",
-  );
-
-  assertIncludes(
-    deployWorkflowSource,
-    "needs.migrate-db.result == 'success'",
-    "API and worker deploy jobs must require a successful migrate-db job (skipped migrate + deploy is forbidden).",
-  );
-
-  assertIncludes(
-    deployWorkflowSource,
-    "scripts/deploy/verify-db-schema-sync.sh",
-    "Deploy workflow must verify production schema sync after migrations.",
-  );
 
   for (const requiredCiBuild of [
     "pnpm --filter @docita/app run build:cloudflare",
@@ -202,26 +344,28 @@ try {
   // Either way the zero-downtime contract holds as long as the real flyctl
   // call still uses --strategy bluegreen, so search deploy.yml plus any deploy
   // helper scripts it references.
-  const deployStrategySource = [deployWorkflowSource]
-    .concat(
-      [...deployWorkflowSource.matchAll(/scripts\/deploy\/[\w./-]+\.sh/g)]
-        .map((match) => match[0])
-        .filter((scriptPath, index, all) => all.indexOf(scriptPath) === index)
-        .map((scriptPath) => {
-          try {
-            return read(scriptPath);
-          } catch {
-            return "";
-          }
-        }),
-    )
-    .join("\n");
+  if (hasDeployWorkflow) {
+    const deployStrategySource = [deployWorkflowSource]
+      .concat(
+        [...deployWorkflowSource.matchAll(/scripts\/deploy\/[\w./-]+\.sh/g)]
+          .map((match) => match[0])
+          .filter((scriptPath, index, all) => all.indexOf(scriptPath) === index)
+          .map((scriptPath) => {
+            try {
+              return read(scriptPath);
+            } catch {
+              return "";
+            }
+          }),
+      )
+      .join("\n");
 
-  assertIncludes(
-    deployStrategySource,
-    "--strategy bluegreen",
-    "API deploy must use Fly blue-green strategy for safe traffic cutover.",
-  );
+    assertIncludes(
+      deployStrategySource,
+      "--strategy bluegreen",
+      "API deploy must use Fly blue-green strategy for safe traffic cutover.",
+    );
+  }
 
   assertIncludes(
     flyTomlSource,
@@ -242,16 +386,18 @@ try {
     "fly.toml must keep one production API machine running, or set min_machines_running = 0 with .github/workflows/scale-api-hours.yml for time-based scaling.",
   );
 
-  assertIncludes(
-    deployWorkflowSource,
-    "scripts/monitoring/synthetic/run-probes.mjs",
-    "Deploy workflow must run post-deploy synthetic probes.",
-  );
-  assertIncludes(
-    deployWorkflowSource,
-    "SYNTHETIC_FLY_API_ORIGIN:",
-    "API deploy probes must warm the direct Fly origin before validating the public edge.",
-  );
+  if (hasDeployWorkflow) {
+    assertIncludes(
+      deployWorkflowSource,
+      "scripts/monitoring/synthetic/run-probes.mjs",
+      "Deploy workflow must run post-deploy synthetic probes.",
+    );
+    assertIncludes(
+      deployWorkflowSource,
+      "SYNTHETIC_FLY_API_ORIGIN:",
+      "API deploy probes must warm the direct Fly origin before validating the public edge.",
+    );
+  }
 
   for (const [workflowPath, workflowSource] of [
     [".github/workflows/ci.yml", ciWorkflowSource],
@@ -266,6 +412,8 @@ try {
       `${workflowPath} Postgres healthcheck must pass an explicit user and database to pg_isready.`,
     );
   }
+
+  assertRuntimeVersionContract(repoRoot);
 
   process.stdout.write("Deployment contracts verified.\n");
 } catch (error) {

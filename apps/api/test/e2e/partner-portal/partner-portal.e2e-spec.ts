@@ -15,23 +15,14 @@ import {
   resetDatabase,
   closeDatabase,
   getPrismaInstance,
+  captureE2ePressureSnapshot,
 } from '../../setup';
 import { setPrismaInstance } from '../../factories';
 import { WhatsappMockToken } from '@/domains/whatsapp/application/services/whatsapp-mock.token';
 import { mockWhatsappService } from '../../whatsapp.provider';
 import { getCsrfHeaders } from '../../csrf-helpers';
-
-interface CsrfHeaders {
-  cookie: string;
-  token: string;
-}
-
-function csrfHeaders(headers: CsrfHeaders): {
-  Cookie: string;
-  'X-XSRF-TOKEN': string;
-} {
-  return { Cookie: headers.cookie, 'X-XSRF-TOKEN': headers.token };
-}
+import { csrfHeaders, extractCookie } from '../../http-helpers';
+import { PARTNER_REFRESH_COOKIE_NAME } from '@workspace/types';
 
 const PARTNER_PHONE = '+919876543210';
 
@@ -71,6 +62,43 @@ describe('Partner Portal (e2e)', () => {
   let prisma: PrismaService;
   let referrerId: string;
 
+  /**
+   * Runs a supertest request and, if it dies at the transport layer, re-raises
+   * it with the connection's own fields plus a pressure snapshot.
+   *
+   * The OTP rejection below failed once inside a full shard run with a bare
+   * `socket hang up`, which names neither the step that died nor the connection
+   * that dropped, so the cause was unclassifiable (backlog T-F1). Only failures
+   * carrying a Node connection code are re-wrapped: a status mismatch from
+   * `.expect(...)` has no `code` and carries neither `status` nor `response`, so
+   * its own readable message must reach the report unchanged.
+   */
+  async function requestWithTransportDiagnostics(
+    label: string,
+    send: () => request.Test,
+  ): Promise<request.Response> {
+    try {
+      return await send();
+    } catch (error) {
+      const failure = error as {
+        message?: string;
+        code?: string;
+        errno?: string;
+        syscall?: string;
+        address?: string;
+        port?: number;
+      };
+      if (typeof failure.code !== 'string') throw error;
+      throw new Error(
+        `${label} failed at the transport layer: ${failure.message ?? 'unknown error'}; ` +
+          `code=${failure.code} errno=${failure.errno ?? 'n/a'} ` +
+          `syscall=${failure.syscall ?? 'n/a'} address=${failure.address ?? 'n/a'} ` +
+          `port=${failure.port ?? 'n/a'} with pressure ` +
+          `${JSON.stringify(await captureE2ePressureSnapshot())}`,
+      );
+    }
+  }
+
   async function obtainTokens(): Promise<{
     accessToken: string;
     refreshToken: string;
@@ -88,9 +116,18 @@ describe('Partner Portal (e2e)', () => {
       .set(csrfHeaders(csrf))
       .send({ phone: PARTNER_PHONE, otp })
       .expect(200);
+    const refreshToken = extractCookie(
+      response.headers as Record<string, unknown>,
+      PARTNER_REFRESH_COOKIE_NAME,
+    );
+    if (!refreshToken) {
+      throw new Error(
+        'partner_refresh_token cookie not set on verify-otp response',
+      );
+    }
     return {
       accessToken: response.body.accessToken as string,
-      refreshToken: response.body.refreshToken as string,
+      refreshToken,
     };
   }
 
@@ -182,7 +219,7 @@ describe('Partner Portal (e2e)', () => {
   });
 
   describe('POST /partner/auth/verify-otp', () => {
-    it('issues access + refresh tokens for a valid OTP', async () => {
+    it('issues access token and sets refresh cookie for a valid OTP', async () => {
       const csrf = await getCsrfHeaders(app.getHttpServer());
       await request(app.getHttpServer())
         .post('/partner/auth/request-otp')
@@ -198,8 +235,13 @@ describe('Partner Portal (e2e)', () => {
         .expect(200);
 
       expect(response.body.accessToken).toBeDefined();
-      expect(response.body.refreshToken).toBeDefined();
       expect(response.body.expiresIn).toBe(900);
+      // The refresh token is in the httpOnly cookie, not the body.
+      const refreshToken = extractCookie(
+        response.headers as Record<string, unknown>,
+        PARTNER_REFRESH_COOKIE_NAME,
+      );
+      expect(refreshToken).toBeDefined();
       expect(response.body.referrer).toMatchObject({
         id: referrerId,
         name: 'E2E Referral Partner',
@@ -210,26 +252,36 @@ describe('Partner Portal (e2e)', () => {
 
     it('rejects a wrong OTP with 401', async () => {
       const csrf = await getCsrfHeaders(app.getHttpServer());
-      await request(app.getHttpServer())
-        .post('/partner/auth/request-otp')
-        .set(csrfHeaders(csrf))
-        .send({ phone: PARTNER_PHONE })
-        .expect(200);
+      await requestWithTransportDiagnostics(
+        'request-otp (wrong-OTP case)',
+        () =>
+          request(app.getHttpServer())
+            .post('/partner/auth/request-otp')
+            .set(csrfHeaders(csrf))
+            .send({ phone: PARTNER_PHONE })
+            .expect(200),
+      );
 
-      await request(app.getHttpServer())
-        .post('/partner/auth/verify-otp')
-        .set(csrfHeaders(csrf))
-        .send({ phone: PARTNER_PHONE, otp: '000000' })
-        .expect(401);
+      await requestWithTransportDiagnostics('verify-otp (wrong-OTP case)', () =>
+        request(app.getHttpServer())
+          .post('/partner/auth/verify-otp')
+          .set(csrfHeaders(csrf))
+          .send({ phone: PARTNER_PHONE, otp: '000000' })
+          .expect(401),
+      );
     });
 
     it('rejects a phone with no outstanding challenge with 401', async () => {
       const csrf = await getCsrfHeaders(app.getHttpServer());
-      await request(app.getHttpServer())
-        .post('/partner/auth/verify-otp')
-        .set(csrfHeaders(csrf))
-        .send({ phone: PARTNER_PHONE, otp: '123456' })
-        .expect(401);
+      await requestWithTransportDiagnostics(
+        'verify-otp (no-challenge case)',
+        () =>
+          request(app.getHttpServer())
+            .post('/partner/auth/verify-otp')
+            .set(csrfHeaders(csrf))
+            .send({ phone: PARTNER_PHONE, otp: '123456' })
+            .expect(401),
+      );
     });
 
     it('rejects a malformed body with 400', async () => {
@@ -278,17 +330,32 @@ describe('Partner Portal (e2e)', () => {
         .set('Authorization', 'Bearer not.a.jwt')
         .expect(401);
     });
+
+    it('rejects an existing access token once the partner is deactivated', async () => {
+      const { accessToken } = await obtainTokens();
+      // Deactivation (internal console) must terminate the existing session
+      // on the next request — not only block new logins.
+      await prisma.referrer.update({
+        where: { id: referrerId },
+        data: { active: false },
+      });
+
+      await request(app.getHttpServer())
+        .get('/partner/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(401);
+    });
   });
 
   describe('POST /partner/auth/refresh', () => {
-    it('rotates a refresh token into a fresh access token', async () => {
+    it('rotates a refresh cookie into a fresh access token', async () => {
       const { refreshToken } = await obtainTokens();
       const csrf = await getCsrfHeaders(app.getHttpServer());
 
       const response = await request(app.getHttpServer())
         .post('/partner/auth/refresh')
         .set(csrfHeaders(csrf))
-        .send({ refreshToken })
+        .set('Cookie', `${PARTNER_REFRESH_COOKIE_NAME}=${refreshToken}`)
         .expect(200);
 
       expect(response.body.accessToken).toBeDefined();
@@ -303,16 +370,30 @@ describe('Partner Portal (e2e)', () => {
       await request(app.getHttpServer())
         .post('/partner/auth/refresh')
         .set(csrfHeaders(csrf))
-        .send({ refreshToken: accessToken })
+        .set('Cookie', `${PARTNER_REFRESH_COOKIE_NAME}=${accessToken}`)
         .expect(401);
     });
 
-    it('rejects a missing refresh token with 401', async () => {
+    it('rejects a missing refresh cookie with 401', async () => {
       const csrf = await getCsrfHeaders(app.getHttpServer());
       await request(app.getHttpServer())
         .post('/partner/auth/refresh')
         .set(csrfHeaders(csrf))
-        .send({})
+        .expect(401);
+    });
+
+    it('rejects a refresh token once the partner is deactivated', async () => {
+      const { refreshToken } = await obtainTokens();
+      await prisma.referrer.update({
+        where: { id: referrerId },
+        data: { active: false },
+      });
+      const csrf = await getCsrfHeaders(app.getHttpServer());
+
+      await request(app.getHttpServer())
+        .post('/partner/auth/refresh')
+        .set(csrfHeaders(csrf))
+        .set('Cookie', `${PARTNER_REFRESH_COOKIE_NAME}=${refreshToken}`)
         .expect(401);
     });
   });

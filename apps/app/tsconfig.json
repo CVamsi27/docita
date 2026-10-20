@@ -21,6 +21,9 @@
       "@/*": [
         "./src/*"
       ],
+      "@workspace/auth": [
+        "../../packages/auth/src/index"
+      ],
       "@workspace/types": [
         "../../packages/types/src/index"
       ],

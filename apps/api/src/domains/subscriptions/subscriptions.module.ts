@@ -1,8 +1,6 @@
-// check-as-cast-density: allow-file — `configService.getJwtExpiration()`
-// returns `string | number`; we feed it into `expiresIn` which wants
-// `number`. The double-cast is the documented bridge.
 import { JwtModule } from '@nestjs/jwt';
 import { Module } from '@nestjs/common';
+import { resolveJwtExpiresIn } from '@/shared/modules/config/app-config-jwt.helpers';
 import {
   ResumeSubscriptionPaymentUseCase,
   SchedulePlanChangeUseCase,
@@ -20,6 +18,9 @@ import { PartnerPortalController } from './presentation/controllers/partner-port
 import { PartnerAuthGuard } from './presentation/guards/partner-auth.guard';
 import { PartnerAuthService } from './core/services/partner-auth.service';
 import { PartnerPortalService } from './core/services/partner-portal.service';
+import { FacilityLeadCommandService } from './core/services/facility-lead-command.service';
+import { FacilityLeadSubmissionCommandService } from './core/services/facility-lead-submission-command.service';
+import { FacilityLeadQueryService } from './core/services/facility-lead-query.service';
 import { ClinicReferralAdapter } from './infrastructure/adapters/clinic-referral.adapter';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { BillingModule } from '@/domains/billing/billing.module';
@@ -55,11 +56,7 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
       useFactory: (configService: AppConfigService) => ({
         secret: configService.getJwtSecret(),
         signOptions: {
-          // getJwtExpiration returns a string like '15m'; nestjs-jwt
-          // accepts StringValue, which is a string literal type
-          // cast at runtime. The cast is safe because the value is
-          // never user-controlled.
-          expiresIn: configService.getJwtExpiration() as unknown as number,
+          expiresIn: resolveJwtExpiresIn(configService.getJwtExpiration()),
         },
       }),
     }),
@@ -78,6 +75,9 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     SchedulePlanChangeUseCase,
     PartnerAuthService,
     PartnerPortalService,
+    FacilityLeadCommandService,
+    FacilityLeadSubmissionCommandService,
+    FacilityLeadQueryService,
     PartnerAuthGuard,
     ClinicReferralAdapter,
   ],
@@ -85,6 +85,9 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
     ...SUBSCRIPTIONS_COMMON_EXPORTS,
     SchedulePlanChangeUseCase,
     ClinicReferralAdapter,
+    FacilityLeadCommandService,
+    FacilityLeadSubmissionCommandService,
+    FacilityLeadQueryService,
   ],
 })
 export class SubscriptionsModule {}

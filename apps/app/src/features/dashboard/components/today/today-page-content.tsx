@@ -1,4 +1,6 @@
+import { formatDate } from "@/lib/formatters";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   TodayBottomBarSection,
   TodayPageHeader,
@@ -19,11 +21,11 @@ import { useAskAi } from "@/components/ask-ai/ask-ai-context";
 import { AppPageScaffold } from "@workspace/ui/components/layout/app-page-scaffold";
 import { useSessionRecoveryRedirect } from "@/hooks/use-session-recovery-redirect";
 import { isSessionRecoveryError } from "@/lib/auth/session-recovery";
-import { DEFAULT_SLOT_DURATION } from "@workspace/utils";
 import { useStartNextPatient } from "./use-start-next-patient";
 import { deriveTodayRailVisibility } from "./today-page-content-helpers";
 
 export function TodayPageContent() {
+  const { t } = useTranslation("Dashboard");
   const { clinic } = useClinic();
   const referralShare = useClinicReferralShare();
   const { canStartConsultation } = usePermissions();
@@ -33,7 +35,6 @@ export function TodayPageContent() {
     stats,
     todayAppointments,
     completedToday,
-    inProgressToday,
     currentPatient,
     nextPatients,
     waitingCount,
@@ -52,13 +53,18 @@ export function TodayPageContent() {
     onRecovered: refetchAll,
   });
 
-  const summaryLine = useMemo(
-    () => formatDashboardSummary(todayAppointments.length, waitingCount),
-    [todayAppointments.length, waitingCount],
-  );
+  const summaryLine = useMemo(() => {
+    const date = formatDate(new Date(), "EEE, d MMM yyyy", clinic?.timezone);
+    const summary = formatDashboardSummary(
+      todayAppointments.length,
+      waitingCount,
+    );
+    return summary ? `${date} · ${summary}` : date;
+  }, [todayAppointments.length, waitingCount, clinic?.timezone]);
 
-  const { isMutationPending, handleStartNextPatient } =
-    useStartNextPatient({ nextAppointmentId: nextPatients[0]?.id });
+  const { isMutationPending, handleStartNextPatient } = useStartNextPatient({
+    nextAppointmentId: nextPatients[0]?.id,
+  });
 
   const header = (
     <TodayPageHeader
@@ -68,7 +74,7 @@ export function TodayPageContent() {
       onRefresh={refetchAll}
       canStartConsultation={canStartConsultation}
       onOpenAskAi={() =>
-        openOverlay({ id: "today", label: "on today's workspace" })
+        openOverlay({ id: "today", label: t("today.askAiScope") })
       }
     />
   );
@@ -80,11 +86,7 @@ export function TodayPageContent() {
     return <TodayErrorState header={header} onRetry={refetchAll} />;
   }
   if (isNewClinicDashboard(stats)) {
-    return (
-      <TodayNewClinicEmptyState
-        header={header}
-      />
-    );
+    return <TodayNewClinicEmptyState header={header} />;
   }
 
   const railVisibility = deriveTodayRailVisibility({
@@ -104,11 +106,12 @@ export function TodayPageContent() {
         nextPatients={nextPatients}
         todayAppointments={todayAppointments}
         completedToday={completedToday}
-        inProgressToday={inProgressToday}
         waitingCount={waitingCount}
         pendingJoinRequests={pendingJoinRequests}
         canAccess={canAccess}
-        slotDurationMinutes={clinic?.slotDuration ?? DEFAULT_SLOT_DURATION}
+        timezone={clinic?.timezone}
+        isStarting={isMutationPending}
+        onStartNextPatient={handleStartNextPatient}
         railVisibility={railVisibility}
         referralShare={referralShare}
       />
@@ -116,6 +119,7 @@ export function TodayPageContent() {
         canStartConsultation={canStartConsultation}
         nextPatient={nextPatients[0] ?? null}
         hasCurrentPatient={!!currentPatient}
+        currentPatient={currentPatient}
         isStarting={isMutationPending}
         isMutationPending={isMutationPending}
         onStartNextPatient={handleStartNextPatient}

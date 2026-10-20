@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import { Button, DataState, PageHeader, Section, StatGrid } from "@workspace/ui/components";
 import { CONSULTATION_DASHBOARD_TITLE, CONSULTATION_DASHBOARD_DESCRIPTION } from "./consultation-dashboard-ui-helpers";
-import { BadgeCheck, Activity, Calendar, CreditCard, HeartPulse, Play, Stethoscope, Users } from "lucide-react";
+import { Activity, Calendar, CreditCard, HeartPulse, Play, Stethoscope, Users } from "lucide-react";
 import { formatClockTime } from "@/lib/formatters";
 import {
   AppointmentRowActionsMenu,
@@ -99,40 +99,6 @@ export function ConsultationDashboardSkeleton() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Invoice Action Button                                                     */
-/* -------------------------------------------------------------------------- */
-interface InvoiceActionButtonProps {
-  invoiceStatus?: string | null;
-  onClick: () => void;
-}
-
-function InvoiceActionButton({ invoiceStatus, onClick }: InvoiceActionButtonProps) {
-  if (invoiceStatus === "PAID") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
-        <BadgeCheck className="h-3 w-3" />
-        Paid
-      </span>
-    );
-  }
-  return (
-    <Button
-      size="sm"
-      variant="outline"
-      className={`h-7 gap-1 px-2.5 text-xs ${
-        invoiceStatus === "PENDING" || invoiceStatus === "PARTIALLY_PAID"
-          ? "border-warning/40 text-warning hover:border-warning/60"
-          : ""
-      }`}
-      onClick={onClick}
-    >
-      <CreditCard className="h-3 w-3" />
-      {invoiceStatus === "PENDING" ? "Invoice ↗" : invoiceStatus === "PARTIALLY_PAID" ? "Partial ↗" : "Invoice"}
-    </Button>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
 /*  Doctor Next Section — with vitals, invoice, kebab menu                    */
 /* -------------------------------------------------------------------------- */
 interface DoctorNextSectionProps {
@@ -184,7 +150,8 @@ export function DoctorNextSection({
         <div className="divide-y divide-border/60 rounded-lg border border-border/60 bg-card/50 overflow-hidden">
           {/* In Progress — highlighted rows */}
           {doctorNowNext.inProgress.slice(0, 3).map((apt) => {
-            const aptPatientId = apt.patientId ?? apt.patient?.id;
+            const aptPatientId = apt.patientId ?? apt.patient.id;
+            const aptAppointmentId = apt.appointmentId;
             return (
               <div
                 key={apt.id}
@@ -198,26 +165,39 @@ export function DoctorNextSection({
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-7 gap-1 px-2.5 text-xs"
-                    onClick={() => onVitalsClick(apt.appointmentId ?? apt.id, apt.patientName)}
-                  >
-                    <HeartPulse className="h-3 w-3 text-destructive" />
-                    Vitals
-                  </Button>
-                  <InvoiceActionButton
-                    invoiceStatus={apt.invoice?.status}
-                    onClick={() => {
-                      if (aptPatientId) onInvoiceClick(apt.appointmentId ?? apt.id, aptPatientId);
-                    }}
-                  />
-                  <Button size="sm" onClick={() => goToConsultationWorkspace(apt.appointmentId ?? apt.id)}>
-                    Continue
-                  </Button>
+                  {/* Walk-in queue tokens carry no appointment, so vitals,
+                      invoicing and the consultation workspace must stay hidden
+                      for them; a queue token id is not an appointment id, so
+                      wiring one up would hit the wrong endpoint. */}
+                  {aptAppointmentId ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 gap-1 px-2.5 text-xs"
+                      onClick={() => onVitalsClick(aptAppointmentId, apt.patientName)}
+                    >
+                      <HeartPulse className="h-3 w-3 text-destructive" />
+                      Vitals
+                    </Button>
+                  ) : null}
+                  {aptAppointmentId && aptPatientId ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 gap-1 px-2.5 text-xs"
+                      onClick={() => onInvoiceClick(aptAppointmentId, aptPatientId)}
+                    >
+                      <CreditCard className="h-3 w-3 text-success" />
+                      Invoice
+                    </Button>
+                  ) : null}
+                  {aptAppointmentId ? (
+                    <Button size="sm" onClick={() => goToConsultationWorkspace(aptAppointmentId)}>
+                      Continue
+                    </Button>
+                  ) : null}
                   <AppointmentRowActionsMenu
-                    appointmentId={apt.appointmentId ?? apt.id ?? null}
+                    appointmentId={aptAppointmentId}
                     patientId={aptPatientId ?? null}
                     status={apt.status}
                     onCancelClick={rowActions.onCancelClick}

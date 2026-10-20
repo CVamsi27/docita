@@ -94,22 +94,25 @@ export class EncryptionService {
         return encryptedData;
       }
 
-      const decryptionKey = this.keyVersions.get(keyVersion);
+      const preferredKey = this.keyVersions.get(keyVersion);
+      const candidates = preferredKey
+        ? [preferredKey, ...this.keyVersions.values()]
+        : [...this.keyVersions.values()];
+      const triedKeys: Buffer[] = [];
 
-      if (!decryptionKey) {
-        for (const [, key] of this.keyVersions) {
-          try {
-            return this.decryptWithKey(ivHex, authTagHex, encrypted, key);
-          } catch {
-            continue;
-          }
+      // Legacy v1 labels survive rotation; only GCM authentication identifies the key.
+      for (const key of candidates) {
+        if (triedKeys.some((tried) => tried.equals(key))) continue;
+        triedKeys.push(key);
+        try {
+          return this.decryptWithKey(ivHex, authTagHex, encrypted, key);
+        } catch {
+          continue;
         }
-        throw new Error(`No valid decryption key found for encrypted data`);
       }
-
-      return this.decryptWithKey(ivHex, authTagHex, encrypted, decryptionKey);
-    } catch (error) {
-      this.logger.error('Decryption failed', error);
+      throw new Error('No retained key authenticated encrypted data');
+    } catch {
+      this.logger.error('Decryption failed');
       return encryptedData;
     }
   }

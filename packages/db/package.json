@@ -20,6 +20,7 @@
     "db:migrate:dry-run": "bash scripts/safe-migrate.sh dry-run",
     "db:migrate:generate": "bash scripts/safe-migrate.sh generate",
     "db:check-integrity": "pnpm exec ts-node scripts/check-integrity.ts",
+    "db:check-tenant-isolation": "node scripts/check-tenant-isolation.mjs",
     "db:backup": "bash scripts/safe-migrate.sh backup",
     "db:studio": "prisma studio",
     "db:analyze-indexes": "pnpm exec ts-node scripts/analyze-indexes.ts",
@@ -28,9 +29,12 @@
     "db:validate-feedback-backfill": "pnpm exec ts-node scripts/validate-feedback-feature-backfill.ts",
     "db:prod-data-safety": "pnpm exec ts-node scripts/verify-production-data-safety.ts",
     "db:backfill-onboarding-clinic-state": "pnpm exec ts-node scripts/backfill-onboarding-clinic-state.ts",
+    "db:backfill-subscription-quotas": "pnpm exec ts-node scripts/backfill-subscription-quotas.ts",
     "db:repair-appointments": "node ../../scripts/db/repair-appointment-instants.mjs",
     "db:repair-appointments:apply": "node ../../scripts/db/repair-appointment-instants.mjs --apply",
-    "db:guardrail": "pnpm db:check-integrity && pnpm db:validate-feedback-backfill && pnpm db:analyze-indexes && pnpm db:profile-queries && pnpm db:check-query-plans"
+    "db:guardrail": "pnpm db:check-integrity && pnpm db:validate-feedback-backfill && pnpm db:analyze-indexes && pnpm db:profile-queries && pnpm db:check-query-plans",
+    "test": "node --test scripts/*.test.ts",
+    "db:test-tenant-isolation": "node --test scripts/check-tenant-isolation.integration.test.mjs"
   },
   "devDependencies": {
     "@prisma/config": "^7.6.0",

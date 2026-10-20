@@ -1,6 +1,8 @@
 "use client";
 
+import { useId } from "react";
 import { ShieldCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button, Card, CardContent } from "@workspace/ui/components";
 import { bookingCardClass, bookingSectionShell } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
@@ -10,15 +12,24 @@ export function BookingActionPanel({
   className,
   variant = "default",
   submitEnabled = true,
+  blockedReason = null,
 }: {
   onSubmit: () => void;
   isSubmitting: boolean;
   className?: string;
   variant?: "default" | "compact";
   submitEnabled?: boolean;
+  /** Why the submit is disabled; announced via aria-describedby when blocked. */
+  blockedReason?: string | null;
 }) {
+  const { t } = useTranslation("PublicBooking");
+  const blockedReasonId = useId();
   const isCompact = variant === "compact";
   const submitBlocked = isSubmitting || !submitEnabled;
+  // A disabled control is unreachable by keyboard, so the reason it is
+  // disabled has to be programmatically associated or screen-reader users
+  // never learn what is missing.
+  const describeBlocked = !submitEnabled && Boolean(blockedReason);
   return (
     <Card
       className={cn(
@@ -42,9 +53,23 @@ export function BookingActionPanel({
           )}
           onClick={onSubmit}
           disabled={submitBlocked}
+          aria-describedby={describeBlocked ? blockedReasonId : undefined}
         >
-          {isSubmitting ? "Sending…" : "Send visit request"}
+          {isSubmitting ? t("actionPanel.sending") : t("actionPanel.submit")}
         </Button>
+        {describeBlocked ? (
+          <p
+            id={blockedReasonId}
+            className={cn(
+              "leading-snug text-muted-foreground",
+              isCompact
+                ? "text-[length:var(--fs-2xs)]"
+                : "text-[length:var(--fs-xs)]",
+            )}
+          >
+            {blockedReason}
+          </p>
+        ) : null}
         <div className="flex items-start gap-2">
           <ShieldCheck
             className={cn(
@@ -61,8 +86,7 @@ export function BookingActionPanel({
                 : "text-[length:var(--fs-xs)]",
             )}
           >
-            Submitting sends a request only — the care team confirms before it
-            is a firm appointment.
+            {t("actionPanel.disclaimer")}
           </p>
         </div>
       </CardContent>

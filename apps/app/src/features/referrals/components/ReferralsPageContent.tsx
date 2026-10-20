@@ -4,11 +4,15 @@
 import { AppPageScaffold, Card, CardContent, CardHeader, CardTitle, EmptyState, PageHeader } from "@workspace/ui/components";
 import { Feature } from "@workspace/types";
 import { Network, Send } from "lucide-react";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
 
 export function ReferralsPageContent() {
   return (
-    <FeatureGate feature={Feature.DIGITAL_PRESCRIPTIONS} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.DIGITAL_PRESCRIPTIONS}
+      title="Referrals"
+      description="Generate referral letters to specialists, track closed-loop status, and manage your network."
+    >
       <AppPageScaffold
         header={
           <PageHeader
@@ -38,6 +42,6 @@ export function ReferralsPageContent() {
           </CardContent>
         </Card>
       </AppPageScaffold>
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }

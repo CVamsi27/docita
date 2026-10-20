@@ -3,6 +3,7 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { InternalAnalyticsService } from './internal-analytics.service';
 import {
   InternalAnalyticsResponseDto,
+  InternalDashboardStatsResponseDto,
   InternalPerformanceMetricsResponseDto,
 } from './dto/internal.dto';
 import { InternalApiAccess } from './internal.controller.access';
@@ -13,6 +14,7 @@ export class InternalAnalyticsController {
   constructor(private readonly analyticsService: InternalAnalyticsService) {}
 
   @Get('stats')
+  @ZodSerializerDto(InternalDashboardStatsResponseDto)
   async getGlobalStats() {
     return this.analyticsService.getGlobalStats();
   }

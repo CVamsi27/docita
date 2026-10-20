@@ -82,6 +82,25 @@ export const APPOINTMENT_STATUS_BY_PATIENT_RESPONSE: Partial<
   RESCHEDULE: AppointmentStatus.RESCHEDULING,
 };
 
+/**
+ * Appointment statuses a reply may legally transition FROM. Guards against
+ * retroactive corruption — e.g. a bare "no" (CANCEL) must never flip a
+ * COMPLETED or IN_PROGRESS visit to CANCELLED. A reply whose current status
+ * is not a legal predecessor is logged and ignored.
+ */
+export const LEGAL_PREDECESSORS_BY_PATIENT_RESPONSE: Partial<
+  Record<PatientResponseType, ReadonlyArray<AppointmentStatus>>
+> = {
+  CONFIRM: [AppointmentStatus.SCHEDULED],
+  ON_THE_WAY: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
+  CANCEL: [
+    AppointmentStatus.SCHEDULED,
+    AppointmentStatus.CONFIRMED,
+    AppointmentStatus.RESCHEDULING,
+  ],
+  RESCHEDULE: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
+};
+
 export const PATIENT_CONFIRMATION_TEMPLATE_BY_RESPONSE: Partial<
   Record<PatientResponseType, string>
 > = {

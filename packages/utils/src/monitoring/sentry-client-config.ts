@@ -1,4 +1,7 @@
-import { createSentryLogger, type SentryLoggerModule } from "./client-logger.js";
+import {
+  createSentryLogger,
+  type SentryLoggerModule,
+} from "./client-logger.js";
 import {
   bootstrapSentryClient,
   createLazySentryClientLoader,
@@ -119,11 +122,14 @@ export function createSentryClientConfig<
           allowUrls: ["docita.work"],
           ignoreErrors: IGNORED_ERRORS,
           beforeSend: (event: unknown) => scrubSentryEventRecord(event),
+          beforeSendTransaction: (event: unknown) =>
+            scrubSentryEventRecord(event),
+          beforeSendLog: (log: unknown) => scrubSentryEventRecord(log),
           beforeBreadcrumb: (crumb: unknown) => {
             if (!crumb) return crumb;
             return (
-              scrubSentryEventRecord({ breadcrumbs: [crumb] }).breadcrumbs?.[0] ??
-              crumb
+              scrubSentryEventRecord({ breadcrumbs: [crumb] })
+                .breadcrumbs?.[0] ?? crumb
             );
           },
         });
@@ -137,7 +143,8 @@ export function createSentryClientConfig<
   ): void {
     if (!isSentryEnabled()) return;
 
-    const normalizedError = typeof error === "string" ? new Error(error) : error;
+    const normalizedError =
+      typeof error === "string" ? new Error(error) : error;
 
     try {
       const loadedModule = getLoadedSentryModule();

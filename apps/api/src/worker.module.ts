@@ -11,6 +11,7 @@ import { DocumentsWorkerModule } from '@/domains/documents/documents.worker.modu
 import { BillingWorkerModule } from '@/domains/billing/billing.worker.module';
 import { PrescriptionsWorkerModule } from '@/domains/prescriptions/prescriptions.worker.module';
 import { ClinicalSchedulerModule } from '@/domains/clinical/clinical.scheduler.module';
+import { InsuranceClaimsSchedulerModule } from '@/domains/insurance-claims/insurance-claims.scheduler.module';
 import { RemindersSchedulerModule } from '@/domains/reminders/reminders.scheduler.module';
 import { ComplianceSchedulerModule } from '@/shared/modules/compliance/compliance.scheduler.module';
 import { MonitoringSchedulerModule } from '@/shared/modules/monitoring/monitoring/monitoring.scheduler.module';
@@ -24,8 +25,9 @@ import { EphemeralStoreSchedulerModule } from '@/shared/modules/ephemeral-store/
 import { OutboxModule } from '@/shared/modules/outbox/outbox.module';
 import { CronHeartbeatModule } from '@/shared/modules/schedule/cron-heartbeat.module';
 import { buildPinoOptions } from '@/shared/modules/observability/pino-options.factory';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
-const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
+const ENABLE_SCHEDULERS = !isCronDisabledInThisProcess();
 
 @Module({
   imports: [
@@ -56,13 +58,18 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     }),
     CacheConfigModule,
     // jscpd:ignore-end
-    ...(ENABLE_SCHEDULERS ? [ScheduleModule.forRoot()] : []),
+    ScheduleModule.forRoot({
+      cronJobs: ENABLE_SCHEDULERS,
+      intervals: ENABLE_SCHEDULERS,
+      timeouts: ENABLE_SCHEDULERS,
+    }),
     EventsModule,
     PrismaWorkerModule,
     DocumentsWorkerModule,
     BillingWorkerModule,
     PrescriptionsWorkerModule,
     ClinicalSchedulerModule,
+    InsuranceClaimsSchedulerModule,
     RemindersSchedulerModule,
     ComplianceSchedulerModule,
     EphemeralStoreSchedulerModule,

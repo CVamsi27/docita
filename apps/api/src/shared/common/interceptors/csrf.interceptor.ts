@@ -41,6 +41,12 @@ export class CsrfInterceptor implements NestInterceptor {
     /^\/(?:api(?:\/v\d+)?\/)?auth\/resend-verification\/?$/i,
     /^\/(?:api(?:\/v\d+)?\/)?auth\/forgot-password\/?$/i,
     /^\/(?:api(?:\/v\d+)?\/)?auth\/reset-password\/?$/i,
+    // Partner portal auth: no browser session exists yet when the
+    // partner refresh endpoint is hit (the access token is in localStorage,
+    // the refresh token is in an httpOnly cookie — different from the
+    // main app's access_token/refresh_token cookies). Bootstrap CSRF
+    // so the client can echo it on subsequent partner mutations.
+    /^\/(?:api(?:\/v\d+)?\/)?partner\/auth\//i,
   ];
 
   private isSafeMethod(method: string): boolean {
@@ -128,6 +134,27 @@ export class CsrfInterceptor implements NestInterceptor {
   }
 
   /**
+   * The landing BFF forwards the marketing contact form to the API
+   * server-side, but the browser cannot read the API's httpOnly XSRF-TOKEN
+   * cookie from the docita.work origin, so a double-submit check can never be
+   * satisfied there. Mirrors the `isPublicBookingWrite` precedent (`@Public()`,
+   * no session, throttled 3/min) and is anchored to exactly this one POST
+   * route so sibling `/contact/*` paths and GET reads keep normal CSRF
+   * handling.
+   *
+   * Deliberately its own guard, adjacent to rather than inside the mutation
+   * exemption branch: `check:webhook-csrf-exemption` pins that branch's
+   * contiguous `web-vitals || booking || webhook` shape so `isWebhookIngress`
+   * cannot drift out of it. Fold a fourth term in and the gate fails.
+   */
+  private isPublicContactInquiry(request: Request): boolean {
+    const method = request.method?.toUpperCase() ?? '';
+    if (method !== 'POST') return false;
+    const path = this.getRequestPath(request);
+    return /^\/api\/v\d+\/contact\/inquiry$/i.test(path);
+  }
+
+  /**
    * Signature-authenticated server-to-server webhook ingress (Razorpay,
    * ZeptoMail, WhatsApp Meta, billing). These POSTs carry no browser session
    * (no XSRF-TOKEN cookie to echo) and are already authenticated by their own
@@ -195,6 +222,10 @@ export class CsrfInterceptor implements NestInterceptor {
     }
 
     if (!this.isSafeMethod(request.method)) {
+      if (this.isPublicContactInquiry(request)) {
+        return next.handle();
+      }
+
       if (
         this.isPublicWebVitalsPost(request) ||
         this.isPublicBookingWrite(request) ||

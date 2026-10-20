@@ -5,6 +5,21 @@ on:
     # Weekly: Monday 2 AM UTC
     - cron: "0 2 * * 1"
   workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    # Path-scoped so docs-only or unrelated-app PRs never trigger a run. The
+    # Detect CI Scope job below re-checks with the shared path logic
+    # (scripts/workflow/detect-workflow-scope.mjs) and gates the heavy job.
+    paths:
+      - "apps/app/**"
+      - "apps/internal/**"
+      - "apps/api/**"
+      - "packages/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - ".github/workflows/frontend-critical-e2e.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,9 +29,43 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  changes:
+    name: Detect CI Scope
+    runs-on: ubuntu-24.04
+    outputs:
+      app: ${{ steps.detect.outputs.app }}
+      api: ${{ steps.detect.outputs.api }}
+      db: ${{ steps.detect.outputs.db }}
+      dependencies: ${{ steps.detect.outputs.dependencies }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          package-manager-cache: false
+
+      - name: Detect changed areas
+        id: detect
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            node scripts/workflow/detect-workflow-scope.mjs ci
+          else
+            # schedule / workflow_dispatch: always run the full suite
+            echo "app=true" >> "$GITHUB_OUTPUT"
+            echo "api=true" >> "$GITHUB_OUTPUT"
+            echo "db=true" >> "$GITHUB_OUTPUT"
+            echo "dependencies=true" >> "$GITHUB_OUTPUT"
+          fi
+
   critical-flows-e2e:
     name: Critical frontend E2E (onboarding, verify, auth, tenant)
-    runs-on: ubuntu-latest
+    needs: changes
+    if: github.event.pull_request.draft != true && (needs.changes.outputs.app == 'true' || needs.changes.outputs.api == 'true' || needs.changes.outputs.db == 'true' || needs.changes.outputs.dependencies == 'true')
+    runs-on: ubuntu-24.04
     env:
       DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
       JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
@@ -29,6 +78,12 @@ jobs:
       # otherwise trip with 429s. Only ever set in this CI workflow with a
       # throwaway test DB; prod/staging never honor it (VULN-001).
       DOCITA_API_E2E: "true"
+      # Pin the API bind port explicitly: the API honors the ambient PORT
+      # env var over its 3001 default, so a runner image or tooling that
+      # leaks PORT (e.g. PORT=0 for ephemeral binds) would silently move
+      # the server off the port the wait loop and Playwright use below and
+      # the run would fail with a confusing "API server failed to start".
+      PORT: "3001"
       APP_URL: http://127.0.0.1:5173
       API_URL: http://127.0.0.1:3001/api/v1
       API_PROXY_TARGET: http://127.0.0.1:3001
@@ -111,12 +166,23 @@ jobs:
 
       - name: Wait for API and App
         run: |
+          # Liveness probe: the HealthCheckController is VERSION_NEUTRAL, so its
+          # ping lives at /api/health. Do NOT probe /api/v1/health — the old
+          # versioned AppController route was deleted and that path 404s at the
+          # router (never reaching a handler), which made this loop burn all 120
+          # iterations and report "API server failed to start" for a healthy API.
           for i in {1..120}; do
-            if curl -fsS http://127.0.0.1:3001/api/v1/health >/dev/null 2>&1 || curl -fsS http://127.0.0.1:3001/health >/dev/null 2>&1; then
+            if curl -fsS http://127.0.0.1:3001/api/health >/dev/null 2>&1; then
               break
             fi
             if [ "$i" -eq 120 ]; then
               echo "API server failed to start"
+              echo "PORT=[${PORT:-unset}]"
+              echo "--- listeners on 3001 ---"
+              ss -tlnp 2>/dev/null | grep -E ':3001\b' || echo "no 3001 listener"
+              echo "--- API-related processes ---"
+              ps aux | grep -E 'nest start|dist/main' | grep -v grep | head -5 || true
+              echo "--- API log tail ---"
               tail -n 200 /tmp/docita-api.log || true
               exit 1
             fi

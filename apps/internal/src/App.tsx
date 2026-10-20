@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { DataState } from "@workspace/ui/components/data-display/data-state";
 import { Routes, Route, Navigate, Outlet } from "react-router";
 import { RootLayout } from "./components/layout/root-layout";
 import { ProtectedLayout } from "./components/layout/protected-layout";
@@ -16,6 +17,7 @@ const PaymentProcessingPage = lazy(() => import("./features/payment-processing/p
 const BroadcastsPage = lazy(() => import("./features/broadcasts/pages/broadcasts-page").then((m) => ({ default: m.BroadcastsPage })));
 const AuditsPage = lazy(() => import("./features/audits/pages/audits-page").then((m) => ({ default: m.AuditsPage })));
 const ReferralsPage = lazy(() => import("./features/referrals/pages/referrals-page").then((m) => ({ default: m.ReferralsPage })));
+const LeadsPage = lazy(() => import("./features/leads/pages/leads-page").then((m) => ({ default: m.LeadsPage })));
 const EnterpriseContractsPage = lazy(() => import("./features/enterprise-contracts/pages/enterprise-contracts-page").then((m) => ({ default: m.EnterpriseContractsPage })));
 const AdminsPage = lazy(() => import("./features/admins/pages/admins-page").then((m) => ({ default: m.AdminsPage })));
 const FeedbackPage = lazy(() => import("./features/feedback/pages/feedback-page").then((m) => ({ default: m.FeedbackPage })));
@@ -25,9 +27,7 @@ const SystemMonitoringPage = lazy(() => import("./features/system-monitoring/pag
 
 function PageLoader() {
   return (
-    <div className="flex h-full items-center justify-center py-20">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-    </div>
+    <DataState status="loading" loadingMessage="Loading…" className="min-h-[50vh]" />
   );
 }
 
@@ -60,6 +60,7 @@ export default function App() {
           <Route path="/broadcasts" element={<SuspenseWrapper><BroadcastsPage /></SuspenseWrapper>} />
           <Route path="/audits" element={<SuspenseWrapper><AuditsPage /></SuspenseWrapper>} />
           <Route path="/referrals" element={<SuspenseWrapper><ReferralsPage /></SuspenseWrapper>} />
+          <Route path="/leads" element={<SuspenseWrapper><LeadsPage /></SuspenseWrapper>} />
           <Route path="/enterprise-contracts" element={<SuspenseWrapper><EnterpriseContractsPage /></SuspenseWrapper>} />
           <Route path="/admins" element={<SuspenseWrapper><AdminsPage /></SuspenseWrapper>} />
           <Route path="/feedback" element={<SuspenseWrapper><FeedbackPage /></SuspenseWrapper>} />

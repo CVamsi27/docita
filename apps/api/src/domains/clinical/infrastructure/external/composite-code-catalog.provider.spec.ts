@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { CptCode, IcdCode } from '@workspace/db';
+import { CptCode, CodeCatalogSystem, IcdCode } from '@workspace/db';
 import { LicensedCptCodeCatalogProvider } from '@/domains/clinical/infrastructure/external/licensed-cpt-code-catalog.provider';
 import { NlmCodingClient } from '@/domains/clinical/infrastructure/external/nlm-coding.client';
 import { NlmCodeCatalogProvider } from '@/domains/clinical/infrastructure/external/nlm-code-catalog.provider';
 import { CompositeCodeCatalogProvider } from './composite-code-catalog.provider';
+import type { CodeStreamOutcome } from '@/domains/clinical/core/providers/code-catalog.provider';
 import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 function mockAppConfig(
@@ -23,6 +24,14 @@ function mockAppConfig(
 describe('CompositeCodeCatalogProvider', () => {
   const now = new Date('2026-01-01T00:00:00.000Z');
 
+  const COMPLETE_STREAM: CodeStreamOutcome = {
+    completed: true,
+    codesStreamed: 1,
+    unitsSkipped: 0,
+    lastUnit: 'E',
+    source: 'NLM',
+  };
+
   const buildCpt = (code: string): CptCode => ({
     id: `cpt-${code}`,
     code,
@@ -30,6 +39,11 @@ describe('CompositeCodeCatalogProvider', () => {
     category: 'Evaluation and Management',
     isCommon: true,
     price: 0,
+    version: 'HCPCS',
+    system: 'HCPCS',
+    source: 'NLM',
+    sourceVersion: null,
+    lastSyncedAt: null,
     createdAt: now,
     updatedAt: now,
   });
@@ -41,6 +55,10 @@ describe('CompositeCodeCatalogProvider', () => {
     category: 'General',
     version: 'ICD-10',
     isCommon: true,
+    system: 'ICD-10-CM',
+    source: 'NLM',
+    sourceVersion: null,
+    lastSyncedAt: null,
     createdAt: now,
     updatedAt: now,
   });
@@ -79,7 +97,7 @@ describe('CompositeCodeCatalogProvider', () => {
   it('uses NLM provider by default for CPT streaming', async () => {
     const streamCptMock = jest
       .spyOn(nlmProvider, 'streamCptCodes')
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(COMPLETE_STREAM);
     const licensedStreamCptSpy = jest.spyOn(licensedProvider, 'streamCptCodes');
 
     const provider = new CompositeCodeCatalogProvider(
@@ -100,7 +118,7 @@ describe('CompositeCodeCatalogProvider', () => {
       .mockResolvedValue([buildCpt('99213')]);
     const licensedStreamCptMock = jest
       .spyOn(licensedProvider, 'streamCptCodes')
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(COMPLETE_STREAM);
     const nlmSearchCptSpy = jest.spyOn(nlmProvider, 'searchCptCodes');
 
     const provider = new CompositeCodeCatalogProvider(
@@ -123,7 +141,7 @@ describe('CompositeCodeCatalogProvider', () => {
       .mockResolvedValue([buildIcd('E11.9')]);
     const nlmStreamIcdMock = jest
       .spyOn(nlmProvider, 'streamIcdCodes')
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(COMPLETE_STREAM);
     const licensedSearchIcdSpy = jest.spyOn(licensedProvider, 'searchIcdCodes');
 
     const provider = new CompositeCodeCatalogProvider(
@@ -138,5 +156,29 @@ describe('CompositeCodeCatalogProvider', () => {
     expect(nlmSearchIcdMock).toHaveBeenCalled();
     expect(nlmStreamIcdMock).toHaveBeenCalled();
     expect(licensedSearchIcdSpy).not.toHaveBeenCalled();
+  });
+
+  describe('getCatalogSource', () => {
+    it('reports the NLM upstream for ICD regardless of the CPT setting', () => {
+      const provider = new CompositeCodeCatalogProvider(
+        mockAppConfig('licensed'),
+        nlmProvider,
+        licensedProvider,
+      );
+
+      expect(provider.getCatalogSource(CodeCatalogSystem.ICD)).toBe('NLM');
+    });
+
+    it('reports the NLM upstream for CPT when the licensed feed is not configured', () => {
+      const provider = new CompositeCodeCatalogProvider(
+        mockAppConfig('licensed'),
+        nlmProvider,
+        licensedProvider,
+      );
+
+      // The licensed provider has no credentials here, so it serves NLM data
+      // and must not stamp itself as the source of those rows.
+      expect(provider.getCatalogSource(CodeCatalogSystem.CPT)).toBe('NLM');
+    });
   });
 });

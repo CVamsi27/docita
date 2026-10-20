@@ -48,9 +48,15 @@ type PatientInvoiceContextRow = Prisma.PatientGetPayload<{
   select: typeof PATIENT_INVOICE_CONTEXT_SELECT;
 }>;
 
+// Invoice numbering follows the Indian April–March financial year evaluated
+// on the IST wall clock (UTC+5:30, no DST) — never the host server timezone,
+// which would misfile invoices issued near the 31 Mar/1 Apr boundary.
+const IST_OFFSET_MINUTES = 330;
+
 const getIndianFinancialYear = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
+  const ist = new Date(date.getTime() + IST_OFFSET_MINUTES * 60 * 1000);
+  const year = ist.getUTCFullYear();
+  const month = ist.getUTCMonth() + 1;
   const startYear = month >= 4 ? year : year - 1;
   const endYear = startYear + 1;
   return `${String(startYear).slice(-2)}${String(endYear).slice(-2)}`;
@@ -174,17 +180,10 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
   async findById(
     id: string,
     clinicId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<InvoiceDetailRecord | null> {
-    const invoice = await this.getReadClient().invoice.findFirst({
+    const invoice = await (tx ?? this.getReadClient()).invoice.findFirst({
       where: { id, ...this.invoiceOwnershipFilter(clinicId) },
-      select: INVOICE_DETAIL_SELECT,
-    });
-    return invoice;
-  }
-
-  async findByIdUnscoped(id: string): Promise<InvoiceDetailRecord | null> {
-    const invoice = await this.getReadClient().invoice.findFirst({
-      where: { id },
       select: INVOICE_DETAIL_SELECT,
     });
     return invoice;
@@ -270,6 +269,13 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
         intelligenceAddon: true,
         features: true,
       },
+    });
+  }
+
+  async findClinicReportContext(clinicId: string) {
+    return this.getReadClient().clinic.findUnique({
+      where: { id: clinicId },
+      select: { timezone: true, currency: true },
     });
   }
 

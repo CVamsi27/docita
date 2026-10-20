@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ReferralPayoutService } from './referral-payout.service';
-import { DEFAULT_SPECIAL_MARKETING_RATE_BANDS } from '@/domains/subscriptions/core/services/referral-reward.rules';
+import { DEFAULT_REVENUE_SHARE_RATE_BANDS } from '@/domains/subscriptions/core/services/referral-reward.rules';
 
 function makeCtx() {
   const repo = {
@@ -21,7 +21,7 @@ const base = {
   activationAt: new Date('2026-01-15T00:00:00Z'),
   periodEnd: new Date('2026-02-14T00:00:00Z'),
   paidRevenueCents: 249900, // ₹2499
-  rateBands: DEFAULT_SPECIAL_MARKETING_RATE_BANDS,
+  rateBands: DEFAULT_REVENUE_SHARE_RATE_BANDS,
 };
 
 describe('ReferralPayoutService.accruePayoutForPeriod', () => {
@@ -30,23 +30,23 @@ describe('ReferralPayoutService.accruePayoutForPeriod', () => {
     ctx = makeCtx();
   });
 
-  it('creates a payout row for a first-year 15% month', async () => {
+  it('creates a payout row for a first-year 10% month', async () => {
     ctx.repo.findExistingPayout.mockResolvedValue(null);
 
     const result = await ctx.service.accruePayoutForPeriod({
       ...base,
-      periodStart: new Date('2026-03-01T00:00:00Z'), // month 3 → 15%
+      periodStart: new Date('2026-03-01T00:00:00Z'), // month 3 → 10%
     });
 
-    expect(result).toEqual({ created: true, amountCents: 37485 });
+    expect(result).toEqual({ created: true, amountCents: 24990 });
     expect(ctx.repo.createPayout).toHaveBeenCalledTimes(1);
     const arg = ctx.repo.createPayout.mock.calls[0][0] as {
       ratePercent: number;
       amountCents: number;
       baseRevenueCents: number;
     };
-    expect(arg.ratePercent).toBe(15);
-    expect(arg.amountCents).toBe(37485);
+    expect(arg.ratePercent).toBe(10);
+    expect(arg.amountCents).toBe(24990);
     expect(arg.baseRevenueCents).toBe(249900);
   });
 
@@ -70,7 +70,7 @@ describe('ReferralPayoutService.accruePayoutForPeriod', () => {
       periodStart: new Date('2026-03-01T00:00:00Z'),
     });
 
-    expect(result).toEqual({ created: false, amountCents: 37485 });
+    expect(result).toEqual({ created: false, amountCents: 24990 });
     expect(ctx.repo.createPayout).not.toHaveBeenCalled();
   });
 

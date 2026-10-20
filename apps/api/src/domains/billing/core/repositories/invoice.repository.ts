@@ -4,6 +4,7 @@ import {
   InvoiceStatus,
   Prisma,
 } from '@workspace/db';
+import type { Clinic } from '@workspace/types';
 
 export interface ClinicFeatureContext {
   tier: ClinicTier;
@@ -161,7 +162,11 @@ export interface IInvoiceRepository {
    * InvoiceDetail graph just to authorize a room join.
    */
   belongsToClinic(id: string, clinicId: string): Promise<boolean>;
-  findById(id: string, clinicId: string): Promise<InvoiceDetail | null>;
+  findById(
+    id: string,
+    clinicId: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<InvoiceDetail | null>;
   findByIdempotencyKey?(
     key: string,
     clinicId?: string,
@@ -184,6 +189,9 @@ export interface IInvoiceRepository {
   findClinicFeatureContext(
     clinicId: string,
   ): Promise<ClinicFeatureContext | null>;
+  findClinicReportContext(
+    clinicId: string,
+  ): Promise<Pick<Clinic, 'timezone' | 'currency'> | null>;
   nextInvoiceNumber(
     clinicId: string,
     issuedAt: Date,

@@ -2,29 +2,31 @@
 // fetch adapter; the casts narrow `unknown` response bodies to the
 // partner-portal Zod schemas via `partner*.parse()` immediately after.
 // Each cast is paired with a `parse()` call in the same expression.
+import { buildApiRequestError } from "../lib/client-response-handler";
+import type { RequestConfig } from "../lib/types";
 import type {
+  PartnerFacilityLeadSubmit,
+  PartnerFacilityLeadView,
   PartnerMe,
   PartnerOtpRequest,
   PartnerOtpVerify,
   PartnerOtpVerifyResponse,
-  PartnerPayoutRow,
-  PartnerReferralRow,
-  ReferrerPayoutDetailsInput,
-  ReferrerPayoutDetailsView,
-} from "@workspace/types";
-import type { RequestConfig } from "../lib/types";
-import type {
   PartnerPayoutDetailsInput,
   PartnerPayoutDetailsView,
+  PartnerPayoutRow,
   PartnerPayoutsResponse,
   PartnerReferralsResponse,
+  PartnerReferralRow,
   PartnerRefreshResponse,
   PartnerShareMessageResponse,
+  PartnerMyLeadsResponse,
 } from "./partner.types";
 
 export type PartnerApiContext = {
   accessToken: string | null;
   baseUrl?: string;
+  /** CSRF token echoed back to the server on mutating requests. */
+  csrfToken?: string | null;
 };
 
 /**
@@ -32,6 +34,11 @@ export type PartnerApiContext = {
  * from the main app's `appSession` (different audience, different
  * storage key), so the fetcher is created locally and carries the
  * partner access token in the Authorization header.
+ *
+ * When a CSRF token is provided (via the ctx), it is echoed as the
+ * `x-xsrf-token` header on every request — the server's CSRF
+ * interceptor uses this for its double-submit check when the request
+ * is cookie-based (no Bearer header).
  */
 
 export function createPartnerFetcher(ctx: PartnerApiContext) {
@@ -46,6 +53,9 @@ export function createPartnerFetcher(ctx: PartnerApiContext) {
       headers: {
         "Content-Type": "application/json",
         ...(ctx.accessToken ? { Authorization: `Bearer ${ctx.accessToken}` } : {}),
+        // CSRF double-submit: when the request is cookie-based (no Bearer),
+        // the server's interceptor expects this header.
+        ...(ctx.csrfToken ? { "x-xsrf-token": ctx.csrfToken } : {}),
         ...(options?.headers as Record<string, string> | undefined),
       },
       ...(options?.body !== undefined
@@ -54,18 +64,11 @@ export function createPartnerFetcher(ctx: PartnerApiContext) {
     };
     const response = await fetch(url, init);
     if (!response.ok) {
-      // Re-throw as the existing APIRequestError so the React Query
-      // layer can parse the body the same way the main fetcher does.
-      const text = await response.text().catch(() => "");
-      const APIRequestErrorCtor = (
-        globalThis as { APIRequestError?: new (...a: unknown[]) => Error }
-      ).APIRequestError;
-      if (APIRequestErrorCtor) {
-        throw new APIRequestErrorCtor(response.status, text, response);
-      }
-      throw new Error(
-        `Partner API ${response.status}: ${text || response.statusText}`,
-      );
+      // Re-throw as the shared APIRequestError (status/code/message parsed
+      // from the body) so the React Query layer and
+      // getUserFacingErrorMessage can surface the same shapes the main
+      // fetcher produces (e.g. the 409 DUPLICATE_ENTRY contract).
+      throw await buildApiRequestError(response);
     }
     if (response.status === 204) {
       return undefined as T;
@@ -87,6 +90,23 @@ function joinUrl(base: string | undefined, endpoint: string): string {
 }
 
 export const partnerApi = {
+  /**
+   * Bootstrap the CSRF double-submit token by fetching GET /health.
+   * The XSRF-TOKEN cookie is set by the server; the X-CSRF-Token
+   * response header carries the matching value.
+   */
+  async bootstrapCsrfToken(): Promise<string | null> {
+    try {
+      const res = await fetch("/api/v1/health", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+      return res.headers.get("X-CSRF-Token");
+    } catch {
+      return null;
+    }
+  },
   requestOtp(input: PartnerOtpRequest, ctx: PartnerApiContext) {
     return createPartnerFetcher(ctx)<{
       message: string;
@@ -102,12 +122,18 @@ export const partnerApi = {
       { method: "POST", body: input as unknown as BodyInit },
     );
   },
-  refresh(refreshToken: string, ctx: PartnerApiContext) {
+  /**
+   * Refresh the partner access token using the httpOnly refresh cookie.
+   * The browser sends the `partner_refresh_token` cookie automatically;
+   * the CSRF token is echoed via the `x-xsrf-token` header in the ctx.
+   * No refresh token is sent in the request body.
+   */
+  refresh(ctx: PartnerApiContext) {
     return createPartnerFetcher(ctx)<PartnerRefreshResponse>(
       "/partner/auth/refresh",
       {
         method: "POST",
-        body: { refreshToken } as unknown as BodyInit,
+        body: {} as unknown as BodyInit,
       },
     );
   },
@@ -140,6 +166,18 @@ export const partnerApi = {
       `/partner/me/referrals${qs}`,
     );
   },
+  listMyLeads(
+    options: { limit?: number; cursor?: string } | undefined,
+    ctx: PartnerApiContext,
+  ) {
+    const query: string[] = [];
+    if (options?.limit) query.push(`limit=${options.limit}`);
+    if (options?.cursor) query.push(`cursor=${encodeURIComponent(options.cursor)}`);
+    const qs = query.length > 0 ? `?${query.join("&")}` : "";
+    return createPartnerFetcher(ctx)<PartnerMyLeadsResponse>(
+      `/partner/me/leads${qs}`,
+    );
+  },
   upsertPayoutDetails(
     input: PartnerPayoutDetailsInput,
     ctx: PartnerApiContext,
@@ -147,6 +185,15 @@ export const partnerApi = {
     return createPartnerFetcher(ctx)<PartnerPayoutDetailsView>(
       "/partner/me/payout-details",
       { method: "PUT", body: input as unknown as BodyInit },
+    );
+  },
+  submitFacilityLead(
+    input: PartnerFacilityLeadSubmit,
+    ctx: PartnerApiContext,
+  ) {
+    return createPartnerFetcher(ctx)<PartnerFacilityLeadView>(
+      "/partner/me/leads",
+      { method: "POST", body: input as unknown as BodyInit },
     );
   },
   getShareMessage(ctx: PartnerApiContext) {

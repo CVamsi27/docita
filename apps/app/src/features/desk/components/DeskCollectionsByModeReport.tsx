@@ -1,24 +1,24 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useCollectionsByModeReport } from "@workspace/data-access";
+import { useCollectionsByModeReport, useClinicSettings } from "@workspace/data-access";
 import { formatPaymentChannelLabel } from "@workspace/types";
+import { DEFAULT_TIMEZONE, formatClinicTodayPickerIso, formatCurrency } from "@workspace/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/data-display/table-essentials";
 import { Card, CardContent, CardHeader, CardTitle, DataState, Label, MicroLabel } from "@workspace/ui/components";
 import { IsoDatePickerField } from "@workspace/ui/components/form/iso-date-picker-field";
 import { Wallet } from "lucide-react";
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 interface DeskCollectionsByModeReportProps {
   formatMoney: (amount: number | undefined) => string;
 }
 
 export function DeskCollectionsByModeReport({
-  formatMoney,
+  formatMoney: formatClinicMoney,
 }: DeskCollectionsByModeReportProps) {
   const { t } = useTranslation("Desk");
+  const { data: clinic } = useClinicSettings();
+  const clinicTimezone = clinic?.timezone?.trim() || DEFAULT_TIMEZONE;
+  const todayIso = formatClinicTodayPickerIso(clinicTimezone);
   const [from, setFrom] = useState(todayIso);
   const [to, setTo] = useState(todayIso);
 
@@ -27,6 +27,10 @@ export function DeskCollectionsByModeReport({
     useCollectionsByModeReport({ from, to }, { enabled: validRange });
 
   const rows = data?.byMode ?? [];
+  const formatMoney = (amount: number) =>
+    data?.currency
+      ? formatCurrency(amount, { currency: data.currency })
+      : formatClinicMoney(amount);
   const status: "loading" | "error" | "empty" | "success" = !validRange
     ? "empty"
     : isLoading
@@ -59,6 +63,7 @@ export function DeskCollectionsByModeReport({
                 value={from}
                 onChange={setFrom}
                 className="w-40"
+                triggerClassName="sm:w-full"
               />
             </div>
             <div className="space-y-1">
@@ -72,6 +77,7 @@ export function DeskCollectionsByModeReport({
                 value={to}
                 onChange={setTo}
                 className="w-40"
+                triggerClassName="sm:w-full"
               />
             </div>
           </div>

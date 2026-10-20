@@ -32,7 +32,7 @@ export function ErrorState({
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
         <AlertCircle className="h-8 w-8 text-destructive" />
       </div>
-      <p className="ui-section-title text-foreground">{safeMessage}</p>
+      <p className="ui-heading-sans text-foreground">{safeMessage}</p>
       {onRetry && (
         <Button variant="outline" className="mt-4" onClick={onRetry}>
           Try again

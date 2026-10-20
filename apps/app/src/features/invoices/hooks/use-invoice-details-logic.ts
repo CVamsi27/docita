@@ -19,7 +19,7 @@ export const useInvoiceDetailsLogic = (
   const clinicCurrency = useLocaleCurrency();
   const printRef = useRef<HTMLDivElement>(null);
 
-  const { data: invoice, isLoading, error } = useInvoice(invoiceId);
+  const { data: invoice, isLoading, error, refetch } = useInvoice(invoiceId);
   const { isDownloading, handlePrint, handleDownload } = useInvoiceDownload(
     invoiceId,
     isLoading,
@@ -42,6 +42,7 @@ export const useInvoiceDetailsLogic = (
     invoice,
     isLoading,
     error,
+    refetch,
     printRef,
     handlePrint,
     handleDownload,

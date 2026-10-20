@@ -1,4 +1,19 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
+
+async function expectSinglePressedSelection(group: Locator) {
+  const buttons = group.getByRole("button");
+  const count = await buttons.count();
+  expect(count).toBeGreaterThanOrEqual(2);
+
+  for (let i = 0; i < count; i++) {
+    const ariaPressed = await buttons.nth(i).getAttribute("aria-pressed");
+    expect(["true", "false"]).toContain(ariaPressed);
+  }
+
+  await expect(group.locator('button[aria-pressed="true"]')).toHaveCount(1);
+
+  return buttons;
+}
 
 test("accessibility smoke", async ({ page }) => {
   await page.goto("/");
@@ -14,9 +29,147 @@ test("accessibility smoke", async ({ page }) => {
   );
 });
 
-test("pricing toggle has correct ARIA tab semantics", async ({
+test("hero live preview controls are keyboard accessible", async ({ page }) => {
+  await page.goto("/");
+
+  const previewRegion = page.getByRole("region", {
+    name: "Live practice operations preview",
+  });
+  await expect(previewRegion).toBeVisible();
+
+  const tablist = page.getByRole("tablist", {
+    name: "Preview OPD workflow stages",
+  });
+  await expect(tablist).toBeVisible();
+
+  const tabs = tablist.getByRole("tab");
+  await expect(tabs).toHaveCount(3);
+  await page.waitForFunction(() => {
+    const tab = document.querySelector(
+      '[role="tablist"][aria-label="Preview OPD workflow stages"] [role="tab"]',
+    );
+    return Boolean(
+      tab && Object.keys(tab).some((key) => key.startsWith("__react")),
+    );
+  });
+
+  // Exactly one tab is selected and it stays keyboard focusable.
+  const selectedTabs = tablist.getByRole("tab", { selected: true });
+  await expect(selectedTabs).toHaveCount(1);
+  await selectedTabs.first().focus();
+  await expect(selectedTabs.first()).toBeFocused();
+
+  // Focusing the rail pauses the preview rotation, so arrow keys move the
+  // selection deterministically.
+  const selectedId = await selectedTabs.first().getAttribute("id");
+  await page.keyboard.press("ArrowRight");
+
+  const movedTab = tablist.locator('[role="tab"][aria-selected="true"]');
+  await expect(movedTab).toHaveCount(1);
+  await expect(movedTab).toBeFocused();
+  await expect.poll(() => movedTab.getAttribute("id")).not.toBe(selectedId);
+
+  // Only the selected stage is exposed to assistive technology.
+  await expect(
+    page.locator('.r2-product-frame[aria-hidden="false"]'),
+  ).toHaveCount(1);
+});
+
+test("product screenshot filter tabs move with arrow keys", async ({
   page,
 }) => {
+  await page.goto("/");
+
+  const section = page.locator("#product-screenshots");
+  await section.scrollIntoViewIfNeeded();
+  await expect(
+    page.getByRole("heading", { name: /The screens your/i }),
+  ).toBeVisible();
+
+  // The section hydrates on visibility, so wait for React props before
+  // sending key presses that depend on its handlers.
+  await page.waitForFunction(() => {
+    const tab = document.querySelector("#r2-product-tab-all");
+    return Boolean(
+      tab && Object.keys(tab).some((key) => key.startsWith("__react")),
+    );
+  });
+
+  const tablist = page.getByRole("tablist", {
+    name: "Filter screens by department",
+  });
+  const activeTab = tablist.locator('[role="tab"][aria-selected="true"]');
+  await expect(activeTab).toHaveCount(1);
+  await activeTab.focus();
+
+  const allScreensTab = page.locator("#r2-product-tab-all");
+  await page.keyboard.press("ArrowRight");
+
+  await expect(page.locator("#r2-product-tab-clinical")).toBeFocused();
+  await expect(page.locator("#r2-product-tab-clinical")).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await expect(page.locator("#r2-product-tab-all")).toHaveAttribute(
+    "aria-selected",
+    "false",
+  );
+  await expect(page.locator("#r2-product-panel")).toHaveAttribute(
+    "aria-labelledby",
+    "r2-product-tab-clinical",
+  );
+
+  await allScreensTab.focus();
+  await page.keyboard.press("Home");
+  await expect(allScreensTab).toBeFocused();
+  await expect(allScreensTab).toHaveAttribute("aria-selected", "true");
+});
+
+test("screenshot lightbox traps Tab and restores focus to its trigger", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const section = page.locator("#product-screenshots");
+  await section.scrollIntoViewIfNeeded();
+
+  await page.waitForFunction(() => {
+    const trigger = document.querySelector(
+      '#product-screenshots [role="button"]',
+    );
+    return Boolean(
+      trigger && Object.keys(trigger).some((key) => key.startsWith("__react")),
+    );
+  });
+
+  const trigger = section.getByRole("button", { name: /^Enlarge / }).first();
+  await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+
+  await trigger.focus();
+  await trigger.press("Enter");
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+
+  // Opening moves focus inside so Tab never has to walk the page behind.
+  const closeButton = dialog.getByRole("button", { name: "Close preview" });
+  const nextButton = dialog.getByRole("button", { name: "Next screenshot" });
+  await expect(closeButton).toBeFocused();
+
+  await expect(nextButton).toHaveCount(1);
+  await nextButton.focus();
+  await page.keyboard.press("Tab");
+  await expect(closeButton).toBeFocused();
+
+  await page.keyboard.press("Shift+Tab");
+  await expect(nextButton).toBeFocused();
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test("pricing toggles expose single-select pressed state", async ({ page }) => {
   await page.goto("/");
 
   // Scroll to the pricing section so the toggles are visible
@@ -27,53 +180,38 @@ test("pricing toggle has correct ARIA tab semantics", async ({
   await expect(pricingHeading).toBeVisible();
 
   // --- Plan mode toggle (Full / Front Desk / Core) ---
-  const planModeTablist = page.getByRole("tablist", {
-    name: "Plan mode",
+  const planModeGroup = page.getByRole("group", { name: "Plan mode" });
+  await expect(planModeGroup).toBeVisible();
+  await page.waitForFunction(() => {
+    const button = document.querySelector(
+      '[role="group"][aria-label="Plan mode"] button',
+    );
+    return Boolean(
+      button && Object.keys(button).some((key) => key.startsWith("__react")),
+    );
   });
-  await expect(planModeTablist).toBeVisible();
 
-  const planModeTabs = planModeTablist.getByRole("tab");
-  const planModeTabCount = await planModeTabs.count();
-  expect(planModeTabCount).toBeGreaterThanOrEqual(2);
+  const planModeButtons = await expectSinglePressedSelection(planModeGroup);
 
-  // Exactly one tab should be selected (aria-selected=true)
-  const selectedPlanModeTabs = planModeTablist.getByRole("tab", {
-    selected: true,
-  });
-  await expect(selectedPlanModeTabs).toHaveCount(1);
-
-  // All tabs should have aria-selected defined (true or false)
-  for (let i = 0; i < planModeTabCount; i++) {
-    const tab = planModeTabs.nth(i);
-    await expect(tab).toHaveAttribute("role", "tab");
-    const ariaSelected = await tab.getAttribute("aria-selected");
-    expect(["true", "false"]).toContain(ariaSelected);
-  }
+  // Selecting another mode moves the pressed state instead of adding to it.
+  await planModeButtons.nth(1).click();
+  await expect(planModeButtons.nth(1)).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    planModeGroup.locator('button[aria-pressed="true"]'),
+  ).toHaveCount(1);
 
   // --- Billing period toggle (Monthly / Yearly) ---
-  const billingPeriodTablist = page.getByRole("tablist", {
-    name: "Billing period",
-  });
-  await expect(billingPeriodTablist).toBeVisible();
+  const billingGroup = page.getByRole("group", { name: "Billing period" });
+  await expect(billingGroup).toBeVisible();
 
-  const billingPeriodTabs = billingPeriodTablist.getByRole("tab");
-  const billingPeriodTabCount = await billingPeriodTabs.count();
-  expect(billingPeriodTabCount).toBeGreaterThanOrEqual(2);
+  await expectSinglePressedSelection(billingGroup);
 
-  // Exactly one tab should be selected
-  const selectedBillingPeriodTabs = billingPeriodTablist.getByRole(
-    "tab",
-    { selected: true },
+  const monthlyButton = billingGroup.getByRole("button", { name: /monthly/i });
+  await monthlyButton.click();
+  await expect(monthlyButton).toHaveAttribute("aria-pressed", "true");
+  await expect(billingGroup.locator('button[aria-pressed="true"]')).toHaveCount(
+    1,
   );
-  await expect(selectedBillingPeriodTabs).toHaveCount(1);
-
-  // All tabs should have role=tab and aria-selected
-  for (let i = 0; i < billingPeriodTabCount; i++) {
-    const tab = billingPeriodTabs.nth(i);
-    await expect(tab).toHaveAttribute("role", "tab");
-    const ariaSelected = await tab.getAttribute("aria-selected");
-    expect(["true", "false"]).toContain(ariaSelected);
-  }
 });
 
 test("plan picker options are focusable", async ({ page }) => {

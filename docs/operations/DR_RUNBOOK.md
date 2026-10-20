@@ -1,9 +1,92 @@
 # Disaster Recovery Runbook
 
-> **Status**: initial. Last drill: never. Schedule first drill within 30
-> days of this file landing. SYSTEM_DESIGN_AND_PATTERNS.md §28.1 item 7.
+> **Status, 15 October 2026**: a bounded Neon recovery and encrypted synthetic
+> canary drill has run; see the [drill record](dr-drills/2026-10-15-neon-isolated.md).
+> A full clinical/object/region recovery and traffic cutover remain unproved.
+>
+> The RTO/RPO values in the table below are **unverified targets**, not measured
+> capabilities. The bounded drill below does not establish production RTO/RPO.
+> Do not quote them as guarantees without the relevant end-to-end evidence. See
+> [ADR 0016](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md)
+> (backlog C01).
 
-## Scope
+## Current provider verification, 15 October 2026
+
+The API's actual `DATABASE_URL` host identifies **Neon PostgreSQL in Singapore**,
+not the historical RDS instance described below. This was read as hostname/database
+metadata through Fly SSH; no credentials or patient rows were exported. The local
+AWS credential verifies with STS, but the old named RDS instance is absent and
+broader RDS inventory access is denied. Those AWS checks do not establish Neon
+backup or restore capability.
+
+Authenticated Neon CLI access confirms project `icy-river-59903017`, PostgreSQL17
+in `aws-ap-southeast-1`, production branch `br-young-butterfly-a17arhtm` and endpoint
+`ep-plain-rain-a1zogxgl`. The configured history retention is **21,600 seconds
+(six hours)**. The project is on Free; its history window cannot exceed six hours
+on that plan. Retention changes require a separate billing/operating decision.
+See Neon's [history-window documentation](https://neon.com/docs/postgres/backup-restore/history-window).
+The user selected keeping Free and preparing independent encrypted backups;
+follow the [backup plan](../superpowers/plans/2026-10-15-independent-database-backups.md).
+That preparation does not establish an active backup schedule or 30-day retention.
+
+**16 October follow-up:** the operator returned the matching offline recovery
+challenge hash and confirmed offline handling; Messenger is unmounted and the
+connected private identity was removed. The encrypted synthetic R2 restore passes
+with the new restricted-login tooling image. A dedicated-role preflight and an
+GitHub complete-cycle/Sentry wrapper are prepared, with 117 process regressions and a
+real PostgreSQL privilege/restore fixture passing. The one authorized alert email
+was confirmed in the inbox. An encrypted actual-runtime field/signing-key packet
+and offline verifier are prepared; its separate offline transfer/proof remains
+open. Full clinical recovery, historical field/object-key inventory and custody,
+live scheduling and missed-run delivery are still
+unproved. See the [current checkpoint](../audits/2026-10-16-stability-completion-checkpoint.md)
+and [backup operating gates](ENCRYPTED_DATABASE_BACKUPS.md#live-activation-requirements).
+
+An isolated branch from production's past state was exercised, followed by a
+synthetic encrypted insert/delete/point-in-time recovery on drill branches.
+Authenticated decryption succeeded using a protected local key verified against
+the current API key by hash. The copied production data has no clinics/patients
+or documents, so matching zero counts is not clinical-data continuity evidence.
+The additive RLS sweep and non-owner role passed 19 strict checks on the isolated
+target, including coverage on all 91 tenant tables. Production still has 16
+coverage gaps and owner-role bypass; neither policies nor runtime credentials
+were changed there. See the [drill record](dr-drills/2026-10-15-neon-isolated.md).
+
+The RDS commands below are historical procedures and cannot recover the current
+Neon primary. A production restore, migration, traffic cutover, staging soak and
+full recovery certification have not been performed by this audit.
+
+## Isolated Neon drill procedure
+
+1. Verify the project, branch and endpoint against the actual runtime URL without
+   printing it. Record the configured history window and select a timestamp inside
+   it. Do not infer seven-day retention from the historical RDS procedure.
+2. Create a uniquely named child from the explicit production parent and past
+   timestamp, with a separate small compute and cleanup deadline. This uses
+   [point-in-time branching](https://api-docs.neon.tech/reference/createprojectbranch),
+   not an in-place restore of production. Do not reassign its compute or replace
+   the runtime URL. Neon clones roles/passwords, so handle the target as sensitive.
+3. Validate the target identity before any writes. Compare aggregate schema,
+   migration, integrity and row-count evidence; do not export patient rows. Use
+   synthetic canaries when the relevant tables are empty, and label that scope.
+4. On the drill target only, write an encrypted synthetic canary, record a server
+   timestamp after its commit, delete it, then recover that timestamp into a second
+   child. Assert the original has zero canary rows, the recovered child has one,
+   and authenticated decryption returns the known synthetic value. A branch with
+   expiration cannot have children: remove only the owned parent's expiration
+   for this bounded step and delete both targets immediately afterwards.
+5. Rehearse the reviewed migration and runtime role on the isolated target; run
+   `db:check-tenant-isolation -- --strict-preconditions` with separate app/admin
+   connections. Keep provider sends disabled. Document pending migrations and
+   the remaining authenticated/staging-soak requirements separately.
+6. Verify object access/key custody with a uniquely owned encrypted synthetic
+   object, read/decrypt it, and delete it. Verify absence. This does not prove
+   recovery of historical objects or independence from a provider/account loss.
+   Delete owned drill children before parents, verify production endpoint/branch
+   identity is unchanged, and remove temporary credentials. Record timings and
+   limits without turning provisioning time into an end-to-end RTO claim.
+
+## Historical scope and provider procedures
 
 This runbook covers recovery from data-tier or region-level loss of:
 
@@ -18,13 +101,13 @@ It does **not** cover routine deploy rollbacks (see
 
 ## Targets
 
-| Resource | Recovery Time Objective (RTO) | Recovery Point Objective (RPO) |
-| --- | --- | --- |
-| Postgres primary loss | 60 minutes | 5 minutes (PITR) |
-| Region-level loss | 4 hours | 24 hours (daily snapshot) |
-| R2 region | 30 minutes (Cloudflare fan-over) | 0 minutes (multi-region replication) |
-| Fly.io machine | 5 minutes (autoscaler) | 0 minutes |
-| Fly.io region | 60 minutes (failover machines) | 0 minutes (stateless API) |
+| Resource              | Recovery Time Objective (RTO)    | Recovery Point Objective (RPO)       |
+| --------------------- | -------------------------------- | ------------------------------------ |
+| Postgres primary loss | 60 minutes                       | 5 minutes (PITR)                     |
+| Region-level loss     | 4 hours                          | 24 hours (daily snapshot)            |
+| R2 region             | 30 minutes (Cloudflare fan-over) | 0 minutes (multi-region replication) |
+| Fly.io machine        | 5 minutes (autoscaler)           | 0 minutes                            |
+| Fly.io region         | 60 minutes (failover machines)   | 0 minutes (stateless API)            |
 
 The single largest exposure today is the Postgres primary — both because
 it is single-region (ADR
@@ -37,12 +120,12 @@ Each quarter, on the second Friday of the quarter, run one drill from
 the table below. Rotate through the four scenarios so each is exercised
 once a year.
 
-| Quarter | Scenario |
-| --- | --- |
-| Q1 | Postgres point-in-time restore to a side database |
-| Q2 | Snapshot restore + replay confirmation |
-| Q3 | Region failover simulation (Fly.io machine drain) |
-| Q4 | Full DR exercise: assume primary region down, restore in DR region |
+| Quarter | Scenario                                                           |
+| ------- | ------------------------------------------------------------------ |
+| Q1      | Postgres point-in-time restore to a side database                  |
+| Q2      | Snapshot restore + replay confirmation                             |
+| Q3      | Region failover simulation (Fly.io machine drain)                  |
+| Q4      | Full DR exercise: assume primary region down, restore in DR region |
 
 Document the drill outcome in `docs/operations/dr-drills/YYYY-QN.md`.
 

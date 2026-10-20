@@ -14,6 +14,15 @@ import * as bcrypt from 'bcrypt';
 
 let prisma: PrismaClient;
 
+/**
+ * Slot rotation for {@link factories.appointment}. The Appointment table has
+ * a production exclusion constraint (no active overlap per doctor), so two
+ * factory appointments must not share the default window — the second insert
+ * would be data that cannot exist in production. First call keeps the
+ * historical 10:00 default; later calls advance in 30-minute steps.
+ */
+let appointmentSlotSequence = 0;
+
 function normalizeRole(role: unknown): Role {
   if (role === 'STAFF') return Role.RECEPTIONIST;
 
@@ -124,10 +133,13 @@ export const factories = {
     overrides = {},
   ) => {
     const todayPicker = formatClinicTodayPickerIso(DEFAULT_TIMEZONE);
-    const startTime =
+    const baseStart =
       fromLocalISOString(`${todayPicker}T10:00`, {
         timezone: DEFAULT_TIMEZONE,
       }) ?? new Date();
+    const startTime = new Date(
+      baseStart.getTime() + (appointmentSlotSequence++ % 20) * 30 * 60000,
+    );
     const endTime = new Date(startTime.getTime() + 30 * 60000);
 
     return prisma.appointment.create({

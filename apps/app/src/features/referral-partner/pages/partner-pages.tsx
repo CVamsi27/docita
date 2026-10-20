@@ -9,6 +9,8 @@ import { PartnerBankingForm } from "@/features/referral-partner/components/Partn
 import { PartnerPayoutsView } from "@/features/referral-partner/components/PartnerPayoutsView";
 import { PartnerReferralsView } from "@/features/referral-partner/components/PartnerReferralsView";
 import { PartnerShareCard } from "@/features/referral-partner/components/PartnerShareCard";
+import { PartnerSubmitLeadForm } from "@/features/referral-partner/components/PartnerSubmitLeadForm";
+import { PartnerMySubmissionsView } from "@/features/referral-partner/components/PartnerMySubmissionsView";
 import { partnerSession } from "@/features/referral-partner/lib/partner-session";
 
 /** Partner portal index — bounces to the dashboard when signed in, else to login. */
@@ -90,6 +92,28 @@ export function PartnerSharePage() {
       <PageMeta title="Partner Share Kit" noSuffix />
       <PartnerShell>
         <PartnerShareCard />
+      </PartnerShell>
+    </>
+  );
+}
+
+export function PartnerSubmitLeadPage() {
+  return (
+    <>
+      <PageMeta title="Partner Submit Lead" noSuffix />
+      <PartnerShell>
+        <PartnerSubmitLeadForm />
+      </PartnerShell>
+    </>
+  );
+}
+
+export function PartnerMySubmissionsPage() {
+  return (
+    <>
+      <PageMeta title="Partner My Submissions" noSuffix />
+      <PartnerShell>
+        <PartnerMySubmissionsView />
       </PartnerShell>
     </>
   );

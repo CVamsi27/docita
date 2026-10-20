@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CptCode, IcdCode } from '@workspace/db';
 import { z } from 'zod';
-import { CodeCatalogProvider } from '@/domains/clinical/core/providers/code-catalog.provider';
+import {
+  CodeCatalogProvider,
+  type CodeStreamOutcome,
+} from '@/domains/clinical/core/providers/code-catalog.provider';
 import { NlmCodeCatalogProvider } from '@/domains/clinical/infrastructure/external/nlm-code-catalog.provider';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { fetchWithTimeout } from '@/shared/common/http/fetch-with-timeout';
@@ -34,6 +37,10 @@ type LicensedCatalogResponse =
 
 const LICENSED_CPT_SYNC_PAGE_SIZE = 1000;
 const LICENSED_CPT_REQUEST_TIMEOUT_MS = 8000;
+/** Identifies this upstream in the sync run record. */
+const LICENSED_SOURCE = 'LICENSED';
+const LICENSED_CPT_VERSION = 'HCPCS';
+const UNKNOWN_SOURCE = 'UNKNOWN';
 
 @Injectable()
 export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
@@ -57,6 +64,14 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
 
   private isConfigured(): boolean {
     return !!this.apiBaseUrl && !!this.apiKey;
+  }
+
+  getCatalogSource(): string {
+    // Without credentials this provider serves the NLM feed, so it must not
+    // claim to be the source of the rows it writes.
+    return this.isConfigured()
+      ? LICENSED_SOURCE
+      : this.fallbackProvider.getCatalogSource();
   }
 
   private warnMissingConfig(): void {
@@ -90,6 +105,13 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
       category: this.cptCategory(code, record.category),
       isCommon,
       price: record.price ?? 0,
+      version: LICENSED_CPT_VERSION,
+      system: LICENSED_CPT_VERSION,
+      // Stamped on persistence by the sync repository; these in-memory rows
+      // have not been through a sync run yet.
+      source: UNKNOWN_SOURCE,
+      sourceVersion: null,
+      lastSyncedAt: null,
       createdAt: new Date(0),
       updatedAt: new Date(0),
     };
@@ -146,7 +168,7 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
 
   async streamIcdCodes(
     onBatch: (batch: IcdCode[]) => Promise<void>,
-  ): Promise<void> {
+  ): Promise<CodeStreamOutcome> {
     return this.fallbackProvider.streamIcdCodes(onBatch);
   }
 
@@ -176,13 +198,16 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
 
   async streamCptCodes(
     onBatch: (batch: CptCode[]) => Promise<void>,
-  ): Promise<void> {
+  ): Promise<CodeStreamOutcome> {
     if (!this.isConfigured()) {
       this.warnMissingConfig();
       return this.fallbackProvider.streamCptCodes(onBatch);
     }
 
     let cursor: string | null = null;
+    let pagesApplied = 0;
+    let codesStreamed = 0;
+    let lastUnit: string | null = null;
 
     try {
       do {
@@ -208,15 +233,43 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
 
         if (batch.length > 0) {
           await onBatch(batch);
+          pagesApplied += 1;
+          codesStreamed += batch.length;
+          lastUnit = cursor ?? 'start';
         }
 
         cursor = page.nextCursor;
       } while (cursor);
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       this.logger.warn(
-        `Licensed CPT sync failed: ${error instanceof Error ? error.message : String(error)}. Falling back to NLM/HCPCS provider.`,
+        `Licensed CPT sync failed: ${message}. Falling back to NLM/HCPCS provider.`,
       );
-      return this.fallbackProvider.streamCptCodes(onBatch);
+      // Falling back after some pages were already written mixes two upstreams in
+      // one run. That is recorded rather than silently absorbed: the run is
+      // reported incomplete so the catalog is not read as a licensed snapshot.
+      const fallback = await this.fallbackProvider.streamCptCodes(onBatch);
+      const mixed = pagesApplied > 0;
+      return {
+        ...fallback,
+        completed: !mixed && fallback.completed,
+        codesStreamed: codesStreamed + fallback.codesStreamed,
+        unitsSkipped: fallback.unitsSkipped + (mixed ? 1 : 0),
+        failure: message,
+        // With no licensed page on disk the rows really are the fallback's, so
+        // the source is named accordingly rather than as a mixed run.
+        source: mixed
+          ? `${LICENSED_SOURCE}->${fallback.source}`
+          : fallback.source,
+      };
     }
+
+    return {
+      completed: true,
+      codesStreamed,
+      unitsSkipped: 0,
+      lastUnit,
+      source: LICENSED_SOURCE,
+    };
   }
 }

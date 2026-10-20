@@ -3,7 +3,11 @@ import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import * as Sentry from '@sentry/nestjs';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { createSentryBeforeSend } from '@/shared/modules/error-handling/sentry.utils';
+import {
+  createSentryBeforeSend,
+  createSentryBeforeSendTransaction,
+  createSentryBeforeSendLog,
+} from '@/shared/modules/error-handling/sentry.utils';
 import {
   getRecordStatus,
   getRecordString,
@@ -34,6 +38,8 @@ export class ObservabilityService implements OnModuleDestroy {
     const {
       integrations: optionIntegrations,
       beforeSend: optionBeforeSend,
+      beforeSendTransaction: optionBeforeSendTransaction,
+      beforeSendLog: optionBeforeSendLog,
       ...sentryOptions
     } = options ?? {};
     const consoleLoggingIntegration = Sentry.consoleLoggingIntegration({
@@ -63,6 +69,10 @@ export class ObservabilityService implements OnModuleDestroy {
       enableLogs: true,
       integrations,
       beforeSend,
+      beforeSendTransaction: createSentryBeforeSendTransaction(
+        optionBeforeSendTransaction,
+      ),
+      beforeSendLog: createSentryBeforeSendLog(optionBeforeSendLog),
       initialScope: {
         tags: {
           service: 'docita-api',

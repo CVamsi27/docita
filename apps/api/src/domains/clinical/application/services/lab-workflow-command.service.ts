@@ -1,18 +1,11 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Inject,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { DATE_FORMATS, formatDate, getPatientFullName } from '@workspace/utils';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
-import {
-  StorageProvider,
-  GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
-} from '@/domains/documents/application/ports/storage-provider.port';
-import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import type {
   LabDirectoryRepository,
   LabRecord,
@@ -22,6 +15,10 @@ import type {
 import type { LabOrderRepository } from '@/domains/clinical/core/repositories/lab-order.repository.interface';
 import type { LabWorkflowRepository } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
+import {
+  LabResultReleaseService,
+  type ReleaseOutcome,
+} from '@/domains/clinical/application/services/lab-result-release.service';
 
 interface AttachResultInput {
   result?: Record<string, unknown>;
@@ -29,10 +26,14 @@ interface AttachResultInput {
   uploadedBy: string;
 }
 
+/**
+ * Actor recorded on an auto-release. Distinguishing it from a named clinician
+ * keeps the audit record honest about who initiated the patient notification.
+ */
+const AUTO_RELEASE_ACTOR = 'SYSTEM:auto-release';
+
 @Injectable()
 export class LabWorkflowCommandService {
-  private readonly logger = new Logger(LabWorkflowCommandService.name);
-
   constructor(
     @Inject('LabWorkflowRepository')
     private readonly workflowRepository: LabWorkflowRepository,
@@ -41,7 +42,7 @@ export class LabWorkflowCommandService {
     @Inject('LabOrderRepository')
     private readonly orderRepository: LabOrderRepository,
     private readonly storageProvider: StorageProvider,
-    private readonly sendMessage: SendMessageUseCase,
+    private readonly releaseService: LabResultReleaseService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
   ) {}
 
@@ -119,70 +120,50 @@ export class LabWorkflowCommandService {
   /**
    * Auto-release the result once both a result and payment are recorded. Re-loads
    * the order so the decision reflects the just-committed write, not a stale copy.
+   *
+   * `SYSTEM` is the releasedBy value for the auto path: a human did not press
+   * Release, and the audit trail should say so.
    */
   private async releaseIfReady(id: string, clinicId: string): Promise<void> {
     const refreshed = await this.loadOrder(id, clinicId);
     if (refreshed.canRelease()) {
-      await this.releaseResult(id, clinicId);
+      await this.releaseService.releaseResult({
+        orderId: id,
+        clinicId,
+        releasedBy: AUTO_RELEASE_ACTOR,
+      });
     }
   }
 
-  async releaseResult(id: string, clinicId: string): Promise<void> {
-    const ctx = await this.workflowRepository.findReleaseContext(id, clinicId);
-    if (!ctx) throw new NotFoundException('Lab order not found');
-    if (ctx.status === 'COMPLETED' || ctx.status === 'CANCELLED')
+  /**
+   * Releases the result to the patient.
+   *
+   * The authorization and the notification are one effect: the order is claimed
+   * before anything is sent, so a concurrent release — including the auto-release
+   * above — cannot notify the patient twice. See LabResultReleaseService.
+   */
+  async releaseResult(
+    id: string,
+    clinicId: string,
+    releasedBy: string,
+  ): Promise<ReleaseOutcome> {
+    const order = await this.loadOrder(id, clinicId);
+    if (order.isTerminal())
       throw new BadRequestException('Lab order has already been finalised');
-    if (!ctx.resultUrl)
+    if (!order.hasResult())
       throw new BadRequestException(
         'Upload a result before releasing it to the patient',
       );
-    if (!ctx.paidAt)
+    if (!order.isPaid())
       throw new BadRequestException(
         'Verify payment before releasing results to the patient',
       );
 
-    const now = this.clock.now();
-
-    if (ctx.patient.phoneNumber) {
-      const resultLink = this.storageProvider.supportsSignedUrls
-        ? await this.storageProvider.generateSignedUrl(
-            ctx.resultUrl,
-            GENERATED_PDF_SIGNED_URL_TTL_SECONDS,
-          )
-        : ctx.resultUrl;
-
-      try {
-        await this.sendMessage.execute({
-          clinicId,
-          recipientPhone: ctx.patient.phoneNumber,
-          templateName: 'lab_result_ready',
-          variables: {
-            patientName: getPatientFullName(ctx.patient),
-            clinicName: ctx.clinicName,
-            testName: ctx.testName,
-            resultDate: formatDate(now, DATE_FORMATS.DATE_MEDIUM),
-            resultLink,
-          },
-        });
-      } catch (error) {
-        if (error instanceof ForbiddenException) {
-          this.logger.log(
-            `Lab result WhatsApp skipped for order ${id}: ${error.message}`,
-          );
-        } else {
-          this.logger.error(
-            `Failed to send lab result WhatsApp for order ${id}`,
-            error,
-          );
-        }
-      }
-    } else {
-      this.logger.warn(
-        `Lab order ${id} released without WhatsApp: patient has no phone number`,
-      );
-    }
-
-    await this.workflowRepository.markReleased(id, clinicId, now);
+    return this.releaseService.releaseResult({
+      orderId: id,
+      clinicId,
+      releasedBy,
+    });
   }
 
   async createLab(clinicId: string, data: CreateLabInput): Promise<LabRecord> {
@@ -198,7 +179,8 @@ export class LabWorkflowCommandService {
   }
 
   private async loadOrder(id: string, clinicId: string): Promise<LabOrder> {
-    const order = await this.orderRepository.findOrderById(id);
+    const order = await this.orderRepository.findOrderById(id, clinicId);
+    // Defense-in-depth on top of the tenant-scoped repository lookup.
     if (!order || order.clinicId !== clinicId)
       throw new NotFoundException('Lab order not found');
     return order;

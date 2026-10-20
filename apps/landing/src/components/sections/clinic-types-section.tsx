@@ -114,7 +114,7 @@ export function ClinicTypesSection() {
   return (
     <section
       id="clinic-types"
-      className="r2-section r2-band-tint"
+      className="r2-section r2-section-quiet r2-band-tint"
       aria-labelledby="r2-types-heading"
     >
       <div className="ui-page-shell">
@@ -128,14 +128,14 @@ export function ClinicTypesSection() {
         >
           One platform, <em>many practice shapes</em>.
         </h2>
-        <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
           Solo OPDs and multi-branch hospitals run on the same backbone. Each
           picks the surfaces they need on day one&mdash;the rest is there when
           you grow into it.
         </p>
 
         <motion.div
-          className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
           variants={stagger}
           initial="hidden"
           whileInView="visible"
@@ -151,7 +151,7 @@ export function ClinicTypesSection() {
               >
                 <div className="r2-type-card-head">
                   <span
-                    className="r2-type-card-icon"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary shadow-2xs"
                     aria-hidden
                   >
                     <Icon className="h-4 w-4" />
@@ -165,8 +165,11 @@ export function ClinicTypesSection() {
                 </p>
                 <ul className="r2-type-card-list" role="list">
                   {ct.surfaces.map((s) => (
-                    <li key={s} className="r2-type-card-chip">
-                      <span className="h-1 w-1 rounded-full bg-primary" aria-hidden />
+                    <li
+                      key={s}
+                      className="r2-type-card-chip transition-colors duration-150 hover:border-primary/40 hover:bg-primary/[0.04]"
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
                       <span className="truncate">{s}</span>
                     </li>
                   ))}

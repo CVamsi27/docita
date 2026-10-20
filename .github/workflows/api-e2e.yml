@@ -13,15 +13,19 @@ env:
 jobs:
   api-e2e-tests:
     name: API E2E Tests (${{ matrix.shard }}/${{ matrix.total }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - shard: 1
-            total: 2
+            total: 4
           - shard: 2
-            total: 2
+            total: 4
+          - shard: 3
+            total: 4
+          - shard: 4
+            total: 4
     env:
       PGHOST: localhost
       PGPORT: "5434"
@@ -30,6 +34,10 @@ jobs:
       # The suite runs single-process (jest --runInBand) and OOM'd at the
       # default 2GB Node heap (`FATAL ERROR: Ineffective mark-compacts near
       # heap limit`, exit 134). Give each shard a 4GB heap.
+      # Four shards, not two: one process carrying ~29 heavy suites against a
+      # single database intermittently broke unrelated suites (a transport
+      # `socket hang up`, and timing-sensitive assertions), so the shard count
+      # is a capacity control, not just a memory workaround.
       NODE_OPTIONS: --max-old-space-size=4096
     services:
       postgres:

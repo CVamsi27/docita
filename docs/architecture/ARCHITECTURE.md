@@ -80,6 +80,35 @@ Browser
 
 ---
 
+## Input Validation Strategy
+
+Validation is layered — two complementary mechanisms ensure no unvalidated data reaches business logic:
+
+### Layer 1: Global ZodValidationPipe (controller boundary)
+
+Installed in `apps/api/src/main.ts`:
+```typescript
+app.useGlobalPipes(new ZodValidationPipe());
+```
+
+Controllers that use `@Body()` with a `createZodDto()` wrapped type get validated automatically at the controller boundary. This catches malformed requests before they reach services.
+
+### Layer 2: Service-level Zod parse (business boundary)
+
+Services that accept raw or untrusted input (webhooks, callback payloads, public endpoints) call `.parse()` or `.safeParse()` directly on Zod schemas. This catches data that bypasses the controller layer (e.g., internal service-to-service calls, cron jobs, event handlers).
+
+### Why two layers?
+
+- **Global pipe** covers the common path: typed DTOs from HTTP controllers
+- **Service parse** covers edge cases: webhook payloads, callback data, internal orchestration
+- **Both use the same schemas** from `packages/types` — no duplication
+
+### Frontend validation
+
+React Hook Form + `zodResolver` validates forms before submission, using the same Zod schemas from `packages/types`. The frontend never sends invalid data to the API.
+
+---
+
 ## Background Job Flow
 
 ```

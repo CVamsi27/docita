@@ -44,7 +44,9 @@ export function PricingTierCard({ tier, selectedMode, isYearly, appUrl }: Pricin
             </span>
           ) : null}
           {isFeatured ? (
-            <span className="r2-mono text-[var(--fs-2xs)] font-semibold uppercase tracking-[0.14em] text-primary">Popular</span>
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold uppercase tracking-wider text-primary">
+              Popular
+            </span>
           ) : null}
         </div>
       </div>
@@ -66,7 +68,7 @@ export function PricingTierCard({ tier, selectedMode, isYearly, appUrl }: Pricin
           </span>
         </div>
         {yearlySavings !== null ? (
-          <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold text-success">
+          <span className="r2-price-save-badge inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold">
             Save {formatTierPrice(yearlySavings, FALLBACK_PRICING_CONFIG.currency.symbol)} a year
           </span>
         ) : isYearly ? (
@@ -82,7 +84,7 @@ export function PricingTierCard({ tier, selectedMode, isYearly, appUrl }: Pricin
         ))}
       </ul>
 
-      <Button asChild className="mt-auto w-full gap-2" variant={isFeatured ? "primary" : "outline"}>
+      <Button asChild className="mt-auto w-full gap-2 font-semibold shadow-xs" variant={isFeatured ? "primary" : "outline"}>
         <a href={`${appUrl}/onboarding?tier=${tier.id}&mode=${effectiveMode}&billing=${isYearly ? "yearly" : "monthly"}`}>
           {"Start setup"}
           <ArrowRight className="h-4 w-4" />

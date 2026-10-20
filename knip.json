@@ -10,14 +10,15 @@
   "ignoreBinaries": ["printf", "tsx"],
   "workspaces": {
     "apps/worker": {
-      "entry": [
-        "src/main.ts",
-        "src/**/*.spec.ts"
-      ],
+      "entry": ["src/main.ts", "src/**/*.spec.ts"],
       "paths": {
         "@/*": ["./../api/src/*"]
       },
       "ignoreDependencies": [
+        // Emitted API modules inside the worker import these at runtime;
+        // check:runtime proves ordinary Node resolution after the worker build.
+        "@aws-sdk/client-rds",
+        "@workspace/auth",
         "@aws-sdk/client-s3",
         "@aws-sdk/s3-request-presigner",
         "@nestjs/cache-manager",
@@ -25,7 +26,6 @@
         "@nestjs/event-emitter",
         "@nestjs/jwt",
         "@nestjs/passport",
-        "@nestjs/schedule",
         "@nestjs/serve-static",
         "@nestjs/swagger",
         "@nestjs/terminus",
@@ -110,44 +110,26 @@
     },
     "apps/landing": {
       "playwright": false,
-      "entry": [
-        "src/pages/**/*.astro",
-        "src/lib/api-fetch.ts"
-      ],
+      "entry": ["src/pages/**/*.astro"],
       "ignoreDependencies": ["tailwindcss", "sharp"]
     },
     "apps/app": {
-      "entry": [
-        "src/**/*.tsx"
-      ],
-      "ignore": [
-        "src/test-utils/**"
-      ]
+      "entry": ["src/**/*.tsx"],
+      "ignore": ["src/test-utils/**"]
     },
     "apps/internal": {
-      "entry": [
-        "src/**/*.tsx"
-      ]
+      "entry": ["src/**/*.tsx"]
     },
     ".": {
-      "entry": [
-        "vitest.shared.config.ts"
-      ],
+      "entry": ["vitest.shared.config.ts"],
       "ignore": [
         "packages/db/prisma/schema.prisma",
         "docs/runbooks/test-tenant-isolation.ts"
       ],
-      "ignoreDependencies": [
-        "fallow",
-        "madge",
-        "playwright",
-        "ts-node"
-      ]
+      "ignoreDependencies": ["fallow", "madge", "playwright", "ts-node"]
     },
     "packages/eslint-config": {
-      "ignoreDependencies": [
-        "@typescript-eslint/parser"
-      ]
+      "ignoreDependencies": ["@typescript-eslint/parser"]
     },
     "packages/ui": {
       "ignore": [

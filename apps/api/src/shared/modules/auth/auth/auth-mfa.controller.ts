@@ -1,9 +1,16 @@
 import { Controller, Post, Body, Request } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ZodSerializerDto } from 'nestjs-zod';
 import { MfaService } from './mfa.service';
 import { AuthenticatedRequest } from '@workspace/types';
 import { AuthSessionAccess } from './auth.controller.access';
+import {
+  LogoutResponseDto,
+  MfaBackupCodesResponseDto,
+  MfaCodeDto,
+  MfaSetupResponseDto,
+} from './dto/auth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -15,6 +22,7 @@ export class AuthMfaController {
   @Post('mfa/setup')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Initiate MFA setup — returns QR code' })
+  @ZodSerializerDto(MfaSetupResponseDto)
   async setupMfa(@Request() req: AuthenticatedRequest) {
     return this.mfaService.generateSetupSecret(req.user.sub);
   }
@@ -24,11 +32,12 @@ export class AuthMfaController {
   @Post('mfa/enable')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Confirm TOTP code to activate MFA' })
+  @ZodSerializerDto(MfaBackupCodesResponseDto)
   async enableMfa(
     @Request() req: AuthenticatedRequest,
-    @Body() body: { code: string },
+    @Body() dto: MfaCodeDto,
   ) {
-    return this.mfaService.enableMfa(req.user.sub, body.code);
+    return this.mfaService.enableMfa(req.user.sub, dto.code);
   }
 
   @AuthSessionAccess()
@@ -36,11 +45,12 @@ export class AuthMfaController {
   @Post('mfa/disable')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Disable MFA (requires valid TOTP code)' })
+  @ZodSerializerDto(LogoutResponseDto)
   async disableMfa(
     @Request() req: AuthenticatedRequest,
-    @Body() body: { code: string },
+    @Body() dto: MfaCodeDto,
   ) {
-    await this.mfaService.disableMfa(req.user.sub, body.code);
+    await this.mfaService.disableMfa(req.user.sub, dto.code);
     return { message: 'MFA disabled successfully' };
   }
 
@@ -49,10 +59,11 @@ export class AuthMfaController {
   @Post('mfa/backup-codes')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Regenerate MFA backup codes' })
+  @ZodSerializerDto(MfaBackupCodesResponseDto)
   async regenerateBackupCodes(
     @Request() req: AuthenticatedRequest,
-    @Body() body: { code: string },
+    @Body() dto: MfaCodeDto,
   ) {
-    return this.mfaService.regenerateBackupCodes(req.user.sub, body.code);
+    return this.mfaService.regenerateBackupCodes(req.user.sub, dto.code);
   }
 }

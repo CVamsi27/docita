@@ -1,7 +1,9 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { PrismaLabRepository } from './prisma-lab.repository';
-import type { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { LabTestOrderStatus } from '@workspace/db';
+import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
+import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 
 function makeOrder(overrides: Record<string, unknown> = {}) {
   return {
@@ -72,11 +74,14 @@ function createMocks() {
   const prisma = {
     getReadClient: jest.fn(() => readClient) as jest.Mock,
     labTest: {
-      upsert: jest.fn(async () => ({})),
+      findFirst: jest.fn(async () => null),
+      create: jest.fn(async () => ({})),
+      updateMany: jest.fn(async () => ({ count: 1 })),
       delete: jest.fn(async () => ({})),
     },
     labTestOrder: {
-      upsert: jest.fn(async () => ({})),
+      findFirst: jest.fn(async () => null),
+      create: jest.fn(async () => ({})),
       delete: jest.fn(async () => ({})),
       updateMany: jest.fn(async () => ({ count: 1 })),
     },
@@ -283,6 +288,155 @@ describe('PrismaLabRepository', () => {
         completed: 5,
         urgent: 0,
         total: 10,
+      });
+    });
+  });
+
+  describe('saveTest', () => {
+    const findFirst = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+    const create = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+    const updateMany =
+      jest.fn<(...args: unknown[]) => Promise<{ count: number }>>();
+
+    const prismaService = Object.create(
+      PrismaService.prototype,
+    ) as PrismaService;
+    Object.defineProperty(prismaService, 'labTest', {
+      value: { findFirst, create, updateMany },
+      writable: true,
+    });
+    const repository = new PrismaLabRepository(prismaService);
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('creates a new test via tenant-scoped create when no id exists', async () => {
+      create.mockResolvedValue({
+        id: 'new-test',
+        clinicId: 'clinic-1',
+        name: 'Blood Test',
+        category: 'HEMATOLOGY',
+        active: true,
+        code: null,
+        price: 500,
+        priceCents: 50000,
+        description: null,
+      });
+
+      const result = await repository.saveTest(
+        new LabTest(
+          '',
+          'Blood Test',
+          'HEMATOLOGY',
+          'clinic-1',
+          true,
+          undefined,
+          500,
+        ),
+      );
+
+      expect(findFirst).not.toHaveBeenCalled();
+      expect(create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          id: undefined,
+          clinicId: 'clinic-1',
+          name: 'Blood Test',
+          category: 'HEMATOLOGY',
+        }),
+      });
+      expect(result.id).toBe('new-test');
+    });
+
+    it('updates via tenant-qualified updateMany when the row exists', async () => {
+      const existing = {
+        id: 'test-1',
+        clinicId: 'clinic-1',
+        name: 'Blood Test',
+        category: 'HEMATOLOGY',
+        active: true,
+        code: null,
+        price: 500,
+        priceCents: 50000,
+        description: null,
+      };
+      findFirst.mockResolvedValue(existing);
+      updateMany.mockResolvedValue({ count: 1 });
+
+      const result = await repository.saveTest(
+        new LabTest(
+          'test-1',
+          'Blood Test',
+          'HEMATOLOGY',
+          'clinic-1',
+          true,
+          undefined,
+          500,
+        ),
+      );
+
+      expect(findFirst).toHaveBeenCalledWith({
+        where: { id: 'test-1', clinicId: 'clinic-1' },
+      });
+      expect(updateMany).toHaveBeenCalledWith({
+        where: { id: 'test-1', clinicId: 'clinic-1' },
+        data: expect.objectContaining({ name: 'Blood Test' }),
+      });
+      expect(result.id).toBe('test-1');
+      expect(updateMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws NotFoundException when the tenant-qualified update matches nothing', async () => {
+      findFirst.mockResolvedValue({ id: 'test-1', clinicId: 'clinic-1' });
+      updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(
+        repository.saveTest(
+          new LabTest('test-1', 'Blood Test', 'HEMATOLOGY', 'clinic-1'),
+        ),
+      ).rejects.toThrow('Lab test not found');
+    });
+  });
+
+  describe('saveOrder', () => {
+    const findFirst = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+    const create = jest.fn<(...args: unknown[]) => Promise<unknown>>();
+    const updateMany =
+      jest.fn<(...args: unknown[]) => Promise<{ count: number }>>();
+
+    const prismaService = Object.create(
+      PrismaService.prototype,
+    ) as PrismaService;
+    Object.defineProperty(prismaService, 'labTestOrder', {
+      value: { findFirst, create, updateMany },
+      writable: true,
+    });
+    const repository = new PrismaLabRepository(prismaService);
+
+    it('creates a new order via tenant-scoped create with the lab test relation', async () => {
+      create.mockResolvedValue({
+        ...makeOrder({ id: 'order-new' }),
+        labTest: { id: 'test-1', name: 'CBC', category: 'HEMATOLOGY' },
+      });
+
+      const order = new LabOrder(
+        '',
+        'patient-1',
+        'test-1',
+        LabTestOrderStatus.ORDERED,
+        'clinic-1',
+      );
+      const result = await repository.saveOrder(order);
+
+      expect(create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ id: undefined, clinicId: 'clinic-1' }),
+        include: { labTest: true },
+      });
+      expect(result.id).toBe('order-new');
+      expect(result.labTest).toEqual({
+        id: 'test-1',
+        name: 'CBC',
+        category: 'HEMATOLOGY',
       });
     });
   });

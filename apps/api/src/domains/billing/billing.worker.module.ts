@@ -7,6 +7,7 @@ import { NotificationsWorkerModule } from '@/shared/modules/messaging/notificati
 import { QueueWorkerModule } from '@/shared/modules/queue/queue.worker.module';
 import { BillingScheduledPaymentRemindersCron } from './application/cron/billing-scheduled-payment-reminders.cron';
 import { BillingUsageAggregationCron } from './application/cron/billing-usage-aggregation.cron';
+import { PaymentCaptureReconciliationCron } from './application/cron/payment-capture-reconciliation.cron';
 import {
   BILLING_SHARED_PROVIDERS,
   BILLING_SHARED_EXPORTS,
@@ -25,6 +26,7 @@ import {
     ...BILLING_SHARED_PROVIDERS,
     BillingScheduledPaymentRemindersCron,
     BillingUsageAggregationCron,
+    PaymentCaptureReconciliationCron,
   ],
   exports: BILLING_SHARED_EXPORTS,
 })

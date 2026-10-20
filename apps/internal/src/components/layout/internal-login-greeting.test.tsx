@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen } from "@/test-utils";
 import { InternalLoginGreeting } from "./internal-login-greeting";
 
 describe("InternalLoginGreeting", () => {

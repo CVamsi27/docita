@@ -3,13 +3,14 @@ app = 'docita-worker'
 # Fly shelved bom capacity; shifted to 'sin' (Singapore) in lockstep with the
 # API. Keep this in sync with /fly.toml.
 primary_region = 'sin'
+swap_size_mb = 512
 
 [build]
   dockerfile = 'Dockerfile'
 
 [env]
   NODE_ENV = 'production'
-  NODE_MAX_OLD_SPACE_SIZE_MB = '384'
+  NODE_MAX_OLD_SPACE_SIZE_MB = '192'
   WORKER_ENTRYPOINT = 'worker'
   APP_URL = 'https://app.docita.work'
   NEXT_PUBLIC_APP_URL = 'https://app.docita.work'
@@ -21,7 +22,7 @@ primary_region = 'sin'
   ENABLE_SCHEDULERS = 'true'
 
 [[vm]]
-  memory = '512mb'
+  memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 512
+  memory_mb = 256

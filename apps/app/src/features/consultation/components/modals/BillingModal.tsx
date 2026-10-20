@@ -1,5 +1,5 @@
 import { Button, DatePicker, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Label, Switch } from "@workspace/ui/components";
-import { formatCurrency } from "@workspace/utils";
+import { formatClinicPickerDayIsoFromSelection, formatCurrency } from "@workspace/utils";
 import { BadgeCheck, CreditCard, FileText, PencilLine } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
@@ -91,7 +91,9 @@ export function BillingModal({
               <DatePicker
                 value={billing.dueDate}
                 onChange={(date) =>
-                  billing.setDueDate(date?.toISOString().slice(0, 10) ?? "")
+                  billing.setDueDate(
+                    date ? formatClinicPickerDayIsoFromSelection(date) : "",
+                  )
                 }
                 placeholder="Due date"
                 className="w-40 h-8"

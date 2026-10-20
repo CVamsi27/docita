@@ -77,17 +77,11 @@ export function useSubscriptionCheckout(
           billingCycle,
           planMode,
         });
-        const {
-          orderId,
-          amountCents,
-          currency,
-          razorpayKeyId,
-        } = createData;
-        const completedWithoutPayment =
-          "completedWithoutPayment" in createData &&
-          createData.completedWithoutPayment === true;
-
-        if (completedWithoutPayment) {
+        // The shared contract is a discriminated union: the zero-amount outcome
+        // carries no order and no payment key at all, so the branch is a real
+        // type-level split rather than a truthiness test over sentinels
+        // (`orderId: ''`, `amountCents: 0`, a blank `razorpayKeyId`).
+        if (createData.completedWithoutPayment) {
           setTier(tier);
           setMode(planMode);
           await invalidateSubscriptionQueries();
@@ -98,7 +92,7 @@ export function useSubscriptionCheckout(
           return;
         }
 
-        if (!orderId || !amountCents || !currency || !razorpayKeyId) throw new Error("We could not start checkout right now. Please try again.");
+        const { orderId, amountCents, currency, razorpayKeyId } = createData;
 
         const checkoutResult = await openCheckout({
           key: razorpayKeyId,

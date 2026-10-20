@@ -1,468 +1,461 @@
+import { randomUUID } from "node:crypto";
 import type { APIRequestContext } from "@playwright/test";
-import { expect, test } from "@playwright/test";
-import { DPDP_NOTICE_VERSION } from "@workspace/types";
+import { expect, test as baseTest } from "@playwright/test";
+import {
+  DPDP_NOTICE_VERSION,
+  appointmentResponseSchema,
+  clinicResponseSchema,
+  createAppointmentRequestSchema,
+  createPatientRequestSchema,
+  dashboardStatsResponseSchema,
+  listAppointmentsResponseSchema,
+  listPatientsResponseSchema,
+  patientResponseSchema,
+  patientTimelineResponseSchema,
+  updatePatientRequestSchema,
+  userSchema,
+  type PatientContractResponse,
+} from "@workspace/types";
 import { seedPatientPhone } from "@workspace/utils";
 import {
   API_URL,
   createUniqueClientIp,
   setupTestUser,
+  type UserData,
 } from "./utils/patient-helpers";
 
-const DPDP_CONSENT_PAYLOAD = {
-  accepted: true,
-  noticeVersion: DPDP_NOTICE_VERSION,
-  givenByName: "E2E Test",
-} as const;
+const clinicMemberIdentitySchema = userSchema
+  .pick({ id: true, email: true, name: true, role: true })
+  .array();
 
-function toRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
-  }
+async function createPatient(
+  request: APIRequestContext,
+  doctor: UserData,
+  firstName: string,
+) {
+  const data = createPatientRequestSchema.parse({
+    email: `critical-patient-${randomUUID()}@test.com`,
+    firstName,
+    lastName: "Patient",
+    gender: "OTHER",
+    phoneNumber: seedPatientPhone(0),
+    dateOfBirth: "1990-01-01",
+    clinicId: doctor.clinicId,
+    dpdpConsent: {
+      accepted: true,
+      noticeVersion: DPDP_NOTICE_VERSION,
+      givenByName: "E2E Test",
+    },
+  });
+  const response = await request.post(`${API_URL}/patients`, {
+    headers: { Authorization: `Bearer ${doctor.accessToken}` },
+    data,
+  });
+  expect(response.ok(), `Patient creation returned ${response.status()}`).toBe(
+    true,
+  );
+  const patient = patientResponseSchema.parse(await response.json());
+  expect(patient).toMatchObject({
+    clinicId: doctor.clinicId,
+    firstName,
+    email: data.email,
+  });
+  return patient;
+}
 
-  return Object.fromEntries(Object.entries(value));
-}
-interface TestUser {
-  id: string;
-  email: string;
-  clinicId: string;
-  accessToken: string;
-  firstName: string;
-  lastName: string;
-  role: string;
+async function createAppointment(
+  request: APIRequestContext,
+  doctor: UserData,
+  patient: PatientContractResponse,
+) {
+  const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const end = new Date(start.getTime() + 30 * 60 * 1000);
+  const data = createAppointmentRequestSchema.parse({
+    patientId: patient.id,
+    doctorId: doctor.id,
+    clinicId: doctor.clinicId,
+    startTime: start.toISOString(),
+    endTime: end.toISOString(),
+    status: "scheduled",
+    type: "consultation",
+    notes: "Critical flow appointment",
+  });
+  const response = await request.post(`${API_URL}/appointments`, {
+    headers: { Authorization: `Bearer ${doctor.accessToken}` },
+    data,
+  });
+  expect(
+    response.ok(),
+    `Appointment creation returned ${response.status()}`,
+  ).toBe(true);
+  const appointment = appointmentResponseSchema.parse(await response.json());
+  if (!appointment.id) throw new Error("Created appointment has no ID");
+  expect(appointment).toMatchObject({
+    patientId: patient.id,
+    doctorId: doctor.id,
+    clinicId: doctor.clinicId,
+    status: "scheduled",
+  });
+  expect(new Date(appointment.startTime).toISOString()).toBe(
+    start.toISOString(),
+  );
+  expect(new Date(appointment.endTime).toISOString()).toBe(end.toISOString());
+  return { ...appointment, id: appointment.id };
 }
 
-interface TestClinic {
-  id: string;
-  name: string;
-}
-
-interface TestPatient {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-}
-
-interface TestAppointment {
-  id: string;
-  patientId: string;
-  doctorId: string;
-  status: string;
-  startTime: string;
-  endTime: string;
-}
+const test = baseTest.extend<{
+  doctor: UserData;
+  patient: PatientContractResponse;
+}>({
+  doctor: async ({ request }, provideFixture) => {
+    const clientIp = createUniqueClientIp();
+    const doctor = await setupTestUser(request, {
+      "X-Forwarded-For": clientIp,
+      "X-Real-IP": clientIp,
+    });
+    expect(doctor.clinicId).not.toBe("");
+    await provideFixture(doctor);
+  },
+  patient: async ({ request, doctor }, provideFixture) => {
+    await provideFixture(await createPatient(request, doctor, "Critical"));
+  },
+});
 
 test.describe("Critical Business Flows", () => {
-  let request: APIRequestContext;
-  let requestFactory: {
-    newContext: (options?: {
-      extraHTTPHeaders?: Record<string, string>;
-    }) => Promise<APIRequestContext>;
-  };
-  let doctor: TestUser;
-  let patient: TestPatient;
-  let clinic: TestClinic;
-  let appointment: TestAppointment;
-
-  test.beforeAll(async ({ playwright }) => {
-    const context = await playwright.chromium.launchPersistentContext("", {});
-    request = context.request;
-    requestFactory = playwright.request;
-
-    const onboardedDoctor = await setupTestUser(request);
-
-    doctor = {
-      id: onboardedDoctor.id,
-      email: onboardedDoctor.email,
-      clinicId: onboardedDoctor.clinicId || "",
-      accessToken: onboardedDoctor.accessToken,
-      firstName: "Test",
-      lastName: "Doctor",
-      role: "ADMIN_DOCTOR",
-    };
-
-    expect(doctor.clinicId).toBeTruthy();
-    clinic = {
-      id: doctor.clinicId,
-      name: "Test Clinic",
-    };
-
-    const patientEmail = `patient-critical-${Date.now()}@test.com`;
-    const patientRes = await request.post(`${API_URL}/patients`, {
+  test("Patient onboarding creates a clinic-owned patient and first appointment", async ({
+    request,
+    doctor,
+    patient,
+  }) => {
+    const appointment = await createAppointment(request, doctor, patient);
+    const response = await request.get(`${API_URL}/appointments`, {
       headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      data: {
-        email: patientEmail,
-        firstName: "Test",
-        lastName: "Patient",
-        gender: "OTHER",
-        phoneNumber: seedPatientPhone(0),
-        dateOfBirth: "1990-01-01",
-        clinicId: doctor.clinicId,
-        dpdpConsent: DPDP_CONSENT_PAYLOAD,
-      },
-    });
-
-    if (!patientRes.ok()) {
-      throw new Error(
-        `Patient creation failed: ${patientRes.status()} ${await patientRes.text()}`,
-      );
-    }
-    const patientData = (await patientRes.json()) as {
-      id: string;
-      email?: string;
-    };
-    patient = {
-      id: patientData.id,
-      email: patientEmail,
-      firstName: "Test",
-      lastName: "Patient",
-    };
-  });
-
-  test(" FLOW 1: Patient Onboarding - Register → Join Clinic → Create First Appointment", async () => {
-    const newPatientEmail = `onboard-patient-${Date.now()}@test.com`;
-    const newPatientRes = await request.post(`${API_URL}/patients`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      data: {
-        firstName: "Onboard",
-        lastName: "Patient",
-        email: newPatientEmail,
-        gender: "OTHER",
-        phoneNumber: seedPatientPhone(1),
-        dateOfBirth: "1990-01-01",
-        clinicId: doctor.clinicId,
-        dpdpConsent: DPDP_CONSENT_PAYLOAD,
-      },
-    });
-
-    if (!newPatientRes.ok()) {
-      throw new Error(
-        `Patient creation failed: ${newPatientRes.status()} ${await newPatientRes.text()}`,
-      );
-    }
-    const onboardPatientData = (await newPatientRes.json()) as {
-      id: string;
-      email?: string;
-    };
-    const onboardPatient = {
-      id: onboardPatientData.id,
-      email: newPatientEmail,
-      firstName: "Onboard",
-      lastName: "Patient",
-    };
-
-    const appointmentDate = new Date();
-    appointmentDate.setDate(appointmentDate.getDate() + 1);
-    const appointmentEnd = new Date(appointmentDate);
-    appointmentEnd.setMinutes(appointmentDate.getMinutes() + 30);
-
-    const appointmentRes = await request.post(`${API_URL}/appointments`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      data: {
-        patientId: onboardPatient.id,
-        doctorId: doctor.id,
-        clinicId: clinic.id,
-        startTime: appointmentDate.toISOString(),
-        endTime: appointmentEnd.toISOString(),
-        status: "scheduled",
-        type: "consultation",
-        notes: "First appointment",
-      },
-    });
-
-    expect(appointmentRes.ok()).toBeTruthy();
-    const appointmentData = (await appointmentRes.json()) as {
-      id: string;
-      patientId: string;
-      doctorId: string;
-      scheduledAt: string;
-      status: string;
-    };
-    appointment = appointmentData;
-
-    const clinicAppointmentsRes = await request.get(
-      `${API_URL}/appointments`,
-      {
-        headers: { Authorization: `Bearer ${doctor.accessToken}` },
-        params: { doctorId: doctor.id },
-      },
-    );
-
-    expect(clinicAppointmentsRes.ok()).toBeTruthy();
-    const appointmentsData = (await clinicAppointmentsRes.json()) as {
-      items?: Array<{ id: string; patientId: string }>;
-    };
-    const appointments = appointmentsData.items ?? [];
-    const appointmentExists = appointments.some(
-      (a: { id: string; patientId: string }) =>
-        a.id === appointment.id && a.patientId === onboardPatient.id,
-    );
-    expect(appointmentExists).toBeTruthy();
-  });
-
-  test(" FLOW 2: Doctor Dashboard - Login → View Metrics → Access Patient Records", async () => {
-    const freshToken = doctor.accessToken;
-
-    const metricsRes = await request.get(`${API_URL}/dashboard/metrics`, {
-      headers: { Authorization: `Bearer ${freshToken}` },
-    });
-
-    if (metricsRes.ok()) {
-      toRecord(await metricsRes.json());
-    } else {
-
-    }
-
-    const patientsRes = await request.get(`${API_URL}/patients`, {
-      headers: { Authorization: `Bearer ${freshToken}` },
-    });
-
-    expect(patientsRes.ok()).toBeTruthy();
-    const patients = (await patientsRes.json()) as {
-      items?: unknown[];
-      total: number;
-    };
-    expect(Array.isArray(patients.items)).toBeTruthy();
-    expect((patients.items ?? []).length).toBeGreaterThan(0);
-
-    const appointmentsRes = await request.get(`${API_URL}/appointments`, {
-      headers: { Authorization: `Bearer ${freshToken}` },
       params: { doctorId: doctor.id },
     });
-
-    expect(appointmentsRes.ok()).toBeTruthy();
-    const fetchedAppointments = (await appointmentsRes.json()) as {
-      items?: unknown[];
-    };
-    expect(Array.isArray(fetchedAppointments.items)).toBeTruthy();
+    expect(response.ok()).toBe(true);
+    const appointments = listAppointmentsResponseSchema.parse(
+      await response.json(),
+    );
+    const persisted = appointments.items.find(
+      (item) => item.id === appointment.id,
+    );
+    expect(persisted).toMatchObject({
+      patientId: patient.id,
+      doctorId: doctor.id,
+      clinicId: doctor.clinicId,
+      status: "scheduled",
+    });
+    if (!persisted)
+      throw new Error("Created appointment missing from clinic list");
+    expect(new Date(persisted.startTime).toISOString()).toBe(
+      new Date(appointment.startTime).toISOString(),
+    );
+    expect(new Date(persisted.endTime).toISOString()).toBe(
+      new Date(appointment.endTime).toISOString(),
+    );
   });
 
-  test(" FLOW 3: Appointment Workflow - Create → Retrieve → Validate", async () => {
-    const appointmentDate = new Date();
-    appointmentDate.setDate(appointmentDate.getDate() + 2);
-    const appointmentEnd = new Date(appointmentDate);
-    appointmentEnd.setMinutes(appointmentDate.getMinutes() + 30);
-
-    const createRes = await request.post(`${API_URL}/appointments`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      data: {
-        patientId: patient.id,
-        doctorId: doctor.id,
-        clinicId: clinic.id,
-        startTime: appointmentDate.toISOString(),
-        endTime: appointmentEnd.toISOString(),
-        status: "scheduled",
-        type: "consultation",
-        notes: "Workflow test appointment",
-      },
+  test("Doctor dashboard returns metrics and the doctor's patient records", async ({
+    request,
+    doctor,
+    patient,
+  }) => {
+    const appointment = await createAppointment(request, doctor, patient);
+    const headers = { Authorization: `Bearer ${doctor.accessToken}` };
+    const metricsResponse = await request.get(`${API_URL}/dashboard/stats`, {
+      headers,
     });
+    expect(metricsResponse.ok()).toBe(true);
+    const metrics = dashboardStatsResponseSchema.parse(
+      await metricsResponse.json(),
+    );
+    expect(metrics.totalPatients).toBeGreaterThanOrEqual(1);
+    expect(metrics.totalAppointments).toBeGreaterThanOrEqual(1);
 
-    expect(createRes.ok()).toBeTruthy();
-    const newAppointment = (await createRes.json()) as {
-      id: string;
-      status: string;
-    };
-    expect(newAppointment.status).toBe("scheduled");
+    const patientsResponse = await request.get(`${API_URL}/patients`, {
+      headers,
+    });
+    expect(patientsResponse.ok()).toBe(true);
+    const patients = listPatientsResponseSchema.parse(
+      await patientsResponse.json(),
+    );
+    expect(patients.total).toBeGreaterThanOrEqual(1);
+    expect(patients.items).toContainEqual(
+      expect.objectContaining({ id: patient.id, clinicId: doctor.clinicId }),
+    );
+    expect(
+      patients.items.every((item) => item.clinicId === doctor.clinicId),
+    ).toBe(true);
 
-    const finalRes = await request.get(
-      `${API_URL}/appointments/${newAppointment.id}`,
+    const appointmentsResponse = await request.get(`${API_URL}/appointments`, {
+      headers,
+      params: { doctorId: doctor.id },
+    });
+    expect(appointmentsResponse.ok()).toBe(true);
+    const appointments = listAppointmentsResponseSchema.parse(
+      await appointmentsResponse.json(),
+    );
+    expect(appointments.items).toContainEqual(
+      expect.objectContaining({
+        id: appointment.id,
+        doctorId: doctor.id,
+        clinicId: doctor.clinicId,
+      }),
+    );
+    expect(
+      appointments.items.every(
+        (item) =>
+          item.clinicId === doctor.clinicId && item.doctorId === doctor.id,
+      ),
+    ).toBe(true);
+  });
+
+  test("Appointment detail preserves the booked patient, doctor and UTC instants", async ({
+    request,
+    doctor,
+    patient,
+  }) => {
+    const appointment = await createAppointment(request, doctor, patient);
+    const response = await request.get(
+      `${API_URL}/appointments/${appointment.id}`,
       {
         headers: { Authorization: `Bearer ${doctor.accessToken}` },
       },
     );
-
-    expect(finalRes.ok()).toBeTruthy();
-    const finalAppointment = (await finalRes.json()) as {
-      id: string;
-      status: string;
-    };
-    expect(finalAppointment.status).toBe("scheduled");
+    expect(response.ok()).toBe(true);
+    const persisted = appointmentResponseSchema.parse(await response.json());
+    expect(persisted).toMatchObject({
+      id: appointment.id,
+      patientId: patient.id,
+      doctorId: doctor.id,
+      clinicId: doctor.clinicId,
+      status: "scheduled",
+    });
+    expect(new Date(persisted.startTime).toISOString()).toBe(
+      new Date(appointment.startTime).toISOString(),
+    );
+    expect(new Date(persisted.endTime).toISOString()).toBe(
+      new Date(appointment.endTime).toISOString(),
+    );
   });
 
-  test(" FLOW 4: Patient Records - Access Patient → View Timeline → Update Notes", async () => {
-
-    const patientRes = await request.get(`${API_URL}/patients/${patient.id}`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
+  test("Patient records expose their appointment timeline and persist updated notes", async ({
+    request,
+    doctor,
+    patient,
+  }) => {
+    const headers = { Authorization: `Bearer ${doctor.accessToken}` };
+    const appointment = await createAppointment(request, doctor, patient);
+    const patientResponse = await request.get(
+      `${API_URL}/patients/${patient.id}`,
+      { headers },
+    );
+    expect(patientResponse.ok()).toBe(true);
+    const record = patientResponseSchema.parse(await patientResponse.json());
+    expect(record).toMatchObject({
+      id: patient.id,
+      firstName: patient.firstName,
+      clinicId: doctor.clinicId,
     });
 
-    expect(patientRes.ok()).toBeTruthy();
-    const patientRecord = (await patientRes.json()) as {
-      id: string;
-      firstName: string;
-    };
-    expect(patientRecord.id).toBe(patient.id);
-    expect(patientRecord.firstName).toBe(patient.firstName);
+    const timelineResponse = await request.get(
+      `${API_URL}/patients/${patient.id}/timeline`,
+      { headers },
+    );
+    expect(timelineResponse.ok()).toBe(true);
+    const timeline = patientTimelineResponseSchema.parse(
+      await timelineResponse.json(),
+    );
+    expect(timeline.events).toContainEqual(
+      expect.objectContaining({ type: "APPOINTMENT", id: appointment.id }),
+    );
+    expect(timeline.total).toBeGreaterThanOrEqual(1);
 
-    const historyRes = await request.get(`${API_URL}/patients/${patient.id}/timeline`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
-    });
-
-    expect(historyRes.ok()).toBeTruthy();
-    const history = (await historyRes.json()) as {
-      events?: unknown[];
-      total: number;
-    };
-    expect(Array.isArray(history.events)).toBeTruthy();
-
-    const updateRes = await request.patch(`${API_URL}/patients/${patient.id}`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      data: {
-        metadata: {
-          e2eNote: `Updated at ${new Date().toISOString()} - Critical flow test`,
-        },
+    const note = `Critical flow note ${randomUUID()}`;
+    const updateResponse = await request.patch(
+      `${API_URL}/patients/${patient.id}`,
+      {
+        headers,
+        data: updatePatientRequestSchema.parse({ metadata: { e2eNote: note } }),
       },
+    );
+    expect(updateResponse.ok()).toBe(true);
+    const updated = patientResponseSchema.parse(await updateResponse.json());
+    expect(updated.metadata?.["e2eNote"]).toBe(note);
+    const verifyResponse = await request.get(
+      `${API_URL}/patients/${patient.id}`,
+      { headers },
+    );
+    expect(verifyResponse.ok()).toBe(true);
+    const persisted = patientResponseSchema.parse(await verifyResponse.json());
+    expect(persisted).toMatchObject({
+      id: patient.id,
+      clinicId: doctor.clinicId,
     });
-
-    if (!updateRes.ok()) {
-      throw new Error(
-        `Patient notes update failed: ${updateRes.status()} ${await updateRes.text()}`,
-      );
-    }
-
-    const verifyRes = await request.get(`${API_URL}/patients/${patient.id}`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
-    });
-
-    expect(verifyRes.ok()).toBeTruthy();
-    const verifiedPatient = (await verifyRes.json()) as {
-      id: string;
-      verified: boolean;
-    };
-    expect(verifiedPatient.id).toBe(patient.id);
+    expect(persisted.metadata?.["e2eNote"]).toBe(note);
   });
 
-  test(" FLOW 5: Clinic Operations - View Settings → Manage Members → View Appointments", async () => {
-    const clinicRes = await request.get(`${API_URL}/clinics/settings`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
+  test("Clinic operations return the current clinic, its owner and booked appointments", async ({
+    request,
+    doctor,
+    patient,
+  }) => {
+    const appointment = await createAppointment(request, doctor, patient);
+    const headers = { Authorization: `Bearer ${doctor.accessToken}` };
+    const clinicResponse = await request.get(`${API_URL}/clinics/settings`, {
+      headers,
     });
+    expect(clinicResponse.ok()).toBe(true);
+    const clinic = clinicResponseSchema.parse(await clinicResponse.json());
+    expect(clinic.id).toBe(doctor.clinicId);
+    expect(clinic.name).not.toBe("");
 
-    expect(clinicRes.ok()).toBeTruthy();
-    const clinicData = (await clinicRes.json()) as { id: string; name: string };
-    expect(clinicData.id).toBe(clinic.id);
-
-    const membersRes = await request.get(`${API_URL}/clinics/members`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
+    const membersResponse = await request.get(`${API_URL}/clinics/members`, {
+      headers,
     });
+    expect(membersResponse.ok()).toBe(true);
+    const members = clinicMemberIdentitySchema.parse(
+      await membersResponse.json(),
+    );
+    expect(members).toContainEqual(
+      expect.objectContaining({
+        id: doctor.id,
+        email: doctor.email,
+        role: "ADMIN_DOCTOR",
+      }),
+    );
 
-    expect(membersRes.ok()).toBeTruthy();
-    const members = await membersRes.json();
-    expect(Array.isArray(members)).toBeTruthy();
-
-    const appointmentsRes = await request.get(`${API_URL}/appointments`, {
-      headers: { Authorization: `Bearer ${doctor.accessToken}` },
+    const appointmentsResponse = await request.get(`${API_URL}/appointments`, {
+      headers,
       params: { doctorId: doctor.id },
     });
-
-    expect(appointmentsRes.ok()).toBeTruthy();
-    const clinicAppointments = (await appointmentsRes.json()) as {
-      items?: unknown[];
-    };
-    expect(Array.isArray(clinicAppointments.items)).toBeTruthy();
+    expect(appointmentsResponse.ok()).toBe(true);
+    const appointments = listAppointmentsResponseSchema.parse(
+      await appointmentsResponse.json(),
+    );
+    expect(appointments.items).toContainEqual(
+      expect.objectContaining({
+        id: appointment.id,
+        clinicId: doctor.clinicId,
+        doctorId: doctor.id,
+      }),
+    );
+    expect(
+      appointments.items.every((item) => item.clinicId === doctor.clinicId),
+    ).toBe(true);
   });
 
-  test(" FLOW 6: Data Isolation - Verify No Cross-Clinic Access", async () => {
-    const otherClientIp = createUniqueClientIp();
-    const otherRequestHeaders = {
-      "X-Forwarded-For": otherClientIp,
-      "X-Real-IP": otherClientIp,
+  test("Data isolation denies another clinic's patient and appointment", async ({
+    request,
+    playwright,
+    doctor,
+    patient,
+  }) => {
+    const appointment = await createAppointment(request, doctor, patient);
+    const clientIp = createUniqueClientIp();
+    const requestHeaders = {
+      "X-Forwarded-For": clientIp,
+      "X-Real-IP": clientIp,
     };
-    const otherRequest = await requestFactory.newContext({
-      extraHTTPHeaders: otherRequestHeaders,
+    const otherRequest = await playwright.request.newContext({
+      extraHTTPHeaders: requestHeaders,
     });
-
     try {
-      const otherDoctor = await setupTestUser(otherRequest, otherRequestHeaders);
-      const otherToken = otherDoctor.accessToken;
-
-      const otherPatientRes = await otherRequest.post(`${API_URL}/patients`, {
-        headers: { Authorization: `Bearer ${otherToken}` },
-        data: {
-          firstName: "Other",
-          lastName: "ClinicPatient",
-          email: `other-clinic-${Date.now()}@test.com`,
-          gender: "OTHER",
-          phoneNumber: seedPatientPhone(2),
-          dateOfBirth: "1991-01-01",
-          clinicId: otherDoctor.clinicId,
-          dpdpConsent: DPDP_CONSENT_PAYLOAD,
-        },
-      });
-
-      expect(otherPatientRes.ok()).toBeTruthy();
-      const otherPatientData = (await otherPatientRes.json()) as { id: string };
-
-      const crossClinicRes = await otherRequest.get(
+      const otherDoctor = await setupTestUser(otherRequest, requestHeaders);
+      expect(otherDoctor.clinicId).not.toBe(doctor.clinicId);
+      const otherPatient = await createPatient(
+        otherRequest,
+        otherDoctor,
+        "OtherClinic",
+      );
+      const headers = { Authorization: `Bearer ${otherDoctor.accessToken}` };
+      const crossPatientResponse = await otherRequest.get(
         `${API_URL}/patients/${patient.id}`,
-        {
-          headers: { Authorization: `Bearer ${otherToken}` },
-        },
+        { headers },
       );
-
-      expect([403, 404]).toContain(crossClinicRes.status());
-
-      const ownClinicRes = await otherRequest.get(
-        `${API_URL}/patients/${otherPatientData.id}`,
-        {
-          headers: { Authorization: `Bearer ${otherToken}` },
-        },
+      expect([403, 404]).toContain(crossPatientResponse.status());
+      const crossAppointmentResponse = await otherRequest.get(
+        `${API_URL}/appointments/${appointment.id}`,
+        { headers },
       );
+      expect([403, 404]).toContain(crossAppointmentResponse.status());
 
-      expect(ownClinicRes.ok()).toBeTruthy();
+      const ownPatientResponse = await otherRequest.get(
+        `${API_URL}/patients/${otherPatient.id}`,
+        { headers },
+      );
+      expect(ownPatientResponse.ok()).toBe(true);
+      const ownPatient = patientResponseSchema.parse(
+        await ownPatientResponse.json(),
+      );
+      expect(ownPatient).toMatchObject({
+        id: otherPatient.id,
+        clinicId: otherDoctor.clinicId,
+      });
+      const listResponse = await otherRequest.get(`${API_URL}/patients`, {
+        headers,
+      });
+      expect(listResponse.ok()).toBe(true);
+      const listed = listPatientsResponseSchema.parse(
+        await listResponse.json(),
+      );
+      expect(listed.items).toContainEqual(
+        expect.objectContaining({
+          id: otherPatient.id,
+          clinicId: otherDoctor.clinicId,
+        }),
+      );
+      expect(
+        listed.items.every((item) => item.clinicId === otherDoctor.clinicId),
+      ).toBe(true);
+      expect(listed.items.some((item) => item.id === patient.id)).toBe(false);
     } finally {
       await otherRequest.dispose();
     }
   });
 
-  test(" FLOW 7: Error Handling - Invalid Operations & Edge Cases", async () => {
-    const invalidAppointmentRes = await request.post(
+  test("Invalid operations return client errors and reject invalid authentication", async ({
+    request,
+    playwright,
+    doctor,
+  }) => {
+    const headers = { Authorization: `Bearer ${doctor.accessToken}` };
+    const invalidAppointmentResponse = await request.post(
       `${API_URL}/appointments`,
       {
-        headers: { Authorization: `Bearer ${doctor.accessToken}` },
-        data: {
-          status: "SCHEDULED",
-        },
+        headers,
+        data: { status: "SCHEDULED" },
       },
     );
+    expect(invalidAppointmentResponse.status()).toBe(400);
 
-    expect([400, 422, 500]).toContain(invalidAppointmentRes.status());
-
-    const invalidPatientRes = await request.get(
-      `${API_URL}/patients/nonexistent-id-12345`,
-      {
-        headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      },
+    const missingPatientId = randomUUID();
+    const missingPatientResponse = await request.get(
+      `${API_URL}/patients/${missingPatientId}`,
+      { headers },
     );
+    expect(missingPatientResponse.status()).toBe(404);
+    const missingTimelineResponse = await request.get(
+      `${API_URL}/patients/${missingPatientId}/timeline`,
+      { headers },
+    );
+    expect(missingTimelineResponse.status()).toBe(404);
 
-    expect([404, 401]).toContain(invalidPatientRes.status());
-
-    const invalidContext = await requestFactory.newContext();
+    const invalidRequest = await playwright.request.newContext();
     try {
-      const invalidTokenRes = await invalidContext.post(
+      const invalidTokenResponse = await invalidRequest.post(
         `${API_URL}/auth/change-password`,
         {
-          headers: { Authorization: `Bearer invalid-token-xyz` },
+          headers: { Authorization: "Bearer invalid-token-xyz" },
           data: {
             currentPassword: "wrong-password",
             newPassword: "NewPassword123!",
           },
         },
       );
-
-      expect([401, 403]).toContain(invalidTokenRes.status());
+      expect(invalidTokenResponse.status()).toBe(401);
     } finally {
-      await invalidContext.dispose();
+      await invalidRequest.dispose();
     }
-
-    const invalidClinicRes = await request.get(
-      `${API_URL}/patients/nonexistent-clinic-id/timeline`,
-      {
-        headers: { Authorization: `Bearer ${doctor.accessToken}` },
-      },
-    );
-
-    expect([404, 401]).toContain(invalidClinicRes.status());
-  });
-
-  test.afterAll(async () => {
   });
 });

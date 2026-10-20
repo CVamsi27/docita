@@ -12,6 +12,22 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import { createFixedClockMock } from '@/test-utils';
 import { CheckoutPaymentOrderService } from '@/domains/subscriptions/application/services/checkout-payment-order.service';
+import type { CheckoutResponse } from '@/domains/subscriptions/application/services/create-checkout.helpers';
+
+/**
+ * Narrow the discriminated checkout union to its payable branch.
+ *
+ * The zero-amount outcome no longer carries `orderId`/`amountCents`/
+ * `razorpayKeyId` at all, so reading them off the union is a type error. These
+ * tests are asserting the payable branch, so narrow explicitly rather than
+ * re-introducing sentinel fields.
+ */
+function asPayable(result: CheckoutResponse) {
+  if (result.completedWithoutPayment) {
+    throw new Error('expected a payable checkout, got a zero-amount result');
+  }
+  return result;
+}
 
 describe('CreateCheckoutUseCase', () => {
   const clock = createFixedClockMock();
@@ -139,7 +155,7 @@ describe('CreateCheckoutUseCase', () => {
       cycle: 'MONTHLY',
     });
 
-    expect(result.orderId).toBe('order_existing');
+    expect(asPayable(result).orderId).toBe('order_existing');
     expect(findReusablePendingCheckoutMock).toHaveBeenCalledWith(
       expect.objectContaining({
         clinicId: 'clinic-1',
@@ -170,7 +186,7 @@ describe('CreateCheckoutUseCase', () => {
       cycle: 'MONTHLY',
     });
 
-    expect(result.amountCents).toBe(74925);
+    expect(asPayable(result).amountCents).toBe(74925);
     expect(subscriptionRepo.savePayment).toHaveBeenCalledWith(
       expect.objectContaining({ amountCents: 74925 }),
     );
@@ -185,8 +201,9 @@ describe('CreateCheckoutUseCase', () => {
       cycle: 'MONTHLY',
     });
 
-    expect(result.orderId).toBe('order_new');
-    expect(result.amountCents).toBe(99900);
+    const payable = asPayable(result);
+    expect(payable.orderId).toBe('order_new');
+    expect(payable.amountCents).toBe(99900);
     expect(subscriptionRepo.savePayment).toHaveBeenCalledWith(
       expect.objectContaining({
         clinicId: 'clinic-1',

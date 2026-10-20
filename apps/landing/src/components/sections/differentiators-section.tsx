@@ -38,9 +38,9 @@ type PortalRow = { icon: LucideIcon; label: string };
 
 function PortalListRow({ row }: { row: PortalRow }) {
   return (
-    <li className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5">
+    <li className="flex min-w-0 items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5">
       <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
-      <span className="truncate text-foreground">{row.label}</span>
+      <span className="min-w-0 flex-1 truncate text-foreground">{row.label}</span>
     </li>
   );
 }
@@ -53,7 +53,7 @@ export function DifferentiatorsSection() {
   return (
     <section
       id="differentiators"
-      className="r2-section r2-band-base"
+      className="r2-section r2-section-quiet r2-band-base"
       aria-labelledby="r2-diff-heading"
     >
       <div className="ui-page-shell">
@@ -69,7 +69,7 @@ export function DifferentiatorsSection() {
         </h2>
 
         <motion.div
-          className="mt-10 grid gap-6 lg:grid-cols-3"
+          className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3"
           variants={stagger}
           initial="hidden"
           whileInView="visible"
@@ -91,10 +91,10 @@ export function DifferentiatorsSection() {
               </div>
               <ul className="space-y-2 text-xs">
                 {[
-                  { icon: CalendarCheck, label: "Next visit &middot; 28 May &middot; 11:30" },
-                  { icon: FileText, label: "Prescription &middot; Metformin 500mg" },
-                  { icon: Receipt, label: "Receipt &middot; \u20B9700 &middot; Paid &middot; UPI" },
-                  { icon: ShieldCheck, label: "Consent &middot; WhatsApp granted" },
+                  { icon: CalendarCheck, label: "Next visit · 28 May · 11:30" },
+                  { icon: FileText, label: "Prescription · Metformin 500mg" },
+                  { icon: Receipt, label: "Receipt · \u20B9700 · Paid · UPI" },
+                  { icon: ShieldCheck, label: "Consent · WhatsApp granted" },
                 ].map((row) => (
                   <PortalListRow key={row.label} row={row} />
                 ))}
@@ -120,7 +120,7 @@ export function DifferentiatorsSection() {
                   <PortalListRow key={row.label} row={row} />
                 ))}
               </ul>
-              <p className="mt-3 text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+              <p className="mt-3 rounded-md border border-border/40 bg-muted px-2.5 py-2 text-xs leading-snug text-muted-foreground">
                 AI suggestions are reviewed and signed off by the doctor.
                 We do not generate diagnoses.
               </p>

@@ -6,9 +6,10 @@ import {
   type TierName,
 } from "@workspace/types";
 import {
-  getAllFeaturesUpToTier,
   getFeaturesForTier,
+  getMinimumTierForFeature,
   hasFeatureAccess,
+  isFeatureGenerallyAvailable,
   meetsMinimumTier,
 } from "../src/billing/tier-rules";
 import { Tier } from "@workspace/types";
@@ -31,14 +32,12 @@ describe("tier plan feature access parity", () => {
     }
   });
 
-  it("matches hasFeatureAccess with getFeaturesForTier / getAllFeaturesUpToTier for plan SKUs", () => {
+  it("matches hasFeatureAccess with getFeaturesForTier for plan SKUs", () => {
     for (const sku of PLAN_SKUS) {
       const expected = ALL_MAPPED_FEATURES.filter((f) =>
         hasFeatureAccess(sku, f, false),
       );
       expect(getFeaturesForTier(sku)).toEqual(expected);
-      expect(getAllFeaturesUpToTier(sku)).toEqual(expected);
-      expect(getFeaturesForTier(sku)).toEqual(getAllFeaturesUpToTier(sku));
     }
   });
 
@@ -61,6 +60,25 @@ describe("tier plan feature access parity", () => {
     );
     for (const f of starterFeatures) {
       expect(essentialFeatures.has(f)).toBe(true);
+    }
+  });
+
+  it("reads the tier floor through getMinimumTierForFeature for every GA feature", () => {
+    const generalFeatures = ALL_MAPPED_FEATURES.filter(
+      isFeatureGenerallyAvailable,
+    );
+
+    for (const feature of generalFeatures) {
+      const minimumTier = getMinimumTierForFeature(feature);
+      expect(minimumTier).toBe(FEATURE_TIER_MAP[feature]);
+
+      for (const sku of PLAN_SKUS) {
+        for (const hasIntelligence of [false, true]) {
+          expect(hasFeatureAccess(sku, feature, hasIntelligence)).toBe(
+            meetsMinimumTier(sku, minimumTier, hasIntelligence),
+          );
+        }
+      }
     }
   });
 });

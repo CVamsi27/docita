@@ -3,7 +3,7 @@ import { AppPageScaffold, Button, DataState, PageHeader } from "@workspace/ui/co
 import { Feature } from "@workspace/types";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { addDaysToPickerIsoDate, formatDate } from "@workspace/utils";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { formatCurrency } from "@/lib/formatters";
 import { useDaybook } from "@/features/daybook/hooks/use-daybook";
@@ -70,7 +70,11 @@ export function DaybookPageContent() {
 
   if (isError) {
     return (
-      <FeatureGate feature={Feature.INVOICING} showLockedCard>
+      <PageFeatureGate
+        feature={Feature.INVOICING}
+        title={t("pageTitle")}
+        description={t("pageDescription")}
+      >
         <AppPageScaffold header={header}>
           <DataState
             status="error"
@@ -79,12 +83,16 @@ export function DaybookPageContent() {
             onRetry={refetch}
           />
         </AppPageScaffold>
-      </FeatureGate>
+      </PageFeatureGate>
     );
   }
 
   return (
-    <FeatureGate feature={Feature.INVOICING} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.INVOICING}
+      title={t("pageTitle")}
+      description={t("pageDescription")}
+    >
       <AppPageScaffold header={header}>
         <DaybookSummaryCardsSection
           summary={summary}
@@ -103,6 +111,6 @@ export function DaybookPageContent() {
         />
         <DaybookCloseDaySection />
       </AppPageScaffold>
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }

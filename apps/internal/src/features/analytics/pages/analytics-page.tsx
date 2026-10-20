@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AppPageScaffold, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, PageHeader } from "@workspace/ui/components";
 import { Calendar, Download } from "lucide-react";
 import { toast } from "sonner";
@@ -7,8 +7,8 @@ import { downloadInternalAnalyticsExport } from "@workspace/data-access/internal
 import { API_URL } from "@/lib/api/api-config";
 import { internalSession } from "@/lib/auth/session";
 import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
-import { formatCurrency } from "@/lib/formatters";
-import { apiGet } from "@/lib/api/api-client";
+import { formatCurrency, WHOLE_AMOUNT_CURRENCY_OPTIONS } from "@workspace/utils";
+import { useApiQuery } from "@/hooks/use-api-query";
 import { BillingOverviewCards } from "../components/analytics-billing-cards";
 import { MetricCardsGrid } from "../components/analytics-metric-cards";
 import { buildMetrics } from "../lib/analytics-helpers";
@@ -25,33 +25,15 @@ const PERIODS: Period[] = ["daily", "weekly", "monthly"];
 
 export function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>("monthly");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | undefined>();
-  const [data, setData] = useState<InternalAnalyticsData | null>(null);
-  const [billing, setBilling] = useState<InternalBillingMetrics | null>(null);
 
-  const analyticsParams = useMemo(() => new URLSearchParams({ period }).toString(), [period]);
+  const analyticsPath = useMemo(() => `/api/internal/analytics?${new URLSearchParams({ period }).toString()}`, [period]);
+  const { data: analyticsData, isLoading: analyticsLoading, error: analyticsError, refetch } = useApiQuery<InternalAnalyticsData>(analyticsPath);
+  const { data: billing, isLoading: billingLoading, error: billingError, refetch: refetchBilling } = useApiQuery<InternalBillingMetrics>("/api/internal/billing/metrics");
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(undefined);
-    try {
-      const [analyticsData, billingData] = await Promise.all([
-        apiGet<InternalAnalyticsData>(`/api/internal/analytics?${analyticsParams}`),
-        apiGet<InternalBillingMetrics>("/api/internal/billing/metrics"),
-      ]);
-      setData(analyticsData);
-      setBilling(billingData);
-    } catch {
-      setError("We could not load this analytics view. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [analyticsParams]);
+  const loading = analyticsLoading || billingLoading;
+  const error = analyticsError || billingError ? "We could not load this analytics view. Please try again." : undefined;
 
-  useEffect(() => { void fetchData(); }, [fetchData]);
-
-  const metrics = useMemo(() => buildMetrics(data), [data]);
+  const metrics = useMemo(() => buildMetrics(analyticsData ?? null), [analyticsData]);
 
   const tierEntries = useMemo<[string, number][]>(() =>
     billing?.subscriptionsByTier
@@ -85,7 +67,7 @@ export function AnalyticsPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Analytics" description="View clinic performance metrics" size="compact" />}>
-      <DataState status={pageStatus} loadingMessage="Loading analytics…" errorMessage={error} onRetry={() => { void fetchData(); }}>
+      <DataState status={pageStatus} loadingMessage="Loading analytics..." errorMessage={error} onRetry={() => { void Promise.all([refetch(), refetchBilling()]); }}>
         <div className="space-y-6 md:space-y-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-wrap gap-2">
@@ -106,7 +88,9 @@ export function AnalyticsPage() {
           {billing && (
             <BillingOverviewCards
               billing={{ mrr: billing.mrr, arr: billing.arr, activeSubscriptions: billing.activeSubscriptions, churnRate: billing.churnRate }}
-              formatCurrency={formatCurrency}
+              formatCurrency={(amount) =>
+                formatCurrency(amount, WHOLE_AMOUNT_CURRENCY_OPTIONS)
+              }
             />
           )}
 

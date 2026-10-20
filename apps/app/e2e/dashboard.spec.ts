@@ -10,6 +10,13 @@ import {
 } from "./utils/ui-contracts";
 
 test.describe("Dashboard redirect", () => {
+  // Both tests assert desktop layout (page-header copy and the sectioned
+  // sidebar are hidden or restructured below the lg breakpoint).
+  test.skip(
+    ({ viewport }) => !viewport || viewport.width < 1024,
+    "desktop layout assertions",
+  );
+
   let user: Awaited<ReturnType<typeof reuseSharedGeneralClinicUser>> | null =
     null;
 

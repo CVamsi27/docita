@@ -117,84 +117,125 @@ export class TenantRateLimitService implements OnModuleInit {
     await this.cache.del(`${COUNTER_MONTHLY_KEY_PREFIX}${clinicId}`);
   }
 
-  private async consumeWindow(args: {
+  /**
+   * Serializes counter updates per key.
+   *
+   * cache-manager exposes no atomic increment, so consuming a unit was a
+   * read-modify-write: N concurrent callers all read the same count, all wrote
+   * count+1, and all evaluated the same `count <= limit`. With a limit of 10,
+   * eleven concurrent requests all passed. Chaining the read-modify-write per key
+   * gives exactly one winner for the last unit in the window.
+   */
+  private readonly counterChains = new Map<string, Promise<unknown>>();
+
+  private async withCounterLock<T>(
+    key: string,
+    work: () => Promise<T>,
+  ): Promise<T> {
+    const previous = this.counterChains.get(key) ?? Promise.resolve();
+    const run = previous.then(work);
+    // The stored tail never rejects, so one failed update cannot poison the
+    // chain for every later caller on this key. Because only a never-rejecting
+    // tail is ever stored, `previous` never rejects either.
+    const tail = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.counterChains.set(key, tail);
+
+    try {
+      return await run;
+    } finally {
+      // Only the last waiter clears the entry, so a queued successor is never
+      // dropped and the map does not grow without bound.
+      if (this.counterChains.get(key) === tail) {
+        this.counterChains.delete(key);
+      }
+    }
+  }
+
+  private consumeWindow(args: {
     key: string;
     windowMs: number;
     limit: number;
     now: number;
   }): Promise<RateLimitDecision> {
-    const { key, windowMs, limit, now } = args;
-    const existing = await this.cache.get<CacheCounter>(key);
-    let counter: CacheCounter;
-    if (!existing || existing.resetAtMs <= now) {
-      counter = { count: 1, resetAtMs: now + windowMs };
-    } else {
-      counter = { count: existing.count + 1, resetAtMs: existing.resetAtMs };
-    }
+    return this.withCounterLock(args.key, async () => {
+      const { key, windowMs, limit, now } = args;
+      const existing = await this.cache.get<CacheCounter>(key);
+      let counter: CacheCounter;
+      if (!existing || existing.resetAtMs <= now) {
+        counter = { count: 1, resetAtMs: now + windowMs };
+      } else {
+        counter = { count: existing.count + 1, resetAtMs: existing.resetAtMs };
+      }
 
-    const ttl = Math.max(counter.resetAtMs - now, 1);
-    await this.cache.set(key, counter, ttl);
+      const ttl = Math.max(counter.resetAtMs - now, 1);
+      await this.cache.set(key, counter, ttl);
 
-    const remaining = Math.max(limit - counter.count, 0);
-    const resetSeconds = Math.max(Math.ceil(ttl / 1000), 1);
-    const allowed = counter.count <= limit;
+      const remaining = Math.max(limit - counter.count, 0);
+      const resetSeconds = Math.max(Math.ceil(ttl / 1000), 1);
+      const allowed = counter.count <= limit;
 
-    return {
-      allowed,
-      limit,
-      remaining,
-      resetSeconds,
-      windowMs,
-    };
+      return {
+        allowed,
+        limit,
+        remaining,
+        resetSeconds,
+        windowMs,
+      };
+    });
   }
 
-  private async consumeMonthly(
+  private consumeMonthly(
     clinicId: string,
     quota: ResolvedQuota,
     now: number,
   ): Promise<RateLimitDecision> {
     const key = `${COUNTER_MONTHLY_KEY_PREFIX}${clinicId}`;
-    const resetAtMs = quota.currentMonthResetsAt.getTime();
-    const ttl = Math.max(resetAtMs - now, 1);
+    return this.withCounterLock(key, async () => {
+      const resetAtMs = quota.currentMonthResetsAt.getTime();
+      const ttl = Math.max(resetAtMs - now, 1);
 
-    const existing =
-      (await this.cache.get<CacheCounter>(key)) ??
-      ({
-        count: quota.currentMonthUsed,
-        resetAtMs,
-      } satisfies CacheCounter);
+      const existing =
+        (await this.cache.get<CacheCounter>(key)) ??
+        ({
+          count: quota.currentMonthUsed,
+          resetAtMs,
+        } satisfies CacheCounter);
 
-    let counter: CacheCounter;
-    if (existing.resetAtMs <= now) {
-      counter = { count: 1, resetAtMs: now + ttl };
-    } else {
-      counter = {
-        count: existing.count + 1,
-        resetAtMs: existing.resetAtMs,
+      let counter: CacheCounter;
+      if (existing.resetAtMs <= now) {
+        counter = { count: 1, resetAtMs: now + ttl };
+      } else {
+        counter = {
+          count: existing.count + 1,
+          resetAtMs: existing.resetAtMs,
+        };
+      }
+
+      await this.cache.set(key, counter, ttl);
+
+      if (
+        quota.hasOverride &&
+        counter.count - quota.currentMonthUsed >= MONTHLY_FLUSH_BATCH_SIZE
+      ) {
+        await this.flushMonthlyToDb(clinicId, counter, quota);
+      }
+
+      const remaining = Math.max(quota.monthlyBudget - counter.count, 0);
+      const resetSeconds = Math.max(Math.ceil(ttl / 1000), 1);
+      const allowed = counter.count <= quota.monthlyBudget;
+
+      return {
+        allowed,
+        limit: quota.monthlyBudget,
+        remaining,
+        resetSeconds,
+        windowMs: ttl,
+        reason: 'monthly',
       };
-    }
-
-    await this.cache.set(key, counter, ttl);
-
-    if (
-      quota.hasOverride &&
-      counter.count - quota.currentMonthUsed >= MONTHLY_FLUSH_BATCH_SIZE
-    ) {
-      await this.flushMonthlyToDb(clinicId, counter, quota);
-    }
-
-    const remaining = Math.max(quota.monthlyBudget - counter.count, 0);
-    const resetSeconds = Math.max(Math.ceil(ttl / 1000), 1);
-    const allowed = counter.count <= quota.monthlyBudget;
-
-    return {
-      allowed,
-      limit: quota.monthlyBudget,
-      remaining,
-      resetSeconds,
-      windowMs: ttl,
-      reason: 'monthly',
-    };
+    });
   }
 
   private async flushMonthlyToDb(

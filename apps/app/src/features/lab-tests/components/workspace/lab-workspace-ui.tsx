@@ -17,10 +17,6 @@ const STATUS_OPTIONS: { value: LabQueueStatusFilter; label: string }[] = [
   { value: "CANCELLED", label: "Cancelled" },
 ];
 
-function toStatusTone(status: string): string {
-  return status.toLowerCase().replace(/_/g, "-");
-}
-
 interface LabWorkspaceUIProps {
   /** Front-desk / admin viewers may verify payment; lab technicians may not. */
   canVerifyPayment?: boolean;
@@ -75,7 +71,9 @@ export const LabWorkspaceUI: FC<LabWorkspaceUIProps> = ({
     {
       id: "status",
       header: "Status",
-      cell: (row) => <StatusBadge status={toStatusTone(row.status)} />,
+      // `StatusBadge` normalizes UPPER_SNAKE to kebab internally, so the raw
+// queue status is passed straight through.
+cell: (row) => <StatusBadge status={row.status} />,
     },
     {
       id: "payment",

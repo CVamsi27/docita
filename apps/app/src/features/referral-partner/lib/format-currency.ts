@@ -1,13 +1,13 @@
+import { formatCurrency } from "@workspace/utils";
+
 /**
- * Format integer paise as an INR string. `Intl.NumberFormat('en-IN')`
- * is locale-aware and produces the same shape as the rest of the app
- * (₹1,23,456.00 grouping).
+ * Format integer paise as an INR string via the canonical currency
+ * formatter (`en-IN`, two decimals → `₹1,23,456.00`).
  */
 export function formatPaise(paise: number): string {
   if (!Number.isFinite(paise)) return "₹0.00";
-  const rupees = paise / 100;
-  return `₹${rupees.toLocaleString("en-IN", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  return formatCurrency(paise / 100, {
+    currency: "INR",
+    fractionDigits: 2,
+  });
 }

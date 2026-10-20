@@ -5,6 +5,7 @@ import {
   isDependenciesChange,
   isKnipChange,
 } from "./detect-workflow-dependencies.mjs";
+import { applyProductionBranchScope } from "./production-branch-scope.mjs";
 import { resolveRange } from "./detect-workflow-range.mjs";
 import {
   isApiChange,
@@ -46,13 +47,13 @@ const changedFiles = execFileSync(
   .split(/\r?\n/)
   .filter(Boolean);
 
-const outputs =
+const detectedOutputs =
   scope === "ci"
     ? {
         dependencies: changedFiles.some(isDependenciesChange),
         api: changedFiles.some(isApiChange),
-        "app": changedFiles.some(isAppChange),
-        "internal": changedFiles.some(isInternalChange),
+        app: changedFiles.some(isAppChange),
+        internal: changedFiles.some(isInternalChange),
         landing: changedFiles.some(isLandingChange),
         worker: changedFiles.some(isWorkerChange),
         db: changedFiles.some(isDbChange),
@@ -62,10 +63,15 @@ const outputs =
         api: changedFiles.some(isDeployApiChange),
         worker: changedFiles.some(isDeployWorkerChange),
         db: changedFiles.some(isDbMigrationChange),
-        "app": changedFiles.some(isAppChange),
-        "internal": changedFiles.some(isInternalChange),
+        app: changedFiles.some(isAppChange),
+        internal: changedFiles.some(isInternalChange),
         landing: changedFiles.some(isLandingChange),
       };
+
+const outputs =
+  scope === "deploy"
+    ? applyProductionBranchScope(detectedOutputs, process.env.GITHUB_REF)
+    : detectedOutputs;
 
 appendFileSync(
   outputPath,

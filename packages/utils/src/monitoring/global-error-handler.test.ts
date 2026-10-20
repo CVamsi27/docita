@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { installGlobalErrorHandler } from "./global-error-handler.js";
+
 
 // installGlobalErrorHandler uses a module-level installed flag, so a single
 // suite can only install once. Each test that needs a fresh handler must

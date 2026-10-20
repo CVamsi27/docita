@@ -13,13 +13,64 @@ import { RolloutSection } from "@/components/sections/rollout-section";
 import { SurfaceMapSection } from "@/components/sections/surface-map-section";
 import { WorkflowCompareSection } from "@/components/sections/workflow-compare-section";
 import { getAppBaseUrl } from "@/lib/get-app-base-url";
-import { fetchPlatformStats } from "@/lib/landing-data";
+import { PLATFORM_STATS } from "@/lib/landing-data";
 import { buildFaqPageStructuredData } from "@/lib/faqs";
 
 const appUrl = getAppBaseUrl();
-const platformStats = await fetchPlatformStats(Astro.url.origin);
 const siteUrl = "https://docita.work";
 const faqStructuredData = buildFaqPageStructuredData(`${siteUrl}/`);
+
+const imageModules = import.meta.glob<{
+  default: { src: string; width: number; height: number; format: string };
+}>("@/assets/product/*.png", { eager: true });
+
+const shots = [
+  {
+    id: "today",
+    image: imageModules["/src/assets/product/today.png"].default,
+    alt: "Today workspace with OPD queue, in-room patient, and right-rail advisor cards.",
+    eyebrow: "Today",
+    title: "Your day, one screen.",
+    description:
+      "Today's queue, in-room patient, waiting count, and advisor cards in a single view. Doctor's morning landing page.",
+  },
+  {
+    id: "consultation",
+    image: imageModules["/src/assets/product/consultation.png"].default,
+    alt: "Consultation workspace with patient context, SOAP notes, and quick actions.",
+    eyebrow: "Consultation",
+    title: "Patient context stays open.",
+    description:
+      "Timeline, vitals, last prescription, and the active complaint stay on the same screen as the notes you are writing.",
+  },
+  {
+    id: "prescription",
+    image: imageModules["/src/assets/product/prescription.png"].default,
+    alt: "Prescription builder with templates, dose rules, and PDF preview.",
+    eyebrow: "Prescription",
+    title: "Prescriptions in two clicks.",
+    description:
+      "Templates fill the form, dose rules catch errors, the PDF is shareable on WhatsApp. No Word, no Photoshop, no print queue.",
+  },
+  {
+    id: "appointments",
+    image: imageModules["/src/assets/product/appointments.png"].default,
+    alt: "Appointments calendar with slots, status pills, and reschedule controls.",
+    eyebrow: "Appointments",
+    title: "Slots, status, follow-ups.",
+    description:
+      "Day, week, and list views. Each slot shows arrival, in-room, completed, and follow-up status. Reschedule in a click.",
+  },
+  {
+    id: "invoices",
+    image: imageModules["/src/assets/product/invoices.png"].default,
+    alt: "Invoices dashboard with line items, payments, and receipt delivery.",
+    eyebrow: "Invoices",
+    title: "Billing tied to the visit.",
+    description:
+      "Line items inherit the consultation, invoice picks up the procedures, receipt is UPI-ready and sent on WhatsApp.",
+  },
+];
 ---
 
 <!--
@@ -35,11 +86,11 @@ const faqStructuredData = buildFaqPageStructuredData(`${siteUrl}/`);
   description="One operating layer for Indian clinics and hospitals: queue, EMR, prescriptions, billing, WhatsApp, lab tests, inventory, analytics, and a real patient portal. Two-week rollout."
   structuredData={faqStructuredData}
 >
-  <HeroSection appUrl={appUrl} client:idle />
-  <ProofStripSection stats={platformStats} />
+  <HeroSection appUrl={appUrl} clinicsLive={PLATFORM_STATS?.clinics} client:idle />
+  <ProofStripSection stats={PLATFORM_STATS} />
   <ClinicRhythmSection client:visible />
   <SurfaceMapSection client:visible />
-  <ProductScreenshotsSection client:visible />
+  <ProductScreenshotsSection shots={shots} client:visible />
   <ClinicTypesSection client:visible />
   <WorkflowCompareSection client:visible />
   <RolloutSection client:visible />

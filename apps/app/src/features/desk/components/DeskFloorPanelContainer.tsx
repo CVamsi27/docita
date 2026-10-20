@@ -1,5 +1,7 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Feature, Tier } from "@workspace/types";
+import { LockedFeaturePage } from "@/components/auth/LockedFeaturePage";
 import { FeatureGate, TierGate } from "@/components/auth/feature-gate";
 
 import { useQueue } from "@workspace/data-access";
@@ -11,6 +13,7 @@ import { patientNameOf, recentSort, toRow, tokenSort } from "./desk-floor-panel-
 const RECENTLY_COMPLETED_LIMIT = 6;
 
 export function DeskFloorPanelContainer() {
+  const { t } = useTranslation("Desk");
   const { data, isLoading, isError, refetch } = useQueue();
   const view = useMemo(() => {
     const items = data ?? [];
@@ -52,8 +55,8 @@ export function DeskFloorPanelContainer() {
     };
   }, [data]);
   return (
-    <TierGate tier={Tier.HOSPITAL} showLockedCard>
-      <FeatureGate feature={Feature.QUEUE_MANAGEMENT} showLockedCard>
+    <TierGate tier={Tier.HOSPITAL} fallback={<LockedFeaturePage tier={Tier.HOSPITAL} title={t("floor.title")} description={t("floor.description")} />}>
+      <FeatureGate feature={Feature.QUEUE_MANAGEMENT} fallback={<LockedFeaturePage feature={Feature.QUEUE_MANAGEMENT} title={t("floor.title")} description={t("floor.description")} />}>
         <DeskFloorPanelUI
           current={view.current}
           waiting={view.waiting}

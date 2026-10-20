@@ -10,7 +10,7 @@ import { TIER_LIMITS } from "@workspace/types";
 import type { TierLimits, TierPricing } from "@workspace/types";
 
 export {
-  getAllFeaturesUpToTier,
+  getFeaturesForTier,
   hasFeatureAccess,
   getTierValue,
   getTierName,

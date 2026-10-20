@@ -11,8 +11,8 @@ This document is the on-call playbook. Every runbook lists:
 
 The procedures cover the production stack:
 
-- API: Fly.io (`docita-api`) — see [`fly.toml`](../fly.toml).
-- Worker: Fly.io (`docita-worker`) — see [`apps/worker/fly.toml`](../apps/worker/fly.toml).
+- API: Fly.io (`docita-api`) — see [`fly.toml`](../../fly.toml).
+- Worker: Fly.io (`docita-worker`) — see [`apps/worker/fly.toml`](../../apps/worker/fly.toml).
 - Database: Postgres (managed). DR clone is in a separate region.
 - Web apps: Cloudflare (auto-deploy). No interactive deploy.
 - Object storage: Cloudflare R2 (`R2_BUCKET_NAME`) for documents/PDFs.
@@ -70,35 +70,42 @@ critical regression confirmed by Sentry / synthetic checks.
 
 **Actions**
 
-1. Confirm the offending release in Fly:
+1. Confirm the failing release and inspect recorded images for the affected app:
    ```bash
-   fly releases --app docita-api | head -10
+   flyctl releases --app docita-api --image
    ```
-2. Roll back to the previous successful release:
+2. Select a known-good image from release evidence and verify compatibility
+   with the current schema, config and secrets. Set `RECORDED_API_IMAGE` to
+   that exact reference, then run from the repository root:
    ```bash
-   fly releases rollback <previous-version> --app docita-api
+   pnpm rollback:fly --config fly.toml --image "$RECORDED_API_IMAGE"
    ```
-3. Watch the deploy:
+   The helper reads app/region from the config and skips the release command.
+   It redeploys code; current config/secrets and database changes remain.
+   See [deployment rollback policy](DEPLOYMENT.md#roll-back-a-bad-release).
+3. Watch deployment state and inspect incident-scoped logs without exporting PHI:
    ```bash
-   fly status --app docita-api
-   fly logs --app docita-api | head -200
+   flyctl status --app docita-api
    ```
-4. If the rollback itself fails, force redeploy from the last known-good
-   commit on `main`:
-   ```bash
-   git checkout <last-good-sha>
-   fly deploy --config fly.toml --app docita-api
-   ```
+4. If recovery fails, capture the deployment error and preserve the incident.
+   Do not guess another image or reverse migrations. Use a reviewed additive
+   forward correction when schema compatibility blocks image recovery. Restore
+   failed credentials only through [secret custody procedures](SECRET_ROTATION_CHECKLIST.md#rollback-procedure-partial-rotation-failure);
+   release evidence contains variable names and protected version references,
+   never secret values.
 5. Post a status-page incident: "API degraded — investigating."
 
 **Verification**
 
-- `curl https://api.docita.work/api/v1/health` returns `200`.
+- `/api/health/live` and `/api/health/ready` return `200` through the direct Fly,
+  public API and app/internal proxy paths. A 525 requires the
+  [certificate/DNS investigation](playbooks/cloudflare-upstream-timeout.md).
 - Sentry error rate returns to baseline within 10 minutes.
-- Synthetic monitor (`/api/v1/health` + `/api/v1/auth/me` smoke) green
-  for 3 consecutive runs.
+- Synthetic monitoring is enabled, alert delivery verified, and
+  `/api/health/live` + authenticated `/api/v1/auth/validate` smoke are green for
+  3 consecutive runs.
 
-**Postmortem** Capture deploy SHA, rollback SHA, customer-impact window,
+**Postmortem** Capture deploy SHA, selected recovery image/release, config revision, customer-impact window,
 Sentry issue ids, and the failing change in the postmortem template.
 
 ---
@@ -142,8 +149,10 @@ because patients miss appointment reminders).
           "failedReason" = 'manual park: poisoned'
     WHERE id = '<job-id>';
    ```
-5. If the worker image itself is bad, roll back as in RB-01 against
-   `--app docita-worker --config apps/worker/fly.toml`.
+5. If the worker image itself is bad, follow RB-01's compatibility check using
+   the worker's recorded image, then run
+   `pnpm rollback:fly --config apps/worker/fly.toml --image "$RECORDED_WORKER_IMAGE"`.
+   The helper uses configured region, rolling strategy and `--ha=false`.
 
 **Verification**
 
@@ -282,6 +291,15 @@ customer impact, and a tracking item for the next DR drill.
 ---
 
 ## RB-06: Restore single tenant from backup
+
+> **NOT EXECUTABLE (2026-10-03).** Step 3 calls
+> `pnpm --filter @workspace/db run export:tenant`, which **does not exist** in
+> `packages/db/package.json` and has no implementation anywhere in the
+> repository. Until that script lands, this procedure fails at step 3. The
+> workaround for a live incident is the DR runbook's point-in-time restore to a
+> side database plus a selective copy, with legal sign-off. See
+> [ADR 0016](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md)
+> (C01) for the decision and acceptance criteria.
 
 **Trigger** Customer requests a point-in-time restore of their clinic
 data (e.g., accidental bulk delete).
@@ -444,6 +462,60 @@ production secrets, and any operational fix to the rotation runbook.
 
 ---
 
+## RB-09b: Telemetry coverage shows a gap or reads UNAVAILABLE
+
+**Trigger** `GET /api/v1/monitoring/telemetry-coverage` returns state
+`GAPS_RECORDED` or `UNAVAILABLE`, or the internal dashboard's _Telemetry
+Coverage_ badge is not `Complete`.
+
+**Severity** SEV-3 for `GAPS_RECORDED`, SEV-2 for `UNAVAILABLE` (no
+observability during an incident is its own incident).
+
+**Roles** Primary engineer.
+
+**What this does and does not mean.** Coverage is the first and last
+retained request timestamps plus every recorded capture gap. It is
+**not** uptime and says nothing about any period with no retained
+rows. `UNAVAILABLE` means telemetry was not capturing for the window,
+so request counts and latency figures in it must not be used to
+conclude that traffic was low or fast.
+
+**Actions**
+
+1. Read the recorded gaps and their reasons:
+   ```bash
+   curl -s "$API/api/v1/monitoring/telemetry-coverage" \
+     -H "Authorization: Bearer $INTERNAL_TOKEN" | jq '{
+       state, firstObservedAt, lastObservedAt, droppedRequests,
+       captureEvents: [.captureEvents[] | {state, reason, droppedRequests, recordedAt}]
+     }'
+   ```
+2. `DATABASE_AUTH_FAILURE` — the API could not authenticate to Postgres.
+   Treat as RB-04 territory and check `DATABASE_URL` credentials on every
+   replica. Requests logged during the gap are gone; do not backfill them
+   from any other source.
+3. `MISSING_MONITORING_TABLES` — migrations are behind. Run
+   `pnpm --filter @workspace/db run db:migrate:safe`.
+4. `BUFFER_OVERFLOW` — a sustained database outage filled the in-process
+   buffer (ceiling 10,000 rows). The API shed telemetry instead of memory.
+   Fix the database first; the dropped count in the event is the true
+   volume lost.
+5. Gaps deferred in memory (`recordDisabled` failing on every attempt)
+   are flushed on the next successful telemetry write, so a gap that
+   appears with no `recordedAt` near the outage is expected, not missing.
+
+**Verification**
+
+- `state` returns to `COMPLETE` once a successful flush occurs.
+- `droppedRequests` is non-zero for the window that contained the gap —
+  it is never reset to hide the loss.
+
+**Postmortem** Capture whether the gap was detected by a human or by
+this endpoint. Detection by a human means the coverage signal did not
+reach anyone.
+
+---
+
 ## RB-10: Dependency / drift verification (quarterly)
 
 This is a planned exercise, not an incident. It exists to catch
@@ -493,7 +565,8 @@ Flow:
 **When to use manually** Abort a stuck rollout with `fly machines stop
 <canary-id> --app docita-worker`; the promote step never runs on failure, so
 this is a cleanup, not a rollback. Roll back a promoted-but-bad image as in
-RB-01 against `--app docita-worker --config apps/worker/fly.toml`.
+RB-01 using `pnpm rollback:fly --config apps/worker/fly.toml --image "$RECORDED_WORKER_IMAGE"`
+after verifying the selected image against the current schema and config.
 
 **Verification after promote**
 
@@ -617,7 +690,7 @@ skips the three frontend deploy jobs for the run.
      Global API Key; a scoped API token is required.
    - If a template does not cover the exact scope, create a custom token with
      at least: `Account > Workers Scripts > Edit`, `Zone > Workers Routes >
-     Edit`, and `Zone > Zone > Read` (or account-level access to
+Edit`, and `Zone > Zone > Read` (or account-level access to
      `docita.work`).
 4. Verify the token locally before setting the secret:
    ```bash
@@ -645,7 +718,7 @@ skips the three frontend deploy jobs for the run.
   `VITE_APP_URL=https://app.docita.work`, etc.).
 - Smoke both sites after the deploy: deep links return 200 and the security
   headers from `apps/*/public/_headers` are served (see `pnpm
-  check:app-security-headers`).
+check:app-security-headers`).
 
 **Postmortem** Capture which check failed (token verify / account / zone /
 routes), the Cloudflare error code (1000 for revoked/expired), when the token
@@ -669,7 +742,7 @@ must act in the GitHub Actions UI.
 - `.github/workflows/synthetic-monitoring.yml` (Synthetic uptime monitoring,
   id `285712721`) reports `state=disabled_manually`.
 - Both last ran 2026-07-26 (schedule events); neither appears in `gh
-  workflow list` (which shows active workflows only) and neither has fired
+workflow list` (which shows active workflows only) and neither has fired
   since. Their files are unchanged since June and remain tracked on `main`.
 - No disabling commit, comment, or doc note exists anywhere in the repo.
 
@@ -705,15 +778,52 @@ documented intent.
 
 **To re-enable**
 
-```bash
+````bash
 gh workflow enable 289989847 --repo CVamsi27/docita   # Scale API - IST Business Hours
 gh workflow enable 285712721 --repo CVamsi27/docita   # Synthetic uptime monitoring
 gh workflow list --repo CVamsi27/docita               # confirm both active
 gh run list --repo CVamsi27/docita --workflow <id> --limit 5   # watch the next schedule trigger
-```
-
-If the next trigger fails with the `bom` capacity error again, disable both
+```If the next trigger fails with the `bom` capacity error again, disable both
 again and escalate to the Fly provider for region capacity.
+
+---
+
+## RB-15: Disabled scheduled workflow (Stop DB - Auto-Restart Guard)
+
+**Status** Informational record — no incident is active. The workflow is
+disabled and no repo-side change can re-enable it; a human must act in the
+GitHub Actions UI (and the target RDS instance must exist again).
+
+**Facts (verified 2026-10-01 via the GitHub API, not inferred)**
+
+- `.github/workflows/stop-db-auto-restart.yml` (Stop DB - Auto-Restart
+  Guard, id `328383419`) reports `state=disabled_manually`.
+- It last ran 2026-09-02T04:21:49Z (schedule event); every recent run failed
+  within ~13 seconds with `DBInstanceNotFound` — the configured
+  `RDS_INSTANCE_ID` secret no longer matches an existing RDS instance.
+- The workflow's purpose is cost control: RDS auto-restarts 7 days after a
+  manual stop, and this job stopped it again. With the instance gone (or
+  replaced by different infrastructure) the job can only fail.
+
+**Consequences while disabled**
+
+- No automated guard against a 7-day RDS auto-restart. If an RDS instance is
+  provisioned again under a different identifier, either update the
+  `RDS_INSTANCE_ID` secret and re-enable the workflow, or delete the
+  workflow file and retire RB-15 with it.
+
+**To re-enable**
+
+```bash
+# 1. Provision/confirm the RDS instance and update the RDS_INSTANCE_ID secret.
+# 2. Re-enable:
+gh workflow enable 328383419 --repo CVamsi27/docita
+gh run list --repo CVamsi27/docita --workflow 328383419 --limit 3
+````
+
+If the instance is permanently retired, remove
+`.github/workflows/stop-db-auto-restart.yml` and this entry instead of
+keeping a dead guard around.
 
 ---
 

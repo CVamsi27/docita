@@ -30,7 +30,7 @@ export class StaffNotificationListener {
   }): Promise<void> {
     try {
       const invoice = await this.persistence.invoice.findUnique({
-        where: { id: payload.invoiceId },
+        where: { id: payload.invoiceId, clinicId: payload.clinicId },
         select: {
           id: true,
           invoiceNumber: true,

@@ -56,7 +56,7 @@ export function ConsultationSidebarHeader({
   const t = useConsultationSidebarTranslations();
   return (
     <div className="ui-card-surface relative flex items-center gap-4 p-4 group">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/5 text-lg font-bold text-primary">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/5 text-lg font-bold text-foreground">
         {initials}
       </div>
       <div className="min-w-0 flex-1">
@@ -106,7 +106,7 @@ export function ConsultationSidebarHistoryTimeline({
         aria-label={open ? t("historyHideAria") : t("historyShowAria")}
       >
         <div className="h-px flex-1 bg-border/50 transition-colors group-hover:bg-border" />
-        <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground/70 transition-colors group-hover:text-muted-foreground">
+        <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground transition-colors group-hover:text-muted-foreground">
           <Clock className="h-3 w-3" aria-hidden="true" />
           <span>
             {t("historyLabel", { count: timelineData.total })}

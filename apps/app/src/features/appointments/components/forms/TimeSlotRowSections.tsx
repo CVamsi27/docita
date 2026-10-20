@@ -113,7 +113,9 @@ export const TimeSlotPatientInfo = memo<TimeSlotPatientInfoProps>(
           </Badge>
         </div>
         <div className="mt-0.5 flex min-w-0 items-center gap-x-1.5 text-[length:var(--fs-xs)] text-muted-foreground">
-          <span className="truncate">{metaLine}</span>
+          {/* Reason + doctor + phone: one line on wider rows, but on phones the
+              single line hid the doctor and phone number behind an ellipsis. */}
+          <span className="line-clamp-2 md:line-clamp-1">{metaLine}</span>
         </div>
         {latestPatientResponse || lastReminder ? (
           <div

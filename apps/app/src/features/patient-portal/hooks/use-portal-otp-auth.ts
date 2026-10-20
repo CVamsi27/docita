@@ -2,25 +2,18 @@
 
 import { useState } from "react";
 import { getUserFacingErrorMessage } from "@workspace/utils";
+import type {
+  OtpRequestAckResponse,
+  TokenIssueResponse,
+} from "@workspace/types";
 import { fetchAPI } from "@/lib/api/api-core";
 import { appSession } from "@/lib/auth/session";
 
-interface RequestOtpResponse {
-  message: string;
-  expiresInSeconds: number;
-}
-
-interface VerifyOtpResponse {
-  access_token: string;
-  // refresh_token is delivered only as an httpOnly cookie, never in the body.
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    clinicId: string | null;
-  };
-}
+// Both response shapes come from `@workspace/types` so the client cannot
+// drift from the controller contracts. `refresh_token` is delivered only as an
+// httpOnly cookie, never in the body.
+type RequestOtpResponse = OtpRequestAckResponse;
+type VerifyOtpResponse = TokenIssueResponse;
 
 export function usePortalOtpAuth() {
   const [phoneNumber, setPhoneNumber] = useState("");

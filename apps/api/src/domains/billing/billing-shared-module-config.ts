@@ -18,6 +18,7 @@ import {
   PaymentsCommandService,
   InvoiceSettlementService,
   RazorpayInvoiceWebhookService,
+  PaymentCaptureReconciliationService,
   PaymentsService,
   SchedulerService,
   PDFService,
@@ -27,10 +28,14 @@ import {
   PrismaInvoiceRepository,
   PrismaPaymentSessionRepository,
   PrismaUsageRepository,
+  PrismaTierPricingRepository,
+  PrismaClaimValidationRepository,
 } from './infrastructure/repositories';
 import { INVOICE_REPOSITORY_TOKEN } from './core/repositories/invoice.repository';
 import { PAYMENT_SESSION_REPOSITORY_TOKEN } from './core/repositories/payment-session.repository';
 import { USAGE_REPOSITORY_TOKEN } from './core/repositories/usage.repository';
+import { TIER_PRICING_REPOSITORY_TOKEN } from './core/repositories/tier-pricing.repository';
+import { CLAIM_VALIDATION_REPOSITORY_TOKEN } from './core/repositories/claim-validation.repository';
 import {
   CLINIC_PRICING_QUERY_TOKEN,
   CLINIC_USAGE_PORT_TOKEN,
@@ -43,6 +48,14 @@ import { PDF_JOB_PROCESSOR_PRISMA_TOKEN } from '@/shared/modules/queue/pdf-job.s
 
 export const BILLING_SHARED_PROVIDERS = [
   { provide: BILLING_PERSISTENCE_PORT, useExisting: PrismaService },
+  {
+    provide: TIER_PRICING_REPOSITORY_TOKEN,
+    useClass: PrismaTierPricingRepository,
+  },
+  {
+    provide: CLAIM_VALIDATION_REPOSITORY_TOKEN,
+    useClass: PrismaClaimValidationRepository,
+  },
   BillingCalculatorService,
   TaxCalculatorService,
   ClaimValidationService,
@@ -60,6 +73,7 @@ export const BILLING_SHARED_PROVIDERS = [
   PaymentsCommandService,
   InvoiceSettlementService,
   RazorpayInvoiceWebhookService,
+  PaymentCaptureReconciliationService,
   PaymentsService,
   SchedulerService,
   PDFService,

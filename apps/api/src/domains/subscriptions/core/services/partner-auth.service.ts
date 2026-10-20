@@ -27,6 +27,15 @@ import {
   type PartnerOtpVerifyResponse,
 } from '@workspace/types';
 
+/**
+ * Internal response type returned by the service. The controller
+ * extracts `refreshToken` to set as an httpOnly cookie and returns
+ * only the client-facing fields (`PartnerOtpVerifyResponse`).
+ */
+export interface PartnerOtpVerifyInternalResponse extends PartnerOtpVerifyResponse {
+  refreshToken: string;
+}
+
 // TTLs are module-local by design (no external importers). If a spec ever
 // needs to reference one, add a bottom-of-file re-export for it.
 const PARTNER_OTP_TTL_MS = 10 * 60 * 1000;
@@ -38,6 +47,10 @@ interface PartnerJwtClaims {
   sub: string;
   phone: string;
   type: 'access' | 'refresh';
+  // Populated by jsonwebtoken on verified claims when the `audience`
+  // option is supplied (verified against jsonwebtoken 9.0.2). Optional at
+  // sign time — the audience is passed as a sign option, not a claim.
+  aud?: string;
 }
 
 @Injectable()
@@ -85,6 +98,17 @@ export class PartnerAuthService {
         templateName: 'partner_login_otp',
         otp,
       });
+    } else {
+      // SEC-002 timing parity: the match path always runs one bcrypt
+      // hash (cost 10, ~53 ms measured) plus two DB writes and a
+      // WhatsApp send. Without equalization, request latency reveals
+      // whether the phone is an active partner. Run the same-cost hash
+      // here (Django-style dummy hash) so the deterministic crypto
+      // component of the delta is closed. The residual delta (DB writes
+      // + the external WhatsApp call) is network-bound; full parity
+      // would require sending real messages to non-partners, which is
+      // a product decision (see the security-review follow-up).
+      await bcrypt.hash(this.generateOtp(), 10);
     }
 
     return {
@@ -99,7 +123,9 @@ export class PartnerAuthService {
    * every subsequent request; the refresh token is a longer-lived
    * JWT of the same shape (no DB row) used to mint new access tokens.
    */
-  async verifyOtp(input: PartnerOtpVerify): Promise<PartnerOtpVerifyResponse> {
+  async verifyOtp(
+    input: PartnerOtpVerify,
+  ): Promise<PartnerOtpVerifyInternalResponse> {
     const phone = this.normalizePhone(input.phone);
     const now = this.clock.now();
 
@@ -170,9 +196,9 @@ export class PartnerAuthService {
   /**
    * Mint a new access token from a valid refresh token. The refresh
    * token must be a partner JWT with `type: 'refresh'` and a still-valid
-   * expiry. No DB lookup — pure JWT rotation, intentional trade-off
-   * for v1 (no revocation; if that's ever needed we can add a
-   * PartnerRefreshToken table later).
+   * expiry, and the referrer must still be active. JWT rotation with a
+   * per-use `active` re-check (no PartnerRefreshToken row, so there is
+   * no separate revocation ledger beyond the referrer flag).
    */
   async refresh(
     refreshToken: string,
@@ -187,10 +213,14 @@ export class PartnerAuthService {
     }
     if (
       claims.type !== 'refresh' ||
-      !isPartnerJwtAudience(JWT_AUDIENCE_PARTNER)
+      // Defense-in-depth: jsonwebtoken enforces the audience during
+      // verifyAsync above, but re-check the claim so a future refactor
+      // that drops the verify option cannot silently widen the surface.
+      !isPartnerJwtAudience(claims.aud)
     ) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+    await this.assertReferrerActive(claims.sub);
     const accessToken = this.signPartnerToken(
       { sub: claims.sub, phone: claims.phone, type: 'access' },
       PARTNER_ACCESS_TOKEN_TTL_SECONDS,
@@ -201,7 +231,13 @@ export class PartnerAuthService {
     };
   }
 
-  /** Verify a partner access token and return the referrerId + phone claims. */
+  /**
+   * Verify a partner access token and return the referrerId + phone claims.
+   * The referrer must still be active: deactivation from the internal
+   * console must terminate existing sessions on the next request, not just
+   * block new logins. Active partners are unaffected — one indexed PK
+   * lookup per request.
+   */
   async verifyAccessToken(token: string): Promise<PartnerJwtClaims> {
     let claims: PartnerJwtClaims;
     try {
@@ -214,7 +250,23 @@ export class PartnerAuthService {
     if (claims.type !== 'access') {
       throw new UnauthorizedException('Wrong token type');
     }
+    await this.assertReferrerActive(claims.sub);
     return claims;
+  }
+
+  /**
+   * A partner token only authorizes the portal while the referrer row is
+   * active. Deactivation takes effect on the very next token use, so the
+   * 30-day refresh TTL cannot outlive a partner's active status.
+   */
+  private async assertReferrerActive(referrerId: string): Promise<void> {
+    const referrer = await this.prisma.referrer.findUnique({
+      where: { id: referrerId },
+      select: { active: true },
+    });
+    if (!referrer?.active) {
+      throw new UnauthorizedException('Partner account is not active');
+    }
   }
 
   private signPartnerToken(claims: PartnerJwtClaims, expiresInSeconds: number) {

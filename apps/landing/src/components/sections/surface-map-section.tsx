@@ -12,6 +12,7 @@ interface SurfaceItem {
 
 interface SurfaceColumn {
   role: string;
+  icon: LucideIcon;
   title: string;
   description: string;
   items: SurfaceItem[];
@@ -20,6 +21,7 @@ interface SurfaceColumn {
 const COLUMNS: SurfaceColumn[] = [
   {
     role: "Reception",
+    icon: ClipboardList,
     title: "Front desk has one screen",
     description:
       "Walk-ins, appointments, intake forms, and the live queue stay in one place — no parallel register.",
@@ -34,6 +36,7 @@ const COLUMNS: SurfaceColumn[] = [
   },
   {
     role: "Doctor",
+    icon: Stethoscope,
     title: "Consult with everything in reach",
     description:
       "Patient timeline, prescription templates, lab orders, and AI assist surfaces are wired into the consult — including specialty workflows.",
@@ -48,6 +51,7 @@ const COLUMNS: SurfaceColumn[] = [
   },
   {
     role: "Admin",
+    icon: ShieldCheck,
     title: "Run the practice, not a tab graveyard",
     description:
       "Multi-doctor, multi-location billing, insurance, daybook, inventory, reports, audit, ABDM, and IPD beds — without leaving Docita.",
@@ -117,7 +121,15 @@ export function SurfaceMapSection() {
               variants={item}
               className="r2-surface-col"
             >
-              <p className="r2-eyebrow r2-eyebrow-accent">{col.role}</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="r2-eyebrow r2-eyebrow-accent">{col.role}</p>
+                <span
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary shadow-2xs"
+                  aria-hidden
+                >
+                  <col.icon className="h-4 w-4" />
+                </span>
+              </div>
               <h3 className="mt-3 text-xl font-semibold tracking-tight text-foreground">
                 {col.title}
               </h3>
@@ -126,7 +138,10 @@ export function SurfaceMapSection() {
               </p>
               <ul className="r2-surface-list" role="list">
                 {col.items.map((surface) => (
-                  <li key={surface.label} className="r2-surface-chip">
+                  <li
+                    key={surface.label}
+                    className="r2-surface-chip hover:border-primary/40 hover:bg-primary/[0.06] transition-colors duration-150"
+                  >
                     <surface.icon className="r2-surface-chip-icon" aria-hidden />
                     <span className="truncate">{surface.label}</span>
                   </li>
@@ -141,19 +156,24 @@ export function SurfaceMapSection() {
           initial="hidden"
           whileInView="visible"
           viewport={landingInViewViewport}
-          className="mt-6 flex flex-col gap-4 rounded-2xl border border-primary/30 bg-primary/[0.05] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+          className="mt-8 flex flex-col gap-5 rounded-2xl border border-primary/30 bg-primary/[0.04] p-5 shadow-xs sm:flex-row sm:items-center sm:justify-between sm:p-6"
         >
           <div className="flex items-start gap-4">
             <span
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/40 bg-primary/10 text-primary"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary shadow-2xs"
               aria-hidden
             >
               <Activity className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <p className="r2-eyebrow r2-eyebrow-accent">
-                And the fourth role: your patients
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="r2-eyebrow r2-eyebrow-accent">
+                  Patient Portal
+                </p>
+                <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[var(--fs-2xs)] font-medium text-primary">
+                  Included in all plans
+                </span>
+              </div>
               <p className="mt-1 text-sm font-medium text-foreground sm:text-base">
                 Patients log into Docita too &mdash; appointments, prescriptions,
                 bills, history, and consent in one place.
@@ -167,7 +187,7 @@ export function SurfaceMapSection() {
             {PORTAL_FEATURES.map((f) => (
               <li
                 key={f}
-                className="r2-mono rounded-full border border-border/60 bg-muted px-2.5 py-1 text-[var(--fs-2xs)] uppercase tracking-[0.08em] text-foreground"
+                className="r2-mono rounded-full border border-border/70 bg-card/80 px-2.5 py-1 text-[var(--fs-2xs)] font-medium uppercase tracking-[0.08em] text-foreground shadow-2xs transition-colors duration-150 hover:border-primary/40 hover:bg-primary/[0.05]"
               >
                 {f}
               </li>

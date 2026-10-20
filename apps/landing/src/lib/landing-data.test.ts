@@ -1,22 +1,23 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { PUBLISHED_PLAN_LADDER } from "@workspace/types";
 import {
   FALLBACK_PRICING_CONFIG,
   formatStatValue,
   formatTierPrice,
+  PLATFORM_STATS,
 } from "./landing-data";
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
-});
-
-// `fetchPlatformStats` keeps a module-level 24h cache, so each test needs a
-// fresh module instance to observe a real fetch instead of the previous
-// test's cached entry.
-async function importFetchPlatformStats() {
+/** Re-imports the module after stubbing PUBLIC_PLATFORM_STATS, since the value is parsed at module load. */
+async function loadStatsWith(raw: string | undefined) {
   vi.resetModules();
+  if (raw === undefined) {
+    vi.stubEnv("PUBLIC_PLATFORM_STATS", "");
+  } else {
+    vi.stubEnv("PUBLIC_PLATFORM_STATS", raw);
+  }
   const mod = await import("./landing-data");
-  return mod.fetchPlatformStats;
+  vi.unstubAllEnvs();
+  return mod.PLATFORM_STATS;
 }
 
 describe("landing-data", () => {
@@ -36,73 +37,44 @@ describe("landing-data", () => {
     });
   });
 
-  describe("fetchPlatformStats", () => {
-    it("returns null when live landing data is disabled", async () => {
-      vi.stubEnv("PUBLIC_ENABLE_LIVE_LANDING_DATA", "false");
-      const fetchMock = vi.fn();
-      vi.stubGlobal("fetch", fetchMock);
-      const fetchPlatformStats = await importFetchPlatformStats();
-
-      await expect(fetchPlatformStats("https://landing.docita.work")).resolves.toBeNull();
-      expect(fetchMock).not.toHaveBeenCalled();
+  describe("PLATFORM_STATS", () => {
+    it("publishes nothing when PUBLIC_PLATFORM_STATS is not provisioned", async () => {
+      // The marketing site must never invent an operating count; unprovisioned
+      // means the hero drops the claim and the proof strip does not render.
+      expect(PLATFORM_STATS).toBeNull();
+      await expect(loadStatsWith(undefined)).resolves.toBeNull();
     });
 
-    it("fetches, floors, and returns parsed stats", async () => {
-      vi.stubEnv("PUBLIC_ENABLE_LIVE_LANDING_DATA", "true");
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue(
-          new Response(
-            JSON.stringify({
-              clinics: 1200.7,
-              doctors: 3400,
-              patients: 55000.2,
-              prescriptions: 100000,
-            }),
-            { status: 200 },
-          ),
-        ),
-      );
-      const fetchPlatformStats = await importFetchPlatformStats();
-
-      await expect(fetchPlatformStats("https://landing.docita.work")).resolves.toEqual({
-        clinics: 1200,
-        doctors: 3400,
-        patients: 55000,
-        prescriptions: 100000,
+    it("parses provisioned figures without randomizing them", async () => {
+      const raw = JSON.stringify({
+        clinics: 12,
+        doctors: 34,
+        patients: 5600,
+        prescriptions: 21000,
       });
+      const first = await loadStatsWith(raw);
+      const second = await loadStatsWith(raw);
+      expect(first).toEqual({
+        clinics: 12,
+        doctors: 34,
+        patients: 5600,
+        prescriptions: 21000,
+      });
+      expect(second).toEqual(first);
     });
 
-    it("returns null and does not throw when the fetch fails", async () => {
-      vi.stubEnv("PUBLIC_ENABLE_LIVE_LANDING_DATA", "true");
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue(new Response("boom", { status: 503 })),
-      );
-      const fetchPlatformStats = await importFetchPlatformStats();
-
-      await expect(fetchPlatformStats("https://landing.docita.work")).resolves.toBeNull();
-    });
-
-    it("returns null for non-numeric or negative stat values", async () => {
-      vi.stubEnv("PUBLIC_ENABLE_LIVE_LANDING_DATA", "true");
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue(
-          new Response(
-            JSON.stringify({
-              clinics: "many",
-              doctors: -5,
-              patients: 100,
-              prescriptions: 200,
-            }),
-            { status: 200 },
-          ),
+    it("rejects malformed, partial and non-positive payloads", async () => {
+      await expect(loadStatsWith("not json")).resolves.toBeNull();
+      await expect(loadStatsWith("{}")).resolves.toBeNull();
+      await expect(
+        loadStatsWith('{"clinics":1,"doctors":2,"patients":3}'),
+      ).resolves.toBeNull();
+      await expect(
+        loadStatsWith(
+          '{"clinics":0,"doctors":2,"patients":3,"prescriptions":4}',
         ),
-      );
-      const fetchPlatformStats = await importFetchPlatformStats();
-
-      await expect(fetchPlatformStats("https://landing.docita.work")).resolves.toBeNull();
+      ).resolves.toBeNull();
+      await expect(loadStatsWith("[]")).resolves.toBeNull();
     });
   });
 
@@ -113,6 +85,14 @@ describe("landing-data", () => {
         symbol: "₹",
         name: "Indian Rupee",
       });
+    });
+
+    it("lists exactly the published plan ladder, without legacy SKUs", () => {
+      // The public pricing surface must only ever offer SKUs the canonical
+      // ladder publishes; the retirable Front Desk SKUs live on as plan modes.
+      expect(FALLBACK_PRICING_CONFIG.tiers.map((tier) => tier.id)).toEqual([
+        ...PUBLISHED_PLAN_LADDER,
+      ]);
     });
 
     it("lists at least the starter tier with numeric monthly pricing", () => {

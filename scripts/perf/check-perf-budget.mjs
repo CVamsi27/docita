@@ -29,7 +29,7 @@ function emitError(message) {
 async function main() {
   const repoRoot = process.cwd();
   const appDir = path.join(repoRoot, "apps/app");
-  const baselinePath = path.join(repoRoot, "logs/performance/baseline.json");
+  const baselinePath = path.join(repoRoot, "artifacts/perf-baseline.json");
 
   const baseline = await readJsonIfExists(baselinePath);
   if (!baseline?.appBundleMetrics?.routeSizes) {

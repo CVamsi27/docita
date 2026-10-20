@@ -6,6 +6,7 @@ import { PATIENT_PORTAL_REPOSITORY_TOKEN } from '@/domains/patient-portal/core/r
 import { WHATSAPP_CLIENT_TOKEN } from '@/domains/whatsapp/application/ports/whatsapp-client.port';
 import { AuthService } from '@/shared/modules/auth/auth/auth.service';
 import { clockPortTestProvider } from '@/test-utils';
+import * as bcrypt from 'bcrypt';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 jest.mock('bcrypt', () => ({
@@ -30,6 +31,8 @@ describe('PatientPortalAuthService', () => {
   >;
 
   beforeEach(async () => {
+    jest.mocked(bcrypt.compare).mockReset();
+
     repository = {
       findPatientByUserId: jest.fn(),
       findPatientByPhone: jest.fn(),
@@ -49,7 +52,7 @@ describe('PatientPortalAuthService', () => {
       createOtp: jest.fn(),
       findActiveOtp: jest.fn(),
       tryConsumeOtpAttempt: jest.fn(),
-      markOtpUsed: jest.fn(),
+      tryMarkOtpUsed: jest.fn(),
       createPortalUser: jest.fn(),
       linkUserToPatient: jest.fn(),
     };
@@ -131,6 +134,52 @@ describe('PatientPortalAuthService', () => {
       await expect(
         service.verifyOtp('+919876543210', '123456'),
       ).rejects.toThrow(UnauthorizedException);
+    });
+
+    const activeOtp = {
+      id: 'otp-1',
+      attempts: 0,
+      otpHash: 'hashed',
+      expiresAt: new Date('2026-05-19T12:10:00.000Z'),
+      usedAt: null,
+    };
+
+    const portalUser = {
+      id: 'user-1',
+      email: 'portal@test.com',
+      password: 'hashed',
+      role: 'PATIENT' as const,
+      name: 'Test Patient',
+    };
+
+    it('issues a session when the single-use OTP claim wins', async () => {
+      repository.findActiveOtp.mockResolvedValue({ ...activeOtp });
+      repository.tryConsumeOtpAttempt.mockResolvedValue(true);
+      jest.mocked(bcrypt.compare).mockImplementation(async () => true);
+      repository.tryMarkOtpUsed.mockResolvedValue(true);
+      repository.findPatientWithUserByPhone.mockResolvedValue({
+        id: 'patient-1',
+        user: portalUser,
+      });
+
+      const result = await service.verifyOtp('+919876543210', '123456');
+
+      expect(repository.tryMarkOtpUsed).toHaveBeenCalledWith('otp-1');
+      expect(result).toEqual({ access_token: 'jwt-token' });
+    });
+
+    it('rejects the loser of a concurrent valid OTP claim without issuing a session', async () => {
+      repository.findActiveOtp.mockResolvedValue({ ...activeOtp });
+      repository.tryConsumeOtpAttempt.mockResolvedValue(true);
+      jest.mocked(bcrypt.compare).mockImplementation(async () => true);
+      repository.tryMarkOtpUsed.mockResolvedValue(false);
+
+      await expect(
+        service.verifyOtp('+919876543210', '123456'),
+      ).rejects.toThrow(UnauthorizedException);
+
+      expect(repository.tryMarkOtpUsed).toHaveBeenCalledWith('otp-1');
+      expect(repository.findPatientWithUserByPhone).not.toHaveBeenCalled();
     });
 
     it('throws when the cap has not been hit yet but the atomic consume refuses', async () => {

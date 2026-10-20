@@ -6,5 +6,210 @@
   "loading": "Loading location…",
   "error": "This booking link is not valid or the location is unavailable.",
   "unavailableTitle": "Unavailable",
-  "unavailableDescription": "Try again later or contact the location directly."
+  "unavailableDescription": "Try again later or contact the location directly.",
+  "trustRow": {
+    "encrypted": "Encrypted",
+    "private": "Private"
+  },
+  "topChrome": {
+    "skipToContent": "Skip to booking content",
+    "privateBooking": "Private booking",
+    "ariaLabel": "Booking page"
+  },
+  "hero": {
+    "onlineBooking": "Online booking",
+    "description": "Fill in the steps below to request a visit. Staff confirm before it's final."
+  },
+  "howItWorks": {
+    "trigger": "How this works",
+    "title": "How booking works",
+    "description": "Three quick steps before the clinic confirms your visit.",
+    "steps": {
+      "chooseDay": "Choose a preferred day (optionally doctor/time)",
+      "shareContact": "Share your contact details",
+      "sendRequest": "Send the request for confirmation"
+    },
+    "privacyTitle": "Private booking link",
+    "privacyBody": "Only you and this care team see what you enter. Submitting is a request until staff confirms your visit."
+  },
+  "doctorPicker": {
+    "label": "Doctor",
+    "optionalSuffix": "(optional)",
+    "anyDoctor": "Any doctor",
+    "anyAvailableDoctor": "Any available doctor",
+    "retry": "Retry loading doctors",
+    "toggleLabel": "Doctor (optional)",
+    "hide": "Hide doctor",
+    "select": "Select doctor",
+    "selectPlaceholder": "Select a doctor",
+    "selectAriaLabel": "Doctor",
+    "selectNamedAria": "Select {name}{specialization}",
+    "selectedPrefix": "Selected:",
+    "nameFallback": "Doctor"
+  },
+  "slotGrid": {
+    "selectDoctorTitle": "Select a doctor above",
+    "selectDoctorDescription": "Tap a doctor to see open times for the day you picked, or tap 'Any doctor' to see all available slots.",
+    "doctorOptionalTitle": "Doctor selection is optional",
+    "doctorOptionalDescription": "If you choose a doctor, you can pick an exact time. Otherwise, you can request a date only and the clinic will assign a doctor and time.",
+    "unavailableTitle": "Open times unavailable",
+    "unavailableDescription": "Open times could not be loaded. Check your connection and try again.",
+    "retry": "Retry loading times",
+    "noTimesTitle": "No times this day",
+    "noOpeningsTitle": "No openings left",
+    "noOpeningsDescription": "There are no free times left on this date. The times below are already booked, blocked, or earlier in the day. Choose another date if you need an opening.",
+    "unavailableSlotAria": "{start} to {end}, unavailable{doctor}",
+    "unavailableSuffix": "Unavailable",
+    "filterByTimeOfDay": "Filter by time of day",
+    "noOpeningsInRangeTitle": "No openings in this time range",
+    "noOpeningsInRangeDescription": "Try a wider window or clear the time range to see all openings for this day."
+  },
+  "slotFilters": {
+    "fromLabel": "Time range (from)",
+    "toLabel": "Time range (to)",
+    "anyTime": "Any time"
+  },
+  "slotEmpty": {
+    "FULL_DAY_BLOCKED": "This doctor is marked away for the full day you selected. Choose another date on the calendar.",
+    "DATE_PARSE_ERROR": "That date could not be read correctly. Pick the day again on the calendar.",
+    "NO_SLOTS_IN_RANGE": "Visit hours look incomplete for this day (no time slots could be built from the schedule). Please contact the clinic.",
+    "NO_WEEKLY_HOURS": "No visit hours are set for this weekday for this doctor or clinic (using the clinic time zone). Try another day, or contact the clinic."
+  },
+  "slotTimes": {
+    "loading": "Loading open times…"
+  },
+  "clinicCard": {
+    "yourLocation": "Your location"
+  },
+  "summaryPeek": {
+    "yourVisit": "Your visit",
+    "empty": "No day or slot selected yet",
+    "ariaLabel": "Your request summary",
+    "sheetTitle": "Your request",
+    "sheetDescription": "Doctor, day, and time for this visit request."
+  },
+  "doneCard": {
+    "requestSent": "Request sent",
+    "allSet": "You're all set",
+    "description": "The care team will reach out to confirm your visit using the contact method they have on file.",
+    "callClinic": "Call {clinicName}",
+    "whatNext": "What happens next",
+    "nextSteps": {
+      "review": "The clinic reviews your request",
+      "contact": "They contact you to confirm the time",
+      "confirmed": "Your visit is confirmed once they reach out"
+    }
+  },
+  "reviewBlock": {
+    "edit": "Edit",
+    "review": "Review",
+    "confirmTitle": "Confirm before you send",
+    "description": "Submitting sends a request only — the clinic confirms before your visit is final.",
+    "dateOnly": "Date only (no slot)",
+    "rows": {
+      "doctor": "Doctor",
+      "day": "Day",
+      "time": "Time",
+      "patient": "Patient",
+      "phone": "Phone",
+      "reasonForVisit": "Reason for visit"
+    }
+  },
+  "actionPanel": {
+    "sending": "Sending…",
+    "submit": "Send visit request",
+    "disclaimer": "Submitting sends a request only — the care team confirms before it is a firm appointment."
+  },
+  "footer": {
+    "poweredBy": "Powered by"
+  },
+  "verification": {
+    "newPatientTitle": "New to booking here online",
+    "newPatientDescription": "We did not find an existing chart for this phone number at this location yet. Submit your request and staff will confirm your visit.",
+    "verifyTitle": "Verify your phone",
+    "verifyDescription": "This phone matches records at this location. Request a one-time code via WhatsApp, then enter it so we can show your recent visits.",
+    "skipOtp": "New patient / can't receive WhatsApp? Continue without code",
+    "sendCode": "Send code to WhatsApp",
+    "codeLabel": "Verification code",
+    "verifyAndContinue": "Verify and continue"
+  },
+  "phone": {
+    "label": "Phone number",
+    "checkNumber": "Check phone number"
+  },
+  "dpdpConsent": {
+    "label": "I have read this notice and consent to my personal and health data being processed per the description above."
+  },
+  "appointmentSection": {
+    "micro": "Appointment",
+    "title": "Doctor, date, and time",
+    "description": "Select who you would like to see, pick a day, then tap an open slot that works for you.",
+    "preferredDay": "Preferred day",
+    "selectedPrefix": "Selected",
+    "tapDate": "Tap a date on the calendar",
+    "pickDayHint": "Pick a day now. The clinic will confirm the exact time after approval.",
+    "openTimes": "Open times that day"
+  },
+  "contactSection": {
+    "micro": "How we reach you",
+    "title": "Your contact details",
+    "description": "Please use the same phone this {facility} has on file when possible, so we can match your request to your chart.",
+    "notesPlaceholder": "Enter notes for the team",
+    "notesLabel": "Notes for the team"
+  },
+  "submitAlerts": {
+    "generalTitle": "Unable to send your request",
+    "issuesTitle": "Check these issues"
+  },
+  "patientContext": {
+    "micro": "Your history here",
+    "title": "Recent visits at this location",
+    "description": "A short summary from your chart at {clinic} so you can book with context.",
+    "loading": "Loading your visit summary…",
+    "error": "We could not load your visit summary.",
+    "patientSince": "Patient since",
+    "noVisitsTitle": "No prior visits on file",
+    "noVisitsDescription": "You are all set to request a new time at this location.",
+    "recentVisits": "Recent visits"
+  },
+  "turnstile": {
+    "beforeContinue": "Before you continue",
+    "inlineNote": "Quick verification protects this page from automated abuse.",
+    "quickVerification": "Quick verification",
+    "description": "This protects the page from automated abuse. Your visit details stay private."
+  },
+  "mobileLayout": {
+    "stepHeading": {
+      "visit": "Doctor, date, and time",
+      "contact": "Your contact details",
+      "review": "Review and send"
+    },
+    "stepDescription": {
+      "visit": "Pick a day and tap a time slot. Doctor is optional.",
+      "contact": "Enter the phone number this clinic has for you.",
+      "review": "Check everything looks right before sending."
+    },
+    "back": "Back",
+    "visitBlocked": "Complete verification above, then continue.",
+    "contactMissingName": "Enter your first and last name.",
+    "contactMissingPhone": "Enter the phone number this clinic has on file.",
+    "contactMissingOtp": "Request the WhatsApp code and enter it above.",
+    "continue": "Continue",
+    "preferToCall": "Prefer to call?"
+  },
+  "desktopLayout": {
+    "stepPrefix": "Step {step} · {label}",
+    "step1Label": "Doctor & schedule",
+    "step2Label": "Your contact details"
+  },
+  "appointmentStatus": {
+    "scheduled": "Scheduled",
+    "confirmed": "Confirmed",
+    "checked-in": "Checked in",
+    "in-progress": "In progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "no-show": "No show",
+    "booked": "Booked"
+  }
 }

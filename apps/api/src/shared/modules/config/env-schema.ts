@@ -5,24 +5,21 @@ import {
   taxRegimeSchema,
 } from '@workspace/types';
 
-/** Parses env boolean strings (`"false"` must not coerce to true). */
+/** Accepts boolean env aliases; missing values keep defaults, typos fail startup. */
 function envBoolean(defaultValue: boolean) {
-  return z
-    .union([z.boolean(), z.string(), z.number()])
-    .optional()
-    .transform((value) => {
-      if (value === undefined) return defaultValue;
-      if (typeof value === 'boolean') return value;
-      if (typeof value === 'number') return value !== 0;
-      const normalized = String(value).trim().toLowerCase();
+  return z.preprocess((value) => {
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
       if (['false', '0', 'no', 'off'].includes(normalized)) {
         return false;
       }
       if (['true', '1', 'yes', 'on'].includes(normalized)) {
         return true;
       }
-      return defaultValue;
-    });
+    }
+    if (value === 0 || value === 1) return value === 1;
+    return value;
+  }, z.boolean().default(defaultValue));
 }
 
 export const EnvSchema = z.object({
@@ -80,11 +77,9 @@ export const EnvSchema = z.object({
   META_PHONE_NUMBER_ID: z.string().optional(),
   META_APP_SECRET: z.string().optional(),
   META_VERIFY_TOKEN: z.string().optional(),
-  WHATSAPP_PRODUCTION_MODE: z.coerce.boolean().default(false),
-  WHATSAPP_PER_CLINIC_SENDER_ENABLED: z.coerce.boolean().default(false),
-  ENTERPRISE_CONTRACT_DYNAMIC_PRICING_ENABLED: z.coerce
-    .boolean()
-    .default(false),
+  WHATSAPP_PRODUCTION_MODE: envBoolean(false),
+  WHATSAPP_PER_CLINIC_SENDER_ENABLED: envBoolean(false),
+  ENTERPRISE_CONTRACT_DYNAMIC_PRICING_ENABLED: envBoolean(false),
   ZEPTOMAIL_SENDMAIL_TOKEN: z.string().optional(),
   ZEPTOMAIL_API_URL: z.string().default('https://api.zeptomail.in/v1.1/email'),
   ZEPTOMAIL_WEBHOOK_SECRET: z.string().optional(),
@@ -148,17 +143,17 @@ export const EnvSchema = z.object({
   AI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4-turbo'),
   AI_REQUEST_TIMEOUT: z.coerce.number().default(5000),
-  AI_CACHE_ENABLED: z.coerce.boolean().default(true),
+  AI_CACHE_ENABLED: envBoolean(true),
   AI_CACHE_TTL: z.coerce.number().default(86400),
   // DPDP kill-switch: master gate for ALL external-AI (OpenAI) calls. OFF by
   // default — no patient data leaves to OpenAI from any feature unless this is
   // explicitly enabled AND an API key is set. Disclose AI processing in the
   // consent notice before enabling.
-  AI_EXTERNAL_ENABLED: z.coerce.boolean().default(false),
+  AI_EXTERNAL_ENABLED: envBoolean(false),
   // DPDP: sending raw patient-document images to the cloud Vision API is a
   // cross-border PHI transfer that cannot be de-identified. OFF by default —
   // local OCR is used instead. Enable only with consent-notice disclosure.
-  AI_CLOUD_OCR_ENABLED: z.coerce.boolean().default(false),
+  AI_CLOUD_OCR_ENABLED: envBoolean(false),
   TENANT_RATE_LIMIT_DEFAULT_RPS: z.coerce.number().int().positive().default(50),
   TENANT_RATE_LIMIT_DEFAULT_RPM: z.coerce
     .number()
@@ -170,7 +165,7 @@ export const EnvSchema = z.object({
     .int()
     .positive()
     .default(5_000_000),
-  RLS_ENABLED: z.coerce.boolean().default(false),
+  RLS_ENABLED: envBoolean(false),
   TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
   /**
    * Comma-separated list of email addresses allowed to authenticate as
@@ -189,7 +184,7 @@ export const EnvSchema = z.object({
   // ─── Database Control (internal portal) ────────────────────────────────────
   // Master switch. Defaults to false; must be explicitly enabled per env so a
   // misconfigured deploy cannot expose the Stop/Start/Delete buttons.
-  DATABASE_CONTROL_ENABLED: z.coerce.boolean().default(false),
+  DATABASE_CONTROL_ENABLED: envBoolean(false),
   // Comma-separated list of NODE_ENV values the control is allowed to run in.
   // Refuses to act on any env outside this list.
   DATABASE_CONTROL_ALLOWED_ENV: z.string().default('production,staging'),
@@ -203,7 +198,7 @@ export const EnvSchema = z.object({
   DATABASE_CONTROL_ALERT_EMAIL: z.string().email().optional(),
   // Block Stop/Delete/Restore while a `Deploy Production` GitHub Actions run
   // is in flight. Cheap protection against racing a deploy.
-  DATABASE_CONTROL_DEPLOY_GUARD: z.coerce.boolean().default(true),
+  DATABASE_CONTROL_DEPLOY_GUARD: envBoolean(true),
   // Cooldown (seconds) after a Stop/Delete/Snapshot/Restore to block the same
   // action from firing twice in a row. START is never cooled down.
   DATABASE_CONTROL_COOLDOWN_SECONDS: z.coerce.number().int().min(0).default(60),

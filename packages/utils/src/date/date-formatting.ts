@@ -22,14 +22,15 @@ export function formatDate(
   options: DateTimeOptions = {},
 ): string {
   const { timezone = DEFAULT_TIMEZONE } = options;
+  const formatOptions = options.locale ? { locale: options.locale } : undefined;
 
   const parsedDate = parseDate(date);
   if (!parsedDate) return "";
 
   try {
-    return formatInTimeZone(parsedDate, timezone, formatPattern);
+    return formatInTimeZone(parsedDate, timezone, formatPattern, formatOptions);
   } catch {
-    return format(parsedDate, formatPattern);
+    return format(parsedDate, formatPattern, formatOptions);
   }
 }
 
@@ -76,6 +77,35 @@ export function formatDistanceToNow(
     addSuffix: true,
     ...options,
   });
+}
+
+/**
+ * Compact human-readable distance from the given instant to now, matching
+ * the internal ops-portal copy ("just now", "15m ago", "6h ago", "6d ago",
+ * "2mo ago"). Deliberately not locale-aware; future/unknown dates render
+ * as "just now" and null/undefined/invalid input as "".
+ */
+export function formatCompactDistanceToNow(
+  date: string | Date | number | null | undefined,
+): string {
+  if (date === null || date === undefined) return "";
+
+  const parsedDate =
+    typeof date === "number" || typeof date === "string"
+      ? new Date(date)
+      : date;
+  if (Number.isNaN(parsedDate.getTime())) return "";
+
+  const diffMs = Date.now() - parsedDate.getTime();
+  const minutes = Math.floor(diffMs / 60_000);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 30) return `${Math.floor(days / 30)}mo ago`;
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (minutes > 0) return `${minutes}m ago`;
+  return "just now";
 }
 
 export function formatRelativeDate(

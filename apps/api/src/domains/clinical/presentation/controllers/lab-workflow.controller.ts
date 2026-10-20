@@ -162,10 +162,24 @@ export class LabWorkflowController {
   async releaseResult(
     @Param('id') id: string,
     @Request() req: RequestWithUser,
-  ): Promise<{ success: true }> {
-    const { clinicId } = getClinicStaffRequestContext(req);
-    await this.labWorkflowCommandService.releaseResult(id, clinicId);
-    return { success: true };
+  ): Promise<{
+    success: true;
+    outcome:
+      | 'RELEASED_AND_NOTIFIED'
+      | 'RELEASED_NOTIFICATION_PENDING'
+      | 'ALREADY_RELEASED';
+  }> {
+    const { clinicId, userId } = getClinicStaffRequestContext(req);
+    const outcome = await this.labWorkflowCommandService.releaseResult(
+      id,
+      clinicId,
+      userId,
+    );
+    // ALREADY_RELEASED is reported rather than thrown: a double-clicked Release
+    // is a no-op, not a client error. RELEASED_NOTIFICATION_PENDING is a real
+    // success with an undelivered message, so the caller can tell the user the
+    // patient has not been reached yet.
+    return { success: true, outcome };
   }
 
   @Get('labs')

@@ -25,12 +25,25 @@ const patientListCopy: Record<string, string> = {
   tableEmptyTitle: "No patients found",
   tableEmptyDescription: "No results for {query}.",
   tableEmptyDescriptionFallback: "No patients to show.",
+  paginationShowing_one: "Showing {count} patient",
+  paginationShowing_other: "Showing {start}-{end} of {count} patients",
+  paginationPrevious: "Previous",
+  paginationNext: "Next",
 };
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, params?: Record<string, string | number>) => {
-      const template = patientListCopy[key] ?? key;
+      // i18next resolves the `key_one` / `key_other` cardinal suffixes when a
+      // `count` param is present.
+      const pluralKey =
+        params && "count" in params
+          ? `${key}_${Number(params.count) === 1 ? "one" : "other"}`
+          : undefined;
+      const template =
+        patientListCopy[key] ??
+        (pluralKey ? patientListCopy[pluralKey] : undefined) ??
+        key;
       if (!params) return template;
       return template.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ""));
     },
@@ -118,5 +131,55 @@ describe("PatientsPageUI", () => {
     expect(screen.getByPlaceholderText("Search by name or phone…")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Clear"));
     expect(baseProps.onClearSearch).toHaveBeenCalled();
+  });
+
+  it("summarises the visible row range instead of repeating the page number", () => {
+    render(
+      <PatientsPageUI
+        {...baseProps}
+        totalPatients={42}
+        currentPage={2}
+        canGoPrev
+        canGoNext
+      />,
+    );
+    expect(screen.getByText("Showing 26-27 of 42 patients")).toBeInTheDocument();
+  });
+
+  it("wires the pagination controls to their handlers", () => {
+    render(
+      <PatientsPageUI
+        {...baseProps}
+        totalPatients={42}
+        currentPage={2}
+        canGoPrev
+        canGoNext
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Previous" }));
+    expect(baseProps.onPrevPage).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(baseProps.onNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps paging available when a search returns no rows on a later page", () => {
+    render(
+      <PatientsPageUI
+        {...baseProps}
+        searchQuery="zzz"
+        filteredPatients={[]}
+        totalPatients={0}
+        currentPage={3}
+        canGoPrev
+      />,
+    );
+    // No row range is meaningful here, so the summary is omitted...
+    expect(screen.queryByText(/^Showing /)).toBeNull();
+    // ...but the user must still be able to page back out of the empty page.
+    const prev = screen.getByRole("button", { name: "Previous" });
+    expect(prev).toBeEnabled();
+    fireEvent.click(prev);
+    expect(baseProps.onPrevPage).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Next" })).toBeInTheDocument();
   });
 });

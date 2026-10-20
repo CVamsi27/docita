@@ -1,0 +1,19 @@
+-- Claim fencing for background queue jobs (backlog A01).
+--
+-- `PostgresQueueService` acknowledged work with `UPDATE ... WHERE id = ?`, so a
+-- worker whose lease had already been reclaimed by stale-recovery could still
+-- overwrite the outcome of the job's new owner. Two workers around a lease
+-- expiry could therefore both run the handler and then race each other's
+-- acknowledgment, losing a business effect or resurrecting a finished job.
+--
+-- `claimToken` records which claim an acknowledgment belongs to. Every
+-- transition out of ACTIVE now matches on (id, claimToken), so a stale
+-- worker's write is rejected instead of clobbering the current owner.
+--
+-- Existing rows keep a NULL claimToken, which is the "no active claim" state:
+-- a pre-deploy ACTIVE row with no token can be recovered normally.
+--
+-- No index is added for claimToken: every fenced transition filters on the
+-- primary key first (`WHERE id = ... AND "claimToken" = ...`), so the existing
+-- primary-key lookup already covers it.
+ALTER TABLE "QueueJob" ADD COLUMN "claimToken" TEXT;

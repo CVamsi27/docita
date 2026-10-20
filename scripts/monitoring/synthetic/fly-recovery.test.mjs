@@ -86,6 +86,12 @@ test("shouldAttemptFlyRecovery rejects non-recoverable failures", async () => {
   assert.equal(shouldAttemptFlyRecovery("Unexpected liveness payload"), false);
 });
 
+test("TLS certificate failures do not restart a healthy origin process", async () => {
+  const { shouldAttemptFlyRecovery } = await importFresh();
+  assert.equal(shouldAttemptFlyRecovery("Expected 200, got 525"), false);
+  assert.equal(shouldAttemptFlyRecovery("Got 526 Invalid SSL Certificate"), false);
+});
+
 // ---------------------------------------------------------------------------
 // restartFlyAppMachines (mocked HTTP)
 // ---------------------------------------------------------------------------

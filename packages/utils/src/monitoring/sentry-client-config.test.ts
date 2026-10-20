@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createSentryClientConfig } from "./sentry-client-config.js";
 
 // The loader treats NODE_ENV=development as "Sentry disabled" and reads
@@ -48,6 +48,47 @@ function createFakeSentry() {
 }
 
 describe("createSentryClientConfig", () => {
+  it("sanitizes transactions and logs through the registered outbound callbacks", async () => {
+    const events = {
+      transaction: {
+        request: { url: "/upload-signature/synthetic-capability-canary" },
+      },
+      log: {
+        message: "GET /reset-password?token=synthetic-capability-canary",
+        attributes: { url: "/upload-signature/synthetic-capability-canary" },
+      },
+    };
+    let sentTransaction: unknown;
+    let sentLog: unknown;
+    const { module } = createFakeSentry();
+    const config = createSentryClientConfig({
+      importModule: async () => ({
+        ...module,
+        init(options: {
+          beforeSendTransaction?: (event: typeof events.transaction) => unknown;
+          beforeSendLog?: (log: typeof events.log) => unknown;
+        }) {
+          sentTransaction = options.beforeSendTransaction
+            ? options.beforeSendTransaction(events.transaction)
+            : events.transaction;
+          sentLog = options.beforeSendLog
+            ? options.beforeSendLog(events.log)
+            : events.log;
+        },
+      }),
+      dsn: "https://example.sentry.io/dsn",
+      getContext: () => null,
+      applyContext: () => undefined,
+    });
+    config.initializeSentryClient();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(sentTransaction).toBeDefined();
+    expect(sentLog).toBeDefined();
+    expect(JSON.stringify({ sentTransaction, sentLog })).not.toContain(
+      "synthetic-capability-canary",
+    );
+  });
+
   it("initializes Sentry with the shared init options and applies context", async () => {
     const { module, calls } = createFakeSentry();
     const config = createSentryClientConfig<typeof module, { userId: string }>({
@@ -72,7 +113,9 @@ describe("createSentryClientConfig", () => {
     expect(options["sendDefaultPii"]).toBe(false);
     const ignoreErrors = options["ignoreErrors"] as Array<string | RegExp>;
     expect(ignoreErrors).toContain("ResizeObserver loop limit exceeded");
-    expect(ignoreErrors.some((e) => e instanceof RegExp && e.test("ChunkLoadError"))).toBe(true);
+    expect(
+      ignoreErrors.some((e) => e instanceof RegExp && e.test("ChunkLoadError")),
+    ).toBe(true);
     expect(calls.some((c) => c.method === "setUser")).toBe(true);
     expect(calls.some((c) => c.method === "setTag")).toBe(true);
   });
@@ -94,9 +137,7 @@ describe("createSentryClientConfig", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const exceptionCall = calls.find(
-      (c) => c.method === "captureException",
-    );
+    const exceptionCall = calls.find((c) => c.method === "captureException");
     expect(exceptionCall?.args[0]).toBeInstanceOf(Error);
     expect(config.logger).toBeDefined();
   });

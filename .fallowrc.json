@@ -1,14 +1,17 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
   "entry": [
+    "scripts/db/backup-database.mjs",
+    "scripts/db/check-backup-freshness.mjs",
+    "scripts/db/run-backup-monitor.mjs",
+    "scripts/db/run-backup-writer.mjs",
+    "scripts/db/run-backup-cycle.mjs",
+    "scripts/deploy/run-backup-container.mjs",
     "src/index.{ts,tsx,js,jsx}",
     "src/main.{ts,tsx,js,jsx}"
   ],
   "workspaces": {
-    "packages": [
-      "apps/*",
-      "packages/*"
-    ]
+    "packages": ["apps/*", "packages/*"]
   },
   "duplicates": {
     "minTokens": 300,
@@ -31,6 +34,7 @@
   "ignoreDependencies": [
     "@nestjs/schematics",
     "@workspace/db",
+    "@workspace/auth",
     "supertest",
     "tsconfig-paths",
     "axe-playwright"
@@ -44,12 +48,11 @@
     "**/*.spec.mjs",
     "**/e2e/**",
     "**/test/**",
+    "apps/api/src/test-utils/**",
     "**/next-env.d.ts",
     "docs/**"
   ],
-  "ignoreUnresolvedImports": [
-    "**/.next/types/**"
-  ],
+  "ignoreUnresolvedImports": ["**/.next/types/**"],
   "health": {
     "maxCyclomatic": 9999,
     "maxCognitive": 9999,

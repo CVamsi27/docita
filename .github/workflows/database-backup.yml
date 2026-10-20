@@ -1,0 +1,61 @@
+name: Encrypted database backup
+
+on:
+  schedule:
+    # GitHub may delay or drop scheduled jobs; Sentry independently detects missed cycles.
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: docita-production-database-backup
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  backup:
+    if: >-
+      github.repository == 'CVamsi27/docita' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+      vars.DOCITA_BACKUPS_ENABLED == 'true'
+    environment: Database Backups
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Use supported Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22.22.0
+          package-manager-cache: false
+
+      - name: Run encrypted writer and independent credential reader
+        env:
+          DOCITA_BACKUPS_ENABLED: ${{ vars.DOCITA_BACKUPS_ENABLED }}
+          DOCITA_BACKUP_IMAGE: ${{ vars.DOCITA_BACKUP_IMAGE }}
+          GITHUB_TOKEN: ${{ github.token }}
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_ACCESS_KEY_ID: ${{ secrets.BACKUP_ACCESS_KEY_ID }}
+          BACKUP_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_SECRET_ACCESS_KEY }}
+          BACKUP_S3_ENDPOINT: ${{ vars.BACKUP_S3_ENDPOINT }}
+          BACKUP_BUCKET: docita-db-backups
+          BACKUP_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+          BACKUP_SOURCE_ID: docita-production
+          BACKUP_MONITOR_ACCESS_KEY_ID: ${{ secrets.BACKUP_MONITOR_ACCESS_KEY_ID }}
+          BACKUP_MONITOR_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_MONITOR_SECRET_ACCESS_KEY }}
+          BACKUP_MONITOR_S3_ENDPOINT: ${{ vars.BACKUP_S3_ENDPOINT }}
+          BACKUP_MONITOR_BUCKET: docita-db-backups
+          BACKUP_MONITOR_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+          BACKUP_CYCLE_SENTRY_DSN: ${{ secrets.BACKUP_CYCLE_SENTRY_DSN }}
+          BACKUP_CYCLE_SENTRY_SLUG: ${{ vars.BACKUP_CYCLE_SENTRY_SLUG }}
+        run: node scripts/deploy/run-backup-container.mjs

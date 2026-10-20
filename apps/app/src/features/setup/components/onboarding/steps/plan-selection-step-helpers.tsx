@@ -24,6 +24,7 @@ export const BillingCycleToggle: FC<BillingCycleToggleProps> = ({
       <Button
         variant={billingCycle === "MONTHLY" ? "default" : "ghost"}
         size="sm"
+        aria-pressed={billingCycle === "MONTHLY"}
         onClick={() => onChange("MONTHLY")}
       >
         Monthly
@@ -31,6 +32,7 @@ export const BillingCycleToggle: FC<BillingCycleToggleProps> = ({
       <Button
         variant={billingCycle === "YEARLY" ? "default" : "ghost"}
         size="sm"
+        aria-pressed={billingCycle === "YEARLY"}
         onClick={() => onChange("YEARLY")}
       >
         Yearly{" "}

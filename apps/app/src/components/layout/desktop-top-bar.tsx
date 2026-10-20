@@ -15,7 +15,7 @@ export function DesktopTopBar() {
   }));
 
   return (
-    <div className="hidden md:block">
+    <div className="hidden lg:block">
       <TopBar
         leading={
           <Breadcrumbs

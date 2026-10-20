@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@workspace/db';
 import { ErrorTrackingService } from './error-tracking.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { TelemetryCaptureRecorder } from '@/shared/modules/monitoring/monitoring/services/telemetry-capture-recorder.service';
+import { createTelemetryCaptureRecorderStub } from '@/test-utils/telemetry-capture-recorder.mock';
+import type { TelemetryCaptureRecorderStub } from '@/test-utils/telemetry-capture-recorder.mock';
 import { MonitoringFactory } from '@/shared/modules/monitoring/monitoring/factories/monitoring.factory';
 import { ErrorLogInput } from '@/shared/modules/monitoring/monitoring/schemas/monitoring.schema';
 import {
@@ -16,6 +19,7 @@ import { clockPortTestProvider } from '@/test-utils';
 
 describe('ErrorTrackingService', () => {
   let service: ErrorTrackingService;
+  let captureRecorder: TelemetryCaptureRecorderStub;
   let prismaService: {
     errorLog: {
       createMany: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
@@ -53,17 +57,26 @@ describe('ErrorTrackingService', () => {
   };
 
   beforeEach(async () => {
+    // Reset the source mock, not the module-scoped alias: several tests swap
+    // createMany for a rejecting implementation.
+    mockPrismaService.errorLog.createMany = jest.fn();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ErrorTrackingService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: MonitoringFactory, useValue: mockMonitoringFactory },
+        {
+          provide: TelemetryCaptureRecorder,
+          useValue: createTelemetryCaptureRecorderStub(),
+        },
         clockPortTestProvider(),
       ],
     }).compile();
 
     service = module.get<ErrorTrackingService>(ErrorTrackingService);
     prismaService = module.get<typeof prismaService>(PrismaService);
+    captureRecorder = module.get(TelemetryCaptureRecorder) as never;
   });
 
   afterEach(() => {
@@ -126,9 +139,69 @@ describe('ErrorTrackingService', () => {
     await service.flushBuffer();
 
     expect(prismaService.errorLog.createMany).toHaveBeenCalledTimes(1);
+    // The table is genuinely missing, so the buffer is released and the loss is
+    // recorded rather than retried forever.
     expect(service['errorBuffer']).toHaveLength(0);
+    expect(captureRecorder.recordDisabled).toHaveBeenCalledWith(
+      'MISSING_MONITORING_TABLES',
+      1,
+      0,
+    );
 
     service.logError(sampleError);
+    expect(service['errorBuffer']).toHaveLength(0);
+    // Counted as a drop, not silently accepted.
+    expect(service.getDroppedErrorCount()).toBe(2);
+  });
+
+  /**
+   * The defect this closes: flushBuffer spliced the batch before writing, so one
+   * transient failure permanently discarded up to 100 error rows with no trace.
+   */
+  it('retains the batch on a transient write failure', async () => {
+    prismaService.errorLog.createMany.mockImplementationOnce(async () =>
+      Promise.reject(new Error('deadlock detected')),
+    );
+
+    service.logError(sampleError);
+    await service.flushBuffer();
+
     expect(service['errorBuffer']).toHaveLength(1);
+    expect(service['persistenceDisabled']).toBe(false);
+    expect(captureRecorder.recordDisabled).not.toHaveBeenCalled();
+  });
+
+  it('persists the correlation id that joins the error to its request row', async () => {
+    service.logError({
+      type: 'InternalServerError',
+      message: 'boom',
+      correlationId: 'corr-12345678',
+    });
+
+    await service.flushBuffer();
+
+    const { data } = prismaService.errorLog.createMany.mock.calls[0]?.[0] as {
+      data: Array<{ correlationId: string | null }>;
+    };
+    expect(data[0]?.correlationId).toBe('corr-12345678');
+  });
+
+  it('stores a null correlation id when there is no request to join to', async () => {
+    service.logError({ type: 'SchedulerError', message: 'tick failed' });
+
+    await service.flushBuffer();
+
+    const { data } = prismaService.errorLog.createMany.mock.calls[0]?.[0] as {
+      data: Array<{ correlationId: string | null }>;
+    };
+    expect(data[0]?.correlationId).toBeNull();
+  });
+
+  it('flushes capture events retained while the database was unavailable', async () => {
+    service.logError(sampleError);
+
+    await service.flushBuffer();
+
+    expect(captureRecorder.flushPending).toHaveBeenCalled();
   });
 });

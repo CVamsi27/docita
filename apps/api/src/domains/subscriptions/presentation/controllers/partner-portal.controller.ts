@@ -3,10 +3,13 @@
 // request via the guard-set symbol; replacing either with a predicate
 // would duplicate the guard or the schema.
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   Header,
+  HttpCode,
+  Post,
   Put,
   Query,
   Req,
@@ -18,6 +21,8 @@ import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { ReferralPayoutStatus, ReferralStatus } from '@workspace/db';
 import {
+  facilityLeadSubmitSchema,
+  type FacilityLeadView,
   referrerPayoutDetailsInputSchema,
   type PartnerMe,
   type ReferrerPayoutDetailsView,
@@ -25,6 +30,8 @@ import {
   type PartnerReferralRow,
 } from '@workspace/types';
 import { PartnerPortalService } from '../../core/services/partner-portal.service';
+import { FacilityLeadSubmissionCommandService } from '../../core/services/facility-lead-submission-command.service';
+import { createZodValidationException } from '@/shared/common/utils/zod-exception.util';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import {
   PARTNER_AUTH_REQUEST_KEY,
@@ -50,7 +57,10 @@ const WRITE_RATE_LIMIT = {
 @UseGuards(PartnerAuthGuard)
 @Controller('partner')
 export class PartnerPortalController {
-  constructor(private readonly portal: PartnerPortalService) {}
+  constructor(
+    private readonly portal: PartnerPortalService,
+    private readonly leadService: FacilityLeadSubmissionCommandService,
+  ) {}
 
   @Get('me')
   @Throttle(READ_RATE_LIMIT)
@@ -122,11 +132,48 @@ export class PartnerPortalController {
     const { referrerId } = this.context(req);
     const parsed = referrerPayoutDetailsInputSchema.safeParse(body);
     if (!parsed.success) {
-      // Re-throw as the framework-shaped error so the validation message
-      // is surfaced; ZodError → NestJS BadRequest handled globally.
-      throw parsed.error;
+      // A raw ZodError would fall through the AllExceptionsFilter resolvers
+      // to a 500; wrap it the same way the global ZodValidationPipe does so
+      // the filter returns 400 with a field-level `validationErrors` map.
+      throw createZodValidationException(parsed.error);
     }
     return this.portal.upsertPayoutDetails(referrerId, parsed.data);
+  }
+
+  @Get('me/leads')
+  @Throttle(READ_RATE_LIMIT)
+  @ApiOperation({
+    summary: 'Paginated facility leads submitted by the partner (read-only)',
+  })
+  async listMyLeads(
+    @Req() req: Request,
+    @Query('limit') limitRaw?: string,
+    @Query('cursor') cursor?: string,
+  ): Promise<{ items: FacilityLeadView[]; nextCursor: string | null }> {
+    const { referrerId } = this.context(req);
+    const limit = limitRaw ? Math.max(1, Math.min(200, Number(limitRaw))) : 50;
+    return this.portal.listMyLeads(referrerId, { limit, cursor });
+  }
+
+  @Post('me/leads')
+  @HttpCode(200)
+  @Throttle(WRITE_RATE_LIMIT)
+  @ApiOperation({
+    summary:
+      'Submit a facility lead (prospective customer) for Docita follow-up',
+  })
+  async submitLead(
+    @Req() req: Request,
+    @Body() body: unknown,
+  ): Promise<FacilityLeadView> {
+    const { referrerId } = this.context(req);
+    const parsed = facilityLeadSubmitSchema.safeParse(body);
+    if (!parsed.success) {
+      // The global filter maps only nestjs-zod exceptions; throw the
+      // framework-shaped error like the other safeParse controllers.
+      throw new BadRequestException('Invalid lead submission');
+    }
+    return this.leadService.submitLead(referrerId, parsed.data);
   }
 
   @Get('me/share-message')

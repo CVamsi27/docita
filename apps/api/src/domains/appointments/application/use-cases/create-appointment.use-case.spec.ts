@@ -38,21 +38,34 @@ describe('CreateAppointmentUseCase', () => {
     );
   });
 
-  it('throws when the doctor has an overlapping visit', async () => {
-    validateOverlapMock.mockResolvedValueOnce({
-      hasConflict: true,
-      conflict: {
-        id: 'existing-1',
-        startTime: new Date('2026-05-10T10:15:00.000Z'),
-        endTime: new Date('2026-05-10T10:45:00.000Z'),
-      },
-    });
-
-    await expect(useCase.execute(command)).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
-    expect(writeRepository.save).not.toHaveBeenCalled();
-  });
+  it.each([
+    {
+      id: 'existing-1',
+      startTime: new Date('2026-05-10T10:15:00Z'),
+      endTime: new Date('2026-05-10T10:45:00Z'),
+    },
+    undefined,
+  ])(
+    'returns the same overlap contract regardless of conflict metadata: %s',
+    async (conflict) => {
+      validateOverlapMock.mockResolvedValueOnce({
+        hasConflict: true,
+        conflict,
+      });
+      const error: unknown = await useCase
+        .execute(command)
+        .catch((caught: unknown) => caught);
+      expect(error).toBeInstanceOf(BadRequestException);
+      if (!(error instanceof BadRequestException))
+        throw new Error('Expected an appointment overlap rejection');
+      expect(error.getResponse()).toEqual({
+        code: 'APPOINTMENT_OVERLAP',
+        detail: 'Doctor has conflicting appointment',
+        validationErrors: { startTime: 'Doctor has conflicting appointment' },
+      });
+      expect(writeRepository.save).not.toHaveBeenCalled();
+    },
+  );
 
   it('persists when no overlap is reported', async () => {
     validateOverlapMock.mockResolvedValueOnce({ hasConflict: false });

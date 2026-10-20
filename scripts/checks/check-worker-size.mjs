@@ -68,7 +68,7 @@ function resolveWranglerBundlePath(cwd, wranglerEnv) {
     // Wrangler names the bundle after the main entry file: OpenNext-era
     // workers emitted `worker.js`; the Vite SPAs build `api/index.ts`, which
     // wrangler emits as `index.js`. Accept either.
-    const bundlePath = ["worker.js", "index.js"]
+    const bundlePath = ["worker.js", "index.js", "entry.mjs"]
       .map((file) => path.join(outdir, file))
       .find((candidate) => existsSync(candidate));
     if (!bundlePath) {

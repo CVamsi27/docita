@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { withoutGitEnvironment } from "./test/standards-fixture-env.mjs";
 
 const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -22,13 +23,13 @@ function write(root, file, content) {
   writeFileSync(target, content);
 }
 
-function makeGitFixture(files) {
+function makeGitFixture(files, environment = process.env) {
   const root = mkdtempSync(path.join(tmpdir(), "docita-check-"));
-  execFileSync("git", ["init", "-q"], { cwd: root });
+  execFileSync("git", ["init", "-q"], { cwd: root, env: withoutGitEnvironment(environment) });
   for (const [file, content] of Object.entries(files)) {
     write(root, file, content);
   }
-  execFileSync("git", ["add", "."], { cwd: root });
+  execFileSync("git", ["add", "."], { cwd: root, env: withoutGitEnvironment(environment) });
   return root;
 }
 
@@ -36,7 +37,7 @@ function runCheck(root, name, args = [], env = {}) {
   return spawnSync(NODE, [script(name), ...args], {
     cwd: root,
     encoding: "utf8",
-    env: { ...process.env, DOCITA_CHECK_ROOT: root, ...env },
+    env: withoutGitEnvironment({ ...process.env, DOCITA_CHECK_ROOT: root, ...env }),
   });
 }
 
@@ -132,6 +133,25 @@ test("check-as-cast-density fails on a file with as-casts and passes clean files
   );
 });
 
+test("check-as-cast-density excludes multiline aliases but still checks following assertions", () => {
+  const aliases =
+    'export {\n value as renamed,\n} from "./source";\nexport type {\n Shape as RenamedShape,\n} from "./types";\nexport * as namespace from "./module";\n';
+  expectPass(
+    runCheck(
+      makeGitFixture({ "apps/app/src/x.ts": aliases }),
+      "check-as-cast-density.mjs",
+    ),
+  );
+  expectFail(
+    runCheck(
+      makeGitFixture({
+        "apps/app/src/x.ts": aliases + "const value = input as string;\n",
+      }),
+      "check-as-cast-density.mjs",
+    ),
+  );
+});
+
 test("check-empty-catches rejects empty catch blocks", () => {
   expectFail(
     runCheck(
@@ -166,7 +186,8 @@ test("check-detached-promises rejects void this calls without .catch", () => {
   expectPass(
     runCheck(
       makeGitFixture({
-        "apps/api/src/x.ts": "void this.runAsync().catch((e) => this.logger.error(e));",
+        "apps/api/src/x.ts":
+          "void this.runAsync().catch((e) => this.logger.error(e));",
       }),
       "check-detached-promises.mjs",
       ["--enforce"],

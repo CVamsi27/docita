@@ -36,9 +36,13 @@ export function PublicBookingProgressChrome({
             {facilityWord}
           </p>
         </div>
+        {/* Decorative step dots. The `Progress` bar below this row is the exposed
+            progressbar and carries the real accessible name, so the dots are
+            hidden wholesale instead of carrying an aria-label that a generic
+            div silently discards. */}
         <div
+          aria-hidden
           className="flex shrink-0 items-center gap-1.5"
-          aria-label={`Step ${stepIndex + 1} of ${stepCount}`}
         >
           {Array.from({ length: stepCount }).map((_, i) => (
             <div

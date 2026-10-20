@@ -39,7 +39,7 @@ the per-phase tracker was the working plan and was not carried into the tree.
 | Route | Page / feature | Notes |
 |---|---|---|
 | `/choose-path` | `setup/pages/choose-path` | New clinic vs join existing |
-| `/clinic-selection` | `setup/pages/clinic-selection-page` | |
+
 | `/join-clinic` | `setup/pages/join-clinic-page` | Join-code flow |
 | `/join-request-status` | `setup/pages/join-request-status-page` | |
 | `/onboarding` | `setup/pages/onboarding-page` | Multi-step onboarding incl. compliance + SLA signature |

@@ -13,6 +13,7 @@ import { AppointmentStatus } from '@/domains/appointments/core/value-objects/app
 import { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import type { JsonValue } from '@workspace/types';
 import { randomUUID } from 'crypto';
+import { appointmentOverlapProblem } from '@/shared/common/errors/appointment-overlap-problem';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 export interface CreateAppointmentCommand {
@@ -54,14 +55,7 @@ export class CreateAppointmentUseCase {
       command.endTime,
     );
     if (overlap.hasConflict) {
-      throw new BadRequestException({
-        detail: 'Doctor has conflicting appointment',
-        validationErrors: overlap.conflict
-          ? {
-              startTime: `Overlaps with appointment ${overlap.conflict.id} (${overlap.conflict.startTime.toISOString()}–${overlap.conflict.endTime.toISOString()})`,
-            }
-          : undefined,
-      });
+      throw appointmentOverlapProblem();
     }
 
     // AuditLogged: appointment creation

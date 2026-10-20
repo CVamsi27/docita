@@ -77,13 +77,13 @@ export function ConsultationHeaderPatientSummary({
   return (
     <div className="flex items-center gap-3 min-w-0">
       <Avatar className="h-9 w-9 shrink-0">
-        <AvatarFallback className="border border-primary/20 bg-primary/5 text-primary text-xs font-semibold">
+        <AvatarFallback className="border border-primary/20 bg-primary/5 text-foreground text-xs font-semibold">
           {initials}
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-sm font-bold leading-tight truncate">
+          <h1 className="text-base font-bold leading-tight break-words">
             {patientName}
           </h1>
           {statusLabel ? (

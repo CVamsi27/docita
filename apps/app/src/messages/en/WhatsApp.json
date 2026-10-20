@@ -54,7 +54,14 @@
     "justNow": "just now",
     "minutesAgo": "m ago",
     "hoursAgo": "h ago",
-    "daysAgo": "d ago"
+    "daysAgo": "d ago",
+    "status": {
+      "QUEUED": "Queued",
+      "SENT": "Sent",
+      "DELIVERED": "Delivered",
+      "READ": "Read",
+      "FAILED": "Failed"
+    }
   },
   "campaigns": {
     "loading": "Loading campaigns...",

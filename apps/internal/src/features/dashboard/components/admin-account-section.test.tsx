@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent } from "@/test-utils";
 import { AdminAccountSection } from "./admin-account-section";
 import type { CreateClinicFormData, FieldErrors } from "../hooks/create-clinic-form-helpers";
 

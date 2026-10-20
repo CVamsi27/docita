@@ -6,7 +6,7 @@ import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import { LabTestOrderStatus } from '@workspace/db';
 import { CLOCK_PORT } from '@/shared/common/ports/clock.port';
 import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
-import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { LabResultReleaseService } from './lab-result-release.service';
 
 describe('LabWorkflowCommandService', () => {
   let service: LabWorkflowCommandService;
@@ -35,9 +35,20 @@ describe('LabWorkflowCommandService', () => {
 
   const workflowRepository = {
     verifyPayment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    findReleaseContext: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    markReleased: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     attachResult: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+  };
+
+  // Release and notification are owned by LabResultReleaseService, which owns
+  // the atomic claim. This spec covers the guard rules; the claim protocol is
+  // covered by lab-result-release.service.spec.ts.
+  const releaseService = {
+    releaseResult: jest.fn<
+      (input: {
+        orderId: string;
+        clinicId: string;
+        releasedBy: string;
+      }) => Promise<string>
+    >(async () => 'RELEASED_AND_NOTIFIED'),
   };
 
   const orderRepository = {
@@ -57,10 +68,7 @@ describe('LabWorkflowCommandService', () => {
           provide: StorageProvider,
           useValue: { upload: jest.fn(), supportsSignedUrls: false },
         },
-        {
-          provide: SendMessageUseCase,
-          useValue: { execute: jest.fn() },
-        },
+        { provide: LabResultReleaseService, useValue: releaseService },
         {
           provide: CLOCK_PORT,
           useValue: { now: () => new Date('2026-07-01T10:00:00.000Z') },
@@ -85,21 +93,6 @@ describe('LabWorkflowCommandService', () => {
     orderRepository.findOrderById
       .mockImplementationOnce(async () => pendingOrder)
       .mockImplementationOnce(async () => paidOrder);
-    workflowRepository.findReleaseContext.mockResolvedValue({
-      id: 'order-1',
-      clinicId: 'clinic-1',
-      status: LabTestOrderStatus.RESULT_READY,
-      resultUrl: 'lab-results/order-1.pdf',
-      paidAt: new Date('2026-07-01T09:00:00.000Z'),
-      testName: 'CBC',
-      clinicName: 'Docita Clinic',
-      patient: {
-        id: 'patient-1',
-        firstName: 'Ada',
-        lastName: 'Lovelace',
-        phoneNumber: null,
-      },
-    });
 
     await service.verifyPayment('order-1', 'clinic-1', {
       method: 'CASH',
@@ -108,11 +101,13 @@ describe('LabWorkflowCommandService', () => {
 
     expect(workflowRepository.verifyPayment).toHaveBeenCalled();
     expect(orderRepository.findOrderById).toHaveBeenCalledTimes(2);
-    expect(workflowRepository.markReleased).toHaveBeenCalledWith(
-      'order-1',
-      'clinic-1',
-      expect.any(Date),
-    );
+    // The auto path records who released it as the system, so the audit trail
+    // does not imply a clinician pressed Release.
+    expect(releaseService.releaseResult).toHaveBeenCalledWith({
+      orderId: 'order-1',
+      clinicId: 'clinic-1',
+      releasedBy: 'SYSTEM:auto-release',
+    });
   });
 
   it('rejects payment verification on a terminal (completed/cancelled) order', async () => {
@@ -178,49 +173,42 @@ describe('LabWorkflowCommandService', () => {
   });
 
   it('throws 400 when releasing a result with no uploaded file', async () => {
-    workflowRepository.findReleaseContext.mockResolvedValue({
-      id: 'order-1',
-      clinicId: 'clinic-1',
-      status: LabTestOrderStatus.RESULT_READY,
-      resultUrl: null,
-      paidAt: new Date('2026-07-01T09:00:00.000Z'),
-      testName: 'CBC',
-      clinicName: 'Docita Clinic',
-      patient: {
-        id: 'patient-1',
-        firstName: 'Ada',
-        lastName: 'Lovelace',
-        phoneNumber: null,
-      },
-    });
-
-    await expect(service.releaseResult('order-1', 'clinic-1')).rejects.toThrow(
-      'Upload a result before releasing it to the patient',
+    orderRepository.findOrderById.mockResolvedValue(
+      buildOrder({ paidAt: new Date() }),
     );
-    expect(workflowRepository.markReleased).not.toHaveBeenCalled();
+
+    await expect(
+      service.releaseResult('order-1', 'clinic-1', 'user-1'),
+    ).rejects.toThrow('Upload a result before releasing it to the patient');
+    expect(releaseService.releaseResult).not.toHaveBeenCalled();
   });
 
   it('throws 400 when releasing a result before payment is verified', async () => {
-    workflowRepository.findReleaseContext.mockResolvedValue({
-      id: 'order-1',
-      clinicId: 'clinic-1',
-      status: LabTestOrderStatus.RESULT_READY,
-      resultUrl: 'lab-results/order-1.pdf',
-      paidAt: null,
-      testName: 'CBC',
-      clinicName: 'Docita Clinic',
-      patient: {
-        id: 'patient-1',
-        firstName: 'Ada',
-        lastName: 'Lovelace',
-        phoneNumber: null,
-      },
-    });
-
-    await expect(service.releaseResult('order-1', 'clinic-1')).rejects.toThrow(
-      'Verify payment before releasing results to the patient',
+    orderRepository.findOrderById.mockResolvedValue(
+      buildOrder({ resultUrl: 'lab-results/order-1.pdf' }),
     );
-    expect(workflowRepository.markReleased).not.toHaveBeenCalled();
+
+    await expect(
+      service.releaseResult('order-1', 'clinic-1', 'user-1'),
+    ).rejects.toThrow('Verify payment before releasing results to the patient');
+    expect(releaseService.releaseResult).not.toHaveBeenCalled();
+  });
+
+  it('passes the releasing clinician through for the audit record', async () => {
+    orderRepository.findOrderById.mockResolvedValue(
+      buildOrder({
+        resultUrl: 'lab-results/order-1.pdf',
+        paidAt: new Date('2026-07-01T09:00:00.000Z'),
+      }),
+    );
+
+    await service.releaseResult('order-1', 'clinic-1', 'user-42');
+
+    expect(releaseService.releaseResult).toHaveBeenCalledWith({
+      orderId: 'order-1',
+      clinicId: 'clinic-1',
+      releasedBy: 'user-42',
+    });
   });
 
   it('records payment but skips release when no result has been uploaded yet', async () => {
@@ -277,7 +265,7 @@ describe('LabWorkflowCommandService', () => {
       { method: 'CARD', verifiedBy: 'staff-2' },
       expect.any(Date),
     );
-    // markReleased should not fire — there's no resultUrl yet so canRelease() is false
-    expect(workflowRepository.markReleased).not.toHaveBeenCalled();
+    // No release: there is no resultUrl yet so canRelease() is false.
+    expect(releaseService.releaseResult).not.toHaveBeenCalled();
   });
 });

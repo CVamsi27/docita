@@ -1,40 +1,33 @@
 import { useState, useEffect, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, Input, PageHeader, PageTabs, Textarea } from "@workspace/ui/components";
 import { Search, Send, MessageSquare } from "lucide-react";
-import { formatDistanceToNow, formatInternalTimestamp } from "../../../lib/formatters";
-import { apiGet, apiPost } from "@/lib/api/api-client";
+import { formatCompactDistanceToNow, formatDateTime, enIN } from "@workspace/utils";
+import { apiPost } from "@/lib/api/api-client";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface Thread { threadPhoneNumber: string; senderName?: string | null; lastMessageBody: string; lastMessageAt: string; unreadCount: number; lastMessageType: string; lastMessageDirection: string; }
 interface Message { id: string; body: string; from: string; createdAt: string; direction: string; }
 
 export function SupportPage() {
   const [activeTab, setActiveTab] = useState("whatsapp");
-  const [threads, setThreads] = useState<Thread[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
   const [search, setSearch] = useState("");
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
   const [replyMessage, setReplyMessage] = useState("");
-  const [loading, setLoading] = useState(true);
 
-  const fetchThreads = async () => {
-    setLoading(true);
-    try {
-      const data = await apiGet<Thread[]>("/api/internal/support/whatsapp");
-      setThreads(data);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  const fetchMessages = async (phone: string) => {
-    try {
-      const data = await apiGet<Message[]>(`/api/internal/support/whatsapp/${phone}/messages`);
-      setMessages(data);
-    } catch { /* ignore */ }
-  };
-
-  useEffect(() => { void fetchThreads(); }, []);
-
-  useEffect(() => { if (selectedPhone) { void fetchMessages(selectedPhone); } }, [selectedPhone]);
+  const {
+    data: threads = [],
+    isError: threadsError,
+    refetch: refetchThreads,
+  } = useApiQuery<Thread[]>("/api/internal/support/whatsapp");
+  const {
+    data: messages = [],
+    isLoading: messagesLoading,
+    isError: messagesError,
+    refetch: refetchMessages,
+  } = useApiQuery<Message[]>(
+    selectedPhone ? `/api/internal/support/whatsapp/${selectedPhone}/messages` : "",
+    { enabled: !!selectedPhone },
+  );
 
   const filteredThreads = useMemo(() =>
     threads.filter((t) => !search || t.threadPhoneNumber.includes(search) || (t.senderName?.toLowerCase() || "").includes(search.toLowerCase())),
@@ -46,13 +39,11 @@ export function SupportPage() {
 
   useEffect(() => { if (filteredThreads.length > 0 && !selectedPhone) { setSelectedPhone(filteredThreads[0]?.threadPhoneNumber ?? null); } }, [filteredThreads, selectedPhone]);
 
-  const handleSendReply = () => {
+  const handleSendReply = async () => {
     if (!selectedPhone || !replyMessage.trim()) return;
-    void (async () => {
-      await apiPost(`/api/internal/support/whatsapp/${selectedPhone}/reply`, { message: replyMessage });
-      setReplyMessage("");
-      await fetchMessages(selectedPhone);
-    })();
+    await apiPost(`/api/internal/support/whatsapp/${selectedPhone}/reply`, { message: replyMessage });
+    setReplyMessage("");
+    void refetchMessages();
   };
 
   const tabItems = [
@@ -79,7 +70,12 @@ export function SupportPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-3 p-4">
-              {filteredThreads.length === 0 ? (
+              {threadsError ? (
+                <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-center">
+                  <p className="text-sm text-destructive">We could not load WhatsApp conversations.</p>
+                  <Button variant="ghost" size="sm" className="mt-2" onClick={() => { void refetchThreads(); }}>Retry</Button>
+                </div>
+              ) : filteredThreads.length === 0 ? (
                 <div className="rounded-lg border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
                   No WhatsApp conversations found
                 </div>
@@ -94,7 +90,7 @@ export function SupportPage() {
                       </div>
                       <p className="line-clamp-2 text-sm text-muted-foreground">{thread.lastMessageBody}</p>
                     </div>
-                    <div className="shrink-0 text-xs text-muted-foreground">{formatDistanceToNow(thread.lastMessageAt)}</div>
+                    <div className="shrink-0 text-xs text-muted-foreground">{formatCompactDistanceToNow(thread.lastMessageAt)}</div>
                   </div>
                 </Button>
               ))}
@@ -108,15 +104,17 @@ export function SupportPage() {
                   <CardTitle>{currentThread.senderName || currentThread.threadPhoneNumber}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 p-5">
-                  <DataState status={loading ? "loading" : messages.length === 0 ? "empty" : "success"}
+                  <DataState status={messagesError ? "error" : messagesLoading ? "loading" : messages.length === 0 ? "empty" : "success"}
                     loadingMessage="Loading messages…" emptyTitle="No messages yet"
-                    emptyDescription="Messages will appear when the conversation starts." emptyIcon={MessageSquare}>
+                    emptyDescription="Messages will appear when the conversation starts." emptyIcon={MessageSquare}
+                    errorMessage="We could not load this conversation. Please try again."
+                    onRetry={() => { void refetchMessages(); }}>
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {messages.map((msg) => (
                         <div key={msg.id} className={`flex ${msg.direction === "INBOUND" ? "justify-start" : "justify-end"}`}>
                           <div className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.direction === "INBOUND" ? "bg-muted" : "bg-primary text-primary-foreground"}`}>
                             <p className="text-sm">{msg.body}</p>
-                            <p className="text-xs opacity-70 mt-1">{formatInternalTimestamp(msg.createdAt)}</p>
+                            <p className="text-xs opacity-70 mt-1">{formatDateTime(msg.createdAt, undefined, { locale: enIN })}</p>
                           </div>
                         </div>
                       ))}

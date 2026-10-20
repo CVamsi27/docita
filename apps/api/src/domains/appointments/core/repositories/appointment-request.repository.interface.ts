@@ -46,6 +46,14 @@ export interface IAppointmentRequestRepository {
     id: string,
     clinicId: string,
   ): Promise<AppointmentRequestWithRelations | null>;
+  /**
+   * The PENDING request holding a slot identity, if any. Used to return the
+   * original request when a retried or concurrent public submission loses the
+   * unique index race.
+   */
+  findPendingBySlotKey(
+    pendingSlotKey: string,
+  ): Promise<AppointmentRequestWithRelations | null>;
   update(
     id: string,
     clinicId: string,
@@ -57,7 +65,10 @@ export interface IAppointmentRequestRepository {
     status: AppointmentRequestStatus;
     reviewedById: string;
     responseMessage: string;
-  }): Promise<AppointmentRequestWithRelations>;
+    /** Optimistic-concurrency guard: transition only applies when the current
+     *  status still matches; the call resolves null when it did not. */
+    expectedStatus?: AppointmentRequestStatus;
+  }): Promise<AppointmentRequestWithRelations | null>;
   findMatchingAppointment(
     input: AppointmentRequestMatchingAppointmentInput,
   ): Promise<{ id: string } | null>;

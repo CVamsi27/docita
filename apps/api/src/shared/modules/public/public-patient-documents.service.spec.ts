@@ -1,6 +1,10 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import { PublicPatientDocumentsService } from './public-patient-documents.service';
 import { PublicDocumentTokenService } from './public-document-token.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { getCurrentTenant } from '@/shared/common/middleware/tenant.middleware';
+import { RlsService } from '@/shared/modules/rls/rls.service';
+import { activeTxStorage } from '@/shared/modules/rls/active-tx.storage';
 
 const TEST_SECRET = 'a-32-char-secret-for-testing-only!!';
 
@@ -10,13 +14,32 @@ function createTokenService(): PublicDocumentTokenService {
   } as never);
 }
 
+// Prisma queries start when their thenable is consumed, not when the delegate is called.
+function deferredQuery<T>(query: () => T): PromiseLike<T> {
+  return {
+    then(onFulfilled, onRejected) {
+      return Promise.resolve().then(query).then(onFulfilled, onRejected);
+    },
+  };
+}
+
 describe('PublicPatientDocumentsService', () => {
+  const transaction = {};
   const prisma = {
+    runUnrestricted: PrismaService.prototype.runUnrestricted,
+    $transaction: async <T>(fn: (tx: typeof transaction) => Promise<T>) =>
+      fn(transaction),
     prescription: { findUnique: jest.fn() },
     invoice: { findUnique: jest.fn() },
     paymentSession: { findUnique: jest.fn() },
   };
   const tokenService = createTokenService();
+  const rls = new RlsService(
+    prisma as never,
+    {
+      isRlsEnabled: () => false,
+    } as never,
+  );
   const storageProvider = { getObject: jest.fn() };
   const prescriptionPdfOrchestrator = { generatePDF: jest.fn() };
   const invoicesService = {
@@ -28,13 +51,14 @@ describe('PublicPatientDocumentsService', () => {
   let service: PublicPatientDocumentsService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     service = new PublicPatientDocumentsService(
       prisma as never,
       tokenService,
       storageProvider as never,
       prescriptionPdfOrchestrator as never,
       invoicesService as never,
+      rls,
     );
   });
 
@@ -121,6 +145,8 @@ describe('PublicPatientDocumentsService', () => {
       await expect(
         service.getPrescriptionPdf('invalid-token', ipAddress, userAgent),
       ).rejects.toBeInstanceOf(BadRequestException);
+      expect(prisma.prescription.findUnique).not.toHaveBeenCalled();
+      expect(storageProvider.getObject).not.toHaveBeenCalled();
     });
 
     it('throws when token type is wrong', async () => {
@@ -130,6 +156,7 @@ describe('PublicPatientDocumentsService', () => {
       await expect(
         service.getPrescriptionPdf(token, ipAddress, userAgent),
       ).rejects.toBeInstanceOf(NotFoundException);
+      expect(prisma.prescription.findUnique).not.toHaveBeenCalled();
     });
 
     it('throws when prescription is missing', async () => {
@@ -207,6 +234,7 @@ describe('PublicPatientDocumentsService', () => {
       await expect(
         service.getInvoicePdf(token, ipAddress, userAgent),
       ).rejects.toBeInstanceOf(NotFoundException);
+      expect(prisma.invoice.findUnique).not.toHaveBeenCalled();
     });
 
     it('throws when invoice is missing', async () => {
@@ -220,6 +248,26 @@ describe('PublicPatientDocumentsService', () => {
   });
 
   describe('resolvePaymentRedirectUrl', () => {
+    it('resolves an anonymous payment capability without leaking a tenant bypass to its caller', async () => {
+      prisma.paymentSession.findUnique.mockImplementation(() =>
+        deferredQuery(() => {
+          if (!getCurrentTenant()?.bypassed) {
+            throw new Error('PaymentSession requires a tenant context');
+          }
+          return {
+            shortUrl: 'https://rzp.io/l/anonymous-capability',
+            paymentLink: null,
+            status: 'CREATED',
+          };
+        }),
+      );
+
+      await expect(service.resolvePaymentRedirectUrl('pay-1')).resolves.toBe(
+        'https://rzp.io/l/anonymous-capability',
+      );
+      expect(getCurrentTenant()).toBeUndefined();
+    });
+
     it('redirects to Razorpay when payment session is active', async () => {
       prisma.paymentSession.findUnique.mockResolvedValue({
         shortUrl: 'https://rzp.io/l/abc',
@@ -276,4 +324,109 @@ describe('PublicPatientDocumentsService', () => {
       ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
+
+  it('generates a signed prescription PDF within the resolved clinic, without retaining its lookup bypass', async () => {
+    const token = tokenService.sign('prescription', 'rx-scoped');
+    prisma.prescription.findUnique.mockImplementation(() =>
+      deferredQuery(() => {
+        if (!getCurrentTenant()?.bypassed) {
+          throw new Error('Prescription requires a tenant context');
+        }
+        return { pdfUrl: null, clinicId: 'clinic-scoped', appointment: null };
+      }),
+    );
+    prescriptionPdfOrchestrator.generatePDF.mockImplementation(async () => {
+      const tenant = getCurrentTenant();
+      if (tenant?.clinicId !== 'clinic-scoped' || tenant.bypassed) {
+        throw new Error('PDF generation requires the resolved clinic');
+      }
+      expect(activeTxStorage.getStore()?.tx).toBe(transaction);
+      return Buffer.from('scoped-prescription-pdf');
+    });
+
+    await expect(
+      service.getPrescriptionPdf(token, '127.0.0.1', 'test-agent'),
+    ).resolves.toMatchObject({
+      buffer: Buffer.from('scoped-prescription-pdf'),
+    });
+    expect(getCurrentTenant()).toBeUndefined();
+    expect(activeTxStorage.getStore()).toBeUndefined();
+  });
+
+  it('generates and persists a signed invoice PDF within the resolved clinic', async () => {
+    const token = tokenService.sign('invoice', 'inv-scoped');
+    prisma.invoice.findUnique.mockImplementation(() =>
+      deferredQuery(() => {
+        if (!getCurrentTenant()?.bypassed) {
+          throw new Error('Invoice requires a tenant context');
+        }
+        return { pdfUrl: null, clinicId: 'clinic-scoped', appointment: null };
+      }),
+    );
+    const ensureClinic = () => {
+      const tenant = getCurrentTenant();
+      if (tenant?.clinicId !== 'clinic-scoped' || tenant.bypassed) {
+        throw new Error('Invoice PDF requires the resolved clinic');
+      }
+      expect(activeTxStorage.getStore()?.tx).toBe(transaction);
+    };
+    invoicesService.generatePDF.mockImplementation(async () => {
+      ensureClinic();
+      return Buffer.from('scoped-invoice-pdf');
+    });
+    invoicesService.findOne.mockImplementation(async () => {
+      ensureClinic();
+      return { id: 'inv-scoped' };
+    });
+    invoicesService.uploadAndPersist.mockImplementation(async () => {
+      ensureClinic();
+    });
+
+    await expect(
+      service.getInvoicePdf(token, '127.0.0.1', 'test-agent'),
+    ).resolves.toMatchObject({ buffer: Buffer.from('scoped-invoice-pdf') });
+    expect(getCurrentTenant()).toBeUndefined();
+    expect(activeTxStorage.getStore()).toBeUndefined();
+  });
+
+  it.each(['prescription', 'invoice'] as const)(
+    'retains the failed-access audit when scoped %s generation rejects',
+    async (type) => {
+      const token = tokenService.sign(type, 'document-failed');
+      const failure = new Error('Synthetic renderer unavailable');
+      prisma.prescription.findUnique.mockResolvedValue({
+        pdfUrl: null,
+        clinicId: 'clinic-scoped',
+        appointment: null,
+      });
+      prisma.invoice.findUnique.mockResolvedValue({
+        pdfUrl: null,
+        clinicId: 'clinic-scoped',
+        appointment: null,
+      });
+      prescriptionPdfOrchestrator.generatePDF.mockRejectedValue(failure);
+      invoicesService.generatePDF.mockRejectedValue(failure);
+      const log = jest.spyOn(Logger.prototype, 'log');
+
+      try {
+        const result =
+          type === 'prescription'
+            ? service.getPrescriptionPdf(token, '127.0.0.1', 'test-agent')
+            : service.getInvoicePdf(token, '127.0.0.1', 'test-agent');
+        await expect(result).rejects.toBe(failure);
+        expect(log).toHaveBeenCalledWith(
+          expect.objectContaining({
+            event: 'PUBLIC_DOCUMENT_ACCESS',
+            type,
+            documentId: 'document-failed',
+            success: false,
+          }),
+        );
+        expect(getCurrentTenant()).toBeUndefined();
+        expect(activeTxStorage.getStore()).toBeUndefined();
+      } finally {
+        log.mockRestore();
+      }
+    },
+  );
 });

@@ -1,12 +1,7 @@
-import {
-  applySecurityHeaders,
-  BASE_SECURITY_HEADERS,
-} from "@workspace/utils";
+import { applySecurityHeaders, BASE_SECURITY_HEADERS } from "@workspace/utils";
 
 const PUBLIC_APP_URL =
   import.meta.env.PUBLIC_APP_URL || "https://app.docita.work";
-const API_ORIGIN =
-  import.meta.env.API_PROXY_TARGET || "https://api.docita.work";
 const CLOUDFLARE_TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 const GOOGLE_ANALYTICS_SCRIPT_ORIGIN = "https://www.googletagmanager.com";
 const GOOGLE_ANALYTICS_CONNECT_ORIGIN = "https://www.google-analytics.com";
@@ -22,11 +17,7 @@ function toOrigin(source: string): string {
 }
 
 function buildLandingContentSecurityPolicy(): string {
-  const connectSources = [
-    "'self'",
-    toOrigin(API_ORIGIN),
-    CLOUDFLARE_TURNSTILE_ORIGIN,
-  ];
+  const connectSources = ["'self'", CLOUDFLARE_TURNSTILE_ORIGIN];
 
   return [
     "default-src 'self'",
@@ -43,7 +34,7 @@ function buildLandingContentSecurityPolicy(): string {
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     `navigate-to 'self' ${toOrigin(PUBLIC_APP_URL)} mailto:`,
-    "upgrade-insecure-requests",
+    ...(!import.meta.env.DEV ? ["upgrade-insecure-requests"] : []),
   ].join("; ");
 }
 

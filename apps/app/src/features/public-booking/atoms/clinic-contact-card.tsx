@@ -1,6 +1,7 @@
 "use client";
 
 import { Building2, Clock, Globe, Mail, MapPin, Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle, MicroLabel } from "@workspace/ui/components";
 import { bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "./booking-constants";
 import { cn } from "@workspace/ui/lib/utils";
@@ -13,6 +14,7 @@ export function ClinicContactCard({
   clinic: PublicBookingClinicResponse;
   className?: string;
 }) {
+  const { t } = useTranslation("PublicBooking");
   const websiteHref = clinic.website
     ? clinic.website.startsWith("http")
       ? clinic.website
@@ -35,7 +37,7 @@ export function ClinicContactCard({
           </div>
           <div className="min-w-0 flex-1">
             <MicroLabel as="h2" className="mt-0">
-              Your location
+              {t("clinicCard.yourLocation")}
             </MicroLabel>
             <CardTitle className="mt-0.5 truncate text-[length:var(--fs-base)] leading-snug tracking-tight">
               {clinic.name}

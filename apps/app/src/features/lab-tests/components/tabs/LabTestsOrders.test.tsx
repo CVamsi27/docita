@@ -349,7 +349,7 @@ describe("LabTestsOrders", () => {
     it('shows "View Results" text when order status is completed', () => {
       setupMocks({
         role: "ADMIN",
-        sortedTests: [makeOrder("1", { status: "completed" })],
+        sortedTests: [makeOrder("1", { status: "COMPLETED" })],
       });
 
       renderWithProviders(
@@ -502,7 +502,7 @@ describe("LabTestsOrders", () => {
     it('shows "View Results" for completed orders', () => {
       render(
         <TooltipProvider>
-          <LabOrderActionsCell test={makeOrder("1", { status: "completed" })} canVerifyPayment={false} handleVerify={mockHandleVerify} isVerifying={false} />
+          <LabOrderActionsCell test={makeOrder("1", { status: "COMPLETED" })} canVerifyPayment={false} handleVerify={mockHandleVerify} isVerifying={false} />
         </TooltipProvider>,
       );
       expect(screen.getByText("View Results")).toBeInTheDocument();

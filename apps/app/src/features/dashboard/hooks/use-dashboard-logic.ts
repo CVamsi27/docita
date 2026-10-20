@@ -38,7 +38,7 @@ export const useDashboardLogic = () => {
   const {
     data: rawStatsData,
     isLoading: loadingStats,
-    isError,
+    isError: isStatsError,
     error: statsError,
     isFetching: fetchingStats,
     dataUpdatedAt: statsDataUpdatedAt,
@@ -47,6 +47,8 @@ export const useDashboardLogic = () => {
   const {
     data: rawAppointmentsResponse,
     isLoading: loadingAppointments,
+    isError: isAppointmentsError,
+    error: appointmentsError,
     isFetching: fetchingAppointments,
     dataUpdatedAt: appointmentsDataUpdatedAt,
     refetch: refetchAppointments,
@@ -121,7 +123,9 @@ export const useDashboardLogic = () => {
       tasks.push(refetchJoinRequests());
     }
     await Promise.all(tasks);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.followUps.all() });
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.followUps.all(),
+    });
   }, [
     joinRequestsEnabled,
     queryClient,
@@ -167,8 +171,8 @@ export const useDashboardLogic = () => {
       waitingCount,
       pendingJoinRequests,
       isLoading,
-      isError,
-      statsError,
+      isError: isStatsError || isAppointmentsError,
+      statsError: statsError ?? appointmentsError,
       refetch: refetchAll,
       refetchAll,
       lastDataUpdatedAtMs,

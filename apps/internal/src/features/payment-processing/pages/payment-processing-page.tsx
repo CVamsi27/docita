@@ -1,35 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, Label, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { CreditCard, DollarSign } from "lucide-react";
-import { formatCurrency, formatInternalListDate } from "../../../lib/formatters";
-import { apiGet, apiPost } from "@/lib/api/api-client";
+import { formatCurrency, formatDate, enIN } from "@workspace/utils";
+import { apiPost } from "@/lib/api/api-client";
+import { showUserFacingErrorToast } from "@/lib/errors/user-facing-errors";
+import { useApiQuery } from "@/hooks/use-api-query";
+import { internalClinicListResponseSchema, type InternalClinicListResponse } from "@workspace/types";
 
-interface Clinic { id: string; name: string; tier: string; email: string; subscriptionStatus?: string; }
 interface Payment { id: string; clinicName: string; planLabel: string; amount: number; currency: string; status: string; paidAt?: string; }
 
 export function PaymentProcessingPage() {
-  const [loading, setLoading] = useState(true);
+  const { data: clinicPage, isLoading: clinicsLoading, isError: clinicsError, refetch: refetchClinics } = useApiQuery<InternalClinicListResponse>("/api/internal/clinics", {
+    select: (response) => internalClinicListResponseSchema.parse(response),
+  });
+  const clinics = clinicPage?.items ?? [];
+  const {
+    data: payments = [],
+    isLoading: paymentsLoading,
+    isError: paymentsError,
+    refetch,
+  } = useApiQuery<Payment[]>("/api/internal/billing/payments");
   const [processing, setProcessing] = useState(false);
-  const [clinics, setClinics] = useState<Clinic[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
   const [selectedClinic, setSelectedClinic] = useState("");
   const [amount, setAmount] = useState("");
   const [newTier, setNewTier] = useState("STARTER");
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [clinicData, paymentData] = await Promise.all([
-        apiGet<Clinic[]>("/api/internal/clinics"),
-        apiGet<Payment[]>("/api/internal/billing/payments"),
-      ]);
-      setClinics(clinicData);
-      setPayments(paymentData);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchData(); }, []);
+  const loading = clinicsLoading || paymentsLoading;
 
   const handleProcessPayment = async () => {
     if (!selectedClinic || !amount) return;
@@ -43,31 +38,41 @@ export function PaymentProcessingPage() {
         paymentMethod: "MANUAL",
       });
       setAmount("");
-      await fetchData();
-    } catch { /* ignore */ }
+      void refetch();
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not record this payment right now. Please try again.",
+      );
+    }
     finally { setProcessing(false); }
   };
 
   return (
     <AppPageScaffold header={<PageHeader title="Payment Processing" description="Record subscription payments and tier changes" size="compact" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading payment processing…">
+      <DataState
+        status={paymentsError || clinicsError ? "error" : loading ? "loading" : "success"}
+        loadingMessage="Loading payment processing..."
+        errorMessage="We could not load payment processing. Please try again."
+        onRetry={() => { void refetch(); void refetchClinics(); }}
+      >
         <Card className="mb-6">
           <CardHeader><CardTitle>Process Payment</CardTitle><CardDescription>Record a payment and optionally change tier</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Clinic</Label>
+              <Label htmlFor="payment-clinic">Clinic</Label>
               <Select value={selectedClinic} onValueChange={(v) => { setSelectedClinic(v); }}>
-                <SelectTrigger><SelectValue placeholder="Select a clinic" /></SelectTrigger>
+                <SelectTrigger id="payment-clinic"><SelectValue placeholder="Select a clinic" /></SelectTrigger>
                 <SelectContent>{clinics.map((c) => <SelectItem key={c.id} value={c.id}>{c.name} ({c.tier})</SelectItem>)}</SelectContent>
               </Select>
             </div>
             {selectedClinic && (
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Amount</Label>
-                  <Input type="number" value={amount} onChange={(e) => { setAmount(e.target.value); }} placeholder="Enter amount" /></div>
-                <div className="space-y-2"><Label>New Tier</Label>
+                <div className="space-y-2"><Label htmlFor="payment-amount">Amount</Label>
+                  <Input id="payment-amount" type="number" value={amount} onChange={(e) => { setAmount(e.target.value); }} placeholder="Enter amount" /></div>
+                <div className="space-y-2"><Label htmlFor="payment-tier">New Tier</Label>
                   <Select value={newTier} onValueChange={(v) => { setNewTier(v); }}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="payment-tier"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="STARTER">Starter</SelectItem>
                       <SelectItem value="ESSENTIAL">Essential</SelectItem>
@@ -94,7 +99,7 @@ export function PaymentProcessingPage() {
               <TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">No payments recorded</TableCell></TableRow>
             ) : payments.map((p) => (
               <TableRow key={p.id}>
-                <TableCell className="text-sm">{p.paidAt ? formatInternalListDate(p.paidAt) : "-"}</TableCell>
+                <TableCell className="text-sm">{p.paidAt ? formatDate(p.paidAt, undefined, { locale: enIN }) : "-"}</TableCell>
                 <TableCell className="font-medium">{p.clinicName}</TableCell>
                 <TableCell><Badge variant="outline">{p.planLabel}</Badge></TableCell>
                 <TableCell>{formatCurrency(p.amount, { currency: "INR", fractionDigits: 0 })}</TableCell>

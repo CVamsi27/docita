@@ -5,6 +5,7 @@ import { TenantRateLimitRepository } from './tenant-rate-limit.repository';
 import type { TenantQuota } from './tenant-rate-limit.types';
 import type { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import type { IClock } from '@/shared/common/ports/clock.port';
+import { COUNTER_BURST_KEY_PREFIX } from './tenant-rate-limit.constants';
 
 const buildClock = (): IClock => ({
   now: () => new Date(),
@@ -178,6 +179,129 @@ describe('TenantRateLimitService', () => {
     await service.checkAndConsume('clinic-1');
     const blocked = await service.checkAndConsume('clinic-1');
     expect(blocked.find((d) => d.reason === 'monthly')?.allowed).toBe(false);
+  });
+
+  // U01: the counters are a read-modify-write over a cache store with no atomic
+  // increment, so without serialization N concurrent callers all read the same
+  // count and all write count+1 — letting `limit + N - 1` requests through the
+  // window. The last unit has to have exactly one winner.
+  it('admits exactly one caller when parallel requests contend for the last unit', async () => {
+    const { repo } = buildRepo();
+    const service = new TenantRateLimitService(
+      cache,
+      repo,
+      buildConfig({ rps: 10, rpm: 100 }),
+      buildClock(),
+    );
+
+    const decisions = await Promise.all(
+      Array.from({ length: 25 }, () => service.checkAndConsume('clinic-1')),
+    );
+    const burstAllowed = decisions.filter(
+      (d) => d.find((x) => x.reason === 'burst')?.allowed,
+    );
+
+    // The window limit is 10, so exactly 10 of 25 concurrent callers get in.
+    expect(burstAllowed).toHaveLength(10);
+  });
+
+  it('does not let a rejected caller inflate the counter for the next window', async () => {
+    const { repo } = buildRepo();
+    const service = new TenantRateLimitService(
+      cache,
+      repo,
+      buildConfig({ rps: 3, rpm: 100 }),
+      buildClock(),
+    );
+
+    await Promise.all(
+      Array.from({ length: 12 }, () => service.checkAndConsume('clinic-1')),
+    );
+
+    const burst = await cache.get(`${COUNTER_BURST_KEY_PREFIX}clinic-1`);
+    expect((burst as { count: number }).count).toBe(12);
+  });
+
+  it('rejects the monthly budget under concurrency with one winner', async () => {
+    const { repo } = buildRepo({ monthlyBudget: 3, currentMonthUsed: 0 });
+    const service = new TenantRateLimitService(
+      cache,
+      repo,
+      buildConfig({ rps: 100, rpm: 100 }),
+      buildClock(),
+    );
+
+    const decisions = await Promise.all(
+      Array.from({ length: 15 }, () => service.checkAndConsume('clinic-1')),
+    );
+    const monthlyAllowed = decisions.filter(
+      (d) => d.find((x) => x.reason === 'monthly')?.allowed,
+    );
+
+    expect(monthlyAllowed).toHaveLength(3);
+  });
+
+  it('keeps counters independent per clinic', async () => {
+    const { repo } = buildRepo();
+    const service = new TenantRateLimitService(
+      cache,
+      repo,
+      buildConfig({ rps: 2, rpm: 100 }),
+      buildClock(),
+    );
+
+    await Promise.all([
+      service.checkAndConsume('clinic-1'),
+      service.checkAndConsume('clinic-1'),
+      service.checkAndConsume('clinic-2'),
+      service.checkAndConsume('clinic-2'),
+    ]);
+
+    const blocked = await service.checkAndConsume('clinic-1');
+    const other = await service.checkAndConsume('clinic-2');
+
+    expect(blocked[0].allowed).toBe(false);
+    expect(other[0].allowed).toBe(false);
+  });
+
+  it('does not skip a queued caller when the in-flight update fails', async () => {
+    const { repo } = buildRepo();
+    const service = new TenantRateLimitService(
+      cache,
+      repo,
+      buildConfig({ rps: 5, rpm: 100 }),
+      buildClock(),
+    );
+
+    // A failure must not poison the chain for a caller that is already queued
+    // behind it. The poisoning is only observable while another caller is
+    // waiting: once the lock is released, a fresh caller starts a fresh chain.
+    const originalGet = cache.get.bind(cache);
+    let releaseFirst!: () => void;
+    const firstGetGate = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    let first = true;
+    (cache as { get: unknown }).get = (async (key: string) => {
+      if (first && key.startsWith(COUNTER_BURST_KEY_PREFIX)) {
+        first = false;
+        await firstGetGate;
+        throw new Error('cache unavailable');
+      }
+      return originalGet(key);
+    }) as typeof cache.get;
+
+    const inFlight = service.checkAndConsume('clinic-1');
+    // Let the first caller reach the gated cache read before queueing behind it.
+    await new Promise((resolve) => setImmediate(resolve));
+    const queued = service.checkAndConsume('clinic-1');
+
+    releaseFirst();
+
+    await expect(inFlight).rejects.toThrow('cache unavailable');
+    // The queued caller must still be evaluated, not silently skipped.
+    const afterQueued = await queued;
+    expect(afterQueued[0].allowed).toBe(true);
   });
 
   it('upsertQuota writes through and invalidates the cache', async () => {

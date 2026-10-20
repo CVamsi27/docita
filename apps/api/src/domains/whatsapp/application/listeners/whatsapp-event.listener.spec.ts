@@ -4,6 +4,7 @@ import { SystemEventsService } from '@/domains/whatsapp/application/services/sys
 import { StaffNotificationService } from '@/domains/whatsapp/application/services/staff-notification.service';
 import { WHATSAPP_PERSISTENCE_PORT } from '@/domains/whatsapp/application/ports/whatsapp-persistence.port';
 import { Logger } from '@nestjs/common';
+import { assertTenantQualifiedRead } from '@/test-utils/tenant-qualified-read';
 import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
 import { InvoiceGeneratedEvent } from '@/domains/billing/application/services/events/invoice-generated.event';
 import { PaymentCapturedEvent } from '@/domains/billing/application/services/events/payment-captured.event';
@@ -48,12 +49,18 @@ describe('WhatsappEventListener', () => {
     sendPaymentConfirmation: sendPaymentConfirmationMock,
   };
 
+  const paidInvoice = {
+    total: 1500,
+    patient: { firstName: 'Ada', lastName: 'Lovelace' },
+  };
   const mockPersistence = {
     invoice: {
-      findUnique: jest.fn().mockResolvedValue({
-        total: 1500,
-        patient: { firstName: 'Ada', lastName: 'Lovelace' },
-      } as never),
+      findUnique: jest
+        .fn<(args: unknown) => Promise<typeof paidInvoice | null>>()
+        .mockImplementation(async (args: unknown) => {
+          assertTenantQualifiedRead('Invoice', args, 'clinic-123');
+          return paidInvoice;
+        }),
     },
   };
 
@@ -192,6 +199,19 @@ describe('WhatsappEventListener', () => {
   });
 
   describe('handlePaymentCaptured', () => {
+    it('does not create a staff notification for an absent invoice', async () => {
+      mockPersistence.invoice.findUnique.mockResolvedValueOnce(null);
+      await listener.handlePaymentCaptured(
+        new PaymentCapturedEvent(
+          'invoice-missing',
+          'clinic-123',
+          'pay-1',
+          50000,
+        ),
+      );
+      expect(notifyStaffMock).not.toHaveBeenCalled();
+    });
+
     it('should send payment confirmation and notify staff at LOW priority', async () => {
       const event = new PaymentCapturedEvent(
         'inv-pay-123',

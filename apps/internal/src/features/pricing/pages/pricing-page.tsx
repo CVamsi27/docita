@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, DataState, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components";
 import { Save, Sparkles } from "lucide-react";
-import { apiGet, apiPut } from "@/lib/api/api-client";
-import { formatInternalListDate } from "../../../lib/formatters";
+import { apiPut } from "@/lib/api/api-client";
+import { formatDate, enIN } from "@workspace/utils";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface TierPricing { id: string; tier: string; monthlyBasePriceCents: number; includedPatients: number; includedAppointments: number; includedStorageGB: number; includedUsers: number; overagePatientCents: number; overageAppointmentCents: number; overagePrescriptionCents: number; overageInvoiceCents: number; overageOcrPageCents: number; overageApiCallCents: number; }
 interface Offer { id: string; clinicId: string; title: string; percentOff: number; durationMonths: number; validUntil?: string; }
@@ -22,41 +23,61 @@ const TIER_PRICING_FIELDS = [
 ] as const satisfies readonly (keyof TierPricing)[];
 
 export function PricingPage() {
-  const [loading, setLoading] = useState(true);
-  const [tiers, setTiers] = useState<TierPricing[]>([]);
-  const [offers, setOffers] = useState<Offer[]>([]);
+  const {
+    data: serverTiers = [],
+    isLoading: tiersLoading,
+    isError: tiersError,
+    refetch: refetchTiers,
+  } = useApiQuery<TierPricing[]>("/api/internal/billing/pricing/tiers");
+  const { data: offers = [], isLoading: offersLoading } = useApiQuery<Offer[]>("/api/internal/billing/pricing/offers");
   const [savingId, setSavingId] = useState<string | null>(null);
+  const loading = tiersLoading || offersLoading;
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [tierData, offerData] = await Promise.all([
-        apiGet<TierPricing[]>("/api/internal/billing/pricing/tiers"),
-        apiGet<Offer[]>("/api/internal/billing/pricing/offers"),
-      ]);
-      setTiers(tierData);
-      setOffers(offerData);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
+  // Local edit state: initialized from server data on first load,
+  // then holds unsaved edits until save. Reset only after an explicit
+  // save (which nulls localTiers itself). We do NOT watch serverTiers
+  // via useEffect because React Query may re-resolve the same reference
+  // on background refetches, which would clobber in-progress edits.
+  const [localTiers, setLocalTiers] = useState<TierPricing[] | null>(null);
+  const tiers = localTiers ?? serverTiers;
+
+  const updateTierField = (tierId: string, field: keyof TierPricing, value: string) => {
+    setLocalTiers((prev) => {
+      const base = prev ?? serverTiers;
+      return base.map((t) => t.id === tierId ? { ...t, [field]: parseInt(value, 10) || 0 } : t);
+    });
   };
-
-  useEffect(() => { void fetchData(); }, []);
 
   const saveTier = async (tier: TierPricing) => {
     setSavingId(tier.id);
     try {
-      await apiPut(`/api/internal/billing/pricing/tiers/${tier.id}`, tier);
-    } catch { /* ignore */ }
-    finally { setSavingId(null); }
-  };
-
-  const updateTierField = (tierId: string, field: keyof TierPricing, value: string) => {
-    setTiers((prev) => prev.map((t) => t.id === tierId ? { ...t, [field]: parseInt(value, 10) || 0 } : t));
+      await apiPut(`/api/internal/billing/pricing/tiers/${tier.id}`, {
+        monthlyBasePriceCents: tier.monthlyBasePriceCents,
+        includedPatients: tier.includedPatients,
+        includedAppointments: tier.includedAppointments,
+        includedStorageGB: tier.includedStorageGB,
+        includedUsers: tier.includedUsers,
+        overagePatientCents: tier.overagePatientCents,
+        overageAppointmentCents: tier.overageAppointmentCents,
+        overagePrescriptionCents: tier.overagePrescriptionCents,
+        overageInvoiceCents: tier.overageInvoiceCents,
+        overageOcrPageCents: tier.overageOcrPageCents,
+        overageApiCallCents: tier.overageApiCallCents,
+      });
+      setLocalTiers(null);
+    } finally {
+      setSavingId(null);
+    }
   };
 
   return (
     <AppPageScaffold header={<PageHeader title="Pricing Management" description="Configure tier pricing, limits, and overage rates" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading pricing…">
+      <DataState
+        status={tiersError ? "error" : loading ? "loading" : "success"}
+        loadingMessage="Loading pricing..."
+        errorMessage="We could not load tier pricing. Please try again."
+        onRetry={() => { void refetchTiers(); }}
+      >
         <Tabs defaultValue="tiers" className="space-y-4">
           <TabsList><TabsTrigger value="tiers"><Sparkles className="mr-2 h-4 w-4" /> Tier Pricing</TabsTrigger>
             <TabsTrigger value="offers">Facility Offers</TabsTrigger></TabsList>
@@ -109,7 +130,7 @@ export function PricingPage() {
                       <TableCell className="font-medium">{offer.title}</TableCell>
                       <TableCell><Badge variant="outline" className="text-success">{offer.percentOff}% off</Badge></TableCell>
                       <TableCell>{offer.durationMonths}mo</TableCell>
-                      <TableCell>{offer.validUntil ? formatInternalListDate(offer.validUntil) : "-"}</TableCell>
+                      <TableCell>{offer.validUntil ? formatDate(offer.validUntil, undefined, { locale: enIN }) : "-"}</TableCell>
                     </TableRow>
                   ))}</TableBody></Table></div>
                 )}

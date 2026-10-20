@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/indicators/card";
 import { Feature, type FollowUpResponse } from "@workspace/types";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
 import { type FollowUpListView, getFollowUpListQuery } from "@/features/follow-ups/lib/follow-up-list-query";
 import { useCancelFollowUp, useCompleteFollowUp, useFollowUps } from "@workspace/data-access";
 import { formatDate } from "@/lib/formatters";
@@ -139,7 +139,11 @@ export function FollowUpsPageContent() {
   };
 
   return (
-    <FeatureGate feature={Feature.AUTO_REMINDERS} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.AUTO_REMINDERS}
+      title={t("pageTitle")}
+      description={t("pageDescription")}
+    >
       <AppPageScaffold
         header={
           <PageHeader
@@ -176,28 +180,30 @@ export function FollowUpsPageContent() {
           </CardContent>
         </Card>
 
-        <DataState
-          status={state}
-          loadingMessage={t("loading")}
-          errorMessage={t("error")}
-          onRetry={() => void refetch()}
-          emptyIcon={CalendarCheck}
-          emptyTitle={t("emptyTitle")}
-          emptyDescription={t("emptyDescription")}
-        >
-          <div className="space-y-3">
-            {data.map((followUp) => (
-              <FollowUpCard
-                key={followUp.id}
-                followUp={followUp}
-                isMutating={isMutating}
-                onComplete={(id) => void handleComplete(id)}
-                onCancel={(id) => void handleCancel(id)}
-              />
-            ))}
-          </div>
-        </DataState>
+        <div role="tabpanel" aria-label={followUpViewLabel(view, t)}>
+          <DataState
+            status={state}
+            loadingMessage={t("loading")}
+            errorMessage={t("error")}
+            onRetry={() => void refetch()}
+            emptyIcon={CalendarCheck}
+            emptyTitle={t("emptyTitle")}
+            emptyDescription={t("emptyDescription")}
+          >
+            <div className="space-y-3">
+              {data.map((followUp) => (
+                <FollowUpCard
+                  key={followUp.id}
+                  followUp={followUp}
+                  isMutating={isMutating}
+                  onComplete={(id) => void handleComplete(id)}
+                  onCancel={(id) => void handleCancel(id)}
+                />
+              ))}
+            </div>
+          </DataState>
+        </div>
       </AppPageScaffold>
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }

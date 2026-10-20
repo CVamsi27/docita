@@ -1,9 +1,11 @@
 import { HttpException } from '@nestjs/common';
 import type { NodeOptions } from '@sentry/nestjs';
 import {
+  REDACTED,
   redactPhi,
   redactString,
 } from '@/shared/modules/observability/phi-redactor';
+import { redactMonitoringUrl } from '@workspace/utils';
 
 export function shouldCaptureInSentry(error: unknown): boolean {
   if (error instanceof HttpException) return error.getStatus() >= 500;
@@ -42,13 +44,14 @@ function isZodValidationEvent(event: unknown): boolean {
 function scrubMutableRecord(record: Record<string, unknown>): void {
   const request = record.request;
   if (isRecord(request)) {
+    if (typeof request.url === 'string') {
+      request.url = redactMonitoringUrl(request.url);
+    }
     if (request.data !== undefined) {
       request.data = redactPhi(request.data);
     }
-    if (typeof request.query_string === 'string') {
-      request.query_string = redactString(request.query_string);
-    } else if (request.query_string !== undefined) {
-      request.query_string = redactPhi(request.query_string);
+    if (request.query_string !== undefined) {
+      request.query_string = REDACTED;
     }
     if (request.headers !== undefined) {
       request.headers = redactPhi(request.headers);
@@ -66,6 +69,18 @@ function scrubMutableRecord(record: Record<string, unknown>): void {
   }
   if (record.tags !== undefined) {
     record.tags = redactPhi(record.tags);
+  }
+  if (record.exception !== undefined) {
+    record.exception = redactPhi(record.exception);
+  }
+  if (record.spans !== undefined) {
+    record.spans = redactPhi(record.spans);
+  }
+  if (record.attributes !== undefined) {
+    record.attributes = redactPhi(record.attributes);
+  }
+  if (typeof record.transaction === 'string') {
+    record.transaction = redactString(record.transaction);
   }
 
   if (Array.isArray(record.breadcrumbs)) {
@@ -110,5 +125,23 @@ export function createSentryBeforeSend(
 
     const scrubbed = scrubSentryEvent(event);
     return extraBeforeSend ? extraBeforeSend(scrubbed, hint) : scrubbed;
+  };
+}
+
+export function createSentryBeforeSendTransaction(
+  extraBeforeSend?: NonNullable<NodeOptions['beforeSendTransaction']>,
+): NonNullable<NodeOptions['beforeSendTransaction']> {
+  return (event, hint) => {
+    const scrubbed = scrubSentryEvent(event);
+    return extraBeforeSend ? extraBeforeSend(scrubbed, hint) : scrubbed;
+  };
+}
+
+export function createSentryBeforeSendLog(
+  extraBeforeSend?: NonNullable<NodeOptions['beforeSendLog']>,
+): NonNullable<NodeOptions['beforeSendLog']> {
+  return (log) => {
+    const scrubbed = scrubSentryEvent(log);
+    return extraBeforeSend ? extraBeforeSend(scrubbed) : scrubbed;
   };
 }

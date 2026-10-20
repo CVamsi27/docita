@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { ReactElement } from "react";
@@ -52,13 +52,15 @@ vi.mock("react-i18next", () => ({
       params?: Record<string, string | number>,
     ): string => {
       const path = ns ? `${ns}.${key}` : key;
-      const resolved = path.split(".").reduce<unknown>(
-        (acc, part) =>
-          acc && typeof acc === "object"
-            ? (acc as Record<string, unknown>)[part]
-            : undefined,
-        invoiceMessages,
-      );
+      const resolved = path
+        .split(".")
+        .reduce<unknown>(
+          (acc, part) =>
+            acc && typeof acc === "object"
+              ? (acc as Record<string, unknown>)[part]
+              : undefined,
+          invoiceMessages,
+        );
       if (typeof resolved !== "string") return key;
       return resolved.replace(/\{name\}/g, String(params?.name ?? ""));
     };
@@ -133,6 +135,7 @@ const baseHookState = {
   },
   isLoading: false,
   error: null,
+  refetch: vi.fn(),
   printRef: { current: null },
   handlePrint: vi.fn(),
   handleDownload: vi.fn(),
@@ -150,6 +153,38 @@ const baseHookState = {
 describe("InvoiceDetailsUI signature block", () => {
   beforeEach(() => {
     useInvoiceDetailsLogicMock.mockReset();
+  });
+
+  it("keeps the invoice page heading while loading", () => {
+    useInvoiceDetailsLogicMock.mockReturnValue({
+      ...baseHookState,
+      invoice: undefined,
+      isLoading: true,
+    });
+    renderWithQueryClient(<InvoiceDetailsUI invoiceId="inv-1" />);
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Invoice" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Loading invoice details",
+    );
+  });
+
+  it("distinguishes a failed read from a missing invoice and lets staff retry", () => {
+    const refetch = vi.fn();
+    useInvoiceDetailsLogicMock.mockReturnValue({
+      ...baseHookState,
+      invoice: undefined,
+      error: new Error("unavailable"),
+      refetch,
+    });
+    renderWithQueryClient(<InvoiceDetailsUI invoiceId="inv-1" />);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "We could not load this invoice",
+    );
+    expect(screen.queryByText("Invoice not found")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
   it("renders authorized signature image when clinic signature exists", () => {

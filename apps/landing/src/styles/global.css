@@ -261,6 +261,44 @@
     0 18px 48px color-mix(in oklch, var(--foreground) 4%, transparent);
 }
 
+/*
+ * Mobile section nav sits in a 358px-wide viewport but its link row is ~550px,
+ * so a third of the destinations (Pricing, Trust, Contact) start off-screen with
+ * no scrollbar affordance on touch devices. `data-scroll` is set from the layout
+ * script; the edge masks make the hidden links discoverable without adding or
+ * removing navigation.
+ */
+.landing-site-nav--mobile {
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.landing-site-nav--mobile > a {
+  scroll-snap-align: start;
+}
+
+.landing-site-nav--mobile[data-scroll="start"] {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent 100%);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent 100%);
+}
+
+.landing-site-nav--mobile[data-scroll="middle"] {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 calc(100% - 2.5rem), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 calc(100% - 2.5rem), transparent 100%);
+}
+
+.landing-site-nav--mobile[data-scroll="end"] {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-site-nav--mobile {
+    scroll-snap-type: none;
+  }
+}
+
 .landing-features-shell {
   position: relative;
   overflow: hidden;
@@ -1468,6 +1506,28 @@ canvas {
   text-wrap: balance;
 }
 
+/* Lead-section heading: one step above the standard section heading so the
+ * page has a readable hierarchy instead of eleven identical H2s. */
+.r2-display-md {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  font-size: clamp(2.25rem, 0.8rem + 3.6vw, 3.5rem);
+  text-wrap: balance;
+}
+
+/* Aside heading inside a section (e.g. the FAQ CTA card). Deliberately below
+ * the section H2: an aside must not compete with the section title. */
+.r2-display-xs {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.022em;
+  line-height: 1.06;
+  font-size: clamp(1.5rem, 0.75rem + 1.8vw, 2rem);
+  text-wrap: balance;
+}
+
 .r2-eyebrow {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-size: 0.6875rem;
@@ -1486,14 +1546,31 @@ canvas {
   font-feature-settings: "tnum" 1, "ss01" 1;
 }
 
+/*
+ * Section rhythm.
+ * Every section reads its vertical padding from --r2-section-pad so the arc
+ * has deliberate steps instead of one flat value. Tiers, heaviest first:
+ *   lead  (signature + decision surfaces)  >  default  >  quiet  >  tight
+ * Only the padding variable is overridden by the modifiers, so the tier a
+ * section belongs to is expressed in one place.
+ */
 .r2-section {
+  --r2-section-pad: clamp(4rem, 1.5rem + 6vw, 7rem);
   position: relative;
   padding-inline: 1rem;
-  padding-block: clamp(4rem, 1.5rem + 6vw, 7rem);
+  padding-block: var(--r2-section-pad);
+}
+
+.r2-section-lead {
+  --r2-section-pad: clamp(4.5rem, 1.25rem + 7.2vw, 8.5rem);
+}
+
+.r2-section-quiet {
+  --r2-section-pad: clamp(3.5rem, 1.25rem + 4.8vw, 5.75rem);
 }
 
 .r2-section-tight {
-  padding-block: clamp(3rem, 1rem + 4vw, 5rem);
+  --r2-section-pad: clamp(3rem, 1rem + 4vw, 5rem);
 }
 
 /* Sections stay mostly transparent so body.landing-surface reads as one canvas. */
@@ -1645,12 +1722,42 @@ canvas {
   );
   pointer-events: none;
   z-index: 0;
-  opacity: var(--r2-hero-grid-opacity);
+  opacity: calc(var(--r2-hero-grid-opacity) * 0.38);
 }
 
 .r2-hero-shell {
   position: relative;
   z-index: 1;
+}
+
+.r2-hero-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.r2-hero-preview {
+  position: relative;
+  z-index: 2;
+  padding: clamp(0.5rem, 1.2vw, 1rem);
+  border-radius: calc(var(--radius) + 12px);
+  background:
+    radial-gradient(
+      90% 70% at 12% 0%,
+      color-mix(in oklch, var(--brand-cyan) 26%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in oklch, var(--brand-ink) 97%, var(--primary) 3%),
+      color-mix(in oklch, var(--brand-ink) 88%, var(--primary) 12%)
+    );
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--brand-cyan) 22%, transparent),
+    0 24px 64px -28px color-mix(in oklch, var(--brand-ink) 48%, transparent);
+}
+
+.r2-hero-preview .r2-product {
+  box-shadow: 0 18px 42px -24px color-mix(in oklch, oklch(0 0 0) 70%, transparent);
 }
 
 /* ======================================================================
@@ -2137,7 +2244,13 @@ canvas {
 
 .r2-status-pill--waiting {
   background: color-mix(in oklch, var(--warning) 14%, transparent);
-  color: color-mix(in oklch, var(--warning) 70%, var(--foreground) 30%);
+  color: color-mix(in oklch, var(--warning) 55%, var(--foreground) 45%);
+}
+
+/* Pricing “save” badges: success tone deepened toward foreground so the
+ * 11px label keeps >=4.5:1 on the light card while staying vivid in dark. */
+.r2-price-save-badge {
+  color: color-mix(in oklch, var(--success) 60%, var(--foreground) 40%);
 }
 
 .r2-status-pill--in {
@@ -2167,6 +2280,140 @@ canvas {
   font-size: clamp(2rem, 0.8rem + 3vw, 3rem);
   line-height: 0.95;
   font-variant-numeric: tabular-nums;
+}
+
+.r2-proof-band {
+  overflow: hidden;
+  color: var(--primary-foreground);
+  background:
+    radial-gradient(
+      62% 150% at 0% 50%,
+      color-mix(in oklch, var(--brand-cyan) 15%, transparent),
+      transparent 68%
+    ),
+    var(--brand-ink);
+}
+
+.r2-proof-band::before {
+  opacity: 0.18;
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--brand-cyan) 24%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 25% 100%;
+}
+
+.r2-proof-band .r2-eyebrow,
+.r2-proof-band .r2-proof-stat,
+.r2-proof-band dt {
+  color: var(--primary-foreground);
+}
+
+.r2-proof-band .r2-eyebrow {
+  color: color-mix(in oklch, var(--brand-cyan) 82%, white 18%);
+}
+
+.r2-proof-band .r2-proof-stat {
+  font-size: clamp(2.5rem, 1rem + 3vw, 3.75rem);
+}
+
+.r2-proof-band dt {
+  opacity: 0.72;
+}
+
+.r2-hero-metrics dd {
+  font-size: clamp(0.5625rem, 0.48rem + 0.18vw, 0.6875rem);
+  letter-spacing: 0.1em;
+  line-height: 1.35;
+}
+
+@media (min-width: 640px) {
+  .r2-hero-metrics dd {
+    white-space: nowrap;
+  }
+}
+
+/* Dark mode needs its own surface ladder: the ink frame should be distinct
+ * from the page, while the product preview stays readable as a real UI. */
+.dark .r2-hero {
+  background:
+    radial-gradient(
+      72% 80% at 78% 28%,
+      color-mix(in oklch, var(--primary) 12%, transparent),
+      transparent 64%
+    ),
+    var(--background);
+}
+
+.dark .r2-hero-copy .text-muted-foreground {
+  color: color-mix(in oklch, var(--foreground) 76%, var(--muted-foreground));
+}
+
+.dark .r2-hero-preview {
+  background:
+    radial-gradient(
+      95% 70% at 8% 0%,
+      color-mix(in oklch, var(--brand-cyan) 32%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in oklch, var(--brand-ink) 88%, var(--primary) 12%),
+      color-mix(in oklch, var(--brand-ink) 68%, var(--primary) 32%)
+    );
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--brand-cyan) 42%, transparent),
+    0 26px 72px -30px color-mix(in oklch, var(--primary) 28%, transparent);
+}
+
+.dark .r2-product-preview {
+  background: var(--card);
+  border-color: color-mix(in oklch, var(--foreground) 24%, var(--border));
+}
+
+/*
+ * Dark-mode surface ladder for the hero preview.
+ * The preview must stay a step above the page so it reads as a product
+ * surface, but every tier also has to keep --muted-foreground text legible:
+ * the rail/tab and desk-chrome labels are 11-12px, so a blend heavy in
+ * --foreground pushed them to 2.94-3.41:1. These ratios hold them above
+ * 4.5:1 while staying lighter than the .r2-product card behind them.
+ */
+.dark .r2-product-preview .r2-product-chrome,
+.dark .r2-product-preview .r2-product-rail {
+  background: color-mix(in oklch, var(--background) 84%, var(--foreground) 16%);
+  border-color: color-mix(in oklch, var(--foreground) 20%, var(--border));
+}
+
+.dark .r2-product-preview .r2-product-frame {
+  color: var(--foreground);
+}
+
+.dark .r2-product-preview .r2-row {
+  border-color: color-mix(in oklch, var(--foreground) 17%, var(--border));
+  background: color-mix(in oklch, var(--background) 93%, var(--foreground) 7%);
+}
+
+.dark .r2-product-preview .r2-row-active {
+  border-color: color-mix(in oklch, var(--brand-cyan) 58%, var(--border));
+  background: color-mix(in oklch, var(--brand-cyan) 12%, var(--background));
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--brand-cyan) 14%, transparent);
+}
+
+.dark .r2-product-preview .r2-product-frame > .rounded-xl {
+  border-color: color-mix(in oklch, var(--foreground) 18%, var(--border));
+  background: color-mix(in oklch, var(--background) 93%, var(--foreground) 7%);
+}
+
+.dark .r2-proof-band {
+  background:
+    radial-gradient(
+      62% 150% at 0% 50%,
+      color-mix(in oklch, var(--brand-cyan) 20%, transparent),
+      transparent 68%
+    ),
+    color-mix(in oklch, var(--brand-ink) 82%, var(--primary) 18%);
 }
 
 /* ======================================================================
@@ -2261,7 +2508,7 @@ canvas {
   text-align: left;
   cursor: pointer;
   width: 100%;
-  opacity: 0.5;
+  opacity: 0.65;
   transition: opacity 220ms ease, background-color 220ms ease;
   font: inherit;
   color: inherit;
@@ -2908,4 +3155,153 @@ details[open] .r2-faq-icon::after {
 .r2-cta-card > * {
   position: relative;
   z-index: 1;
+}
+
+/* Visual polish pass: let the product surfaces lead while quieter bands carry
+ * the narrative between them. Keep this override block scoped to landing R2
+ * surfaces so shared workspace primitives remain unchanged. */
+.r2-section {
+  position: relative;
+}
+
+.r2-section > .ui-page-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.r2-section :is(.r2-display, .r2-display-sm) {
+  text-wrap: balance;
+}
+
+.r2-section > .ui-page-shell > :is(.mt-4, .mt-5) {
+  margin-top: 1.25rem;
+}
+
+.r2-section > .ui-page-shell > .mt-10 {
+  margin-top: clamp(2.75rem, 5vw, 4.5rem);
+}
+
+.r2-product,
+.r2-product-shot,
+.r2-type-card,
+.r2-compare-strip,
+.r2-plan-picker,
+.r2-surface-col,
+.r2-diff-col,
+.r2-price-card {
+  border-color: color-mix(in oklch, var(--border) 72%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 42%, transparent) inset,
+    0 18px 44px -28px color-mix(in oklch, var(--foreground) 18%, transparent);
+}
+
+.dark :is(
+    .r2-product,
+    .r2-product-shot,
+    .r2-type-card,
+    .r2-compare-strip,
+    .r2-plan-picker,
+    .r2-surface-col,
+    .r2-diff-col,
+    .r2-price-card
+  ) {
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 8%, transparent) inset,
+    0 22px 56px -28px color-mix(in oklch, oklch(0 0 0) 65%, transparent);
+}
+
+.r2-product {
+  border-radius: calc(var(--radius) + 12px);
+}
+
+.r2-product-rail {
+  border-top-color: color-mix(in oklch, var(--border) 72%, transparent);
+  background: color-mix(in oklch, var(--muted) 26%, var(--card));
+}
+
+.r2-product-rail button[aria-selected="true"] .r2-product-rail-dot {
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 12%, transparent);
+}
+
+.r2-product-rail button:focus-visible {
+  outline-offset: -2px;
+}
+
+.r2-product-shot,
+.r2-type-card,
+.r2-surface-col,
+.r2-diff-col,
+.r2-price-card {
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.r2-product-shot:hover,
+.r2-type-card:hover,
+.r2-surface-col:hover,
+.r2-diff-col:hover,
+.r2-price-card:hover {
+  border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 48%, transparent) inset,
+    0 24px 52px -28px color-mix(in oklch, var(--foreground) 24%, transparent);
+}
+
+.r2-rhythm,
+.r2-compare {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--surface-tint) 7%, transparent),
+    transparent 72%
+  );
+}
+
+.r2-rhythm::before,
+.r2-compare::before {
+  opacity: 0.72;
+}
+
+.r2-cta-card {
+  box-shadow: 0 24px 64px -32px color-mix(in oklch, var(--foreground) 42%, transparent);
+}
+
+@media (min-width: 1024px) {
+  .r2-hero {
+    padding-block: clamp(2rem, 0.5rem + 3vw, 4rem);
+  }
+
+  .r2-hero-shell {
+    padding-block: clamp(1.5rem, 2vw, 3rem);
+  }
+}
+
+@media (max-width: 767px) {
+  .r2-section > .ui-page-shell > .mt-10 {
+    margin-top: 2.5rem;
+  }
+
+  .r2-product {
+    border-radius: calc(var(--radius) + 8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .r2-product-shot,
+  .r2-type-card,
+  .r2-surface-col,
+  .r2-diff-col,
+  .r2-price-card {
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .r2-product-shot:hover,
+  .r2-type-card:hover,
+  .r2-surface-col:hover,
+  .r2-diff-col:hover,
+  .r2-price-card:hover {
+    transform: none;
+  }
 }

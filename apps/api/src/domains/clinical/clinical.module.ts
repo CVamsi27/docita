@@ -4,6 +4,8 @@ import { LabWorkflowController } from './presentation/controllers/lab-workflow.c
 import { MedicalCodingController } from './presentation/controllers/medical-coding.controller';
 import { ClinicalService } from './application/services/clinical.service';
 import { LabWorkflowCommandService } from './application/services/lab-workflow-command.service';
+import { LabResultNotificationService } from './application/services/lab-result-notification.service';
+import { LabResultReleaseService } from './application/services/lab-result-release.service';
 import { LabWorkflowQueryService } from './application/services/lab-workflow-query.service';
 import { ClinicalSettingsService } from './application/services/clinical-settings.service';
 import { PrismaLabRepository } from './infrastructure/persistence/prisma-lab.repository';
@@ -45,6 +47,8 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
     FrontDeskClinicalBlockGuard,
     ClinicalService,
     LabWorkflowCommandService,
+    LabResultNotificationService,
+    LabResultReleaseService,
     LabWorkflowQueryService,
     ClinicalSettingsService,
     ClinicalFactory,
@@ -86,6 +90,12 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
       useClass: PrismaClinicalSettingsRepository,
     },
   ],
-  exports: [ClinicalService, CODE_CATALOG_PROVIDER, 'IMedicalCodingRepository'],
+  exports: [
+    ClinicalService,
+    CODE_CATALOG_PROVIDER,
+    'IMedicalCodingRepository',
+    LabResultNotificationService,
+    LabResultReleaseService,
+  ],
 })
 export class ClinicalModule {}

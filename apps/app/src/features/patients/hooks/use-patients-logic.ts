@@ -93,15 +93,14 @@ export function usePatientsLogic() {
     : null;
 
   const totalPatients = useMemo(
-    () => patientsResponse?.count ?? 0,
+    () => patientsResponse?.total ?? 0,
     [patientsResponse],
   );
 
-  const hasMore = useMemo(() => {
-    if (!patientsResponse) return false;
-    if (typeof patientsResponse.hasMore === "boolean") return patientsResponse.hasMore;
-    return page * PAGE_SIZE < totalPatients;
-  }, [patientsResponse, page, totalPatients]);
+  const hasMore = useMemo(
+    () => Boolean(patientsResponse) && page * PAGE_SIZE < totalPatients,
+    [patientsResponse, page, totalPatients],
+  );
 
   const canGoPrev = page > 1;
 

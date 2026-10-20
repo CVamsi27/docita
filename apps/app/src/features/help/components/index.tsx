@@ -40,7 +40,12 @@ const HELP_CATEGORIES = [
     icon: HelpCircle,
     articles: 8,
   },
-  { id: "appointments", titleKey: "appointments", icon: HelpCircle, articles: 6 },
+  {
+    id: "appointments",
+    titleKey: "appointments",
+    icon: HelpCircle,
+    articles: 6,
+  },
   { id: "billing", titleKey: "billingInvoices", icon: HelpCircle, articles: 4 },
   { id: "settings", titleKey: "settingsConfig", icon: HelpCircle, articles: 7 },
 ];
@@ -57,7 +62,9 @@ export const HelpCenter: FC = () => {
   const filteredCategories = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return HELP_CATEGORIES;
-    return HELP_CATEGORIES.filter((cat) => t(cat.titleKey).toLowerCase().includes(q));
+    return HELP_CATEGORIES.filter((cat) =>
+      t(cat.titleKey).toLowerCase().includes(q),
+    );
   }, [searchQuery, t]);
 
   return (
@@ -93,7 +100,7 @@ export const HelpCenter: FC = () => {
                   <cat.icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold">{t(cat.titleKey)}</h3>
+                  <h2 className="font-semibold">{t(cat.titleKey)}</h2>
                   <p className="text-sm text-muted-foreground">
                     {t("articlesCount", { count: cat.articles })}
                   </p>
@@ -175,13 +182,13 @@ export const FAQSection: FC<{
   return (
     <Card className="ui-card-surface">
       <CardHeader>
-        <CardTitle>{t("faqTitle")}</CardTitle>
+        <CardTitle><h2>{t("faqTitle")}</h2></CardTitle>
         <CardDescription>{t("faqSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {displayFaqs.map((faq, i) => (
           <div key={i} className="ui-panel-muted p-4 space-y-2">
-            <h4 className="font-medium">{faq.question}</h4>
+            <h3 className="font-medium">{faq.question}</h3>
             <p className="text-sm text-muted-foreground">{faq.answer}</p>
           </div>
         ))}
@@ -189,4 +196,3 @@ export const FAQSection: FC<{
     </Card>
   );
 };
-
