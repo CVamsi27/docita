@@ -1,5 +1,16 @@
 # Docita Two-Month Stability Implementation Plan
 
+**20 October staging continuation:** PR #322 merged into main; PR #325 aligned
+staging to the same tree. Neither deployed production. A subsequent local fix
+isolates Cloudflare staging build URLs, CSP and telemetry; its nine regressions,
+207-case standards suite, lint, frontend types, Knip, production/staging builds
+and Worker dry-runs pass. It is not deployed. The operator authorized the two
+scanner updates as a CI-maintenance exception; PRs #323/#324 merged with compatible
+upstream contracts and scoped checks, restoring room under the PR cap to publish
+the staging fix. Render browser access is disabled, exact hosted
+runtime/journey/latency checks remain open, and Messenger's encrypted runtime-key
+packet still needs offline challenge proof. See the checkpoint below.
+
 **20 October final pass:** the recorded published revision has 14 successful
 hosted checks, three scope skips and zero failures. Local lint, workspace types
 and standards pass; staging latency and production recovery/rollout gates remain
