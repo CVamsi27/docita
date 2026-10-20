@@ -45,6 +45,13 @@ export function TurnstileWidget({
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const callbacksRef = useRef({ onToken, onExpire });
+
+  // Parent state updates replace handlers after verification. Keep delivery
+  // current without removing the provider widget that issued the token.
+  useEffect(() => {
+    callbacksRef.current = { onToken, onExpire };
+  }, [onToken, onExpire]);
 
   useEffect(() => {
     if (!siteKey || !containerRef.current) return;
@@ -55,8 +62,8 @@ export function TurnstileWidget({
       if (cancelled || !containerRef.current || !window.turnstile) return;
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: siteKey,
-        callback: onToken,
-        "expired-callback": onExpire,
+        callback: (token) => callbacksRef.current.onToken(token),
+        "expired-callback": () => callbacksRef.current.onExpire(),
       });
     };
 
@@ -90,7 +97,7 @@ export function TurnstileWidget({
         window.turnstile.remove(widgetIdRef.current);
       }
     };
-  }, [siteKey, onToken, onExpire]);
+  }, [siteKey]);
   if (!siteKey) return null;
   return <div ref={containerRef} className={cn("min-h-[65px]", className)} />;
 }
