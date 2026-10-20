@@ -1,5 +1,14 @@
 # Independent encrypted PostgreSQL backups
 
+**20 October alert containment:** the synthetic Sentry monitor and its dedicated
+email rule are disabled after an unbounded test produced 27 rule triggers.
+Production backups remain disabled. The explicit cycle DSN is configured in the
+main-only environment and the actual slug is `new-monitor`; a published registry
+digest and clinical recovery evidence remain absent. Follow the
+[incident and automatic-cutoff requirement](RUNBOOKS/backup-alert-test.md) before
+any further live alert test. Earlier unconfigured-monitor/DSN statements are
+superseded; the backup activation gates remain open.
+
 **19 October operating constraint:** zero total hosting spend is required.
 Production is in the [recorded maintenance state](ZERO_HOSTING_SPEND.md), with
 the API stopped/cordoned and automatic worker starts/deployments disabled. The
@@ -542,19 +551,27 @@ belongs in this job.
 The `Database Backups` environment is prepared with a verified main-only branch
 policy and the five dedicated database/storage secrets above. Repository endpoint,
 public recipient and monitor-slug variables are prepared;
-`DOCITA_BACKUPS_ENABLED=false`. The Sentry DSN and published registry digest remain
-unset. No workflow was dispatched. The launcher/publication regressions pass
+`DOCITA_BACKUPS_ENABLED=false`. On 19 October the explicit cycle DSN was added
+to that environment and the actual monitor slug was set to `new-monitor`.
+The published registry digest remains unset. No workflow was dispatched.
+The launcher/publication regressions pass
 **34/34**, zero skips, including failed-scan publication denial and credential
 cleanup.
 
-The Sentry CLI login succeeds, but the available token has only `org:ci`;
-organization/monitor API reads return 403. Login alone does not establish monitor
-management, free quota or routing. Management access remains a prerequisite.
+The Sentry CLI token has only `org:ci`; organization/monitor API reads return
+403. Signed-in console access subsequently verified the Developer plan, one
+included cron monitor and account routing without enabling PAYG or upgrading.
+The created test monitor and its dedicated email rule are now disabled.
 
 The operator authorized one controlled failed-run and one missed-run test email.
-Keep the exercise bounded to the existing operational recipient and record actual
-routing/receipt; local fake HTTP acceptance does not spend or replace those real
-exercises. The original one-message ZeptoMail inbox proof remains separate.
+On 19 October the operator selected the current signed-in Sentry account's email
+for both messages. A synthetic failure was accepted and remote missed check-ins
+were detected, but the test remained active overnight and exceeded that limit.
+The 27 rule triggers do not establish 27 delivered emails or a successful bounded
+exercise. Follow the [containment runbook](RUNBOOKS/backup-alert-test.md); fresh
+authorization and a verified automatic cutoff are required before another live
+exercise. Local HTTP acceptance does not prove inbox delivery. The original
+one-message ZeptoMail inbox proof remains separate.
 
 ### Encrypted application-key recovery packet, 16 October
 
@@ -582,9 +599,10 @@ the job unactivated until successful quarantined clinical restore with
 erasure/legal-hold reconciliation,
 measured production runtime/memory
 and a verified independent stale-backup alert destination. Test a failed run and a
-missed schedule. The operator reports GitHub billing resolved; current hosted CI
-remains unverified while Code Review requests its GitHub connection. Independent
-remote missed-run coverage is required even with working GitHub billing.
+missed schedule with a verified automatic test cutoff. GitHub access and free PR
+validation are restored; the [20 October checkpoint](../audits/2026-10-20-final-stability-pass.md)
+records revision checks and scope skips. Passing PR CI does not prove independent
+remote missed-run coverage or authorize backup activation.
 
 Use the selected GitHub workflow and verified cycle image after the readiness
 gates pass. Keep the clinical worker stopped and API idle shutdown unchanged.

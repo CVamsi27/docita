@@ -1,5 +1,12 @@
 # Staging isolation checkpoint — 17 October 2026
 
+**20 October follow-up:** hosted validation for the recorded revision now has
+14 successes, three scope skips and zero failures. Render remains suspended on
+Free with Auto-Deploy Off, and has no candidate deployment. The Sentry test
+monitor and dedicated email rule are disabled after unintended repeated test
+notifications. See the [current final-pass checkpoint](2026-10-20-final-stability-pass.md)
+for exact evidence and remaining gates; earlier blockers below are historical.
+
 The [19 October maintenance record](../operations/ZERO_HOSTING_SPEND.md)
 supersedes the unresolved spending scope and runtime/monitoring state below.
 The operator selected zero total hosting spend, retaining Fly machines while

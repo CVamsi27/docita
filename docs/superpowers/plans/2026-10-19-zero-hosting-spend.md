@@ -114,11 +114,19 @@ and backup documents link to that single operating record.
 
 - [x] Record the operator's waiver/R2 confirmation and distinguish zero reserved
       instances from the two retained stopped machines. Keep both preserved.
-- [ ] Recheck the existing repair's local CI command and secret scan, then push
+- [x] Recheck the existing repair's local CI command and secret scan, then push
       only the existing feature branch. Preserve disabled deployment/recovery jobs.
-- [ ] Inspect checks for the published revision through Code Review. Fix actual
+- [x] Inspect checks for the published revision through Code Review. Fix actual
       failures, retain the full API coverage thresholds and mobile auth coverage,
       and record scope skips separately from executed checks.
+      At `a97882b0778f17d0684fcece2910b898a27a0870`, all 14 executed checks
+      succeed; three jobs are skipped by scope. No runtime workflow was enabled.
 - [ ] Continue the staging/recovery gates that can run on free tooling. Leave
       source release, production credential/RLS rollout and backup activation
       gated on their own evidence.
+
+The [20 October final pass](../../audits/2026-10-20-final-stability-pass.md)
+records current checks, test-fixture repair and open runtime gates. The
+[backup alert incident](../../operations/RUNBOOKS/backup-alert-test.md) requires
+an automatic cutoff and fresh authorization before further live test messages.
+The synthetic monitor and its dedicated email rule remain disabled.

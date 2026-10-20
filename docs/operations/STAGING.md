@@ -5,8 +5,14 @@ Its deployed revision must be verified before using staging results as release e
 
 ## Current preparation, 17 October 2026
 
-The signed-in Render service still holds a production-endpoint owner URL and
-remains suspended on its old main revision. A separate empty Neon Free project
+**20 October readback:** Render remains suspended on Free, Auto-Deploy Off,
+connected to `main`, with no candidate deployment. The protected configuration
+handoff was saved on 17 October; targeted readback verified the isolated database
+and restricted role. The prior production-owner URL statement is superseded.
+Candidate branch alignment, runtime verification, browser journeys, latency and
+the full soak remain open. See the [final-pass checkpoint](../audits/2026-10-20-final-stability-pass.md).
+
+A separate empty Neon Free project
 is now prepared: `wispy-forest-27565397`, root `br-icy-violet-a13qncy8`, endpoint
 `ep-bold-wave-a15dfyvk`, database `docita_staging`, runtime role `docita_app`.
 All 175 migrations, zero schema drift, integrity and 19 strict isolation checks
@@ -16,12 +22,13 @@ health and the real auth-session boundary also pass. See the
 
 Local operator configuration and GitHub's existing `STAGING_DATABASE_URL` secret
 now use that restricted staging target. A protected Render environment file has
-fresh staging JWT/field keys and explicit safety flags; Render has not received
-it. The dedicated Turnstile pair is now saved locally and incorporated in the
+fresh staging JWT/field keys and explicit safety flags; its 26 prepared variables
+were subsequently saved in Render, retaining existing Razorpay test settings.
+The dedicated Turnstile pair is saved locally and incorporated in the
 protected API/frontend handoff files. Full runtime validation and a repeat local
 startup pass with the saved secret; a real widget challenge remains unverified. Preserve
-existing test-only Razorpay settings; use Save only for the credential handoff
-and keep the old service suspended until candidate review and staging alignment.
+existing test-only Razorpay settings and keep the old service suspended until
+candidate review and staging alignment.
 
 The independent project replaces the schema-only branch path for routine staging;
 no production data was copied. A fixed 0.25 CU compute uses the Free plan's idle

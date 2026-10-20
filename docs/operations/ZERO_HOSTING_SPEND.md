@@ -1,5 +1,13 @@
 # Zero hosting spend and maintenance state
 
+**20 October readback:** Fly remains stopped (API cordoned), Render suspended
+with Auto-Deploy Off, all four runtime/deployment workflows disabled, and
+production backups disabled. The synthetic Sentry monitor and its dedicated
+email rule were activated on 19 October and disabled on 20 October after repeated
+notifications. Earlier statements below that no monitor/check-in was submitted
+describe the preceding billing audit; see the [incident](RUNBOOKS/backup-alert-test.md)
+and [current release limits](../audits/2026-10-20-final-stability-pass.md).
+
 On **19 October 2026**, the operator selected **zero total Docita hosting spend**,
 including existing infrastructure, after being told that this can interrupt
 production. This supersedes the earlier uncertainty about additional versus
@@ -41,8 +49,9 @@ The following were verified through provider control planes on 19 October:
   age recipient before routing changed. This is **not a root-filesystem backup**.
   No private recovery identity was accessed or recreated.
 - Backups remain unactivated: `DOCITA_BACKUPS_ENABLED=false`. No new workflow
-  dispatch, source push, clinical dump, host purchase or provider test send was
-  performed in this pass.
+  dispatch, clinical dump or host purchase was performed in the billing audit.
+  The subsequent source validation and synthetic Sentry exercise are recorded
+  separately above; neither activated production backups.
 
 The unchanged `auto_start_machines=true` source configuration is not the active
 maintenance control: the API's provider routing cordon is. A later deployment,

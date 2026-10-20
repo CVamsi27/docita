@@ -1,5 +1,13 @@
 # Stability, Reliability & Performance Runbook
 
+**20 October final pass:** the recorded PR revision has 14 successes and three
+scope skips; production remains in maintenance and is not certified ready.
+The Sentry test monitor and dedicated email rule are disabled after 27 unintended
+rule triggers. No additional live test sends are authorized. See the
+[current gate record](../audits/2026-10-20-final-stability-pass.md) and
+[incident runbook](RUNBOOKS/backup-alert-test.md). Earlier monitoring/billing
+blockers below are historical and do not override current gates.
+
 **19 October maintenance override:** the operator requires zero total hosting
 spend. The API is stopped/cordoned, the worker remains stopped, and automatic
 deployment, daily worker and uptime recovery workflows are disabled. Render

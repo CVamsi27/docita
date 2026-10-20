@@ -1,5 +1,14 @@
 # Docita Two-Month Stability Implementation Plan
 
+**20 October final pass:** the recorded published revision has 14 successful
+hosted checks, three scope skips and zero failures. Local lint, workspace types
+and standards pass; staging latency and production recovery/rollout gates remain
+open. The synthetic Sentry monitor and dedicated email rule are disabled after
+a test exceeded its two-message authorization and recorded 27 rule triggers.
+Follow the [current checkpoint](../../audits/2026-10-20-final-stability-pass.md)
+and [alert containment runbook](../../operations/RUNBOOKS/backup-alert-test.md).
+Production remains in maintenance; freeze readiness is not certified.
+
 **19 October hosting decision:** the operator clarified zero **total** hosting
 spend and subsequently chose to retain both Fly machines, keeping gross Fly
 usage strictly below $5 under its personal-org waiver. Signed-in checks verify
