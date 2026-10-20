@@ -13,7 +13,7 @@ import { expect, test } from "@playwright/test";
  */
 
 const API_HEALTH_URL =
-  process.env["API_HEALTH_URL"] || "http://127.0.0.1:3001/health/live";
+  process.env["API_HEALTH_URL"] || "http://127.0.0.1:3001/api/health/live";
 
 test.describe("App + API health", () => {
   test("GET /api/v1/* proxy reaches the API liveness endpoint", async ({

@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
+import type { AriaAttributes, ReactNode } from "react";
 
 export interface DataTableColumn<T> {
   id: string;
   header: ReactNode;
   cell: (row: T, rowIndex: number) => ReactNode;
   sort?: (a: T, b: T) => number;
+  ariaSort?: AriaAttributes["aria-sort"];
   align?: "left" | "right" | "center";
   width?: string;
   hiddenOnMobile?: boolean;

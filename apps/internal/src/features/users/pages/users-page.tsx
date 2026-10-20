@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { Eye, Search, Shield, Stethoscope, UserCog, Users } from "lucide-react";
 import { EmptyState } from "@workspace/ui/components/feedback/empty-state";
-import { formatInternalListDate, formatInternalTimestamp } from "../../../lib/formatters";
-import { apiGet } from "@/lib/api/api-client";
+import { formatDate, formatDateTime, enIN } from "@workspace/utils";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface User { id: string; name: string; email: string; role: string; phoneNumber?: string; specialization?: string; qualification?: string; registrationNumber?: string; yearsOfExperience?: number; bio?: string; createdAt: string; clinicName?: string; }
 
@@ -37,23 +37,11 @@ function getRoleBadgeColor(role: string): string {
 }
 
 export function UsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+  const { data: users = [], isLoading, error, refetch } = useApiQuery<User[]>("/api/internal/users");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<RoleFilter>("ALL");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    setHasError(false);
-    try { setUsers(await apiGet<User[]>("/api/internal/users")); }
-    catch { setHasError(true); }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchUsers(); }, []);
 
   const roleStats = useMemo(() => ({
     ALL: users.length, ADMIN: users.filter((u) => u.role === "ADMIN").length,
@@ -69,19 +57,19 @@ export function UsersPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Team Members" description="View and manage all users across facilities" size="compact" />}>
-      <DataState status={loading ? "loading" : hasError ? "error" : "success"} loadingMessage="Loading team members…"
+      <DataState status={isLoading ? "loading" : error ? "error" : "success"} loadingMessage="Loading team members…"
         errorMessage="We could not load team members. Please refresh and try again."
-        onRetry={() => { void fetchUsers(); }}
+        onRetry={() => { void refetch(); }}
         emptyTitle="No team members found" emptyDescription="Team members will appear here once facilities add users." emptyIcon={Users}>
-        <div className="grid gap-4 md:grid-cols-5 mb-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5 mb-6">
           {ROLE_FILTERS.map((role) => { const config = ROLE_CONFIG[role]; return (
-            <Card key={role} className={`cursor-pointer transition-shadow duration-150 ${selectedRole === role ? "ring-2 ring-primary shadow-lg" : "hover:shadow-md"}`}
+            <Button key={role} type="button" variant="ghost" aria-label={`${config.label} (${roleStats[role]})`} aria-pressed={selectedRole === role}
+              className={`h-auto min-w-0 justify-between gap-3 whitespace-normal rounded-none border-b px-3 py-4 text-left ${selectedRole === role ? "border-primary bg-primary/5" : "border-border/60"}`}
               onClick={() => { setSelectedRole(role); }}>
-              <CardContent className="pt-6"><div className="flex items-center justify-between">
-                <div><p className="text-sm font-medium text-muted-foreground">{config.label}</p>
+                <div className="min-w-0"><p className="text-sm font-medium text-muted-foreground">{config.label}</p>
                   <p className="mt-1 text-2xl font-semibold tabular-nums">{roleStats[role]}</p></div>
-                <config.icon className="h-8 w-8 text-muted-foreground" />
-              </div>              </CardContent></Card>
+                <config.icon className="hidden h-5 w-5 shrink-0 text-muted-foreground sm:block" aria-hidden />
+              </Button>
           ); })}
         </div>
 
@@ -107,7 +95,7 @@ export function UsersPage() {
                   <TableCell><Badge className={getRoleBadgeColor(user.role)}>{user.role.replace("_", " ")}</Badge></TableCell>
                   <TableCell className="text-muted-foreground">{user.specialization || "-"}</TableCell>
                   <TableCell className="text-muted-foreground">{user.phoneNumber || "-"}</TableCell>
-                  <TableCell className="text-muted-foreground">{formatInternalListDate(user.createdAt)}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatDate(user.createdAt, undefined, { locale: enIN })}</TableCell>
                   <TableCell className="text-right"><Button variant="ghost" size="sm" onClick={() => { setSelectedUser(user); setIsViewOpen(true); }}><Eye className="h-4 w-4 mr-2" /> View</Button></TableCell>
                 </TableRow>
               ))}</TableBody></Table></div>
@@ -126,7 +114,7 @@ export function UsersPage() {
               <div><p className="text-sm font-medium text-muted-foreground">Role</p><Badge className={`mt-1 ${getRoleBadgeColor(selectedUser.role)}`}>{selectedUser.role.replace("_", " ")}</Badge></div>
               <div><p className="text-sm font-medium text-muted-foreground">Phone</p><p className="text-sm font-semibold mt-1">{selectedUser.phoneNumber || "N/A"}</p></div>
             </div>
-            <div className="border-t pt-4"><p className="text-sm font-medium text-muted-foreground">Joined</p><p className="text-sm font-semibold mt-1">{formatInternalTimestamp(selectedUser.createdAt)}</p></div>
+            <div className="border-t pt-4"><p className="text-sm font-medium text-muted-foreground">Joined</p><p className="text-sm font-semibold mt-1">{formatDateTime(selectedUser.createdAt, undefined, { locale: enIN })}</p></div>
           </div>}
         </DialogContent>
       </Dialog>

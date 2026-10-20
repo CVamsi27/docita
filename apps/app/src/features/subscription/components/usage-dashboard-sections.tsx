@@ -3,9 +3,21 @@
 import { DocitaLoadingIndicator } from "@workspace/ui/components/feedback/docita-loading-indicator";
 import { formatCountLocale, formatAmountLocale } from "@workspace/utils";
 import { AlertTriangle, TrendingUp } from "lucide-react";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Progress } from "@workspace/ui/components";
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Progress,
+} from "@workspace/ui/components";
 import { cn } from "@workspace/ui/lib/utils";
-import { formatUsageMeterCaption, usageMeterHasNoIncludedQuota, usageProgressPercentForBar } from "@/features/subscription/lib/usage-meter-display";
+import {
+  formatUsageMeterCaption,
+  usageMeterHasNoIncludedQuota,
+  usageProgressPercentForBar,
+} from "@/features/subscription/lib/usage-meter-display";
 
 interface UsageMeterProps {
   label: string;
@@ -33,7 +45,12 @@ function UsageMeter({
   const pct = usageProgressPercentForBar(current, included);
   const isOver = overage > 0;
   const isWarning = included > 0 && pct >= 80 && !isOver;
-  const caption = formatUsageMeterCaption(current, included, unit, formatCountLocale);
+  const caption = formatUsageMeterCaption(
+    current,
+    included,
+    unit,
+    formatCountLocale,
+  );
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
@@ -57,6 +74,7 @@ function UsageMeter({
       </div>
       <Progress
         value={pct}
+        aria-label={label}
         className={cn(
           "h-2",
           isOver && "[&>div]:bg-destructive",

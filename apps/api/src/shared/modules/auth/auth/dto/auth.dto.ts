@@ -1,5 +1,4 @@
 import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
 import {
   loginSchema,
   registerSchema,
@@ -7,10 +6,16 @@ import {
   refreshTokenSchema,
   logoutSchema,
   changePasswordSchema,
-  loginResponseSchema,
   registerResponseSchema,
+  tokenIssueResponseSchema,
+  messageAckResponseSchema,
   validateSessionResponseSchema,
   checkEmailResponseSchema,
+  successResponseSchema,
+  mfaVerifySchema,
+  mfaCodeSchema,
+  mfaSetupResponseSchema,
+  mfaBackupCodesResponseSchema,
 } from '@workspace/types';
 
 export const LoginSchema = loginSchema;
@@ -37,13 +42,29 @@ export const LogoutSchema = logoutSchema;
 
 export class LogoutRequestDto extends createZodDto(LogoutSchema) {}
 
-export class LoginResponseDto extends createZodDto(loginResponseSchema) {}
+export const MfaVerifySchema = mfaVerifySchema;
+
+export class MfaVerifyDto extends createZodDto(MfaVerifySchema) {}
+
+export const MfaCodeSchema = mfaCodeSchema;
+
+export class MfaCodeDto extends createZodDto(MfaCodeSchema) {}
+
+export class TokenIssueResponseDto extends createZodDto(
+  tokenIssueResponseSchema,
+) {}
+export class LogoutResponseDto extends createZodDto(messageAckResponseSchema) {}
+export class MfaSetupResponseDto extends createZodDto(mfaSetupResponseSchema) {}
+export class MfaBackupCodesResponseDto extends createZodDto(
+  mfaBackupCodesResponseSchema,
+) {}
+
 export class RegisterResponseDto extends createZodDto(registerResponseSchema) {}
 export class ValidateSessionResponseDto extends createZodDto(
   validateSessionResponseSchema,
 ) {}
 export class ChangePasswordResponseDto extends createZodDto(
-  z.object({ success: z.boolean(), message: z.string().optional() }),
+  successResponseSchema,
 ) {}
 export class CheckEmailResponseDto extends createZodDto(
   checkEmailResponseSchema,

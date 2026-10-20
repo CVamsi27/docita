@@ -41,7 +41,6 @@
     "removeInvestigationTooltip": "Remove investigation",
     "removeAttachmentTooltip": "Remove attachment",
     "viewAttachment": "View attachment",
-    "attachReportAriaLabel": "Attach a report or scan",
     "attachReport": "Attach report",
     "uploading": "Uploading…"
   },
@@ -154,7 +153,8 @@
     "closeSidebarAria": "Close sidebar",
     "historyHideAria": "Hide visit history",
     "historyShowAria": "Show visit history",
-    "historyLabel": "History ({count, plural, =0 {0} other {{count}}})",
+    "historyLabel_one": "History ({count})",
+    "historyLabel_other": "History ({count})",
     "noPreviousVisits": "No previous visits",
     "surgicalHistoryLabel": "Surgical history",
     "familyHistoryLabel": "Family history",

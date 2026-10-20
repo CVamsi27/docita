@@ -82,7 +82,7 @@ export async function isDashboardQueueSectionVisible(page: Page) {
 }
 
 export async function expectConsultationWorkspaceReady(page: Page) {
-  const workspace = page.locator('main[aria-label="Consultation workspace"]');
+  const workspace = page.getByRole("region", { name: "Consultation workspace" });
   const sectionRail = page.getByRole("list", { name: "Consultation sections" });
   const terminalState = page
     .getByText(

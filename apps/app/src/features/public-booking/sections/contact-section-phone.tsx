@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, Input, Label } from "@workspace/ui/components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 export function ContactSectionPhone({
@@ -10,6 +11,7 @@ export function ContactSectionPhone({
   c: PublicBookingPageController;
   requiredMark: ReactNode;
 }) {
+  const { t } = useTranslation("PublicBooking");
   const phoneChecked = c.requiresOtp !== null;
   return (
     <div className="grid gap-2 sm:col-span-2">
@@ -17,7 +19,8 @@ export function ContactSectionPhone({
         htmlFor="pb-phone"
         className="text-[length:var(--fs-sm)] font-normal text-muted-foreground"
       >
-        Phone number{requiredMark}
+        {t("phone.label")}
+        {requiredMark}
       </Label>
       <Input
         id="pb-phone"
@@ -60,7 +63,7 @@ export function ContactSectionPhone({
           onClick={() => void c.runPhoneCheck()}
           disabled={!c.phone.trim() || c.phoneCheck.isPending}
         >
-          Continue
+          {t("phone.checkNumber")}
         </Button>
       ) : null}
     </div>

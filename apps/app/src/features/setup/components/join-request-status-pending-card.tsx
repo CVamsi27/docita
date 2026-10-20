@@ -60,7 +60,7 @@ export function JoinRequestStatusPendingCard({
           </p>
         </div>
         <Badge variant="secondary" className="text-xs px-2.5 py-1 shrink-0">
-          {request.status}
+          {t("joinRequestPending.statusPending")}
         </Badge>
       </div>
 

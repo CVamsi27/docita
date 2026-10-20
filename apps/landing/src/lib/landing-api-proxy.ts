@@ -14,18 +14,11 @@ const HOP_BY_HOP_HEADERS = new Set([
 
 function copyProxyHeaders(headers: Headers): Headers {
   const copied = new Headers();
-
   for (const [key, value] of headers.entries()) {
     const normalizedKey = key.toLowerCase();
-    if (
-      HOP_BY_HOP_HEADERS.has(normalizedKey) ||
-      normalizedKey.startsWith("access-control-")
-    ) {
-      continue;
-    }
+    if (HOP_BY_HOP_HEADERS.has(normalizedKey) || normalizedKey.startsWith("access-control-")) continue;
     copied.append(key, value);
   }
-
   return copied;
 }
 
@@ -37,11 +30,7 @@ export function createLandingProxyResponseHeaders(headers: Headers): Headers {
   return copyProxyHeaders(headers);
 }
 
-export function buildLandingUpstreamApiUrl(
-  targetBase: string,
-  path: string,
-  requestUrl: string,
-): string {
+export function buildLandingUpstreamApiUrl(targetBase: string, path: string, requestUrl: string): string {
   const normalizedBase = targetBase.replace(/\/+$/, "");
   const pathSegments = path.split("/").filter(Boolean);
   if (pathSegments.some((segment) => segment === "." || segment === "..")) {

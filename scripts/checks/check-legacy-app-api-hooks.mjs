@@ -3,6 +3,8 @@
 import { execSync } from "node:child_process";
 import process from "node:process";
 
+import { trackedFileExists } from "../lib/check-runner.mjs";
+
 const enforce = process.argv.includes("--enforce");
 const LEGACY_HOOK_DIR = "apps/app/src/shared/hooks/api";
 
@@ -11,6 +13,7 @@ const files = execSync(`git ls-files "${LEGACY_HOOK_DIR}"`, {
 })
   .split("\n")
   .filter(Boolean)
+  .filter(trackedFileExists)
   .filter((file) => /\.tsx?$/.test(file));
 
 if (files.length > 0) {

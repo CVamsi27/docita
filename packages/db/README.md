@@ -46,3 +46,18 @@ pnpm db:repair-appointments:apply
 ```
 
 Requires `DATABASE_URL` (loads from repo `.env` or `apps/api/.env` when unset). Uses UTC session timezone on the connection.
+
+Subscriptions written before the onboarding quota fix may still carry quota columns that disagree with the `TierPricing` catalog for their plan. `db:check-integrity` reports the drift as a failed check; repair it with:
+
+```bash
+# Dry-run (default — prints planned per-field changes per tier)
+pnpm db:backfill-subscription-quotas
+
+# Scope to one clinic, then apply
+pnpm --filter @workspace/db exec ts-node scripts/backfill-subscription-quotas.ts --clinic-id=<clinicId>
+pnpm --filter @workspace/db exec ts-node scripts/backfill-subscription-quotas.ts --apply
+```
+
+The backfill is idempotent: rows already matching the catalog are skipped, and re-running after `--apply` reports zero changes.
+
+`db:check-integrity` also reports clinics whose `tier` or `subscriptionStatus` has drifted from their subscription (feature gating and access guards read the clinic row). `pnpm db:backfill-onboarding-clinic-state` re-syncs both from the subscription.

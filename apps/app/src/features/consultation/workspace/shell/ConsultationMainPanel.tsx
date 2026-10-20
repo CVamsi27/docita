@@ -45,7 +45,7 @@ function HistoryDivider({ open, onToggle, summary }: HistoryDividerProps) {
       className="group flex w-full items-center gap-3 rounded py-0.5 h-auto justify-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
     >
       <div className="h-px flex-1 bg-border/50 transition-colors group-hover:bg-border" />
-      <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground/70 transition-colors group-hover:text-muted-foreground">
+      <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground transition-colors group-hover:text-muted-foreground">
         <History className="h-3 w-3" aria-hidden="true" />
         <span>{label}</span>
         <ChevronDown
@@ -122,9 +122,10 @@ export function ConsultationMainPanel({
         onSelect={onSelectSection}
       />
 
-      <main
+      <section
         ref={mainScrollRef}
-        className="flex-1 overflow-y-auto bg-muted/40 px-3 py-4 md:px-6 md:py-6"
+        tabIndex={0}
+        className="flex-1 overflow-y-auto bg-muted/40 px-3 py-4 md:px-6 md:py-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
         aria-label="Consultation workspace"
       >
         <div className="mx-auto max-w-3xl">
@@ -152,7 +153,7 @@ export function ConsultationMainPanel({
             />
           </div>
         </div>
-      </main>
+      </section>
 
       <div className="shrink-0 border-t border-border/60 bg-background px-3 py-3 md:px-6">
         <div className="mx-auto max-w-3xl">

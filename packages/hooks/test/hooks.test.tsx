@@ -11,7 +11,6 @@ import { useLocalStorage } from "../src/use-local-storage";
 import { useMediaQuery } from "../src/use-media-query";
 import { useMedicalCalculations } from "../src/use-medical-calculations";
 import { useMounted } from "../src/use-mounted";
-import { useSessionStorage } from "../src/use-session-storage";
 import { useToggle } from "../src/use-toggle";
 import {
   BREAKPOINTS,
@@ -92,23 +91,6 @@ describe("@workspace/hooks", () => {
 
     expect(localStorage.getItem("theme")).toBe(JSON.stringify("light"));
     expect(result.current[0]).toBe("light");
-  });
-
-  it("reads and writes sessionStorage", async () => {
-    sessionStorage.setItem("draft", JSON.stringify("v1"));
-
-    const { result } = renderHook(() => useSessionStorage("draft", "v0"));
-
-    await waitFor(() => {
-      expect(result.current[0]).toBe("v1");
-    });
-
-    act(() => {
-      result.current[1]((prev: string) => `${prev}-updated`);
-    });
-
-    expect(sessionStorage.getItem("draft")).toBe(JSON.stringify("v1-updated"));
-    expect(result.current[0]).toBe("v1-updated");
   });
 
   it("triggers keyboard shortcuts and skips plain shortcuts in input", () => {

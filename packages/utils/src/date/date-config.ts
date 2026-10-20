@@ -1,4 +1,5 @@
 export { DEFAULT_SLOT_DURATION, DEFAULT_TIMEZONE } from "@workspace/types";
+import type { Locale } from "date-fns";
 import { DEFAULT_TIMEZONE } from "@workspace/types";
 export const DEFAULT_LOCALE = "en-IN";
 
@@ -197,5 +198,6 @@ export const DATE_FORMATS = {
 
 export interface DateTimeOptions {
   timezone?: string;
-  locale?: string;
+  /** date-fns `Locale` for month/weekday names (e.g. `enIN` for "Sept"). */
+  locale?: Locale;
 }

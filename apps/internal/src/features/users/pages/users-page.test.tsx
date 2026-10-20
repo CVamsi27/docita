@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@/test-utils";
 import { UsersPage } from "./users-page";
 import { apiGet } from "@/lib/api/api-client";
 
@@ -17,12 +17,21 @@ const mockUsers = [
 ];
 
 const card = (label: string) => {
-  const node = screen.getByText(label).closest(".cursor-pointer");
+  const node = screen.getByRole("button", { name: new RegExp(`^${label} \\(`) });
   expect(node).not.toBeNull();
   return within(node as HTMLElement);
 };
 
 describe("UsersPage", () => {
+  it("exposes role counts as named pressed buttons and updates selection", async () => {
+    mockApiGet.mockResolvedValueOnce(mockUsers);
+    render(<UsersPage />);
+    const doctors = await screen.findByRole("button", { name: "Doctors (2)" });
+    expect(doctors).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(doctors);
+    expect(doctors).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByText("Alice Admin")).not.toBeInTheDocument();
+  });
   beforeEach(() => {
     mockApiGet.mockReset();
   });

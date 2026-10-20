@@ -15,17 +15,67 @@ import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import { ILabRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
 import type {
+  LabNotificationClaim,
   LabOrderReleaseContext,
   LabQueueItem,
+  LabReleaseClaim,
 } from '@/domains/clinical/core/repositories/lab-workflow.repository.interface';
 import type { LabRecord } from '@/domains/clinical/core/repositories/lab-directory.repository.interface';
 import {
   LabTestOrderStatus,
+  LabResultNotificationStatus,
   LabType,
   Prisma,
   LabTest as PrismaLabTest,
   LabTestOrder as PrismaLabTestOrder,
 } from '@workspace/db';
+
+/**
+ * Statuses an order can still be released from. COMPLETED/CANCELLED are
+ * terminal, so a release claim predicated on these can only ever win once.
+ */
+const RELEASABLE_STATUSES: LabTestOrderStatus[] = [
+  LabTestOrderStatus.ORDERED,
+  LabTestOrderStatus.SAMPLE_COLLECTED,
+  LabTestOrderStatus.PENDING,
+  LabTestOrderStatus.RESULT_READY,
+];
+
+/** Notification states a delivery claim may take from. */
+const CLAIMABLE_NOTIFICATION_STATUSES: LabResultNotificationStatus[] = [
+  LabResultNotificationStatus.NOT_ATTEMPTED,
+  LabResultNotificationStatus.FAILED,
+];
+
+/** Notification states that mean delivery is settled and must never re-run. */
+const SETTLED_NOTIFICATION_STATUSES: LabResultNotificationStatus[] = [
+  LabResultNotificationStatus.SENT,
+  LabResultNotificationStatus.SKIPPED_NO_CONTACT,
+];
+
+/** Failure text kept for operator triage; never the message body. */
+const NOTIFICATION_ERROR_MAX_LENGTH = 300;
+
+/**
+ * Rows a delivery attempt may take: never-attempted/retryable states, or a
+ * SENDING row whose lease expired because the worker holding it died mid-send.
+ * Shared by the claim and the sweep so "claimable" cannot drift between them.
+ */
+function claimableNotificationWhere(leaseExpiredBefore: Date) {
+  return {
+    OR: [
+      {
+        resultNotificationStatus: {
+          in: CLAIMABLE_NOTIFICATION_STATUSES,
+        },
+      },
+      {
+        resultNotificationStatus: LabResultNotificationStatus.SENDING,
+        resultNotificationClaimedAt: { lt: leaseExpiredBefore },
+      },
+    ],
+  };
+}
 
 @Injectable()
 export class PrismaLabRepository implements ILabRepository {
@@ -51,9 +101,11 @@ export class PrismaLabRepository implements ILabRepository {
     return tests.slice(0, 1000).map((t) => this.mapToLabTest(t));
   }
 
-  async findTestById(id: string): Promise<LabTest | null> {
-    const test = await this.getReadClient().labTest.findUnique({
-      where: { id },
+  async findTestById(id: string, clinicId: string): Promise<LabTest | null> {
+    // Tenant-scoped read: the scope policy rejects `findUnique` keyed on id
+    // alone, so use a tenant-qualified findFirst.
+    const test = await this.getReadClient().labTest.findFirst({
+      where: { id, clinicId },
     });
     return test ? this.mapToLabTest(test) : null;
   }
@@ -71,17 +123,46 @@ export class PrismaLabRepository implements ILabRepository {
       active: labTest.active,
     };
 
-    const saved = await this.prisma.labTest.upsert({
-      where: { id: labTest.id || 'new' },
-      create: data,
-      update: data,
-    });
+    // The tenant-scope policy rejects `upsert`/`update` keyed on `id` alone;
+    // use the tenant-qualified findFirst + create/updateMany pattern instead.
+    const existing = labTest.id
+      ? await this.prisma.labTest.findFirst({
+          where: { id: labTest.id, clinicId: labTest.clinicId },
+        })
+      : null;
 
-    return this.mapToLabTest(saved);
+    if (existing) {
+      const result = await this.prisma.labTest.updateMany({
+        where: { id: existing.id, clinicId: labTest.clinicId },
+        data,
+      });
+      if (result.count === 0) {
+        throw new NotFoundException('Lab test not found');
+      }
+      const updated = await this.prisma.labTest.findFirst({
+        where: { id: existing.id, clinicId: labTest.clinicId },
+      });
+      if (!updated) {
+        throw new NotFoundException('Lab test not found');
+      }
+      return this.mapToLabTest(updated);
+    }
+
+    const created = await this.prisma.labTest.create({
+      data: { ...data, id: labTest.id || undefined },
+    });
+    return this.mapToLabTest(created);
   }
 
-  async deleteTest(id: string): Promise<void> {
-    await this.prisma.labTest.delete({ where: { id } });
+  async deleteTest(id: string, clinicId: string): Promise<void> {
+    // Tenant-scoped delete: the scope policy rejects `delete` keyed on id
+    // alone; deleteMany keeps clinicId in the where.
+    const result = await this.prisma.labTest.deleteMany({
+      where: { id, clinicId },
+    });
+    if (result.count === 0) {
+      throw new NotFoundException('Lab test not found');
+    }
   }
 
   async findAllOrders(
@@ -181,14 +262,18 @@ export class PrismaLabRepository implements ILabRepository {
     };
   }
 
-  async findOrderById(id: string): Promise<LabOrder | null> {
-    const order = await this.getReadClient().labTestOrder.findUnique({
-      where: { id },
+  async findOrderById(id: string, clinicId: string): Promise<LabOrder | null> {
+    // Tenant-scoped read: the scope policy rejects `findUnique` keyed on id
+    // alone, so use a tenant-qualified findFirst.
+    const order = await this.getReadClient().labTestOrder.findFirst({
+      where: { id, clinicId },
       include: { labTest: true },
     });
 
     if (!order) return null;
-    return this.mapToLabOrder(order);
+    return this.mapToLabOrder(order, {
+      labTest: order.labTest ? this.labTestRelation(order.labTest) : undefined,
+    });
   }
 
   async saveOrder(order: LabOrder): Promise<LabOrder> {
@@ -205,20 +290,57 @@ export class PrismaLabRepository implements ILabRepository {
       orderedBy: order.orderedBy || 'SYSTEM',
     };
 
-    const saved = await this.prisma.labTestOrder.upsert({
-      where: { id: order.id || 'new' },
-      create: data,
-      update: data,
+    // The tenant-scope policy rejects `upsert`/`update` keyed on `id` alone;
+    // use the tenant-qualified findFirst + create/updateMany pattern instead.
+    const existing = order.id
+      ? await this.prisma.labTestOrder.findFirst({
+          where: { id: order.id, clinicId: order.clinicId },
+          include: { labTest: true },
+        })
+      : null;
+
+    if (existing) {
+      const result = await this.prisma.labTestOrder.updateMany({
+        where: { id: existing.id, clinicId: order.clinicId },
+        data,
+      });
+      if (result.count === 0) {
+        throw new NotFoundException('Lab order not found');
+      }
+      const updated = await this.prisma.labTestOrder.findFirst({
+        where: { id: existing.id, clinicId: order.clinicId },
+        include: { labTest: true },
+      });
+      if (!updated) {
+        throw new NotFoundException('Lab order not found');
+      }
+      return this.mapToLabOrder(updated, {
+        labTest: updated.labTest
+          ? this.labTestRelation(updated.labTest)
+          : undefined,
+      });
+    }
+
+    const created = await this.prisma.labTestOrder.create({
+      data: { ...data, id: order.id || undefined },
       include: { labTest: true },
     });
-
-    return this.mapToLabOrder(saved);
+    return this.mapToLabOrder(created, {
+      labTest: created.labTest
+        ? this.labTestRelation(created.labTest)
+        : undefined,
+    });
   }
 
-  async deleteOrder(id: string): Promise<void> {
-    await this.prisma.labTestOrder.delete({
-      where: { id },
+  async deleteOrder(id: string, clinicId: string): Promise<void> {
+    // Tenant-scoped delete: the scope policy rejects `delete` keyed on id
+    // alone; deleteMany keeps clinicId in the where.
+    const result = await this.prisma.labTestOrder.deleteMany({
+      where: { id, clinicId },
     });
+    if (result.count === 0) {
+      throw new NotFoundException('Lab order not found');
+    }
   }
 
   async getStats(clinicId: string): Promise<{
@@ -271,6 +393,24 @@ export class PrismaLabRepository implements ILabRepository {
         undefined,
       prismaTest.description || undefined,
     );
+  }
+
+  private labTestRelation(
+    row: Pick<PrismaLabTest, 'id' | 'name' | 'category' | 'code' | 'price'>,
+  ): {
+    id: string;
+    name: string;
+    category: string;
+    code?: string;
+    price?: number;
+  } {
+    return {
+      id: row.id,
+      name: row.name,
+      category: row.category,
+      code: row.code ?? undefined,
+      price: row.price ?? undefined,
+    };
   }
 
   private mapToLabOrder(
@@ -379,6 +519,9 @@ export class PrismaLabRepository implements ILabRepository {
       collectedAt: o.collectedAt,
       completedAt: o.completedAt,
       paidAt: o.paidAt,
+      resultNotificationStatus: o.resultNotificationStatus,
+      resultNotificationAttempts: o.resultNotificationAttempts,
+      resultNotifiedAt: o.resultNotifiedAt,
       paymentMethod: o.paymentMethod,
       releasedAt: o.releasedAt,
       createdAt: o.createdAt,
@@ -426,6 +569,9 @@ export class PrismaLabRepository implements ILabRepository {
       paidAt: order.paidAt,
       testName: order.labTest.name,
       clinicName: order.patient.clinic?.name ?? '',
+      releasedAt: order.releasedAt,
+      resultNotificationStatus: order.resultNotificationStatus,
+      resultNotificationAttempts: order.resultNotificationAttempts,
       patient: {
         id: order.patient.id,
         firstName: order.patient.firstName,
@@ -433,6 +579,114 @@ export class PrismaLabRepository implements ILabRepository {
         phoneNumber: order.patient.phoneNumber,
       },
     };
+  }
+
+  /**
+   * Releases under a fencing token.
+   *
+   * The predicate is the whole guarantee: a non-terminal status AND no active
+   * claim. Two callers racing on the same row produce exactly one `count === 1`,
+   * so the loser knows its notification must not be sent.
+   */
+  async claimRelease(claim: LabReleaseClaim): Promise<boolean> {
+    const result = await this.prisma.labTestOrder.updateMany({
+      where: {
+        id: claim.id,
+        clinicId: claim.clinicId,
+        status: { in: RELEASABLE_STATUSES },
+        releaseClaimToken: null,
+      },
+      data: {
+        status: LabTestOrderStatus.COMPLETED,
+        releasedAt: claim.now,
+        completedAt: claim.now,
+        releaseClaimToken: claim.claimToken,
+        releasedBy: claim.releasedBy,
+      },
+    });
+    return result.count === 1;
+  }
+
+  /**
+   * Claims delivery of the result notification.
+   *
+   * Takes an expired SENDING lease so a process that died mid-send does not
+   * strand the patient, but never takes a live claim from another worker and
+   * never re-sends an already-settled notification.
+   */
+  async claimResultNotification(
+    claim: LabNotificationClaim,
+    leaseExpiredBefore: Date,
+  ): Promise<boolean> {
+    const result = await this.prisma.labTestOrder.updateMany({
+      where: {
+        id: claim.id,
+        clinicId: claim.clinicId,
+        releasedAt: { not: null },
+        // Excludes SETTLED rows before the OR below, so a released order that
+        // already sent never re-enters the claimable set.
+        resultNotificationStatus: {
+          in: [
+            ...CLAIMABLE_NOTIFICATION_STATUSES,
+            LabResultNotificationStatus.SENDING,
+          ],
+        },
+        ...claimableNotificationWhere(leaseExpiredBefore),
+      },
+      data: {
+        resultNotificationStatus: LabResultNotificationStatus.SENDING,
+        resultNotificationClaimToken: claim.claimToken,
+        resultNotificationClaimedAt: claim.now,
+        resultNotificationAttempts: { increment: 1 },
+      },
+    });
+    return result.count === 1;
+  }
+
+  async completeResultNotification(
+    id: string,
+    clinicId: string,
+    claimToken: string,
+    outcome: {
+      status: 'SENT' | 'FAILED' | 'SKIPPED_NO_CONTACT';
+      now: Date;
+      error?: string;
+    },
+  ): Promise<void> {
+    await this.prisma.labTestOrder.updateMany({
+      where: {
+        id,
+        clinicId,
+        resultNotificationClaimToken: claimToken,
+        resultNotificationStatus: LabResultNotificationStatus.SENDING,
+      },
+      data: {
+        resultNotificationStatus: outcome.status,
+        // The lease is cleared so the row never reads as in-flight forever.
+        resultNotificationClaimToken: null,
+        resultNotificationClaimedAt: null,
+        resultNotifiedAt: outcome.status === 'SENT' ? outcome.now : null,
+        resultNotificationLastError: outcome.error
+          ? outcome.error.slice(0, NOTIFICATION_ERROR_MAX_LENGTH)
+          : null,
+      },
+    });
+  }
+
+  /** Released orders whose notification still needs a delivery attempt. */
+  async findPendingResultNotifications(
+    leaseExpiredBefore: Date,
+    limit: number,
+  ): Promise<Array<{ id: string; clinicId: string }>> {
+    return this.getReadClient().labTestOrder.findMany({
+      where: {
+        releasedAt: { not: null },
+        ...claimableNotificationWhere(leaseExpiredBefore),
+      },
+      select: { id: true, clinicId: true },
+      orderBy: { releasedAt: 'asc' },
+      take: limit,
+    });
   }
 
   async markSampleCollected(
@@ -507,6 +761,36 @@ export class PrismaLabRepository implements ILabRepository {
         completedAt: now,
       },
     });
+  }
+
+  /** Orders released before the claim protocol existed; kept for read paths. */
+  async releaseStatusCounts(clinicId: string): Promise<{
+    released: number;
+    notified: number;
+    outstanding: number;
+  }> {
+    const rows = await this.getReadClient().labTestOrder.groupBy({
+      by: ['resultNotificationStatus'],
+      where: { clinicId, releasedAt: { not: null } },
+      _count: { id: true },
+    });
+    const settled = new Set<LabResultNotificationStatus>(
+      SETTLED_NOTIFICATION_STATUSES,
+    );
+    let notified = 0;
+    let outstanding = 0;
+    for (const row of rows) {
+      if (settled.has(row.resultNotificationStatus)) {
+        notified += row._count.id;
+      } else {
+        outstanding += row._count.id;
+      }
+    }
+    return {
+      released: notified + outstanding,
+      notified,
+      outstanding,
+    };
   }
 
   // --- Lab directory ---

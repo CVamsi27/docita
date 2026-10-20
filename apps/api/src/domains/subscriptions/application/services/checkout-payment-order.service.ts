@@ -1,4 +1,9 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import {
   IClinicOperations,
   CLINIC_OPERATIONS_TOKEN,
@@ -61,6 +66,18 @@ export class CheckoutPaymentOrderService {
     checkoutPrefill: CheckoutResponse['prefill'];
     pricingOfferTitle?: string;
   }): Promise<CheckoutResponse> {
+    // Fail before ANY gateway or persistence side effect. `ensureCustomer`
+    // creates or updates a Razorpay customer and `createOrder` mints an order
+    // that `savePayment` then records as `pending`; returning
+    // `getRazorpayKeyId() || ''` afterwards produced all three side effects
+    // behind a checkout that could never complete, leaving an orphan order and
+    // a pending payment row on every attempt.
+    const razorpayKeyId = this.configService.getRazorpayKeyId();
+    if (!razorpayKeyId)
+      throw new ServiceUnavailableException(
+        'Payments are not configured for this environment',
+      );
+
     const customerId = await this.ensureCustomer(input);
     const description = buildCheckoutDescription(input.tier, input.cycle);
     const reusable = await this.subscriptionRepo.findReusablePendingCheckout({
@@ -83,7 +100,7 @@ export class CheckoutPaymentOrderService {
         orderId: reusable.razorpayOrderId,
         amountCents: input.amountCents,
         currency: input.currencyCode,
-        razorpayKeyId: this.configService.getRazorpayKeyId() || '',
+        razorpayKeyId,
         prefill: input.checkoutPrefill,
       };
     }
@@ -121,7 +138,7 @@ export class CheckoutPaymentOrderService {
       orderId: order.razorpayOrderId,
       amountCents: input.amountCents,
       currency: order.currency,
-      razorpayKeyId: this.configService.getRazorpayKeyId() || '',
+      razorpayKeyId,
       prefill: input.checkoutPrefill,
     };
   }

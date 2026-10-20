@@ -111,7 +111,6 @@ export class CreateCheckoutUseCase {
       });
       return buildCompletedWithoutPaymentResponse({
         currency: currencyCode,
-        razorpayKeyId: this.configService.getRazorpayKeyId() || '',
         prefill: checkoutPrefill,
       });
     }

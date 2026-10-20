@@ -1,5 +1,6 @@
 // jscpd:ignore-start — import-only overlap with the table row module; logic is not duplicated.
 import { Badge, type DataTableColumn } from "@workspace/ui/components";
+import { SymbolTooltip } from "@workspace/ui/components/overlay/tooltip";
 import { FileText } from "lucide-react";
 import type { Document } from "@workspace/types";
 import { formatDate } from "@workspace/utils";
@@ -30,6 +31,7 @@ export function buildDocumentsTableColumns(
     {
       id: "id",
       header: t("columns.documentId"),
+      width: "13%",
       hiddenOnMobile: true,
       cell: (document) => (
         <span className="font-mono text-sm">
@@ -39,6 +41,7 @@ export function buildDocumentsTableColumns(
     },
     {
       id: "filename",
+      width: "17%",
       header: (
         <DocumentsSortableHeader
           column="filename"
@@ -47,17 +50,25 @@ export function buildDocumentsTableColumns(
           onSort={onSort}
         />
       ),
-      cell: (document) => (
-        <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <span className="max-w-[150px] truncate font-medium sm:max-w-[200px]">
-            {getDocumentTitle(document)}
-          </span>
-        </div>
-      ),
+      // The label shrinks to the column instead of a fixed max-width cap, which
+      // used to spill the filename into the neighbouring column at 768px.
+      cell: (document) => {
+        const title = getDocumentTitle(document);
+        return (
+          <SymbolTooltip label={title} delayDuration={600}>
+            <div className="flex min-w-0 items-center gap-2">
+              <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 truncate font-medium">
+                {title}
+              </span>
+            </div>
+          </SymbolTooltip>
+        );
+      },
     },
     {
       id: "patient",
+      width: "17%",
       header: (
         <DocumentsSortableHeader
           column="patient"
@@ -70,6 +81,7 @@ export function buildDocumentsTableColumns(
     },
     {
       id: "type",
+      width: "19%",
       header: (
         <DocumentsSortableHeader
           column="type"
@@ -87,6 +99,7 @@ export function buildDocumentsTableColumns(
     },
     {
       id: "date",
+      width: "16%",
       header: (
         <DocumentsSortableHeader
           column="date"
@@ -100,6 +113,7 @@ export function buildDocumentsTableColumns(
     },
     {
       id: "actions",
+      width: "18%",
       header: t("columns.actions"),
       align: "right",
       cell: (document) => (

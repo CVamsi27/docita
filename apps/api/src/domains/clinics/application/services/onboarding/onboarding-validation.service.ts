@@ -6,6 +6,7 @@ import {
   PLAN_MODE_INFO,
   planModeSchema,
   resolveClinicPlanMode,
+  TIER_LIMITS,
   TIER_PRICING_BY_CURRENCY,
   tierSupportsMode,
   tierSchema,
@@ -324,59 +325,12 @@ export class OnboardingValidationService {
     includedStorageGB: number;
     includedUsers: number;
   } {
-    validateClinicTier(tier);
-    const limits: Record<
-      string,
-      {
-        includedPatients: number;
-        includedAppointments: number;
-        includedStorageGB: number;
-        includedUsers: number;
-      }
-    > = {
-      STARTER: {
-        includedPatients: 50,
-        includedAppointments: 100,
-        includedStorageGB: 1,
-        includedUsers: 1,
-      },
-      ESSENTIAL: {
-        includedPatients: 500,
-        includedAppointments: 1000,
-        includedStorageGB: 10,
-        includedUsers: 3,
-      },
-      FRONT_DESK: {
-        includedPatients: 999999,
-        includedAppointments: 500,
-        includedStorageGB: 10,
-        includedUsers: 5,
-      },
-      FRONT_DESK_CLINIC: {
-        includedPatients: 999999,
-        includedAppointments: 3000,
-        includedStorageGB: 50,
-        includedUsers: 25,
-      },
-      FRONT_DESK_HOSPITAL: {
-        includedPatients: 999999,
-        includedAppointments: 15000,
-        includedStorageGB: 250,
-        includedUsers: 150,
-      },
-      PROFESSIONAL: {
-        includedPatients: 10000,
-        includedAppointments: 20000,
-        includedStorageGB: 100,
-        includedUsers: 15,
-      },
-      ENTERPRISE: {
-        includedPatients: 999999,
-        includedAppointments: 999999,
-        includedStorageGB: 500,
-        includedUsers: 50,
-      },
+    const limits = TIER_LIMITS[mapDbClinicTierStringToTierName(tier)];
+    return {
+      includedPatients: limits.patients,
+      includedAppointments: limits.appointments ?? 0,
+      includedStorageGB: limits.storageGB,
+      includedUsers: limits.users ?? 1,
     };
-    return limits[tier] || limits.STARTER;
   }
 }

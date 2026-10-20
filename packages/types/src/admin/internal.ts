@@ -20,13 +20,7 @@ export const internalCreateClinicRequestSchema = z.object({
   phone: z.string().min(1),
   address: z.string().min(1),
   tier: z
-    .enum([
-      "STARTER",
-      "ESSENTIAL",
-      "PROFESSIONAL",
-      "HOSPITAL",
-      "ENTERPRISE",
-    ])
+    .enum(["STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE"])
     .optional(),
   website: z.string().optional(),
   mrnPrefix: z.string().optional(),
@@ -43,13 +37,7 @@ export const internalUpdateClinicRequestSchema = z.object({
   phone: z.string().min(1).optional(),
   address: z.string().min(1).optional(),
   tier: z
-    .enum([
-      "STARTER",
-      "ESSENTIAL",
-      "PROFESSIONAL",
-      "HOSPITAL",
-      "ENTERPRISE",
-    ])
+    .enum(["STARTER", "ESSENTIAL", "PROFESSIONAL", "HOSPITAL", "ENTERPRISE"])
     .optional(),
   type: z.string().optional(),
   active: z.boolean().optional(),
@@ -104,6 +92,31 @@ export const internalGlobalStatsSchema = z.object({
   totalRevenue: z.number(),
   growthRate: z.number(),
 });
+
+export const internalDashboardTrendsSchema = z.object({
+  clinicsThisMonth: z.number(),
+  usersThisMonth: z.number(),
+  doctorsThisMonth: z.number(),
+  patientsThisMonth: z.number(),
+  invoicesPercentChange: z.number(),
+  prescriptionsPercentChange: z.number(),
+});
+export type InternalDashboardTrends = z.infer<
+  typeof internalDashboardTrendsSchema
+>;
+
+export const internalDashboardStatsSchema = z.object({
+  clinics: z.number(),
+  users: z.number(),
+  doctors: z.number(),
+  patients: z.number(),
+  invoices: z.number(),
+  prescriptions: z.number(),
+  trends: internalDashboardTrendsSchema.optional(),
+});
+export type InternalDashboardStats = z.infer<
+  typeof internalDashboardStatsSchema
+>;
 
 export const internalAnalyticsSchema = z.object({
   period: z.string(),
@@ -175,10 +188,38 @@ export const internalTierPricingRowSchema = z.object({
 
 export const internalTierPricingSchema = z.array(internalTierPricingRowSchema);
 
+export const internalClinicListEntrySchema = clinicSchema
+  .pick({
+    id: true,
+    name: true,
+    email: true,
+    phone: true,
+    address: true,
+    tier: true,
+    active: true,
+    subscriptionStatus: true,
+    createdAt: true,
+    type: true,
+  })
+  .extend({
+    _count: z.object({
+      users: z.number().int().nonnegative(),
+      patients: z.number().int().nonnegative(),
+    }),
+  });
+export type InternalClinicListEntry = z.infer<
+  typeof internalClinicListEntrySchema
+>;
+
 export const internalClinicListResponseSchema = z.object({
-  data: z.array(clinicSchema),
+  items: z.array(internalClinicListEntrySchema),
   nextCursor: z.string().optional(),
+  hasMore: z.boolean(),
+  count: z.number().int().nonnegative(),
 });
+export type InternalClinicListResponse = z.infer<
+  typeof internalClinicListResponseSchema
+>;
 
 export const internalClinicAdminSchema = z.object({
   id: z.string(),
@@ -208,7 +249,9 @@ export type InternalClinicAdminListResponse = z.infer<
 export const internalAdminListEntrySchema = userSchema.extend({
   appLoginDisabled: z.boolean(),
 });
-export type InternalAdminListEntry = z.infer<typeof internalAdminListEntrySchema>;
+export type InternalAdminListEntry = z.infer<
+  typeof internalAdminListEntrySchema
+>;
 
 export const internalUserListEntrySchema = userSchema.extend({
   clinicName: z.string().optional(),

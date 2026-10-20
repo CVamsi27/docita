@@ -28,7 +28,6 @@ export class AuditEventListener {
       if (this.configService.isDevelopment()) {
         this.logger.debug(
           `[AUDIT] ${event.type} [${event.metadata.correlationId}]`,
-          JSON.stringify(event.payload),
         );
       }
 

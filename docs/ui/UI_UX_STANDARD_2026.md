@@ -87,7 +87,8 @@ These are added in PR F:
 ### 2.2 Typography
 
 - Default sans (Inter) for all UI.
-- Reserve a serif accent (Tailwind's default serif stack via `font-serif`) for hero/empty-state moments only: onboarding hero ("Welcome, Dr. Sharma"), `/today` morning greeting, weekly recap titles. Never for body copy or controls.
+- The serif display face (`--font-heading`, Fraunces) carries **titles only**: `ui-page-title`, `ui-section-title`, `ui-hero-title` — page titles, section headings, card titles, and hero/empty-state moments (onboarding hero "Welcome, Dr. Sharma", `/today` morning greeting, weekly recap titles).
+- Chrome and controls stay **sans**: use `ui-heading-sans` (Inter, `--fs-xl`, semibold) for dialog titles and status/error copy. Never render a control label, dialog title, sheet title, or error message in the serif face.
 - **Auth front door (shared)**: both the clinician login (`AuthBrandingHero`) and the internal admin login (`InternalLoginGreeting`) use the `DaypartGreetingHero` primitive from `@workspace/ui` — serif daypart greeting + live-clock eyebrow (`Today · 09:30` / `आज · 09:30`). Locale-agnostic: callers supply localized strings. The clinician app flips EN / हिंदी via `LocaleToggle` (`aria-pressed`); the internal console is an ops-only tool and stays English-only (no toggle).
 - Keep the hierarchy from `UI_UX_CONTRACT.md` §2: `text-3xl font-bold tracking-tight` for page titles, `text-xs text-muted-foreground` for helper.
 
@@ -111,6 +112,7 @@ These are added in PR F:
 - Body: form fields or content.
 - Footer: light secondary action left, dark primary action right.
 - Use `WizardDialog` for multi-step flows (step pips visible).
+- Focus contract: opening moves focus into the dialog, `Tab` cycles inside it, and closing returns focus to the trigger. The Radix-based `Dialog` / `WizardDialog` primitives already do this; bespoke overlays (e.g. the landing lightbox) call `useDialogFocus` from `@workspace/ui/lib/dialog-focus`.
 
 ### 3.2 Forms
 
@@ -128,14 +130,17 @@ These are added in PR F:
 
 ### 3.4 Lists and tables
 
-- Use `DataTable` from `@workspace/ui` with `stackOnMobile` for clinical lists.
+- Use `DataTable` from `@workspace/ui` with `stackOnMobile` for clinical lists. For externally controlled sorting, set the column's typed `ariaSort` from its existing sort state; `aria-sort` belongs on the column header, never on its action button.
 - Empty/loading/error via `DataState` at the page level (not inline rows).
+- A denied page retains its own level-one heading and description without protected actions. In the clinician app, use the app-wide `PageFeatureGate` for page-level feature gates; inline gates keep their existing compact locked card. Both paths preserve canonical availability, tier and upgrade behavior.
 - Row primary action visible; secondary actions collapse into an overflow `…` menu (no more than one visible primary per row).
 
 ### 3.5 Tab strips
 
 - `PageTabs` thin-underline component for in-page section switching (Origin's Overview / Transactions pattern).
 - Tabs sync to the URL (`?tab=`). Always preserve back-compat for old tab values when refactoring.
+- Keyboard: the strip owns one tab stop (roving tabindex: active tab `tabindex="0"`, the rest `-1`) and `ArrowLeft` / `ArrowRight` / `Home` / `End` move focus and selection through `resolveRovingTablistTarget` (`@workspace/ui/lib/roving-tablist`). Every `role="tablist"` must be paired with a `role="tabpanel"` labelled by the active tab.
+- Single-select bars that do **not** switch a panel stay out of the tabs pattern: use `ToggleGroup` (`role="group"` with `aria-pressed` per option), not `role="tablist"` / `role="tab"`.
 
 ### 3.6 Mobile companion patterns (2026 responsive pass)
 
@@ -144,7 +149,7 @@ Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind b
 | Primitive                  | Use when                                                                                          |
 | -------------------------- | ------------------------------------------------------------------------------------------------- |
 | `SegmentedControl`         | Queue filters, mobile section tabs, role switchers (pill segmented control)                       |
-| `StepProgress`             | Consultation SOAP steps, wizard section nav on `< md`                                             |
+| `StepProgress`             | Consultation SOAP steps, wizard section nav on `< md`; ordered list items with shared Button actions and `aria-current="step"` |
 | `ListRow` + `ListRowGroup` | `DataTable` `stackOnMobile` card fallback; queue/inbox rows (token · name · meta · time · status) |
 | `BottomActionBar`          | Primary + secondary actions docked at bottom on `< md` (Next patient, save, quick replies)        |
 | `NowServingBoard`          | Today/consultation queue hero (uses `--brand-ink` / `--brand-cyan`; do not duplicate)             |
@@ -158,6 +163,7 @@ Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind b
 - **Permanent affordance**: `AskAiButton` pinned to the sidebar bottom is mandatory.
 - **Overlay**: `AskAiOverlay` is full-screen, with a left history rail ("Today" + prior threads), main chat pane, `PromptInput` at the bottom, contextual scope chip ("on Patient X", "on Consultation #123") above the input, and a footer disclaimer ("AI suggestions are not medical advice.").
 - **Contextual entries**: every primary surface (Today, patient detail, consultation, appointments) renders an "Ask AI" button in its `PageHeader` action slot or topbar. Clicking opens the same overlay pre-scoped to that surface.
+- The current informational preview remains available when external AI processing is disabled. It displays the scope, coming-soon message and disclaimer locally; it sends no patient data. `VITE_AI_ENABLED` and the backend switch continue to gate processing features.
 - **Routes**: `/ai-assistant` remains as a deep-link entrance and renders the same overlay shell; the route exists so palette and bookmarks work.
 
 ## 5. Motion, density, mobile
@@ -172,6 +178,8 @@ Use these `@workspace/ui` primitives for phone/tablet layouts; prefer Tailwind b
 - `packages/ui/src/design-tokens.ts` is mirrored from CSS variables (TypeScript object reads from `var(--…)` or is a thin re-export of static values that match CSS). Drift is a release blocker.
 
 ## 7. Test contract (per page)
+
+The clinician accessibility audit must fail on serious/critical axe findings and preserve each project/viewport case separately. Protected audits must render the requested route, a visible main landmark and a level-one heading; consultation detail must show the fixture patient heading rather than an error shell. Nested workspace scroll regions use a named section inside that main and remain keyboard reachable. Navigation or scanner failures are failures. Public-only skips are explicit and do not establish protected-route evidence.
 
 Every page in `apps/app` must have a Playwright spec under `apps/app/e2e/` that asserts at minimum:
 
@@ -212,3 +220,15 @@ For each feature touched (PR C–F), the merging engineer confirms:
 - [ ] Playwright spec covers items 1–5 in §7 (and §7.6 if AI surface).
 - [ ] No raw hex; all colors via tokens.
 - [ ] No app-local duplicates of `@workspace/ui` primitives introduced.
+
+### Record workspaces (11 October 2026)
+
+`@workspace/ui/components/layout/record-workspace` composes a continuous worklist with a 20rem contextual region at xl and a shared Sheet below xl. Consumers own selected IDs and derive records from current query results; selection never implies permission to mutate. The optional summary places the active task above a narrow worklist. Supply a named context, description and initiating button ref for keyboard focus return. Today and internal Dashboard use this pattern with their existing data/permission/theme sources.
+
+`CRUDDialog` accepts `returnFocusRef` for controlled dialogs whose action button is outside a Radix DialogTrigger. Keep drafts after failed requests and initialize a newly opened edit from the current canonical record.
+
+### Workspace ledger presentation
+
+Clinician and internal protected main regions opt in with `ui-workspace-ledger`. Neutral shared Card/Section surfaces form continuous sections without lateral frames, shadows or repeated rounded containers. Compact PageHeader headings retain the page typography scale. Semantic background/border utilities, form grouping, contained table scrolling, overlays and clinical save guards remain authoritative. Public/auth/portal and landing shells do not inherit this treatment. Settings destinations use shared Button with React Router Link; operational filters expose named Buttons with `aria-pressed`.
+
+The shared Table scroll container is keyboard focusable with a visible focus outline so wide operational tables remain scrollable on narrow screens.

@@ -99,14 +99,20 @@ export const appSessionBootstrapSchema = z.object({
   clinic: appClinicSchema.nullable().optional(),
 });
 
+/**
+ * Every key is required: `ClinicSettingsQueryService.getComplianceSummary`
+ * returns all of them for every clinic, including the nulls. Marking the
+ * consent and count fields `.optional()` had made the schema accept a summary
+ * with a dropped key, so the drift could not be detected at all.
+ */
 export const appComplianceSummarySchema = z.object({
   slaSignatureUrl: z.string().nullable(),
   slaSignatureAcceptedAt: z.string().nullable(),
-  consentTemplateEnabled: z.boolean().optional(),
-  consentTemplateUpdatedAt: z.string().nullable().optional(),
-  withdrawalRequestsOpen: z.number().int().nonnegative().optional(),
-  dataExportRequestsOpen: z.number().int().nonnegative().optional(),
-  dataDeletionRequestsOpen: z.number().int().nonnegative().optional(),
+  consentTemplateEnabled: z.boolean(),
+  consentTemplateUpdatedAt: z.string().nullable(),
+  withdrawalRequestsOpen: z.number().int().nonnegative(),
+  dataExportRequestsOpen: z.number().int().nonnegative(),
+  dataDeletionRequestsOpen: z.number().int().nonnegative(),
 });
 
 export const appAuditLogSummarySchema = z.object({

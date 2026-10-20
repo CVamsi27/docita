@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@/test-utils";
 import { AdminsPage } from "./admins-page";
 import { apiGet, apiPatch, apiPost } from "@/lib/api/api-client";
 
@@ -14,15 +14,32 @@ const mockApiPost = vi.mocked(apiPost);
 const mockApiPatch = vi.mocked(apiPatch);
 
 const mockAdmins = [
-  { id: "a1", name: "Alice Admin", email: "alice@clinic.com", phoneNumber: "9876543210", role: "ADMIN", appLoginDisabled: false, createdAt: "2026-01-10T10:00:00Z" },
-  { id: "a2", name: "Bob Doctor", email: "bob@clinic.com", role: "ADMIN_DOCTOR", appLoginDisabled: true, createdAt: "2026-02-01T10:00:00Z" },
+  {
+    id: "a1",
+    name: "Alice Admin",
+    email: "alice@clinic.com",
+    phoneNumber: "9876543210",
+    role: "ADMIN",
+    appLoginDisabled: false,
+    createdAt: "2026-01-10T10:00:00Z",
+  },
+  {
+    id: "a2",
+    name: "Bob Doctor",
+    email: "bob@clinic.com",
+    role: "ADMIN_DOCTOR",
+    appLoginDisabled: true,
+    createdAt: "2026-02-01T10:00:00Z",
+  },
 ];
 
 const mockClinics = { data: [{ id: "clinic-1", name: "Sunrise Clinic" }] };
 
 const loadData = () => {
   mockApiGet.mockImplementation((url: string) =>
-    url.includes("/clinics") ? Promise.resolve(mockClinics) : Promise.resolve(mockAdmins),
+    url.includes("/clinics")
+      ? Promise.resolve(mockClinics)
+      : Promise.resolve(mockAdmins),
   );
 };
 
@@ -101,7 +118,9 @@ describe("AdminsPage", () => {
 
     // Pick a clinic via the radix select (first combobox in the dialog), then fill the form.
     fireEvent.click(dialog.getAllByRole("combobox")[0]);
-    fireEvent.click(await screen.findByRole("option", { name: "Sunrise Clinic" }));
+    fireEvent.click(
+      await screen.findByRole("option", { name: "Sunrise Clinic" }),
+    );
 
     fireEvent.change(dialog.getByPlaceholderText("Admin name"), {
       target: { value: "Carol New" },
@@ -171,4 +190,25 @@ describe("AdminsPage", () => {
       );
     });
   });
+});
+
+it("names admin actions and preserves the separate view/edit operations", async () => {
+  loadData();
+  render(<AdminsPage />);
+  await screen.findByText("Alice Admin");
+  expect(
+    screen.getByRole("button", { name: "Edit admin: Bob Doctor" }),
+  ).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "Activate admin: Bob Doctor" }),
+  ).toBeEnabled();
+  expect(
+    screen.getByRole("button", { name: "Deactivate admin: Alice Admin" }),
+  ).toBeEnabled();
+  fireEvent.click(
+    screen.getByRole("button", { name: "View admin: Alice Admin" }),
+  );
+  expect(
+    screen.getByRole("dialog", { name: "Alice Admin", exact: true }),
+  ).toBeInTheDocument();
 });

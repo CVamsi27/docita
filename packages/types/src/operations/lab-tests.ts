@@ -54,7 +54,10 @@ export const labTestOrderSchema = z.object({
   appointmentId: z.string().nullable().optional(),
   labTestId: z.string(),
   labId: z.string().nullable().optional(),
-  status: z.string(),
+  /// Typed as the canonical enum (not a bare `string`) so a consumer map keyed
+  /// on it is exhaustively checked — see `labs-tab-status.ts`, whose regression
+  /// test pins its key set to `labTestOrderStatusSchema.options`.
+  status: labTestOrderStatusSchema,
   result: z.unknown().nullable().optional(),
   resultUrl: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),

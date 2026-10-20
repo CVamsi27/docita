@@ -1,18 +1,25 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { PrismaService } from '@/prisma/prisma.service';
-import { MetricType, Prisma } from '@workspace/db';
+import { MetricType, Prisma, RouteCategory } from '@workspace/db';
 import {
   API_REQUEST_METRICS_REPOSITORY_TOKEN,
   type ApiRequestMetricsRepository,
 } from '@/shared/modules/monitoring/monitoring/ports/api-request-metrics.repository.port';
 import { BULK_READ_LIMIT } from '@/shared/common/constants/bulk-read-limit.constant';
+import { toRouteCategoryBreakdown } from '@/shared/modules/monitoring/monitoring/rules/telemetry-observation.rules';
+import { BackgroundJobsHealthService } from '@/shared/modules/monitoring/monitoring/services/background-jobs-health.service';
+import type {
+  BackgroundJobsHealthSummary,
+  PerformanceMetrics,
+} from '@workspace/types';
 
 @Injectable()
 export class MetricsQueryService {
   private readonly logger = new Logger(MetricsQueryService.name);
 
   constructor(
+    private readonly backgroundJobs: BackgroundJobsHealthService,
     private readonly prisma: PrismaService,
     @Inject(API_REQUEST_METRICS_REPOSITORY_TOKEN)
     private readonly apiRequestMetrics: ApiRequestMetricsRepository,
@@ -50,39 +57,43 @@ export class MetricsQueryService {
   async getPerformanceMetrics(
     startDate?: Date,
     endDate?: Date,
-  ): Promise<{
-    slowestEndpoints: {
-      path: string;
-      method: string;
-      avgDuration: number;
-      maxDuration: number;
-      count: number;
-    }[];
-    responseTimeDistribution: { range: string; count: number }[];
-    throughputByMinute: { minute: string; count: number }[];
-  }> {
+    routeCategory?: RouteCategory,
+  ): Promise<PerformanceMetrics> {
     const where: Prisma.ApiRequestWhereInput = {};
+    // observedAt, not createdAt: rows flushed late after an outage still belong
+    // to the window the request completed in.
     if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
+      where.observedAt = {};
+      if (startDate) where.observedAt.gte = startDate;
+      if (endDate) where.observedAt.lte = endDate;
     }
+    if (routeCategory) where.routeCategory = routeCategory;
 
-    const metricsFilter = { startDate, endDate };
+    const metricsFilter = { startDate, endDate, routeCategory };
+    const validWhere: Prisma.ApiRequestWhereInput = {
+      ...where,
+      latencyValid: true,
+    };
 
-    const [slowestEndpoints, distributionRows] = await Promise.all([
-      this.prisma.apiRequest.groupBy({
-        // jscpd:ignore-end
-        by: ['path', 'method'],
-        where,
-        _avg: { duration: true },
-        _max: { duration: true },
-        _count: { id: true },
-        orderBy: { _avg: { duration: 'desc' } },
-        take: 15,
-      }),
-      this.apiRequestMetrics.getResponseTimeDistribution(metricsFilter),
-    ]);
+    const [slowestEndpoints, distributionRows, byCategoryRows] =
+      await Promise.all([
+        this.prisma.apiRequest.groupBy({
+          // jscpd:ignore-end
+          by: ['path', 'method'],
+          where: validWhere,
+          _avg: { duration: true },
+          _max: { duration: true },
+          _count: { id: true },
+          orderBy: { _avg: { duration: 'desc' } },
+          take: 15,
+        }),
+        this.apiRequestMetrics.getResponseTimeDistribution(metricsFilter),
+        this.prisma.apiRequest.groupBy({
+          by: ['routeCategory'],
+          where,
+          _count: { id: true },
+        }),
+      ]);
 
     const distributionRow = distributionRows[0] ?? {
       range_0_100: 0n,
@@ -92,6 +103,7 @@ export class MetricsQueryService {
       range_1000_2000: 0n,
       range_2000_5000: 0n,
       range_5000_plus: 0n,
+      invalid_latency_samples: 0n,
     };
 
     const distribution = [
@@ -128,6 +140,8 @@ export class MetricsQueryService {
       })),
       responseTimeDistribution: distribution,
       throughputByMinute,
+      byRouteCategory: toRouteCategoryBreakdown(byCategoryRows),
+      invalidLatencySamples: Number(distributionRow.invalid_latency_samples),
     };
   }
 
@@ -207,36 +221,95 @@ export class MetricsQueryService {
     }
   }
 
+  /**
+   * Delegates to BackgroundJobsHealthService: durable-job health is a separate
+   * concern from the HTTP-metrics queries in this service.
+   */
+  async getBackgroundJobsHealthSummary(): Promise<BackgroundJobsHealthSummary> {
+    return this.backgroundJobs.getBackgroundJobsHealthSummary();
+  }
+
+  /**
+   * Current queue state plus the last 24h of immutable execution outcomes.
+   *
+   * `countsByStatus` is current state only, so a job that failed twice and then
+   * succeeded is indistinguishable from a clean run. The outcome history is what
+   * makes recovered retries and lost claims visible.
+   */
   async getQueueHealthSummary() {
     try {
       const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const [countsByStatus, topQueuesByWaiting, topQueuesByFailed, dlq24h] =
-        await Promise.all([
-          this.prisma.queueJob.groupBy({
-            by: ['status'],
-            _count: { id: true },
-          }),
-          this.prisma.queueJob.groupBy({
-            by: ['name'],
-            where: { status: 'WAITING' },
-            _count: { id: true },
-            orderBy: { _count: { id: 'desc' } },
-            take: 12,
-          }),
-          this.prisma.queueJob.groupBy({
-            by: ['name'],
-            where: { status: 'FAILED' },
-            _count: { id: true },
-            orderBy: { _count: { id: 'desc' } },
-            take: 12,
-          }),
-          this.prisma.queueJob.count({
-            where: {
-              status: 'DEAD_LETTERED',
-              deadLetteredAt: { gte: since24h },
-            },
-          }),
-        ]);
+      const [
+        countsByStatus,
+        topQueuesByWaiting,
+        topQueuesByFailed,
+        dlq24h,
+        outcomesLast24h,
+        retriedJobIds,
+      ] = await Promise.all([
+        this.prisma.queueJob.groupBy({
+          by: ['status'],
+          _count: { id: true },
+        }),
+        this.prisma.queueJob.groupBy({
+          by: ['name'],
+          where: { status: 'WAITING' },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 12,
+        }),
+        this.prisma.queueJob.groupBy({
+          by: ['name'],
+          where: { status: 'FAILED' },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 12,
+        }),
+        this.prisma.queueJob.count({
+          where: {
+            status: 'DEAD_LETTERED',
+            deadLetteredAt: { gte: since24h },
+          },
+        }),
+        this.prisma.queueJobExecution.groupBy({
+          by: ['outcome'],
+          where: { occurredAt: { gte: since24h } },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+        }),
+        this.prisma.queueJobExecution.findMany({
+          where: {
+            occurredAt: { gte: since24h },
+            outcome: 'RETRY_SCHEDULED',
+          },
+          distinct: ['jobId'],
+          select: { jobId: true },
+        }),
+      ]);
+
+      // A recovery is a job that retried inside the window and also completed
+      // inside it, so the two lists overlap by construction and only the
+      // intersection is reported as recovered work.
+      const retriedJobIdsList = retriedJobIds.map((row) => row.jobId);
+      const recoveredJobIdsList =
+        retriedJobIdsList.length === 0
+          ? []
+          : await this.prisma.queueJobExecution.findMany({
+              where: {
+                jobId: { in: retriedJobIdsList },
+                outcome: 'COMPLETED',
+                occurredAt: { gte: since24h },
+              },
+              distinct: ['jobId'],
+              select: { jobId: true },
+            });
+
+      const retriedSet = new Set(retriedJobIdsList);
+      const completedSet = new Set(recoveredJobIdsList.map((row) => row.jobId));
+      const recovered = [...retriedSet].filter((jobId) =>
+        completedSet.has(jobId),
+      ).length;
+
       return {
         countsByStatus: countsByStatus.map((row) => ({
           status: row.status,
@@ -251,6 +324,12 @@ export class MetricsQueryService {
           count: row._count.id,
         })),
         deadLetteredLast24h: dlq24h,
+        outcomesLast24h: outcomesLast24h.map((row) => ({
+          outcome: row.outcome,
+          count: row._count.id,
+        })),
+        jobsRetriedLast24h: retriedSet.size,
+        jobsRecoveredLast24h: recovered,
       };
     } catch (error) {
       this.logger.error(
@@ -263,6 +342,9 @@ export class MetricsQueryService {
         topQueuesByWaiting: [],
         topQueuesByFailed: [],
         deadLetteredLast24h: 0,
+        outcomesLast24h: [],
+        jobsRetriedLast24h: 0,
+        jobsRecoveredLast24h: 0,
       };
     }
   }

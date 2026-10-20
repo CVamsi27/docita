@@ -5,12 +5,15 @@ export type {
   PartnerOtpVerifyResponse,
   PartnerPayoutDetailsInput,
   PartnerPayoutDetailsView,
+  PartnerFacilityLeadSubmit,
+  PartnerFacilityLeadView,
   PartnerPayoutRow,
   PartnerReferralRow,
   PartnerPayoutsResponse,
   PartnerReferralsResponse,
   PartnerShareMessageResponse,
   PartnerRefreshResponse,
+  PartnerMyLeadsResponse,
 } from "./partner.types";
 
 export type { PartnerApiContext } from "./api";
@@ -24,6 +27,8 @@ export {
   usePartnerMe,
   usePartnerPayouts,
   usePartnerReferrals,
+  usePartnerMyLeads,
   usePartnerShareMessage,
   usePartnerPayoutDetails,
+  useSubmitFacilityLead,
 } from "./hooks/use-partner-portal";

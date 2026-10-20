@@ -48,12 +48,17 @@ export function AppointmentsPageHeaderUI({
               }
               data-testid="appointments-ask-ai"
               aria-label={t("askAiAriaLabel")}
+              className="border-primary/30 bg-primary/5 text-foreground hover:bg-primary/10 transition-colors duration-150"
             >
-              <Sparkles className="mr-2 h-4 w-4" />
+              <Sparkles className="mr-2 h-4 w-4 text-primary" />
               {t("askAiButton")}
             </Button>
-            <Button onClick={() => onOpenChange(true)} aria-label={t("newAppointmentAriaLabel")}>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button
+              onClick={() => onOpenChange(true)}
+              aria-label={t("newAppointmentAriaLabel")}
+              className="gap-2 font-semibold shadow-xs"
+            >
+              <Plus className="h-4 w-4" />
               {t("newAppointmentButton")}
             </Button>
           </div>

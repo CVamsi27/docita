@@ -8,9 +8,20 @@ export interface InventoryMovement {
   quantity: number;
   referenceType: string | null;
   referenceId: string | null;
+  operationId: string | null;
+  unit: string | null;
   notes: string | null;
   createdBy: string;
   createdAt: Date;
+}
+
+/** Stock compared against the ledger total reconstructed from movements. */
+export interface InventoryReconciliation {
+  itemId: string;
+  stockQuantity: number;
+  ledgerQuantity: number;
+  /** `stockQuantity - ledgerQuantity`; zero when the ledger is authoritative. */
+  drift: number;
 }
 
 export { type InventoryItem } from '../entities/inventory-item.entity';
@@ -39,6 +50,7 @@ export interface CreateInventoryMovementData {
   quantity: number;
   referenceType?: string;
   referenceId?: string;
+  operationId?: string;
   notes?: string;
   createdBy: string;
 }
@@ -94,6 +106,10 @@ export interface IInventoryRepository {
     data: UpdateInventoryItemData,
     clinicId: string,
   ): Promise<InventoryItem>;
+
+  countMovements(itemId: string): Promise<number>;
+
+  reconcileLedger(clinicId: string): Promise<InventoryReconciliation[]>;
 
   addMovementAndUpdateQuantity(
     itemId: string,

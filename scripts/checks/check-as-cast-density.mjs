@@ -17,6 +17,7 @@ function countTypeAssertions(source) {
   const code = stripStrings(source);
   let count = 0;
   let inImportStatement = false;
+  let inExportList = false;
 
   for (const line of code.split("\n")) {
     const trimmed = line.trim();
@@ -31,7 +32,14 @@ function countTypeAssertions(source) {
       continue;
     }
 
-    if (/^\s*export\s+\{/.test(line)) {
+    if (/^\s*export\s+(?:type\s+)?\{/.test(line)) {
+      inExportList = true;
+    }
+    if (inExportList) {
+      if (line.includes("}")) inExportList = false;
+      continue;
+    }
+    if (/^\s*export\s+\*\s+as\s+\w+\s+from\b/.test(line)) {
       continue;
     }
 

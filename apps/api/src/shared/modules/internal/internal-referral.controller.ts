@@ -1,9 +1,18 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ReferralPayoutStatus } from '@workspace/db';
 import { InternalApiAccess } from './internal.controller.access';
 import {
   createReferrerSchema,
   InternalReferralService,
+  updateReferrerSchema,
 } from './internal-referral.service';
 
 @Controller('internal')
@@ -21,6 +30,19 @@ export class InternalReferralController {
   @Get('referrers')
   async listReferrers() {
     return this.referralService.listReferrers();
+  }
+
+  @Patch('referrers/:id')
+  async updateReferrer(@Param('id') id: string, @Body() body: unknown) {
+    return this.referralService.updateReferrer(
+      id,
+      updateReferrerSchema.parse(body),
+    );
+  }
+
+  @Patch('referrers/:id/deactivate')
+  async deactivateReferrer(@Param('id') id: string) {
+    return this.referralService.deactivateReferrer(id);
   }
 
   @Post('referrers/:id/resend-welcome')

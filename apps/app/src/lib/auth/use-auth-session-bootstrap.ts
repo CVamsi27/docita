@@ -1,6 +1,12 @@
 import { useEffect, useRef, type MutableRefObject } from "react";
 import { useLocation } from "react-router";
 import {
+  createOutageRecoveryState,
+  recoverFromApiOutage,
+  type OutageRecoveryState,
+} from "@workspace/data-access";
+import { getApiAvailabilityStore } from "@/lib/api/api-availability";
+import {
   clearLegacyUserStorage,
   isAuthFailure,
   isPublicAuthPath,
@@ -16,7 +22,6 @@ type ValidateAuth = (headers?: Record<string, string>) => Promise<unknown>;
 const SESSION_REFRESH_TIMEOUT_MS = 15_000;
 const VALIDATE_SESSION_TIMEOUT_MS = 30_000;
 const COLD_START_PROBE_TIMEOUT_MS = 10_000;
-const COLD_START_RETRY_DELAY_MS = 5_000;
 
 async function raceWithTimeout<T>(
   operation: Promise<T>,
@@ -104,6 +109,11 @@ export function useAuthSessionBootstrap(options: {
       setLoginLockoutUntil(persistedLockoutUntil);
     }
 
+    const settleSession = (): void => {
+      setIsLoading(false);
+      setIsApiStarting(false);
+    };
+
     const applyValidatedUser = async (raw: unknown): Promise<boolean> => {
       const userData = parseValidatedUser(raw);
       if (!userData) return false;
@@ -114,62 +124,98 @@ export function useAuthSessionBootstrap(options: {
       return true;
     };
 
-    const validateSession = async (isColdStartRetry = false): Promise<void> => {
-      const timeoutMs = isColdStartRetry
-        ? VALIDATE_SESSION_TIMEOUT_MS
-        : COLD_START_PROBE_TIMEOUT_MS;
+    const handleAuthFailure = async (): Promise<void> => {
+      if (isPublicAuthPath(pathname)) {
+        clearSession();
+        return;
+      }
+
+      const refreshed = await refreshAccessTokenWithTimeout(refreshAccessToken);
+      if (!refreshed) {
+        clearSession();
+        appSession.redirectToLogin();
+        return;
+      }
 
       try {
         const applied = await applyValidatedUser(
+          await validateAuth(undefined),
+        );
+        if (!applied) clearSession();
+      } catch (retryError) {
+        if (isAuthFailure(retryError)) {
+          clearSession();
+        }
+      }
+    };
+
+    /**
+     * Park the workspace on the warming screen until the API answers again.
+     * Returns false when the bootstrap should settle instead of retrying —
+     * the availability store keeps probing and the outage gate keeps the
+     * warming screen up, so the session is not dropped. (Shared bounded
+     * recovery logic: `recoverFromApiOutage` in @workspace/data-access.)
+     */
+    const waitForApiRecovery = async (
+      recovery: OutageRecoveryState,
+    ): Promise<boolean> => {
+      setIsLoading(false);
+      setIsApiStarting(true);
+      return recoverFromApiOutage(getApiAvailabilityStore, recovery);
+    };
+
+    const recoverThenRetry = async (recovery: OutageRecoveryState): Promise<void> => {
+      const shouldRetry = await waitForApiRecovery(recovery);
+      if (!shouldRetry) {
+        settleSession();
+        return;
+      }
+      setIsLoading(true);
+      setIsApiStarting(false);
+      await validateSession(true, recovery);
+    };
+
+    const validateSession = async (
+      isRecoveryRetry = false,
+      recovery: OutageRecoveryState = createOutageRecoveryState(),
+    ): Promise<void> => {
+      const timeoutMs = isRecoveryRetry
+        ? VALIDATE_SESSION_TIMEOUT_MS
+        : COLD_START_PROBE_TIMEOUT_MS;
+
+      let applied = false;
+      try {
+        applied = await applyValidatedUser(
           await makeTimeoutRace(validateAuth, timeoutMs),
         );
-        if (applied) return;
-        if (!isColdStartRetry && appSession.getToken()) {
-          setIsApiStarting(true);
-          await new Promise<void>((resolve) => {
-            window.setTimeout(resolve, COLD_START_RETRY_DELAY_MS);
-          });
-          await validateSession(true);
-        }
-        return;
       } catch (error) {
-        if (!isAuthFailure(error)) {
-          if (!isColdStartRetry && appSession.getToken()) {
-            setIsApiStarting(true);
-            await new Promise<void>((resolve) => {
-              window.setTimeout(resolve, COLD_START_RETRY_DELAY_MS);
-            });
-            await validateSession(true);
-          }
+        if (isAuthFailure(error)) {
+          await handleAuthFailure();
+          settleSession();
           return;
         }
 
-        if (isPublicAuthPath(pathname)) {
-          clearSession();
-          return;
-        }
-
-        const refreshed = await refreshAccessTokenWithTimeout(refreshAccessToken);
-        if (!refreshed) {
-          clearSession();
-          appSession.redirectToLogin();
-          return;
-        }
-
-        try {
-          const applied = await applyValidatedUser(
-            await validateAuth(undefined),
-          );
-          if (!applied) clearSession();
-        } catch (retryError) {
-          if (isAuthFailure(retryError)) {
-            clearSession();
-          }
-        }
-      } finally {
-        setIsLoading(false);
-        setIsApiStarting(false);
+        // Outage, not an auth failure. This is also the reload path: the access
+        // token lives in memory only, so a fresh load has no token even with a
+        // valid refresh cookie. Wait for the API and retry either way — if the
+        // session really is gone, the retry answers 401 and lands on login.
+        await recoverThenRetry(recovery);
+        return;
       }
+
+      if (applied) {
+        settleSession();
+        return;
+      }
+
+      // The request answered with an unusable payload (cold-start HTML or a
+      // partially booted API). With a token that is transient, not signed out.
+      if (appSession.getToken()) {
+        await recoverThenRetry(recovery);
+        return;
+      }
+
+      settleSession();
     };
 
     if (!appSession.getToken()) {

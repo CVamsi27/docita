@@ -4,6 +4,7 @@ import { MetricsPersistenceService } from './metrics-persistence.service';
 import { MetricsRecordingService } from './metrics-recording.service';
 import { WebVitalsMetricsService } from './web-vitals-metrics.service';
 import { MetricsQueryService } from './metrics-query.service';
+import { BackgroundJobsHealthService } from './background-jobs-health.service';
 import {
   API_REQUEST_METRICS_REPOSITORY_TOKEN,
   type ApiRequestMetricsRepository,
@@ -44,6 +45,10 @@ describe('MetricsService', () => {
     queueJob: {
       groupBy: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
       count: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    queueJobExecution: {
+      groupBy: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
     };
   };
 
@@ -89,6 +94,10 @@ describe('MetricsService', () => {
       groupBy: jest.fn(),
       count: jest.fn(),
     },
+    queueJobExecution: {
+      groupBy: jest.fn(),
+      findMany: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -100,6 +109,7 @@ describe('MetricsService', () => {
         MetricsRecordingService,
         WebVitalsMetricsService,
         MetricsQueryService,
+        BackgroundJobsHealthService,
         MetricsAggregationService,
         MetricsService,
         { provide: PrismaService, useValue: mockPrismaService },
@@ -215,10 +225,15 @@ describe('MetricsService', () => {
           range_1000_2000: 0n,
           range_2000_5000: 0n,
           range_5000_plus: 0n,
+          invalid_latency_samples: 0n,
         },
       ]);
       apiRequestMetricsMock.getThroughputByMinute.mockResolvedValueOnce([
         { minute: '2026-04-04T13:10', count: 4n },
+      ]);
+      prismaService.apiRequest.groupBy.mockResolvedValueOnce([
+        { routeCategory: 'CUSTOMER', _count: { id: 3 } },
+        { routeCategory: 'HEALTH_CHECK', _count: { id: 2 } },
       ]);
 
       const metrics = await service.getPerformanceMetrics(
@@ -246,6 +261,53 @@ describe('MetricsService', () => {
       expect(metrics.throughputByMinute).toEqual([
         { minute: '2026-04-04T13:10', count: 4 },
       ]);
+      expect(metrics.byRouteCategory).toEqual({
+        customer: 3,
+        healthCheck: 2,
+        internal: 0,
+      });
+      expect(metrics.invalidLatencySamples).toBe(0);
+    });
+
+    it('excludes invalid latency samples from endpoint latency and scopes by route category', async () => {
+      prismaService.apiRequest.groupBy.mockResolvedValueOnce([
+        {
+          path: '/api/v1/patients',
+          method: 'GET',
+          _avg: { duration: 40 },
+          _max: { duration: 90 },
+          _count: { id: 7 },
+        },
+      ]);
+      prismaService.apiRequest.groupBy.mockResolvedValueOnce([
+        { routeCategory: 'CUSTOMER', _count: { id: 7 } },
+      ]);
+      apiRequestMetricsMock.getResponseTimeDistribution.mockResolvedValueOnce([
+        {
+          range_0_100: 6n,
+          range_100_250: 0n,
+          range_250_500: 0n,
+          range_500_1000: 0n,
+          range_1000_2000: 0n,
+          range_2000_5000: 0n,
+          range_5000_plus: 0n,
+          invalid_latency_samples: 4n,
+        },
+      ]);
+
+      const metrics = await service.getPerformanceMetrics(
+        new Date('2026-04-04T13:00:00.000Z'),
+        new Date('2026-04-04T14:00:00.000Z'),
+        'CUSTOMER' as never,
+      );
+
+      // The slowest-endpoint groupBy must be filtered to valid samples only, and
+      // narrowed to the requested route family.
+      const slowestCall = prismaService.apiRequest.groupBy.mock
+        .calls[0]?.[0] as { where: Record<string, unknown> };
+      expect(slowestCall.where.latencyValid).toBe(true);
+      expect(slowestCall.where.routeCategory).toBe('CUSTOMER');
+      expect(metrics.invalidLatencySamples).toBe(4);
     });
   });
 
@@ -385,6 +447,13 @@ describe('MetricsService', () => {
         .mockResolvedValueOnce([{ name: 'email', _count: { id: 3 } }])
         .mockResolvedValueOnce([{ name: 'import', _count: { id: 1 } }]);
       prismaService.queueJob.count.mockResolvedValueOnce(2);
+      prismaService.queueJobExecution.groupBy.mockResolvedValueOnce([
+        { outcome: 'COMPLETED', _count: { id: 90 } },
+        { outcome: 'RETRY_SCHEDULED', _count: { id: 6 } },
+      ]);
+      prismaService.queueJobExecution.findMany
+        .mockResolvedValueOnce([{ jobId: 'qj-1' }, { jobId: 'qj-2' }])
+        .mockResolvedValueOnce([{ jobId: 'qj-1' }]);
 
       const result = await service.getQueueHealthSummary();
 
@@ -392,6 +461,31 @@ describe('MetricsService', () => {
       expect(result.topQueuesByWaiting).toEqual([{ name: 'email', count: 3 }]);
       expect(result.topQueuesByFailed).toEqual([{ name: 'import', count: 1 }]);
       expect(result.deadLetteredLast24h).toBe(2);
+      expect(result.outcomesLast24h).toEqual([
+        { outcome: 'COMPLETED', count: 90 },
+        { outcome: 'RETRY_SCHEDULED', count: 6 },
+      ]);
+      // qj-2 retried but never completed: it is retried, not recovered.
+      expect(result.jobsRetriedLast24h).toBe(2);
+      expect(result.jobsRecoveredLast24h).toBe(1);
+    });
+
+    it('does not issue a recovery lookup when nothing retried', async () => {
+      prismaService.queueJob.groupBy
+        .mockResolvedValueOnce([{ status: 'COMPLETED', _count: { id: 1 } }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+      prismaService.queueJob.count.mockResolvedValueOnce(0);
+      prismaService.queueJobExecution.groupBy.mockResolvedValueOnce([]);
+      prismaService.queueJobExecution.findMany.mockResolvedValueOnce([]);
+
+      const result = await service.getQueueHealthSummary();
+
+      expect(result.jobsRetriedLast24h).toBe(0);
+      expect(result.jobsRecoveredLast24h).toBe(0);
+      // The second findMany (retried ∩ completed) is skipped, not issued with an
+      // empty IN clause.
+      expect(prismaService.queueJobExecution.findMany).toHaveBeenCalledTimes(1);
     });
   });
 });

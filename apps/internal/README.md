@@ -11,7 +11,7 @@ Internal admin portal — Vite + React Router v7 SPA (replaces the Next.js `apps
 ## Local development
 
 ```bash
-pnpm --filter @docita/api run start:dev   # API on :3001 (see apps/api)
+pnpm --filter @docita/api run dev         # API on :3001 (see apps/api)
 pnpm --filter @docita/internal run dev  # SPA on http://localhost:3002
 ```
 

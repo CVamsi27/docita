@@ -134,10 +134,16 @@ describe('PublicBookingSlotsService', () => {
           id: 'doc-9',
           clinicId: 'clinic-1',
           role: { in: ['DOCTOR', 'ADMIN_DOCTOR'] },
+          deletedAt: null,
         },
       });
       expect(persistence.doctorClinic.count).toHaveBeenCalledWith({
-        where: { doctorId: 'doc-9', clinicId: 'clinic-1', active: true },
+        where: {
+          doctorId: 'doc-9',
+          clinicId: 'clinic-1',
+          active: true,
+          doctor: { deletedAt: null },
+        },
       });
     });
 

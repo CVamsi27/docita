@@ -25,7 +25,7 @@ concurrency:
 jobs:
   changes:
     name: Detect CI Scope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       dependencies: ${{ steps.detect.outputs.dependencies }}
       api: ${{ steps.detect.outputs.api }}
@@ -54,7 +54,7 @@ jobs:
     name: Repository Standards
     needs: changes
     if: github.event.pull_request.draft != true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # actions: read lets check:workflow-staleness query workflow run history
     # inside verify:standard on every PR (its observability backstop).
     permissions:
@@ -84,15 +84,22 @@ jobs:
       - name: Verify Repository Standards
         run: pnpm verify:standard
 
+      - name: Verify encrypted backup process safety
+        if: needs.changes.outputs.knip == 'true'
+        run: node --test --test-concurrency=1 scripts/db/backup-database.test.mjs scripts/db/check-backup-freshness.test.mjs scripts/db/run-backup-monitor.test.mjs scripts/db/run-backup-writer.test.mjs scripts/db/run-backup-cycle.test.mjs
+
       - name: Knip unused dependencies and exports
         if: needs.changes.outputs.knip == 'true'
         run: pnpm knip
 
   api-quality:
     name: API Unit Checks
+    env:
+      # Production and spec typechecking exceed the default 2 GiB heap.
+      NODE_OPTIONS: --max-old-space-size=4096
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.api == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -129,23 +136,27 @@ jobs:
       - name: Typecheck API
         run: pnpm --filter @docita/api run check-types
 
-      - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
-      - name: Test API (changed only)
-        run: pnpm --filter @docita/api run test:ci --changedSince=origin/main
+      # Global coverage thresholds require the full API coverage population.
+      # Changed-file selection narrows instrumentation as well as test selection.
+      - name: Test API with global coverage
+        run: pnpm --filter @docita/api run test:ci
   api-e2e:
     name: API E2E Tests (${{ matrix.shard }}/${{ matrix.total }})
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.api == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - shard: 1
-            total: 2
+            total: 4
           - shard: 2
-            total: 2
+            total: 4
+          - shard: 3
+            total: 4
+          - shard: 4
+            total: 4
     env:
       PGHOST: localhost
       PGPORT: "5434"
@@ -154,6 +165,10 @@ jobs:
       # The suite runs single-process (jest --runInBand) and OOM'd at the
       # default 2GB Node heap (`FATAL ERROR: Ineffective mark-compacts near
       # heap limit`, exit 134). Give each shard a 4GB heap.
+      # Four shards, not two: one process carrying ~29 heavy suites against a
+      # single database intermittently broke unrelated suites (a transport
+      # `socket hang up`, and timing-sensitive assertions), so the shard count
+      # is a capacity control, not just a memory workaround.
       NODE_OPTIONS: --max-old-space-size=4096
     services:
       postgres:
@@ -208,7 +223,7 @@ jobs:
     name: App Unit Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -237,7 +252,7 @@ jobs:
         run: pnpm --filter @docita/app run check-types
 
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test app (changed only)
         run: pnpm --filter @docita/app run test -- --changed=origin/main
 
@@ -245,6 +260,8 @@ jobs:
         # M2: run on every app PR, not just dispatch. The RB-13 credential
         # gate has been skipping Cloudflare deploys, so the deploy-time
         # wrangler bundle (apps/app/api/index.ts) was never verified.
+        env:
+          VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
         run: pnpm --filter @docita/app run build:cloudflare
 
       - name: Smoke-bundle Hono worker (wrangler dry-run)
@@ -266,7 +283,7 @@ jobs:
     name: Internal Unit Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.internal == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -294,7 +311,7 @@ jobs:
         run: pnpm --filter @docita/internal run check-types
 
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test internal (changed only)
         run: pnpm --filter @docita/internal run test -- --changed=origin/main
 
@@ -316,7 +333,7 @@ jobs:
     name: Landing Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.landing == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -357,11 +374,18 @@ jobs:
         # first, so this step also validates the clean-checkout build path.
         run: pnpm --filter @docita/landing run build
 
+      - name: Enforce apps/landing worker bundle cap
+        # D-F2: the Astro landing Worker (dist/server/entry.mjs) had no size
+        # gate while both SPA workers did. Measure it against the same gzip
+        # budget after the build above. First recorded baseline: 583.2 KB
+        # gzip vs 3584 KB limit (2026-10-05).
+        run: pnpm check:worker-size:landing
+
   worker-quality:
     name: Worker Unit Checks
     needs: changes
     if: github.event.pull_request.draft != true && needs.changes.outputs.worker == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -389,47 +413,56 @@ jobs:
       - name: Typecheck worker package
         run: pnpm --filter @docita/worker run check-types
 
+      - name: Build worker runtime artifact
+        run: pnpm --filter @docita/worker run build
+
+      - name: Verify compiled worker dependencies
+        run: pnpm --filter @docita/worker run check:runtime
+
       - name: Fetch main branch for change detection
-        run: git fetch origin main --depth=1
+        run: git fetch origin main
       - name: Test worker (changed only)
         run: pnpm --filter @docita/worker run test:ci --changedSince=origin/main
 
   security-audit:
     name: Security Audit
     needs: changes
-    if: github.event.pull_request.draft != true && needs.changes.outputs.dependencies == 'true'
+    if: github.event_name != 'pull_request' && needs.changes.outputs.dependencies == 'true'
     permissions:
       actions: read
       contents: read
       security-events: write
-    # The previous `pnpm audit --audit-level=high` step relied on the
-    # registry.npmjs.org audit endpoint, which npm retired in 2025 — that
-    # endpoint now returns 410. Switched to OSV-Scanner via the
-    # google/osv-scanner-action reusable workflow (the non-PR variant), which
-    # queries OSV.dev directly. Covers both PRs and pushes; PRs additionally
-    # get the diff-aware `osv-scan` job below. No `runs-on:` — the reusable
-    # workflow supplies its own runner.
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.5.0
+    # Full scans block vulnerable dependency changes on manual CI runs.
+    # PRs use the diff-aware job below so inherited advisories do not block
+    # unrelated changes. The reusable workflow supplies its own runner.
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.6.0
+    with:
+      fail-on-vuln: true
+      # SARIF is always retained as an Actions artifact. The Security tab
+      # requires code scanning, which is currently unavailable on this repo.
+      upload-sarif: ${{ vars.OSV_UPLOAD_SARIF == 'true' }}
 
   osv-scan:
     name: OSV Vulnerability Scan
     needs: changes
     # PR-only: flags new vulnerabilities introduced by the PR against base.
-    # Pushes to main are covered by the `Security Audit` job above (OSV) plus
-    # OSV upstream advisories surfacing in dependabot. Keeping this PR-gated
-    # avoids failing main on transient upstream advisories.
-    if: github.event_name == 'pull_request' && needs.changes.outputs.dependencies == 'true'
+    # Existing advisories remain visible in the full scan on manual CI runs
+    # and in Dependabot; this comparison blocks vulnerabilities added by a PR.
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft != true && needs.changes.outputs.dependencies == 'true'
     permissions:
       actions: read
       contents: read
       security-events: write
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.5.0
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.6.0
+    with:
+      fail-on-vuln: true
+      upload-sarif: ${{ vars.OSV_UPLOAD_SARIF == 'true' }}
 
   validate-migrations:
     name: Validate Migrations
     needs: changes
     if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.db == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       PGHOST: localhost
       PGPORT: "5434"
@@ -498,7 +531,7 @@ jobs:
     name: App Bundle Analysis
     needs: changes
     if: github.event_name == 'workflow_dispatch' && needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 

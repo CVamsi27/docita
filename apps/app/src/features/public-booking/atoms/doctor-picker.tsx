@@ -1,6 +1,7 @@
 "use client";
 
 // jscpd:ignore-start
+import { useTranslation } from "react-i18next";
 import { Button, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Skeleton } from "@workspace/ui/components";
 import { ANY_DOCTOR_ID } from "@/features/public-booking/public-booking-constants";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
@@ -8,6 +9,8 @@ import { cn } from "@workspace/ui/lib/utils";
 
 function DoctorRetryButton({ c }: { c: PublicBookingPageController }) {
 // jscpd:ignore-end
+  const { t } = useTranslation("PublicBooking");
+
   if (!c.doctorsQuery.isError) return null;
   return (
     <Button
@@ -16,12 +19,13 @@ function DoctorRetryButton({ c }: { c: PublicBookingPageController }) {
       size="sm"
       onClick={() => void c.doctorsQuery.refetch()}
     >
-      Retry loading doctors
+      {t("doctorPicker.retry")}
     </Button>
   );
 }
 
 export function DoctorChips({ c }: { c: PublicBookingPageController }) {
+  const { t } = useTranslation("PublicBooking");
   const doctors = c.doctorsQuery.data?.doctors ?? [];
   const activeId = c.doctorId;
 
@@ -38,9 +42,9 @@ export function DoctorChips({ c }: { c: PublicBookingPageController }) {
   return (
     <div className="grid gap-2">
       <Label className="text-[length:var(--fs-sm)] font-normal leading-none text-muted-foreground">
-        Doctor
+        {t("doctorPicker.label")}
         <span className="ml-1 font-normal text-muted-foreground/70">
-          (optional)
+          {t("doctorPicker.optionalSuffix")}
         </span>
       </Label>
       {c.doctorsQuery.isLoading ? (
@@ -62,9 +66,8 @@ export function DoctorChips({ c }: { c: PublicBookingPageController }) {
                   ? ""
                   : "border-border/70 bg-background text-muted-foreground hover:border-primary/35 hover:bg-muted/20 hover:text-foreground",
               )}
-              aria-label="Select any available doctor"
             >
-              Any doctor
+              {t("doctorPicker.anyDoctor")}
             </Button>
           ) : null}
           {doctors.map((d) => (
@@ -79,9 +82,14 @@ export function DoctorChips({ c }: { c: PublicBookingPageController }) {
                   ? ""
                   : "border-border/70 bg-background text-muted-foreground hover:border-primary/35 hover:bg-muted/20 hover:text-foreground",
               )}
-              aria-label={`Select ${d.name ?? "Doctor"}${d.specialization ? ` (${d.specialization})` : ""}`}
+              aria-label={t("doctorPicker.selectNamedAria", {
+                name: d.name ?? t("doctorPicker.nameFallback"),
+                specialization: d.specialization
+                  ? ` (${d.specialization})`
+                  : "",
+              })}
             >
-              {d.name ?? "Doctor"}
+              {d.name ?? t("doctorPicker.nameFallback")}
               {d.specialization ? (
                 <span className="ml-1 opacity-70">· {d.specialization}</span>
               ) : null}
@@ -111,11 +119,16 @@ export function DoctorTogglePicker({
   open: boolean;
   onToggle: () => void;
 }) {
+  const { t } = useTranslation("PublicBooking");
+
   return (
     <div className="grid gap-2">
       <div className="flex items-center justify-between gap-3">
-        <Label className="text-[length:var(--fs-sm)] font-normal leading-none text-muted-foreground">
-          Doctor (optional)
+        <Label
+          htmlFor={open ? "pb-doctor-select" : undefined}
+          className="text-[length:var(--fs-sm)] font-normal leading-none text-muted-foreground"
+        >
+          {t("doctorPicker.toggleLabel")}
         </Label>
         <Button
           type="button"
@@ -126,7 +139,9 @@ export function DoctorTogglePicker({
           aria-expanded={open}
           aria-controls="pb-doctor-picker"
         >
-          {open ? "Hide doctor" : "Select doctor"}
+          {open
+            ? t("doctorPicker.hide")
+            : t("doctorPicker.select")}
         </Button>
       </div>
 
@@ -150,7 +165,7 @@ export function DoctorTogglePicker({
                 "h-11 w-full rounded-[var(--radius-md)] border-border/70 bg-background text-[length:var(--fs-sm)] shadow-sm sm:h-11",
                 c.submitFieldErrors.preferredDoctorId && "border-destructive",
               )}
-              aria-label="Doctor"
+              aria-label={t("doctorPicker.selectAriaLabel")}
               aria-invalid={
                 c.submitFieldErrors.preferredDoctorId ? true : undefined
               }
@@ -161,17 +176,17 @@ export function DoctorTogglePicker({
               }
               disabled={c.doctorsQuery.isLoading}
             >
-              <SelectValue placeholder="Select a doctor" />
+              <SelectValue placeholder={t("doctorPicker.selectPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {(c.doctorsQuery.data?.doctors ?? []).length > 1 ? (
                 <SelectItem value={ANY_DOCTOR_ID}>
-                  Any available doctor
+                  {t("doctorPicker.anyAvailableDoctor")}
                 </SelectItem>
               ) : null}
               {(c.doctorsQuery.data?.doctors ?? []).map((d) => (
                 <SelectItem key={d.id} value={d.id}>
-                  {d.name ?? "Doctor"}
+                  {d.name ?? t("doctorPicker.nameFallback")}
                   {d.specialization ? ` - ${d.specialization}` : ""}
                 </SelectItem>
               ))}
@@ -191,9 +206,10 @@ export function DoctorTogglePicker({
 
       {!open && c.doctorId ? (
         <p className="text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
-          Selected:{" "}
+          {t("doctorPicker.selectedPrefix")}
+          {" "}
           <span className="font-medium text-foreground">
-            {c.selectedDoctorName ?? "Doctor"}
+            {c.selectedDoctorName ?? t("doctorPicker.nameFallback")}
           </span>
         </p>
       ) : null}

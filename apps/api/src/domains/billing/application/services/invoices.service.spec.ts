@@ -59,6 +59,8 @@ describe('InvoicesService', () => {
     findPatientContext: jest.fn<IInvoiceRepository['findPatientContext']>(),
     findClinicFeatureContext:
       jest.fn<IInvoiceRepository['findClinicFeatureContext']>(),
+    findClinicReportContext:
+      jest.fn<IInvoiceRepository['findClinicReportContext']>(),
     nextInvoiceNumber: jest.fn<IInvoiceRepository['nextInvoiceNumber']>(),
   };
 
@@ -76,6 +78,9 @@ describe('InvoicesService', () => {
     findByInvoiceId: jest.fn<IPaymentSessionRepository['findByInvoiceId']>(),
     findSettledByClinicInRange:
       jest.fn<IPaymentSessionRepository['findSettledByClinicInRange']>(),
+    tryMarkCaptured: jest.fn<IPaymentSessionRepository['tryMarkCaptured']>(),
+    findReconciliationCandidates:
+      jest.fn<IPaymentSessionRepository['findReconciliationCandidates']>(),
   };
 
   const pdfService = Object.create(PDFService.prototype) as PDFService;

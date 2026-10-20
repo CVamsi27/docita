@@ -6,6 +6,7 @@ import { UpdateAppointmentDetailsUseCase } from './update-appointment-details.us
 import type { IAppointmentWriteRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import type { AppointmentSchedulingRulesService } from '@/domains/appointments/core/domain-services/appointment-scheduling-rules.service';
 import type { AppointmentMetricsService } from '@/domains/appointments/application/services/appointment-metrics.service';
+import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 
 function makeCtx() {
   const writeRepository = {
@@ -41,6 +42,7 @@ function makeCtx() {
     doctorId: 'doctor-1',
     startTime: new Date('2026-06-01T09:00:00Z'),
     endTime: new Date('2026-06-01T09:30:00Z'),
+    status: AppointmentStatusEnum.SCHEDULED,
   };
 
   return {

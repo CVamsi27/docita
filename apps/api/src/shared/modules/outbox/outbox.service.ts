@@ -10,7 +10,6 @@
  */
 import { Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { isRecord } from '@workspace/utils';
 import type { Prisma } from '@workspace/db';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
 import type { IOutboxService, OutboxAppend } from './outbox.interface';
@@ -23,28 +22,30 @@ export class OutboxService implements IOutboxService {
     tx: Prisma.TransactionClient,
     event: OutboxAppend,
   ): Promise<void> {
-    try {
-      await tx.outboxEvent.create({
-        data: {
-          eventName: event.eventName,
-          aggregateType: event.aggregateType ?? null,
-          aggregateId: event.aggregateId ?? null,
-          clinicId: event.clinicId,
-          payload: toPrismaInputJsonValue(event.payload),
-          idempotencyKey: event.idempotencyKey ?? null,
-        },
+    const data = {
+      eventName: event.eventName,
+      aggregateType: event.aggregateType ?? null,
+      aggregateId: event.aggregateId ?? null,
+      clinicId: event.clinicId,
+      payload: toPrismaInputJsonValue(event.payload),
+      idempotencyKey: event.idempotencyKey ?? null,
+    };
+
+    if (event.idempotencyKey) {
+      // Catching P2002 cannot repair an aborted Postgres transaction. Use
+      // ON CONFLICT so duplicate intent leaves the business transaction usable.
+      const result = await tx.outboxEvent.createMany({
+        data,
+        skipDuplicates: true,
       });
-    } catch (error) {
-      // P2002 on idempotencyKey means a previous emit for the same logical
-      // event has already been recorded. Treat as a no-op so retries are safe.
-      const code = isRecord(error) ? error.code : undefined;
-      if (event.idempotencyKey && code === 'P2002') {
+      if (result.count === 0) {
         this.logger.debug(
           `[outbox] duplicate idempotencyKey ${event.idempotencyKey} for ${event.eventName} — already recorded`,
         );
-        return;
       }
-      throw error;
+      return;
     }
+
+    await tx.outboxEvent.create({ data });
   }
 }

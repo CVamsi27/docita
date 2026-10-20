@@ -16,7 +16,7 @@ import {
 } from "@workspace/ui/components";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { getPatientFullName } from "@workspace/utils";
-import { FeatureGate } from "@/components/auth/feature-gate";
+import { PageFeatureGate } from "@/components/auth/PageFeatureGate";
 import { CodingQueue } from "@/features/medical-coding/components";
 import { useCodingQueue } from "@workspace/data-access";
 import { formatDateTime } from "@/lib/formatters";
@@ -76,7 +76,11 @@ export function CodingQueuePageContent() {
   const pendingCount = queueItems.length;
 
   return (
-    <FeatureGate feature={Feature.MEDICAL_CODING} showLockedCard>
+    <PageFeatureGate
+      feature={Feature.MEDICAL_CODING}
+      title={t("pageTitle")}
+      description={t("pageDescription")}
+    >
       <AppPageScaffold
         header={
           <PageHeader
@@ -141,6 +145,6 @@ export function CodingQueuePageContent() {
           })()}
         </div>
       </AppPageScaffold>
-    </FeatureGate>
+    </PageFeatureGate>
   );
 }

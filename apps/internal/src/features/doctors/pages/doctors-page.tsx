@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { AppPageScaffold, Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components";
 import { Eye, ShieldCheck, ShieldX, Stethoscope } from "lucide-react";
-import { apiGet } from "@/lib/api/api-client";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 interface Doctor {
   id: string;
@@ -18,22 +18,10 @@ interface Doctor {
 }
 
 export function DoctorsPage() {
-  const [loading, setLoading] = useState(true);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const { data: doctors = [], isLoading, isError, refetch } = useApiQuery<Doctor[]>("/api/internal/doctors/verification-queue");
   const [search, setSearch] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
-
-  const fetchDoctors = async () => {
-    setLoading(true);
-    try {
-      const data = await apiGet<Doctor[]>("/api/internal/doctors/verification-queue");
-      setDoctors(data);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { void fetchDoctors(); }, []);
 
   const filteredDoctors = useMemo(() =>
     doctors.filter((d) => !search || d.name.toLowerCase().includes(search.toLowerCase()) || d.email.toLowerCase().includes(search.toLowerCase())),
@@ -41,7 +29,12 @@ export function DoctorsPage() {
 
   return (
     <AppPageScaffold header={<PageHeader title="Doctors" description="Monitor doctor profiles, specializations, and credentials" size="compact" />}>
-      <DataState status={loading ? "loading" : "success"} loadingMessage="Loading doctors…">
+      <DataState
+        status={isError ? "error" : isLoading ? "loading" : "success"}
+        loadingMessage="Loading doctors…"
+        errorMessage="We could not load the doctor verification queue. Please try again."
+        onRetry={() => { void refetch(); }}
+      >
         <div className="mb-4 flex items-center gap-4">
           <Input placeholder="Search doctors by name or email…" value={search} onChange={(e) => { setSearch(e.target.value); }} className="max-w-sm" />
         </div>
@@ -66,7 +59,7 @@ export function DoctorsPage() {
                     </Badge>
                     {doctor.verificationReason && <span className="text-xs text-muted-foreground">{doctor.verificationReason}</span>}
                   </div></TableCell>
-                  <TableCell className="text-right"><Button variant="ghost" size="sm" onClick={() => { setSelectedDoctor(doctor); setIsViewOpen(true); }}><Eye className="h-4 w-4" /></Button></TableCell>
+                  <TableCell className="text-right"><Button variant="ghost" size="sm" aria-label={`View doctor: ${doctor.name}`} onClick={() => { setSelectedDoctor(doctor); setIsViewOpen(true); }}><Eye className="h-4 w-4" /></Button></TableCell>
                 </TableRow>
               ))}</TableBody></Table></div>
             )}

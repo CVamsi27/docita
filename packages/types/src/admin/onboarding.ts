@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { TierName } from "../billing/tier";
+import { authUserSchema } from "../contracts/auth";
 import { clinicSchema } from "../shared/clinics";
 import { userSchema } from "../shared/users";
 
@@ -22,10 +23,40 @@ export const onboardingSessionSchema = z.object({
   updatedAt: z.date().or(z.string()),
 });
 
+/** POST /onboarding/initialize allocates a session; progress is read separately. */
 export const onboardingInitResponseSchema = z.object({
   onboardingId: z.string(),
-  step: onboardingStepSchema,
 });
+
+/**
+ * Response of `POST /onboarding/:id/complete`.
+ *
+ * This describes what the service actually returns: a discriminated outcome
+ * where only the success branch carries credentials. `OnboardingResult` on the
+ * API side is derived from this schema, and the SPA parses with it, so the
+ * shape exists in exactly one place.
+ *
+ * The DTO wrapper in `onboarding-response.dto.ts` previously declared
+ * `{accessToken, clinicId, userId, email, name, role}` — a flat shape the
+ * service never produced. `SafeZodSerializerInterceptor` therefore logged a
+ * `SafeZodSerializer` mismatch warning on **every successful clinic
+ * registration** and passed the original response through untouched, which is
+ * exactly what its own doc calls a rollout signal that needed fixing.
+ */
+export const onboardingCompletionResponseSchema = z.object({
+  success: z.boolean(),
+  clinicId: z.string(),
+  userId: z.string(),
+  subscriptionId: z.string().optional(),
+  message: z.string(),
+  errors: z.array(z.string()).optional(),
+  /** Present only on success; the SPA stores it via `appSession.setToken`. */
+  access_token: z.string().optional(),
+  user: authUserSchema.optional(),
+});
+export type OnboardingCompletionResponse = z.infer<
+  typeof onboardingCompletionResponseSchema
+>;
 
 export type BillingCycle = "MONTHLY" | "YEARLY" | "SEMI_ANNUAL";
 

@@ -54,7 +54,14 @@
     "justNow": "अभी",
     "minutesAgo": "मि. पहले",
     "hoursAgo": "घं. पहले",
-    "daysAgo": "दि. पहले"
+    "daysAgo": "दि. पहले",
+    "status": {
+      "QUEUED": "कतार में",
+      "SENT": "भेजा गया",
+      "DELIVERED": "पहुँच गया",
+      "READ": "पढ़ा गया",
+      "FAILED": "विफल"
+    }
   },
   "campaigns": {
     "loading": "कैंपेन लोड हो रहे हैं...",

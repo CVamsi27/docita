@@ -116,7 +116,8 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     id: string,
     clinicId: string,
     patch: Prisma.AppointmentUpdateInput,
+    expectedStatus?: AppointmentStatusEnum,
   ): Promise<number> {
-    return this.writeRepository.applyPatch(id, clinicId, patch);
+    return this.writeRepository.applyPatch(id, clinicId, patch, expectedStatus);
   }
 }

@@ -8,6 +8,7 @@ export type StatusType =
   | "completed"
   | "confirmed"
   | "scheduled"
+  | "checked-in"
   | "cancelled"
   | "pending"
   | "in-progress"
@@ -15,6 +16,7 @@ export type StatusType =
   | "inactive"
   | "draft"
   | "paid"
+  | "partially-paid"
   | "unpaid"
   | "overdue"
   | "success"
@@ -25,16 +27,18 @@ export type StatusType =
   | "no-show"
   | "processing"
   | "ordered"
-  | "sample-collected";
+  | "sample-collected"
+  | "result-ready"
+  | "approved"
+  | "rejected";
 
 export interface StatusBadgeProps {
-  
   status: StatusType | string;
-  
+
   className?: string;
-  
+
   size?: "sm" | "default";
-  
+
   label?: string;
 }
 
@@ -42,6 +46,7 @@ const statusStyles: Record<StatusType, string> = {
   completed: "badge-completed",
   confirmed: "badge-info",
   scheduled: "badge-processing",
+  "checked-in": "badge-success",
   cancelled: "badge-cancelled",
   pending: "badge-pending",
   waiting: "badge-pending",
@@ -49,13 +54,19 @@ const statusStyles: Record<StatusType, string> = {
   processing: "badge-processing",
   ordered: "badge-muted",
   "sample-collected": "badge-processing",
+  "result-ready": "badge-success",
   "in-progress": "badge-processing",
   active: "badge-active",
   inactive: "badge-inactive",
   draft: "badge-muted",
   paid: "badge-success",
+  "partially-paid": "badge-warning",
   unpaid: "badge-cancelled",
+  // Overdue shares the cancelled tone deliberately: both read as "needs
+  // attention" rather than as two distinct states.
   overdue: "badge-cancelled",
+  approved: "badge-success",
+  rejected: "badge-danger",
   success: "badge-success",
   warning: "badge-warning",
   error: "badge-danger",
@@ -79,13 +90,11 @@ export function StatusBadge({
     .replace(/_/g, "-") as StatusType;
   const styleClass = statusStyles[normalizedStatus] || statusStyles.info;
   const displayLabel =
-    label ||
-    statusLabels[normalizedStatus] ||
-    humanizeUiLabel(status);
+    label || statusLabels[normalizedStatus] || humanizeUiLabel(status);
 
   return (
     <Badge
-      variant="secondary"
+      variant="semantic"
       className={cn(
         "capitalize font-medium border-0",
         styleClass,
@@ -101,11 +110,10 @@ export function StatusBadge({
 export type PriorityType = "low" | "medium" | "high" | "urgent" | "critical";
 
 export interface PriorityBadgeProps {
-  
   priority: PriorityType | string;
-  
+
   className?: string;
-  
+
   showDot?: boolean;
 }
 
@@ -142,7 +150,7 @@ export function PriorityBadge({
 
   return (
     <Badge
-      variant="secondary"
+      variant="semantic"
       className={cn(
         "capitalize font-medium border-0 gap-1.5",
         styles.bg,
@@ -158,11 +166,10 @@ export function PriorityBadge({
 }
 
 export interface OnlineStatusProps {
-  
   online?: boolean;
-  
+
   label?: string;
-  
+
   className?: string;
 }
 

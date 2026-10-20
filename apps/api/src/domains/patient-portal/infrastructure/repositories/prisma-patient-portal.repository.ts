@@ -147,8 +147,8 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     return this.auth.tryConsumeOtpAttempt(id, maxAttempts);
   }
 
-  markOtpUsed(id: string): Promise<void> {
-    return this.auth.markOtpUsed(id);
+  tryMarkOtpUsed(id: string): Promise<boolean> {
+    return this.auth.tryMarkOtpUsed(id);
   }
 
   createPortalUser(data: {

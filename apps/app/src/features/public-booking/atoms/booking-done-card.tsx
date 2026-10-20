@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, MapPin, Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button, Card, CardContent, MicroLabel } from "@workspace/ui/components";
 import { CategoryAvatar } from "@workspace/ui/components/indicators/category-avatar";
 import { bookingCardClass, bookingSectionShell } from "./booking-constants";
@@ -17,6 +18,15 @@ export function PublicBookingDoneCard({
   phone?: string | null;
   address?: string | null;
 }) {
+  const { t } = useTranslation("PublicBooking");
+  // Labels resolved inline so the namespace registration test can statically
+  // verify each key; `id` stays a stable React key across locale switches.
+  const nextSteps = [
+    { id: "review", label: t("doneCard.nextSteps.review") },
+    { id: "contact", label: t("doneCard.nextSteps.contact") },
+    { id: "confirmed", label: t("doneCard.nextSteps.confirmed") },
+  ];
+
   return (
     <Card
       className={cn(
@@ -38,14 +48,13 @@ export function PublicBookingDoneCard({
         </div>
         <div className="space-y-2">
           <MicroLabel as="p" className="mt-0 text-success/80">
-            Request sent
+            {t("doneCard.requestSent")}
           </MicroLabel>
           <h2 className="font-serif text-[length:var(--fs-2xl)] font-semibold tracking-tight text-foreground sm:text-[length:var(--fs-3xl)]">
-            You&apos;re all set
+            {t("doneCard.allSet")}
           </h2>
           <p className="mx-auto max-w-sm text-[length:var(--fs-sm)] leading-relaxed text-muted-foreground">
-            The care team will reach out to confirm your visit using the contact
-            method they have on file.
+            {t("doneCard.description")}
           </p>
         </div>
 
@@ -82,7 +91,7 @@ export function PublicBookingDoneCard({
                 className="inline-flex items-center justify-center gap-2 transition-colors duration-150"
               >
                 <Phone className="h-4 w-4 shrink-0" aria-hidden />
-                Call {clinicName}
+                {t("doneCard.callClinic", { clinicName })}
               </a>
             </Button>
           ) : null}
@@ -90,23 +99,19 @@ export function PublicBookingDoneCard({
 
         <div className="rounded-[var(--radius-md)] border border-border/50 bg-background px-4 py-3 text-left shadow-sm">
           <p className="text-[length:var(--fs-2xs)] font-semibold uppercase tracking-wide text-muted-foreground">
-            What happens next
+            {t("doneCard.whatNext")}
           </p>
           <ul className="mt-2 space-y-1.5">
-            {[
-              "The clinic reviews your request",
-              "They contact you to confirm the time",
-              "Your visit is confirmed once they reach out",
-            ].map((step) => (
+            {nextSteps.map(({ id, label }) => (
               <li
-                key={step}
+                key={id}
                 className="flex items-start gap-2 text-[length:var(--fs-xs)] leading-snug text-muted-foreground"
               >
                 <CheckCircle2
                   className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success/70"
                   aria-hidden
                 />
-                {step}
+                {label}
               </li>
             ))}
           </ul>

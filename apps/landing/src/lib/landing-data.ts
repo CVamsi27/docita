@@ -1,16 +1,10 @@
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
-import { fetchLandingJson } from "@/lib/api-fetch";
 
 export interface PlatformStats {
   clinics: number;
   doctors: number;
   patients: number;
   prescriptions: number;
-}
-
-interface PlatformStatsCacheEntry {
-  expiresAt: number;
-  stats: PlatformStats | null;
 }
 
 interface TierPricing {
@@ -42,7 +36,8 @@ const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "STARTER",
     name: "Starter",
-    description: "Core clinical workflows for solo practitioners moving off paper",
+    description:
+      "Core clinical workflows for solo practitioners moving off paper",
     tagline: "Go digital from day one",
     pricing: { monthly: 499, yearly: 4990, currency: "₹" },
     features: [
@@ -51,48 +46,6 @@ const FALLBACK_TIERS: TierConfig[] = [
       "Patient profiles & visit history",
       "Excel import & CSV export",
       "Single doctor",
-    ],
-  },
-  {
-    id: "FRONT_DESK",
-    name: "Front desk · Solo",
-    description:
-      "Reception-first scheduling and billing without full in-app clinical workflows",
-    tagline: "Reception and operations",
-    pricing: { monthly: 799, yearly: 7990, currency: "₹" },
-    features: [
-      "Scheduling and queue",
-      "Patients and invoicing",
-      "WhatsApp within plan limits",
-      "Schedule-only doctor profiles",
-    ],
-  },
-  {
-    id: "FRONT_DESK_CLINIC",
-    name: "Front desk · Clinic",
-    description:
-      "Multi-desk reception for growing clinics without clinical workspaces",
-    tagline: "Multi-desk reception",
-    pricing: { monthly: 1249, yearly: 12490, currency: "₹" },
-    features: [
-      "Up to 25 staff users",
-      "3,000 appointments / month",
-      "Supervisor and billing-only roles",
-      "WhatsApp messaging (2,000 msgs)",
-    ],
-  },
-  {
-    id: "FRONT_DESK_HOSPITAL",
-    name: "Front desk · Hospital",
-    description:
-      "Hospital-scale reception ops with multi-location queues and handover",
-    tagline: "Hospital reception",
-    pricing: { monthly: 3999, yearly: 39990, currency: "₹" },
-    features: [
-      "Up to 150 staff users",
-      "15,000 appointments / month",
-      "Multi-OPD queue routing",
-      "Shift handover and dedicated CSM",
     ],
   },
   {
@@ -170,69 +123,59 @@ export const FALLBACK_PRICING_CONFIG: PricingConfig = {
   tiers: FALLBACK_TIERS,
 };
 
-const PLATFORM_STATS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-let platformStatsCache: PlatformStatsCacheEntry | null = null;
+const PLATFORM_STAT_KEYS: readonly (keyof PlatformStats)[] = [
+  "clinics",
+  "doctors",
+  "patients",
+  "prescriptions",
+];
 
-function isLiveLandingDataEnabled(): boolean {
-  return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] !== "false";
-}
-
-function parseStatValue(value: unknown): number | null {
-  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+/**
+ * Published operating figures for the marketing site.
+ *
+ * These are real owner-supplied counts, provisioned at build time so the page
+ * can never publish a number we cannot stand behind:
+ *
+ *   PUBLIC_PLATFORM_STATS='{"clinics":12,"doctors":34,"patients":5600,"prescriptions":21000}'
+ *
+ * When the variable is absent, malformed, or partially filled, every figure is
+ * omitted (see `HeroSection` and `ProofStripSection`) rather than synthesized.
+ * An earlier revision randomized these on every page load, which made a public
+ * operating claim change on refresh.
+ */
+function parsePlatformStats(raw: unknown): PlatformStats | null {
+  if (typeof raw !== "string" || raw.trim().length === 0) {
     return null;
   }
-  return Math.floor(value);
-}
-
-export async function fetchPlatformStats(
-  baseOrigin?: string,
-): Promise<PlatformStats | null> {
-  if (!isLiveLandingDataEnabled()) {
-    return null;
-  }
-
-  const now = Date.now();
-  if (platformStatsCache && platformStatsCache.expiresAt > now) return platformStatsCache.stats;
-
+  let parsed: unknown;
   try {
-    const payload = await fetchLandingJson<Partial<PlatformStats>>(
-      "/public/platform-stats",
-      baseOrigin,
-    );
-
-    const clinics = parseStatValue(payload.clinics);
-    const doctors = parseStatValue(payload.doctors);
-    const patients = parseStatValue(payload.patients);
-    const prescriptions = parseStatValue(payload.prescriptions);
-
-    if (
-      clinics === null ||
-      doctors === null ||
-      patients === null ||
-      prescriptions === null
-    ) return null;
-
-    const stats = {
-      clinics,
-      doctors,
-      patients,
-      prescriptions,
-    };
-    platformStatsCache = {
-      expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS,
-      stats,
-    };
-
-    return stats;
+    parsed = JSON.parse(raw);
   } catch {
-    platformStatsCache = {
-      expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS,
-      stats: null,
-    };
-
     return null;
   }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    return null;
+  }
+  const values = new Map(Object.entries(parsed));
+  const stats: PlatformStats = {
+    clinics: 0,
+    doctors: 0,
+    patients: 0,
+    prescriptions: 0,
+  };
+  for (const key of PLATFORM_STAT_KEYS) {
+    const value = values.get(key);
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+      return null;
+    }
+    stats[key] = Math.floor(value);
+  }
+  return stats;
 }
+
+export const PLATFORM_STATS: PlatformStats | null = parsePlatformStats(
+  import.meta.env["PUBLIC_PLATFORM_STATS"],
+);
 
 export function formatStatValue(value: number): string {
   return formatCountLocale(value);

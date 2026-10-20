@@ -66,6 +66,7 @@ apps/api/uploads
 !artifacts/a11y-baseline.json
 !artifacts/web-vitals-baseline.json
 !artifacts/api-latency-baseline.json
+!artifacts/perf-baseline.json
 
 # Turbo cache
 .turbo

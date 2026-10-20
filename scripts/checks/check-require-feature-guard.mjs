@@ -5,6 +5,8 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
+import { trackedFileExists } from "../lib/check-runner.mjs";
+
 const repoRoot = process.cwd();
 
 const controllerFiles = execSync("git ls-files 'apps/api/src/**/*.controller.ts'", {
@@ -12,7 +14,8 @@ const controllerFiles = execSync("git ls-files 'apps/api/src/**/*.controller.ts'
   encoding: "utf8",
 })
   .split("\n")
-  .filter(Boolean);
+  .filter(Boolean)
+  .filter(trackedFileExists);
 
 const accessFiles = new Set(
   execSync("git ls-files 'apps/api/src/**/*.access.ts'", {
@@ -20,7 +23,8 @@ const accessFiles = new Set(
     encoding: "utf8",
   })
     .split("\n")
-    .filter(Boolean),
+    .filter(Boolean)
+    .filter(trackedFileExists),
 );
 
 function fileHasTierGuard(filePath) {

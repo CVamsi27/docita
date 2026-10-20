@@ -25,7 +25,6 @@ Framework-agnostic React hooks shared across apps.
 | `useMediaQuery` | Returns boolean match for a CSS media query |
 | `useMedicalCalculations` | BMI, BSA, and other clinical calculation helpers |
 | `useMounted` | Returns `true` after first client render |
-| `useSessionStorage` | Typed `sessionStorage` state |
 | `useSpeechToText` | Web Speech API speech-to-text hook |
 | `useToggle` | Boolean toggle with stable callbacks |
 

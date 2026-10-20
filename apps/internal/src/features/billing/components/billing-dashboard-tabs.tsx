@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/form/select";
 import { Button } from "@workspace/ui/components/form/button";
 import { CalendarPlus, Mail } from "lucide-react";
-import { formatDate, formatCurrency } from "../../../lib/formatters";
+import { formatCurrency, formatDateTime, enIN } from "@workspace/utils";
 
 interface Subscription { id: string; clinic: { name: string; email: string; referralCreditsMonths: number }; tier: string; status: string; billingCycle: string; amount: number; currency: string; currentPeriodEnd: string; }
 interface Payment { id: string; clinicName: string; planLabel: string; amount: number; currency: string; status: string; paidAt?: string; createdAt: string; gatewayPaymentId?: string; }
@@ -31,7 +31,7 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
       <TabsContent value="subscriptions" className="space-y-4">
         <div className="flex flex-wrap gap-4">
           <Select value={tierFilter} onValueChange={onTierFilterChange}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Tier" /></SelectTrigger>
+            <SelectTrigger aria-label="Access tier" className="w-full sm:w-40"><SelectValue placeholder="Tier" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Tiers</SelectItem>
               <SelectItem value="STARTER">Starter</SelectItem>
@@ -42,7 +42,7 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-            <SelectTrigger className="w-48"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger aria-label="Subscription status" className="w-full sm:w-48"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="ACTIVE">Active</SelectItem>
@@ -54,7 +54,7 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
             </SelectContent>
           </Select>
           <Select value={billingCycleFilter} onValueChange={onBillingCycleFilterChange}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Billing Cycle" /></SelectTrigger>
+            <SelectTrigger aria-label="Billing cycle" className="w-full sm:w-40"><SelectValue placeholder="Billing Cycle" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Cycles</SelectItem>
               <SelectItem value="MONTHLY">Monthly</SelectItem>
@@ -77,13 +77,13 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
                 <TableCell><Badge variant="outline">{sub.tier}</Badge></TableCell>
                 <TableCell><Badge>{sub.status}</Badge></TableCell>
                 <TableCell><span className="text-sm">{sub.billingCycle}</span></TableCell>
-                <TableCell><span className="font-medium">{formatCurrency(sub.amount, { currency: sub.currency, fractionDigits: 0 })}</span></TableCell>
-                <TableCell><span className="text-sm">{formatDate(sub.currentPeriodEnd)}</span></TableCell>
+                <TableCell><span className="font-medium">{formatCurrency(sub.amount, { currency: sub.currency, fractionDigits: 0, locale: "en-IN" })}</span></TableCell>
+                <TableCell><span className="text-sm">{formatDateTime(sub.currentPeriodEnd, undefined, { locale: enIN })}</span></TableCell>
                 <TableCell>{sub.clinic.referralCreditsMonths > 0 && <Badge variant="outline" className="text-success">{sub.clinic.referralCreditsMonths}m free</Badge>}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => { onSendReminder(sub); }} disabled={sending}><Mail className="h-4 w-4" /></Button>
-                    {sub.status === "GRACE_PERIOD" && <Button size="sm" variant="ghost" onClick={() => { onExtendGracePeriod(sub); }}><CalendarPlus className="h-4 w-4" /></Button>}
+                    <Button size="sm" variant="ghost" aria-label={`Send reminder: ${sub.clinic.name}`} onClick={() => { onSendReminder(sub); }} disabled={sending}><Mail className="h-4 w-4" /></Button>
+                    {sub.status === "GRACE_PERIOD" && <Button size="sm" variant="ghost" aria-label={`Extend grace period: ${sub.clinic.name}`} onClick={() => { onExtendGracePeriod(sub); }}><CalendarPlus className="h-4 w-4" /></Button>}
                   </div>
                 </TableCell>
               </TableRow>
@@ -103,10 +103,10 @@ export function BillingDashboardTabs({ subscriptions, payments, sending, tierFil
                 <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">No payments found</TableCell></TableRow>
               ) : payments.map((payment) => (
                 <TableRow key={payment.id}>
-                  <TableCell><span className="text-sm">{formatDate(payment.paidAt || payment.createdAt)}</span></TableCell>
+                  <TableCell><span className="text-sm">{formatDateTime(payment.paidAt || payment.createdAt, undefined, { locale: enIN })}</span></TableCell>
                   <TableCell><p className="font-medium">{payment.clinicName}</p></TableCell>
                   <TableCell><Badge variant="outline">{payment.planLabel}</Badge></TableCell>
-                  <TableCell><span className="font-medium">{formatCurrency(payment.amount, { currency: payment.currency, fractionDigits: 0 })}</span></TableCell>
+                  <TableCell><span className="font-medium">{formatCurrency(payment.amount, { currency: payment.currency, fractionDigits: 0, locale: "en-IN" })}</span></TableCell>
                   <TableCell><Badge variant={payment.status === "SUCCESS" ? "secondary" : "destructive"}>{payment.status}</Badge></TableCell>
                   <TableCell><code className="text-xs text-muted-foreground">{payment.gatewayPaymentId || "-"}</code></TableCell>
                 </TableRow>

@@ -94,3 +94,19 @@ Compute in ONE helper; never inline.
    (or one app-shared helper) and are imported, never inlined.
 5. Client caches (permission store, clinic context, localStorage) are **derived** from a
    server source and must be refreshed when that source changes.
+
+## G. Internal operational metrics
+
+The INTERNAL-only `/internal/operational-metrics` route derives its rolling 30-day
+UTC summary from `Appointment.startTime` and current status, `Invoice.createdAt`,
+`QueueJob.createdAt` and current status, and retained `ApiRequest` observations.
+The shared response contract is `internalOperationalMetricsSchema` in
+`packages/types/src/admin/operational-metrics.ts`. The internal Performance page
+reads this response; it does not seed or maintain another metric store.
+
+Counts include any existing demo/test records. Invoices created are not revenue,
+clinic IDs with appointments are not paying customers, and current job states are
+not an immutable execution history. Request percentiles describe retained samples,
+including any captured health checks; they do not establish service availability.
+The UI displays the window and sample coverage, and shows unsampled latency/error
+rate as unavailable. Database failures propagate to an error state rather than zeros.

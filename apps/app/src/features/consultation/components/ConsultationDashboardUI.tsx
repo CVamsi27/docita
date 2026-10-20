@@ -156,6 +156,7 @@ export function ConsultationDashboardUI() {
       />
 
       <BillingModal
+        key={`${billingModal.appointmentId ?? "none"}-${existingInvoice?.id ?? "draft"}`}
         open={billingModal.open}
         onOpenChange={(open) =>
           setBillingModal((prev) => ({ ...prev, open }))

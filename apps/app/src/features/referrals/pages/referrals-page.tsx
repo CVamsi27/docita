@@ -7,6 +7,30 @@ import { Hospital } from "lucide-react";
 import { ReferralsPageContent } from "@/features/referrals/components/ReferralsPageContent";
 import { FollowUpsPageContent } from "@/features/follow-ups";
 import { getHospitalBeds, type HospitalBed } from "@/features/referrals/api/referrals.api";
+import { BedStatusEnum, type BedStatus } from "@workspace/types";
+
+/**
+ * Bed status is a Prisma enum; the grid colors on it and shows a translated
+ * label. Previously it rendered the raw token ("OCCUPIED") verbatim, which was
+ * untranslated and read like an internal code.
+ */
+const BED_STATUS_TONE = {
+  AVAILABLE: "badge-success",
+  OCCUPIED: "badge-info",
+  MAINTENANCE: "badge-warning",
+  CLEANING: "badge-processing",
+  RESERVED: "badge-muted",
+} satisfies Record<BedStatus, string>;
+
+export { BED_STATUS_TONE };
+
+/**
+ * Catalog keys for the bed-status labels, read from the canonical enum so the
+ * label set cannot drift from it. Exported for the regression test in
+ * `hospital-beds.test.ts`.
+ */
+export const HOSPITAL_BED_STATUS_KEYS: readonly BedStatus[] =
+  BedStatusEnum.options;
 
 export function ReferralsPage() {
   return <ReferralsPageContent />;
@@ -50,12 +74,8 @@ export function HospitalBedsPage() {
             <div key={bed.id} className={`rounded-lg border p-4 ${bed.status === "OCCUPIED" ? "border-primary/30 bg-primary/5" : ""}`}>
               <div className="flex items-center justify-between mb-2">
                 <p className="font-medium">{bed.bedNumber}</p>
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                  bed.status === "AVAILABLE" ? "badge-success" :
-                  bed.status === "OCCUPIED" ? "badge-info" :
-                  "bg-muted text-muted-foreground"
-                }`}>
-                  {bed.status}
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${BED_STATUS_TONE[bed.status]}`}>
+                  {t(`hospitalBeds.status.${bed.status}`)}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">{bed.ward} • {bed.roomNumber}</p>

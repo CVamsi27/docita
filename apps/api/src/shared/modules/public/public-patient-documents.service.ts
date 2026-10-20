@@ -5,6 +5,8 @@ import { InvoicesService } from '@/domains/billing/application/services/invoices
 import { StorageProvider } from '@/domains/documents/application/ports/storage-provider.port';
 import { PublicDocumentTokenService } from './public-document-token.service';
 import { PaymentSessionStatus } from '@workspace/db';
+import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
+import { RlsService } from '@/shared/modules/rls/rls.service';
 
 interface PublicPdfResult {
   buffer: Buffer;
@@ -32,6 +34,7 @@ export class PublicPatientDocumentsService {
     private readonly storageProvider: StorageProvider,
     private readonly prescriptionPdfOrchestrator: PrescriptionPdfOrchestratorService,
     private readonly invoicesService: InvoicesService,
+    private readonly rls: RlsService,
   ) {}
 
   async getPrescriptionPdf(
@@ -61,14 +64,17 @@ export class PublicPatientDocumentsService {
   }
 
   async resolvePaymentRedirectUrl(token: string): Promise<string> {
-    const session = await this.prisma.paymentSession.findUnique({
-      where: { id: token },
-      select: {
-        shortUrl: true,
-        paymentLink: true,
-        status: true,
-      },
-    });
+    // RLS-BYPASS: the opaque payment capability permits only its exact redirect metadata lookup.
+    const session = await this.prisma.runUnrestricted(async () =>
+      this.prisma.paymentSession.findUnique({
+        where: { id: token },
+        select: {
+          shortUrl: true,
+          paymentLink: true,
+          status: true,
+        },
+      }),
+    );
 
     if (!session) throw new NotFoundException('Payment link not found');
 
@@ -116,57 +122,64 @@ export class PublicPatientDocumentsService {
     userAgent: string,
   ): Promise<PublicPdfResult> {
     try {
-      const prescription = await this.prisma.prescription.findUnique({
-        where: { id: prescriptionId },
-        select: {
-          pdfUrl: true,
-          clinicId: true,
-          appointment: { select: { clinicId: true } },
-        },
-      });
+      // RLS-BYPASS: the verified signature permits only this exact PDF metadata and clinic bootstrap.
+      const prescription = await this.prisma.runUnrestricted(async () =>
+        this.prisma.prescription.findUnique({
+          where: { id: prescriptionId },
+          select: {
+            pdfUrl: true,
+            clinicId: true,
+            appointment: { select: { clinicId: true } },
+          },
+        }),
+      );
       if (!prescription) throw new NotFoundException('Prescription not found');
 
       const clinicId =
         prescription.clinicId ?? prescription.appointment?.clinicId;
       if (!clinicId) throw new NotFoundException('Prescription not found');
 
-      const pdfUrl = prescription.pdfUrl;
+      return await runWithTenant({ clinicId }, () =>
+        this.rls.runScopedTransaction(clinicId, async () => {
+          const pdfUrl = prescription.pdfUrl;
 
-      if (pdfUrl) {
-        const { buffer, contentType } =
-          await this.storageProvider.getObject(pdfUrl);
-        this.logAccess({
-          type: 'prescription',
-          documentId: prescriptionId,
-          clinicId,
-          ipAddress,
-          userAgent,
-          success: true,
-        });
-        return {
-          buffer,
-          filename: `prescription-${prescriptionId}.pdf`,
-          contentType,
-        };
-      }
+          if (pdfUrl) {
+            const { buffer, contentType } =
+              await this.storageProvider.getObject(pdfUrl);
+            this.logAccess({
+              type: 'prescription',
+              documentId: prescriptionId,
+              clinicId,
+              ipAddress,
+              userAgent,
+              success: true,
+            });
+            return {
+              buffer,
+              filename: `prescription-${prescriptionId}.pdf`,
+              contentType,
+            };
+          }
 
-      const buffer = await this.prescriptionPdfOrchestrator.generatePDF(
-        prescriptionId,
-        clinicId,
+          const buffer = await this.prescriptionPdfOrchestrator.generatePDF(
+            prescriptionId,
+            clinicId,
+          );
+          this.logAccess({
+            type: 'prescription',
+            documentId: prescriptionId,
+            clinicId,
+            ipAddress,
+            userAgent,
+            success: true,
+          });
+          return {
+            buffer,
+            filename: `prescription-${prescriptionId}.pdf`,
+            contentType: 'application/pdf',
+          };
+        }),
       );
-      this.logAccess({
-        type: 'prescription',
-        documentId: prescriptionId,
-        clinicId,
-        ipAddress,
-        userAgent,
-        success: true,
-      });
-      return {
-        buffer,
-        filename: `prescription-${prescriptionId}.pdf`,
-        contentType: 'application/pdf',
-      };
     } catch (error) {
       this.logAccessFailureAndRethrow(
         'prescription',
@@ -184,62 +197,73 @@ export class PublicPatientDocumentsService {
     userAgent: string,
   ): Promise<PublicPdfResult> {
     try {
-      const invoice = await this.prisma.invoice.findUnique({
-        where: { id: invoiceId },
-        select: {
-          pdfUrl: true,
-          clinicId: true,
-          appointment: { select: { clinicId: true } },
-        },
-      });
+      // RLS-BYPASS: the verified signature permits only this exact PDF metadata and clinic bootstrap.
+      const invoice = await this.prisma.runUnrestricted(async () =>
+        this.prisma.invoice.findUnique({
+          where: { id: invoiceId },
+          select: {
+            pdfUrl: true,
+            clinicId: true,
+            appointment: { select: { clinicId: true } },
+          },
+        }),
+      );
       if (!invoice) throw new NotFoundException('Invoice not found');
 
       const clinicId = invoice.clinicId ?? invoice.appointment?.clinicId;
       if (!clinicId) throw new NotFoundException('Invoice not found');
 
-      const pdfUrl = invoice.pdfUrl;
+      return await runWithTenant({ clinicId }, () =>
+        this.rls.runScopedTransaction(clinicId, async () => {
+          const pdfUrl = invoice.pdfUrl;
 
-      if (pdfUrl) {
-        const { buffer, contentType } =
-          await this.storageProvider.getObject(pdfUrl);
-        this.logAccess({
-          type: 'invoice',
-          documentId: invoiceId,
-          clinicId,
-          ipAddress,
-          userAgent,
-          success: true,
-        });
-        return { buffer, filename: `invoice-${invoiceId}.pdf`, contentType };
-      }
+          if (pdfUrl) {
+            const { buffer, contentType } =
+              await this.storageProvider.getObject(pdfUrl);
+            this.logAccess({
+              type: 'invoice',
+              documentId: invoiceId,
+              clinicId,
+              ipAddress,
+              userAgent,
+              success: true,
+            });
+            return {
+              buffer,
+              filename: `invoice-${invoiceId}.pdf`,
+              contentType,
+            };
+          }
 
-      const buffer = await this.invoicesService.generatePDF(
-        invoiceId,
-        clinicId,
+          const buffer = await this.invoicesService.generatePDF(
+            invoiceId,
+            clinicId,
+          );
+          const invoiceDetail = await this.invoicesService.findOne(
+            invoiceId,
+            clinicId,
+          );
+          await this.invoicesService.uploadAndPersist(
+            invoiceId,
+            clinicId,
+            buffer,
+            invoiceDetail,
+          );
+          this.logAccess({
+            type: 'invoice',
+            documentId: invoiceId,
+            clinicId,
+            ipAddress,
+            userAgent,
+            success: true,
+          });
+          return {
+            buffer,
+            filename: `invoice-${invoiceId}.pdf`,
+            contentType: 'application/pdf',
+          };
+        }),
       );
-      const invoiceDetail = await this.invoicesService.findOne(
-        invoiceId,
-        clinicId,
-      );
-      await this.invoicesService.uploadAndPersist(
-        invoiceId,
-        clinicId,
-        buffer,
-        invoiceDetail,
-      );
-      this.logAccess({
-        type: 'invoice',
-        documentId: invoiceId,
-        clinicId,
-        ipAddress,
-        userAgent,
-        success: true,
-      });
-      return {
-        buffer,
-        filename: `invoice-${invoiceId}.pdf`,
-        contentType: 'application/pdf',
-      };
     } catch (error) {
       this.logAccessFailureAndRethrow(
         'invoice',

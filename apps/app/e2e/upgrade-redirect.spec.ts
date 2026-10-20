@@ -13,11 +13,19 @@ test.describe("Upgrade route", () => {
     await loginUser(page, user);
   });
 
-  test("redirects /upgrade to the subscription tab in settings", async ({
-    page,
-  }) => {
+  test("renders the upgrade page with plan options", async ({ page }) => {
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    await expect(page).toHaveURL(/\/settings\?tab=subscription/);
+    await expect(page).toHaveURL(/\/upgrade/);
+    await expect(
+      page.getByRole("heading", { name: /Upgrade your plan/i }),
+    ).toBeVisible();
+    await expect(page.getByText("Starter", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Professional", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Enterprise", { exact: true }),
+    ).toBeVisible();
   });
 });

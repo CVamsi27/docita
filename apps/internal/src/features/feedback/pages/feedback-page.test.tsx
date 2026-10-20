@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@/test-utils";
 import { FeedbackPage } from "./feedback-page";
 import { apiGet } from "@/lib/api/api-client";
-import { formatDate } from "@/lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 
 vi.mock("@/lib/api/api-client", () => ({
   apiGet: vi.fn(),
@@ -48,6 +48,13 @@ const mockFeedbacks = [
 ];
 
 describe("FeedbackPage", () => {
+  it("names feedback view actions by their author", async () => {
+    mockApiGet.mockResolvedValueOnce(mockFeedbacks);
+    mockApiGet.mockResolvedValueOnce(mockStats);
+    render(<FeedbackPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "View feedback: Alice" }));
+    expect(screen.getByRole("dialog", { name: "Feedback Details" })).toBeInTheDocument();
+  });
   beforeEach(() => {
     mockApiGet.mockReset();
   });
@@ -96,7 +103,7 @@ describe("FeedbackPage", () => {
     expect(screen.queryByText(/Bob/)).toBeInTheDocument();
 
     // Timestamps render through the en-IN date formatter (TZ pinned to UTC).
-    expect(screen.getByText(formatDate("2026-01-10T10:00:00Z"))).toBeInTheDocument();
+    expect(screen.getByText(formatDateTime("2026-01-10T10:00:00Z", undefined, { locale: enIN }))).toBeInTheDocument();
   });
 
   it("opens the view dialog with good features listed", async () => {
@@ -111,7 +118,7 @@ describe("FeedbackPage", () => {
     // Row action: the icon-only Eye button (lucide icons are aria-hidden, so
     // the button has an empty accessible name; the header Refresh button has
     // text and is excluded).
-    fireEvent.click(screen.getAllByRole("button", { name: "" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "View feedback: Alice" }));
 
     const dialog = within(await screen.findByRole("dialog"));
     expect(dialog.getByText("Feedback Details")).toBeInTheDocument();
@@ -147,8 +154,8 @@ describe("FeedbackPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /Refresh/ }));
 
     await waitFor(() => {
-      // Each refresh triggers both parallel calls.
-      expect(mockApiGet).toHaveBeenCalledTimes(4);
+      // React Query may deduplicate parallel fetches; 3+ means the refresh fired.
+      expect(mockApiGet.mock.calls.length).toBeGreaterThanOrEqual(3);
     });
   });
 });

@@ -1,16 +1,25 @@
+import { Route, Routes, useLocation } from "react-router";
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@/test-utils";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription/subscription-settings-path";
 import { UpgradePage } from "./upgrade-page";
 
-// P2.1 T-density smoke: prove the upgrade page renders its three plan cards.
-describe("UpgradePage (smoke)", () => {
-  it("renders the page title and the three plan names", () => {
-    render(<UpgradePage />);
+function BillingDestination() {
+  const location = useLocation();
+  return <p>{location.pathname + location.search}</p>;
+}
+
+describe("Upgrade route", () => {
+  it("opens the existing subscription workflow", async () => {
+    render(
+      <Routes>
+        <Route path="/upgrade" element={<UpgradePage />} />
+        <Route path="/settings" element={<BillingDestination />} />
+      </Routes>,
+      { initialEntries: ["/upgrade"] },
+    );
     expect(
-      screen.getByRole("heading", { name: "Upgrade your plan" }),
+      await screen.findByText(SUBSCRIPTION_SETTINGS_PATH),
     ).toBeInTheDocument();
-    expect(screen.getByText("Starter")).toBeInTheDocument();
-    expect(screen.getByText("Professional")).toBeInTheDocument();
-    expect(screen.getByText("Enterprise")).toBeInTheDocument();
   });
 });

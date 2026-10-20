@@ -1,5 +1,8 @@
 import { useMemo, type ReactNode } from "react";
-import { DataAccessProvider, type DataAccessConfig } from "@workspace/data-access";
+import {
+  DataAccessProvider,
+  type DataAccessConfig,
+} from "@workspace/data-access";
 import { parseFeature } from "@/lib/access-control/parse-feature";
 import { fetchAPI } from "@/lib/api/api-core";
 import { useOptionalAuth } from "@/lib/auth/auth-context";
@@ -7,14 +10,12 @@ import { useOptionalClinic } from "@/lib/contexts/clinic-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 
 /**
- * Mounts the app glue the `@workspace/data-access` hooks need at runtime:
- * the session-aware fetcher, clinic identity/timezone, and the tier gate.
- * Ported from the legacy Next app (`apps/app/providers/data-access-bridge.tsx`)
- * which was dropped during the Vite cutover — without this mount every
- * data-access hook (`useAPIQuery` etc.) throws
- * "missing <DataAccessProvider>" and pages crash into the error boundary.
+ * Inject session-aware transport and workspace context. Permission updates must
+ * refresh the provider config so gated queries re-evaluate after hydration or
+ * access changes.
  */
 export function DataAccessBridge({ children }: { children: ReactNode }) {
+  const permissionState = usePermissionStore();
   const clinicCtx = useOptionalClinic();
   const auth = useOptionalAuth();
   const sessionClinicId = auth?.user?.clinicId ?? undefined;
@@ -32,10 +33,10 @@ export function DataAccessBridge({ children }: { children: ReactNode }) {
       getClinicTimezone: () => clinicTimezone,
       isTierFeatureEnabled: (feature: string) => {
         const parsed = parseFeature(feature);
-        return parsed ? usePermissionStore.getState().canAccess(parsed) : false;
+        return parsed ? permissionState.canAccess(parsed) : false;
       },
     }),
-    [clinicId, clinicTimezone],
+    [clinicId, clinicTimezone, permissionState],
   );
 
   return <DataAccessProvider config={config}>{children}</DataAccessProvider>;

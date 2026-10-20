@@ -5,7 +5,14 @@
     "manageBeds": "Manage Beds",
     "error": "We could not load bed data. Please try again.",
     "emptyTitle": "No beds configured",
-    "emptyDescription": "Configure hospital beds to start managing assignments."
+    "emptyDescription": "Configure hospital beds to start managing assignments.",
+    "status": {
+      "AVAILABLE": "Available",
+      "OCCUPIED": "Occupied",
+      "MAINTENANCE": "Maintenance",
+      "CLEANING": "Cleaning",
+      "RESERVED": "Reserved"
+    }
   },
   "specialty": {
     "title": "Specialty Tools",

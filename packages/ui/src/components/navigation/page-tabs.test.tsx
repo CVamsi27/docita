@@ -12,7 +12,11 @@ const items = [
 describe("PageTabs", () => {
   it("marks the active tab with aria-selected", () => {
     render(
-      <PageTabs items={items} activeId="transactions" onSelect={() => undefined} />,
+      <PageTabs
+        items={items}
+        activeId="transactions"
+        onSelect={() => undefined}
+      />,
     );
     const active = screen.getByRole("tab", { name: /transactions/i });
     expect(active).toHaveAttribute("aria-selected", "true");
@@ -35,6 +39,120 @@ describe("PageTabs", () => {
     render(<PageTabs items={disabledItems} activeId="overview" />);
     const locked = screen.getByRole("tab", { name: /locked/i });
     expect(locked).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("prevents activation of disabled tabs, including the active tab", () => {
+    const onSelect = vi.fn();
+    render(
+      <PageTabs
+        items={[{ id: "locked", label: "Locked", disabled: true }, items[0]]}
+        activeId="locked"
+        onSelect={onSelect}
+      />,
+    );
+    const locked = screen.getByRole("tab", { name: "Locked" });
+    expect(locked).toBeDisabled();
+    expect(locked).toHaveAttribute("tabindex", "-1");
+    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute(
+      "tabindex",
+      "0",
+    );
+    fireEvent.click(locked);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("moves focus and selection with arrow keys", () => {
+    const onSelect = vi.fn();
+    render(<PageTabs items={items} activeId="overview" onSelect={onSelect} />);
+
+    const overview = screen.getByRole("tab", { name: /overview/i });
+    overview.focus();
+    fireEvent.keyDown(overview, { key: "ArrowRight" });
+
+    expect(screen.getByRole("tab", { name: /transactions/i })).toHaveFocus();
+    expect(onSelect).toHaveBeenCalledWith("transactions");
+  });
+
+  it("wraps backwards from the first tab to the last", () => {
+    const onSelect = vi.fn();
+    render(<PageTabs items={items} activeId="overview" onSelect={onSelect} />);
+
+    const overview = screen.getByRole("tab", { name: /overview/i });
+    overview.focus();
+    fireEvent.keyDown(overview, { key: "ArrowLeft" });
+
+    expect(screen.getByRole("tab", { name: /reports/i })).toHaveFocus();
+    expect(onSelect).toHaveBeenCalledWith("reports");
+  });
+
+  it("jumps to the first and last tabs with Home and End", () => {
+    const onSelect = vi.fn();
+    render(<PageTabs items={items} activeId="overview" onSelect={onSelect} />);
+
+    const overview = screen.getByRole("tab", { name: /overview/i });
+    overview.focus();
+    fireEvent.keyDown(overview, { key: "End" });
+
+    const reports = screen.getByRole("tab", { name: /reports/i });
+    expect(reports).toHaveFocus();
+
+    fireEvent.keyDown(reports, { key: "Home" });
+    expect(overview).toHaveFocus();
+    expect(onSelect).toHaveBeenNthCalledWith(1, "reports");
+    expect(onSelect).toHaveBeenNthCalledWith(2, "overview");
+  });
+
+  it("skips disabled tabs while navigating with arrow keys", () => {
+    const onSelect = vi.fn();
+    render(
+      <PageTabs
+        items={[
+          items[0],
+          { id: "locked", label: "Locked", disabled: true },
+          items[2],
+        ]}
+        activeId="overview"
+        onSelect={onSelect}
+      />,
+    );
+
+    const overview = screen.getByRole("tab", { name: /overview/i });
+    overview.focus();
+    fireEvent.keyDown(overview, { key: "ArrowRight" });
+
+    expect(screen.getByRole("tab", { name: /reports/i })).toHaveFocus();
+    expect(onSelect).toHaveBeenCalledWith("reports");
+  });
+
+  it("moves focus without selecting when tabs navigate by href", () => {
+    const onSelect = vi.fn();
+    render(
+      <PageTabs
+        items={items.map((item) => ({ ...item, href: `/${item.id}` }))}
+        activeId="overview"
+        onSelect={onSelect}
+        renderLink={(_item, content) => <>{content}</>}
+      />,
+    );
+
+    const overview = screen.getByRole("tab", { name: /overview/i });
+    overview.focus();
+    fireEvent.keyDown(overview, { key: "ArrowRight" });
+
+    expect(screen.getByRole("tab", { name: /transactions/i })).toHaveFocus();
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("ignores keys outside the tab pattern", () => {
+    const onSelect = vi.fn();
+    render(<PageTabs items={items} activeId="overview" onSelect={onSelect} />);
+
+    const overview = screen.getByRole("tab", { name: /overview/i });
+    overview.focus();
+    fireEvent.keyDown(overview, { key: "ArrowDown" });
+
+    expect(overview).toHaveFocus();
+    expect(onSelect).not.toHaveBeenCalled();
   });
 
   it("keeps the tab strip horizontally scrollable at every breakpoint", () => {

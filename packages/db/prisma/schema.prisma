@@ -120,6 +120,7 @@ model User {
   patientDoctors               PatientDoctor[]          @relation("DoctorPatients")
   handledDataSubjectRequests   DataSubjectRequest[]     @relation("HandledDataSubjectRequests")
   lab                          Lab?                     @relation(fields: [labId], references: [id])
+  facilityLeadsOwned           FacilityLead[]           @relation("FacilityLeadOwner")
 
   @@index([clinicId])
   @@index([hprId])
@@ -1026,11 +1027,17 @@ enum ClaimStatus {
   APPEALED
 }
 
+enum ClaimEventSource {
+  LOCAL_ACTION
+  INSURER_RESPONSE
+  RECONCILIATION
+}
+
 model InsuranceClaim {
-  id                         String      @id @default(cuid())
+  id                         String                @id @default(cuid())
   claimNumber                String?
   claimType                  ClaimType
-  status                     ClaimStatus @default(DRAFT)
+  status                     ClaimStatus           @default(DRAFT)
   patientId                  String
   clinicId                   String?
   appointmentId              String?
@@ -1040,19 +1047,33 @@ model InsuranceClaim {
   tpaName                    String?
   policyNumber               String
   groupNumber                String?
-  currency                   String      @default("INR")
-  claimedAmountCents         Int         @default(0)
+  currency                   String                @default("INR")
+  claimedAmountCents         Int                   @default(0)
   approvedAmountCents        Int?
   patientResponsibilityCents Int?
-  submittedAt                DateTime?   @db.Timestamptz(3)
-  respondedAt                DateTime?   @db.Timestamptz(3)
-  settledAt                  DateTime?   @db.Timestamptz(3)
+  submittedAt                DateTime?             @db.Timestamptz(3)
+  respondedAt                DateTime?             @db.Timestamptz(3)
+  settledAt                  DateTime?             @db.Timestamptz(3)
   notes                      String?
   denialReason               String?
-  version                    Int         @default(1)
-  idempotencyKey             String?     @unique
-  createdAt                  DateTime    @default(now()) @db.Timestamptz(3)
-  updatedAt                  DateTime    @updatedAt @db.Timestamptz(3)
+  version                    Int                   @default(1)
+  idempotencyKey             String?               @unique
+  /// Delivery of the claim to the insurer, tracked separately from the claim's
+  /// own status. SUBMITTED previously meant only "marked submitted locally", so
+  /// a crash before the insurer was reached left a claim that read as filed and
+  /// was never retried.
+  submissionStatus           ClaimSubmissionStatus @default(NOT_ATTEMPTED)
+  submissionAttempts         Int                   @default(0)
+  submissionClaimToken       String?
+  submissionClaimedAt        DateTime?             @db.Timestamptz(3)
+  submittedToInsurerAt       DateTime?             @db.Timestamptz(3)
+  submissionLastError        String?
+  /// Reference the insurer assigned, once it has answered. Populated only from a
+  /// recorded external decision so the local row never asserts an insurer
+  /// acceptance that has no evidence behind it.
+  externalClaimReference     String?
+  createdAt                  DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt                  DateTime              @updatedAt @db.Timestamptz(3)
 
   patient     Patient               @relation(fields: [patientId], references: [id])
   clinic      Clinic?               @relation(fields: [clinicId], references: [id], onDelete: SetNull)
@@ -1070,17 +1091,38 @@ model InsuranceClaim {
   @@index([invoiceId])
   @@index([appointmentId])
   @@index([createdAt])
+  @@index([submissionStatus, submissionClaimedAt], map: "InsuranceClaim_submissionStatus_submissionClaimedAt_idx")
+}
+
+enum ClaimSubmissionStatus {
+  NOT_ATTEMPTED
+  IN_FLIGHT
+  SENT
+  FAILED
+  /// A claim that was already SUBMITTED when delivery tracking was introduced.
+  /// Its delivery to the insurer was never recorded, so it must not be swept as
+  /// undelivered work: doing so would file historical claims with insurers that
+  /// were never sent. Flagged for a human to reconcile instead.
+  LEGACY_UNVERIFIED
 }
 
 model InsuranceClaimEvent {
-  id          String       @id @default(cuid())
-  claimId     String
-  fromStatus  ClaimStatus?
-  toStatus    ClaimStatus
-  actorUserId String?
-  note        String?
-  amountCents Int?
-  createdAt   DateTime     @default(now()) @db.Timestamptz(3)
+  id                String           @id @default(cuid())
+  claimId           String
+  fromStatus        ClaimStatus?
+  toStatus          ClaimStatus
+  actorUserId       String?
+  note              String?
+  amountCents       Int?
+  /// Whether this move was decided locally or by the insurer. A denial or
+  /// settlement recorded from the insurer carries the reference it came back
+  /// with, so the audit trail can be checked against the provider rather than
+  /// taking the local row's word for it.
+  source            ClaimEventSource @default(LOCAL_ACTION)
+  externalReference String?
+  providerCode      String?
+  decidedAt         DateTime?        @db.Timestamptz(3)
+  createdAt         DateTime         @default(now()) @db.Timestamptz(3)
 
   claim InsuranceClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
 
@@ -2149,41 +2191,93 @@ enum OcrDocumentStatus {
 }
 
 model IcdCode {
-  id          String               @id @default(cuid())
-  code        String               @unique
-  description String
-  category    String
-  version     String               @default("ICD-10")
-  isCommon    Boolean              @default(false)
-  createdAt   DateTime             @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime             @updatedAt @db.Timestamptz(3)
-  diagnoses   Diagnosis[]
-  favorites   DoctorFavoriteCode[]
+  id            String               @id @default(cuid())
+  code          String               @unique
+  description   String
+  category      String
+  version       String               @default("ICD-10")
+  isCommon      Boolean              @default(false)
+  /// Where this row came from and which catalog revision it reflects. Kept so a
+  /// stale or truncated sync is visible instead of being indistinguishable from
+  /// a complete one.
+  system        String               @default("ICD-10-CM")
+  source        String               @default("UNKNOWN")
+  sourceVersion String?
+  lastSyncedAt  DateTime?            @db.Timestamptz(3)
+  createdAt     DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime             @updatedAt @db.Timestamptz(3)
+  diagnoses     Diagnosis[]
+  favorites     DoctorFavoriteCode[]
 
   @@index([description])
   @@index([code(ops: raw("gin_trgm_ops"))], type: Gin, map: "IcdCode_code_trgm_idx")
   @@index([description(ops: raw("gin_trgm_ops"))], type: Gin, map: "IcdCode_description_trgm_idx")
   @@index([category])
   @@index([isCommon])
+  @@index([lastSyncedAt])
+}
+
+/// One attempt to refresh a code catalog from its upstream source.
+///
+/// The sync used to stream pages straight into the code tables, so a stream that
+/// died halfway through a prefix left rows that looked exactly like rows from a
+/// finished run. This record is what makes the difference observable: a run is
+/// COMPLETED only when every unit was streamed, and TRUNCATED otherwise.
+model CodeCatalogSyncRun {
+  id             String                @id @default(cuid())
+  system         CodeCatalogSystem
+  source         String
+  sourceVersion  String?
+  status         CodeCatalogSyncStatus @default(RUNNING)
+  startedAt      DateTime              @default(now()) @db.Timestamptz(3)
+  finishedAt     DateTime?             @db.Timestamptz(3)
+  codesSeen      Int                   @default(0)
+  batchesApplied Int                   @default(0)
+  unitsSkipped   Int                   @default(0)
+  lastUnit       String?
+  error          String?
+
+  @@index([system, startedAt])
+  @@index([status])
+}
+
+enum CodeCatalogSystem {
+  ICD
+  CPT
+}
+
+enum CodeCatalogSyncStatus {
+  RUNNING
+  COMPLETED
+  TRUNCATED
+  FAILED
 }
 
 model CptCode {
-  id          String               @id @default(cuid())
-  code        String               @unique
-  description String
-  category    String
-  isCommon    Boolean              @default(false)
-  createdAt   DateTime             @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime             @updatedAt @db.Timestamptz(3)
-  price       Float                @default(0)
-  favorites   DoctorFavoriteCode[]
-  procedures  Procedure[]
+  id            String               @id @default(cuid())
+  code          String               @unique
+  description   String
+  category      String
+  isCommon      Boolean              @default(false)
+  createdAt     DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime             @updatedAt @db.Timestamptz(3)
+  price         Float                @default(0)
+  /// Provenance, mirroring IcdCode: CptCode previously had no version column at
+  /// all, so HCPCS rows could not be traced to a catalog revision.
+  version       String               @default("HCPCS")
+  system        String               @default("HCPCS")
+  source        String               @default("UNKNOWN")
+  sourceVersion String?
+  lastSyncedAt  DateTime?            @db.Timestamptz(3)
+  favorites     DoctorFavoriteCode[]
+  procedures    Procedure[]
 
   @@index([description])
   @@index([code(ops: raw("gin_trgm_ops"))], type: Gin, map: "CptCode_code_trgm_idx")
   @@index([description(ops: raw("gin_trgm_ops"))], type: Gin, map: "CptCode_description_trgm_idx")
   @@index([category])
   @@index([isCommon])
+  @@index([lastSyncedAt])
 }
 
 model Diagnosis {
@@ -2330,7 +2424,10 @@ model QueueToken {
   clinicId          String
   appointmentId     String?          @unique
   patientId         String
+  /// Number the clinician calls from the waiting room. Unique per clinic and
+  /// day: `tokenDay` is the day the number belongs to (numbers restart daily).
   tokenNumber       Int
+  tokenDay          DateTime?        @db.Date
   status            QueueTokenStatus @default(WAITING)
   priority          Int              @default(0)
   notes             String?
@@ -2350,6 +2447,7 @@ model QueueToken {
   doctor            User?            @relation(fields: [doctorId], references: [id])
   patient           Patient          @relation(fields: [patientId], references: [id])
 
+  @@unique([clinicId, tokenDay, tokenNumber], map: "QueueToken_clinicId_tokenDay_tokenNumber_key")
   @@index([clinicId])
   @@index([doctorId])
   @@index([status])
@@ -2357,6 +2455,7 @@ model QueueToken {
   @@index([scheduledTime])
   @@index([clinicId, status, createdAt])
   @@index([clinicId, createdAt])
+  @@index([clinicId, tokenDay])
   @@index([doctorId, status])
   @@index([patientId])
 }
@@ -2399,12 +2498,21 @@ model InventoryMovement {
   quantity        Int
   referenceType   String?
   referenceId     String?
+  // Stable identity of the business operation behind this movement (backlog
+  // W03). Unique per clinic when present, so a retried operation applies once
+  // instead of double-counting stock.
+  operationId     String?
+  // The item's unit when the movement was recorded, so history stays
+  // self-describing after a re-unitise.
+  unit            String?
   notes           String?
   createdBy       String
   createdAt       DateTime      @default(now()) @db.Timestamptz(3)
   clinic          Clinic?       @relation(fields: [clinicId], references: [id], onDelete: SetNull)
   inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
 
+  @@unique([clinicId, operationId], map: "InventoryMovement_clinicId_operationId_key")
+  @@index([inventoryItemId, operationId])
   @@index([inventoryItemId])
   @@index([clinicId, createdAt])
   @@index([type])
@@ -2504,32 +2612,48 @@ model LabTest {
 }
 
 model LabTestOrder {
-  id                String             @id @default(cuid())
-  clinicId          String
-  patientId         String
-  appointmentId     String?
-  labTestId         String
-  labId             String?
-  status            LabTestOrderStatus @default(ORDERED)
+  id                           String                      @id @default(cuid())
+  clinicId                     String
+  patientId                    String
+  appointmentId                String?
+  labTestId                    String
+  labId                        String?
+  status                       LabTestOrderStatus          @default(ORDERED)
   /// @json:labTestOrderResultJsonSchema
-  result            Json?
-  resultUrl         String?
-  notes             String?
-  orderedBy         String
-  collectedAt       DateTime?          @db.Timestamptz(3)
-  completedAt       DateTime?          @db.Timestamptz(3)
-  resultUploadedBy  String?
-  resultUploadedAt  DateTime?          @db.Timestamptz(3)
-  paidAt            DateTime?          @db.Timestamptz(3)
-  paymentVerifiedBy String?
-  paymentMethod     String?
-  paymentReference  String?
-  releasedAt        DateTime?          @db.Timestamptz(3)
-  createdAt         DateTime           @default(now()) @db.Timestamptz(3)
-  updatedAt         DateTime           @updatedAt @db.Timestamptz(3)
-  labTest           LabTest            @relation(fields: [labTestId], references: [id])
-  patient           Patient            @relation(fields: [patientId], references: [id])
-  lab               Lab?               @relation(fields: [labId], references: [id])
+  result                       Json?
+  resultUrl                    String?
+  notes                        String?
+  orderedBy                    String
+  collectedAt                  DateTime?                   @db.Timestamptz(3)
+  completedAt                  DateTime?                   @db.Timestamptz(3)
+  resultUploadedBy             String?
+  resultUploadedAt             DateTime?                   @db.Timestamptz(3)
+  paidAt                       DateTime?                   @db.Timestamptz(3)
+  paymentVerifiedBy            String?
+  paymentMethod                String?
+  paymentReference             String?
+  releasedAt                   DateTime?                   @db.Timestamptz(3)
+  /// Fencing token for the single release claim. Releasing is check-then-act
+  /// work that notifies a patient, so two callers (a manual release and the
+  /// auto-release that fires when payment is verified) must not both win.
+  /// NULL means "no active claim".
+  releaseClaimToken            String?
+  releasedBy                   String?
+  /// Whether the patient was successfully told the result is ready. Delivery
+  /// outlives the release: a failed send leaves the order released and the
+  /// notification retryable, instead of silently vanishing into a log line.
+  resultNotificationStatus     LabResultNotificationStatus @default(NOT_ATTEMPTED)
+  resultNotificationAttempts   Int                         @default(0)
+  resultNotificationClaimToken String?
+  resultNotificationClaimedAt  DateTime?                   @db.Timestamptz(3)
+  resultNotifiedAt             DateTime?                   @db.Timestamptz(3)
+  /// Truncated failure text. Never contains the message body or patient data.
+  resultNotificationLastError  String?
+  createdAt                    DateTime                    @default(now()) @db.Timestamptz(3)
+  updatedAt                    DateTime                    @updatedAt @db.Timestamptz(3)
+  labTest                      LabTest                     @relation(fields: [labTestId], references: [id])
+  patient                      Patient                     @relation(fields: [patientId], references: [id])
+  lab                          Lab?                        @relation(fields: [labId], references: [id])
 
   @@index([clinicId])
   @@index([patientId])
@@ -2538,6 +2662,7 @@ model LabTestOrder {
   @@index([clinicId, status, createdAt])
   @@index([appointmentId], map: "LabTestOrder_appointmentId_idx")
   @@index([labId])
+  @@index([resultNotificationStatus, resultNotificationClaimedAt], map: "LabTestOrder_notification_retry_idx")
 }
 
 model Lab {
@@ -3175,22 +3300,35 @@ enum FeedbackStatus {
 }
 
 model ApiRequest {
-  id           String   @id @default(cuid())
-  clinicId     String?
-  userId       String?
-  method       String
-  path         String
-  statusCode   Int
-  duration     Int
-  requestSize  Int?
-  responseSize Int?
-  userAgent    String?
-  ip           String?
-  error        String?
-  errorStack   String?
+  id            String        @id @default(cuid())
+  clinicId      String?
+  userId        String?
+  method        String
+  path          String
+  statusCode    Int
+  duration      Int
+  requestSize   Int?
+  responseSize  Int?
+  userAgent     String?
+  ip            String?
+  error         String?
+  errorStack    String?
+  /// Route family. Synthetic probes dominate request volume in production, so
+  /// customer-traffic and latency reporting must be able to exclude them.
+  routeCategory RouteCategory @default(CUSTOMER)
+  /// Opaque join key shared with the ErrorLog row for the same request. Carries
+  /// no identity so request and error rows can be correlated without one.
+  correlationId String?
+  /// When the request finished. createdAt is when the buffered row was flushed,
+  /// which can be much later after a persistence outage, so time-window queries
+  /// read observedAt instead.
+  observedAt    DateTime      @default(now()) @db.Timestamptz(3)
+  /// False when duration is outside the believable range. Invalid samples are
+  /// retained for inspection but excluded from latency aggregates.
+  latencyValid  Boolean       @default(true)
   /// @json:jsonObjectSchema
-  metadata     Json?
-  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  metadata      Json?
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
 
   @@index([clinicId])
   @@index([userId])
@@ -3200,29 +3338,34 @@ model ApiRequest {
   @@index([duration])
   @@index([clinicId, createdAt])
   @@index([path, method])
+  @@index([routeCategory, observedAt])
+  @@index([observedAt])
+  @@index([correlationId])
 }
 
 model ErrorLog {
-  id          String        @id @default(cuid())
-  clinicId    String?
-  userId      String?
-  type        String
-  message     String
-  stack       String?
-  path        String?
-  method      String?
-  statusCode  Int?
-  userAgent   String?
-  ip          String?
+  id            String        @id @default(cuid())
+  clinicId      String?
+  userId        String?
+  type          String
+  message       String
+  stack         String?
+  path          String?
+  method        String?
+  statusCode    Int?
+  userAgent     String?
+  ip            String?
   /// @json:jsonObjectSchema
-  requestBody Json?
+  requestBody   Json?
   /// @json:jsonObjectSchema
-  metadata    Json?
-  severity    ErrorSeverity @default(ERROR)
-  resolved    Boolean       @default(false)
-  resolvedBy  String?
-  resolvedAt  DateTime?     @db.Timestamptz(3)
-  createdAt   DateTime      @default(now()) @db.Timestamptz(3)
+  metadata      Json?
+  /// Matches ApiRequest.correlationId for the same request. Both are opaque.
+  correlationId String?
+  severity      ErrorSeverity @default(ERROR)
+  resolved      Boolean       @default(false)
+  resolvedBy    String?
+  resolvedAt    DateTime?     @db.Timestamptz(3)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
 
   @@index([clinicId])
   @@index([type])
@@ -3232,6 +3375,54 @@ model ErrorLog {
   @@index([clinicId, createdAt])
   @@index([type, severity])
   @@index([path, method])
+  @@index([correlationId])
+}
+
+/// Append-only execution history for a queue job.
+///
+/// QueueJob.status is current state: a job that failed twice and then succeeded
+/// is indistinguishable from one that succeeded first time. Operators cannot
+/// tell a recovered retry from a clean run, and deleting a job erases the
+/// question entirely. There is deliberately no foreign key to QueueJob so the
+/// history survives job deletion.
+model QueueJobExecution {
+  id           String          @id @default(cuid())
+  jobId        String
+  queueName    String
+  outcome      QueueJobOutcome
+  /// 1-based attempt number this outcome belongs to.
+  attempt      Int
+  /// Claim token of the attempt. Null for transitions that are not claim-gated.
+  claimToken   String?
+  durationMs   Int?
+  /// Truncated failure text. Never contains job payloads.
+  failedReason String?
+  occurredAt   DateTime        @default(now()) @db.Timestamptz(3)
+
+  @@index([jobId, occurredAt])
+  @@index([outcome, occurredAt])
+  @@index([queueName, occurredAt])
+}
+
+/// Durable evidence that request telemetry stopped or resumed capturing.
+///
+/// Request logging is fail-soft: when persistence breaks it disables itself so a
+/// telemetry fault cannot take the API down. That silence is indistinguishable
+/// from a quiet system unless it is recorded, so a dashboard reading stale rows
+/// cannot claim coverage it never had.
+model TelemetryCaptureEvent {
+  id               String                @id @default(cuid())
+  state            TelemetryCaptureState
+  /// Machine-readable cause, e.g. DATABASE_AUTH_FAILURE or BUFFER_OVERFLOW.
+  reason           String
+  /// Requests discarded without being written. Non-zero means a real gap.
+  droppedRequests  Int                   @default(0)
+  /// Requests still buffered when the event was recorded.
+  bufferedRequests Int                   @default(0)
+  recordedAt       DateTime              @default(now()) @db.Timestamptz(3)
+
+  @@index([state, recordedAt])
+  @@index([recordedAt])
 }
 
 model SystemMetric {
@@ -3622,6 +3813,16 @@ model EnterpriseTrueUpAlert {
   ytdOverageCents  Int
   ytdPlatformCents Int
   recipients       String[] @default([])
+  /// Delivery outcome of the alert email. The row used to be written before the
+  /// send, so `alertedAt` proved only that we *tried*; this records what
+  /// happened. `UNKNOWN` covers rows written before this column existed and
+  /// sends that never completed, so it must never be read as delivered.
+  deliveryStatus   TrueUpAlertDeliveryStatus @default(PENDING)
+  /// Provider message ids for recipients that accepted the alert.
+  deliveredTo      String[]                  @default([])
+  deliveredAt      DateTime?                 @db.Timestamptz(3)
+  /// Per-recipient failure reasons when `deliveryStatus` is FAILED/PARTIAL.
+  failureDetail    String?
   /// @json:jsonObjectSchema
   metadata         Json?
 
@@ -3629,6 +3830,22 @@ model EnterpriseTrueUpAlert {
 
   @@index([contractId])
   @@index([alertedAt])
+  @@index([deliveryStatus])
+}
+
+enum TrueUpAlertDeliveryStatus {
+  /// Alert recorded; delivery not yet attempted.
+  PENDING
+  /// Every recipient accepted the alert.
+  DELIVERED
+  /// At least one recipient accepted and at least one failed.
+  PARTIAL
+  /// No recipient accepted the alert.
+  FAILED
+  /// There were no recipients to send to, or delivery was never attempted.
+  /// Also the backfilled value for rows that predate this column, so an old
+  /// alert is never mistaken for a delivered one.
+  UNKNOWN
 }
 
 model SubscriptionPayment {
@@ -3806,6 +4023,7 @@ model Referrer {
   payouts      ReferralPayout[]
   payoutDetail ReferrerPayoutDetails?
   messages     ReferrerMessage[]
+  leads        FacilityLead[]
 
   @@index([type])
   @@index([clinicId])
@@ -3885,6 +4103,162 @@ model ReferrerMessage {
 
   @@index([referrerId, createdAt])
   @@index([status])
+}
+
+enum FacilityLeadType {
+  CLINIC
+  HOSPITAL
+  DIAGNOSTIC_CENTRE
+  PHARMACY
+  NURSING_HOME
+  OTHER
+}
+
+/// Lead lifecycle per docs/REFERRAL_PARTNER_PROGRAM_PLAN.md: the forward
+/// chain `SUBMITTED -> TRIAGED -> CONTACT_ATTEMPTED -> CONTACTED ->
+/// DEMO_SCHEDULED -> ONBOARDING -> TRIAL -> CONVERTED`, plus absorbing
+/// terminal/exception states. Only internal operators transition a lead
+/// past SUBMITTED; every transition records actor/time/reason.
+enum FacilityLeadStatus {
+  SUBMITTED
+  TRIAGED
+  DUPLICATE_REVIEW
+  CONTACT_ATTEMPTED
+  CONTACTED
+  DEMO_SCHEDULED
+  ONBOARDING
+  TRIAL
+  CONVERTED
+  DUPLICATE
+  NOT_INTERESTED
+  INVALID
+  UNREACHABLE
+  REJECTED
+  LOST
+}
+
+/// A prospective facility a referral partner submits for Docita follow-up.
+/// The partner can create leads but never transition or delete them;
+/// internal operators own the lifecycle. `idempotencyKey` is unique per
+/// partner so a client resubmit (network retry, double-tap) cannot create
+/// a duplicate row; contact-phone dedupe is enforced in the service.
+model FacilityLead {
+  id         String             @id @default(cuid())
+  referrerId String
+  referrer   Referrer           @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+  status     FacilityLeadStatus @default(SUBMITTED)
+
+  facilityName String
+  facilityType FacilityLeadType
+  address      String
+  city         String
+  /// Region/state (free text — India-first, matches partner input).
+  state        String?
+  postalCode   String?
+  mapsUrl      String?
+
+  contactName       String
+  contactRole       String?
+  contactPhone      String?
+  contactEmail      String?
+  sourceNote        String?
+  preferredChannel  String?
+  /// Partner attests the facility contact consented to a Docita follow-up.
+  consentToFollowUp Boolean @default(false)
+  notes             String?
+  bestTimeToContact String?
+
+  /// Client-supplied idempotency key (unique per partner).
+  idempotencyKey String?
+  /// Append-only JSON history of status transitions:
+  /// `[{ from, to, reason, actorId, at }]` — never edited in place.
+  /// @json:facilityLeadStatusHistoryEntrySchema
+  statusHistory  Json?
+
+  /// The internal operator this lead is assigned to (null = in the shared
+  /// triage queue). Set/cleared only via the audited assign endpoint.
+  ownerUserId       String?
+  ownerUser         User?   @relation("FacilityLeadOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  /// Append-only JSON history of owner assignments:
+  /// `[{ fromUserId, toUserId, actorId, at }]` — never edited in place.
+  /// @json:facilityLeadAssignmentHistoryEntrySchema
+  assignmentHistory Json?
+
+  /// Deterministic facility fingerprint (sha256 of normalized
+  /// name|address|phone). Unique so two concurrent submits of the same
+  /// facility cannot both slip past the pre-check — the loser hits P2002
+  /// and is routed to DUPLICATE_REVIEW instead. Null for review-flagged
+  /// copies (they reference the original via `duplicateOfId` instead, so
+  /// the unique index keeps exactly one real lead per facility).
+  fingerprint    String?        @unique
+  /// 1.0 for exact fingerprint matches; null otherwise. Surfaced to
+  /// operators in the internal queue and the notification payload.
+  duplicateScore Float?
+  /// The original lead this row is a review-flagged duplicate of.
+  duplicateOfId  String?
+  duplicateOf    FacilityLead?  @relation("FacilityLeadDuplicate", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicates     FacilityLead[] @relation("FacilityLeadDuplicate")
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  notifications FacilityLeadNotification[]
+
+  @@unique([referrerId, idempotencyKey])
+  @@index([status, createdAt])
+  @@index([referrerId])
+  @@index([ownerUserId])
+  @@index([duplicateOfId])
+}
+
+/// What triggered an internal facility-lead notification.
+enum FacilityLeadNotificationKind {
+  LEAD_CREATED
+  LEAD_CONVERTED
+}
+
+/// Delivery state of an internal facility-lead notification. The outbox
+/// relay republishes the durable `facility-lead.*` event; this row records
+/// whether the listener materialized the internal notification and, on
+/// failure, the error (operator-visible in the internal portal).
+enum FacilityLeadNotificationStatus {
+  QUEUED
+  DELIVERED
+  FAILED
+}
+
+/// Internal (Docita ops) notification for a facility lead, materialized by
+/// the `facility-lead.created` / `facility-lead.converted` outbox listeners.
+/// `recipientUserId` is the assigned owner at materialize time (null while
+/// the lead is unassigned); the assign endpoint re-targets existing rows so
+/// the delivery record always names the current owner.
+/// The payload is PII-redacted (facility name/location/partner/consent, a
+/// deep link into the internal portal — no contact phone or email).
+model FacilityLeadNotification {
+  id                   String                         @id @default(cuid())
+  leadId               String
+  lead                 FacilityLead                   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  kind                 FacilityLeadNotificationKind
+  /// Notification channel (only `internal` today; SMS/WhatsApp later).
+  channel              String                         @default("internal")
+  status               FacilityLeadNotificationStatus @default(QUEUED)
+  /// @json:facilityLeadNotificationPayloadSchema
+  payload              Json
+  /// Target operator (the assigned owner) when the lead is assigned.
+  recipientUserId      String?
+  errorMessage         String?
+  deliveredAt          DateTime?                      @db.Timestamptz(3)
+  /// Set when an operator acknowledges (reads) the notification; the first
+  /// ack wins and later acks are no-ops (see acknowledgeNotification).
+  acknowledgedAt       DateTime?                      @db.Timestamptz(3)
+  /// The operator who acknowledged the notification.
+  acknowledgedByUserId String?
+  createdAt            DateTime                       @default(now()) @db.Timestamptz(3)
+
+  @@unique([leadId, kind])
+  @@index([status])
+  @@index([leadId, createdAt])
+  @@index([recipientUserId])
 }
 
 /// OTP challenges for the partner self-service portal. One row per active
@@ -4260,6 +4634,20 @@ enum LabTestOrderStatus {
   CANCELLED
 }
 
+/// Delivery state of the "your result is ready" message to the patient.
+///
+/// NOT_ATTEMPTED and FAILED are both retryable; SENT and SKIPPED_NO_CONTACT are
+/// terminal for delivery purposes. A released order whose notification is
+/// NOT_ATTEMPTED means the process died between claiming the release and
+/// notifying — the order must not read as fully handled.
+enum LabResultNotificationStatus {
+  NOT_ATTEMPTED
+  SENDING
+  SENT
+  FAILED
+  SKIPPED_NO_CONTACT
+}
+
 enum LabType {
   INTERNAL
   EXTERNAL
@@ -4556,6 +4944,12 @@ model AppointmentRequest {
   reviewedById       String?
   reviewedAt         DateTime?                @db.Timestamptz(3)
   responseMessage    String?
+  /// Slot hold for a public booking request: sha256 of clinic + patient +
+  /// doctor + slot start set while the request is PENDING, cleared on review.
+  /// The unique index makes a retried or concurrent submission for the same
+  /// doctor and slot return the original request instead of filing a second
+  /// one. NULL (no slot selected, or already reviewed) never conflicts.
+  pendingSlotKey    String?                  @unique
   createdAt          DateTime                 @default(now()) @db.Timestamptz(3)
   updatedAt          DateTime                 @updatedAt @db.Timestamptz(3)
 
@@ -4744,6 +5138,28 @@ enum QueueJobStatus {
   DEAD_LETTERED
 }
 
+enum RouteCategory {
+  CUSTOMER
+  HEALTH_CHECK
+  INTERNAL
+}
+
+enum QueueJobOutcome {
+  COMPLETED
+  RETRY_SCHEDULED
+  DEAD_LETTERED
+  CLAIM_LOST
+  IDEMPOTENT_SKIP
+  STALE_RECOVERED
+  REPLAYED
+}
+
+enum TelemetryCaptureState {
+  CAPTURE_DISABLED
+  CAPTURE_TRUNCATED
+  CAPTURE_RECOVERED
+}
+
 model QueueJob {
   id             String         @id @default(cuid())
   name           String
@@ -4755,6 +5171,10 @@ model QueueJob {
   maxAttempts    Int            @default(5)
   failedReason   String?
   processedAt    DateTime?      @db.Timestamptz(3)
+  /// Identifies the claim that currently owns this job. Acknowledgments match
+  /// on (id, claimToken) so a worker whose lease was already reclaimed cannot
+  /// overwrite the new owner's outcome. NULL means "no active claim".
+  claimToken     String?
   delayedUntil   DateTime?      @db.Timestamptz(3)
   idempotencyKey String?
   completedAt    DateTime?      @db.Timestamptz(3)

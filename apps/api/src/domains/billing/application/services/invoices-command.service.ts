@@ -1,5 +1,11 @@
 import { getPatientFullName } from '@workspace/utils';
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, InvoiceStatus } from '@workspace/db';
 import {
   taxRegistrationSnapshotSchema,
@@ -233,6 +239,19 @@ export class InvoicesCommandService {
 
     if (data.status) {
       assertInvoiceStatusTransition(existing.status, data.status);
+    }
+
+    // Money mutations on settled invoices would silently desync the paid
+    // state (amountPaidCents vs totalCents) even when `status` itself is not
+    // touched — corrections go through cancel-and-reissue instead.
+    if (
+      (data.items !== undefined || data.total !== undefined) &&
+      (existing.status === InvoiceStatus.PAID ||
+        existing.status === InvoiceStatus.CANCELLED)
+    ) {
+      throw new BadRequestException(
+        `Cannot modify line items on a ${existing.status} invoice; cancel and reissue instead`,
+      );
     }
 
     if (

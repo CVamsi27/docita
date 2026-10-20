@@ -6,9 +6,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
+import { appointmentOverlapErrorSchema } from '@workspace/types';
 import { ZodValidationException } from 'nestjs-zod';
 import { ZodError, ZodIssue } from 'zod';
 import { Request } from 'express';
+import { redactMonitoringUrl, redactString } from '@workspace/utils';
 import {
   ConflictDomainError,
   DomainError,
@@ -83,7 +85,7 @@ function resolveZodValidationException(
   const summary = summarizeValidationIssues(issues);
   logger.warn('[AllExceptionsFilter] Validation error', {
     requestId: getRequestId(request),
-    path: request.path,
+    path: redactMonitoringUrl(request.path),
     method: request.method,
     issueCount: summary.issueCount,
     fields: summary.fields,
@@ -112,7 +114,9 @@ function resolveAuthException(
     exceptionResponse,
     exception.message,
   );
-  logger.warn(`Auth Error: ${resolved.message} (${request.path})`);
+  logger.warn(
+    redactString(`Auth Error: ${resolved.message} (${request.path})`),
+  );
   return {
     status: exception.getStatus(),
     message: resolved.message,
@@ -126,6 +130,17 @@ function resolveHttpException(
 ): ResolvedExceptionResponse | null {
   if (!(exception instanceof HttpException)) return null;
   const exceptionResponse = exception.getResponse();
+  const overlap = appointmentOverlapErrorSchema.safeParse(exceptionResponse);
+  if (exception.getStatus() === HttpStatus.BAD_REQUEST && overlap.success) {
+    return {
+      status: HttpStatus.BAD_REQUEST,
+      message: overlap.data.detail,
+      errorType: exception.name || 'HttpException',
+      errorStack: exception.stack,
+      details: overlap.data.validationErrors,
+      errorCode: overlap.data.code,
+    };
+  }
   const causeIssues = readZodIssuesFromCause(getErrorCause(exception));
   if (causeIssues) {
     return {

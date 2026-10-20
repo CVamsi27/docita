@@ -50,10 +50,16 @@ describe('PrismaAppointmentWriteRepository overlap translation', () => {
     it('translates an exclusion-constraint violation into BadRequestException', async () => {
       create.mockRejectedValueOnce(exclusionError);
 
-      const error = await repository.save(appointment).catch((e) => e);
+      const error: unknown = await repository
+        .save(appointment)
+        .catch((caught: unknown) => caught);
       expect(error).toBeInstanceOf(BadRequestException);
-      expect((error as BadRequestException).getResponse()).toMatchObject({
+      if (!(error instanceof BadRequestException))
+        throw new Error('Expected an overlap rejection');
+      expect(error.getResponse()).toEqual({
+        code: 'APPOINTMENT_OVERLAP',
         detail: 'Doctor has conflicting appointment',
+        validationErrors: { startTime: 'Doctor has conflicting appointment' },
       });
     });
 
@@ -79,9 +85,16 @@ describe('PrismaAppointmentWriteRepository overlap translation', () => {
     it('translates exclusion violations into BadRequestException', async () => {
       updateMany.mockRejectedValueOnce(exclusionError);
 
-      await expect(repository.update(appointment)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      const error: unknown = await repository
+        .update(appointment)
+        .catch((caught: unknown) => caught);
+      if (!(error instanceof BadRequestException))
+        throw new Error('Expected an overlap rejection');
+      expect(error.getResponse()).toEqual({
+        code: 'APPOINTMENT_OVERLAP',
+        detail: 'Doctor has conflicting appointment',
+        validationErrors: { startTime: 'Doctor has conflicting appointment' },
+      });
     });
 
     it('throws NotFoundException when no row was updated', async () => {
@@ -107,9 +120,16 @@ describe('PrismaAppointmentWriteRepository overlap translation', () => {
     it('translates exclusion violations into BadRequestException', async () => {
       updateMany.mockRejectedValueOnce(exclusionError);
 
-      await expect(
-        repository.applyPatch('apt-1', 'clinic-1', { notes: 'updated' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      const error: unknown = await repository
+        .applyPatch('apt-1', 'clinic-1', { notes: 'updated' })
+        .catch((caught: unknown) => caught);
+      if (!(error instanceof BadRequestException))
+        throw new Error('Expected an overlap rejection');
+      expect(error.getResponse()).toEqual({
+        code: 'APPOINTMENT_OVERLAP',
+        detail: 'Doctor has conflicting appointment',
+        validationErrors: { startTime: 'Doctor has conflicting appointment' },
+      });
     });
 
     it('returns the count when the update succeeds', async () => {

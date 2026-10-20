@@ -1,6 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { OnboardingDataService } from './onboarding-data.service';
+import { onboardingInitResponseSchema } from '@workspace/types';
+import { OnboardingInitResponseDto } from '@/domains/clinics/application/dto/onboarding/onboarding-response.dto';
 import { OnboardingStep } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import type { ClinicPersistencePort } from '@/domains/clinics/application/ports/clinic-persistence.port';
 import type { IClock } from '@/shared/common/ports/clock.port';
@@ -64,6 +66,16 @@ describe('OnboardingDataService', () => {
     rows.clear();
     jest.clearAllMocks();
     service = new OnboardingDataService(clock, persistence);
+  });
+
+  it('parses the real initialization response through the shared HTTP contract and DTO', async () => {
+    const response = await service.initializeOnboarding();
+
+    expect(onboardingInitResponseSchema.parse(response)).toEqual(response);
+    expect(OnboardingInitResponseDto.schema.parse(response)).toEqual(response);
+    expect(OnboardingInitResponseDto.schema).toBe(onboardingInitResponseSchema);
+    expect(Object.keys(response)).toEqual(['onboardingId']);
+    expect(response.onboardingId).not.toBe('');
   });
 
   it('persists sessions outside process memory', async () => {

@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  Inject,
+} from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import {
   DOCUMENT_PERSISTENCE_PORT,
@@ -116,15 +122,66 @@ export class UploadsCommandService {
       },
     });
 
-    const updateResult = await this.persistence.uploadSession.updateMany({
-      where: { id },
-      data: {
-        status: 'uploaded',
-        fileUrl,
-      },
-    });
-    if (updateResult.count === 0)
-      throw new NotFoundException('Session not found');
+    // Single-use claim: `validateSessionReadyForUpload` above is a read that
+    // concurrent requests can both pass, and both have already uploaded an
+    // object by now. The conditional UPDATE below is what makes "already
+    // used" true at most once — only the request whose predicate still holds
+    // publishes its fileUrl.
+    //
+    // Quarantine → finalize. Between the upload above and the commit of this
+    // write, the object is unreferenced. Handling only `count === 0` left a
+    // real orphan whenever the write itself threw (lost connection, timeout,
+    // constraint failure): the request failed, nothing referenced the file,
+    // and it held a patient's uploaded document. Every failure inside this
+    // window has to remove it.
+    let removedUpload = false;
+    const removeUploadedObject = async () => {
+      if (removedUpload) return;
+      removedUpload = true;
+      // A failed delete is logged, never swallowed silently, and left to
+      // orphan reconciliation.
+      try {
+        await this.storageProvider.delete(fileUrl);
+      } catch (error) {
+        this.logger.warn(
+          `Failed to remove unclaimed upload for session ${id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    };
+
+    let claimCommitted = false;
+    try {
+      const updateResult = await this.persistence.uploadSession.updateMany({
+        where: {
+          id,
+          status: { not: 'uploaded' },
+          fileUrl: null,
+          expiresAt: { gt: this.clock.now() },
+        },
+        data: {
+          status: 'uploaded',
+          fileUrl,
+        },
+      });
+      if (updateResult.count === 0) {
+        // Lost the single-use claim: nothing may reference this object.
+        await removeUploadedObject();
+        const existing = await this.persistence.uploadSession.findFirst({
+          where: { id },
+          select: { id: true },
+        });
+        if (!existing) throw new NotFoundException('Session not found');
+        throw new BadRequestException('This upload link has already been used');
+      }
+      claimCommitted = true;
+    } catch (error) {
+      // The session row now references the object, so a failure *after* this
+      // point must not delete it — that would leave a dangling fileUrl.
+      if (!claimCommitted) await removeUploadedObject();
+      throw error;
+    }
 
     const updated = await this.persistence.uploadSession.findFirst({
       where: { id },

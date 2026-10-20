@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Body,
+  Header,
   Headers,
   HttpCode,
   HttpStatus,
@@ -36,6 +37,12 @@ export class WhatsAppWebhookController {
 
   @Public()
   @Get()
+  // Echo the challenge as explicit text/plain: Nest's default string
+  // serialization is text/html, so a challenge containing markup would
+  // render as HTML if a browser were pointed at the verification URL
+  // (requires knowing the verify token, but the one-line hardening costs
+  // nothing — see security-review NOTE-001).
+  @Header('Content-Type', 'text/plain')
   verifyWebhook(@Req() req: Request) {
     const verifyToken = this.configService.getMetaConfig().verifyToken;
     const {

@@ -1,3 +1,4 @@
+import { subscriptionBillingCheckoutResponseSchema } from '@workspace/types';
 import {
   buildCheckoutPrefill,
   buildCheckoutDescription,
@@ -113,20 +114,34 @@ describe('buildCheckoutOrderNotes', () => {
 });
 
 describe('buildCompletedWithoutPaymentResponse', () => {
-  it('returns response with zero amount and completedWithoutPayment flag', () => {
+  it('omits the payment fields entirely and flags completedWithoutPayment', () => {
+    // The zero-amount path collects no payment, so there is no order and no
+    // payment key to send. It used to send `orderId: ''`, `amountCents: 0`
+    // and a blank `razorpayKeyId` — sentinels the client had to disambiguate
+    // with a truthiness guard. The shared contract is now a discriminated
+    // union, so those fields simply are not present.
     const result = buildCompletedWithoutPaymentResponse({
       currency: 'INR',
-      razorpayKeyId: 'key_123',
       prefill: { name: 'Test', email: 'test@example.com' },
     });
     expect(result).toEqual({
-      orderId: '',
-      amountCents: 0,
       currency: 'INR',
-      razorpayKeyId: 'key_123',
       completedWithoutPayment: true,
       prefill: { name: 'Test', email: 'test@example.com' },
     });
+    expect('razorpayKeyId' in result).toBe(false);
+    expect('orderId' in result).toBe(false);
+    expect('amountCents' in result).toBe(false);
+  });
+
+  it('satisfies the no-payment branch of the shared contract', () => {
+    const result = buildCompletedWithoutPaymentResponse({
+      currency: 'USD',
+      prefill: { name: 'Jane', email: 'jane@test.com' },
+    });
+    expect(() =>
+      subscriptionBillingCheckoutResponseSchema.parse(result),
+    ).not.toThrow();
   });
 
   it('preserves prefill data', () => {
@@ -137,27 +152,8 @@ describe('buildCompletedWithoutPaymentResponse', () => {
     };
     const result = buildCompletedWithoutPaymentResponse({
       currency: 'USD',
-      razorpayKeyId: 'key_456',
       prefill,
     });
     expect(result.prefill).toBe(prefill);
-  });
-
-  it('sets amountCents to 0', () => {
-    const result = buildCompletedWithoutPaymentResponse({
-      currency: 'INR',
-      razorpayKeyId: 'key_789',
-      prefill: { name: 'Test', email: 'test@test.com' },
-    });
-    expect(result.amountCents).toBe(0);
-  });
-
-  it('sets orderId to empty string', () => {
-    const result = buildCompletedWithoutPaymentResponse({
-      currency: 'INR',
-      razorpayKeyId: 'key_789',
-      prefill: { name: 'Test', email: 'test@test.com' },
-    });
-    expect(result.orderId).toBe('');
   });
 });

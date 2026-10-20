@@ -1,8 +1,7 @@
 import { formatDate } from "@workspace/utils";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, DataState } from "@workspace/ui/components";
+import { Button, Card, CardContent, CardHeader, CardTitle, DataState, StatusBadge } from "@workspace/ui/components";
 import { ExternalLink, FlaskConical } from "lucide-react";
-import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Feature } from "@workspace/types";
 import { useLabTestOrders } from "@workspace/data-access";
 import { FeatureGate } from "@/components/auth/feature-gate";
@@ -18,17 +17,6 @@ export function LabsTab({ patientId }: LabsTabProps) {
     </FeatureGate>
   );
 }
-
-const STATUS_VARIANT: Record<
-  string,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  ORDERED: "outline",
-  COLLECTED: "secondary",
-  IN_PROGRESS: "default",
-  COMPLETED: "default",
-  CANCELLED: "destructive",
-};
 
 function LabsTabContent({ patientId }: LabsTabProps) {
   const { t } = useTranslation("Patients.labsTab");
@@ -73,7 +61,6 @@ function LabsTabContent({ patientId }: LabsTabProps) {
         const completedAt = order.completedAt
           ? formatDate(order.completedAt, "d MMM yyyy")
           : null;
-        const variant = STATUS_VARIANT[order.status] ?? "outline";
         return (
           <Card key={order.id}>
             <CardHeader className="pb-2">
@@ -90,9 +77,7 @@ function LabsTabContent({ patientId }: LabsTabProps) {
                       : ""}
                   </p>
                 </div>
-                <Badge variant={variant} className="shrink-0 text-xs">
-                  {humanizeUiLabel(order.status)}
-                </Badge>
+                <StatusBadge status={order.status} size="sm" className="shrink-0" />
               </div>
             </CardHeader>
             <CardContent className="space-y-2">

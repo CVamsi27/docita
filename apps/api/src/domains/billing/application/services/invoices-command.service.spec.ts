@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 import { InvoicesCommandService } from './invoices-command.service';
 import { InvoicesQueryService } from './invoices-query.service';
@@ -169,6 +169,36 @@ describe('InvoicesCommandService', () => {
       await service.remove('inv-1', 'clinic-1');
 
       expect(repository.delete).toHaveBeenCalledWith('inv-1', 'clinic-1');
+    });
+  });
+
+  describe('update money-mutation guards', () => {
+    it.each([InvoiceStatus.PAID, InvoiceStatus.CANCELLED])(
+      'rejects an items-only PATCH on a %s invoice (no status in payload)',
+      async (settledStatus) => {
+        (queryService.findOne as jest.Mock).mockResolvedValueOnce({
+          id: 'inv-1',
+          status: settledStatus,
+          currency: 'INR',
+        } as never);
+
+        await expect(
+          service.update('inv-1', { items: [] }, 'clinic-1'),
+        ).rejects.toThrow(BadRequestException);
+        expect(repository.update).not.toHaveBeenCalled();
+      },
+    );
+
+    it('still allows a status-only transition on a pending invoice', async () => {
+      (queryService.findOne as jest.Mock).mockResolvedValueOnce({
+        id: 'inv-1',
+        status: InvoiceStatus.PENDING,
+      } as never);
+      repository.update.mockResolvedValueOnce({ id: 'inv-1' } as never);
+
+      await service.update('inv-1', { status: InvoiceStatus.PAID }, 'clinic-1');
+
+      expect(repository.update).toHaveBeenCalled();
     });
   });
 

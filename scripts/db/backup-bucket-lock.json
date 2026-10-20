@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "id": "docita-database-backups-30-days",
+      "enabled": true,
+      "prefix": "docita-production/",
+      "condition": {
+        "type": "Age",
+        "maxAgeSeconds": 2592000
+      }
+    }
+  ]
+}

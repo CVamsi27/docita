@@ -1,0 +1,20 @@
+{
+  "rules": [
+    {
+      "id": "docita-database-backups-expire-after-31-days",
+      "enabled": true,
+      "conditions": { "prefix": "docita-production/" },
+      "deleteObjectsTransition": {
+        "condition": { "type": "Age", "maxAge": 2678400 }
+      }
+    },
+    {
+      "id": "abort-incomplete-backup-uploads",
+      "enabled": true,
+      "conditions": { "prefix": "" },
+      "abortMultipartUploadsTransition": {
+        "condition": { "type": "Age", "maxAge": 86400 }
+      }
+    }
+  ]
+}

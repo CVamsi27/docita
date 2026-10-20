@@ -110,18 +110,42 @@ describe("createPartnerFetcher", () => {
     expect(out).toBeUndefined();
   });
 
-  it("throws a Partner API error including status + text on a non-2xx", async () => {
+  it("throws an APIRequestError with status + code on a non-2xx", async () => {
     mockFetch(
       async () =>
-        new Response("bad code", {
+        new Response(JSON.stringify({ message: "Unauthorized" }), {
           status: 401,
           statusText: "Unauthorized",
         }),
     );
     const fetch = createPartnerFetcher({ accessToken: "x" });
-    await expect(
-      fetch<{ ok: true }>("/partner/me"),
-    ).rejects.toThrow(/Partner API 401/);
+    await expect(fetch<{ ok: true }>("/partner/me")).rejects.toMatchObject({
+      name: "APIRequestError",
+      status: 401,
+      code: "UNAUTHORIZED",
+    });
+  });
+
+  it("surfaces a body code (e.g. 409 DUPLICATE_ENTRY) on the error", async () => {
+    mockFetch(
+      async () =>
+        new Response(
+          JSON.stringify({
+            message: "A lead for this facility contact already exists",
+            code: "DUPLICATE_ENTRY",
+          }),
+          { status: 409, statusText: "Conflict" },
+        ),
+    );
+    const fetch = createPartnerFetcher({ accessToken: "x" });
+    await expect(fetch<{ ok: true }>("/partner/me/leads")).rejects.toMatchObject(
+      {
+        name: "APIRequestError",
+        status: 409,
+        code: "DUPLICATE_ENTRY",
+        message: "A lead for this facility contact already exists",
+      },
+    );
   });
 });
 
@@ -205,6 +229,53 @@ describe("partnerApi", () => {
     expect(seen.url).toContain("/partner/me/referrals?");
     expect(seen.url).toContain("status=SIGNED_UP");
     expect(seen.url).toContain("limit=10");
+  });
+
+  it("listMyLeads GETs /partner/me/leads with the query string", async () => {
+    const seen: { url: string } = { url: "" };
+    mockFetch(async (url) => {
+      seen.url = url;
+      return new Response("{}", { status: 200 });
+    });
+    await partnerApi.listMyLeads(
+      { limit: 10, cursor: "lead-5" },
+      { accessToken: "x" },
+    );
+    expect(seen.url).toContain("/partner/me/leads?");
+    expect(seen.url).toContain("limit=10");
+    expect(seen.url).toContain("cursor=lead-5");
+
+    // No options -> bare endpoint, like the other paginated reads.
+    await partnerApi.listMyLeads(undefined, { accessToken: "x" });
+    expect(seen.url).toBe("/partner/me/leads");
+  });
+
+  it("submitFacilityLead POSTs the lead to /partner/me/leads", async () => {
+    const seen: { url: string; init: RequestInit | undefined } = { url: "", init: undefined };
+    mockFetch(async (url, init) => {
+      seen.url = url;
+      seen.init = init;
+      return new Response(
+        JSON.stringify({ id: "lead-1", status: "SUBMITTED" }),
+        { status: 200 },
+      );
+    });
+    await partnerApi.submitFacilityLead(
+      {
+        facilityName: "Sunrise Diagnostics",
+        facilityType: "DIAGNOSTIC_CENTRE",
+        address: "12 MG Road",
+        city: "Bengaluru",
+        contactName: "Dr Anil",
+        consentToFollowUp: true,
+        idempotencyKey: "key-12345678",
+      },
+      { accessToken: "x", baseUrl: "https://api.docita.work" },
+    );
+    expect(seen.url).toBe("https://api.docita.work/partner/me/leads");
+    expect(seen.init?.method).toBe("POST");
+    expect(seen.init?.body).toContain('"consentToFollowUp":true');
+    expect(seen.init?.body).toContain('"idempotencyKey":"key-12345678"');
   });
 
   it("upsertPayoutDetails PUTs to /partner/me/payout-details", async () => {

@@ -19,6 +19,7 @@ import {
   toPrismaAppointmentUpdate,
 } from '@/domains/appointments/core/domain-services/appointment-update-patch.rules';
 import { buildAppointmentObservationMetrics } from '@/domains/appointments/core/domain-services/appointment-observation-metrics.rules';
+import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 
 // AuditLogged: appointment detail updates (AppointmentCommandService)
 
@@ -29,6 +30,7 @@ type AppointmentForUpdate = {
   doctorId: string;
   startTime: Date;
   endTime: Date;
+  status: AppointmentStatusEnum;
 };
 
 interface UpdateAppointmentDetailsCommand {
@@ -73,6 +75,9 @@ export class UpdateAppointmentDetailsUseCase {
       appointmentId,
       clinicId,
       prismaPatch,
+      // Only a status-carrying patch is guarded; clinical edits stay
+      // unconditional so post-completion notes still save (ADR 0013 §C2.1).
+      prismaPatch.status === undefined ? undefined : appointment.status,
     );
     if (count === 0) {
       throw new NotFoundException(

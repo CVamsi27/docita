@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { isRecord } from '@workspace/utils';
 import { PaymentSessionStatus, InvoiceStatus, Prisma } from '@workspace/db';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 // This service was split out of `PaymentsCommandService` and necessarily
 // shares its infrastructure ports (same repositories, clock, transaction
 // runner) — the import block is structurally identical rather than
@@ -50,7 +49,6 @@ export class InvoiceSettlementService {
     private readonly repository: IPaymentSessionRepository,
     @Inject(INVOICE_REPOSITORY_TOKEN)
     private readonly invoiceRepository: IInvoiceRepository,
-    private readonly configService: AppConfigService,
     @Inject(CLOCK_PORT) private readonly clock: IClock,
     @Inject(TRANSACTION_RUNNER_PORT)
     private readonly transactionRunner: ITransactionRunner,
@@ -95,11 +93,25 @@ export class InvoiceSettlementService {
     const alreadyPaidCents = sumSettledPaymentCents(existingSessions);
     const balanceDueCents = Math.max(0, invoice.totalCents - alreadyPaidCents);
 
-    const invoiceTotal = invoice.totalCents / 100;
+    // A nil balance means there is genuinely nothing to collect: either the
+    // invoice nets to zero (fully discounted / zero-priced line items) or a
+    // later edit already covered what was paid. Falling back to the invoice
+    // total here would either record a zero-amount CAPTURED session or report
+    // a phantom overpayment, so refuse up front with an accurate reason.
+    if (balanceDueCents <= 0) {
+      throw new BadRequestException(
+        'Invoice has no outstanding balance to settle.',
+      );
+    }
+
     const resolvedAmount =
-      typeof data.amount === 'number' && data.amount > 0
-        ? data.amount
-        : balanceDueCents / 100 || invoiceTotal;
+      typeof data.amount === 'number' ? data.amount : balanceDueCents / 100;
+    if (resolvedAmount <= 0) {
+      throw new BadRequestException(
+        'Payment amount must be greater than zero.',
+      );
+    }
+
     const paymentCents = toPaiseAmount(resolvedAmount);
 
     if (paymentCents > balanceDueCents) {
@@ -112,9 +124,8 @@ export class InvoiceSettlementService {
       invoiceId: data.invoiceId,
       clinicId: data.clinicId,
       patientId: invoice.patientId,
+      currency: invoice.currency,
       totalCents: invoice.totalCents,
-      currentStatus: invoice.status,
-      alreadyPaidCents,
       paymentCents,
       meta: {
         channel: normalizedChannel,
@@ -167,9 +178,8 @@ export class InvoiceSettlementService {
       invoiceId,
       clinicId,
       patientId,
+      currency: invoice.currency,
       totalCents: invoice.totalCents,
-      currentStatus: invoice.status,
-      alreadyPaidCents,
       paymentCents,
       meta: {
         source: 'advance',
@@ -188,27 +198,23 @@ export class InvoiceSettlementService {
 
   /**
    * Persist a settled manual payment session and roll its amount into the
-   * invoice's paid total/status inside one transaction. This is the shared
-   * core of `markInvoicePaidManually` and `applyAppointmentAdvance` — they
-   * differ only in who recorded the payment and what `meta` says about it.
+   * invoice's paid total/status inside one transaction. The paid total is
+   * applied as an atomic increment and the status derived from the fresh
+   * post-increment row, so two concurrent settlements (distinct idempotency
+   * keys) can never overwrite each other's collected amount. This is the
+   * shared core of `markInvoicePaidManually` and `applyAppointmentAdvance` —
+   * they differ only in who recorded the payment and what `meta` says.
    */
   private async recordSettledPayment(params: {
     invoiceId: string;
     clinicId: string;
     patientId: string;
+    currency: string;
     totalCents: number;
-    currentStatus: InvoiceStatus;
-    alreadyPaidCents: number;
     paymentCents: number;
     meta: Prisma.PaymentSessionCreateInput['meta'];
   }): Promise<{ amountPaidCents: number; status: InvoiceStatus }> {
-    const { amountPaidCents, status } = computeInvoicePaidState({
-      totalCents: params.totalCents,
-      paidCents: params.alreadyPaidCents + params.paymentCents,
-      currentStatus: params.currentStatus,
-    });
-
-    await this.transactionRunner.runInTransaction(async (tx) => {
+    return this.transactionRunner.runInTransaction(async (tx) => {
       await this.repository.create(
         {
           clinic: { connect: { id: params.clinicId } },
@@ -216,7 +222,7 @@ export class InvoiceSettlementService {
           patient: { connect: { id: params.patientId } },
           provider: 'manual',
           amount: params.paymentCents,
-          currency: this.configService.getCurrencyCode(),
+          currency: params.currency,
           status: PaymentSessionStatus.CAPTURED,
           paidAt: this.clock.now(),
           expiresAt: this.clock.now(),
@@ -225,15 +231,43 @@ export class InvoiceSettlementService {
         tx,
       );
 
-      await this.invoiceRepository.update(
+      const incremented = await this.invoiceRepository.update(
         params.invoiceId,
-        { amountPaidCents, status },
+        { amountPaidCents: { increment: params.paymentCents } },
         params.clinicId,
         tx,
       );
-    });
 
-    return { amountPaidCents, status };
+      // The pre-transaction balance check can go stale when two settlements
+      // with distinct idempotency keys race. Throwing here rolls back both
+      // the session insert and the increment, so an overpayment is refused
+      // instead of committed past the invoice total.
+      if (
+        params.totalCents > 0 &&
+        incremented.amountPaidCents > params.totalCents
+      ) {
+        throw new BadRequestException(
+          'Payment amount exceeds the outstanding invoice balance',
+        );
+      }
+
+      const { status } = computeInvoicePaidState({
+        totalCents: params.totalCents,
+        paidCents: incremented.amountPaidCents,
+        currentStatus: incremented.status,
+      });
+
+      if (incremented.status !== status) {
+        await this.invoiceRepository.update(
+          params.invoiceId,
+          { status },
+          params.clinicId,
+          tx,
+        );
+      }
+
+      return { amountPaidCents: incremented.amountPaidCents, status };
+    });
   }
 
   private isAdvanceSession(meta: unknown): boolean {

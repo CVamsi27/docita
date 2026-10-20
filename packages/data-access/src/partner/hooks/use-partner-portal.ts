@@ -7,6 +7,8 @@ import {
 } from "@tanstack/react-query";
 import { partnerApi, type PartnerApiContext } from "../api";
 import type {
+  PartnerFacilityLeadSubmit,
+  PartnerFacilityLeadView,
   PartnerMe,
   PartnerOtpRequest,
   PartnerOtpVerify,
@@ -16,6 +18,7 @@ import type {
   PartnerPayoutsResponse,
   PartnerReferralsResponse,
   PartnerShareMessageResponse,
+  PartnerMyLeadsResponse,
 } from "../partner.types";
 
 export const partnerPortalQueryKeys = {
@@ -25,6 +28,7 @@ export const partnerPortalQueryKeys = {
     ["partner", "payouts", filters ?? {}] as const,
   referrals: (filters: { status?: string; cursor?: string } | undefined) =>
     ["partner", "referrals", filters ?? {}] as const,
+  myLeads: () => ["partner", "my-leads"] as const,
   shareMessage: () => ["partner", "share-message"] as const,
 };
 
@@ -74,12 +78,21 @@ export function usePartnerVerifyOtp(
   });
 }
 
+/**
+ * Refresh the partner access token using the httpOnly refresh cookie.
+ * The browser sends the cookie automatically on POST /partner/auth/refresh;
+ * CSRF is handled by the double-submit pattern: the app bootstraps the
+ * XSRF-TOKEN cookie via GET /health, captures the CSRF token from the
+ * response header, and passes it here as the mutation input.
+ *
+ * The mutation input is the CSRF token to echo back on the POST.
+ */
 export function usePartnerRefresh(
   options?: Omit<
     UseMutationOptions<
       { accessToken: string; expiresIn: number },
       Error,
-      { refreshToken: string }
+      string // CSRF token input
     >,
     "mutationFn"
   >,
@@ -87,10 +100,10 @@ export function usePartnerRefresh(
   return useMutation<
     { accessToken: string; expiresIn: number },
     Error,
-    { refreshToken: string }
+    string
   >({
-    mutationFn: ({ refreshToken }) =>
-      partnerApi.refresh(refreshToken, ctxFromToken(null)),
+    mutationFn: (csrfToken) =>
+      partnerApi.refresh({ ...ctxFromToken(null), csrfToken }),
     ...options,
   });
 }
@@ -159,6 +172,55 @@ export function usePartnerShareMessage(
     queryFn: () =>
       partnerApi.getShareMessage(ctxFromToken(accessToken, baseUrl)),
     enabled: Boolean(accessToken),
+    ...options,
+  });
+}
+
+export function usePartnerMyLeads(
+  accessToken: string | null,
+  baseUrl?: string,
+  options?: Omit<
+    UseQueryOptions<PartnerMyLeadsResponse, Error>,
+    "queryKey" | "queryFn"
+  >,
+) {
+  return useQuery<PartnerMyLeadsResponse, Error>({
+    queryKey: partnerPortalQueryKeys.myLeads(),
+    queryFn: () =>
+      partnerApi.listMyLeads(undefined, ctxFromToken(accessToken, baseUrl)),
+    enabled: Boolean(accessToken),
+    ...options,
+  });
+}
+
+export function useSubmitFacilityLead(
+  accessToken: string | null,
+  baseUrl?: string,
+  options?: Omit<
+    UseMutationOptions<
+      PartnerFacilityLeadView,
+      Error,
+      PartnerFacilityLeadSubmit
+    >,
+    "mutationFn"
+  >,
+) {
+  const queryClient = useQueryClient();
+  return useMutation<
+    PartnerFacilityLeadView,
+    Error,
+    PartnerFacilityLeadSubmit
+  >({
+    mutationFn: (input) =>
+      partnerApi.submitFacilityLead(input, ctxFromToken(accessToken, baseUrl)),
+    onSuccess: () => {
+      // The partner's submission list must reflect the new lead immediately
+      // (the app's QueryClient keeps a 30s stale window; SPA navigation does
+      // not refetch on focus).
+      void queryClient.invalidateQueries({
+        queryKey: partnerPortalQueryKeys.myLeads(),
+      });
+    },
     ...options,
   });
 }

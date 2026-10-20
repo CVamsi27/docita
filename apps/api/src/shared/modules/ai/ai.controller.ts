@@ -102,7 +102,9 @@ export class AIController {
     @Req() req: RequestWithUser,
     @Res() res: Response,
   ): Promise<void> {
-    await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
+    const admission = await this.aiCreditGuard.assertWithinAllotment(
+      req.user?.clinicId,
+    );
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -142,6 +144,7 @@ export class AIController {
         send('error', { message });
       }
     } finally {
+      await this.aiCreditGuard.releaseAdmission(admission);
       req.off('close', cleanup);
       req.off('aborted', cleanup);
       res.end();
@@ -157,10 +160,16 @@ export class AIController {
     data: AnalyzePrescriptionDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
-    const result = await this.aiService.analyzePrescription(data);
-    this.recordAiUsage(req, 'prescriptionSuggestion');
-    return result;
+    const admission = await this.aiCreditGuard.assertWithinAllotment(
+      req.user?.clinicId,
+    );
+    try {
+      const result = await this.aiService.analyzePrescription(data);
+      this.recordAiUsage(req, 'prescriptionSuggestion');
+      return result;
+    } finally {
+      await this.aiCreditGuard.releaseAdmission(admission);
+    }
   }
 
   @Post('diagnosis-suggestions')
@@ -171,13 +180,19 @@ export class AIController {
     @Body() dto: DiagnosisSuggestionRequestDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
-    const result = await this.aiService.suggestDiagnoses(
-      dto.symptoms,
-      dto.findingsNotes,
+    const admission = await this.aiCreditGuard.assertWithinAllotment(
+      req.user?.clinicId,
     );
-    this.recordAiUsage(req, 'codingSuggestion');
-    return result;
+    try {
+      const result = await this.aiService.suggestDiagnoses(
+        dto.symptoms,
+        dto.findingsNotes,
+      );
+      this.recordAiUsage(req, 'codingSuggestion');
+      return result;
+    } finally {
+      await this.aiCreditGuard.releaseAdmission(admission);
+    }
   }
 
   @Post('medication-recommendations')
@@ -188,14 +203,20 @@ export class AIController {
     @Body() dto: MedicationRecommendationRequestDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
-    const result = await this.aiService.recommendMedications(
-      dto.condition,
-      dto.patientAge,
-      dto.allergies,
+    const admission = await this.aiCreditGuard.assertWithinAllotment(
+      req.user?.clinicId,
     );
-    this.recordAiUsage(req, 'prescriptionSuggestion');
-    return result;
+    try {
+      const result = await this.aiService.recommendMedications(
+        dto.condition,
+        dto.patientAge,
+        dto.allergies,
+      );
+      this.recordAiUsage(req, 'prescriptionSuggestion');
+      return result;
+    } finally {
+      await this.aiCreditGuard.releaseAdmission(admission);
+    }
   }
 
   @Post('ocr/extract')
@@ -225,20 +246,27 @@ export class AIController {
   ) {
     if (!file) throw new BadRequestException('File is required');
 
-    await this.aiCreditGuard.assertWithinAllotment(req.user?.clinicId);
-
     try {
-      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif'], {
-        originalname: file.originalname,
-        mimetype: file.mimetype,
-      });
-      const result = await this.aiService.extractFromMedicalDocument(
-        file.path,
-        true,
+      const admission = await this.aiCreditGuard.assertWithinAllotment(
+        req.user?.clinicId,
       );
-      this.recordOcrAsAiCredits(req);
-      return result;
+      try {
+        await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp', 'gif'], {
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+        });
+        const result = await this.aiService.extractFromMedicalDocument(
+          file.path,
+          true,
+        );
+        this.recordOcrAsAiCredits(req);
+        return result;
+      } finally {
+        await this.aiCreditGuard.releaseAdmission(admission);
+      }
     } finally {
+      // Also runs when the credit guard rejects: a 402 must not leave the
+      // uploaded document in the temp directory.
       if (file.path) {
         await unlink(file.path).catch(() => {});
       }

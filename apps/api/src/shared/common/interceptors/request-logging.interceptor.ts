@@ -10,6 +10,11 @@ import { tap, catchError } from 'rxjs/operators';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { Request, Response } from 'express';
 import { getMonitoringUserContext } from '@/shared/modules/auth/auth/monitoring-user-context';
+import { redactMonitoringUrl, redactString } from '@workspace/utils';
+import {
+  readCorrelationHeader,
+  resolveCorrelationId,
+} from '@/shared/modules/monitoring/monitoring/rules/telemetry-observation.rules';
 
 function toNumberHeader(value: unknown): number | undefined {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -54,7 +59,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     const { userId, clinicId } = getMonitoringUserContext(request.user);
 
     const method = request.method;
-    const path = request.path;
+    const path = redactMonitoringUrl(request.path);
     const userAgent = request.headers['user-agent'];
     const ip =
       request.ip ||
@@ -64,6 +69,15 @@ export class RequestLoggingInterceptor implements NestInterceptor {
     const requestSize = request.headers['content-length']
       ? parseInt(request.headers['content-length'], 10)
       : undefined;
+
+    // Opaque, and resolved once per request so the ApiRequest row and any
+    // ErrorLog row for the same request carry the same key. The header is
+    // client-controlled, so resolveCorrelationId only reuses values that are
+    // already safe tokens.
+    const correlationId = resolveCorrelationId(
+      readCorrelationHeader(request.headers),
+    );
+    response.setHeader('x-request-id', correlationId);
 
     return next.handle().pipe(
       tap(() => {
@@ -85,6 +99,8 @@ export class RequestLoggingInterceptor implements NestInterceptor {
           responseSize,
           userAgent,
           ip,
+          correlationId,
+          observedAt: new Date(),
         });
 
         this.logAccess(method, path, statusCode, duration);
@@ -100,7 +116,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
         const statusCode = error.status || 500;
         const errorMessage =
           typeof error?.message === 'string'
-            ? error.message.slice(0, 200)
+            ? redactString(error.message).slice(0, 200)
             : 'request_failed';
 
         this.monitoringService.logRequest({
@@ -114,6 +130,8 @@ export class RequestLoggingInterceptor implements NestInterceptor {
           userAgent,
           ip,
           error: errorMessage,
+          correlationId,
+          observedAt: new Date(),
         });
 
         this.logAccess(method, path, statusCode, duration);

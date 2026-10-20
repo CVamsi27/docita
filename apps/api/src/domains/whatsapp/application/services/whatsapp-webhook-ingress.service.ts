@@ -15,7 +15,7 @@ import {
 import { WhatsAppMessageStatus } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
 import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 import { toPrismaInputJsonValue } from '@/shared/common/json/to-prisma-input-json-value';
-import { parseStringEnumMember } from '@workspace/utils';
+import { parseStringEnumMember, truncatePhone } from '@workspace/utils';
 
 type WebhookChangeValue =
   WhatsAppWebhookPayload['entry'][number]['changes'][number]['value'];
@@ -80,7 +80,7 @@ export class WhatsAppWebhookIngressService {
       if (!response) continue;
       try {
         const contextMessageId = this.readContextMessageId(message);
-        await this.recordClinicConversationMessage({
+        const isNewDelivery = await this.recordClinicConversationMessage({
           phoneNumber,
           providerMessageId: message.id,
           messageType: message.type,
@@ -88,6 +88,12 @@ export class WhatsAppWebhookIngressService {
           contextProviderMessageId: contextMessageId,
           senderPhoneNumberId: value.metadata.phone_number_id,
         });
+        if (!isNewDelivery) {
+          this.logger.log(
+            `Duplicate WhatsApp delivery ignored (providerMsgId=${message.id})`,
+          );
+          continue;
+        }
         const appointmentContext =
           await this.appointmentResolver.resolveForInboundMessage({
             phoneNumber,
@@ -102,18 +108,23 @@ export class WhatsAppWebhookIngressService {
           );
         } else {
           this.logger.warn(
-            `No matching appointment found for WhatsApp reply from ${phoneNumber}`,
+            `No matching appointment found for WhatsApp reply from ${truncatePhone(phoneNumber)}`,
           );
         }
       } catch (error) {
         this.logger.error(
-          `Error processing incoming message from ${phoneNumber}:`,
+          `Error processing incoming message from ${truncatePhone(phoneNumber)}:`,
           error instanceof Error ? error.stack : error,
         );
       }
     }
   }
 
+  /**
+   * Persists the inbound message idempotently. Resolves true only when this
+   * is the first delivery of `providerMessageId`; Meta redeliveries resolve
+   * false so downstream reply processing is skipped exactly once per message.
+   */
   private async recordClinicConversationMessage(input: {
     phoneNumber: string;
     providerMessageId: string;
@@ -121,7 +132,7 @@ export class WhatsAppWebhookIngressService {
     content: string;
     contextProviderMessageId?: string;
     senderPhoneNumberId: string;
-  }): Promise<void> {
+  }): Promise<boolean> {
     const contactPhone = input.phoneNumber.replace(/\D/g, '');
     const contextMessage = input.contextProviderMessageId
       ? await this.persistence.whatsappMessage.findFirst({
@@ -144,13 +155,13 @@ export class WhatsAppWebhookIngressService {
       this.logger.warn(
         'Inbound WhatsApp message could not be resolved to a clinic; message quarantined from staff views',
       );
-      return;
+      return true;
     }
     const patient = await this.persistence.patient.findFirst({
       where: { clinicId, phoneNumber: contactPhone, deletedAt: null },
       select: { id: true },
     });
-    await this.persistence.$transaction(async (tx) => {
+    return this.persistence.$transaction(async (tx) => {
       const conversation = await tx.whatsappConversation.upsert({
         where: { clinicId_contactPhone: { clinicId, contactPhone } },
         create: {
@@ -166,6 +177,10 @@ export class WhatsAppWebhookIngressService {
           unreadCount: { increment: 1 },
         },
       });
+      const existing = await tx.whatsappMessage.findUnique({
+        where: { id: `inbound_${input.providerMessageId}` },
+        select: { id: true },
+      });
       await tx.whatsappMessage.upsert({
         where: { id: `inbound_${input.providerMessageId}` },
         create: {
@@ -179,6 +194,7 @@ export class WhatsAppWebhookIngressService {
         },
         update: {},
       });
+      return !existing;
     });
   }
 
@@ -214,7 +230,9 @@ export class WhatsAppWebhookIngressService {
         responseBody: toPrismaInputJsonValue(status),
       };
 
-      if (status.status === 'delivered' || status.status === 'read') {
+      // Only a real delivery receipt stamps deliveredAt — 'read' arriving
+      // first (or later) must not overwrite the true delivery time.
+      if (status.status === 'delivered') {
         updateData.deliveredAt = new Date(
           parseInt(status.timestamp, 10) * 1000,
         );

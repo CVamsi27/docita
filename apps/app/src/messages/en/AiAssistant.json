@@ -70,5 +70,11 @@
     "frequencyLabel": "Frequency:",
     "durationLabel": "Duration:",
     "noteLabel": "Note: {note}"
+  },
+  "overlay": {
+    "title": "Ask AI",
+    "preview": "AI assistant is coming soon.",
+    "context": "Context",
+    "disclaimer": "AI suggestions are not medical advice."
   }
 }

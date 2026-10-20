@@ -1,0 +1,12 @@
+[
+  {
+    "file": "docs/operations/RUNBOOKS.md",
+    "script": "export:tenant",
+    "reason": "RB-06 quotes the tenant-export command deliberately: the step is marked NOT EXECUTABLE (2026-10-03) precisely because the script does not exist, and ADR-0016 (backlog C01, awaiting sign-off) tracks the gap. Rewriting the quote would hide the defect the warning exists to surface."
+  },
+  {
+    "file": "docs/architecture/decisions/0016-patient-data-lifecycle-and-recovery.md",
+    "script": "export:tenant",
+    "reason": "ADR quotes RUNBOOKS RB-06's broken command as the defect under decision (Issue 1, confirmed). The fence is evidence of what the runbook says, not an instruction to run."
+  }
+]

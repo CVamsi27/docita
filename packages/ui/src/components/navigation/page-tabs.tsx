@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useEffect, useRef } from "react";
 import { cn } from "../../lib/utils";
+import { resolveRovingTablistTarget } from "../../lib/roving-tablist";
 
 export interface PageTabItem {
   id: string;
@@ -38,6 +39,9 @@ export function PageTabs({
   className,
 }: PageTabsProps) {
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const tabStopId = items.find((item) => item.id === activeId && !item.disabled)?.id
+    ?? items.find((item) => !item.disabled)?.id;
 
   useEffect(() => {
     activeTabRef.current?.scrollIntoView?.({
@@ -45,6 +49,41 @@ export function PageTabs({
       inline: "nearest",
     });
   }, [activeId]);
+
+  const assignTabRef = (
+    index: number,
+    isActive: boolean,
+    node: HTMLButtonElement | null,
+  ) => {
+    tabRefs.current[index] = node;
+    if (isActive) activeTabRef.current = node;
+  };
+
+  // Roving tabindex only stays usable when arrow keys move focus, so inactive
+  // tabs remain reachable once the strip is entered with Tab.
+  const handleTablistKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const tabs = tabRefs.current;
+    const focusedIndex = tabs.findIndex(
+      (tab) => tab === document.activeElement,
+    );
+
+    const nextIndex = resolveRovingTablistTarget({
+      key: event.key,
+      count: items.length,
+      currentIndex:
+        focusedIndex >= 0
+          ? focusedIndex
+          : items.findIndex((item) => item.id === activeId),
+      isDisabled: (index) => items[index]?.disabled === true,
+    });
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+
+    const nextItem = items[nextIndex];
+    tabs[nextIndex]?.focus();
+    if (nextItem && !nextItem.href) onSelect?.(nextItem.id);
+  };
 
   return (
     <div
@@ -56,9 +95,10 @@ export function PageTabs({
       <div
         role="tablist"
         aria-label={ariaLabel}
+        onKeyDown={handleTablistKeyDown}
         className="flex w-max min-w-full items-end gap-6 border-b border-border/60 max-md:gap-4"
       >
-        {items.map((item) => {
+        {items.map((item, index) => {
           const isActive = item.id === activeId;
           const inner = (
             <>
@@ -82,12 +122,13 @@ export function PageTabs({
           const tabButton = (
             <button
               key={item.id}
-              ref={isActive ? activeTabRef : undefined}
+              type="button"
+              ref={(node) => assignTabRef(index, isActive, node)}
               role="tab"
               aria-selected={isActive}
               aria-disabled={item.disabled}
-              tabIndex={isActive ? 0 : -1}
-              type="button"
+              disabled={item.disabled}
+              tabIndex={item.id === tabStopId ? 0 : -1}
               className={sharedClass}
               onClick={() => onSelect?.(item.id)}
             >
@@ -96,7 +137,9 @@ export function PageTabs({
           );
 
           if (renderLink && item.href) {
-            return renderLink(item, tabButton);
+            return React.cloneElement(renderLink(item, tabButton), {
+              key: item.id,
+            });
           }
 
           return tabButton;

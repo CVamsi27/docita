@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Button } from "@workspace/ui/components/form/button";
 import { DocitaLogo } from "@workspace/ui/components/indicators/docita-logo";
 import { SupportContact } from "@/components/support-contact/support-contact";
@@ -32,6 +33,8 @@ function PublicBookingPoweredByFooter({
 }: {
   className?: string;
 }) {
+  const { t } = useTranslation("PublicBooking");
+
   return (
     <footer
       className={cn(
@@ -53,7 +56,9 @@ function PublicBookingPoweredByFooter({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5"
           >
-            <span className="font-medium text-foreground/85">Powered by</span>
+            <span className="font-medium text-foreground/85">
+              {t("footer.poweredBy")}
+            </span>
             <DocitaLogo
               showText={false}
               className="h-4 w-4 sm:h-5 sm:w-5"

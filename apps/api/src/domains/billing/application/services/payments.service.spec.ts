@@ -86,6 +86,9 @@ describe('PaymentsService', () => {
     findByInvoiceId: jest.fn<IPaymentSessionRepository['findByInvoiceId']>(),
     findSettledByClinicInRange:
       jest.fn<IPaymentSessionRepository['findSettledByClinicInRange']>(),
+    tryMarkCaptured: jest.fn<IPaymentSessionRepository['tryMarkCaptured']>(),
+    findReconciliationCandidates:
+      jest.fn<IPaymentSessionRepository['findReconciliationCandidates']>(),
   };
 
   const invoiceRepository: jest.Mocked<IInvoiceRepository> = {
@@ -98,6 +101,8 @@ describe('PaymentsService', () => {
     findPatientContext: jest.fn<IInvoiceRepository['findPatientContext']>(),
     findClinicFeatureContext:
       jest.fn<IInvoiceRepository['findClinicFeatureContext']>(),
+    findClinicReportContext:
+      jest.fn<IInvoiceRepository['findClinicReportContext']>(),
     nextInvoiceNumber: jest.fn<IInvoiceRepository['nextInvoiceNumber']>(),
   };
 
@@ -160,7 +165,6 @@ describe('PaymentsService', () => {
     const settlement = new InvoiceSettlementService(
       repository,
       invoiceRepository,
-      configService,
       clock,
       transactionRunner,
     );
@@ -249,7 +253,7 @@ describe('PaymentsService', () => {
 
       expect(invoiceRepository.update).toHaveBeenCalledWith(
         'inv_1',
-        { amountPaidCents: 50000, status: InvoiceStatus.PAID },
+        { amountPaidCents: { increment: 50000 } },
         'clinic_1',
         expect.anything(),
       );

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@/test-utils";
 import { AuditsPage } from "./audits-page";
 import { apiGet } from "@/lib/api/api-client";
-import { formatInternalTimestamp } from "@/lib/formatters";
+import { formatDateTime, enIN } from "@workspace/utils";
 
 vi.mock("@/lib/api/api-client", () => ({
   apiGet: vi.fn(),
@@ -66,7 +66,7 @@ describe("AuditsPage", () => {
 
     // Timestamps render through the en-IN timestamp formatter (TZ pinned to UTC).
     expect(
-      screen.getByText(formatInternalTimestamp("2026-01-10T10:00:00Z")),
+      screen.getByText(formatDateTime("2026-01-10T10:00:00Z", undefined, { locale: enIN })),
     ).toBeInTheDocument();
 
     // Footer counts the entries.

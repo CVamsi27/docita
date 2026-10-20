@@ -8,7 +8,12 @@ export interface IAppointmentWriteRepository {
   update(appointment: Appointment): Promise<void>;
   delete(id: string, clinicId: string): Promise<void>;
 
-  /** Transactional state change: appointment.status → IN_PROGRESS and optional queueToken sync. */
+  /**
+   * Transactional state change: appointment.status → IN_PROGRESS and optional
+   * queueToken sync. Conditional on `currentStatus`: resolves only while the
+   * row still holds the status the caller decided against, so a stale start
+   * cannot reopen a finished visit.
+   */
   startConsultationTx(
     id: string,
     clinicId: string,
@@ -26,6 +31,7 @@ export interface IAppointmentWriteRepository {
     id: string,
     clinicId: string,
     patch: Prisma.AppointmentUpdateInput,
+    expectedStatus?: AppointmentStatusEnum,
   ): Promise<number>;
 }
 

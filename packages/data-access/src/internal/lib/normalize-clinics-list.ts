@@ -1,7 +1,5 @@
-import type { InternalDashboardClinic } from "../dashboard.types";
+import { internalClinicListResponseSchema } from "@workspace/types";
 
-export function normalizeClinicsList(
-  data: InternalDashboardClinic[] | { items?: InternalDashboardClinic[] },
-): InternalDashboardClinic[] {
-  return Array.isArray(data) ? data : (data.items ?? []);
+export function normalizeClinicsList(payload: unknown) {
+  return internalClinicListResponseSchema.parse(payload).items;
 }

@@ -1,91 +1,33 @@
+import { createApiAvailability } from "@workspace/data-access";
 import { getAppApiUrl } from "./api-config";
 
-const API_HEALTH_RETRY_DELAY_MS = 2_000;
-const API_HEALTH_TIMEOUT_MS = 5_000;
-function isServerUnavailableStatus(status: number): boolean {
-  return status >= 500 && status <= 599;
+/**
+ * App binding of the shared API-availability machinery; the policy and the
+ * probing live in `@workspace/data-access` — this file only supplies the
+ * app's API base. Excluded from the duplication gate in .jscpd.json because
+ * just that one line differs between the apps.
+ */
+
+const availability = createApiAvailability(getAppApiUrl);
+
+/** Store accessors and the bound hook, all from one shared factory. */
+export const {
+  store: getApiAvailabilityStore,
+  trackResponse: trackApiResponse,
+  reportUnavailable: reportApiUnavailable,
+  useApiAvailability,
+} = availability;
+
+/**
+ * Start the availability check from the entry module, before the app renders.
+ * The gate lives inside the lazily loaded route tree, so it mounts — and runs
+ * its boot effect — a commit after the providers above it, which by then have
+ * already issued their session/socket requests. With the API hung, the outage
+ * screen would only appear once the probe was issued at that later point;
+ * starting the check here makes it the app's first request.
+ */
+export function startApiAvailabilityCheck(): void {
+  availability.retryNow();
 }
 
-interface ApiAvailabilitySnapshot {
-  isUnavailable: boolean;
-}
-
-const availableSnapshot: ApiAvailabilitySnapshot = { isUnavailable: false };
-const unavailableSnapshot: ApiAvailabilitySnapshot = { isUnavailable: true };
-const listeners = new Set<() => void>();
-
-let snapshot = availableSnapshot;
-let recoveryPromise: Promise<void> | null = null;
-
-function emitChange(nextSnapshot: ApiAvailabilitySnapshot): void {
-  if (snapshot === nextSnapshot) {
-    return;
-  }
-
-  snapshot = nextSnapshot;
-  listeners.forEach((listener) => listener());
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
-
-async function isApiHealthy(): Promise<boolean> {
-  const controller = new AbortController();
-  const timeoutId = window.setTimeout(
-    () => controller.abort(),
-    API_HEALTH_TIMEOUT_MS,
-  );
-
-  try {
-    const response = await fetch(`${getAppApiUrl()}/health`, {
-      method: "GET",
-      credentials: "include",
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    return response.ok;
-  } catch {
-    return false;
-  } finally {
-    window.clearTimeout(timeoutId);
-  }
-}
-
-async function recoverApiAvailability(): Promise<void> {
-  while (snapshot.isUnavailable) {
-    if (await isApiHealthy()) {
-      markApiAvailable();
-      return;
-    }
-
-    await sleep(API_HEALTH_RETRY_DELAY_MS);
-  }
-}
-
-function markApiAvailable(): void {
-  emitChange(availableSnapshot);
-}
-
-function markApiUnavailable(): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  emitChange(unavailableSnapshot);
-  recoveryPromise ??= recoverApiAvailability().finally(() => {
-    recoveryPromise = null;
-  });
-}
-
-export function trackApiResponse(response: Response): void {
-  if (isServerUnavailableStatus(response.status)) {
-    markApiUnavailable();
-    return;
-  }
-
-  markApiAvailable();
-}
+export { isPlatformOutageError } from "@workspace/data-access";

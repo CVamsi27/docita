@@ -1,10 +1,45 @@
 # Stability, Reliability & Performance Runbook
 
-Point-in-time: **2026-08-05**. Owner: this doc complements
-[`RUNBOOKS.md`](RUNBOOKS.md) (which owns incident response) and
-[`PERFORMANCE_ANALYSIS.md`](../analysis/PERFORMANCE_ANALYSIS.md) (which owns
-hot-path inventories). This doc owns the **prevention** side: what we do
-*before* incidents to keep them rare, small, and reversible.
+**20 October final pass:** the recorded PR revision has 14 successes and three
+scope skips; production remains in maintenance and is not certified ready.
+The Sentry test monitor and dedicated email rule are disabled after 27 unintended
+rule triggers. No additional live test sends are authorized. See the
+[current gate record](../audits/2026-10-20-final-stability-pass.md) and
+[incident runbook](RUNBOOKS/backup-alert-test.md). Earlier monitoring/billing
+blockers below are historical and do not override current gates.
+
+**19 October maintenance override:** the operator requires zero total hosting
+spend. The API is stopped/cordoned, the worker remains stopped, and automatic
+deployment, daily worker and uptime recovery workflows are disabled. Render
+staging remains suspended with Auto-Deploy Off. The operator chose retaining Fly
+machines while verifying gross usage below $5 and the personal-org waiver.
+Signed-in checks now verify GitHub $0 hard budgets, Cloudflare/Sentry Free plans
+and $0 current Cloudflare cost. Fly is at $0.15 gross with historical $0 invoices;
+rootfs forecasting and R2 overage containment remain open.
+Follow [ZERO_HOSTING_SPEND.md](ZERO_HOSTING_SPEND.md) for current controls and
+restart gates. Do not use the historical liveness/monitoring statements below
+as evidence of current availability or start a service to satisfy a probe.
+
+**Current assessment, 15 October 2026:** follow the [two-month stability plan](../superpowers/plans/2026-10-13-two-month-stability.md)
+for the feature freeze and current readiness status. The custom-domain certificate
+and stale DNS ownership records were repaired: repeated direct/public/proxied
+liveness and readiness checks return 200. Fly CI secrets were replaced with
+verified app-scoped credentials. Synthetic monitoring is enabled and the three
+probes pass locally with the repaired monitor credentials. Hosted jobs cannot
+start because of GitHub billing/spending restrictions; alert delivery and
+recovery/performance release evidence remain incomplete. See the [current repair
+evidence](../audits/2026-10-13-stability-repair-evidence.md). Source fixes have not
+yet been released, and local gates do not certify production stability. Treat the test counts,
+hosting/capacity figures and monitoring claims below as historical until remeasured.
+Use [SLOS.md](SLOS.md) for canonical API latency values and
+[DEPLOYMENT.md](DEPLOYMENT.md#roll-back-a-bad-release) for rollback policy; verify
+schema compatibility and never infer a safe production migration rollback from
+the historical `down.sql` guidance here.
+
+Historical baseline: **2026-08-05**, superseded by the dated operating records
+above. This doc complements [`RUNBOOKS.md`](RUNBOOKS.md) for incident response
+and [`SLOS.md`](SLOS.md) for performance targets. It owns prevention: what we do
+_before_ incidents to keep them rare, small, and reversible.
 
 > The Docita production stack is HIPAA-adjacent (PHI). Stability work is
 > patient-safety work: a slow consultation page is a clinician waiting; a
@@ -17,33 +52,34 @@ hot-path inventories). This doc owns the **prevention** side: what we do
 
 Defined per surface. Violations trigger the alert → runbook chain in §3.
 
-| Surface                        | Metric                          | Target (p95, 7-day) | Budget per quarter | Owner        |
-| ------------------------------ | ------------------------------- | ------------------- | ------------------ | ------------ |
-| API — auth                     | login, refresh, logout latency  | ≤ 300ms             | 99.5%              | Backend      |
-| API — CRUD (single record)     | patients, appointments, invoices, prescriptions, lab orders | ≤ 200ms | 99.5% | Backend |
-| API — CRUD (paged list)        | paginated ≤ 50 rows             | ≤ 400ms             | 99.0%              | Backend      |
-| API — search                   | full-text patient search        | ≤ 600ms             | 99.0%              | Backend      |
-| API — reports / PDF            | consultation summary, invoice   | ≤ 1500ms (async OK) | 99.0%              | Backend      |
-| API — webhooks                 | signature verify + dedupe       | ≤ 100ms             | 99.9%              | Backend      |
-| API — availability             | `/health` 200s                  | 99.9% / 30-day     | 99.9%              | Backend      |
-| Worker — queue drain           | scheduled job latency           | ≤ 60s p99          | 99.0%              | Backend      |
-| Worker — PDF generation        | end-to-end document            | ≤ 30s p95          | 99.0%              | Backend      |
-| App — initial load (LCP)       | `apps/app`, `apps/internal` | ≤ 2.5s p75      | 99.0%              | Frontend     |
-| App — INP                      | any interactive flow            | ≤ 200ms p75         | 99.0%              | Frontend     |
-| App — CLS                      | any page                        | ≤ 0.1 p75           | 99.0%              | Frontend     |
-| App — TTFB                     | first byte from Worker proxy    | ≤ 800ms p75         | 99.0%              | Frontend     |
-| App — error rate (Sentry)      | unhandled exceptions            | ≤ 0.1% sessions     | 99.9%              | Frontend     |
-| App — offline / PWA            | static asset hit (Worker cache) | 99.5%              | 99.5%              | Frontend     |
+| Surface                    | Metric                                                      | Target (p95, 7-day) | Budget per quarter | Owner    |
+| -------------------------- | ----------------------------------------------------------- | ------------------- | ------------------ | -------- |
+| API — auth                 | login, refresh, logout latency                              | ≤ 300ms             | 99.5%              | Backend  |
+| API — CRUD (single record) | patients, appointments, invoices, prescriptions, lab orders | ≤ 200ms             | 99.5%              | Backend  |
+| API — CRUD (paged list)    | paginated ≤ 50 rows                                         | ≤ 400ms             | 99.0%              | Backend  |
+| API — search               | full-text patient search                                    | ≤ 600ms             | 99.0%              | Backend  |
+| API — reports / PDF        | consultation summary, invoice                               | ≤ 1500ms (async OK) | 99.0%              | Backend  |
+| API — webhooks             | signature verify + dedupe                                   | ≤ 100ms             | 99.9%              | Backend  |
+| API — availability         | `/api/health/live` 200s                                     | 99.9% / 30-day      | 99.9%              | Backend  |
+| Worker — queue drain       | scheduled job latency                                       | ≤ 60s p99           | 99.0%              | Backend  |
+| Worker — PDF generation    | end-to-end document                                         | ≤ 30s p95           | 99.0%              | Backend  |
+| App — initial load (LCP)   | `apps/app`, `apps/internal`                                 | ≤ 2.5s p75          | 99.0%              | Frontend |
+| App — INP                  | any interactive flow                                        | ≤ 200ms p75         | 99.0%              | Frontend |
+| App — CLS                  | any page                                                    | ≤ 0.1 p75           | 99.0%              | Frontend |
+| App — TTFB                 | first byte from Worker proxy                                | ≤ 800ms p75         | 99.0%              | Frontend |
+| App — error rate (Sentry)  | unhandled exceptions                                        | ≤ 0.1% sessions     | 99.9%              | Frontend |
+| App — offline / PWA        | static asset hit (Worker cache)                             | 99.5%               | 99.5%              | Frontend |
 
 **Where these are enforced**:
 
 - API latency: `pnpm check:api-latency-budget` (new in P5.9, see
   [`POST_CUTOVER_GAPS.md` §4](../analysis/POST_CUTOVER_GAPS.md))
-- Bundle size: `pnpm check:route-budgets` (Vite-aware, dist/assets scan)
+- Bundle size: `pnpm perf:route-budgets` (Vite-aware, dist/assets scan)
 - Worker bundle: `pnpm check:worker-size` (must emit `index.js`, not
   `worker.js`)
 - Web Vitals: `pnpm check:web-vitals` (P5.8)
-- Uptime: Datadog synthetic monitor (`pnpm monitor:synthetic`)
+- Uptime sampling: GitHub Actions (`pnpm monitor:synthetic`, three daily runs).
+  Minute-level uptime and Datadog alerting are not verified by this runner.
 
 **Quarterly budget burn**: 0.5% of the budget is "spent" per SLO breach
 exceeding 5 minutes; breaches shorter than 5 min are noise. If burn rate
@@ -57,12 +93,12 @@ Each SLO has an error budget: `1 - target`. E.g. 99.9% availability allows
 ~43 minutes of downtime per month. When the budget is exhausted, releases
 that don't demonstrably fix the breach are paused.
 
-| SLO class           | Budget per 30 days | Fast-burn alert (>2x in 1h) | Slow-burn alert (>1x in 24h) |
-| ------------------- | ----------------- | -------------------------- | --------------------------- |
-| API availability    | 43m 50s           | Yes → page                 | Yes → ticket                |
-| API latency p95     | 50% of 200ms = 100ms headroom | Yes → page         | Yes → ticket                |
-| App LCP p75         | 0.5s headroom     | Yes → page                 | Yes → ticket                |
-| App error rate      | 0.1% of sessions  | Yes → page                 | Yes → ticket                |
+| SLO class        | Budget per 30 days            | Fast-burn alert (>2x in 1h) | Slow-burn alert (>1x in 24h) |
+| ---------------- | ----------------------------- | --------------------------- | ---------------------------- |
+| API availability | 43m 50s                       | Yes → page                  | Yes → ticket                 |
+| API latency p95  | 50% of 200ms = 100ms headroom | Yes → page                  | Yes → ticket                 |
+| App LCP p75      | 0.5s headroom                 | Yes → page                  | Yes → ticket                 |
+| App error rate   | 0.1% of sessions              | Yes → page                  | Yes → ticket                 |
 
 **Pause rule**: if a single change burns >10% of any budget in 1h, the
 release is paused pending rollback decision (§5). The burn rate is computed
@@ -80,22 +116,22 @@ Every alert has:
 3. **Primary runbook** — the doc to open first.
 4. **Owner** — who gets paged.
 
-| Alert                              | SEV | Runbook                                                    | Owner    |
-| ---------------------------------- | --- | ---------------------------------------------------------- | -------- |
-| API 5xx > 0.5%                     | 1   | [`playbooks/db-connection-exhaustion.md`](../operations/playbooks/db-connection-exhaustion.md) (first guess) | Backend on-call |
-| API p95 > 1s for 5m                | 2   | [`RUNBOOKS.md`](../operations/RUNBOOKS.md) §"Slow API"    | Backend  |
-| Worker queue lag > 5m              | 2   | [`playbooks/pdf-queue-backlog.md`](../operations/playbooks/pdf-queue-backlog.md) | Backend  |
-| App LCP p75 > 4s for 30m           | 2   | `RUNBOOKS.md` §"Slow frontend"                              | Frontend |
-| App error rate > 0.5%              | 1   | Sentry project alert → triage in #incident-frontend         | Frontend |
-| Cloudflare 5xx > 1%                | 1   | [`playbooks/cloudflare-upstream-timeout.md`](../operations/playbooks/cloudflare-upstream-timeout.md) | Release eng |
-| Razorpay webhook failures > 1%     | 1   | [`playbooks/razorpay-outage.md`](../operations/playbooks/razorpay-outage.md) | Backend  |
-| OpenAI rate limit                  | 2   | [`playbooks/openai-rate-limit.md`](../operations/playbooks/openai-rate-limit.md) | Backend  |
-| Postgres connections > 80%         | 1   | [`playbooks/db-connection-exhaustion.md`](../operations/playbooks/db-connection-exhaustion.md) | Backend  |
-| Sentry scrubber regression         | 1   | `check:sentry-scrubbing` + `check:sentry-scrubber-parity`   | Backend  |
-| Audit log write failure            | 1   | `RUNBOOKS.md` §"Audit gap" (PHI implication)               | Backend  |
-| PHI read without audit             | 1   | `check:phi-read-audit` (static) + runtime alert on missing `VIEW_*` event | Compliance |
-| Webhook signature fail > 5%        | 1   | `RUNBOOKS.md` §"Webhook integrity"                          | Backend  |
-| RLS policy change                  | 1   | [`RLS_ROLLOUT.md`](../compliance/RLS_ROLLOUT.md)            | Backend  |
+| Alert                          | SEV | Runbook                                                                                                      | Owner           |
+| ------------------------------ | --- | ------------------------------------------------------------------------------------------------------------ | --------------- |
+| API 5xx > 0.5%                 | 1   | [`playbooks/db-connection-exhaustion.md`](../operations/playbooks/db-connection-exhaustion.md) (first guess) | Backend on-call |
+| API p95 > 1s for 5m            | 2   | [`RUNBOOKS.md`](../operations/RUNBOOKS.md) §"Slow API"                                                       | Backend         |
+| Worker queue lag > 5m          | 2   | [`playbooks/pdf-queue-backlog.md`](../operations/playbooks/pdf-queue-backlog.md)                             | Backend         |
+| App LCP p75 > 4s for 30m       | 2   | `RUNBOOKS.md` §"Slow frontend"                                                                               | Frontend        |
+| App error rate > 0.5%          | 1   | Sentry project alert → triage in #incident-frontend                                                          | Frontend        |
+| Cloudflare 5xx > 1%            | 1   | [`playbooks/cloudflare-upstream-timeout.md`](../operations/playbooks/cloudflare-upstream-timeout.md)         | Release eng     |
+| Razorpay webhook failures > 1% | 1   | [`playbooks/razorpay-outage.md`](../operations/playbooks/razorpay-outage.md)                                 | Backend         |
+| OpenAI rate limit              | 2   | [`playbooks/openai-rate-limit.md`](../operations/playbooks/openai-rate-limit.md)                             | Backend         |
+| Postgres connections > 80%     | 1   | [`playbooks/db-connection-exhaustion.md`](../operations/playbooks/db-connection-exhaustion.md)               | Backend         |
+| Sentry scrubber regression     | 1   | `check:sentry-scrubbing` + `check:sentry-scrubber-parity`                                                    | Backend         |
+| Audit log write failure        | 1   | `RUNBOOKS.md` §"Audit gap" (PHI implication)                                                                 | Backend         |
+| PHI read without audit         | 1   | `check:phi-read-audit` (static) + runtime alert on missing `VIEW_*` event                                    | Compliance      |
+| Webhook signature fail > 5%    | 1   | `RUNBOOKS.md` §"Webhook integrity"                                                                           | Backend         |
+| RLS policy change              | 1   | [`RLS_ROLLOUT.md`](../compliance/RLS_ROLLOUT.md)                                                             | Backend         |
 
 ---
 
@@ -108,11 +144,13 @@ current `main` HEAD:
    (lint, types, tests, contracts, security, accessibility, performance
    budgets, hygiene).
 2. **Unit tests** — `pnpm --filter @docita/api test` (3000+), `pnpm --filter
-   @docita/app test` (697+), `pnpm --filter @docita/internal
-   test` (48+).
+@docita/app test` (697+), `pnpm --filter @docita/internal
+test` (48+).
 3. **E2E** — `pnpm --filter @docita/api run test:e2e` (23 suites, 143+ tests).
-4. **Cloudflare build** — `pnpm build:cloudflare:production` for the touched
-   apps.
+4. **Cloudflare build** — run the production Cloudflare build for each
+   touched app (`pnpm --filter @docita/app run build:cloudflare`, or the
+   same with `@docita/internal` / `@docita/landing`) before deployment;
+   CI enforces the same builds (jobs: §7.8).
 5. **Staging smoke** — `pnpm monitor:synthetic` (5 probes).
 6. **Dependency audit** — `pnpm audit --audit-level=high` exits 0.
 7. **Migration reversibility** — `pnpm check:migration-reversibility` for any
@@ -129,35 +167,44 @@ The release evidence index is in
 
 Every release PR must include a rollback section:
 
-- **API**: `fly releases rollback` (Fly.io keeps the previous machine
-  image). The previous deploy SHA is recorded in the release evidence
-  checklist.
-- **Worker**: same as API, scoped to `apps/worker/fly.toml`.
-- **Web apps**: `wrangler rollback` (Cloudflare Pages) — instant, no
-  rebuild. Migrations: `pnpm --filter @workspace/db run db:migrate:down`
-  (only for reversible migrations; irreversible migrations require a
-  forward fix).
-- **DB migration rollback**: every Prisma migration ships with a tested
-  `down.sql`. `pnpm check:migration-reversibility` enforces this.
+- **API**: select a known-good recorded image and verify current schema/config
+  compatibility, then run `pnpm rollback:fly --config fly.toml --image "$RECORDED_API_IMAGE"`.
+- **Worker**: apply the same check to its own image, then run
+  `pnpm rollback:fly --config apps/worker/fly.toml --image "$RECORDED_WORKER_IMAGE"`.
+  The helper reads app/region, preserves API blue-green versus worker rolling
+  strategy, and skips release commands. Config/secrets stay current.
+- **Web apps**: select an explicit known-good Worker version using the affected
+  workspace's Wrangler config/environment, or use dashboard deployment recovery.
+  These are Cloudflare Workers with Static Assets, not Pages. Commands and
+  asset/binding checks live in [DEPLOYMENT.md](DEPLOYMENT.md#frontend-cloudflare-workers).
+- **Database**: prefer a reviewed additive forward correction. A migration
+  reversibility check or historical `down.sql` is not authorization or evidence
+  that automatic schema reversal is safe in production.
+- **Secrets**: keep values in protected custody; record only variable names
+  and version references, following [SECRET_ROTATION_CHECKLIST.md](SECRET_ROTATION_CHECKLIST.md).
 
-The release evidence checklist records: SHA, deploy time, rollback command,
-rollback target, on-call contact.
+The release evidence checklist records SHA, deploy time, executed recovery
+command, selected image/Worker version, config revision, compatibility evidence,
+health/alert results and on-call contact. Do not close an incident from a deploy
+success message alone.
 
 ---
 
-## 6. Capacity & growth
+## 6. Capacity and spending boundary
 
-- **DB**: t4g.micro today (~100 connections; ~30% headroom at current
-  load). Plan: t4g.small at 2× connection count, RDS proxy at 3×.
-  Tracked in [`COST_ANALYSIS.md`](../analysis/COST_ANALYSIS.md).
-- **API**: Fly.io 2 GB shared-cpu-1x, scale-out on CPU > 70% for 5m. Current
-  baseline: 0.3 vCPU avg. Headroom: ~6×.
-- **Worker**: 512 MB, scale-out on queue lag > 60s. Current: 0 idle. Plan:
-  2× at 2× queue lag.
-- **R2**: pay-as-you-go; no headroom needed; lifecycle rule expires PHI
-  uploads at 90 days per DPDP_READINESS.
-- **Cloudflare**: no hard cap; the constraint is route-budgets (P5.4c) and
-  Worker size (≤ 1 MB compressed, current ~9 KB).
+Use the verified inventory and spending limits in
+[ZERO_HOSTING_SPEND.md](ZERO_HOSTING_SPEND.md). Production uses Neon Free, two
+retained stopped Fly machines and Cloudflare/R2. Render staging is suspended.
+There is no verified autoscaling or measured live headroom in this maintenance
+state. Before restart, measure the reviewed candidate within the operator's
+spending constraints; do not apply historical RDS or larger-instance proposals.
+
+R2 storage and operations must remain within included allowances; its budget
+alert is not a hard cap. Do not apply an assumed 90-day PHI expiry rule. The
+[backup policy](ENCRYPTED_DATABASE_BACKUPS.md) and
+[lifecycle decision](../architecture/decisions/0016-patient-data-lifecycle-and-recovery.md)
+define the approved backup retention and restore quarantine boundary. Clinical
+document retention is a separate data-class decision.
 
 ---
 
@@ -178,9 +225,10 @@ check flags the obvious shape (`for (const x of rows) await fetch(y)`).
 **Symptom**: app LCP p75 spikes when clinicians navigate quickly between
 patients.
 
-**Fix**: profile with React DevTools; tune `staleTime` / `gcTime` on the
-query key factory. Already audited in P4.5; the live numbers are in
-[`PERFORMANCE_ANALYSIS.md`](../analysis/PERFORMANCE_ANALYSIS.md).
+**Fix**: profile with React DevTools and tune `staleTime` / `gcTime` on the
+query key factory. Record measured results in the
+[release evidence](RELEASE_EVIDENCE_CHECKLIST.md); historical audit claims do not
+establish current live performance.
 
 **Owner**: Frontend. **Detection**: post-release monitor.
 
@@ -248,8 +296,13 @@ rationale and a test.
 **Symptom**: `pnpm check:worker-size` starts failing because a new
 dependency bloats the Worker.
 
-**Fix**: `check:worker-size` (10 KB budget) wired to `verify:standard`.
-Three known offenders (preact, aws-sdk, sharp) are documented in
+**Fix**: `check:worker-size` enforces a 3584 KB gzip budget per Worker
+bundle and chains `app` + `internal` + `landing`. The `app-quality` /
+`internal-quality` / `landing-quality` jobs are where CI runs all of it:
+the `build:cloudflare` builds (§4 item 4) and the per-app caps via
+`check:worker-size:app` / `:internal` / `:landing` (not
+`verify:standard`). Three known offenders (preact, aws-sdk, sharp) are
+documented in
 [`worker-bundle-pre-existing-overage.md`](../operations/worker-bundle-pre-existing-overage.md).
 
 **Owner**: Frontend. **Detection**: CI.
@@ -272,8 +325,8 @@ Every quarter, refresh:
    90 days.
 
 Output: a 2-page report in `docs/audits/<date>-quarterly-stability.md`. The
-report is referenced from [`EXECUTION_PLAN.md`](../analysis/EXECUTION_PLAN.md)
-and triggers a P5.x refresh.
+report is referenced from the [stability plan](../superpowers/plans/2026-10-13-two-month-stability.md)
+and updates the corresponding operating gates.
 
 ---
 

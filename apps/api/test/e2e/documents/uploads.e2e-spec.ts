@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { BadRequestException, INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import cookieParser from 'cookie-parser';
@@ -13,6 +13,11 @@ import {
 } from '../../setup';
 import { factories, setPrismaInstance } from '../../factories';
 import { expectMatchesSchema } from '../../contract-assertions';
+import { UploadsCommandService } from '@/domains/documents/application/services/uploads-command.service';
+import {
+  StorageProvider,
+  type StorageFile,
+} from '@/domains/documents/application/ports/storage-provider.port';
 import { getCsrfHeaders } from '../../csrf-helpers';
 import {
   uploadSessionContractResponseSchema,
@@ -187,6 +192,113 @@ describe('Upload sessions (e2e)', () => {
       },
       400,
     );
+  });
+
+  it('elects exactly one winner when two uploads race for the same link', async () => {
+    const { id, uploadSecret } = await createSession();
+
+    const [first, second] = await Promise.all([
+      uploadWithSecret({
+        id,
+        uploadSecret,
+        buffer: VALID_PNG_BUFFER,
+        filename: 'race-a.png',
+        contentType: 'image/png',
+      }),
+      uploadWithSecret({
+        id,
+        uploadSecret,
+        buffer: VALID_PNG_BUFFER,
+        filename: 'race-b.png',
+        contentType: 'image/png',
+      }),
+    ]);
+
+    // The conditional single-use claim must serialize the race: one 201 and
+    // one controlled 400, never two published files.
+    expect([first.status, second.status].sort((a, b) => a - b)).toEqual([
+      201, 400,
+    ]);
+
+    const session = await request(app.getHttpServer())
+      .get(`/uploads/session/${id}`)
+      .set('Authorization', `Bearer ${doctorToken}`)
+      .expect(200);
+
+    expect(session.body.status).toBe('uploaded');
+    expect(session.body.fileUrl).toMatch(/^\/uploads\/documents\//);
+  });
+
+  it('serializes concurrent uploads for one link at the claim (barrier race)', async () => {
+    const uploads = app.get(UploadsCommandService);
+    const storage = app.get(StorageProvider);
+    const session = await uploads.createSession();
+
+    // Hold both requests after validation but before the claim, so the race
+    // deterministically reaches the conditional UPDATE instead of depending
+    // on scheduler timing.
+    let arrived = 0;
+    let releaseGate: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      releaseGate = resolve;
+    });
+    let uploadCount = 0;
+    const uploadSpy = jest
+      .spyOn(storage, 'upload')
+      .mockImplementation(async () => {
+        uploadCount += 1;
+        const objectUrl = `/stored/race-${uploadCount}.png`;
+        arrived += 1;
+        if (arrived === 2) releaseGate();
+        await gate;
+        return objectUrl;
+      });
+    const deleteSpy = jest
+      .spyOn(storage, 'delete')
+      .mockResolvedValue(undefined);
+
+    const file: StorageFile = {
+      fieldname: 'file',
+      originalname: 'race.png',
+      encoding: '7bit',
+      mimetype: 'image/png',
+      size: 10,
+      buffer: Buffer.from('x'),
+    };
+
+    const results = await Promise.allSettled([
+      uploads.updateSession(session.id, file, {
+        uploadSecret: session.uploadSecret,
+      }),
+      uploads.updateSession(session.id, file, {
+        uploadSecret: session.uploadSecret,
+      }),
+    ]);
+
+    try {
+      const fulfilled = results.filter(
+        (result) => result.status === 'fulfilled',
+      );
+      const rejected = results.filter((result) => result.status === 'rejected');
+
+      expect(fulfilled).toHaveLength(1);
+      expect(rejected).toHaveLength(1);
+      if (rejected[0].status === 'rejected') {
+        expect(rejected[0].reason).toBeInstanceOf(BadRequestException);
+      }
+
+      // The loser removes the object it uploaded before failing.
+      expect(deleteSpy).toHaveBeenCalledTimes(1);
+
+      const row = await prisma.uploadSession.findUnique({
+        where: { id: session.id },
+      });
+      expect(row?.status).toBe('uploaded');
+      expect(row?.fileUrl).toMatch(/^\/stored\/race-/);
+    } finally {
+      uploadSpy.mockRestore();
+      deleteSpy.mockRestore();
+    }
   });
 
   it('rejects an upload with an invalid secret with 401', async () => {

@@ -5,6 +5,7 @@ import {
   clinicTypeSchema as importedClinicTypeSchema,
   dayOfWeekSchema,
   facilityTypeSchema as importedFacilityTypeSchema,
+  onboardingCheckoutResponseSchema,
   onboardingTrialEligibilityResponseSchema,
 } from '@workspace/types';
 export { ClinicTier, PlanMode };
@@ -255,13 +256,6 @@ export const onboardingCheckoutSchema = z.object({
 export class OnboardingCheckoutDto extends createZodDto(
   onboardingCheckoutSchema,
 ) {}
-
-export const onboardingCheckoutResponseSchema = z.object({
-  orderId: z.string(),
-  amountCents: z.number().int(),
-  currency: z.string(),
-  razorpayKeyId: z.string(),
-});
 
 export class OnboardingCheckoutResponseDto extends createZodDto(
   onboardingCheckoutResponseSchema,

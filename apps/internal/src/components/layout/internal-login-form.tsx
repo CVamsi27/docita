@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, type LoginInput } from "@workspace/types";
+import { TurnstileWidget } from "@workspace/ui/components/form/turnstile-widget";
 import {
   Button,
   Card,
@@ -11,40 +15,53 @@ import {
 import { Eye, EyeOff } from "lucide-react";
 
 interface InternalLoginFormProps {
-  onLogin: (email: string, password: string) => Promise<void>;
+  onLogin: (credentials: LoginInput) => Promise<void>;
   loading: boolean;
 }
 
-export function InternalLoginForm({ onLogin, loading }: InternalLoginFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export function InternalLoginForm({
+  onLogin,
+  loading,
+}: InternalLoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{
-    email?: string;
-    password?: string;
-  }>({});
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const errors: { email?: string; password?: string } = {};
-
-    if (!email.trim()) {
-      errors.email = "Enter an email address";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = "Enter a valid email address";
-    }
-
-    if (!password.trim()) {
-      errors.password = "Enter a password";
-    }
-
-    setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) {
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState<string | null>(null);
+  const [challengeGeneration, setChallengeGeneration] = useState(0);
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    formState: { errors: fieldErrors },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+  const handleToken = useCallback((token: string) => {
+    setTurnstileToken(token);
+    setTurnstileError(null);
+  }, []);
+  const handleExpire = useCallback(() => setTurnstileToken(null), []);
+  const handleSubmit = handleFormSubmit(async (credentials) => {
+    if (loading) return;
+    if (siteKey && !turnstileToken) {
+      setTurnstileError(
+        "Please complete the security verification before signing in.",
+      );
       return;
     }
-
-    await onLogin(email, password);
-  };
+    try {
+      await onLogin({
+        ...credentials,
+        ...(turnstileToken ? { turnstileToken } : {}),
+      });
+    } finally {
+      // Verification precedes password validation, so every attempt consumes
+      // its proof, including a rejected password or an uncertain network result.
+      setTurnstileToken(null);
+      setTurnstileError(null);
+      setChallengeGeneration((generation) => generation + 1);
+    }
+  });
 
   return (
     <Card className="ui-card-surface">
@@ -60,21 +77,20 @@ export function InternalLoginForm({ onLogin, loading }: InternalLoginFormProps) 
             <Input
               type="email"
               placeholder="Email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (fieldErrors.email) {
-                  setFieldErrors((prev) => ({ ...prev, email: undefined }));
-                }
-              }}
+              {...register("email", {
+                setValueAs: (value: string) => value.trim(),
+              })}
               aria-invalid={!!fieldErrors.email}
               aria-describedby={
                 fieldErrors.email ? "admin-login-email-error" : undefined
               }
             />
             {fieldErrors.email && (
-              <p id="admin-login-email-error" className="text-sm text-destructive">
-                {fieldErrors.email}
+              <p
+                id="admin-login-email-error"
+                className="text-sm text-destructive"
+              >
+                {fieldErrors.email.message}
               </p>
             )}
           </div>
@@ -84,16 +100,7 @@ export function InternalLoginForm({ onLogin, loading }: InternalLoginFormProps) 
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (fieldErrors.password) {
-                    setFieldErrors((prev) => ({
-                      ...prev,
-                      password: undefined,
-                    }));
-                  }
-                }}
+                {...register("password")}
                 className="pr-10"
                 aria-invalid={!!fieldErrors.password}
                 aria-describedby={
@@ -126,10 +133,22 @@ export function InternalLoginForm({ onLogin, loading }: InternalLoginFormProps) 
                 id="admin-login-password-error"
                 className="text-sm text-destructive"
               >
-                {fieldErrors.password}
+                {fieldErrors.password.message}
               </p>
             )}
           </div>
+          <TurnstileWidget
+            key={challengeGeneration}
+            siteKey={siteKey}
+            onToken={handleToken}
+            onExpire={handleExpire}
+            className="flex w-full justify-center [&_iframe]:max-w-full"
+          />
+          {turnstileError && (
+            <p className="text-sm text-destructive" role="alert">
+              {turnstileError}
+            </p>
+          )}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Logging in…" : "Login"}
           </Button>

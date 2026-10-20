@@ -12,17 +12,46 @@
 # on a warm cache (workflow-script-refs reads ~10 small yml + manifests;
 # jsx-escape-literals is a single pass over ~1k tsx/jsx files; api-conformance
 # and route-shadowing are single passes over ~100 controller/module files;
-# openai-client-singleton is a single grep pass over api/worker src).
+# openai-client-singleton is a single grep pass over api/worker src;
+# utc-instant-storage parses the Prisma schema plus one regex pass over
+# tracked sources, ~200 ms; user-facing-copy is one regex pass over ~450 pure
+# .ts feature modules, measured at ~120 ms; enum-map-drift parses the Prisma
+# schema plus one regex pass over tracked sources, measured at ~140 ms;
+# unserved-endpoint parses every controller plus one pass over client
+# api helpers, measured at ~256 ms; script-name-refs parses manifest chains,
+# hooks and tracked markdown for `pnpm <script>` references, measured at
+# ~115 ms; inline-response-dto classifies 350
+# dependency-exceptions reads the canonical TOML/allowlist, measured <100 ms;
+# createZodDto call sites, measured at ~105 ms; internal-only-client-call
+# classifies the same 655 routes but also resolves each route's effective
+# @Roles, measured at ~330 ms; test-schema-duplication compares 6 helper schema
+# literals against 702 contract key sets, measured at ~180 ms).
+# Git fixture commands must discover their own repository and index from cwd.
+docita_git_env_names=$(git rev-parse --local-env-vars) || exit 1
+for docita_git_env_name in $docita_git_env_names; do
+  unset "$docita_git_env_name"
+done
+unset docita_git_env_names docita_git_env_name
+
 pnpm lint \
   && pnpm check:duplication \
   && pnpm check:standard-gate-wiring \
+  && pnpm check:dependency-exceptions \
   && pnpm check:api-conformance \
   && pnpm check:route-shadowing \
   && pnpm check:openai-client-singleton \
+  && pnpm check:utc-instant-storage \
   && pnpm check:workflow-script-refs \
+  && pnpm check:script-name-refs \
   && pnpm check:jsx-escape-literals \
   && pnpm check:button-primitive --enforce \
   && pnpm check:i18n-coverage --enforce \
+  && pnpm check:user-facing-copy --enforce \
+  && pnpm check:enum-map-drift --enforce \
+  && pnpm check:unserved-endpoint --enforce \
+  && pnpm check:inline-response-dto --enforce \
+  && pnpm check:internal-only-client-call --enforce \
+  && pnpm check:test-schema-duplication --enforce \
   && pnpm check:i18next-parity --enforce \
   && pnpm check:error-boundary-coverage --enforce \
   && pnpm check:zod-interface-parity --enforce \

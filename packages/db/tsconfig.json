@@ -9,6 +9,7 @@
     "declaration": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
+    "rewriteRelativeImportExtensions": true,
     "types": [
       "node",
       "pg"

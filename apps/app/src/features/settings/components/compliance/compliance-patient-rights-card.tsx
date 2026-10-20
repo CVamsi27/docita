@@ -35,7 +35,7 @@ export function PatientRightsCard({
   updateRequestMutation: { isPending: boolean };
   onLogRequest: () => void;
   onUpdateStatus: (id: string, status: DataSubjectRequestStatus) => void;
-  clinicId: string;
+  clinicId: string | null;
 }) {
   const { t } = useTranslation("Settings.patientRights");
   return (

@@ -138,6 +138,12 @@ describe('AppointmentRequestService', () => {
       status: AppointmentRequestStatus.APPROVED,
       reviewedById: 'user-1',
     });
+    appointmentRequestRepository.update.mockResolvedValue({
+      ...mockRequest,
+      status: AppointmentRequestStatus.APPROVED,
+      reviewedById: 'user-1',
+      responseMessage: 'Booked appointment appt-1',
+    });
 
     const result = await service.approveRequest(
       'request-1',
@@ -163,8 +169,13 @@ describe('AppointmentRequestService', () => {
         clinicId: 'clinic-1',
         status: AppointmentRequestStatus.APPROVED,
         reviewedById: 'user-1',
-        responseMessage: 'Booked appointment appt-1',
+        expectedStatus: AppointmentRequestStatus.PENDING,
       }),
+    );
+    expect(appointmentRequestRepository.update).toHaveBeenCalledWith(
+      'request-1',
+      'clinic-1',
+      { responseMessage: 'Booked appointment appt-1' },
     );
     expect(staffNotifications.notifyStaff).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -187,6 +198,11 @@ describe('AppointmentRequestService', () => {
     );
     appointmentService.createAppointment.mockResolvedValue({ id: 'appt-1' });
     appointmentRequestRepository.markReviewed.mockResolvedValue({
+      ...mockRequest,
+      status: AppointmentRequestStatus.APPROVED,
+      reviewedById: 'user-1',
+    });
+    appointmentRequestRepository.update.mockResolvedValue({
       ...mockRequest,
       status: AppointmentRequestStatus.APPROVED,
       reviewedById: 'user-1',
@@ -220,6 +236,12 @@ describe('AppointmentRequestService', () => {
       status: AppointmentRequestStatus.APPROVED,
       reviewedById: 'user-1',
     });
+    appointmentRequestRepository.update.mockResolvedValue({
+      ...mockRequest,
+      status: AppointmentRequestStatus.APPROVED,
+      reviewedById: 'user-1',
+      responseMessage: 'Booked appointment appt-existing',
+    });
 
     const result = await service.approveRequest(
       'request-1',
@@ -233,10 +255,10 @@ describe('AppointmentRequestService', () => {
     );
 
     expect(appointmentService.createAppointment).not.toHaveBeenCalled();
-    expect(appointmentRequestRepository.markReviewed).toHaveBeenCalledWith(
-      expect.objectContaining({
-        responseMessage: 'Booked appointment appt-existing',
-      }),
+    expect(appointmentRequestRepository.update).toHaveBeenCalledWith(
+      'request-1',
+      'clinic-1',
+      { responseMessage: 'Booked appointment appt-existing' },
     );
     expect(result.status).toBe(AppointmentRequestStatus.APPROVED);
   });

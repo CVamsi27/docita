@@ -4,6 +4,7 @@ import {
   ExecutionContext,
   CallHandler,
   Logger,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { Observable, throwError, timer } from 'rxjs';
 import { catchError, retryWhen, tap, mergeMap } from 'rxjs/operators';
@@ -51,12 +52,28 @@ export class PrismaRetryInterceptor implements NestInterceptor {
         ),
       ),
       catchError((error) => {
-        if (this.isTransientPrismaError(error)) {
-          this.logger.error(
-            `Transient Prisma error exhausted retries: ${error instanceof Error ? error.message : ''}`,
-          );
+        if (!this.isTransientPrismaError(error)) {
+          return throwError(() => error);
         }
-        return throwError(() => error);
+        this.logger.error(
+          `Transient Prisma error exhausted retries: ${error instanceof Error ? error.message : ''}`,
+        );
+        // A capacity/timeout failure that survived every retry is a dependency
+        // outage, not a defect in this request. Rethrowing the raw driver error
+        // made `resolveNativeError` answer 500 with the driver's own message
+        // (measured: pool exhaustion surfaces as pg's
+        // "timeout exceeded when trying to connect"), which tells the client
+        // "our bug" when the truth is "retry shortly". The driver error stays
+        // as the exception cause, so Sentry and the logs keep the chain while
+        // the response body carries only the stable contract.
+        throw new ServiceUnavailableException(
+          {
+            message:
+              'The service is temporarily unable to reach the database. Please retry.',
+            code: 'DATABASE_UNAVAILABLE',
+          },
+          { cause: error },
+        );
       }),
     );
   }

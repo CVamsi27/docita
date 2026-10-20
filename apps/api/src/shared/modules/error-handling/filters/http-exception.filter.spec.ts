@@ -1,4 +1,4 @@
-import { ArgumentsHost, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, HttpStatus, BadRequestException } from '@nestjs/common';
 import { AllExceptionsFilter } from './http-exception.filter';
 import {
   ConflictDomainError,
@@ -78,6 +78,31 @@ describe('AllExceptionsFilter domain errors', () => {
         status: HttpStatus.UNPROCESSABLE_ENTITY,
         detail: 'Start time must be before end time',
         errorType: 'InvariantViolationError',
+      }),
+    );
+  });
+});
+
+describe('AllExceptionsFilter appointment overlap contract', () => {
+  it('retains the typed overlap detail and start-time map through the production filter', () => {
+    const { host, response } = createHost();
+    new AllExceptionsFilter().catch(
+      new BadRequestException({
+        code: 'APPOINTMENT_OVERLAP',
+        detail: 'Doctor has conflicting appointment',
+        validationErrors: { startTime: 'Doctor has conflicting appointment' },
+      }),
+      host,
+    );
+    expect(response.status).toHaveBeenCalledWith(400);
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'about:blank',
+        title: 'Bad Request',
+        status: 400,
+        code: 'APPOINTMENT_OVERLAP',
+        detail: 'Doctor has conflicting appointment',
+        validationErrors: { startTime: 'Doctor has conflicting appointment' },
       }),
     );
   });

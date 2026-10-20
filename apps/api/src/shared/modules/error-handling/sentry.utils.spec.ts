@@ -6,6 +6,31 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { createSentryBeforeSend, shouldCaptureInSentry } from './sentry.utils';
 
 describe('sentry.utils', () => {
+  it('scrubs signed request and breadcrumb URLs before delivery', () => {
+    const beforeSend = createSentryBeforeSend();
+    const canary = 'synthetic-capability-canary';
+    const event: Parameters<typeof beforeSend>[0] = {
+      type: undefined,
+      request: {
+        url: `https://api.docita.work/api/v1/doctors/signature/upload/${canary}?signature=${canary}`,
+        query_string: `token=${canary}`,
+      },
+      breadcrumbs: [{ data: { url: `/reset-password?token=${canary}` } }],
+      exception: {
+        values: [
+          { type: 'Error', value: `Failed /upload-signature/${canary}` },
+        ],
+      },
+    };
+    const output = beforeSend(event, {
+      originalException: new Error('failure'),
+    });
+    expect(JSON.stringify(output)).not.toContain(canary);
+    expect(event.request?.url).toBe(
+      'https://api.docita.work/api/v1/doctors/signature/upload/[REDACTED]',
+    );
+  });
+
   it('skips handled client errors', () => {
     expect(shouldCaptureInSentry(new BadRequestException('bad request'))).toBe(
       false,

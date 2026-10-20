@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Badge } from "@workspace/ui/components/indicators/badge";
 import { PublicBookingTrustRow } from "./public-booking-trust-row";
 import { PublicBookingHowItWorksSheet } from "./booking-how-it-works";
@@ -12,6 +13,8 @@ export function PublicBookingHeroCompact({
   clinicName: string;
   facilityLabel: string;
 }) {
+  const { t } = useTranslation("PublicBooking");
+
   return (
     <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-border/50 bg-card shadow-sm">
       {/* Accent bar */}
@@ -28,7 +31,7 @@ export function PublicBookingHeroCompact({
         <div className="min-w-0 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/[0.08] px-2.5 py-0.5 text-[length:var(--fs-2xs)] font-semibold tracking-wide text-primary">
-              Online booking
+              {t("hero.onlineBooking")}
             </span>
             <Badge
               variant="secondary"
@@ -41,10 +44,7 @@ export function PublicBookingHeroCompact({
             {clinicName}
           </h1>
           <p className="flex flex-wrap items-center gap-2 text-[length:var(--fs-sm)] leading-relaxed text-muted-foreground">
-            <span>
-              Fill in the steps below to request a visit. Staff confirm before
-              it&apos;s final.
-            </span>
+            <span>{t("hero.description")}</span>
             <PublicBookingHowItWorksSheet appearance="inline" />
           </p>
         </div>

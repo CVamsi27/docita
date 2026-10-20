@@ -28,6 +28,11 @@ const NOTIFICATION_CLINIC_NAME_CURRENCY_SELECT = {
   currency: true,
 } as const;
 
+export const APPOINTMENT_NOTIFICATION_INCLUDE = {
+  patient: { select: NOTIFICATION_PATIENT_CONTACT_WITH_ID_SELECT },
+  clinic: { select: { name: true, timezone: true } },
+} as const;
+
 export const PRESCRIPTION_NOTIFICATION_INCLUDE = {
   patient: { select: NOTIFICATION_PATIENT_CONTACT_SELECT },
   doctor: { select: { name: true } },

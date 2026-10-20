@@ -2,11 +2,11 @@
 
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useState } from "react";
-import { Alert, AlertDescription, Calendar, Card, CardContent, CardHeader, MicroLabel, Separator } from "@workspace/ui/components";
+import { useTranslation } from "react-i18next";
+import { Alert, AlertDescription, Calendar, MicroLabel, Separator } from "@workspace/ui/components";
 import { formatDate, formatPickerIsoDate } from "@workspace/utils";
 import { PUBLIC_BOOKING_STEP_FIELD_FOCUS_IDS } from "@/features/public-booking/public-booking-constants";
-import { BookingSectionHeader } from "@/features/public-booking/public-booking-components";
-import { bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "@/features/public-booking/atoms/booking-constants";
+import { PublicBookingSectionCard } from "@/features/public-booking/public-booking-components";
 import { DoctorChips, DoctorTogglePicker } from "@/features/public-booking/atoms/doctor-picker";
 import { SlotGrid } from "@/features/public-booking/atoms/slot-grid";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
@@ -26,26 +26,17 @@ export function AppointmentDetailsSection({
   doctorPickerVariant?: "chips" | "toggle";
 }) {
   const [doctorPickerOpen, setDoctorPickerOpen] = useState(false);
+  const { t } = useTranslation("PublicBooking");
 
   return (
-    <Card
-      className={cn(bookingCardClass, bookingSectionShell, "flex flex-col")}
+    <PublicBookingSectionCard
+      icon={CalendarIcon}
+      micro={t("appointmentSection.micro")}
+      title={t("appointmentSection.title")}
+      description={t("appointmentSection.description")}
+      compactHeader={compactHeader}
+      contentClassName="flex min-h-0 flex-1 flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-6 sm:py-6 xl:gap-8"
     >
-      <CardHeader
-        className={cn(
-          bookingSectionHeaderBar,
-          compactHeader ? "py-3 sm:py-4" : "py-4 sm:py-5",
-        )}
-      >
-        <BookingSectionHeader
-          icon={CalendarIcon}
-          micro="Appointment"
-          title="Doctor, date, and time"
-          description="Select who you would like to see, pick a day, then tap an open slot that works for you."
-          variant={compactHeader ? "compact" : "full"}
-        />
-      </CardHeader>
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-6 sm:py-6 xl:gap-8">
         {doctorPickerVariant === "chips" ? (
           <DoctorChips c={c} />
         ) : (
@@ -66,7 +57,7 @@ export function AppointmentDetailsSection({
             className="flex flex-col gap-3 outline-none xl:h-full xl:min-h-0"
           >
             <MicroLabel as="p" className="mt-0">
-              Preferred day
+              {t("appointmentSection.preferredDay")}
               <span aria-hidden className="text-destructive">
                 {" "}
                 *
@@ -105,15 +96,16 @@ export function AppointmentDetailsSection({
             </div>
             <div className="rounded-[var(--radius-md)] border border-border/70 bg-muted/30 px-3 py-2.5 shadow-sm sm:px-3.5 sm:py-3">
               <p className="text-[length:var(--fs-sm)] leading-snug text-muted-foreground">
-                <span className="font-medium text-foreground">Selected</span>
+                <span className="font-medium text-foreground">
+                  {t("appointmentSection.selectedPrefix")}
+                </span>
                 {": "}
                 {c.selectedCalendarDay
                   ? formatDate(c.selectedCalendarDay, "EEE, d MMM yyyy")
-                  : "Tap a date on the calendar"}
+                  : t("appointmentSection.tapDate")}
               </p>
               <p className="mt-1 text-[length:var(--fs-xs)] leading-snug text-muted-foreground">
-                Pick a day now. The clinic will confirm the exact time after
-                approval.
+                {t("appointmentSection.pickDayHint")}
               </p>
               {c.submitFieldErrors.slotCalendarDate ? (
                 <p
@@ -133,7 +125,7 @@ export function AppointmentDetailsSection({
             className="flex min-h-0 flex-col gap-3 outline-none xl:h-full xl:min-h-0"
           >
             <MicroLabel as="p" className="mt-0 shrink-0">
-              Open times that day
+              {t("appointmentSection.openTimes")}
             </MicroLabel>
             {c.slotRangeSubmitError ? (
               <Alert
@@ -154,7 +146,6 @@ export function AppointmentDetailsSection({
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </PublicBookingSectionCard>
   );
 }

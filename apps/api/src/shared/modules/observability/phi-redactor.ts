@@ -9,9 +9,15 @@
  * any string that survives the field-name filter so embedded PHI inside
  * free-text fields (e.g. error messages, stack traces) is still redacted.
  *
- * Allow-listed safe fields are preserved verbatim — they are the columns the
+ * Allow-listed safe fields are preserved — they are the columns the
  * application needs to triage incidents (ids, timestamps, status codes).
  */
+
+import {
+  MONITORING_URL_FIELD_NAMES,
+  redactMonitoringUrl,
+  redactString as redactSharedString,
+} from '@workspace/utils';
 
 export const REDACTED = '[REDACTED]';
 
@@ -137,11 +143,6 @@ const SAFE_FIELD_NAMES: ReadonlySet<string> = new Set([
   'attempt',
 ]);
 
-const EMAIL_REGEX = /[\w.+-]+@[\w-]+\.[\w.-]+/g;
-const INDIAN_PHONE_FULL_REGEX = /^\s*(?:\+?91[-\s]?)?\d{10}\s*$/;
-const AADHAAR_REGEX = /\b\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/g;
-const PAN_REGEX = /\b[A-Z]{5}\d{4}[A-Z]\b/g;
-
 const MAX_DEPTH = 8;
 
 /**
@@ -178,7 +179,9 @@ function redactWithDepth(
     const out: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(value)) {
       const lower = key.toLowerCase();
-      if (SAFE_FIELD_NAMES.has(lower)) {
+      if (MONITORING_URL_FIELD_NAMES.has(lower) && typeof val === 'string') {
+        out[key] = redactMonitoringUrl(val);
+      } else if (SAFE_FIELD_NAMES.has(lower)) {
         out[key] = val;
       } else if (PHI_FIELD_NAMES.has(lower)) {
         out[key] = REDACTED;
@@ -193,31 +196,10 @@ function redactWithDepth(
 }
 
 /**
- * Redact PHI from a single string value. Handles the four declared value
- * patterns (Indian phone, email, Aadhaar, PAN). Returns the original string
- * verbatim if no pattern matches.
+ * Share URL and value-pattern scrubbing with client telemetry.
  */
 export function redactString(input: string): string {
-  if (input.length === 0) return input;
-
-  if (INDIAN_PHONE_FULL_REGEX.test(input)) {
-    return REDACTED;
-  }
-
-  let out = input;
-  if (EMAIL_REGEX.test(out)) {
-    EMAIL_REGEX.lastIndex = 0;
-    out = out.replace(EMAIL_REGEX, REDACTED);
-  }
-  if (AADHAAR_REGEX.test(out)) {
-    AADHAAR_REGEX.lastIndex = 0;
-    out = out.replace(AADHAAR_REGEX, REDACTED);
-  }
-  if (PAN_REGEX.test(out)) {
-    PAN_REGEX.lastIndex = 0;
-    out = out.replace(PAN_REGEX, REDACTED);
-  }
-  return out;
+  return redactSharedString(input);
 }
 
 /**

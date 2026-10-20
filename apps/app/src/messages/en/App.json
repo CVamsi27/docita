@@ -1,0 +1,13 @@
+{
+  "serverWarming": {
+    "apiTitle": "Server is warming up…",
+    "apiDescription": "The backend is starting from cold. This takes a few seconds — you'll be connected automatically.",
+    "databaseTitle": "Getting things ready…",
+    "databaseDescription": "The service is starting its database. This usually takes a few seconds — you'll be connected automatically.",
+    "offlineTitle": "You're offline",
+    "offlineDescription": "Check your internet connection. We'll reconnect automatically once you're back online.",
+    "retry": "Try again",
+    "checking": "Checking…",
+    "slowHint": "This is taking longer than usual. Try again, or check your connection."
+  }
+}

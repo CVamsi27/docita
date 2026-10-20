@@ -1,0 +1,99 @@
+name: Publish reviewed backup tooling
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: Full reviewed main commit SHA to publish
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: docita-backup-image-publication
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  publish:
+    if: >-
+      github.repository == 'CVamsi27/docita' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Verify reviewed source identity
+        env:
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != refs/heads/main || "$GITHUB_REPOSITORY" != CVamsi27/docita || "$GITHUB_EVENT_NAME" != workflow_dispatch || ! "$EXPECTED_COMMIT" =~ ^[a-f0-9]{40}$ || "$EXPECTED_COMMIT" != "$GITHUB_SHA" ]]; then
+            printf '%s\n' 'Publication requires the exact reviewed main commit.' >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Install pinned image scanner
+        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+        with:
+          version: v0.76.0
+          cache: false
+
+      - name: Publish minimal cycle image and inspect its registry digest
+        id: publish
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          registry_token=$GITHUB_TOKEN
+          unset GITHUB_TOKEN GH_TOKEN
+          export DOCKER_CONFIG
+          DOCKER_CONFIG=$(mktemp -d)
+          trap 'rm -rf -- "$DOCKER_CONFIG"' EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+          fail() { printf '%s\n' "$1" >&2; exit 1; }
+          package_api=/users/CVamsi27/packages/container/docita-backup
+          if visibility=$(GH_TOKEN="$registry_token" gh api "$package_api" --jq .visibility 2>"$DOCKER_CONFIG/package-query-error"); then
+            [[ "$visibility" == private ]] || fail 'Backup image package must remain private.'
+          else
+            grep -q 'HTTP 404' "$DOCKER_CONFIG/package-query-error" || fail 'Package visibility could not be verified.'
+          fi
+          image="ghcr.io/cvamsi27/docita-backup:sha-$GITHUB_SHA"
+          printf '%s' "$registry_token" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin >"$DOCKER_CONFIG/login.log" 2>&1 || fail 'Registry authentication failed.'
+          tar -C scripts/db -cf - \
+            backup.Dockerfile backup-database.mjs backup-database-role.mjs \
+            backup-environment.mjs backup-alerts.mjs check-backup-freshness.mjs \
+            run-backup-monitor.mjs run-backup-writer.mjs backup-job-lifecycle.mjs \
+            run-backup-cycle.mjs | \
+            docker build --platform linux/amd64 --target cycle \
+              --label org.opencontainers.image.source=https://github.com/CVamsi27/docita \
+              --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+              --tag "$image" --file backup.Dockerfile - >"$DOCKER_CONFIG/build.log" 2>&1 || fail 'Minimal backup image build failed.'
+          trivy image --config /dev/null --image-src docker --scanners vuln --pkg-types os,library \
+            --severity HIGH,CRITICAL --exit-code 1 --ignorefile /dev/null \
+            --format json --output "$DOCKER_CONFIG/trivy.json" \
+            "$image" >"$DOCKER_CONFIG/trivy.log" 2>&1 || fail 'Rebuilt backup image failed its vulnerability gate.'
+          docker push "$image" >"$DOCKER_CONFIG/push.log" 2>&1 || fail 'Backup image publication failed.'
+          manifest=$(docker buildx imagetools inspect "$image" --format '{{json .Manifest}}' 2>"$DOCKER_CONFIG/inspect.log") || fail 'Published registry manifest could not be inspected.'
+          digest=$(printf '%s' "$manifest" | jq -er '.digest') || fail 'Published registry digest is missing.'
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]] || fail 'Published registry digest is invalid.'
+          visibility=$(GH_TOKEN="$registry_token" gh api "$package_api" --jq .visibility 2>"$DOCKER_CONFIG/package-query-error") || fail 'Published package visibility could not be confirmed.'
+          [[ "$visibility" == private ]] || fail 'Published backup image package is not private.'
+          immutable="ghcr.io/cvamsi27/docita-backup@$digest"
+          printf 'image=%s\nsource_sha=%s\n' "$immutable" "$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          printf 'Reviewed source: `%s`\n\nRegistry image: `%s`\n\nPackage visibility: private. Production scheduling remains separately gated.\n' "$GITHUB_SHA" "$immutable" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Published private backup image %s from source %s.\n' "$immutable" "$GITHUB_SHA"

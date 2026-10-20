@@ -1,11 +1,13 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { AppointmentRequestStatus } from '@workspace/db';
+import { createHash } from 'crypto';
 import type {
   AppointmentRequestResponse,
   ApproveAppointmentRequest,
@@ -22,10 +24,34 @@ import {
   StaffNotificationService,
   type StaffNotificationPayload,
 } from '@/domains/whatsapp/application/services/staff-notification.service';
+import { isUniqueConstraintOn } from '@/shared/common/prisma/unique-constraint';
 import {
   mapAppointmentRequest,
   parseAppointmentRequestDate,
 } from './appointment-request.helpers';
+
+/**
+ * Identity of a held public-booking slot: one patient asking for one doctor at
+ * one time. A different patient asking for the same time gets its own key, so
+ * the hold can never be used to probe other patients' requests.
+ */
+function buildPendingSlotKey(input: {
+  clinicId: string;
+  patientId: string;
+  doctorId: string;
+  slotStart: Date;
+}): string {
+  return createHash('sha256')
+    .update(
+      [
+        input.clinicId,
+        input.patientId,
+        input.doctorId,
+        input.slotStart.toISOString(),
+      ].join('|'),
+    )
+    .digest('hex');
+}
 
 @Injectable()
 export class AppointmentRequestCommandService {
@@ -64,17 +90,57 @@ export class AppointmentRequestCommandService {
       preferredDate = requestedSlotStart;
     }
 
-    const request = await this.appointmentRequestRepository.create({
-      patientId,
-      clinicId,
-      preferredDoctorId: data.preferredDoctorId,
-      preferredDate,
-      preferredTime: data.preferredTime,
-      requestedSlotStart,
-      requestedSlotEnd,
-      reason: data.reason,
-      notes: data.notes,
-    });
+    // A public booking request is a candidate, not a booking: the clinic's
+    // approval is the final authorization. While it is pending it holds the
+    // slot it names, so a retried or double-tapped submission returns the
+    // original request instead of filing a second one for the same doctor and
+    // time. The unique index is the hard guarantee; the pre-check below only
+    // avoids the throw in the common case.
+    const pendingSlotKey =
+      requestedSlotStart && data.preferredDoctorId
+        ? buildPendingSlotKey({
+            clinicId,
+            patientId,
+            doctorId: data.preferredDoctorId,
+            slotStart: requestedSlotStart,
+          })
+        : undefined;
+
+    if (pendingSlotKey) {
+      const existing =
+        await this.appointmentRequestRepository.findPendingBySlotKey(
+          pendingSlotKey,
+        );
+      if (existing) return mapAppointmentRequest(existing);
+    }
+
+    let request: AppointmentRequestWithRelations;
+    try {
+      request = await this.appointmentRequestRepository.create({
+        patientId,
+        clinicId,
+        preferredDoctorId: data.preferredDoctorId,
+        preferredDate,
+        preferredTime: data.preferredTime,
+        requestedSlotStart,
+        requestedSlotEnd,
+        reason: data.reason,
+        notes: data.notes,
+        pendingSlotKey,
+      });
+    } catch (error) {
+      if (pendingSlotKey && isUniqueConstraintOn(error, 'pendingSlotKey')) {
+        // A concurrent submission won the index race. Both callers wanted the
+        // same doctor at the same time for the same patient, so the winner is
+        // this request: return it rather than failing the retry.
+        const winner =
+          await this.appointmentRequestRepository.findPendingBySlotKey(
+            pendingSlotKey,
+          );
+        if (winner) return mapAppointmentRequest(winner);
+      }
+      throw error;
+    }
 
     await this.notifyStaffBestEffort({
       clinicId,
@@ -109,6 +175,24 @@ export class AppointmentRequestCommandService {
     await this.assertDoctorBelongsToClinic(data.doctorId, clinicId);
     const startTime = parseAppointmentRequestDate(data.startTime, 'Start time');
     const endTime = parseAppointmentRequestDate(data.endTime, 'End time');
+
+    // Claim the request before booking so a concurrent second approval (or an
+    // approve/reject race) loses here as a no-op instead of creating a
+    // duplicate appointment.
+    const claimed = await this.appointmentRequestRepository.markReviewed({
+      id,
+      clinicId,
+      status: AppointmentRequestStatus.APPROVED,
+      reviewedById,
+      responseMessage: '',
+      expectedStatus: AppointmentRequestStatus.PENDING,
+    });
+    if (!claimed) {
+      throw new ConflictException(
+        'Appointment request was already reviewed by someone else',
+      );
+    }
+
     const appointmentReason = data.notes ?? request.notes ?? request.reason;
     const appointment =
       await this.appointmentRequestRepository.findMatchingAppointment({
@@ -133,13 +217,13 @@ export class AppointmentRequestCommandService {
           type: data.type ?? 'Standard',
         })
       ).id;
-    const updated = await this.appointmentRequestRepository.markReviewed({
+    const updated = await this.appointmentRequestRepository.update(
       id,
       clinicId,
-      status: AppointmentRequestStatus.APPROVED,
-      reviewedById,
-      responseMessage: `Booked appointment ${appointmentId}`,
-    });
+      {
+        responseMessage: `Booked appointment ${appointmentId}`,
+      },
+    );
     await this.notifyStaffBestEffort({
       clinicId,
       doctorId: data.doctorId,
@@ -171,7 +255,13 @@ export class AppointmentRequestCommandService {
       status: AppointmentRequestStatus.REJECTED,
       reviewedById,
       responseMessage: data.responseMessage,
+      expectedStatus: AppointmentRequestStatus.PENDING,
     });
+    if (!updated) {
+      throw new ConflictException(
+        'Appointment request was already reviewed by someone else',
+      );
+    }
 
     await this.notifyStaffBestEffort({
       clinicId,

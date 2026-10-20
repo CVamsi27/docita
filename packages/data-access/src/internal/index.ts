@@ -9,24 +9,7 @@ export * from "./monitoring.types";
 export * from "./pricing.types";
 export * from "./logs.types";
 export * from "./users.types";
-export * from "./hooks/use-internal-admins";
-export * from "./hooks/use-internal-analytics";
-export * from "./hooks/use-internal-audit-logs";
-export * from "./hooks/use-internal-broadcasts";
-export * from "./hooks/use-internal-billing";
-export * from "./hooks/use-internal-clinics";
-export * from "./hooks/use-internal-doctors";
-export * from "./hooks/use-internal-enterprise-contracts";
 export * from "./referrals.types";
-export * from "./hooks/use-internal-referrals";
-export * from "./hooks/use-internal-dashboard";
-export * from "./hooks/use-internal-logs";
-export * from "./hooks/use-internal-pricing";
-export * from "./hooks/use-internal-feedback";
-export * from "./hooks/use-internal-monitoring";
-export * from "./hooks/use-internal-support";
-export * from "./hooks/use-internal-support-inquiries";
-export * from "./hooks/use-internal-users";
 export { normalizeClinicsList } from "./lib/normalize-clinics-list";
 export {
   loadInternalClinicUsers,

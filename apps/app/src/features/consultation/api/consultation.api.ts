@@ -1,8 +1,17 @@
-import { api, apiFetch } from "@/lib/api/api-client";
-import type { UpdateAppointmentRequest, VitalSign } from "@workspace/types";
+import { api } from "@/lib/api/api-client";
+import type {
+  QueuePatient,
+  QueueTokenStatus,
+  QueueTokenType,
+  TodayQueueResponse,
+  UpdateAppointmentRequest,
+  VitalSign,
+} from "@workspace/types";
 import {
   appointmentResponseSchema,
+  queueListResponseSchema,
   startConsultationResponseSchema,
+  todayQueueResponseSchema,
   updateAppointmentRequestSchema,
   vitalSignSchema,
 } from "@workspace/types";
@@ -38,26 +47,28 @@ export const consultationApi = {
     api.patch(`/appointments/${appointmentId}`, { status: "completed" }),
 };
 
+/**
+ * The doctor now/next and nurse prep panels both render queue rows. The row is
+ * a projection, not a wire shape: `GET /queue` nests `chiefComplaint` and
+ * `type` under `appointment` while `GET /queue/today` flattens them, so both are
+ * normalized here and the sections read a single field.
+ */
 export interface ConsultationQueueRow {
   id: string;
-  appointmentId?: string | null;
-  patientId?: string | null;
+  appointmentId: string | null;
+  patientId: string | null;
   patientName: string;
-  status: string;
-  startTime?: string | null;
-  chiefComplaint?: string | null;
-  type?: string | null;
-  tokenNumber?: number;
-  tokenType?: string;
-  visitSummary?: string | null;
-  invoice?: { status?: string | null } | null;
-  kind?: "appointment" | "queue";
-  createdAt?: string;
-  patient?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
+  status: QueueTokenStatus;
+  startTime: string | null;
+  chiefComplaint: string | null;
+  type: string | null;
+  tokenNumber: number;
+  tokenType: QueueTokenType;
+  /** Chief complaint, else visit type, else token type — see `getOpdQueueSummaryLine`. */
+  visitSummary: string;
+  kind: "appointment" | "queue";
+  createdAt: string;
+  patient: QueuePatient;
 }
 
 export interface ConsultationDashboardStats {
@@ -73,12 +84,32 @@ export interface ConsultationDoctorNextNow {
   combinedUpcoming: ConsultationQueueRow[];
 }
 
+/**
+ * Queue endpoints are served by `QueueController` at `/queue`. The previous
+ * `/consultation/*` paths matched no controller at all — there is no
+ * `@Controller('consultation')` — so this dashboard, which backs the live
+ * `/consultation` route, could only ever render its error state.
+ * `consultation-dashboard-endpoints.test.ts` pins the paths.
+ *
+ * Responses are parsed with the shared `queueListResponseSchema` /
+ * `todayQueueResponseSchema`, so server drift fails loudly here instead of
+ * silently reshaping rows downstream.
+ *
+ * No `doctorId` is sent: `QueueController` already forces a doctor onto their
+ * own queue via `resolveDoctorScopedAppointmentFilter`, while clinic-wide roles
+ * (nurse, receptionist, admin) get the whole clinic. Passing the current user
+ * id would filter a nurse's queue down to tokens assigned to that nurse, which
+ * is never what the dashboard wants.
+ */
 export const consultationDashboardApi = {
-  getStats: () =>
-    apiFetch<ConsultationDashboardStats>("/consultation/stats"),
-  getQueue: () => apiFetch<ConsultationQueueRow[]>("/consultation/queue"),
-  getDoctorNextNow: (doctorId: string) =>
-    apiFetch<ConsultationDoctorNextNow>(`/consultation/doctor-next/${doctorId}`),
+  /** The day's full queue; the rollup carries the dashboard counters. */
+  getToday: (): Promise<TodayQueueResponse> =>
+    api.validate("/queue/today", todayQueueResponseSchema),
+
+  /** Active queue only (WAITING + IN_PROGRESS). */
+  getQueue: () => api.validate("/queue", queueListResponseSchema),
+
+  /** Starting a consultation is an appointment transition. */
   start: (appointmentId: string) =>
-    apiFetch(`/consultation/start/${appointmentId}`, { method: "POST" }),
+    consultationApi.create({ appointmentId }),
 };

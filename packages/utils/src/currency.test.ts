@@ -63,6 +63,43 @@ describe("currency utilities", () => {
     ).toBe("$1,235");
   });
 
+  it("supports independent min/max fraction digits (whole-rupee display)", () => {
+    // The internal ops portal shows whole rupees (min 0 / max 2) — the
+    // legacy Intl default would force "₹1,500.00".
+    expect(
+      formatCurrency(1500, {
+        currency: "INR",
+        minFractionDigits: 0,
+        maxFractionDigits: 2,
+      }),
+    ).toBe("₹1,500");
+    expect(
+      formatCurrency(1500.5, {
+        currency: "INR",
+        minFractionDigits: 0,
+        maxFractionDigits: 2,
+      }),
+    ).toBe("₹1,500.5");
+    expect(
+      formatCurrency(100000, {
+        currency: "INR",
+        minFractionDigits: 0,
+        maxFractionDigits: 2,
+      }),
+    ).toBe("₹1,00,000");
+  });
+
+  it("lets fractionDigits win over the independent min/max pair", () => {
+    expect(
+      formatCurrency(1500, {
+        currency: "INR",
+        fractionDigits: 0,
+        minFractionDigits: 2,
+        maxFractionDigits: 2,
+      }),
+    ).toBe("₹1,500");
+  });
+
   describe("formatCompactCurrency", () => {
     it("uses the regular currency formatter for sub-1K values", () => {
       // The analytics card shows "₹0.00" for clinics with no revenue, not

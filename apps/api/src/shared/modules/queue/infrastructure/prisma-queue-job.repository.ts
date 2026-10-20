@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '@/prisma/prisma.service';
 import type {
+  QueueJobClaimTransition,
+  QueueJobExecutionRecord,
   QueueJobRepository,
   QueueJobRow,
 } from '@/shared/modules/queue/ports/queue-job.repository.port';
@@ -20,7 +23,7 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
     query: () => Promise<T[]>,
   ): Promise<T[]> {
     // RLS-BYPASS: background queue workers run without per-request clinic session
-    return (await this.prisma.runUnrestricted(query)) ?? [];
+    return (await this.prisma.runUnrestricted(async () => query())) ?? [];
   }
 
   async findRecentCompletedByIdempotency(
@@ -44,12 +47,21 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
     return rows[0] ?? null;
   }
 
+  /**
+   * Claims one waiting job and stamps a fresh claim token on it. The token is
+   * what later fences this worker's acknowledgment to this claim, so a job
+   * whose lease is reclaimed carries a different token for its new owner.
+   */
   async claimNextWaitingJob(name: string): Promise<QueueJobRow[]> {
+    const claimToken = randomUUID();
     return this.runUnrestrictedRows(
       () =>
         this.prisma.$queryRaw<QueueJobRow[]>`
         UPDATE "QueueJob"
-        SET status = 'ACTIVE', "processedAt" = NOW(), "updatedAt" = NOW()
+        SET status = 'ACTIVE',
+            "processedAt" = NOW(),
+            "claimToken" = ${claimToken},
+            "updatedAt" = NOW()
         WHERE id = (
           SELECT id FROM "QueueJob"
           WHERE name = ${name}
@@ -64,25 +76,56 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
     );
   }
 
+  async applyClaimTransition(
+    id: string,
+    claimToken: string,
+    data: QueueJobClaimTransition,
+  ): Promise<boolean> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
+    const rows = await this.prisma.runUnrestricted(
+      async () =>
+        this.prisma.$queryRaw<Array<{ id: string }>>`
+        UPDATE "QueueJob"
+        SET status = ${data.status}::"QueueJobStatus",
+            "completedAt" = ${data.completedAt ?? null},
+            "deadLetteredAt" = ${data.deadLetteredAt ?? null},
+            "failedReason" = ${data.failedReason ?? null},
+            "attemptsMade" = COALESCE(${data.attemptsMade ?? null},
+                                       "attemptsMade"),
+            "delayedUntil" = ${data.delayedUntil ?? null},
+            "claimToken" = NULL,
+            "updatedAt" = NOW()
+        WHERE id = ${id}
+          AND "claimToken" = ${claimToken}
+          AND status = 'ACTIVE'
+        RETURNING id
+      `,
+    );
+    return rows.length === 1;
+  }
+
   async recoverStaleActiveToDelayed(
     name: string,
     staleBefore: Date,
     delayedUntil: Date,
-  ): Promise<Array<{ id: string }>> {
+  ): Promise<QueueJobRow[]> {
+    // Releasing the claim token is what fences the previous worker out: its
+    // in-flight acknowledgment will no longer match (id, claimToken).
     return this.runUnrestrictedRows(
       () =>
-        this.prisma.$queryRaw<Array<{ id: string }>>`
+        this.prisma.$queryRaw<QueueJobRow[]>`
         UPDATE "QueueJob"
         SET status = 'DELAYED',
             "attemptsMade" = "attemptsMade" + 1,
             "failedReason" = NULL,
             "delayedUntil" = ${delayedUntil},
+            "claimToken" = NULL,
             "updatedAt" = NOW()
         WHERE name = ${name}
           AND status = 'ACTIVE'
           AND "processedAt" < ${staleBefore}
           AND "attemptsMade" < "maxAttempts"
-        RETURNING id
+        RETURNING *
       `,
     );
   }
@@ -90,19 +133,20 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
   async recoverStaleActiveToFailed(
     name: string,
     staleBefore: Date,
-  ): Promise<Array<{ id: string }>> {
+  ): Promise<QueueJobRow[]> {
     return this.runUnrestrictedRows(
       () =>
-        this.prisma.$queryRaw<Array<{ id: string }>>`
+        this.prisma.$queryRaw<QueueJobRow[]>`
         UPDATE "QueueJob"
         SET status = 'FAILED',
             "failedReason" = 'Recovered stale ACTIVE job after timeout',
+            "claimToken" = NULL,
             "updatedAt" = NOW()
         WHERE name = ${name}
           AND status = 'ACTIVE'
           AND "processedAt" < ${staleBefore}
           AND "attemptsMade" >= "maxAttempts"
-        RETURNING id
+        RETURNING *
       `,
     );
   }
@@ -130,6 +174,33 @@ export class PrismaQueueJobRepository implements QueueJobRepository {
           WHERE name = ${name}
           GROUP BY status
         `,
+    );
+  }
+
+  /**
+   * Append-only. There is no UPDATE or DELETE path for "QueueJobExecution" in
+   * this class on purpose: the history must keep recording what workers actually
+   * did even after the job row is removed by `removeJob`/`clear`.
+   */
+  async appendExecutions(
+    records: Array<QueueJobExecutionRecord>,
+  ): Promise<void> {
+    if (records.length === 0) {
+      return;
+    }
+    // RLS-BYPASS: background queue workers run without per-request clinic session
+    await this.prisma.runUnrestricted(async () => {
+      await this.prisma.queueJobExecution.createMany({ data: records });
+    });
+  }
+
+  async listExecutions(jobId: string): Promise<Array<QueueJobExecutionRecord>> {
+    // RLS-BYPASS: background queue workers run without per-request clinic session
+    return this.prisma.runUnrestricted(async () =>
+      this.prisma.queueJobExecution.findMany({
+        where: { jobId },
+        orderBy: { occurredAt: 'asc' },
+      }),
     );
   }
 }

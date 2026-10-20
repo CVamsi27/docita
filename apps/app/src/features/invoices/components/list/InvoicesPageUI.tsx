@@ -40,7 +40,14 @@ export function InvoicesPageUI() {
     <FeatureGate
       feature={Feature.INVOICING}
       fallback={
-        <AppPageScaffold>
+        <AppPageScaffold
+          header={
+            <PageHeader
+              title={t("pageTitle")}
+              description={t("pageDescription")}
+            />
+          }
+        >
           <EmptyState
             icon={Receipt}
             title={t("upgradeFallback.title")}

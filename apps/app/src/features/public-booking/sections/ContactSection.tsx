@@ -1,9 +1,9 @@
 "use client";
 
 import { UserCircle } from "lucide-react";
-import { Card, CardContent, CardHeader, Input, Label, Textarea } from "@workspace/ui/components";
-import { BookingSectionHeader } from "@/features/public-booking/public-booking-components";
-import { bookingCardClass, bookingSectionHeaderBar, bookingSectionShell } from "@/features/public-booking/atoms/booking-constants";
+import { useTranslation } from "react-i18next";
+import { Input, Label, Textarea } from "@workspace/ui/components";
+import { PublicBookingSectionCard } from "@/features/public-booking/public-booking-components";
 import type { PublicBookingPageController } from "@/features/public-booking/use-public-booking-page-state";
 import { cn } from "@workspace/ui/lib/utils";
 import { ContactSectionPhone } from "./contact-section-phone";
@@ -19,6 +19,7 @@ export function ContactSection({
   facilityWord: string;
   compactHeader?: boolean;
 }) {
+  const { t } = useTranslation("PublicBooking");
   const requiredMark = (
     <span aria-hidden className="text-destructive">
       {" "}
@@ -27,30 +28,17 @@ export function ContactSection({
   );
 
   return (
-    <Card
-      className={cn(bookingCardClass, bookingSectionShell, "flex flex-col")}
+    <PublicBookingSectionCard
+      icon={UserCircle}
+      micro={t("contactSection.micro")}
+      title={t("contactSection.title")}
+      description={t("contactSection.description", {
+        facility: facilityWord.toLowerCase(),
+      })}
+      tone="info"
+      compactHeader={compactHeader}
+      contentClassName="grid gap-4 px-4 py-5 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-4 sm:px-6 sm:py-6"
     >
-      <CardHeader
-        className={cn(
-          bookingSectionHeaderBar,
-          compactHeader ? "py-3 sm:py-4" : "py-4 sm:py-5",
-        )}
-      >
-        <BookingSectionHeader
-          icon={UserCircle}
-          micro="How we reach you"
-          title="Your contact details"
-          description={
-            <>
-              Please use the same phone this {facilityWord.toLowerCase()} has on
-              file when possible, so we can match your request to your chart.
-            </>
-          }
-          tone="info"
-          variant={compactHeader ? "compact" : "full"}
-        />
-      </CardHeader>
-      <CardContent className="grid gap-4 px-4 py-5 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-4 sm:px-6 sm:py-6">
         <ContactSectionPhone c={c} requiredMark={requiredMark} />
         <ContactSectionVerification c={c} requiredMark={requiredMark} />
         <ContactSectionNewPatient c={c} requiredMark={requiredMark} />
@@ -60,7 +48,7 @@ export function ContactSection({
             htmlFor="pb-reason"
             className="text-[length:var(--fs-sm)] font-normal text-muted-foreground"
           >
-            Reason for visit
+            {t("reviewBlock.rows.reasonForVisit")}
           </Label>
           <Input
             id="pb-reason"
@@ -94,7 +82,7 @@ export function ContactSection({
             htmlFor="pb-notes"
             className="text-[length:var(--fs-sm)] font-normal leading-none text-muted-foreground"
           >
-            Notes for the team
+            {t("contactSection.notesLabel")}
           </Label>
           <Textarea
             id="pb-notes"
@@ -107,7 +95,7 @@ export function ContactSection({
                 return next;
               });
             }}
-            placeholder="Enter notes for the team"
+            placeholder={t("contactSection.notesPlaceholder")}
             maxLength={1000}
             aria-invalid={c.submitFieldErrors.notes ? true : undefined}
             aria-describedby={
@@ -128,7 +116,6 @@ export function ContactSection({
             </p>
           ) : null}
         </div>
-      </CardContent>
-    </Card>
+      </PublicBookingSectionCard>
   );
 }

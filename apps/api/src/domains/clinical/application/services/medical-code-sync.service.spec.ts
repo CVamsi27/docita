@@ -1,8 +1,18 @@
 import { describe, expect, it, beforeEach, jest } from '@jest/globals';
-import { CptCode, IcdCode } from '@workspace/db';
-import { CodeCatalogProvider } from '@/domains/clinical/core/providers/code-catalog.provider';
+import {
+  CptCode,
+  CodeCatalogSyncStatus,
+  CodeCatalogSystem,
+  IcdCode,
+} from '@workspace/db';
+import {
+  CodeCatalogProvider,
+  type CodeStreamOutcome,
+} from '@/domains/clinical/core/providers/code-catalog.provider';
 import { IMedicalCodingRepository } from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import { MedicalCodeSyncRunnerService } from './medical-code-sync-runner.service';
 import { MedicalCodeSyncService } from './medical-code-sync.service';
+import { CLOCK_PORT, type IClock } from '@/shared/common/ports/clock.port';
 
 type ExistingCodeRecord = {
   code: string;
@@ -10,8 +20,18 @@ type ExistingCodeRecord = {
   category: string;
   isCommon: boolean;
 };
+
+const COMPLETE: CodeStreamOutcome = {
+  completed: true,
+  codesStreamed: 1,
+  unitsSkipped: 0,
+  lastUnit: 'E',
+  source: 'NLM',
+};
+
 describe('MedicalCodeSyncService', () => {
   const now = new Date('2026-01-01T00:00:00.000Z');
+  const clock: IClock = { now: () => now } as unknown as IClock;
 
   const findExistingIcdCodesMock =
     jest.fn<IMedicalCodingRepository['findExistingIcdCodes']>();
@@ -25,6 +45,10 @@ describe('MedicalCodeSyncService', () => {
     jest.fn<IMedicalCodingRepository['createCommonCptCodes']>();
   const updateCommonCptCodesMock =
     jest.fn<IMedicalCodingRepository['updateCommonCptCodes']>();
+  const startCodeSyncRunMock =
+    jest.fn<IMedicalCodingRepository['startCodeSyncRun']>();
+  const finishCodeSyncRunMock =
+    jest.fn<IMedicalCodingRepository['finishCodeSyncRun']>();
 
   const medicalCodingRepository: IMedicalCodingRepository = {
     searchIcdCodes: jest.fn(async () => []),
@@ -44,6 +68,9 @@ describe('MedicalCodeSyncService', () => {
     findExistingCptCodes: findExistingCptCodesMock,
     createCommonCptCodes: createCommonCptCodesMock,
     updateCommonCptCodes: updateCommonCptCodesMock,
+    startCodeSyncRun: startCodeSyncRunMock,
+    finishCodeSyncRun: finishCodeSyncRunMock,
+    getLastCodeSyncRun: jest.fn(async () => null),
   } as unknown as IMedicalCodingRepository;
 
   const searchIcdCodesMock = jest.fn<CodeCatalogProvider['searchIcdCodes']>();
@@ -56,6 +83,7 @@ describe('MedicalCodeSyncService', () => {
     searchCptCodes: searchCptCodesMock,
     streamIcdCodes: streamIcdCodesMock,
     streamCptCodes: streamCptCodesMock,
+    getCatalogSource: () => 'NLM',
   };
 
   const buildIcdCode = (
@@ -69,6 +97,10 @@ describe('MedicalCodeSyncService', () => {
     category,
     version: 'ICD-10',
     isCommon: false,
+    system: 'ICD-10-CM',
+    source: 'NLM',
+    sourceVersion: null,
+    lastSyncedAt: null,
     createdAt: now,
     updatedAt: now,
   });
@@ -84,6 +116,11 @@ describe('MedicalCodeSyncService', () => {
     category,
     isCommon: false,
     price: 0,
+    version: 'HCPCS',
+    system: 'HCPCS',
+    source: 'NLM',
+    sourceVersion: null,
+    lastSyncedAt: null,
     createdAt: now,
     updatedAt: now,
   });
@@ -96,9 +133,16 @@ describe('MedicalCodeSyncService', () => {
     updateCommonIcdCodesMock.mockResolvedValue(undefined);
     createCommonCptCodesMock.mockResolvedValue(undefined);
     updateCommonCptCodesMock.mockResolvedValue(undefined);
+    startCodeSyncRunMock.mockResolvedValue('run-1');
+    finishCodeSyncRunMock.mockResolvedValue(undefined);
     service = new MedicalCodeSyncService(
       medicalCodingRepository,
       codeCatalogProvider,
+      new MedicalCodeSyncRunnerService(
+        medicalCodingRepository,
+        codeCatalogProvider,
+        clock,
+      ),
     );
   });
 
@@ -117,6 +161,7 @@ describe('MedicalCodeSyncService', () => {
           'Endocrine',
         ),
       ]);
+      return COMPLETE;
     });
 
     findExistingIcdCodesMock.mockResolvedValue([
@@ -129,19 +174,24 @@ describe('MedicalCodeSyncService', () => {
     ]);
     const synced = await service.syncCommonIcdCodes();
 
-    expect(synced).toBe(2);
+    expect(synced.codes).toBe(2);
+    expect(synced.status).toBe(CodeCatalogSyncStatus.COMPLETED);
     expect(findExistingIcdCodesMock).toHaveBeenCalledWith(['E11.9', 'I10']);
-    expect(createCommonIcdCodesMock).toHaveBeenCalledWith([
-      expect.objectContaining({ code: 'E11.9' }),
-    ]);
+    expect(createCommonIcdCodesMock).toHaveBeenCalledWith(
+      [expect.objectContaining({ code: 'E11.9' })],
+      expect.objectContaining({ source: 'NLM', syncedAt: now }),
+    );
     expect(updateCommonIcdCodesMock).toHaveBeenCalledTimes(1);
-    expect(updateCommonIcdCodesMock).toHaveBeenCalledWith([
-      expect.objectContaining({
-        code: 'I10',
-        description: 'Essential hypertension',
-        category: 'Circulatory',
-      }),
-    ]);
+    expect(updateCommonIcdCodesMock).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({
+          code: 'I10',
+          description: 'Essential hypertension',
+          category: 'Circulatory',
+        }),
+      ],
+      expect.objectContaining({ source: 'NLM', syncedAt: now }),
+    );
   });
 
   it('syncs unique CPT codes into the database as common codes', async () => {
@@ -159,6 +209,7 @@ describe('MedicalCodeSyncService', () => {
           'Evaluation and Management',
         ),
       ]);
+      return COMPLETE;
     });
 
     findExistingCptCodesMock.mockResolvedValue([
@@ -171,11 +222,12 @@ describe('MedicalCodeSyncService', () => {
     ]);
     const synced = await service.syncCommonCptCodes();
 
-    expect(synced).toBe(2);
+    expect(synced.codes).toBe(2);
     expect(findExistingCptCodesMock).toHaveBeenCalledWith(['99213', '93000']);
-    expect(createCommonCptCodesMock).toHaveBeenCalledWith([
-      expect.objectContaining({ code: '99213' }),
-    ]);
+    expect(createCommonCptCodesMock).toHaveBeenCalledWith(
+      [expect.objectContaining({ code: '99213' })],
+      expect.objectContaining({ source: 'NLM', syncedAt: now }),
+    );
     expect(updateCommonCptCodesMock).not.toHaveBeenCalled();
   });
 
@@ -183,7 +235,7 @@ describe('MedicalCodeSyncService', () => {
     const syncError = new Error('DB write failed');
     streamIcdCodesMock.mockImplementation(async (onBatch) => {
       await onBatch([buildIcdCode('E11.9', 'T2DM', 'Endocrine')]);
-      throw syncError;
+      return COMPLETE;
     });
     findExistingIcdCodesMock.mockResolvedValue([]);
     createCommonIcdCodesMock.mockRejectedValue(syncError);
@@ -201,11 +253,13 @@ describe('MedicalCodeSyncService', () => {
       await onBatch([
         buildIcdCode('J02.9', 'Acute pharyngitis, unspecified', 'Respiratory'),
       ]);
+      return COMPLETE;
     });
     streamCptCodesMock.mockImplementation(async (onBatch) => {
       await onBatch([
         buildCptCode('87880', 'Infectious agent detection', 'Laboratory'),
       ]);
+      return COMPLETE;
     });
     findExistingIcdCodesMock.mockResolvedValue([]);
     findExistingCptCodesMock.mockResolvedValue([]);
@@ -213,6 +267,148 @@ describe('MedicalCodeSyncService', () => {
     await expect(service.syncCommonCodes()).resolves.toEqual({
       icd: 1,
       cpt: 1,
+    });
+  });
+
+  describe('catalog provenance', () => {
+    it('records the resolved source on the run before the first batch', async () => {
+      streamIcdCodesMock.mockImplementation(async (onBatch) => {
+        await onBatch([buildIcdCode('I10', 'Hypertension', 'Circulatory')]);
+        return COMPLETE;
+      });
+      findExistingIcdCodesMock.mockResolvedValue([]);
+
+      await service.syncCommonIcdCodes();
+
+      expect(startCodeSyncRunMock).toHaveBeenCalledWith({
+        system: CodeCatalogSystem.ICD,
+        source: 'NLM',
+        startedAt: now,
+      });
+    });
+
+    it('stamps the source and sync instant on every code row it writes', async () => {
+      streamCptCodesMock.mockImplementation(async (onBatch) => {
+        await onBatch([buildCptCode('93000', 'Electrocardiogram', 'Medicine')]);
+        return COMPLETE;
+      });
+      findExistingCptCodesMock.mockResolvedValue([]);
+
+      await service.syncCommonCptCodes();
+
+      expect(createCommonCptCodesMock).toHaveBeenCalledWith(expect.anything(), {
+        source: 'NLM',
+        sourceVersion: null,
+        syncedAt: now,
+      });
+    });
+
+    it('opens a separate run row per coding system', async () => {
+      streamIcdCodesMock.mockImplementation(async () => COMPLETE);
+      streamCptCodesMock.mockImplementation(async () => COMPLETE);
+
+      await service.syncCommonCodes();
+
+      const systems = startCodeSyncRunMock.mock.calls.map(
+        (call) => (call[0] as { system: CodeCatalogSystem }).system,
+      );
+      expect(systems).toEqual([CodeCatalogSystem.ICD, CodeCatalogSystem.CPT]);
+    });
+  });
+
+  /**
+   * The defect this item exists for: a stream that died partway through used to
+   * return normally with a smaller count, so a truncated catalog and a complete
+   * one were the same event.
+   */
+  describe('partial sync state', () => {
+    const TRUNCATED: CodeStreamOutcome = {
+      completed: false,
+      codesStreamed: 1,
+      unitsSkipped: 18,
+      lastUnit: 'E',
+      failure: 'HTTP 503',
+      source: 'NLM',
+    };
+
+    it('records a truncated stream as TRUNCATED, never COMPLETED', async () => {
+      streamIcdCodesMock.mockImplementation(async (onBatch) => {
+        await onBatch([buildIcdCode('E11.9', 'T2DM', 'Endocrine')]);
+        return TRUNCATED;
+      });
+      findExistingIcdCodesMock.mockResolvedValue([]);
+
+      const result = await service.syncCommonIcdCodes();
+
+      expect(result.status).toBe(CodeCatalogSyncStatus.TRUNCATED);
+      expect(result.unitsSkipped).toBe(18);
+
+      const settle = finishCodeSyncRunMock.mock.calls[0] as unknown as [
+        string,
+        {
+          status: string;
+          unitsSkipped: number;
+          lastUnit: string;
+          error: string;
+        },
+      ];
+      expect(settle[0]).toBe('run-1');
+      expect(settle[1].status).toBe(CodeCatalogSyncStatus.TRUNCATED);
+      expect(settle[1].unitsSkipped).toBe(18);
+      expect(settle[1].lastUnit).toBe('E');
+      expect(settle[1].error).toBe('HTTP 503');
+    });
+
+    it('records the codes it did apply, so the partial state is auditable', async () => {
+      streamIcdCodesMock.mockImplementation(async (onBatch) => {
+        await onBatch([buildIcdCode('E11.9', 'T2DM', 'Endocrine')]);
+        return TRUNCATED;
+      });
+      findExistingIcdCodesMock.mockResolvedValue([]);
+
+      await service.syncCommonIcdCodes();
+
+      const settle = finishCodeSyncRunMock.mock.calls[0] as unknown as [
+        string,
+        { codesSeen: number; batchesApplied: number },
+      ];
+      expect(settle[1].codesSeen).toBe(1);
+      expect(settle[1].batchesApplied).toBe(1);
+    });
+
+    it('records a stream that throws as FAILED and rethrows', async () => {
+      streamCptCodesMock.mockImplementation(async () => {
+        throw new Error('upstream exploded');
+      });
+
+      await expect(service.syncCommonCptCodes()).rejects.toThrow(
+        'upstream exploded',
+      );
+
+      const settle = finishCodeSyncRunMock.mock.calls[0] as unknown as [
+        string,
+        { status: string; error: string },
+      ];
+      // Nothing is known about coverage, so no completeness is claimed.
+      expect(settle[1].status).toBe(CodeCatalogSyncStatus.FAILED);
+      expect(settle[1].error).toBe('upstream exploded');
+    });
+
+    it('records COMPLETED only when the provider streamed every unit', async () => {
+      streamIcdCodesMock.mockImplementation(async (onBatch) => {
+        await onBatch([buildIcdCode('E11.9', 'T2DM', 'Endocrine')]);
+        return COMPLETE;
+      });
+      findExistingIcdCodesMock.mockResolvedValue([]);
+
+      await service.syncCommonIcdCodes();
+
+      const settle = finishCodeSyncRunMock.mock.calls[0] as unknown as [
+        string,
+        { status: string; unitsSkipped: number },
+      ];
+      expect(settle[1].status).toBe(CodeCatalogSyncStatus.COMPLETED);
+      expect(settle[1].unitsSkipped).toBe(0);
     });
   });
 });

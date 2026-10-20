@@ -8,29 +8,29 @@ const appUrl = getAppBaseUrl();
 ---
 
 <header
-  class="landing-site-header fixed inset-x-0 top-0 z-[60] border-b-2 border-b-primary/12 bg-background"
+  class="landing-site-header landing-site-header-surface fixed inset-x-0 top-0 z-[60] border-b-2 border-b-primary/12 bg-background/95 backdrop-blur-md"
   style="padding-top: env(safe-area-inset-top, 0px);"
 >
   <div class="px-4 sm:px-6">
-    <div class="ui-page-shell flex h-16 items-center">
-      <div class="flex flex-1 items-center">
+    <div class="landing-site-header-inner ui-page-shell flex h-16 items-center">
+      <div class="landing-site-header-brand flex flex-1 items-center">
         <a href="/" class="inline-flex items-center" aria-label="Docita home">
           <DocitaWordmark className="h-9 w-auto max-w-[8.5rem] sm:h-10 sm:max-w-[11rem]" />
         </a>
       </div>
 
-      <nav class="hidden flex-1 items-center justify-center gap-1 rounded-[var(--radius)] border border-border/70 bg-card p-1 text-xs font-semibold uppercase tracking-normal shadow-sm md:flex">
-        <a href="/#surface-map" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Surfaces</a>
-        <a href="/#product-screenshots" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Inside</a>
-        <a href="/#clinic-types" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Who it is for</a>
-        <a href="/#rhythm" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rhythm</a>
-        <a href="/#rollout" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rollout</a>
-        <a href="/#pricing" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Pricing</a>
-        <a href="/trust" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Trust</a>
-        <a href="/contact" class="rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Contact</a>
+      <nav class="landing-site-nav landing-site-nav--desktop hidden flex-none items-center justify-center gap-1 rounded-[var(--radius)] border border-border/70 bg-card p-1 text-xs font-semibold uppercase tracking-normal shadow-sm xl:flex" aria-label="Primary navigation">
+        <a href="/#surface-map" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Surfaces</a>
+        <a href="/#product-screenshots" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Inside</a>
+        <a href="/#clinic-types" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Who it is for</a>
+        <a href="/#rhythm" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rhythm</a>
+        <a href="/#rollout" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rollout</a>
+        <a href="/#pricing" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Pricing</a>
+        <a href="/trust" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Trust</a>
+        <a href="/contact" class="landing-site-nav-link rounded-[var(--radius)] px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Contact</a>
       </nav>
 
-      <div class="flex flex-1 items-center justify-end gap-1.5 sm:gap-2">
+      <div class="landing-site-header-actions flex flex-1 items-center justify-end gap-1.5 sm:gap-2">
         <ThemeToggle />
         <a
           href={`${appUrl}/login`}
@@ -50,17 +50,18 @@ const appUrl = getAppBaseUrl();
     </div>
 
     <nav
-      class="ui-page-shell flex gap-1 overflow-x-auto overscroll-x-contain border-t border-border/50 px-4 pb-2 pt-2 [scrollbar-width:thin] md:hidden"
-      aria-label="Mobile section links"
+      class="landing-site-nav landing-site-nav--mobile ui-page-shell flex gap-1 overflow-x-auto overscroll-x-contain border-t border-border/50 px-4 pb-2 pt-2 [scrollbar-width:thin] xl:hidden"
+      aria-label="Section links"
+      data-scroll="start"
     >
-      <a href="/#surface-map" class="shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Surfaces</a>
-      <a href="/#product-screenshots" class="shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Inside</a>
-      <a href="/#clinic-types" class="shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">For you</a>
-      <a href="/#rhythm" class="shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rhythm</a>
-      <a href="/#rollout" class="shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rollout</a>
-      <a href="/#pricing" class="shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Pricing</a>
-      <a href="/trust" class="shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Trust</a>
-      <a href="/contact" class="shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Contact</a>
+      <a href="/#surface-map" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Surfaces</a>
+      <a href="/#product-screenshots" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Inside</a>
+      <a href="/#clinic-types" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">For you</a>
+      <a href="/#rhythm" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rhythm</a>
+      <a href="/#rollout" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Rollout</a>
+      <a href="/#pricing" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Pricing</a>
+      <a href="/trust" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Trust</a>
+      <a href="/contact" class="landing-site-nav-link shrink-0 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Contact</a>
     </nav>
   </div>
 </header>

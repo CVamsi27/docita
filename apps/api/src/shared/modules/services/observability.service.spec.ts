@@ -71,7 +71,7 @@ describe('ObservabilityService', () => {
     service = null;
   });
 
-  it('enables Sentry logs when initializing', () => {
+  it('initializes Sentry with privacy callbacks for transactions and structured logs', async () => {
     service = new ObservabilityService(
       mockPrismaService,
       mockConfigService as unknown as AppConfigService,
@@ -98,6 +98,35 @@ describe('ObservabilityService', () => {
         },
       }),
     );
+    const options = jest.mocked(Sentry.init).mock.calls[0]?.[0];
+    const canary = 'synthetic-capability-canary';
+    const transaction: Parameters<
+      NonNullable<Sentry.NodeOptions['beforeSendTransaction']>
+    >[0] = {
+      type: 'transaction',
+      request: { url: `/upload-signature/${canary}` },
+      spans: [
+        {
+          span_id: '1111111111111111',
+          trace_id: '11111111111111111111111111111111',
+          start_timestamp: 1,
+          data: {},
+          op: 'http.client',
+          description: `GET /reset-password?token=${canary}`,
+        },
+      ],
+    };
+    const log: Parameters<NonNullable<Sentry.NodeOptions['beforeSendLog']>>[0] =
+      {
+        level: 'info',
+        message: `GET /upload-signature/${canary}`,
+        attributes: { url: `/reset-password?token=${canary}` },
+      };
+    const sentTransaction = options?.beforeSendTransaction
+      ? await options.beforeSendTransaction(transaction, {})
+      : transaction;
+    const sentLog = options?.beforeSendLog ? options.beforeSendLog(log) : log;
+    expect(JSON.stringify({ sentTransaction, sentLog })).not.toContain(canary);
   });
 
   it('emits Sentry metrics for latency and heartbeat events', () => {

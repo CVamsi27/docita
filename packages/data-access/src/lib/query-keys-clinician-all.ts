@@ -13,8 +13,6 @@ export const queryKeys = {
       ["patients", "recent", limit.toString()] as const,
     withMedicalHistory: (id: string) =>
       ["patients", id, "with-medical-history"] as const,
-    medicalHistoryTimeline: (patientId: string) =>
-      ["patients", patientId, "medical-history-timeline"] as const,
     todays: (doctorId: string, search = "") =>
       ["todays-patients", doctorId, search] as const,
     medicalHistoryFull: (patientId: string) =>
@@ -113,7 +111,6 @@ export const queryKeys = {
   clinical: {
     vitals: {
       all: () => ["vitals"] as const,
-      patient: (patientId: string) => ["vitals", patientId] as const,
     },
     labTests: {
       orders: () => ["lab-tests"] as const,

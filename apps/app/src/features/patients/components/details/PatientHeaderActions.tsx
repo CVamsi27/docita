@@ -1,9 +1,15 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@workspace/ui/components/form/button";
-import { CalendarPlus, Pencil, Play, Sparkles, Stethoscope, UserPlus } from "lucide-react";
+import {
+  CalendarPlus,
+  Pencil,
+  Play,
+  Sparkles,
+  Stethoscope,
+  UserPlus,
+} from "lucide-react";
 import type { AppointmentListItemContractResponse } from "@workspace/types";
-import { AI_FEATURES_ENABLED } from "@/lib/config/ai-features";
 import { Feature } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -93,6 +99,14 @@ export function PatientHeaderActions({
     return { kind: "walkin", label: "Start Walk-In Visit" };
   }, [appointments]);
 
+  const handleAskAiClick = () => {
+    openOverlay({
+      id: `patient:${patientId}`,
+      label: `on ${patientName}`,
+      payload: { kind: "patient", patientId },
+    });
+  };
+
   const handleConsultationClick = async () => {
     if (cta.kind === "continue") {
       navigate(`/consultation/${cta.appointmentId}`);
@@ -130,23 +144,16 @@ export function PatientHeaderActions({
 
   return (
     <>
-      {AI_FEATURES_ENABLED && (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() =>
-            openOverlay({
-              id: `patient:${patientId}`,
-              label: `on ${patientName}`,
-              payload: { kind: "patient", patientId },
-            })
-          }
-          data-testid="patient-ask-ai"
-        >
-          <Sparkles className="h-4 w-4 mr-1.5" />
-          Ask AI
-        </Button>
-      )}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={handleAskAiClick}
+        data-testid="patient-ask-ai"
+        className="border-border bg-accent/10 text-accent-foreground hover:bg-accent/20 transition-colors duration-150"
+      >
+        <Sparkles className="h-4 w-4 mr-1.5 text-accent-foreground" />
+        Ask AI
+      </Button>
 
       {showConsultationCta && (
         <Button

@@ -39,4 +39,17 @@ export enum ApplicationEvents {
   // editing tier pricing sees the change on the next request rather
   // than waiting for the 5-min TTL.
   TIER_PRICING_UPDATED = 'tierPricing.updated',
+  // Appended to the transactional outbox by FacilityLeadCommandService
+  // (atomically with the lead row on submit / the CONVERTED transition) and
+  // republished by the outbox relay. FacilityLeadNotificationService
+  // listens to materialize the internal Docita-ops notification.
+  FACILITY_LEAD_CREATED = 'facility-lead.created',
+  FACILITY_LEAD_CONVERTED = 'facility-lead.converted',
+  /**
+   * Emitted once per saturation episode by PoolSaturationHistoryService when
+   * the connection pool has had callers queued beyond its threshold. Routed to
+   * OpsAlertListener; the same condition is always logged locally so the signal
+   * does not depend on a webhook being configured.
+   */
+  POOL_SATURATION_SUSTAINED = 'ops.pool-saturation.sustained',
 }

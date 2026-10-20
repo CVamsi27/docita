@@ -45,4 +45,34 @@ describe('isPrismaExclusionViolation', () => {
       false,
     );
   });
+
+  it('detects a driver-adapter error whose cause carries the exclusion SQLSTATE', () => {
+    const err = Object.assign(
+      new Error(
+        `conflicting key value violates exclusion constraint "${constraint}"`,
+      ),
+      { cause: { code: '23P01' } },
+    );
+    expect(isPrismaExclusionViolation(err, constraint)).toBe(true);
+  });
+
+  it('rejects a driver-adapter exclusion raised for a different constraint', () => {
+    const err = Object.assign(
+      new Error(
+        'conflicting key value violates exclusion constraint "Other_constraint"',
+      ),
+      { cause: { code: '23P01' } },
+    );
+    expect(isPrismaExclusionViolation(err, constraint)).toBe(false);
+  });
+
+  it('rejects a driver-adapter error with a different SQLSTATE', () => {
+    const err = Object.assign(
+      new Error(
+        `duplicate key value violates unique constraint "${constraint}"`,
+      ),
+      { cause: { code: '23505' } },
+    );
+    expect(isPrismaExclusionViolation(err, constraint)).toBe(false);
+  });
 });

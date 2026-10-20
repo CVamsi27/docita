@@ -23,13 +23,13 @@ export function BillingPlansHeader({ selectedMode, onModeChange, selectedCycle, 
         <p className="mt-1 text-[var(--fs-xs)] text-muted-foreground">{PLAN_MODE_INFO[selectedMode].helpText}</p>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
-        <div className="inline-flex shrink-0 items-center gap-1 self-start rounded-full border bg-muted/40 p-1" role="tablist" aria-label={t("planModeAriaLabel")}>
+        <div className="inline-flex shrink-0 items-center gap-1 self-start rounded-full border bg-muted/40 p-1" role="group" aria-label={t("planModeAriaLabel")}>
           {PLAN_MODES.map((mode) => {
             const info = PLAN_MODE_INFO[mode];
             const active = selectedMode === mode;
             return (
               <SymbolTooltip key={mode} label={info.helpText}>
-                <Button variant={active ? "default" : "ghost"} size="sm" className="rounded-full" onClick={() => onModeChange(mode)} role="tab" aria-selected={active}>
+                <Button variant={active ? "default" : "ghost"} size="sm" className="rounded-full" aria-pressed={active} onClick={() => onModeChange(mode)}>
                   {info.shortLabel}
                 </Button>
               </SymbolTooltip>
@@ -37,8 +37,8 @@ export function BillingPlansHeader({ selectedMode, onModeChange, selectedCycle, 
           })}
         </div>
         <div className="inline-flex shrink-0 items-center gap-1 self-start rounded-full border bg-muted/40 p-1">
-          <Button variant={selectedCycle === "MONTHLY" ? "default" : "ghost"} size="sm" className="rounded-full" onClick={() => onCycleChange("MONTHLY")}>{t("monthly")}</Button>
-          <Button variant={selectedCycle === "YEARLY" ? "default" : "ghost"} size="sm" className="gap-1.5 rounded-full" onClick={() => onCycleChange("YEARLY")}>
+          <Button variant={selectedCycle === "MONTHLY" ? "default" : "ghost"} size="sm" className="rounded-full" aria-pressed={selectedCycle === "MONTHLY"} onClick={() => onCycleChange("MONTHLY")}>{t("monthly")}</Button>
+          <Button variant={selectedCycle === "YEARLY" ? "default" : "ghost"} size="sm" className="gap-1.5 rounded-full" aria-pressed={selectedCycle === "YEARLY"} onClick={() => onCycleChange("YEARLY")}>
             {t("yearly")}
             <span className={cn("rounded-full px-1.5 py-0.5 text-[var(--fs-2xs)] font-semibold leading-none", selectedCycle === "YEARLY" ? "bg-primary-foreground/20 text-primary-foreground" : "bg-success/15 text-success")}>{t("saveBadge", { amount: `${ANNUAL_DISCOUNT_PERCENT}%` })}</span>
           </Button>

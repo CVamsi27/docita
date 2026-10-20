@@ -2,7 +2,8 @@ import { execFileSync } from "node:child_process";
 import { createHmac, randomUUID } from "node:crypto";
 import type { APIRequestContext, Page } from "@playwright/test";
 import {
-  loginResponseSchema,
+  tokenIssueResponseSchema,
+  onboardingCheckoutResponseSchema,
   uploadSessionCreateContractResponseSchema,
   type ClinicType,
 } from "@workspace/types";
@@ -29,11 +30,12 @@ function readAccessTokenFromLoginResponse(
   raw: unknown,
   fallback: string,
 ): string {
-  const direct = loginResponseSchema.safeParse(raw);
+  const direct = tokenIssueResponseSchema.safeParse(raw);
   if (direct.success) return direct.data.access_token;
 
   const loose = e2eLoginTokenFallbackSchema.safeParse(raw);
-  if (loose.success) return (
+  if (loose.success)
+    return (
       loose.data.access_token ??
       loose.data.accessToken ??
       loose.data.data?.access_token ??
@@ -58,10 +60,22 @@ function readRefreshTokenFromLoginResponse(raw: unknown): string | null {
 }
 
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
-const APP_ORIGIN = new URL(
-  process.env["APP_URL"] || "http://127.0.0.1:3000",
-).origin;
+/**
+ * Must match `playwright.config.ts` `baseURL` (the `APP_URL` default), because
+ * cookies are host-scoped: seeding `access_token` for `127.0.0.1:3000` while
+ * the page runs on `localhost:3000` leaves the session cookie unsent, and every
+ * protected route bounces to `/login`.
+ */
+const APP_ORIGIN = new URL(process.env["APP_URL"] || "http://localhost:3000")
+  .origin;
 export const TEST_PASSWORD = "Test@123456";
+
+/**
+ * Cloudflare's public test secret accepts the documented dummy token. Test
+ * fixtures must use that secret; production secrets reject this dummy token.
+ * https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+ */
+export const E2E_TURNSTILE_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
 /** Valid 15-char GSTIN for paid INR onboarding in E2E (not a real taxpayer ID). */
 const E2E_PAID_PLAN_GSTIN = "29AABCU9603R1ZX";
 
@@ -86,7 +100,8 @@ async function createTestPaymentDetails(
   razorpaySignature: string;
 }> {
   const keySecret = process.env["RAZORPAY_KEY_SECRET"];
-  if (!keySecret) throw new Error(
+  if (!keySecret)
+    throw new Error(
       "RAZORPAY_KEY_SECRET (test secret) is required to complete paid-plan onboarding in E2E",
     );
 
@@ -123,14 +138,18 @@ async function createTestPaymentDetails(
   };
 }
 
-const onboardingCheckoutResultSchema = z.object({
-  orderId: z.string(),
-  amountCents: z.number(),
-  currency: z.string(),
-  razorpayKeyId: z.string(),
-});
+/**
+ * The onboarding checkout response, read through the shared contract.
+ *
+ * This used to redeclare the four fields inline, which had already drifted:
+ * the contract requires a non-empty `razorpayKeyId` (a blank one ships a
+ * checkout that can never complete) while the copy accepted `''`. The helper
+ * computes a Razorpay HMAC signature from this response, so a lax copy means
+ * the suite can pass against a payload the product would reject.
+ */
+const onboardingCheckoutResultSchema = onboardingCheckoutResponseSchema;
 
-/** Next.js `(protected)` patient routes — keep Playwright URLs aligned with the app router. */
+/** Canonical SPA patient routes shared by clinician browser fixtures. */
 export const PATIENTS_LIST_PATH = "/patients";
 
 export function patientDetailPath(patientId: string): string {
@@ -176,6 +195,11 @@ async function fetchVerificationToken(email: string): Promise<string | null> {
           ...process.env,
           DATABASE_URL: requireRepoDatabaseUrl(),
           VERIFICATION_EMAIL: email,
+          // Without an explicit rootDir, ts-node refuses to compile
+          // apps/api/scripts/*.ts (TS5011) and the throw below was swallowed,
+          // which silently skipped email verification for every spec that
+          // seeds a user and then failed later with EMAIL_NOT_VERIFIED.
+          TS_NODE_COMPILER_OPTIONS: JSON.stringify({ rootDir: "." }),
         },
         encoding: "utf8",
       },
@@ -317,7 +341,6 @@ async function postWithRetry(
   return lastRes;
 }
 
-
 export async function fetchPatientByApi(
   request: APIRequestContext,
   id: string,
@@ -350,7 +373,7 @@ async function setupTestUserImpl(
   const tier = options.tier ?? "ESSENTIAL";
   const planMode = options.planMode ?? "FULL";
   const isUnpaidEssentialTrial = tier === "ESSENTIAL";
-// jscpd:ignore-end
+  // jscpd:ignore-end
   // Front Desk is mode-only (canonical tier + PlanMode FRONT_DESK) per
   // AGENTS.md §15.8 — the legacy FRONT_DESK* tier enum values are removed.
   const isFrontDesk = planMode === "FRONT_DESK";
@@ -391,6 +414,7 @@ async function setupTestUserImpl(
         firstName: "Dr.",
         lastName: "History",
         role: "ADMIN_DOCTOR",
+        turnstileToken: E2E_TURNSTILE_TOKEN,
       },
     },
     { retries: 18, baseDelayMs: 1200 },
@@ -449,7 +473,8 @@ async function setupTestUserImpl(
     uploadSessionCreateContractResponseSchema.safeParse(
       await signatureSessionRes.json(),
     );
-  if (!signatureSessionParsed.success) throw new Error("SLA signature session response was invalid");
+  if (!signatureSessionParsed.success)
+    throw new Error("SLA signature session response was invalid");
   const signatureSession = signatureSessionParsed.data;
   const signatureSessionId = signatureSession.id;
   const signatureUploadSecret = signatureSession.uploadSecret;
@@ -547,7 +572,8 @@ async function setupTestUserImpl(
   }
   const userFromComplete = completeData.user ?? registerData.user;
   const clinicId = userFromComplete.clinicId || completeData.clinicId;
-  if (!clinicId) throw new Error("Onboarding completion did not return a clinicId");
+  if (!clinicId)
+    throw new Error("Onboarding completion did not return a clinicId");
 
   // Guarantee the onboarding admin is email-verified. The pre-onboarding token
   // round-trip can race under load and silently skip, which then bounces the
@@ -567,6 +593,7 @@ async function setupTestUserImpl(
     data: {
       email,
       password,
+      turnstileToken: E2E_TURNSTILE_TOKEN,
     },
   });
 
@@ -706,7 +733,7 @@ export async function setupTestUser(
   const tier = options.tier ?? "ESSENTIAL";
   const planMode = options.planMode ?? "FULL";
   const shouldCache =
-// jscpd:ignore-end
+    // jscpd:ignore-end
     Object.keys(requestHeaders).length === 0 && clinicType === "GENERAL";
 
   if (!shouldCache) {
@@ -731,21 +758,27 @@ export async function setupTestUser(
   return await promise;
 }
 
-export async function loginUser(
-  page: Page,
-  user: UserData,
-  options: { role?: string } = {},
-) {
-  const sessionUser = {
-    id: user.id,
-    email: user.email,
-    role: options.role ?? "ADMIN_DOCTOR",
-    clinicId: user.clinicId,
-  };
+export interface UserSessionTokens {
+  accessToken: string;
+  refreshToken: string | null;
+}
 
-  const loginRes = await page.request.post(`${API_URL}/auth/login`, {
+/**
+ * Exchanges credentials for session tokens without touching a page. `/auth/login`
+ * is throttled to 5 calls per minute, so a suite with many tests must log in
+ * once and reuse the tokens rather than calling this per test.
+ */
+export async function fetchUserSession(
+  request: APIRequestContext,
+  user: UserData,
+): Promise<UserSessionTokens> {
+  const loginRes = await request.post(`${API_URL}/auth/login`, {
     headers: { "x-docita-e2e": "true" },
-    data: { email: user.email, password: TEST_PASSWORD },
+    data: {
+      email: user.email,
+      password: TEST_PASSWORD,
+      turnstileToken: E2E_TURNSTILE_TOKEN,
+    },
   });
   if (!loginRes.ok()) {
     throw new Error(
@@ -754,8 +787,25 @@ export async function loginUser(
   }
 
   const loginData = await loginRes.json();
-  const accessToken = readAccessTokenFromLoginResponse(loginData, user.accessToken);
-  const refreshToken = readRefreshTokenFromLoginResponse(loginData);
+  return {
+    accessToken: readAccessTokenFromLoginResponse(loginData, user.accessToken),
+    refreshToken: readRefreshTokenFromLoginResponse(loginData),
+  };
+}
+
+export async function applyUserSession(
+  page: Page,
+  user: UserData,
+  tokens: UserSessionTokens,
+  options: { role?: string } = {},
+) {
+  const sessionUser = {
+    id: user.id,
+    email: user.email,
+    role: options.role ?? "ADMIN_DOCTOR",
+    clinicId: user.clinicId,
+  };
+  const { accessToken, refreshToken } = tokens;
 
   await page.context().addCookies([
     {
@@ -809,4 +859,17 @@ export async function loginUser(
   );
 
   await page.goto("/e2e-session-seed", { waitUntil: "domcontentloaded" });
+}
+
+export async function loginUser(
+  page: Page,
+  user: UserData,
+  options: { role?: string } = {},
+) {
+  await applyUserSession(
+    page,
+    user,
+    await fetchUserSession(page.request, user),
+    options,
+  );
 }

@@ -1,4 +1,4 @@
-import { QueueToken, Prisma } from '@workspace/db';
+import { QueueToken, Prisma, QueueTokenStatus } from '@workspace/db';
 
 export type QueueTokenWithRelations = QueueToken & {
   patient: {
@@ -31,6 +31,16 @@ export type AppointmentForCheckIn = {
   };
 };
 
+/**
+ * Input for atomic allocation. `tokenNumber` and `tokenDay` are assigned by
+ * the repository inside the advisory-locked transaction, so callers must not
+ * supply them.
+ */
+export type QueueTokenAllocationInput = Omit<
+  Prisma.QueueTokenUncheckedCreateInput,
+  'tokenNumber' | 'tokenDay'
+>;
+
 export interface IQueueRepository {
   findTodayTokens(
     clinicId: string,
@@ -55,15 +65,32 @@ export interface IQueueRepository {
 
   createToken(data: Prisma.QueueTokenUncheckedCreateInput): Promise<QueueToken>;
 
+  /**
+   * Atomically allocates the next token number for a clinic/day and inserts
+   * the token. Concurrent allocations cannot observe the same maximum, so
+   * token identities stay unique without relying on the caller serializing.
+   */
+  allocateToken(
+    data: QueueTokenAllocationInput,
+    fromDate: Date,
+  ): Promise<QueueToken>;
+
   findTokenByIdAndClinic(
     id: string,
     clinicId: string,
   ): Promise<QueueToken | null>;
 
-  updateToken(
+  /**
+   * Status-conditional token transition. The update applies only while the
+   * token still holds one of `expectedStatuses`, so a stale caller cannot
+   * reopen a finished (or cancelled) entry. Resolves null when the token
+   * moved on; the caller decides whether that is a conflict or a no-op.
+   */
+  transitionTokenStatus(
     id: string,
-    data: Prisma.QueueTokenUpdateInput,
-  ): Promise<QueueToken>;
+    expectedStatuses: QueueTokenStatus[],
+    data: Prisma.QueueTokenUpdateManyMutationInput,
+  ): Promise<QueueToken | null>;
 
   cancelTodayActiveTokens(clinicId: string, fromDate: Date): Promise<void>;
 }

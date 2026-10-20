@@ -3,12 +3,14 @@ import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
-  EmptyState,
-  LoadingState,
+  AppPageScaffold,
+  DataState,
+  PageHeader,
+  Button,
 } from "@workspace/ui/components";
 import { FileText } from "lucide-react";
 import { useInvoiceDetailsLogic } from "@/features/invoices/hooks/use-invoice-details-logic";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { queryKeys, useResendInvoiceWhatsApp } from "@workspace/data-access";
@@ -26,7 +28,6 @@ interface InvoiceDetailsUIProps {
 
 export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   const { t } = useTranslation("Invoices");
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const shouldAutoPrint = searchParams.get("print") === "true";
 
@@ -34,6 +35,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     invoice,
     isLoading,
     error,
+    refetch,
     printRef,
     handlePrint,
     handleDownload,
@@ -64,19 +66,30 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     }
   };
 
-  if (isLoading) return <LoadingState message="Loading invoice details…" />;
-
-  if (error || !invoice) {
+  if (isLoading || error || !invoice) {
     return (
-      <EmptyState
-        icon={FileText}
-        title="Invoice not found"
-        description="The invoice you are looking for does not exist or has been deleted"
-        action={{
-          label: "Back to Invoices",
-          onClick: () => navigate("/invoices"),
-        }}
-      />
+      <AppPageScaffold
+        header={
+          <PageHeader
+            title="Invoice"
+            actions={
+              <Button asChild variant="outline">
+                <Link to="/invoices">Back to Invoices</Link>
+              </Button>
+            }
+          />
+        }
+      >
+        <DataState
+          status={isLoading ? "loading" : error ? "error" : "empty"}
+          loadingMessage="Loading invoice details…"
+          errorMessage="We could not load this invoice. Please try again."
+          onRetry={() => void refetch()}
+          emptyIcon={FileText}
+          emptyTitle="Invoice not found"
+          emptyDescription="The invoice you are looking for is unavailable."
+        />
+      </AppPageScaffold>
     );
   }
 

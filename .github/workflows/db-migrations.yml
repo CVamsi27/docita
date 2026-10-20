@@ -1,15 +1,22 @@
 name: Database Migrations
 
+# Paused: ignore every branch and tag push. GitHub requires a valid on block.
+# Replace this block with the commented triggers below to resume deployments.
+on:
+  push:
+    branches-ignore: ["**"]
+    tags-ignore: ["**"]
+
+# on:
+#   workflow_dispatch:
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
-on:
-  workflow_dispatch:
 
 jobs:
   migrate-db:
     name: Apply Prisma Migrations
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     env:
       NODE_ENV: production

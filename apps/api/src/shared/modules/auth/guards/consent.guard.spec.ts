@@ -9,7 +9,10 @@ import {
   mockGetAllAndOverrideKeyMap,
   type MockedReflectorGetAllAndOverride,
 } from '@/test-utils';
-import { getCurrentTenant, tenantStorage } from '@/shared/common/middleware/tenant.middleware';
+import {
+  getCurrentTenant,
+  tenantStorage,
+} from '@/shared/common/middleware/tenant.middleware';
 import { ConsentGuard, REQUIRE_CONSENT_KEY } from './consent.guard';
 
 function createContext(
@@ -65,9 +68,8 @@ describe('ConsentGuard', () => {
       // Mirrors PrismaService.runUnrestricted: establishes the bypassed
       // tenant context for the wrapped read (the real escape hatch the
       // guard-phase fix relies on).
-      runUnrestricted: jest.fn(
-        async (fn: () => Promise<unknown>) =>
-          tenantStorage.run({ bypassed: true }, fn),
+      runUnrestricted: jest.fn(async (fn: () => Promise<unknown>) =>
+        tenantStorage.run({ bypassed: true }, fn),
       ),
     };
     // Default: clinic has opted in to treatment-consent enforcement.
@@ -171,9 +173,7 @@ describe('ConsentGuard', () => {
       guard.canActivate(createContext({ patientId: 'p1' })),
     ).resolves.toBe(true);
 
-    expect(tenantAtRead).toEqual(
-      expect.objectContaining({ bypassed: true }),
-    );
+    expect(tenantAtRead).toEqual(expect.objectContaining({ bypassed: true }));
   });
 
   it('queries only ACTIVE non-expired consents', async () => {
