@@ -1,5 +1,8 @@
 # Deployment Strategy
 
+Current provider note (28 October 2026): the owner confirmed a temporary Neon database for cost reduction. AWS RDS remains the future reference in this deployment guide. Verify the actual provider and tier before using RDS-specific snapshot/migration commands. See [capacity evidence and profiles](CAPACITY_EVIDENCE.md) for observed Fly resources and the separate future balanced design.
+
+
 The stability candidate minimizes API/worker runtime images to compiled Node
 artifacts and required native libraries. Run pnpm migration/repair tools from
 the trusted checkout or CI. Do not depend on npm/pnpm inside Fly runtime images;

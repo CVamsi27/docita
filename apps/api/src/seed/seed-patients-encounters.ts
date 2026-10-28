@@ -312,9 +312,22 @@ async function seedPrescriptions(
 ): Promise<void> {
   const prescriptionTargets = completedAppointments.slice(0, 9);
   const targets = [...prescriptionTargets, rajeshAppointment];
+  const doctors = await prisma.user.findMany({
+    where: { id: { in: [...new Set(targets.map((appt) => appt.doctorId))] } },
+    select: { id: true, name: true },
+  });
+  const doctorNames = new Map(
+    doctors.map((doctor) => [doctor.id, doctor.name]),
+  );
 
   for (let i = 0; i < targets.length; i++) {
     const appt = targets[i];
+    const doctorName = doctorNames.get(appt.doctorId);
+    if (!doctorName?.trim()) {
+      throw new Error(
+        `seed-prescriptions: doctor ${appt.doctorId} is missing or has no name`,
+      );
+    }
     const prescriptionId =
       appt.id === RAJESH_APPOINTMENT_ID
         ? RAJESH_PRESCRIPTION_ID
@@ -325,6 +338,7 @@ async function seedPrescriptions(
         appointmentId: appt.id,
         patientId: appt.patientId,
         doctorId: appt.doctorId,
+        doctorName,
         clinicId,
         instructions:
           'Take medications according to the prescription. Adhere to lifestyle advice. Return for follow-up if symptoms persist.',
@@ -334,6 +348,7 @@ async function seedPrescriptions(
         appointmentId: appt.id,
         patientId: appt.patientId,
         doctorId: appt.doctorId,
+        doctorName,
         clinicId,
         instructions:
           'Take medications according to the prescription. Adhere to lifestyle advice. Return for follow-up if symptoms persist.',

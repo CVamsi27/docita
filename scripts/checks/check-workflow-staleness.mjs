@@ -34,14 +34,16 @@ const WORKFLOWS_DIR = path.join(process.cwd(), ".github", "workflows");
 const API_BASE = "https://api.github.com";
 
 // RB-14: deliberately disabled since 2026-07-26. RB-15: deliberately
-// disabled after its target RDS instance disappeared (DBInstanceNotFound);
-// see docs/operations/RUNBOOKS.md. Exemption applies only while the live API
-// state is `disabled_manually` (checked below), so the map stays keyed to the
-// recorded disable and self-clears on re-enable.
+// disabled after its target RDS instance disappeared (DBInstanceNotFound).
+// RB-16 records the daily-worker hold under the operator's maintenance and
+// zero-spend controls. See docs/operations/RUNBOOKS.md. Exemption applies only
+// while the live API state is `disabled_manually` (checked below), so the map
+// stays keyed to the recorded disable and self-clears on re-enable.
 const DOCUMENTED_DISABLED = new Map([
   ["scale-api-hours.yml", "docs/operations/RUNBOOKS.md RB-14"],
   ["synthetic-monitoring.yml", "docs/operations/RUNBOOKS.md RB-14"],
   ["stop-db-auto-restart.yml", "docs/operations/RUNBOOKS.md RB-15"],
+  ["daily-worker.yml", "docs/operations/RUNBOOKS.md RB-16"],
 ]);
 
 /** Resolve owner/repo (env in CI, git remote locally). */
@@ -160,10 +162,10 @@ async function main() {
     const exempt = DOCUMENTED_DISABLED.has(file);
     if (exempt && meta.state === "disabled_manually") {
       exempted += 1;
-      continue; // Documented disable (RB-14); not stale by construction.
+      continue; // A documented intentional hold is not a missed scheduled run.
     }
     if (exempt && meta.state !== "disabled_manually") {
-      // Re-enabled (RB-14 preconditions met) — exemption no longer applies;
+      // Re-enabled — the documented hold exemption no longer applies;
       // fall through so staleness is judged normally.
       process.stdout.write(
         `[workflow-staleness] ${file}: no longer disabled_manually (state=${meta.state}) — exemption dropped.\n`,

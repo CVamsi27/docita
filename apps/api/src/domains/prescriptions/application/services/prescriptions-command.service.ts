@@ -153,6 +153,7 @@ export class PrescriptionsCommandService {
       appointmentId: data.appointmentId,
       patientId: data.patientId,
       doctorId: data.doctorId,
+      clinicId: data.clinicId,
       instructions: data.instructions,
       doctorName: data.doctorName ?? doctorProfile.name,
       doctorEmail: data.doctorEmail ?? doctorProfile.email,

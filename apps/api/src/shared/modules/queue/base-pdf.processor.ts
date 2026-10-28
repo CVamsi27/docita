@@ -7,6 +7,7 @@ import {
 import { type PdfJobProcessorPrismaPort } from '@/shared/modules/queue/pdf-job.service';
 import { type IClock } from '@/shared/common/ports/clock.port';
 import { shouldRegisterPdfQueueHandlers } from '@/shared/modules/queue/pdf-processor-registration';
+import { runWithTenant } from '@/shared/common/middleware/tenant.middleware';
 
 /**
  * Service-side contract that every PDF processor consumer satisfies.
@@ -61,14 +62,16 @@ export abstract class BasePdfProcessor<
       }
 
       try {
-        const document = await this.service.findOne(documentId, clinicId);
-        const buffer = await this.service.generatePDF(documentId, clinicId);
-        const { storedKey } = await this.service.uploadAndPersist(
-          documentId,
-          clinicId,
-          buffer,
-          document,
-        );
+        const { storedKey } = await runWithTenant({ clinicId }, async () => {
+          const document = await this.service.findOne(documentId, clinicId);
+          const buffer = await this.service.generatePDF(documentId, clinicId);
+          return this.service.uploadAndPersist(
+            documentId,
+            clinicId,
+            buffer,
+            document,
+          );
+        });
 
         if (pdfJobId) {
           // RLS-BYPASS: pdf job status update runs in queue worker outside tenant context

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import type { CreatePrescriptionCommand } from '@/domains/prescriptions/core/repositories/prescription-commands';
 import { PrismaPrescriptionRepository } from './prescription.repository';
 import { PrismaService } from '@/prisma/prisma.service';
 
@@ -23,6 +24,13 @@ describe('PrismaPrescriptionRepository', () => {
   };
 
   let repository: PrismaPrescriptionRepository;
+  const createCommand: CreatePrescriptionCommand = {
+    appointmentId: 'appt-1',
+    patientId: 'patient-1',
+    doctorId: 'doctor-1',
+    clinicId: 'clinic-1',
+    medications: [],
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -38,4 +46,26 @@ describe('PrismaPrescriptionRepository', () => {
   it('constructs without throwing', () => {
     expect(repository).toBeDefined();
   });
+
+  it('connects the supplied clinic when persisting a prescription', async () => {
+    await repository.create(createCommand);
+
+    expect(prismaMock.prescription.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          clinic: { connect: { id: 'clinic-1' } },
+        }),
+      }),
+    );
+  });
+
+  it.each([undefined, ''])(
+    'rejects missing clinic scope before persistence (%s)',
+    async (clinicId) => {
+      await expect(
+        repository.create({ ...createCommand, clinicId }),
+      ).rejects.toThrow('Cannot create prescription without a clinic context');
+      expect(prismaMock.prescription.create).not.toHaveBeenCalled();
+    },
+  );
 });

@@ -217,7 +217,10 @@
     "check:skeleton-animation": "node scripts/checks/check-skeleton-animation.mjs",
     "check:dependency-exceptions": "node scripts/checks/check-dependency-exceptions.mjs",
     "test:docker-artifacts": "DOCITA_RUN_DOCKER_ARTIFACT_TESTS=true node --test scripts/checks/docker-artifact-safety.integration.test.mjs",
-    "rollback:fly": "node scripts/deploy/rollback-fly-image.mjs"
+    "rollback:fly": "node scripts/deploy/rollback-fly-image.mjs",
+    "capacity:plan": "node loadtest/capacity.mjs --dry-run",
+    "capacity:run": "node loadtest/capacity.mjs",
+    "test:capacity": "node --test loadtest/*.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

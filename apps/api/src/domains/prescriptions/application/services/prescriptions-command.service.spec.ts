@@ -7,7 +7,7 @@ import type { CreatePrescriptionCommand } from '@/domains/prescriptions/core/rep
 import type { PrescriptionPdfOrchestratorService } from './prescription-pdf-orchestrator.service';
 import { PrescriptionsCommandService } from './prescriptions-command.service';
 
-describe('PrescriptionsCommandService — controlled substances by modality', () => {
+describe('PrescriptionsCommandService', () => {
   const findDoctorComplianceMock =
     jest.fn<IPrescriptionRepository['findDoctorCompliance']>();
   const findPatientWithAllergiesMock =
@@ -76,6 +76,16 @@ describe('PrescriptionsCommandService — controlled substances by modality', ()
     createMock.mockResolvedValue({ id: 'rx-1' } as Awaited<
       ReturnType<IPrescriptionRepository['create']>
     >);
+  });
+
+  it('preserves the clinic scope when creating the prescription', async () => {
+    findAppointmentTypeMock.mockResolvedValue('IN_PERSON');
+
+    await service.create(baseParams('Cetirizine'));
+
+    expect(createMock).toHaveBeenCalledWith(
+      expect.objectContaining({ clinicId: 'clinic-1' }),
+    );
   });
 
   it('blocks controlled substances on TELEHEALTH appointments (NMC)', async () => {

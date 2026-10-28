@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IPrescriptionRepository,
@@ -175,8 +175,14 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   }
 
   async create(data: CreatePrescriptionCommand): Promise<Prescription> {
+    if (!data.clinicId)
+      throw new BadRequestException(
+        'Cannot create prescription without a clinic context',
+      );
+
     return await this.prisma.prescription.create({
       data: {
+        clinic: { connect: { id: data.clinicId } },
         appointment: { connect: { id: data.appointmentId } },
         patient: { connect: { id: data.patientId } },
         doctor: { connect: { id: data.doctorId } },

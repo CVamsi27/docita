@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@/test-utils";
+import { fireEvent, render, screen, waitFor, within } from "@/test-utils";
 import { PerformancePage } from "./performance-page";
 import { apiGet } from "@/lib/api/api-client";
 
@@ -49,6 +49,14 @@ describe("PerformancePage", () => {
     expect(screen.getByText("1.50 %")).toBeInTheDocument();
     expect(screen.queryByText(/from baseline/i)).not.toBeInTheDocument();
     expect(screen.getByText("Clinics with appointments")).toBeInTheDocument();
+    expect(
+      screen.getByText("Request samples (legacy scope)"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Legacy telemetry: request scope and latency-validity rules are unconfirmed.",
+      ),
+    ).toBeInTheDocument();
   });
   it("shows unavailable latency and error rate when there are no samples", async () => {
     mockApiGet.mockResolvedValueOnce({
@@ -65,9 +73,17 @@ describe("PerformancePage", () => {
       },
     });
     render(<PerformancePage />);
-    await waitFor(() =>
-      expect(screen.getAllByText("Unavailable")).toHaveLength(3),
-    );
+    await screen.findByText(/No retained request samples/);
+    for (const name of [
+      "Median response time",
+      "p95 response time",
+      "Server error rate",
+    ]) {
+      const card = screen.getByText(name).closest('[data-slot="card"]');
+      if (!(card instanceof HTMLElement))
+        throw new Error("Metric card is missing.");
+      expect(within(card).getByText("Unavailable")).toBeInTheDocument();
+    }
     expect(screen.getByText(/No retained request samples/)).toBeInTheDocument();
   });
 
@@ -100,5 +116,35 @@ describe("PerformancePage", () => {
     await waitFor(() => {
       expect(mockApiGet).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it("renders versioned customer telemetry and distinct activity counts", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      ...mockPayload,
+      definitionVersion: 2,
+      activity: {
+        ...mockPayload.activity,
+        prescriptionsCreated: 70,
+        clinicPatientsSeen: 60,
+      },
+      telemetry: {
+        ...mockPayload.telemetry,
+        requestScope: "CUSTOMER",
+        p99Ms: 900,
+        validLatencySamples: 197,
+        invalidLatencySamples: 3,
+      },
+    });
+    render(<PerformancePage />);
+    await screen.findByText("900 ms");
+    expect(screen.getByText("Customer request samples")).toBeInTheDocument();
+    expect(screen.getByText("Prescriptions created")).toBeInTheDocument();
+    expect(screen.getByText("Clinic-patients seen")).toBeInTheDocument();
+    expect(screen.getByText("Valid latency samples")).toBeInTheDocument();
+    expect(screen.getByText("Invalid latency samples")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Customer requests by observed completion time/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/legacy scope/i)).not.toBeInTheDocument();
   });
 });
