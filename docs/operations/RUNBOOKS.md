@@ -827,6 +827,49 @@ keeping a dead guard around.
 
 ---
 
+## RB-16: Daily worker intentionally held during maintenance
+
+**Status** Deliberately disabled runtime work under the existing operator
+maintenance decision. This record does not authorize starting a worker or
+re-enabling a workflow to make a source check pass.
+
+**Basis and readback**
+
+- The 19–20 October operating record in
+  [ZERO_HOSTING_SPEND.md](ZERO_HOSTING_SPEND.md) requires retaining the stopped
+  Fly machines while controlling usage under the operator's zero-collection
+  goal. It explicitly records **Daily Worker Queue Drain** as manually disabled.
+- The 28 October GitHub readback still reports `daily-worker.yml` as
+  `disabled_manually`; its last run started at `2026-10-19T06:23:33Z`.
+- The unchanged workflow would start the Fly worker for a bounded drain and
+  stop it afterward. Enabling or manually dispatching it is a runtime action,
+  not a source-validation step.
+
+**Consequences while held**
+
+No scheduled queue drain occurs. Pending work, delayed work and retention need
+separate review before restart; an intentionally held worker cannot establish
+delivery, queue-age or production-availability objectives. Local synthetic
+worker tests do not replace that operational evidence.
+
+**Guard behavior and restart boundary**
+
+The workflow-staleness guard exempts this named workflow only while GitHub
+reports exactly `disabled_manually`. It still checks unrelated disabled
+schedules. Re-enabling this workflow automatically removes the exemption, so a
+stale last run fails again; deleting a documented workflow file also fails until
+its exemption is retired.
+
+Follow the existing clinical, encryption, backup/recovery, credential and usage
+gates in [ZERO_HOSTING_SPEND.md](ZERO_HOSTING_SPEND.md) before an authorized
+runtime restart. Then verify the queue's actual backlog, worker effects and
+shutdown under the intended profile, and inspect the next scheduled run. Retire
+this hold record when that operating decision changes; keep normal staleness
+checking active. This source change leaves provider configuration and workflow
+state unchanged.
+
+---
+
 ## Appendix: contact + escalation matrix
 
 | Role            | Channel                    | SLA              |

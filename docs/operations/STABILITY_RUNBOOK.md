@@ -1,5 +1,11 @@
 # Stability, Reliability & Performance Runbook
 
+**28 October documentation refresh:** source checked at base `f3fddffc0`; corrected
+API target alignment, event/time error-budget arithmetic, evidence/gate scope and
+unsafe automatic recovery assumptions. No provider account, production SQL,
+service lifecycle or live alert was changed. The dated operating records below
+retain their own dates and do not independently verify today's tier or bill.
+
 **20 October final pass:** the recorded PR revision has 14 successes and three
 scope skips; production remains in maintenance and is not certified ready.
 The Sentry test monitor and dedicated email rule are disabled after 27 unintended
@@ -41,125 +47,193 @@ above. This doc complements [`RUNBOOKS.md`](RUNBOOKS.md) for incident response
 and [`SLOS.md`](SLOS.md) for performance targets. It owns prevention: what we do
 _before_ incidents to keep them rare, small, and reversible.
 
-> The Docita production stack is HIPAA-adjacent (PHI). Stability work is
-> patient-safety work: a slow consultation page is a clinician waiting; a
+> Docita handles protected clinical information. Stability work includes
+> patient-safety concerns: a slow consultation page is a clinician waiting; a
 > dropped audit log is a compliance gap. This runbook treats both as
 > incidents.
 
 ---
 
-## 1. SLOs (target: published, budgeted, alerted)
+## 1. Define the service and the observation boundary
 
-Defined per surface. Violations trigger the alert → runbook chain in §3.
+The dated maintenance records above remain controlling. Source definitions,
+proposed thresholds, local tests, deployed collectors and delivered alerts are
+separate facts. The 28 October documentation check did not start production,
+activate schedules, send a test notification or certify an uptime window.
 
-| Surface                    | Metric                                                      | Target (p95, 7-day) | Budget per quarter | Owner    |
-| -------------------------- | ----------------------------------------------------------- | ------------------- | ------------------ | -------- |
-| API — auth                 | login, refresh, logout latency                              | ≤ 300ms             | 99.5%              | Backend  |
-| API — CRUD (single record) | patients, appointments, invoices, prescriptions, lab orders | ≤ 200ms             | 99.5%              | Backend  |
-| API — CRUD (paged list)    | paginated ≤ 50 rows                                         | ≤ 400ms             | 99.0%              | Backend  |
-| API — search               | full-text patient search                                    | ≤ 600ms             | 99.0%              | Backend  |
-| API — reports / PDF        | consultation summary, invoice                               | ≤ 1500ms (async OK) | 99.0%              | Backend  |
-| API — webhooks             | signature verify + dedupe                                   | ≤ 100ms             | 99.9%              | Backend  |
-| API — availability         | `/api/health/live` 200s                                     | 99.9% / 30-day      | 99.9%              | Backend  |
-| Worker — queue drain       | scheduled job latency                                       | ≤ 60s p99           | 99.0%              | Backend  |
-| Worker — PDF generation    | end-to-end document                                         | ≤ 30s p95           | 99.0%              | Backend  |
-| App — initial load (LCP)   | `apps/app`, `apps/internal`                                 | ≤ 2.5s p75          | 99.0%              | Frontend |
-| App — INP                  | any interactive flow                                        | ≤ 200ms p75         | 99.0%              | Frontend |
-| App — CLS                  | any page                                                    | ≤ 0.1 p75           | 99.0%              | Frontend |
-| App — TTFB                 | first byte from Worker proxy                                | ≤ 800ms p75         | 99.0%              | Frontend |
-| App — error rate (Sentry)  | unhandled exceptions                                        | ≤ 0.1% sessions     | 99.9%              | Frontend |
-| App — offline / PWA        | static asset hit (Worker cache)                             | 99.5%               | 99.5%              | Frontend |
+Use [SLOS.md](SLOS.md) and `scripts/checks/api-latency-slos.mjs` as the canonical
+API latency contract rather than maintaining conflicting numbers here:
 
-**Where these are enforced**:
+| Class | Current published P95 target | P99 target when defined | Measurement boundary |
+| --- | --- | --- | --- |
+| auth | 300 ms | Not specified | Declared authenticated route mix; the soak samples session validation, not every login/refresh path |
+| crud | 200 ms | 500 ms | Declared patient/appointment read samples; separate clinical writes need their own tests |
+| search | 400 ms | Not specified | Declared paginated search workload and data distribution |
+| reports | 1,500 ms | Not specified | Declared report response; asynchronous PDF enqueue-to-artifact completion is a separate metric |
+| webhooks | 100 ms | Not specified | Ingress only; the current soak probes invalid-signature rejection, not successful financial processing |
 
-- API latency: `pnpm check:api-latency-budget` (new in P5.9, see
-  [`POST_CUTOVER_GAPS.md` §4](../analysis/POST_CUTOVER_GAPS.md))
-- Bundle size: `pnpm perf:route-budgets` (Vite-aware, dist/assets scan)
-- Worker bundle: `pnpm check:worker-size` (must emit `index.js`, not
-  `worker.js`)
-- Web Vitals: `pnpm check:web-vitals` (P5.8)
-- Uptime sampling: GitHub Actions (`pnpm monitor:synthetic`, three daily runs).
-  Minute-level uptime and Datadog alerting are not verified by this runner.
+These are targets, not achieved results. Keep window, dataset, traffic mix,
+route distribution, sample counts, cache/resource state and capture coverage
+with a result. Do not average route or replica percentiles into a platform
+percentile. The current source supports no conclusion that every class was
+measured by a retained complete baseline.
 
-**Quarterly budget burn**: 0.5% of the budget is "spent" per SLO breach
-exceeding 5 minutes; breaches shorter than 5 min are noise. If burn rate
-exceeds 50% by mid-quarter, page the on-call for triage.
+Define additional service objectives explicitly before using them:
 
----
+| Objective | Eligible good/bad observations | Missing-data boundary |
+| --- | --- | --- |
+| User-operation availability | A declared supported operation produces the correct authorized result versus a declared eligible failure/timeout | Successful liveness probes do not establish clinical workflow availability; intentional authorization denials need a stated rule |
+| Worker completion | Unique eligible logical jobs complete their intended effect within the stated deadline versus terminal failure or unresolved deadline miss | Current queue depth omits cleaned-up history and is not a completed-job latency distribution |
+| Document availability | The correct document is stored and retrievable by its authorized recipient within the declared interval | Metadata marked COMPLETED does not alone prove readable content, object existence or delivery |
+| Frontend experience | Declared route/device population for LCP, INP and CLS under current performance-budget definitions | Sampled Web Vitals need coverage/device mix; a build or synthetic fetch is not real-user performance |
+| Session reliability | Declared sessions with the intended usable experience versus eligible unhandled/user-blocking failures | Sentry event count is not the total session denominator, and disabled/sampled collection creates uncertainty |
 
-## 2. Error budgets
+Check source tools according to their actual scope:
 
-Each SLO has an error budget: `1 - target`. E.g. 99.9% availability allows
-~43 minutes of downtime per month. When the budget is exhausted, releases
-that don't demonstrably fix the breach are paused.
-
-| SLO class        | Budget per 30 days            | Fast-burn alert (>2x in 1h) | Slow-burn alert (>1x in 24h) |
-| ---------------- | ----------------------------- | --------------------------- | ---------------------------- |
-| API availability | 43m 50s                       | Yes → page                  | Yes → ticket                 |
-| API latency p95  | 50% of 200ms = 100ms headroom | Yes → page                  | Yes → ticket                 |
-| App LCP p75      | 0.5s headroom                 | Yes → page                  | Yes → ticket                 |
-| App error rate   | 0.1% of sessions              | Yes → page                  | Yes → ticket                 |
-
-**Pause rule**: if a single change burns >10% of any budget in 1h, the
-release is paused pending rollback decision (§5). The burn rate is computed
-from Datadog and validated against the staging soak.
+- API latency uses `pnpm check:api-latency-budget`; its default and `--enforce`
+  modes can skip an absent baseline. A release declaring that budget must use
+  `pnpm check:api-latency-budget --require-baseline`. Missing, stale or incomplete
+  evidence remains blocked rather than green.
+- Route, Worker bundle and Web Vitals tools inspect their configured artifacts
+  and budgets: `pnpm perf:route-budgets`, `pnpm check:worker-size` and
+  `pnpm check:web-vitals`. Inspect each command's output for absent artifacts or
+  skipped data; presence of a package script is not an executed performance test.
+- `pnpm monitor:synthetic` defines probe behavior. The historical three-runs/day
+  schedule does not give minute-level uptime, measure every request or prove
+  that the schedule is currently enabled. The dated production schedules are
+  disabled; a probe must not wake stopped services during an audit.
+- Datadog collection and paging are not established by this source inspection.
+  Treat references to them as design candidates until account configuration,
+  coverage and delivered-notification evidence are retained.
 
 ---
 
-## 3. Alerts → Runbook chain
+## 2. Calculate error budgets from eligible events or known time
 
-Every alert has:
+An error budget is an allowed fraction of **defined bad outcomes**. It is not
+latency headroom measured in milliseconds, and one breach does not consume an
+arbitrary fixed percentage.
 
-1. **Trigger** — the SLO breach threshold.
-2. **Severity** — `SEV1` (patient impact, page), `SEV2` (degraded, ticket),
-   `SEV3` (cosmetic, ticket).
-3. **Primary runbook** — the doc to open first.
-4. **Owner** — who gets paged.
+For a chosen evaluation interval `T`, target success fraction `S`, `N(T)` eligible
+observations and `B(T)` bad observations:
 
-| Alert                          | SEV | Runbook                                                                                                      | Owner           |
-| ------------------------------ | --- | ------------------------------------------------------------------------------------------------------------ | --------------- |
-| API 5xx > 0.5%                 | 1   | [`playbooks/db-connection-exhaustion.md`](../operations/playbooks/db-connection-exhaustion.md) (first guess) | Backend on-call |
-| API p95 > 1s for 5m            | 2   | [`RUNBOOKS.md`](../operations/RUNBOOKS.md) §"Slow API"                                                       | Backend         |
-| Worker queue lag > 5m          | 2   | [`playbooks/pdf-queue-backlog.md`](../operations/playbooks/pdf-queue-backlog.md)                             | Backend         |
-| App LCP p75 > 4s for 30m       | 2   | `RUNBOOKS.md` §"Slow frontend"                                                                               | Frontend        |
-| App error rate > 0.5%          | 1   | Sentry project alert → triage in #incident-frontend                                                          | Frontend        |
-| Cloudflare 5xx > 1%            | 1   | [`playbooks/cloudflare-upstream-timeout.md`](../operations/playbooks/cloudflare-upstream-timeout.md)         | Release eng     |
-| Razorpay webhook failures > 1% | 1   | [`playbooks/razorpay-outage.md`](../operations/playbooks/razorpay-outage.md)                                 | Backend         |
-| OpenAI rate limit              | 2   | [`playbooks/openai-rate-limit.md`](../operations/playbooks/openai-rate-limit.md)                             | Backend         |
-| Postgres connections > 80%     | 1   | [`playbooks/db-connection-exhaustion.md`](../operations/playbooks/db-connection-exhaustion.md)               | Backend         |
-| Sentry scrubber regression     | 1   | `check:sentry-scrubbing` + `check:sentry-scrubber-parity`                                                    | Backend         |
-| Audit log write failure        | 1   | `RUNBOOKS.md` §"Audit gap" (PHI implication)                                                                 | Backend         |
-| PHI read without audit         | 1   | `check:phi-read-audit` (static) + runtime alert on missing `VIEW_*` event                                    | Compliance      |
-| Webhook signature fail > 5%    | 1   | `RUNBOOKS.md` §"Webhook integrity"                                                                           | Backend         |
-| RLS policy change              | 1   | [`RLS_ROLLOUT.md`](../compliance/RLS_ROLLOUT.md)                                                             | Backend         |
+```text
+allowed bad outcomes = N(T) × (1 - S)
+observed bad fraction = B(T) / N(T)
+budget consumed       = B(T) / [N(T) × (1 - S)]
+burn rate in window w = [B(w) / N(w)] / (1 - S)
+```
+
+For example, an explicitly hypothetical 99.9% event-success target across 100,000
+eligible operations allows 100 bad outcomes. Twenty bad outcomes consume 20% of
+that budget, with overall burn 0.2×. A five-minute failure's cost depends on the
+eligible work it affected; short incidents are not automatically noise.
+
+A P95 ≤200 ms target describes the upper part of a latency distribution. If an
+operator instead adopts an event objective such as at least 95% of defined
+operations completing successfully within 200 ms, its slow/failed-event fraction
+can have a 5% budget. That is a **proposed event contract**, with explicit timeout,
+error, exclusion and instrumentation rules, not an automatically implemented
+interpretation of the existing staging percentile ratchet. Successful latency
+samples alone cannot hide failed or unobserved operations.
+
+Time-based availability is a different contract. For a continuous, fully
+observed 30-day period, 99.9% allows **43 minutes 12 seconds** unavailable:
+`30 × 24 × 60 × 0.001 = 43.2 minutes`. A sparse probe schedule cannot identify all
+unavailable intervals at that precision. Record measured, inferred and unknown
+time separately; never treat the unobserved gap between two successful probes
+as verified uptime.
+
+### Proposed multi-window decisions
+
+Choose thresholds from service impact and observed volume before activating an
+alert. The following is a review template, not evidence of a deployed rule:
+
+| Decision | Longer window | Confirming shorter window | Required conditions |
+| --- | --- | --- | --- |
+| Fast-burn investigation/page candidate | 1 hour above a reviewed burn threshold | 5 minutes above the same threshold | Adequate eligible observations, meaningful absolute bad count, usable capture and sustained current impact |
+| Slow-burn investigation/ticket candidate | 24 hours above a reviewed burn threshold | 1 hour confirms continued degradation | Matching event definition/target, coverage, volume and an owned corrective action |
+| Severe correctness incident | Confirmed tenant isolation breach, duplicate or lost financial effects, or blocked clinical work | Do not wait for a percentile window | Contain scope and invoke the incident owner independently of aggregate budget burn |
+
+A zero denominator produces **unavailable**, not 0% error. Low volume can make
+ratios unstable; use an explicitly justified longer observation window or an
+appropriate black-box correctness check, and retain raw counts. Missing telemetry
+requires investigation rather than an inferred success rate. Evaluate both
+windows from equivalent event definitions and sample populations.
+
+Burn rate is a normalized rate, not a fixed debit per incident. With nonuniform
+traffic, do not multiply a request-based burn value by elapsed-time share and
+assume the result is the fraction of the full budget spent; compare actual bad
+counts against the declared evaluation population. Define the release-pause,
+rollback review and resumption rules against that measured scope. There is no
+verified Datadog feed or automatic error-budget release control established here.
 
 ---
 
-## 4. Pre-deployment stability gates (mandatory)
+## 3. Connect a proposed alert to an operational decision
 
-A release cannot ship unless **all** of the following are green for the
-current `main` HEAD:
+Every candidate rule needs a metric definition, eligible population/window,
+minimum usable observations, threshold, severity, runbook, owner and escalation
+route. Record evaluation/deduplication behavior, notification delivery, recovery
+condition and the bounded test that verified it. The table is a routing guide;
+its existence does not activate alerts or certify delivery.
 
-1. **Static gates** — `pnpm verify:standard` exits 0. Includes 100+ checks
-   (lint, types, tests, contracts, security, accessibility, performance
-   budgets, hygiene).
-2. **Unit tests** — `pnpm --filter @docita/api test` (3000+), `pnpm --filter
-@docita/app test` (697+), `pnpm --filter @docita/internal
-test` (48+).
-3. **E2E** — `pnpm --filter @docita/api run test:e2e` (23 suites, 143+ tests).
-4. **Cloudflare build** — run the production Cloudflare build for each
-   touched app (`pnpm --filter @docita/app run build:cloudflare`, or the
-   same with `@docita/internal` / `@docita/landing`) before deployment;
-   CI enforces the same builds (jobs: §7.8).
-5. **Staging smoke** — `pnpm monitor:synthetic` (5 probes).
-6. **Dependency audit** — `pnpm audit --audit-level=high` exits 0.
-7. **Migration reversibility** — `pnpm check:migration-reversibility` for any
-   new `prisma migrate` output.
-8. **Suppression ledger** — any new allow-file / ignore entry is added to
-   [`SUPPRESSION_LEDGER.md`](../analysis/SUPPRESSION_LEDGER.md) with rationale.
+| Signal to qualify | First investigation | Runbook and owner |
+| --- | --- | --- |
+| Eligible API failures or slow operations | Route mix, user impact, trace, pool/lock waits, event-loop/memory pressure and dependency outcomes; do not assume the database is the cause | [Incident response](RUNBOOKS.md) and, when supported by evidence, [DB exhaustion](playbooks/db-connection-exhaustion.md); backend |
+| Unfinished PDF work or old claims | Worker state/heartbeat, per-name queue outcomes, renderer/storage boundary and old unresolved work | [PDF backlog](playbooks/pdf-queue-backlog.md); backend |
+| Frontend degradation | Device/route sample, browser/network work, rendering and proxy response | [Incident response](RUNBOOKS.md); frontend |
+| Proxy/upstream failures | Distinguish edge rejection from backend timeout or unavailable process | [Cloudflare upstream](playbooks/cloudflare-upstream-timeout.md); release owner |
+| Payment/provider uncertainty | Signature/authentication, provider receipt, merchant identity and existing financial outcome before replay | [Razorpay](playbooks/razorpay-outage.md); backend/billing |
+| AI provider quota/failure | Enabled feature, consent, quota, retry budget and user-visible fallback | [OpenAI rate limit](playbooks/openai-rate-limit.md); feature owner |
+| Database resource pressure | Actual role, connection/pool wait, locks, storage and CPU/I/O metrics | [DB exhaustion](playbooks/db-connection-exhaustion.md); backend |
+| Suspected PHI exposure, audit gap or wrong-tenant result | Contain access, preserve protected evidence and verify the affected authority/audit boundary | [Incident response](RUNBOOKS.md) and [RLS rollout](../compliance/RLS_ROLLOUT.md); backend/compliance |
 
-The release evidence index is in
-[`RELEASE_EVIDENCE_CHECKLIST.md`](../operations/RELEASE_EVIDENCE_CHECKLIST.md).
+Static scrubber, signature and audit checks establish their named source
+properties; they are not runtime missing-event detectors. Keep proposed runtime
+rules separate from actually configured collectors and delivered notifications.
+The Sentry test monitor/email rule remains disabled under the dated containment
+record; do not send another test merely to populate a green checklist.
+
+---
+
+## 4. Pre-deployment stability evidence
+
+Use the recorded application revision and [release evidence checklist](RELEASE_EVIDENCE_CHECKLIST.md).
+A passing focused check cannot replace an unrelated required gate, and a skipped
+or credential-blocked check is not a successful verification of its subject.
+
+1. Run `pnpm verify:standard` and record its exact result. This is a chain of
+   repository invariants; it does not automatically run every lint, type,
+   unit/E2E or live performance check. The 28 October capacity pass stopped at the
+   existing stale disabled daily-worker schedule. The final source pass documents
+   that intentional maintenance hold in [RB-16](RUNBOOKS.md#rb-16-daily-worker-intentionally-held-during-maintenance); its guard exemption applies only
+   while live state is `disabled_manually`, with regression cases for re-enabled
+   and unrelated stale workflows. No schedule was enabled to satisfy the check.
+2. Run relevant lint, type and unit/component suites separately for affected
+   workspaces. Record current counts and scope rather than reusing historical
+   hardcoded totals. Test output must distinguish passing, skipped and failed.
+3. Use the approved isolated E2E target and read its setup before
+   `pnpm --filter @docita/api run test:e2e`. The ordinary E2E setup can change
+   schema/data; never point it at an arbitrary environment. A dedicated metrics
+   SQL fixture is not full API/E2E evidence.
+4. Build each touched Cloudflare app using its canonical `build:cloudflare`
+   command, then inspect actual artifacts and relevant bundle/route budgets.
+   Source workflow definitions do not prove the enabled hosted pipeline ran.
+5. Retain real staging-soak provenance and run the required API-baseline mode.
+   As of the 28 October capacity evidence, that baseline is absent. Its SLO target
+   values must not be inserted as measurements. A controlled GET soak still
+   leaves writes, jobs, providers, failure recovery and deployment limits to test.
+6. A live synthetic smoke needs an approved target, provider effect boundary and
+   permitted service state. Stopped/cordoned production is not a smoke target to
+   wake without an operating decision. Report actual probe outcomes and coverage.
+7. Run the applicable dependency, migration compatibility/reversibility and
+   suppression-ledger checks. A static migration reverse-file check does not
+   establish a safe live rollback or restore.
+8. Verify the current maintenance/cost controls, non-owner tenant enforcement,
+   backup/object/key custody, complete restore scope, alert delivery and operator
+   coverage required for the promised service. Prepared tooling alone leaves its
+   operating acceptance incomplete.
 
 ---
 
@@ -193,8 +267,12 @@ success message alone.
 ## 6. Capacity and spending boundary
 
 Use the verified inventory and spending limits in
-[ZERO_HOSTING_SPEND.md](ZERO_HOSTING_SPEND.md). Production uses Neon Free, two
-retained stopped Fly machines and Cloudflare/R2. Render staging is suspended.
+[ZERO_HOSTING_SPEND.md](ZERO_HOSTING_SPEND.md). The 15 October record identified
+Neon Free; the 28 October check reconfirmed Neon
+as the temporary provider but did not independently establish its current tier,
+compute, storage or bill. Two Fly machines were retained stopped in Singapore.
+Render staging remains suspended in the dated maintenance record; reverify its
+state before any approved change.
 There is no verified autoscaling or measured live headroom in this maintenance
 state. Before restart, measure the reviewed candidate within the operator's
 spending constraints; do not apply historical RDS or larger-instance proposals.
@@ -210,15 +288,19 @@ document retention is a separate data-class decision.
 
 ## 7. Common production failure patterns (and the fix)
 
-### 7.1 N+1 query in list endpoint
+### 7.1 Repeated database work in a list endpoint
 
-**Symptom**: API p95 spikes on `/patients` list once the dataset crosses 10K rows.
+**Symptom to investigate:** a list slows with data size or request concurrency.
+Inspect actual query counts/plans and row/relationship selection before naming
+N+1 as the cause. A source loop is one possible mechanism, not the only one.
 
-**Fix**: `pnpm check:n-plus-1` (already wired). Every list endpoint must
-load relations in a single `include` or a batched follow-up; the static
-check flags the obvious shape (`for (const x of rows) await fetch(y)`).
+**Action:** use `pnpm check:n-plus-1` for its static patterns, then measure the
+relevant operation. Batch related reads or adjust the query/index/projection
+where evidence supports it; a single Prisma `include` does not guarantee one
+SQL statement or acceptable query cost. Retain the changed-case result.
 
-**Owner**: Backend. **Detection**: 24h after first dataset crossing.
+**Owner:** backend. **Detection:** measured query/resource/route behavior;
+there is no guaranteed 10,000-row threshold or 24-hour detection delay.
 
 ### 7.2 React Query cache thrash on navigation
 
@@ -230,78 +312,94 @@ query key factory. Record measured results in the
 [release evidence](RELEASE_EVIDENCE_CHECKLIST.md); historical audit claims do not
 establish current live performance.
 
-**Owner**: Frontend. **Detection**: post-release monitor.
+**Owner**: Frontend. **Detection**: retained browser/profile observations;
+collector deployment and coverage require separate verification.
 
-### 7.3 Webhook signature gap
+### 7.3 Webhook signature or provider delivery failure
 
-**Symptom**: a payment provider starts sending unsigned or
-incorrectly-signed webhooks; the API 401s and retries pile up at the
-provider.
+**Symptom to investigate:** rejected provider deliveries or unresolved financial
+state. Validate merchant ownership, signature inputs/secrets and the provider's
+actual retry/delivery evidence without weakening signature checks.
 
-**Fix**: [`playbooks/razorpay-outage.md`](../operations/playbooks/razorpay-outage.md).
-The provider has a "replay all failed deliveries" button; we hold the
-backoff, drain the queue, then resume normal processing.
+**Action:** follow [Razorpay investigation](playbooks/razorpay-outage.md), then
+reconcile existing captures/local effects before a bounded authorized replay.
+Do not assume a provider has a universal replay-all button or that replay is
+safe for every event. Retain attempt, accepted-event and financial outcomes.
 
-**Owner**: Backend. **Detection**: provider outage alert.
+**Owner:** backend/billing. **Detection:** provider/operation evidence with
+usable coverage; a proposed alert alone is not active monitoring.
 
-### 7.4 Cold-start
+### 7.4 Slow first operation after idle
 
-**Symptom**: API first-request after idle > 5m is slow (200-800ms p95) due
-to Fly.io machine scale-to-zero.
+**Symptom to investigate:** startup, readiness, cache/database activation or a
+first business operation is slower than steady state. Measure each stage; this
+runbook establishes no specific 200–800 ms cold-start result.
 
-**Fix**: 1-min keepalive ping via `pnpm monitor:synthetic`. The staging
-deploy uses the same probe; production adopts it in P5.16.
+**Action:** compare cold/warm observations under the actual resource limits.
+A three-times-daily probe is not a one-minute keepalive or a zero-cold-start
+guarantee. A warm machine or keepalive policy changes runtime/database cost and
+needs an approved operating decision; preserve current stop/cordon controls.
+A worker without an HTTP wake path needs its own lifecycle policy.
 
-**Owner**: Release eng. **Detection**: monitor alert.
+**Owner:** release/operations. **Detection:** retained startup/readiness and
+first-operation timing, not inferred uptime between sparse probes.
 
 ### 7.5 CSRF double-submit regression
 
-**Symptom**: legitimate POSTs from the app fail with 403. The CSRF
-interceptor (in apps/api) requires both the cookie and the header; if a new
-proxy strips the header, every request breaks.
+**Symptom to investigate:** legitimate browser mutations fail with 403. Compare
+the cookie/header forwarding and trusted-origin behavior at the actual proxy
+and backend boundary, while preserving webhook signature requirements.
 
-**Fix**: `check:webhook-csrf-exemption` (P5.12, live 2026-08-06) and the e2e
-spec `csrf-webhook-exemption.e2e-spec.ts`. The interceptor exemption for
-`/webhooks/*` POST is locked behind a comment + a `failAlways` static gate
-that rejects any widening (unanchored path, non-POST method, or movement
-into the auth-bootstrap path), plus a 4-case e2e spec proving signature
-checks fire before CSRF and the negative control (non-webhook mutation)
-still 403s.
+**Action:** run `check:webhook-csrf-exemption` and relevant
+`csrf-webhook-exemption.e2e-spec.ts` cases on an approved isolated target.
+Static exemption checks and those executed cases establish their own scope;
+do not infer every current proxy/session path from a historical test count.
 
-**Owner**: Backend. **Detection**: a/b test or staging smoke.
+**Owner:** backend/frontend. **Detection:** retained failed request and a
+meaningful positive/negative control.
 
 ### 7.6 PHI redaction regression
 
-**Symptom**: a Sentry event contains a patient name, phone, or Aadhaar.
+**Symptom to investigate:** protected information reaches general telemetry.
+Contain access and follow the incident data-handling procedure before copying
+an event into another system.
 
-**Fix**: `check:sentry-scrubbing` + `check:sentry-scrubber-parity`. The
-scrubber list is updated when new PHI surfaces appear; both checks verify
-the scrubber list covers the data-access layer output.
+**Action:** inspect the affected data flow and run `check:sentry-scrubbing`
+and `check:sentry-scrubber-parity` with relevant scrubber tests. Passing source
+checks covers their configured rules/fixtures, not every future field or event.
+Verify scrubbed output with synthetic data and current capture configuration.
 
-**Owner**: Backend. **Detection**: Sentry alert (sample event review).
+**Owner:** backend/compliance. **Detection:** authorized event/data-flow review;
+no enabled Sentry delivery rule is established by this section.
 
-### 7.7 RLS policy bypass
+### 7.7 RLS policy or role bypass
 
-**Symptom**: a Prisma query returns rows from another tenant.
+**Symptom to investigate:** a query returns or changes another clinic's data.
+Contain the affected path immediately and retain protected evidence.
 
-**Fix**: [`check:rls-rollout-readiness`](../compliance/RLS_ROLLOUT.md)
-enforces the bypass annotation; `check:rls-bypass-annotation` greps the
-codebase. Every `prisma.$queryRaw` with `BYPASSRLS` must have a one-line
-rationale and a test.
+**Action:** inspect the real runtime role, applied policies and transaction-local
+tenant context through the chosen pooler. `check:rls-rollout-readiness` and
+`check:rls-bypass-annotation` inspect declared source/rollout conditions; neither
+executes every tenant denial or repairs a superuser/table-owner bypass. Run the
+actual non-owner/pooled-connection matrix in the approved isolated scope and
+follow [RLS rollout](../compliance/RLS_ROLLOUT.md).
 
-**Owner**: Backend. **Detection**: e2e multi-tenant fixture.
+**Owner:** backend/compliance. **Detection:** confirmed authority boundary and
+executed adversarial cases, independent of aggregate error-rate burn.
 
 ### 7.8 Worker bundle regrowth
 
 **Symptom**: `pnpm check:worker-size` starts failing because a new
 dependency bloats the Worker.
 
-**Fix**: `check:worker-size` enforces a 3584 KB gzip budget per Worker
-bundle and chains `app` + `internal` + `landing`. The `app-quality` /
+**Fix**: `check:worker-size` uses a repository default 3.5 MiB gzip budget,
+with an explicit configured override supported by the script; that internal
+budget is not the provider's current deployment limit. The root command chains
+`app` + `internal` + `landing`. The configured `app-quality` /
 `internal-quality` / `landing-quality` jobs are where CI runs all of it:
 the `build:cloudflare` builds (§4 item 4) and the per-app caps via
 `check:worker-size:app` / `:internal` / `:landing` (not
-`verify:standard`). Three known offenders (preact, aws-sdk, sharp) are
+`verify:standard`). Historical dependency overages (preact, aws-sdk, sharp) are
 documented in
 [`worker-bundle-pre-existing-overage.md`](../operations/worker-bundle-pre-existing-overage.md).
 
@@ -313,16 +411,19 @@ documented in
 
 Every quarter, refresh:
 
-1. SLOs (§1) — re-baseline from the last 90 days.
-2. Error budget burn (§2) — confirm the budget was not exhausted.
-3. Alert chain (§3) — add any new alerts, retire any that haven't fired in
-   90 days.
-4. Pre-deploy gates (§4) — re-run the full set, retire any that haven't
-   caught a regression in 90 days.
+1. SLOs (§1) — review user requirements and the last 90 days of covered results;
+   do not silently loosen a target to match a regression.
+2. Error budget burn (§2) — calculate consumption from the declared eligible
+   population; record missing coverage as unknown, not a green budget.
+3. Alert chain (§3) — review relevance, false positives, capture and delivered
+   notification evidence. A quiet rule is not automatically unnecessary.
+4. Pre-deploy gates (§4) — run the applicable current set and review coverage,
+   cost and redundancy. Lack of a recent caught regression alone does not
+   justify removing a safety gate.
 5. Rollback rehearsals (§5) — do at least one rollback drill per quarter.
 6. Capacity review (§6) — re-measure and update the plans.
-7. Failure pattern list (§7) — add any new pattern; retire any not seen in
-   90 days.
+7. Failure pattern list (§7) — verify source mechanisms and measured incidents;
+   distinguish known failure modes from actually observed causes.
 
 Output: a 2-page report in `docs/audits/<date>-quarterly-stability.md`. The
 report is referenced from the [stability plan](../superpowers/plans/2026-10-13-two-month-stability.md)

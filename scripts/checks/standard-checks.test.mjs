@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import "./docker-workspace-resolution.test.mjs";
 import "./ci-change-detection.test.mjs";
 import "./pre-push-git-isolation.test.mjs";
+import "./workflow-staleness.test.mjs";
 import "../deploy/frontend-auth-workflow.test.mjs";
 import "../deploy/build-cloudflare-frontend.test.mjs";
 import { execFileSync, spawnSync } from "node:child_process";

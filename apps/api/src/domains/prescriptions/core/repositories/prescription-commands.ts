@@ -7,11 +7,10 @@
  * free of ORM imports.
  *
  * `CreatePrescriptionCommand` doubles as the application-layer facade DTO: it
- * carries the application context (`clinicId?`, `isTeleconsultation?`) alongside
- * the persistence-relevant fields. The repository implementation only consumes
- * the persistence-relevant subset; the application context is consumed by
- * `PrescriptionsCommandService` (e.g. to enforce the NMC telemedicine
- * controlled-substance block) before the call reaches the repository.
+ * carries the clinic scope and application context (`isTeleconsultation?`)
+ * alongside the persistence-relevant fields. The service validates the clinic
+ * scope and forwards it to the repository for the persisted clinic relation;
+ * the service consumes modality to enforce the telemedicine substance block.
  */
 
 import type { HospitalRole, Specialization } from '@workspace/types';
@@ -48,8 +47,8 @@ export interface CreatePrescriptionMedicationCommand {
 /**
  * Command to create a new prescription. IDs are plain strings — the
  * repository maps them to Prisma `connect` calls internally. The
- * `clinicId?` and `isTeleconsultation?` fields are application-layer
- * context (not consumed by the repository itself). `doctorName` and
+ * `clinicId?` field is validated by the service and repository before creation;
+ * `isTeleconsultation?` is application-layer context. `doctorName` and
  * `doctorEmail` are optional here so the application service can
  * backfill them from the doctor profile when the caller does not
  * supply them; the repository will fall back to the resolved values.
@@ -66,7 +65,7 @@ export interface CreatePrescriptionCommand {
   doctorRole?: HospitalRole;
   doctorRegistrationNumber?: string;
   doctorLicenseNumber?: string;
-  /** Application context — used for allergy checks, event emission, clinic usage tracking. */
+  /** Clinic scope — validated before creation and persisted as the clinic relation. */
   clinicId?: string;
   /**
    * True when this prescription is issued during a teleconsultation.

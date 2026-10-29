@@ -25,6 +25,13 @@ export function PerformancePage() {
     );
   const measured = (value: number | null | undefined, unit: string) =>
     value == null ? "Unavailable" : `${Number(value.toFixed(2))} ${unit}`;
+  const observedCount = (value: number | undefined) =>
+    value == null ? "Unavailable" : String(value);
+  const customerScope =
+    data?.definitionVersion === 2 && data.telemetry.requestScope === "CUSTOMER";
+  const latencyDetail = customerScope
+    ? "PostgreSQL interpolated percentile of valid customer-request durations."
+    : "Legacy retained durations; scope and latency-validity rules are unconfirmed.";
   const metrics = data
     ? [
         {
@@ -46,6 +53,18 @@ export function PerformancePage() {
             "Appointments scheduled in the window whose current status is completed.",
         },
         {
+          name: "Clinic-patients seen",
+          value: observedCount(data.activity.clinicPatientsSeen),
+          detail:
+            "Distinct clinic/patient pairs on completed appointments scheduled in the window; repeat visits count once per clinic.",
+        },
+        {
+          name: "Prescriptions created",
+          value: observedCount(data.activity.prescriptionsCreated),
+          detail:
+            "Prescription records created in the window, independent of approval or PDF generation.",
+        },
+        {
           name: "Invoices created",
           value: String(data.activity.invoices),
           detail:
@@ -64,21 +83,39 @@ export function PerformancePage() {
             "Retained jobs created in the window whose current status is failed; excludes recovered failures.",
         },
         {
-          name: "Request samples",
+          name: customerScope
+            ? "Customer request samples"
+            : "Request samples (legacy scope)",
           value: String(data.telemetry.samples),
+          detail: customerScope
+            ? "Retained customer API observations by completion time; missing capture is not successful traffic."
+            : "Unversioned retained API observations; customer-only scope is unconfirmed.",
+        },
+        {
+          name: "Valid latency samples",
+          value: observedCount(data.telemetry.validLatencySamples),
+          detail: "Customer observations eligible for latency percentiles.",
+        },
+        {
+          name: "Invalid latency samples",
+          value: observedCount(data.telemetry.invalidLatencySamples),
           detail:
-            "Persisted API request observations, not an independently verified traffic total.",
+            "Customer observations excluded from latency percentiles, but retained in request and error counts.",
         },
         {
           name: "Median response time",
           value: measured(data.telemetry.p50Ms, "ms"),
-          detail: "p50 of valid durations in retained request samples.",
+          detail: latencyDetail,
         },
         {
           name: "p95 response time",
           value: measured(data.telemetry.p95Ms, "ms"),
-          detail:
-            "95th percentile of valid durations in retained request samples.",
+          detail: latencyDetail,
+        },
+        {
+          name: "p99 response time",
+          value: measured(data.telemetry.p99Ms, "ms"),
+          detail: latencyDetail,
         },
         {
           name: "Server error rate",
@@ -128,9 +165,14 @@ export function PerformancePage() {
               {data.window.endExclusive} exclusive.
             </p>
             <p>
+              {customerScope
+                ? "Customer requests by observed completion time; health checks and internal routes are excluded."
+                : "Legacy telemetry: request scope and latency-validity rules are unconfirmed."}
+            </p>
+            <p>
               {data.telemetry.samples === 0
                 ? "No retained request samples. Latency and error rate are unavailable."
-                : `Observed request coverage: ${data.telemetry.firstSampleAt} to ${data.telemetry.lastSampleAt}. Gaps and retention may limit coverage.`}
+                : `Retained observation bounds: ${data.telemetry.firstSampleAt} to ${data.telemetry.lastSampleAt}. Gaps and retention may limit coverage.`}
             </p>
           </div>
         )}

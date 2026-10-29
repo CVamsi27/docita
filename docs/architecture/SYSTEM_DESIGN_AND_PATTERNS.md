@@ -1,8 +1,15 @@
 # System Design and Patterns
 
-Authoritative design reference for the Docita monorepo. Covers the high-level architecture, low-level layering, design patterns in use with concrete file references, database design, API surface, frontend architecture (with attention to token handling, memoization, and render strategy), security posture (auth tokens, PDF signed URLs, PHI, audit), and performance measurement.
+Architecture and pattern reference for the Docita monorepo. Covers the high-level architecture, low-level layering, design patterns in use with concrete file references, database design, API surface, frontend architecture (with attention to token handling, memoization, and render strategy), security posture (auth tokens, PDF signed URLs, PHI, audit), and performance measurement.
 
-This document is descriptive — it explains what the codebase actually does today, with file:line citations so claims can be verified or fixed. For *prescriptive* rules (what new code MUST follow), see [`AGENTS.md`](../../AGENTS.md). For UI/UX rules, see [`docs/ui/UI_UX_STANDARD_2026.md`](../ui/UI_UX_STANDARD_2026.md). For canonical data-point ownership (tier vs plan, GSTIN, patient name, support contact, etc.), see [`SINGLE_SOURCE_OF_TRUTH.md`](SINGLE_SOURCE_OF_TRUTH.md).
+This document is descriptive: it records mechanisms and dated examples, with file references so claims can be verified or corrected. For *prescriptive* rules (what new code MUST follow), see [`AGENTS.md`](../../AGENTS.md). For UI/UX rules, see [`docs/ui/UI_UX_STANDARD_2026.md`](../ui/UI_UX_STANDARD_2026.md). For canonical data-point ownership (tier vs plan, GSTIN, patient name, support contact, etc.), see [`SINGLE_SOURCE_OF_TRUTH.md`](SINGLE_SOURCE_OF_TRUTH.md).
+
+**28 October scoped reconciliation:** source base `f3fddffc0` plus the reviewed
+capacity changes included with this guide. This pass corrects stale paths, staging/CI semantics,
+version-guard claims, frontend/localization descriptions and import/setup
+boundaries. It is not a new audit of every code path or a provider/account check;
+older examples retain their own scope. Verify actual source, configuration and
+operating evidence before treating a mechanism as deployed or a result as achieved.
 
 ### Table of contents
 
@@ -643,7 +650,7 @@ When touching an older domain that still has a fat `*.service.ts`, prefer extrac
 
 **Appointment** ([`schema.prisma`](../../packages/db/prisma/schema.prisma)) carries the bulk of clinical data alongside scheduling. Key columns:
 
-- `version Int @default(1)` — optimistic concurrency on updates.
+- `version Int @default(1)` — revision counter; conflict prevention additionally requires an expected-version predicate and caller handling.
 - `status AppointmentStatus` — `SCHEDULED | CONFIRMED | RESCHEDULING | IN_PROGRESS | COMPLETED | CANCELLED | NO_SHOW`.
 - Domain-specific exam JSON columns (`dentalChart`, `ophthalmologyExam`, `cardiologyExam`, `gynecologyExam`, `dermatologyExam`, `psychiatryExam`, `growthData`) — parsed via Zod schemas in the mapper to keep typing honest.
 - Indexes: `@@index([clinicId, status, startTime])` is the hot composite for calendar queries; per-doctor and per-patient indexes for filtered lookups.
@@ -667,7 +674,7 @@ When touching an older domain that still has a fat `*.service.ts`, prefer extrac
 
 ### 4.4 Optimistic concurrency
 
-`Appointment.version`, `Subscription.version`, and similar columns implement optimistic concurrency for updates. Repositories increment on every write:
+A version column can support optimistic concurrency only when a write compares the expected version and handles a mismatch. Incrementing a revision alone is insufficient. For example, this appointment write increments `version` but its shown `where` contains only identity and clinic:
 
 ```67:78:apps/api/src/domains/appointments/infrastructure/persistence/prisma-appointment-write.repository.ts
 const result = await withOverlapTranslation(
@@ -684,7 +691,7 @@ if (result.count === 0) {
 }
 ```
 
-This protects against lost-update on concurrent edits but **does not protect against insert-time races** — those need a DB constraint (the exclusion constraint pattern from §3.14).
+The shown write does **not** prevent a stale caller from overwriting a newer edit. The [insurance repository](../../apps/api/src/domains/insurance-claims/infrastructure/repositories/prisma.insurance-claim.repository.ts) provides an aggregate-specific guarded example that includes ownership and expected version, increments on success and returns a mismatch result. Verify the selected caller handles that result. Insert-time invariants require their own database constraint or coordination protocol; a version field does not replace the exclusion constraint in §3.14.
 
 ### 4.5 Indexes and query plans
 
@@ -910,8 +917,8 @@ Anti-pattern (avoid): wrapping everything in `useMemo` without measuring. Profil
 
 ### 6.6 Render strategies and code splitting
 
-- All clinician routes default to client components (`'use client'`) because they need session, React Query, and interactivity.
-- Server components are used in `apps/app/src/layout.tsx` and the root-level shells.
+- The clinician application is a Vite SPA: [`main.tsx`](../../apps/app/src/main.tsx) mounts the browser root/providers and [`App.tsx`](../../apps/app/src/App.tsx) owns React Router routes/layouts. Existing `'use client'` strings do not create a React Server Components runtime in this app.
+- Application shells render in the browser; this source does not establish a server-component `src/layout.tsx` or SSR/hydration behavior for the clinician SPA.
 - Lazy-load heavy panels (PDF viewer, charts, settings sub-pages) with `React.lazy` + `Suspense` in the Vite apps; the chunk graph is bounded by [`check-file-size-budget.mjs`](../../scripts/checks/check-file-size-budget.mjs) and the perf budget gates (`perf:budget:enforce` / `perf:route-budgets:enforce`).
 - Suspense + error boundary pairs are enforced by [`check-suspense-error-boundary-pair.mjs`](../../scripts/checks/check-suspense-error-boundary-pair.mjs) — any Suspense boundary must have a sibling error boundary so the page never gets stuck.
 
@@ -1429,7 +1436,7 @@ Failure mode: vitals telemetry must be non-blocking and must not produce console
 
 ### 10.6 Render performance
 
-- Server-rendered shells with client-rendered routes (§6.6) keep TTFB cheap and let the heavy components hydrate progressively.
+- The Vite SPA loads static assets, then renders browser routes/layouts (§6.6). Measure asset delivery, JavaScript work and route/API readiness separately; do not describe this as server-rendered shells or progressive server-component hydration.
 - Origin-inspired UI standard ([`docs/ui/UI_UX_STANDARD_2026.md`](../ui/UI_UX_STANDARD_2026.md)) forbids decorative motion — no `animate-pulse` on chrome, no `transition-all`, no skeleton wave animations — which removes a class of unnecessary layout work.
 - `DataState` at the page level is mandatory; inline `Loading…` text is forbidden so users don't see partial trees.
 
@@ -1536,10 +1543,10 @@ These are not bugs — they're tracked technical debt items worth knowing about 
 The job queue is **Postgres-backed**, not Redis. The implementation lives in [`apps/api/src/shared/modules/queue/`](../../apps/api/src/shared/modules/queue/):
 
 - `postgres-queue.service.ts` — production queue using `SELECT … FOR UPDATE SKIP LOCKED` for safe concurrent consumers.
-- `in-memory-queue.service.ts` — test/dev fallback bound by `QUEUE_DRIVER`.
+- `in-memory-queue.service.ts` — test/dev fallback selected by `QUEUE_BACKEND`.
 - `queue.interface.ts` — port the rest of the code depends on (DIP).
 - `dlq.controller.ts` — dead-letter-queue inspection endpoints (internal only).
-- `worker-metrics.service.ts` — depth, success/failure, age metrics published to the observability module.
+- `worker-metrics.service.ts` — job outcome counters, processing-duration histogram and DLQ-size gauge primitives; their presence does not establish a retained oldest-job or end-to-end completion distribution.
 - `pdf-job.service.ts` + `pdf-processor-registration.ts` — type-safe job enqueue + handler registration for PDF generation.
 
 Choosing Postgres over Redis avoids a second stateful dependency and makes queue state inspectable alongside application state. Do not infer atomic business-write enqueue from the substrate alone: the current `IQueueProvider.enqueue` contract does not accept a transaction client (§14.4).
@@ -1563,7 +1570,7 @@ Choosing Postgres over Redis avoids a second stateful dependency and makes queue
 | `DoctorsVerificationWorkerModule` | Credential verification backlog |
 | `OutboxModule` | Outbox relay scheduler (§60) |
 
-`ENABLE_SCHEDULERS=false` disables `ScheduleModule` for local runs that only need queue consumers.
+`ENABLE_SCHEDULERS=false` disables scheduling. PDF handler registration also checks this flag through `shouldRegisterPdfQueueHandlers`; do not expect a PDF-consuming worker with it disabled. Verify both queue-provider selection and handler registration for the intended local profile.
 
 **Cron vs queue:** Time-based work uses `@Cron` in `apps/api/src/shared/schedule/` and domain `*.scheduler.ts` files. Ad-hoc/async work uses the Postgres queue (§14.1). Both can run in the worker process; API pods may also run crons when `ENABLE_SCHEDULERS` is on — confirm deploy config in `fly.toml` / worker `fly.toml` so heavy crons are not duplicated across every API replica without leader election (outbox relay uses in-process `running` guard + `SKIP LOCKED` until advisory locks land).
 
@@ -1642,7 +1649,7 @@ Channel adapter: [`messaging/channels/whatsapp.channel.ts`](../../apps/api/src/s
 
 ### 16.3 Real-time updates
 
-[`apps/api/src/shared/services/websocket-emission.service.ts`](../../apps/api/src/shared/services/websocket-emission.service.ts) emits domain events to scoped rooms (clinic + role). The browser subscribes via React Query cache invalidation listeners — no direct UI state writes from the socket layer, to keep React Query as the single source of truth.
+[`NotificationsGateway`](../../apps/api/src/websockets/notifications.gateway.ts) consumes notification events and emits to authenticated clinic/user rooms. Browser consumers include [appointment notification invalidation](../../apps/app/src/features/appointments/hooks/use-appointment-notifications.ts) and the [notification inbox](../../apps/app/src/features/inbox/components/NotificationsInboxView.tsx), which updates React Query cache entries and invalidates relevant queries. These concrete consumers do not establish one universal socket-state policy; verify room authorization, reconnection and cross-replica delivery for the selected feature.
 
 ---
 
@@ -1753,7 +1760,7 @@ Bulk document OCR in imports uses [`text-extractor.service.ts`](../../apps/api/s
 
 ### 21.4 Branch and release model
 
-`main` is the canonical production branch. Feature branches PR into `main`; path-filtered pushes to `main` deploy the affected Fly and Cloudflare targets. [`sync-staging-after-promotion.yml`](../../.github/workflows/sync-staging-after-promotion.yml) automatically updates the `staging` ref to the exact `main` commit after promotion, matching the mirror contract in AGENTS.md.
+`main` is the canonical production-bound branch; feature work reaches it through a pull request. [AGENTS.md §11.3](../../AGENTS.md#113-branch-model-main-staging-and-feature-branches) defines `staging` as a PR-protected branch, not an automated mirror. No staging-ref sync workflow exists in the inspected source. An approved update of staging follows that PR-only process; compare actual branch/deployment revisions before using a staging result. The [production deploy workflow](../../.github/workflows/deploy.yml) retains target-selection jobs but its push triggers are currently paused in source. Definitions are not evidence that a push deployed.
 
 ### 21.5 Migrations in CI
 
@@ -1895,7 +1902,7 @@ TypeScript configuration is split per package, with package-specific incremental
 
 ### 26.2 Internationalization
 
-The app is currently single-locale (English, India clinical terminology). Strings live as colocated constants, not in a translation catalog. There is no `i18next` or `next-intl` integration. **This is debt** — see §28.
+The clinician app initializes i18next through [`src/i18n/index.ts`](../../apps/app/src/i18n/index.ts), with English/Hindi [message resources](../../apps/app/src/messages/) and an [i18n provider](../../apps/app/src/i18n/provider.tsx). This is implemented scaffolding, not proof every feature is translated or every locale-dependent interaction is correct. Review actual message usage, formatting and fallback behavior; §28.3 records the remaining coverage boundary.
 
 ---
 
@@ -1915,7 +1922,7 @@ Compliance services expose structured patient export and anonymization paths. Re
 
 ### 27.4 Backups and DR
 
-Production migration automation currently integrates with AWS RDS snapshots before apply ([`deploy.yml`](../../.github/workflows/deploy.yml)). See [`docs/operations/DR_RUNBOOK.md`](../operations/DR_RUNBOOK.md) for the documented recovery process.
+The paused [`deploy.yml`](../../.github/workflows/deploy.yml) retains an AWS RDS snapshot integration for a future approved production migration. The owner confirmed temporary Neon use; source integration is not evidence that the current database is RDS or that independent backups/restoration are active. See [capacity evidence](../operations/CAPACITY_EVIDENCE.md) and [DR scope](../operations/DR_RUNBOOK.md) for the dated current-provider/recovery boundary.
 
 ### 27.5 Audit retention
 
@@ -1953,12 +1960,12 @@ This section is the long-form companion to §12. It splits into "posture" (secur
 19. ~~**Some `any` and `as` casts in adapter layers**~~ — **resolved**. `check-as-cast-density.mjs` is blocking (MAX_CASTS_PER_FILE = 0).
 20. **Tier ladder is a single global enum** — **partially addressed** via `FEATURE_TIER_MAP`. Per-feature capability matrix evolution is a follow-up if multiple cross-tier features emerge.
 21. **No automated dead-route detector** for API controllers — **deferred**. Lower-priority than UI dead-route coverage already in place.
-22. ~~**Optimistic concurrency**~~ — **resolved**. [`withVersion`](../../apps/api/src/shared/common/repositories/with-version.ts) helper is the standard pattern.
+22. **Optimistic concurrency** — **aggregate-specific**. The [insurance repository](../../apps/api/src/domains/insurance-claims/infrastructure/repositories/prisma.insurance-claim.repository.ts) uses ownership/version predicates and an increment on guarded writes. There is no shared `withVersion` helper in the inspected tree; verify that each selected caller carries and checks the expected version rather than calling this globally resolved.
 
 ### 28.3 Frontend specifically
 
 23. ~~**No design-token contract test**~~ — **resolved**. See [`packages/ui/src/test/design-tokens.contract.test.tsx`](../../packages/ui/src/test/design-tokens.contract.test.tsx).
-24. **No internationalization scaffolding** — **plan documented**. See [`docs/UpcomingPlans/I18N_PLAN.md`](../UpcomingPlans/I18N_PLAN.md). Implementation pending product locale decision.
+24. **Internationalization scaffolding** — **implemented**. [`apps/app/src/i18n/index.ts`](../../apps/app/src/i18n/index.ts) initializes i18next resources from the English/Hindi [message corpus](../../apps/app/src/messages/); namespace registration has a [regression test](../../apps/app/src/i18n/__tests__/namespace-registration.test.ts). Verify translation coverage and locale behavior per feature; scaffolding alone does not establish complete localization.
 25. ~~**Web Vitals are measured but not budgeted per route**~~ — **resolved**. See `scripts/perf/route-budgets.config.mjs` (`ROUTE_WEB_VITALS`).
 26. **React Query cache invalidation** — **convention adopted**. Per-domain invalidation maps land in `packages/data-access` hooks; tracked in [`packages/data-access/CHANGELOG.md`](../../packages/data-access/CHANGELOG.md).
 27. **Skeleton coverage uneven** — **convention adopted**. New surfaces use `DataState` (UI standard §3); pre-existing inline skeletons are migrated when their pages are touched.
@@ -1977,7 +1984,7 @@ This section is the long-form companion to §12. It splits into "posture" (secur
 34. ~~**No structured incident playbooks**~~ — **resolved**. Five playbooks in [`docs/operations/playbooks/`](../operations/playbooks/).
 35. ~~**DLQ has no auto-replay tooling**~~ — **scaffolded**. [`dlq-replay.scheduler.ts`](../../apps/api/src/shared/modules/queue/dlq-replay.scheduler.ts) (inert; wire after classification rules ratified).
 36. ~~**Cron-failure alerts are best-effort**~~ — **resolved** (decorator + check + persistence). Every `@Cron` handler in `apps/api/src/` carries a unique `@TrackHeartbeat('<name>')`; `pnpm check:cron-heartbeat-coverage` is in `verify:standard` and fails on coverage gaps **or** duplicate names. The worker-scoped [`PrismaCronHeartbeatService`](../../apps/api/src/shared/modules/schedule/cron-heartbeat.ts) registers the active recorder and upserts success/failure state into the `CronHeartbeat` model.
-37. ~~**Frontend error boundaries** are present per page but the catch + telemetry behavior varies~~ — **resolved**. Single `ErrorBoundary` in `@workspace/ui/components/feedback/`; app wrapper at [`apps/app/src/components/errors/error-boundary.tsx`](../../apps/app/src/components/errors/error-boundary.tsx) wires Sentry.
+37. **Frontend error boundaries** — **shared primitive, integration-specific coverage**. The canonical [`ErrorBoundary`](../../packages/ui/src/components/feedback/error-boundary.tsx) accepts an optional `onError` callback and remains monitoring-agnostic. The [protected layout](../../apps/app/src/components/layout/protected-layout.tsx) uses it around the outlet; this does not establish Sentry capture or coverage at every route. Verify the actual boundary/callback and fallback behavior for the affected surface.
 38. ~~**No synthetic uptime monitoring** documented~~ — **resolved**. See [`docs/operations/SYNTHETIC_MONITORING.md`](../operations/SYNTHETIC_MONITORING.md).
 38a. ~~**Fly cold start returns 502**~~ — **mitigated**. `apps/api` uses
     `auto_stop_machines = 'suspend'` with `grace_period = '240s'` so an
@@ -2060,7 +2067,7 @@ Docita operates under India's **Digital Personal Data Protection Act (DPDP)** in
 
 ### 29.1 Consent surface
 
-[`apps/api/src/shared/modules/compliance/consent-compliance.service.ts`](../../apps/api/src/shared/modules/compliance/consent-compliance.service.ts) is the authority on what consents a patient has granted, when, and for which purpose (`treatment`, `marketing`, `analytics`, `third-party-share`). `consent.controller.ts` exposes the patient-facing surface; `ConsentGuard` in `apps/api/src/shared/modules/auth/guards/consent.guard.ts` blocks routes when the required consent is missing.
+Consent is split into [`ConsentQueryService`](../../apps/api/src/shared/modules/compliance/consent-query.service.ts) for typed status/validity/history reads and [`ConsentCommandService`](../../apps/api/src/shared/modules/compliance/consent-command.service.ts) for recording, withdrawal and associated updates/audit. The [controller](../../apps/api/src/shared/modules/compliance/consent.controller.ts) exposes the configured surface. [`ConsentGuard`](../../apps/api/src/shared/modules/auth/guards/consent.guard.ts) evaluates decorated patient routes only when its patient/clinic context and opt-in clinic setting apply; it is not universal blocking of every operation without a consent row. Review the actual route, tenant authorization, configuration and downstream purpose/channel policy before claiming enforcement.
 
 The model is **purpose-scoped, not blanket**: granting "treatment" does not grant "marketing." This matches DPDP §6 ("specific, informed, unconditional, unambiguous").
 
@@ -2071,7 +2078,7 @@ The model is **purpose-scoped, not blanket**: granting "treatment" does not gran
 - **Access / portability** — return a structured patient export.
 - **Correction** — apply reviewed correction input and audit the change.
 - **Erasure** — reject pending financial/appointment obligations, otherwise anonymize.
-- **Withdrawal** — `ConsentComplianceService.withdrawConsent()` revokes a specific consent.
+- **Withdrawal** — `ConsentCommandService.withdrawConsent()` revokes a specific consent.
 
 Each operation writes a purpose-specific action through [`dpdp-audit.emitter.ts`](../../apps/api/src/shared/modules/compliance/dpdp-audit.emitter.ts), which delegates to the general `AuditService`.
 
@@ -2142,13 +2149,13 @@ NestJS interceptors fire on HTTP request boundaries; Prisma extensions fire when
 - Tenant-scoped `findAll`, `findOne`, `update`, and `delete` helpers.
 - Cursor pagination, optional text search, and global lookup escape hatch for non-PHI reference models.
 
-Specialized repositories remain valid when an aggregate needs richer mapping, constraint translation, or transaction-aware methods. Optimistic concurrency has a separate [`with-version.ts`](../../apps/api/src/shared/common/repositories/with-version.ts) helper; adopt it deliberately where the write shape supports a version predicate.
+Specialized repositories remain valid when an aggregate needs richer mapping, constraint translation, or transaction-aware methods. The [insurance repository](../../apps/api/src/domains/insurance-claims/infrastructure/repositories/prisma.insurance-claim.repository.ts) demonstrates an aggregate-specific ownership/version predicate and increment. The inspected source has no shared `with-version.ts` helper; choose a guarded write shape deliberately and verify conflict handling from the caller through persistence.
 
 Direct `prisma.<model>.findX` calls outside repositories are blocked by `check-prisma-boundary.js`.
 
-### 31.2 `query.builder.ts`
+### 31.2 Query assembly at the repository boundary
 
-[`apps/api/src/shared/common/builders/query.builder.ts`](../../apps/api/src/shared/common/builders/query.builder.ts) provides typed appointment, patient, and invoice query builders. The point is *not* to hide Prisma; it is to keep filter, include/select, ordering, and pagination assembly out of controllers and command services.
+The shared `query.builder.ts` previously cited here is absent. The [appointment read repository](../../apps/api/src/domains/appointments/infrastructure/persistence/prisma-appointment-read.repository.ts) actually assembles its typed Prisma filters, selection, ordering and pagination. Use that concrete implementation when explaining the query boundary rather than claiming a shared appointment/patient/invoice builder abstraction. Repository placement does not by itself prove efficient queries or complete tenant enforcement; verify the selected operation.
 
 ### 31.3 Repository-domain boundary
 
@@ -2204,11 +2211,11 @@ upload → classify → extract → normalize → score → preview → commit
 
 ### 34.3 Image preprocessing
 
-`image-preprocessor.service.ts` runs deskew, contrast normalization, and rotation correction before OCR. Without this, accuracy drops ~20% on phone-camera captures of paper records.
+`image-preprocessor.service.ts` provides preprocessing before OCR. Evaluate its supported transformations on a declared synthetic/redacted image corpus. The earlier claimed 20% accuracy drop had no retained measurement here; do not present it as an achieved comparison or universal property.
 
 ### 34.4 Session and resumability
 
-`import-session.service.ts` persists state per session so a large import (10k+ rows) can resume after a process restart. Combined with idempotent commit (§14.3), an operator can retry a partially-failed import without duplicating rows.
+[`ImportSessionService`](../../apps/api/src/shared/modules/imports/import-session.service.ts) stores upload-session metadata in a process-local map; it is not restart-persistent. The [bulk orchestrator](../../apps/api/src/shared/modules/imports/bulk-import-orchestrator.service.ts) persists job metadata with an `inline:<jobId>` marker, while parsed rows remain in memory and the [processor](../../apps/api/src/shared/modules/imports/bulk-import-job-processor.service.ts) schedules execution with `setImmediate`. Progress rows therefore do not establish a recoverable payload, restart-safe processing or universally duplicate-free reimport. Use bounded supervised imports and reconcile accepted/rejected/skipped records after interruption; durable payloads, checkpoints, ownership and restart/replay tests are separate acceptance work.
 
 ---
 
@@ -2323,7 +2330,7 @@ When RLS is enabled for a clinic-scoped HTTP request, [`TenantContextInterceptor
 | `formatters/` | Currency, date, phone, name formatters (locale-aware in one place) |
 | `rules/` | Pure business rules shared across features (booking eligibility, conflict checks) |
 | `validation/` | Zod schemas specific to UI forms not derived from API DTOs |
-| `i18n/` | Locale strings (currently English only) |
+| `src/i18n/` and `src/messages/` (siblings of `lib/`) | English/Hindi i18next initialization and message resources; feature coverage requires verification |
 | `stores/` | Zustand stores (rare — most state is in React Query) |
 
 The split is enforced by `check-no-duplicate-shared-paths.mjs` so a `lib/foo.ts` and `lib/auth/foo.ts` cannot coexist.
@@ -2355,7 +2362,7 @@ Updated 2026-05 after the §28/§56 sweep. A few items deserve nuance:
 
 - **§27.5 and §28.1 item 6** — now scaffolded. `data-retention.scheduler.ts` (§29.3) handles automated retention; the regulator-facing export job and per-tenant policy editor are designed in [`docs/compliance/AUDIT_EXPORT.md`](../compliance/AUDIT_EXPORT.md) but not yet shipped.
 - **§28.1 item 9 (webhook secret rotation)** — API keys (§32) already support overlap-window rotation. The hardening doc lifts that pattern; see [`docs/compliance/AUTH_HARDENING.md`](../compliance/AUTH_HARDENING.md).
-- **§28.2 item 22 (optimistic concurrency)** — **resolved**. [`apps/api/src/shared/common/repositories/with-version.ts`](../../apps/api/src/shared/common/repositories/with-version.ts) is the shared helper; new aggregates should use it.
+- **§28.2 item 22 (optimistic concurrency)** — **aggregate-specific**. Inspect the [insurance version-guarded writes](../../apps/api/src/domains/insurance-claims/infrastructure/repositories/prisma.insurance-claim.repository.ts) and the relevant caller/conflict behavior. There is no canonical shared `with-version.ts` helper in the inspected tree.
 - **§27.4 (DR runbook)** — **resolved**. See [`docs/operations/DR_RUNBOOK.md`](../operations/DR_RUNBOOK.md) for RTO/RPO, drill cadence, and recovery procedures.
 - **§28.2 item 11 (in-process EventEmitter)** — **scaffolded** by [`OutboxModule`](../../apps/api/src/shared/modules/outbox/outbox.module.ts). The durable relay scheduler exists and Razorpay invoice payment capture uses an atomic append; migrating additional durable command fan-out and defining listener retry semantics are the next concrete steps.
 
@@ -2551,20 +2558,16 @@ Shared toolchain configs. The TS config exposes three presets: `base.json`, `nex
 
 ## 47. CI/CD pipeline in depth
 
-[`.github/workflows/`](../../.github/workflows/) has eleven workflows:
+Selected existing paths under [`.github/workflows/`](../../.github/workflows/) are listed below. This is a source map, not a complete workflow inventory or account-enabled-state report. In particular, deployment/migration push triggers are paused in the inspected source and no staging-ref sync workflow exists:
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | `ci.yml` | push/PR | Scope detection + repository standards + scoped app jobs |
 | `api-e2e.yml` | scoped API changes | NestJS e2e against Postgres |
 | `frontend-critical-e2e.yml` | scoped frontend changes | Playwright critical-path suite |
-| `design-system-check.yml` | design-system changes | Contrast, token, and primitive checks |
-| `db-migrations.yml` | Prisma migration changes | Migration validation |
-| `db-migrations-staging.yml` | staging changes | Apply migrations to staging DB |
-| `staging-smoke.yml` | staging changes / dispatch | End-to-end smoke against staging URLs |
-| `sync-staging-after-promotion.yml` | push to `main` / dispatch | Update `staging` to the exact `main` commit |
+| `db-migrations.yml` | Push triggers paused in source | Configured safe migration and schema verification |
 | `synthetic-monitoring.yml` | schedule / dispatch | Production synthetic probes |
-| `deploy.yml` | scoped push to `main` | Production Fly API + worker deploy; `deploy-app` / `deploy-internal` / `deploy-landing` jobs for Cloudflare (gated on the `gate` job's credential check) |
+| `deploy.yml` | Push triggers paused in source | Configured production Fly API/worker and credential-gated Cloudflare deploy jobs; activation needs an operating decision |
 
 ### 47.1 Scope detection in CI
 
@@ -2578,24 +2581,19 @@ Where configured, `TURBO_TOKEN` and `TURBO_TEAM` enable Turborepo remote caching
 
 ### 47.3 Migration safety in CI
 
-`db-migrations.yml` does three things every PR that touches Prisma:
-
-1. **Reversibility check** — `check-migration-reversibility.mjs` rejects destructive operations (drop column, drop table, narrow type) without an explicit override comment.
-2. **Shadow apply** — applies the migration to a throwaway DB created from main's schema; failure means the migration would fail in staging.
-3. **Prefix collision** — `check-migration-prefix-collision.mjs` blocks two PRs each adding a migration with the same timestamp prefix.
+The configured [database migration workflow](../../.github/workflows/db-migrations.yml) generates Prisma, invokes `db:migrate:safe` and checks schema synchronization. Its current push triggers ignore every branch/tag. Static migration reversibility and prefix-collision checks are separate repository checks; do not describe them, a shadow apply or a staging migration as completed jobs merely because a PR touches Prisma. Retain the exact enabled workflow, target and executed evidence for an approved release.
 
 ### 47.4 Promotion model
 
-```
-feature branch → PR into main
-  → merge/push to main
-    → deploy.yml selectively deploys API / worker
-    → deploy.yml deploy-app / deploy-internal / deploy-landing jobs (gated on
-      the Cloudflare credential check) selectively deploy app / internal / landing
-    → sync-staging-after-promotion.yml updates the staging ref to the exact main SHA
+```text
+feature branch -> reviewed PR into main
+  -> approved release after current gates and maintenance controls
+     -> configured selective Fly / Cloudflare targets, if enabled
+  -> separate approved PR into staging when an update is needed
+     -> compare source/deployment/database revisions before staging evidence
 ```
 
-AGENTS.md states that `staging` is an exact replica of `main` maintained automatically. The workflow uses the GitHub ref API so it does not create integration commits or sync PRs.
+[AGENTS.md §11.3](../../AGENTS.md#113-branch-model-main-staging-and-feature-branches) requires PR-based staging changes. There is no automatic main-to-staging ref mirror in the inspected source; divergent history or a stale staging deployment must remain visible. The diagram describes an operating sequence, not actions executed by this document.
 
 ---
 
@@ -2603,7 +2601,7 @@ AGENTS.md states that `staging` is an exact replica of `main` maintained automat
 
 ### 48.1 `docker-compose.yml`
 
-The local stack is **dev-only**: Postgres, Redis (optional), and the apps. Production does **not** use this compose file. Current deploy automation targets Fly.io, Cloudflare, and an AWS RDS snapshot integration before production migrations; keep provider detail in operations docs rather than inferring it from local compose.
+The local Compose file is **dev-only** and declares the API, development PostgreSQL and a test-profile PostgreSQL service; it does not declare a Redis service. Production does **not** use this file. Current provider and maintenance state belong in [operations evidence](../operations/CAPACITY_EVIDENCE.md), not in historical Compose comments or the paused future RDS snapshot integration.
 
 ### 48.2 Ports
 
@@ -2613,8 +2611,7 @@ The local stack is **dev-only**: Postgres, Redis (optional), and the apps. Produ
 | 3001 | `apps/api` (Nest dev) |
 | 3002 | `apps/internal` |
 | 3003 | `apps/landing` (Astro) |
-| 5432 | Postgres (compose) |
-| 6379 | Redis (compose, optional) |
+| 5434 on the host → 5432 in the container | PostgreSQL development/test service; both declare the same host port, so do not run both on it simultaneously |
 
 `scripts/kill-ports.js` frees these on `pnpm dev` if a previous run hung.
 
@@ -2634,18 +2631,10 @@ The OCR pipeline (§20, §34) uses `tesseract.js` via [`apps/api/src/shared/modu
 
 ## 49. Load and performance testing
 
-[`loadtest/k6/`](../../loadtest/k6/) holds the k6 scenarios:
+The [isolated capacity runner](../../loadtest/README.md) is `loadtest/capacity.mjs`, included with this guide. Historical base `f3fddffc0` lacks it; verify the selected checkout and retain source provenance before using its commands. Run `pnpm capacity:plan` before a declared local capture and `pnpm test:capacity` to verify its guards and observation logic. It rotates 25 synthetic tenant credentials across bounded patient/appointment/prescription/invoice GET lists, with independent ordinary/busy/headroom arrival plans.
 
-| Scenario | Tests |
-| --- | --- |
-| `auth-login.js` | Token issuance under sustained login load (catches refresh-rotation deadlocks) |
-| `patients-list.js` | Pagination + filter latency at realistic dataset sizes |
-| `appointments-create.js` | Write fan-out + exclusion-constraint contention (§9) |
-| `webhook-flood.js` | Webhook signature verify + idempotency under burst |
-| `whatsapp-send.js` | Tenant rate-limit behavior under multi-tenant load |
-| `proxy-route.js` | `/api/v1/*` edge-proxy route forwarding and prefix safety |
+The earlier k6 scenario filenames and `run-all.sh` described here were not present in the checked-out repository. They are not executed evidence. The current read runner also does not replace the missing write/contention/provider scenarios: appointment races, webhook replay, messaging effects, edge-proxy stress, PDF completion and recovery need separate isolated acceptance experiments. Keep the bounded-rate staging soak for its own latency-baseline contract; a local stub or modeled monthly total cannot fill that baseline.
 
-`run-all.sh` orchestrates all six scenarios, including `proxy-route.js`. Run the suite **manually before significant infra changes** (pool sizing, Fly region change, queue substrate change) — not on every PR. The load-test target is a dedicated staging environment with a seeded multi-tenant dataset.
 
 ---
 
@@ -2808,7 +2797,7 @@ Not in §28 but worth flagging after the deeper walkthrough:
 43. ~~**Canonical `schema.prisma` plus documentation decomposition**~~ — **resolved**. The hand-maintained secondary snapshots were retired; [`packages/db/prisma/schema/README.md`](../../packages/db/prisma/schema/README.md) points to the only consumed schema (§52.3).
 44. ~~**`route-meta.ts` hand-maintained**~~ — **resolved (advisory)**. `scripts/checks/check-route-meta-coverage.mjs` flags routes missing from the map.
 45. ~~**Two Sentry configs (server + client) per app × 2 apps = 4 places**~~ — **resolved**. Canonical scrubber lives in [`packages/utils/src/monitoring/phi-scrubber.ts`](../../packages/utils/src/monitoring/phi-scrubber.ts); `scripts/checks/check-sentry-scrubber-parity.mjs` enforces parity with the per-app early-boot scrubbers.
-46. ~~**The `/api/v1/*` edge proxy has no dedicated stress test**~~ — **resolved**. See [`loadtest/k6/scenarios/proxy-route.js`](../../loadtest/k6/scenarios/proxy-route.js), now wired into `run-all.sh`. The production implementation is middleware-backed (§45).
+46. **The `/api/v1/*` edge proxy still needs a dedicated stress experiment.** The previously cited k6 proxy scenario and run-all script are absent. The [local read runner](../../loadtest/README.md) covers a declared local API boundary, not the Cloudflare edge. The production implementation is middleware-backed (§45); retain forwarding/security tests and collect separate edge observations before claiming stress coverage.
 47. ~~**`packages/data-access` query-key prefixes are conventional, not enforced**~~ — **resolved**. `scripts/checks/check-query-key-factory.mjs` blocks raw array literals.
 48. ~~**Validation duplication between `packages/types/forms/` and API DTOs**~~ — **resolved (advisory)**. `scripts/checks/check-form-schema-extends.mjs` flags FormSchemas without a base.
 49. ~~**`apps/worker` is `ignoreWorkspaces` in knip.json**~~ — **resolved**. `knip.json` now carries an inline comment explaining the path-mapping gap.
@@ -2877,7 +2866,7 @@ Internal app (`apps/internal`) uses a reduced policy surface; staff JWT audience
 
 ### 60.2 Relay semantics
 
-- Batch size 200; max 8 attempts with exponential backoff (`BACKOFF_BASE_MS` → cap 5 min).
+- Nominal batch size 200; with RLS the source caps the batch at configured pool size minus two, so a 15-connection pool permits 13 rows. Max 8 attempts use exponential backoff (`BACKOFF_BASE_MS` → cap 5 min); these are source limits, not delivery throughput.
 - Claim uses `UPDATE … RETURNING` with attempt/backoff filters — safe for multiple API replicas (`SKIP LOCKED`-style semantics via CTE).
 - In-process `running` flag prevents overlapping ticks on one pod; **cross-pod leader election** is future work (advisory lock noted in file header).
 
@@ -3010,7 +2999,7 @@ Consolidates §28, §56, SSOT 🚧 items, and codebase references. **Not a commi
 | A17 | `packages/types` per-domain barrels | Resolved: the package root re-exports per-domain barrels |
 | A20 | Richer capability matrix | Partial via `FEATURE_TIER_MAP` |
 | A21 | API dead-route detector | `check-api-dead-routes.mjs` advisory |
-| A24 | i18n | Plan in `docs/UpcomingPlans/I18N_PLAN.md` |
+| A24 | i18n | English/Hindi i18next scaffolding in `apps/app/src/i18n/index.ts` and messages; feature translation coverage/locale behavior still need verification |
 | A33 | Query-budget extension registration | Resolved: wired into `PrismaService` with request-scoped counters and structured over-budget warnings |
 | — | Repository cast boundary tightening | `repository-domain-item.boundary.ts` is a pragmatic cast; prefer aggregate mappers and narrow future usage |
 | — | Prisma extension-order documentation parity | Resolved: `PrismaService` chaining comments, extensions README, and chain-length spec describe the six-extension order |
@@ -3052,9 +3041,9 @@ Consolidates §28, §56, SSOT 🚧 items, and codebase references. **Not a commi
 
 | Item | State |
 | --- | --- |
-| `staging` mirror semantics | Resolved: workflow updates the `staging` ref to the exact `main` SHA |
+| `staging` branch semantics | PR-protected updates under AGENTS.md §11.3; no automatic mirror exists, and actual branch/deployment revisions must be checked |
 | Cloudflare deployment ownership | Resolved: the `gate` + `deploy-app` / `deploy-internal` / `deploy-landing` jobs in `deploy.yml` own Cloudflare deploys (credential-gated; Cloudflare Git integration is the documented fallback) |
-| Postgres provider references | Resolved in current architecture/operations docs: production migration safety is AWS RDS snapshot-aware; staging-specific provider notes remain scoped to staging |
+| Postgres provider references | Temporary Neon is owner-confirmed; current tier/bill remain unverified. AWS snapshot integration is a future paused release path, not current-provider or recovery evidence |
 | Prisma topic decomposition | Resolved: retired the manual `prisma/schema/` snapshots and retained one canonical schema |
 | OpenAPI artifact policy | Resolved: generated release artifact, intentionally ignored; see `docs/api/README.md` |
 | Outbox comments and ADR | Resolved: comments and ADR point to `OutboxRelayScheduler`; producer migration remains a runtime architecture item (§60.3) |
@@ -3062,7 +3051,7 @@ Consolidates §28, §56, SSOT 🚧 items, and codebase references. **Not a commi
 ### 65.7 Documentation hygiene
 
 - Keep **outbox relay path** comments aligned with `outbox-relay.scheduler.ts` (§60.3).
-- Keep `loadtest/k6/scenarios/proxy-route.js` in `run-all.sh` when the edge proxy contract changes.
+- When the edge proxy contract changes, rerun its forwarding/security tests and a separately declared edge stress experiment; the local API read runner does not measure the edge.
 - When a §28 item ships, move it to "resolved" in §28.7 and trim §65.
 - Regenerate OpenAPI after route changes: `pnpm --filter @docita/api run openapi:generate`.
 
@@ -3088,7 +3077,7 @@ The catalog above is intentionally broad. This matrix is the quicker engineering
 | UTC instant storage | Implemented | `@db.Timestamptz(3)`, UTC pool config | Rehearse repair script against restored data |
 | Existing-user compatibility migration | Implemented example | Onboarding backfill + trigger + auth fallback | Reuse as rollout template for required settings |
 | React Query server-state ownership | Implemented | `@workspace/data-access`, provider bridge, canonical stale-time registry | Expand prefix tests when new live-state domains appear |
-| Same-origin edge BFF | Partial — `apps/app` / `apps/internal` Workers only | Next middleware + shared proxy helper (live); Astro landing BFF is disabled and returns 503 (§23.2, D-F1) | Keep the adapter matrix aligned when edge behavior changes |
+| Same-origin edge BFF | Partial — `apps/app` / `apps/internal` Workers only | Hono proxy Worker + shared proxy helper; Astro landing BFF source is disabled and returns 503 (§23.2, D-F1). Deployment state requires separate evidence | Keep the adapter matrix aligned when edge behavior changes |
 | Feature capability map | Implemented, evolving | `FEATURE_TIER_MAP`, guard checks | Move beyond tier ladder only when packaging requires it |
 | Socket invalidation | Implemented | Socket context + React Query invalidation | Introduce pub/sub only when horizontal fan-out demands it |
 

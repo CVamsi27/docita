@@ -14,6 +14,10 @@ import type { PdfJobProcessorPrismaPort } from '@/shared/modules/queue/pdf-job.s
 import { InvoiceStatus } from '@workspace/db';
 import type { InvoiceDetail } from '@/domains/billing/core/repositories/invoice.repository';
 import { EnvConfigStore } from '@/shared/modules/config/env-config.store';
+import {
+  getCurrentTenant,
+  runWithTenant,
+} from '@/shared/common/middleware/tenant.middleware';
 
 const makeJob = (
   overrides: Partial<GeneratePdfJobData> = {},
@@ -100,7 +104,8 @@ describe('InvoicePdfProcessor', () => {
   const pdfJobUpdateMock =
     jest.fn<PdfJobProcessorPrismaPort['pdfJob']['update']>();
   const prisma: PdfJobProcessorPrismaPort = {
-    runUnrestricted: async <T>(fn: () => Promise<T>): Promise<T> => fn(),
+    runUnrestricted: async <T>(fn: () => Promise<T>): Promise<T> =>
+      runWithTenant({ bypassed: true }, fn),
     pdfJob: { update: pdfJobUpdateMock },
   };
 
@@ -268,5 +273,90 @@ describe('InvoicePdfProcessor', () => {
     await registeredHandler(makeJob({ pdfJobId: undefined }));
 
     expect(pdfJobUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, { clinicId: 'caller-clinic', bypassed: true }])(
+    'keeps the job clinic across awaited domain work and restores caller scope (%p)',
+    async (callerScope) => {
+      const domainScopes: Array<ReturnType<typeof getCurrentTenant>> = [];
+      const statusScopes: Array<ReturnType<typeof getCurrentTenant>> = [];
+      const captureDomainScope = () => {
+        const current = getCurrentTenant();
+        domainScopes.push(current ? { ...current } : undefined);
+      };
+      findOneMock.mockImplementation(async () => {
+        captureDomainScope();
+        await Promise.resolve();
+        captureDomainScope();
+        return buildInvoiceDetail();
+      });
+      generatePDFMock.mockImplementation(async () => {
+        captureDomainScope();
+        await Promise.resolve();
+        captureDomainScope();
+        return Buffer.from('pdf');
+      });
+      uploadAndPersistMock.mockImplementation(async () => {
+        captureDomainScope();
+        await Promise.resolve();
+        captureDomainScope();
+        return {
+          storedKey: 'pdfs/invoices/inv-1.pdf',
+          generatedAt: new Date('2026-01-15T10:00:00Z'),
+        };
+      });
+      pdfJobUpdateMock.mockImplementation(async () => {
+        statusScopes.push(getCurrentTenant());
+        await Promise.resolve();
+      });
+      processor.onModuleInit();
+      const registeredHandler = processMock.mock.calls[0]?.[1];
+      const runJob = async () => {
+        await registeredHandler(makeJob());
+        expect(getCurrentTenant()).toEqual(callerScope);
+      };
+      if (callerScope) await runWithTenant(callerScope, runJob);
+      else await runJob();
+
+      expect(domainScopes).toEqual(
+        Array.from({ length: 6 }, () => ({ clinicId: 'clinic-1' })),
+      );
+      expect(statusScopes).toEqual([{ bypassed: true }, { bypassed: true }]);
+      expect(getCurrentTenant()).toBeUndefined();
+    },
+  );
+
+  it('restores the caller scope when awaited domain work fails', async () => {
+    const domainScopes: Array<ReturnType<typeof getCurrentTenant>> = [];
+    const statusScopes: Array<ReturnType<typeof getCurrentTenant>> = [];
+    findOneMock.mockImplementation(async () => {
+      domainScopes.push(getCurrentTenant());
+      await Promise.resolve();
+      domainScopes.push(getCurrentTenant());
+      throw new Error('scoped document read failed');
+    });
+    pdfJobUpdateMock.mockImplementation(async () => {
+      statusScopes.push(getCurrentTenant());
+      await Promise.resolve();
+    });
+    processor.onModuleInit();
+    const registeredHandler = processMock.mock.calls[0]?.[1];
+    const callerScope = { clinicId: 'caller-clinic', bypassed: true };
+
+    await runWithTenant(callerScope, async () => {
+      await expect(registeredHandler(makeJob())).rejects.toThrow(
+        'scoped document read failed',
+      );
+      expect(getCurrentTenant()).toEqual(callerScope);
+    });
+
+    expect(domainScopes).toEqual([
+      { clinicId: 'clinic-1' },
+      { clinicId: 'clinic-1' },
+    ]);
+    expect(statusScopes).toEqual([{ bypassed: true }, { bypassed: true }]);
+    expect(generatePDFMock).not.toHaveBeenCalled();
+    expect(uploadAndPersistMock).not.toHaveBeenCalled();
+    expect(getCurrentTenant()).toBeUndefined();
   });
 });

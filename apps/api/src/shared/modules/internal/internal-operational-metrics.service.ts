@@ -22,6 +22,7 @@ export class InternalOperationalMetricsService {
     const start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
     const data = await this.repository.read(start, end);
     return internalOperationalMetricsSchema.parse({
+      definitionVersion: 2,
       window: {
         startInclusive: start.toISOString(),
         endExclusive: end.toISOString(),
@@ -31,11 +32,14 @@ export class InternalOperationalMetricsService {
         clinicsWithAppointments: data.clinicsWithAppointments,
         appointments: data.appointments,
         completedAppointments: data.completedAppointments,
+        prescriptionsCreated: data.prescriptionsCreated,
+        clinicPatientsSeen: data.clinicPatientsSeen,
         invoices: data.invoices,
         jobs: data.jobs,
         failedJobs: data.failedJobs,
       },
       telemetry: {
+        requestScope: 'CUSTOMER',
         samples: data.requests,
         serverErrors: data.errors,
         errorRatePercent: data.requests
@@ -43,6 +47,9 @@ export class InternalOperationalMetricsService {
           : null,
         p50Ms: data.p50Ms,
         p95Ms: data.p95Ms,
+        p99Ms: data.p99Ms,
+        validLatencySamples: data.validLatencySamples,
+        invalidLatencySamples: data.invalidLatencySamples,
         firstSampleAt: data.firstSampleAt?.toISOString() ?? null,
         lastSampleAt: data.lastSampleAt?.toISOString() ?? null,
       },

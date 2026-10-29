@@ -143,10 +143,10 @@ export async function seedPdfs(
   });
   const rxPath = path.join(PRESCRIPTION_DIR, `${prescription.id}.pdf`);
   await writeFile(rxPath, rxBuffer);
-  const rxUrl = `/uploads/seed/prescriptions/${prescription.id}.pdf`;
+  const rxKey = `seed/prescriptions/${prescription.id}.pdf`;
   await prisma.prescription.update({
     where: { id: prescription.id },
-    data: { pdfUrl: rxUrl, pdfGeneratedAt: new Date() },
+    data: { pdfUrl: rxKey, pdfGeneratedAt: new Date() },
   });
 
   // ─── Invoice PDF ─────────────────────────────────────────────────────
@@ -174,10 +174,10 @@ export async function seedPdfs(
   });
   const invPath = path.join(INVOICE_DIR, `${invoice.id}.pdf`);
   await writeFile(invPath, invBuffer);
-  const invUrl = `/uploads/seed/invoices/${invoice.id}.pdf`;
+  const invKey = `seed/invoices/${invoice.id}.pdf`;
   await prisma.invoice.update({
     where: { id: invoice.id },
-    data: { pdfUrl: invUrl, pdfGeneratedAt: new Date() },
+    data: { pdfUrl: invKey, pdfGeneratedAt: new Date() },
   });
 
   process.stdout.write(
