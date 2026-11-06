@@ -9,6 +9,7 @@ import { getAppBaseUrl } from "@/lib/get-app-base-url";
 import { SUPPORT_EMAIL } from "@workspace/types";
 
 interface Props {
+  editorial?: boolean;
   title?: string;
   description?: string;
   canonicalPath?: string;
@@ -17,6 +18,7 @@ interface Props {
 }
 
 const {
+  editorial = false,
   title = "Docita - Clinic Management Software",
   description = "Docita helps clinics and hospitals move from paper files and Excel into appointments, prescriptions, billing, records, and patient communication in one reliable workflow",
   canonicalPath = "/",
@@ -69,10 +71,11 @@ const structuredDataItems =
     <script is:inline>
       (() => {
         const storageKey = "docita-theme";
-        const stored = localStorage.getItem(storageKey);
+        let stored = null;
+        try { stored = localStorage.getItem(storageKey); } catch { /* Storage can be unavailable in private contexts. */ }
         const theme = stored === "dark" || stored === "light"
           ? stored
-          : "dark";
+          : "light";
         document.documentElement.classList.toggle("dark", theme === "dark");
         document.documentElement.style.colorScheme = theme;
       })();
@@ -111,23 +114,6 @@ const structuredDataItems =
     {structuredDataItems.map((item) => (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />
     ))}
-    <script is:inline>
-      /* Scroll-aware header: add backdrop blur + border after user scrolls */
-      (() => {
-        const header = document.querySelector('.landing-site-header');
-        if (!header) return;
-        const onScroll = () => {
-          const scrolled = window.scrollY > 8;
-          header.classList.toggle('backdrop-blur-md', scrolled);
-          header.classList.toggle('bg-background/85', scrolled);
-          header.style.borderBottomColor = scrolled
-            ? 'color-mix(in oklch, var(--primary) 18%, var(--border))'
-            : '';
-        };
-        window.addEventListener('scroll', onScroll, { passive: true });
-        onScroll();
-      })();
-    </script>
     <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-8M9WEK4LEE"></script>
     <script is:inline>
       window.dataLayer = window.dataLayer || [];
@@ -137,47 +123,12 @@ const structuredDataItems =
     </script>
   </head>
   <body class="landing-surface min-h-screen bg-background font-sans text-foreground antialiased">
+    <a class="editorial-skip-link" href="#main-content">Skip to content</a>
     <SiteHeader />
-    <main class="pt-[calc(4rem+env(safe-area-inset-top,0px))]">
+    <main id="main-content" tabindex="-1">
       <slot />
     </main>
-    <SiteFooter />
-    <StickyCta appUrl={appUrl} client:load />
-    <script is:inline>
-      /*
-       * Mobile section-nav affordance: the link row is wider than the phone
-       * viewport, so expose how far it can scroll through `data-scroll` and let
-       * CSS fade the clipped edge. Runs after the nav is in the DOM.
-       */
-      (() => {
-        const nav = document.querySelector('.landing-site-nav--mobile');
-        if (!nav) return;
-
-        const updateNavScrollState = () => {
-          // Above `xl` the row is `display: none` and has no layout box, so
-          // scrollWidth/clientWidth are both 0. Leave the state untouched
-          // instead of declaring it unscrollable — otherwise a resize down to
-          // phone width would clear the edge fade for good.
-          if (nav.clientWidth === 0) return;
-
-          const maxScroll = nav.scrollWidth - nav.clientWidth;
-          if (maxScroll <= 2) {
-            nav.dataset.scroll = 'none';
-            return;
-          }
-          if (nav.scrollLeft <= 2) {
-            nav.dataset.scroll = 'start';
-          } else if (nav.scrollLeft >= maxScroll - 2) {
-            nav.dataset.scroll = 'end';
-          } else {
-            nav.dataset.scroll = 'middle';
-          }
-        };
-
-        nav.addEventListener('scroll', updateNavScrollState, { passive: true });
-        window.addEventListener('resize', updateNavScrollState, { passive: true });
-        updateNavScrollState();
-      })();
-    </script>
+    <SiteFooter compact={editorial} />
+    {!editorial && <StickyCta appUrl={appUrl} client:load />}
   </body>
 </html>

@@ -4,9 +4,9 @@ interface FaqEntry {
 }
 
 /**
- * Single source of truth for the homepage FAQ. Used by:
+ * Single source of truth for the marketing FAQ (on /product). Used by:
  * - FaqCtaSection (renders the human-readable list)
- * - index.astro (passes through to MainLayout for FAQPage JSON-LD)
+ * - product/index.astro (passes through to MainLayout for FAQPage JSON-LD)
  */
 export const HOMEPAGE_FAQS: ReadonlyArray<FaqEntry> = [
   {

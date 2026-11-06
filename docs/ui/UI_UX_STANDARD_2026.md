@@ -6,6 +6,8 @@ The visual reference is the Origin web app (April 2026), captured in `artifacts/
 
 ## 0. Going forward (authoritative source)
 
+- **Landing editorial composition (2026-10-13):** the approved homepage uses a split serif hero, labeled static demo workspace, four capability summaries, Check in / Consult / Close the visit panels, pricing summary, and setup/demo actions. Detailed product information and FAQ live at `/product`; the existing plan comparison and picker live at `/pricing`. Demo illustrations contain synthetic data and no application controls. Use shared UI primitives and tokens, support both themes, and default to light while preserving a stored preference. See [the approved design](../superpowers/specs/2026-10-13-landing-editorial-design.md) and [verification plan](../superpowers/plans/2026-10-13-landing-editorial.md).
+
 - This document is the authoritative UI/UX source for `apps/app`, `apps/internal`, and `apps/landing` going forward. Where it conflicts with [`docs/ui/DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) or [`docs/ui/UI_UX_CONTRACT.md`](UI_UX_CONTRACT.md), this file wins; those files remain for historical and detailed reference.
 - Every new page or feature MUST start from the primitives in §3, the AI surface contract in §4, the motion/density rules in §5, and the per-page test contract in §7. The per-feature checklist in §9 must be ticked before merge.
 - Deviations are allowed only when the PR description includes an explicit dated note explaining the trade-off and, when relevant, a follow-up issue link.

@@ -1,0 +1,11 @@
+---
+import { PageHeader } from "@workspace/ui/components/layout/page-header";
+import MainLayout from "@/layouts/main-layout.astro";
+import { PricingSection } from "@/components/pricing-section";
+import { getAppBaseUrl } from "@/lib/get-app-base-url";
+const appUrl = getAppBaseUrl();
+---
+<MainLayout canonicalPath="/pricing" title="Docita Pricing - Plans for Your Practice" description="Compare Docita software plans, workspace modes and guided setup for your clinic or hospital.">
+  <PageHeader className="ui-page-shell editorial-detail-heading" title="A plan for the way your practice works." description="Compare workspace modes, software plans and guided setup." />
+ <PricingSection appUrl={appUrl} client:load />
+</MainLayout>

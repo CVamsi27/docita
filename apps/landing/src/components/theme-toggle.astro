@@ -1,7 +1,10 @@
-<button
+---
+import { Button } from "@workspace/ui/components/form/button";
+---
+<Button variant="outline" size="icon"
   id="theme-toggle-button"
   type="button"
-  class="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius)] border border-input bg-background text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+  className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius)] border border-input bg-background text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
   aria-label="Switch to dark mode"
 >
   <svg
@@ -40,7 +43,7 @@
   >
     <path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" />
   </svg>
-</button>
+</Button>
 
 <script is:inline>
   (() => {
@@ -56,7 +59,8 @@
     const root = document.documentElement;
 
     const resolveTheme = () => {
-      const stored = localStorage.getItem(storageKey);
+      let stored = null;
+      try { stored = localStorage.getItem(storageKey); } catch { /* Keep the toggle usable without browser storage. */ }
       if (stored === "dark" || stored === "light") {
         return stored;
       }
@@ -79,7 +83,7 @@
     button.addEventListener("click", () => {
       const current = root.classList.contains("dark") ? "dark" : "light";
       const next = current === "dark" ? "light" : "dark";
-      localStorage.setItem(storageKey, next);
+      try { localStorage.setItem(storageKey, next); } catch { /* The current page can still switch theme. */ }
       applyTheme(next);
     });
 

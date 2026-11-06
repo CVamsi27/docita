@@ -2,6 +2,13 @@
 
 import { ArrowRight, CalendarCheck } from "lucide-react";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@workspace/ui/components/overlay/accordion";
+
 import { Button } from "@workspace/ui/components/form/button";
 
 import { HOMEPAGE_FAQS } from "@/lib/faqs";
@@ -30,17 +37,25 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
             >
               Quick answers <em>before</em> you book the call.
             </h2>
-            <div className="mt-8">
+            <Accordion type="single" collapsible className="mt-8">
               {HOMEPAGE_FAQS.map((faq) => (
-                <details key={faq.q} className="group r2-faq-item">
-                  <summary className="r2-faq-summary group-open:text-primary transition-colors duration-150">
+                <AccordionItem
+                  key={faq.q}
+                  value={faq.q}
+                  className="r2-faq-item"
+                >
+                  <AccordionTrigger className="r2-faq-summary transition-colors duration-150">
                     <span>{faq.q}</span>
-                    <span className="r2-faq-icon" aria-hidden />
-                  </summary>
-                  <p className="r2-faq-body">{faq.a}</p>
-                </details>
+                  </AccordionTrigger>
+                  <AccordionContent
+                    forceMount
+                    className="data-[state=closed]:hidden"
+                  >
+                    <p className="r2-faq-body">{faq.a}</p>
+                  </AccordionContent>
+                </AccordionItem>
               ))}
-            </div>
+            </Accordion>
             <p className="mt-6 text-sm text-muted-foreground">
               Still have questions?{" "}
               <a
@@ -53,10 +68,15 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
             </p>
           </div>
 
-          <aside aria-labelledby="r2-cta-heading" className="lg:sticky lg:top-28 lg:self-start">
+          <aside
+            aria-labelledby="r2-cta-heading"
+            className="lg:sticky lg:top-28 lg:self-start"
+          >
             <div className="r2-cta-card shadow-lg">
               <div className="flex items-center gap-2">
-                <span className="r2-eyebrow text-primary">Ready when you are</span>
+                <span className="r2-eyebrow text-primary">
+                  Ready when you are
+                </span>
                 <span className="rounded-full border border-background/25 bg-background/15 px-2 py-0.5 text-[var(--fs-2xs)] font-medium text-background">
                   48-hour onboarding
                 </span>
@@ -69,9 +89,9 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                 Get your first workflow live on Docita this week.
               </h3>
               <p className="mt-4 text-sm leading-relaxed text-background/85 sm:text-base">
-                Book a guided setup. We will walk your current workflow,
-                import your records, and have the front desk and at least one
-                doctor live before week&rsquo;s end.
+                Book a guided setup. We will walk your current workflow, import
+                your records, and have the front desk and at least one doctor
+                live before week&rsquo;s end.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -105,7 +125,10 @@ export function FaqCtaSection({ appUrl }: FaqCtaSectionProps) {
                   ["\u20B9499", "Software plan"],
                   ["\u20B94,999", "Setup from"],
                 ].map(([value, label]) => (
-                  <div key={label} className="rounded-lg border border-background/10 bg-background/5 p-2.5">
+                  <div
+                    key={label}
+                    className="rounded-lg border border-background/10 bg-background/5 p-2.5"
+                  >
                     <dt className="r2-mono text-sm font-semibold">{value}</dt>
                     <dd className="mt-0.5 text-[var(--fs-2xs)] uppercase tracking-[0.14em] text-background/70">
                       {label}
